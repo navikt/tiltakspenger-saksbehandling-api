@@ -39,6 +39,11 @@ class BenkOversiktFakeRepo(
                 hentÅpneMeldekortBehandlinger(command).size +
                 hentÅpneSøknader().size +
                 hentÅpneKlagebehandlinger(command).size,
+            totalAntallUfiltrert =
+            hentÅpneBehandlinger(command).size +
+                hentÅpneMeldekortBehandlinger(command).size +
+                hentÅpneSøknader().size +
+                hentÅpneKlagebehandlinger(command).size,
         )
     }
 

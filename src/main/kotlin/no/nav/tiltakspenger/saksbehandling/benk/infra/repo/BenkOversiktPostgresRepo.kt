@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 data class BehandlingssamendragMedCount(
     val behandlingssammendrag: Behandlingssammendrag,
     val totalAntall: Int,
+    val totalAntallUfiltrert: Int,
 )
 
 class BenkOversiktPostgresRepo(
@@ -281,7 +282,10 @@ class BenkOversiktPostgresRepo(
                         )
                     select *,
                         count(*) over () as total_count
-                    from slåttSammen
+                    from (
+                        select *, count(*) over () as total_unfiltered_count
+                        from slåttSammen
+                    ) med_ufiltrert_count
                     where behandlingstype = any (:behandlingstype)
                       and status = any (:status)
                       and (
@@ -315,6 +319,7 @@ class BenkOversiktPostgresRepo(
                     val beslutter = row.stringOrNull("beslutter")
                     val sistEndret = row.localDateTimeOrNull("sist_endret")
                     val count = row.int("total_count")
+                    val unfilteredCount = row.int("total_unfiltered_count")
                     val erSattPåVent = row.booleanOrNull("erSattPåVent") ?: false
                     val sattPåVentBegrunnelse = row.stringOrNull("sattPåVentBegrunnelse")
                     val sattPåVentFrist = row.localDateOrNull("sattPåVentFrist")
@@ -341,14 +346,16 @@ class BenkOversiktPostgresRepo(
                             resultat = resultat,
                         ),
                         totalAntall = count,
+                        totalAntallUfiltrert = unfilteredCount,
                     )
                 }.asList,
             )
 
             val behandlingssammendrag = rows.map { it.behandlingssammendrag }
             val totalAntall = rows.firstOrNull()?.totalAntall ?: 0
+            val totalAntallUfiltrert = rows.firstOrNull()?.totalAntallUfiltrert ?: 0
 
-            BenkOversikt(behandlingssammendrag, totalAntall)
+            BenkOversikt(behandlingssammendrag, totalAntall, totalAntallUfiltrert)
         }
     }
 }

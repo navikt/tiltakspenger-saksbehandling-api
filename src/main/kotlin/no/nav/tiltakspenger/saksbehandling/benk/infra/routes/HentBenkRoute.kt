@@ -51,30 +51,17 @@ fun Route.hentBenkRoute(
 
 private data class HentBenkOversiktBody(
     val sortering: String,
-    val filters: Filters? = null,
-
-    // TODO: fjern når frontend er oppdatert
-    val benktype: List<String>? = null,
-    val behandlingstype: List<String>? = null,
-    val status: List<String>? = null,
-    val identer: List<String>? = null,
+    val filters: Filters,
 ) {
     val benkSortering = BenkSortering.fromString(sortering)
 
     fun toCommand(saksbehandler: Saksbehandler, correlationId: CorrelationId): HentÅpneBehandlingerCommand {
         return HentÅpneBehandlingerCommand(
-            åpneBehandlingerFiltrering = filters?.let {
-                ÅpneBehandlingerFiltrering(
-                    benktype = it.benktype?.let { benktyper -> benktyper.map { BehandlingssammendragBenktype.valueOf(it) } },
-                    behandlingstype = it.behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
-                    status = it.status?.map { BehandlingssammendragStatus.valueOf(it) },
-                    identer = it.identer,
-                )
-            } ?: ÅpneBehandlingerFiltrering(
-                benktype = benktype?.let { benktyper -> benktyper.map { BehandlingssammendragBenktype.valueOf(it) } },
-                behandlingstype = behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
-                status = status?.map { BehandlingssammendragStatus.valueOf(it) },
-                identer = identer,
+            åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(
+                benktype = filters.benktype?.let { benktyper -> benktyper.map { BehandlingssammendragBenktype.valueOf(it) } },
+                behandlingstype = filters.behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
+                status = filters.status?.map { BehandlingssammendragStatus.valueOf(it) },
+                identer = filters.identer,
             ),
             sortering = benkSortering,
             saksbehandler = saksbehandler,
@@ -93,7 +80,9 @@ private data class HentBenkOversiktBody(
 private fun TilgangsfiltrertBenkOversikt.toDTO(): TilgangsfiltrertBenkOversiktDTO = TilgangsfiltrertBenkOversiktDTO(
     behandlingssammendrag = this.behandlingssammendrag.toDTO(),
     totalAntall = this.totalAntall,
+    totalAntallUfiltrert = this.totalAntallUfiltrert,
     antallFiltrertPgaTilgang = this.antallFiltrertPgaTilgang,
+    limit = this.limit,
 )
 
 private fun List<Behandlingssammendrag>.toDTO(): List<BehandlingssammendragDTO> = this.map { it.toDTO() }

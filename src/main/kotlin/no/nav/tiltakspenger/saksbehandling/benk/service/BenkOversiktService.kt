@@ -23,18 +23,23 @@ class BenkOversiktService(
     ): TilgangsfiltrertBenkOversikt {
         val benkOversikt = benkOversiktRepo.hentÅpneBehandlinger(command)
 
-        if (benkOversikt.isEmpty()) return TilgangsfiltrertBenkOversikt.empty()
+        if (benkOversikt.isEmpty()) {
+            return TilgangsfiltrertBenkOversikt.empty()
+        }
+
         val tilganger = tilgangskontrollService.harTilgangTilPersoner(
             fnrs = benkOversikt.fødselsnummere(),
             saksbehandlerToken = saksbehandlerToken,
             saksbehandler = saksbehandler,
         )
+
         val oversiktSaksbehandlerHarTilgangTil =
             filtrerIkkeTilgang(benkOversikt, tilganger, command.saksbehandler, logger)
 
         return TilgangsfiltrertBenkOversikt(
             behandlingssammendrag = oversiktSaksbehandlerHarTilgangTil.behandlingssammendrag,
             totalAntall = benkOversikt.totalAntall,
+            totalAntallUfiltrert = benkOversikt.totalAntallUfiltrert,
             antallFiltrertPgaTilgang = benkOversikt.behandlingssammendrag.size - oversiktSaksbehandlerHarTilgangTil.behandlingssammendrag.size,
         )
     }

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 data class BenkOversikt(
     val behandlingssammendrag: List<Behandlingssammendrag>,
     val totalAntall: Int,
+    val totalAntallUfiltrert: Int,
 ) {
 
     fun isEmpty(): Boolean = behandlingssammendrag.isEmpty() && totalAntall == 0

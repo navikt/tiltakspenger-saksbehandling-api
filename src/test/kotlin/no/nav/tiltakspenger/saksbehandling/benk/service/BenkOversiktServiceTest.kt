@@ -81,6 +81,7 @@ class BenkOversiktServiceTest {
                     bs2HarIkkeTilgang,
                 ),
                 totalAntall = 2,
+                totalAntallUfiltrert = 2,
             )
 
             coEvery {

@@ -91,9 +91,10 @@ class BenkOversiktPostgresRepoTest {
     fun `henter åpne søknader uten behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val søknad = testDataHelper.persisterSakOgSøknad()
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 1
+            totalAntallUfiltrert shouldBe 1
             actual.size shouldBe 1
             actual.first() shouldBe Behandlingssammendrag(
                 sakId = søknad.sakId,
@@ -145,9 +146,10 @@ class BenkOversiktPostgresRepoTest {
                 sak = sakAvslag,
             )
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 3
+            totalAntallUfiltrert shouldBe 3
             actual.size shouldBe 3
             actual.let {
                 it.first() shouldBe Behandlingssammendrag(
@@ -217,9 +219,10 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterIverksattRevurderingStans(sak = sakMedRevurderingUnderBeslutning)
             testDataHelper.persisterAvbruttRevurdering(sak = sakMedRevurderingUnderBeslutning)
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 3
+            totalAntallUfiltrert shouldBe 3
             actual.size shouldBe 3
             actual.let {
                 it.first() shouldBe Behandlingssammendrag(
@@ -291,9 +294,10 @@ class BenkOversiktPostgresRepoTest {
             )
             val (sak2, førsteMeldekortSak2) = testDataHelper.persisterBrukersMeldekort()
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 3
+            totalAntallUfiltrert shouldBe 3
             actual.size shouldBe 3
 
             actual.let {
@@ -360,9 +364,10 @@ class BenkOversiktPostgresRepoTest {
             val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
             testDataHelper.persisterIverksattMeldekortbehandling()
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 3
+            totalAntallUfiltrert shouldBe 3
             actual.size shouldBe 3
             testDataHelper.verifiserViHar3MeldekortBehandlinger()
 
@@ -439,9 +444,10 @@ class BenkOversiktPostgresRepoTest {
                 periode = periode,
             )
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 1
+            totalAntallUfiltrert shouldBe 1
             actual shouldBe listOf(
                 Behandlingssammendrag(
                     sakId = sakMedKorrigertMeldekort.id,
@@ -467,10 +473,11 @@ class BenkOversiktPostgresRepoTest {
                 periode = brukersMeldekort.periode,
             )
 
-            val (actualEtterIverksettingIgjen, totalAntallEtterIverksettingIgjen) =
+            val (actualEtterIverksettingIgjen, totalAntallEtterIverksettingIgjen, totalAntallUfiltrertEtterIverksettingIgjen) =
                 testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntallEtterIverksettingIgjen shouldBe 0
+            totalAntallUfiltrertEtterIverksettingIgjen shouldBe 0
             actualEtterIverksettingIgjen shouldBe emptyList()
         }
     }
@@ -483,10 +490,11 @@ class BenkOversiktPostgresRepoTest {
                 periode = periode,
             )
 
-            val (actualFørBehandling, totalAntallFørBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualFørBehandling, totalAntallFørBehandling, totalAntallUfiltrertFørBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
             totalAntallFørBehandling shouldBe 1
+            totalAntallUfiltrertFørBehandling shouldBe 1
             actualFørBehandling shouldBe listOf(
                 Behandlingssammendrag(
                     sakId = sakMedInnsendtBrukersMeldekort.id,
@@ -513,10 +521,11 @@ class BenkOversiktPostgresRepoTest {
                 kjedeId = brukersMeldekort.kjedeId,
             )
 
-            val (actualEtterBehandling, totalAntallEtterBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualEtterBehandling, totalAntallEtterBehandling, totalAntallUfiltrertEtterBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
             totalAntallEtterBehandling shouldBe 1
+            totalAntallUfiltrertEtterBehandling shouldBe 1
             actualEtterBehandling shouldBe listOf(
                 Behandlingssammendrag(
                     sakId = sakEtterBehandling.id,
@@ -539,11 +548,12 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterAvsluttetMeldekortBehandling(sak = sakEtterBehandling, periode = behandling.periode)
 
-            val (actualEtterAvbrytelse, totalAntallEtterAvbrytelse) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualEtterAvbrytelse, totalAntallEtterAvbrytelse, totalAntallUfiltrertEtterAvbrytelse) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
             totalAntallEtterAvbrytelse shouldBe 0
+            totalAntallUfiltrertEtterAvbrytelse shouldBe 0
             actualEtterAvbrytelse shouldBe emptyList()
         }
     }
@@ -557,11 +567,12 @@ class BenkOversiktPostgresRepoTest {
                 periode = periode,
             )
 
-            val (actualMedNyttMeldekort, totalAntallMedNyttMeldekort) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualMedNyttMeldekort, totalAntallMedNyttMeldekort, totalAntallUfiltrertMedNyttMeldekort) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
             totalAntallMedNyttMeldekort shouldBe 1
+            totalAntallUfiltrertMedNyttMeldekort shouldBe 1
             actualMedNyttMeldekort.single().behandlingstype shouldBe BehandlingssammendragType.INNSENDT_MELDEKORT
 
             val (sakEtterBehandling, behandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling(
@@ -570,11 +581,12 @@ class BenkOversiktPostgresRepoTest {
                 kjedeId = brukersMeldekort.kjedeId,
             )
 
-            val (actualMedNyBehandling, totalAntallMedNyBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualMedNyBehandling, totalAntallMedNyBehandling, totalAntallUfiltrertMedNyBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
             totalAntallMedNyBehandling shouldBe 1
+            totalAntallUfiltrertMedNyBehandling shouldBe 1
             actualMedNyBehandling.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
 
             // Bruker sender en korrigering
@@ -583,22 +595,24 @@ class BenkOversiktPostgresRepoTest {
                 periode = periode,
             )
 
-            val (actualMedKorrigeringFraBruker, totalAntallMedNyKorrigeringFraBruker) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualMedKorrigeringFraBruker, totalAntallMedNyKorrigeringFraBruker, totalAntallUfiltrertMedNyKorrigeringFraBruker) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
             // Korrigeringen skal vises inntil meldekortbehandlingen er oppdatert
             totalAntallMedNyKorrigeringFraBruker shouldBe 2
+            totalAntallUfiltrertMedNyKorrigeringFraBruker shouldBe 2
             actualMedKorrigeringFraBruker[0].behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
             actualMedKorrigeringFraBruker[1].behandlingstype shouldBe BehandlingssammendragType.KORRIGERT_MELDEKORT
 
             testDataHelper.persisterOppdatertMeldekortbehandling(behandling = behandling)
 
-            val (actualMedOppdatertBehandling, totalAntallMedOppdatertBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualMedOppdatertBehandling, totalAntallMedOppdatertBehandling, totalAntallUfiltrertMedOppdatertBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
             totalAntallMedOppdatertBehandling shouldBe 1
+            totalAntallUfiltrertMedOppdatertBehandling shouldBe 1
             actualMedOppdatertBehandling.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
         }
     }
@@ -614,9 +628,10 @@ class BenkOversiktPostgresRepoTest {
             val (_, oversendtKlagebehandlingMedSvarFraKA) = testDataHelper.persisterKlagebehandlingMottattFraKA()
             testDataHelper.persisterFerdigstiltKlagebehandling()
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 3
+            totalAntallUfiltrert shouldBe 3
             actual.size shouldBe 3
             actual.first() shouldBe Behandlingssammendrag(
                 sakId = klagebehandling.sakId,
@@ -740,9 +755,10 @@ class BenkOversiktPostgresRepoTest {
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(avsluttetTilbakekreving)
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 2
+            totalAntallUfiltrert shouldBe 2
             actual.size shouldBe 2
             actual.first() shouldBe Behandlingssammendrag(
                 sakId = sak.id,
@@ -806,9 +822,10 @@ class BenkOversiktPostgresRepoTest {
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilbakekreving)
 
-            val (actual, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 6
+            totalAntallUfiltrert shouldBe 6
             actual.size shouldBe 6
         }
     }
@@ -821,22 +838,25 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterOpprettetRevurdering()
             testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
 
-            val (actualSøknadsbehandlinger, totalAntallSøknadbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualSøknadsbehandlinger, totalAntallSøknadbehandlinger, totalAntallUfiltrertSøknadsbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(behandlingstype = listOf(BehandlingssammendragType.SØKNADSBEHANDLING)),
             )
-            val (actualRevurderinger, totalAntallRevurderinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualRevurderinger, totalAntallRevurderinger, totalAntallUfiltrertRevurderinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(behandlingstype = listOf(BehandlingssammendragType.REVURDERING)),
             )
-            val (actualMeldekortBehandlinger, totalAntallMeldekortbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualMeldekortBehandlinger, totalAntallMeldekortbehandlinger, totalAntallUfiltrertMeldekortbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(behandlingstype = listOf(BehandlingssammendragType.MELDEKORTBEHANDLING)),
             )
 
             actualSøknadsbehandlinger.size shouldBe 2
             totalAntallSøknadbehandlinger shouldBe 2
+            totalAntallUfiltrertSøknadsbehandlinger shouldBe 4
             actualRevurderinger.size shouldBe 1
             totalAntallRevurderinger shouldBe 1
+            totalAntallUfiltrertRevurderinger shouldBe 4
             actualMeldekortBehandlinger.size shouldBe 1
             totalAntallMeldekortbehandlinger shouldBe 1
+            totalAntallUfiltrertMeldekortbehandlinger shouldBe 4
         }
     }
 
@@ -855,26 +875,30 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
             testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
 
-            val (actualKlarTilBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualKlarTilBehandling, _, totalAntallUfiltrertKlarTilBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BEHANDLING)),
             )
 
-            val (actualUnderBehandling, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualUnderBehandling, _, totalAntallUfiltrertUnderBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BEHANDLING)),
             )
 
-            val (actualKlarTilBeslutning, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualKlarTilBeslutning, _, totalAntallUfiltrertKlarTilBeslutning) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BESLUTNING)),
             )
 
-            val (actualUnderBeslutning, _) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualUnderBeslutning, _, totalAntallUfiltrertUnderBeslutning) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(status = listOf(BehandlingssammendragStatus.UNDER_BESLUTNING)),
             )
 
             actualKlarTilBehandling.size shouldBe 1
+            totalAntallUfiltrertKlarTilBehandling shouldBe 9
             actualUnderBehandling.size shouldBe 3
+            totalAntallUfiltrertUnderBehandling shouldBe 9
             actualKlarTilBeslutning.size shouldBe 3
+            totalAntallUfiltrertKlarTilBeslutning shouldBe 9
             actualUnderBeslutning.size shouldBe 2
+            totalAntallUfiltrertUnderBeslutning shouldBe 9
         }
     }
 
@@ -895,11 +919,12 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = saksbehandler)
 
-            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(saksbehandlere = listOf(saksbehandler.navIdent)),
             )
 
             totalAntall shouldBe 2
+            totalAntallUfiltrert shouldBe 3
             behandlingssamendrag.size shouldBe 2
             behandlingssamendrag.let {
                 it.first().saksbehandler shouldBe saksbehandler.navIdent
@@ -929,11 +954,12 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterKlarTilBeslutningSøknadsbehandling()
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = saksbehandler)
 
-            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(saksbehandlere = listOf("IKKE_TILDELT")),
             )
 
             totalAntall shouldBe 2
+            totalAntallUfiltrert shouldBe 3
             behandlingssamendrag.size shouldBe 2
             behandlingssamendrag.let {
                 it.first().saksbehandler shouldBe saksbehandler.navIdent
@@ -963,9 +989,10 @@ class BenkOversiktPostgresRepoTest {
             val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
-            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+            val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
 
             totalAntall shouldBe 2
+            totalAntallUfiltrert shouldBe 2
             behandlingssamendrag.size shouldBe 2
         }
     }
@@ -987,11 +1014,12 @@ class BenkOversiktPostgresRepoTest {
             val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
-            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(benktype = listOf(BehandlingssammendragBenktype.KLAR)),
             )
 
             totalAntall shouldBe 1
+            totalAntallUfiltrert shouldBe 2
             behandlingssamendrag.size shouldBe 1
         }
     }
@@ -1013,11 +1041,12 @@ class BenkOversiktPostgresRepoTest {
             val oppdatertBehandling = behandling.settPåVent(kommando, Clock.system(zoneIdOslo)).first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
-            val (behandlingssamendrag, totalAntall) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(benktype = listOf(BehandlingssammendragBenktype.VENTER)),
             )
 
             totalAntall shouldBe 1
+            totalAntallUfiltrert shouldBe 2
             behandlingssamendrag.size shouldBe 1
         }
     }
