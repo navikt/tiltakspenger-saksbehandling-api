@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.Klagebehandlingsresu
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Companion.toDomain
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -24,7 +25,8 @@ private data class KlagebehandlingsresultatDbJson(
     val type: KlagebehandlingsresultatDbEnum,
     val omgjørBegrunnelse: String?,
     val omgjørÅrsak: KlagebehandlingsOmgjørÅrsakDbEnum?,
-    val rammebehandlingId: String?,
+    val rammebehandlingId: List<String>,
+    val åpenRammebehandlingId: String?,
     val hjemler: List<KlagehjemmelDb>?,
     val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
     val brevdato: LocalDate?,
@@ -36,6 +38,8 @@ private data class KlagebehandlingsresultatDbJson(
     val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
     val klageinstanshendelser: List<KlageinstanshendelseDb>,
     val ferdigstiltTidspunkt: LocalDateTime?,
+    // kan fjerne default etter migrering
+    val begrunnelseFerdigstilling: String? = null,
 
     // TODO jah: Flytt avvisningsbrevtekst hit fra klagebehandlingstabellen
 ) {
@@ -56,7 +60,10 @@ private data class KlagebehandlingsresultatDbJson(
             KlagebehandlingsresultatDbEnum.OMGJØR -> Omgjør(
                 årsak = omgjørÅrsak!!.toDomain(),
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
-                rammebehandlingId = rammebehandlingId?.let { BehandlingId.fromString(it) },
+                rammebehandlingId = rammebehandlingId.map { BehandlingId.fromString(it) },
+                åpenRammebehandlingId = åpenRammebehandlingId?.let { BehandlingId.fromString(it) },
+                ferdigstiltTidspunkt = ferdigstiltTidspunkt,
+                begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
             )
 
             KlagebehandlingsresultatDbEnum.OPPRETTHOLDT -> Opprettholdt(
@@ -72,7 +79,9 @@ private data class KlagebehandlingsresultatDbJson(
                 oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,
                 klageinstanshendelser = Klageinstanshendelser(klageinstanshendelser.map { it.toDomain() }),
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
-                rammebehandlingId = rammebehandlingId?.let { BehandlingId.fromString(it) },
+                rammebehandlingId = rammebehandlingId.map { BehandlingId.fromString(it) },
+                begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
+                åpenRammebehandlingId = åpenRammebehandlingId?.let { BehandlingId.fromString(it) },
             )
         }
     }
@@ -87,7 +96,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         },
         omgjørBegrunnelse = (this as? Omgjør)?.begrunnelse?.verdi,
         omgjørÅrsak = (this as? Omgjør)?.årsak?.toDbEnum(),
-        rammebehandlingId = this.rammebehandlingId?.toString(),
+        rammebehandlingId = this.rammebehandlingId.map { it.toString() },
         hjemler = (this as? Opprettholdt)?.hjemler?.map { it.toDb() },
         iverksattOpprettholdelseTidspunkt = (this as? Opprettholdt)?.iverksattOpprettholdelseTidspunkt,
         brevdato = (this as? Opprettholdt)?.brevdato,
@@ -98,7 +107,9 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         distribusjonIdInnstillingsbrev = (this as? Opprettholdt)?.distribusjonIdInnstillingsbrev?.toString(),
         distribusjonstidspunktInnstillingsbrev = (this as? Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
         klageinstanshendelser = (this as? Opprettholdt)?.klageinstanshendelser?.toDb() ?: emptyList(),
-        ferdigstiltTidspunkt = (this as? Opprettholdt)?.ferdigstiltTidspunkt,
+        ferdigstiltTidspunkt = this.ferdigstiltTidspunkt,
+        begrunnelseFerdigstilling = this.begrunnelseFerdigstilling?.verdi,
+        åpenRammebehandlingId = this.åpenRammebehandlingId?.toString(),
     ).let { serialize(it) }
 }
 

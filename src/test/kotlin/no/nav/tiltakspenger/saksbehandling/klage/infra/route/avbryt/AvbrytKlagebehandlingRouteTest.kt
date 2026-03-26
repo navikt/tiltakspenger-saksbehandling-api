@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
 
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -71,7 +73,27 @@ class AvbrytKlagebehandlingRouteTest {
     }
 
     @Test
-    fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling`() {
+    fun `kan avbryte rammebehandling vi omgjør etter KA`() {
+        val saksbehandler = ObjectMother.saksbehandler()
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, rammebehandlingMedKlagebehandling, _, _) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+            )!!
+            val (_, _, rammebehandling, _) = avbrytRammebehandling(
+                tac = tac,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+
+            rammebehandling!!.status shouldBe Rammebehandlingsstatus.AVBRUTT
+        }
+    }
+
+    @Test
+    fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling (søknadsbehandling)`() {
         val saksbehandler = ObjectMother.saksbehandler()
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, rammebehandlingMedklagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
@@ -111,6 +133,47 @@ class AvbrytKlagebehandlingRouteTest {
     }
 
     @Test
+    fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling (revurdering)`() {
+        val saksbehandler = ObjectMother.saksbehandler()
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, rammebehandlingMedklagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+                saksbehandlerSøknadsbehandling = saksbehandler,
+                saksbehandlerKlagebehandling = saksbehandler,
+                type = "REVURDERING_OMGJØRING",
+            )!!
+            val klagebehandling = rammebehandlingMedklagebehandling.klagebehandling!!
+            val (_, _, _, _) = avbrytRammebehandling(
+                tac = tac,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                rammebehandlingId = rammebehandlingMedklagebehandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+            val (_, _, json) = avbrytKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksnummer = Saksnummer("202505011001"),
+                fnr = "12345678911",
+                saksbehandler = "Z12345",
+                resultat = "OMGJØR",
+                vedtakDetKlagesPå = sak.rammevedtaksliste.single().id.toString(),
+                behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
+                status = "AVBRUTT",
+                årsak = "PROSESSUELL_FEIL",
+                begrunnelse = "Begrunnelse for omgjøring",
+                avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
+            )
+        }
+    }
+
+    @Test
     fun `kan ikke avbryte hvis åpen tilknyttet rammebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
@@ -126,7 +189,7 @@ class AvbrytKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                      {
-                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: $rammebehandlingId",
+                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: [$rammebehandlingId]",
                         "kode": "knyttet_til_ikke_avbrutt_rammebehandling"
                      }
                     """.trimIndent()

@@ -23,5 +23,5 @@ sealed interface KanIkkeOppdatereKlagebehandling {
         val faktiskResultat: String?,
     ) : KanIkkeOppdatereKlagebehandling
 
-    data class KlageErKnyttetTilRammebehandling(val rammebehandlingId: BehandlingId) : KanIkkeOppdatereKlagebehandling
+    data class KlageErKnyttetTilRammebehandling(val rammebehandlingId: List<BehandlingId>) : KanIkkeOppdatereKlagebehandling
 }

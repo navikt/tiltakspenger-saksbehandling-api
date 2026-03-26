@@ -282,9 +282,6 @@ fun Sak.opprettRammevedtak(
     require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
     if (klagebehandling != null) {
         require(klagebehandling.status == Klagebehandlingsstatus.VEDTATT || klagebehandling.status == Klagebehandlingsstatus.FERDIGSTILT) { "Krever at klagebehandling har status VEDTATT/FERDIGSTILT når vi skal opprette et vedtak. Feilen skjedde for sak ${this.id}, rammebehandling: ${rammebehandling.id}, tilknyttet klagebehandling: ${klagebehandling.id}" }
-        require(klagebehandling.rammebehandlingId == rammebehandling.id) {
-            "Klagebehandling må være knyttet til rammebehandlingen når vi skal opprette et vedtak."
-        }
     }
 
     val vedtakId = VedtakId.random()

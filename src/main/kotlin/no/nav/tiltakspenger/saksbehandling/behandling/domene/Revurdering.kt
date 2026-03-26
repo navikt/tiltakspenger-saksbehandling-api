@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernRammebehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -178,6 +179,11 @@ data class Revurdering(
                 begrunnelse = begrunnelse,
             ),
             sistEndret = tidspunkt,
+            klagebehandling = klagebehandling?.fjernRammebehandlingId(
+                rammebehandlingId = id,
+                saksbehandler = avbruttAv,
+                sistEndret = tidspunkt,
+            ),
         )
     }
 

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.vurder
 
 import arrow.core.Either
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
@@ -13,7 +14,9 @@ fun Sak.vurderKlagebehandling(
 ): Either<KanIkkeVurdereKlagebehandling, Pair<Sak, Klagebehandling>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let {
         // TODO jah: Vurder å lage et domeneobjekt som wrapper klagebehandling med rammebehandling.
-        val rammebehandlingsstatus = it.rammebehandlingId?.let { this.hentRammebehandling(it) }?.status
+        val rammebehandlingsstatus = it.rammebehandlingId.let { rammebehandlingId ->
+            rammebehandlingId.map { this.hentRammebehandling(it) }.singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
+        }?.status
         it.vurder(kommando, rammebehandlingsstatus, clock)
             .map {
                 val oppdatertSak = this.oppdaterKlagebehandling(it)

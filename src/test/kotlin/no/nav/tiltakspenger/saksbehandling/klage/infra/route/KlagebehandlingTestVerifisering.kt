@@ -32,7 +32,8 @@ fun String.shouldBeKlagebehandlingDTO(
     kanIverksetteOpprettholdelse: Boolean = false,
     årsak: String? = null,
     begrunnelse: String? = null,
-    rammebehandlingId: String? = null,
+    rammebehandlingId: List<String>? = null,
+    åpenRammebehandlingId: String? = null,
     ventestatus: String? = null,
     hjemler: List<String> = emptyList(),
     iverksattOpprettholdelseTidspunkt: Boolean = false,
@@ -43,8 +44,10 @@ fun String.shouldBeKlagebehandlingDTO(
     oversendtKlageinstansenTidspunkt: Boolean = false,
     klageinstanshendelser: List<String> = emptyList(),
     ferdigstiltTidspunkt: Boolean = false,
+    begrunnelseFerdigstilling: String? = null,
 ) {
     val expected =
+        //language=json
         """
        {
          "id": "$klagebehandlingId",
@@ -58,6 +61,8 @@ fun String.shouldBeKlagebehandlingDTO(
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
          "status": "$status",
+         "tilknyttedeRammebehandlingIder": ${if (rammebehandlingId.isNullOrEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
+         "åpenRammebehandlingId": ${åpenRammebehandlingId?.toJsonValue()},
          "resultat": ${
             when (resultat) {
                 "OPPRETTHOLDT" -> """
@@ -72,14 +77,16 @@ fun String.shouldBeKlagebehandlingDTO(
                       "ferdigstiltTidspunkt": ${if (ferdigstiltTidspunkt) "\"TIMESTAMP\"" else "null"},
                       "journalpostIdInnstillingsbrev": ${journalpostIdInnstillingsbrev?.let { "\"$it\"" }},
                       "dokumentInfoIder": ${dokumentInfoIder?.map { "\"$it\"" }},
-                      "type": "OPPRETTHOLDT"
+                      "type": "OPPRETTHOLDT",
+                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
                     }
                 """.trimIndent()
 
                 "AVVIST" -> """
                     {
                       "type": "AVVIST",
-                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"}
+                      "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"},
+                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
                     }
                 """.trimIndent()
 
@@ -88,7 +95,7 @@ fun String.shouldBeKlagebehandlingDTO(
                       "type": "OMGJØR",
                       "årsak": ${årsak.toJsonValue()},
                       "begrunnelse": ${begrunnelse.toJsonValue()},
-                      "rammebehandlingId": ${rammebehandlingId.toJsonValue()}
+                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
                     }
                 """.trimIndent()
 

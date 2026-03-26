@@ -44,7 +44,8 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                 kanIverksetteVedtak = null,
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                rammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
                 ventestatus = """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
             )
             klagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(

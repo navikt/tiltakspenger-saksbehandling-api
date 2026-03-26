@@ -5,7 +5,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
@@ -21,7 +21,10 @@ suspend fun Sak.leggTilbakeKlagebehandling(
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeLeggeTilbakeKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
-        val rammebehandling = klagebehandling.rammebehandlingId?.let { this.hentRammebehandling(it) }
+        val rammebehandling = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
+            rammebehandlingId.map { this.hentRammebehandling(it) }
+                .singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
+        }
         if (rammebehandling != null) {
             return leggTilbakeRammebehandling(
                 kommando.sakId,

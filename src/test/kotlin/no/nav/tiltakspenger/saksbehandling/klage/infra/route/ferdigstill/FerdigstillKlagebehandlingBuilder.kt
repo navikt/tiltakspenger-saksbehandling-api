@@ -45,7 +45,7 @@ interface FerdigstillKlagebehandlingBuilder {
      *  4. Opprettholder (emulerer journalføring, distribuering av vedtaksbrev, oversendelse til klageinstansen, og utfall fra klageinstansen)
      *  5. Ferdigstiller klagebehandling
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgFerdigstillKlagebehandling(
+    suspend fun ApplicationTestBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -91,6 +91,7 @@ interface FerdigstillKlagebehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
+        begrunnelse: String? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
@@ -104,7 +105,10 @@ interface FerdigstillKlagebehandlingBuilder {
                 path("/sak/$sakId/klage/$klagebehandlingId/ferdigstill")
             },
             jwt = jwt,
-        ).apply {
+        ) {
+            //language=json
+            setBody("""{"begrunnelse": ${begrunnelse?.let { "\"$it\"" }}}""".trimIndent())
+        }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
