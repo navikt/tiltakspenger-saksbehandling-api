@@ -187,10 +187,10 @@ class BenkOversiktPostgresRepo(
                 tb.opprettet              as startet,
                 'TILBAKEKREVING'          as behandlingstype,
                 case
-                    when tb.status = 'TIL_BEHANDLING' then 'KLAR_TIL_BEHANDLING'
-                    when tb.status = 'UNDER_BEHANDLING' then 'UNDER_BEHANDLING'
-                    when tb.status = 'TIL_GODKJENNING' then 'KLAR_TIL_BESLUTNING'
-                    when tb.status = 'UNDER_GODKJENNING' then 'UNDER_BESLUTNING'
+                    when tb.status = 'TIL_BEHANDLING' and tb.saksbehandler_ident is not null then 'UNDER_BEHANDLING'
+                    when tb.status = 'TIL_BEHANDLING' and tb.saksbehandler_ident is null then 'KLAR_TIL_BEHANDLING'
+                    when tb.status = 'TIL_GODKJENNING' and tb.beslutter_ident is not null then 'UNDER_BESLUTNING'
+                    when tb.status = 'TIL_GODKJENNING' and tb.beslutter_ident is null then 'KLAR_TIL_BESLUTNING'
                 end                       as status,
                 tb.saksbehandler_ident    as saksbehandler,
                 tb.beslutter_ident        as beslutter,
@@ -202,7 +202,7 @@ class BenkOversiktPostgresRepo(
                 null::jsonb               as attesteringer
             from tilbakekreving_behandling tb
                 join sak s on tb.sak_id = s.id
-            where tb.status in ('TIL_BEHANDLING', 'UNDER_BEHANDLING', 'TIL_GODKJENNING', 'UNDER_GODKJENNING')
+            where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING')
         """
 
         const val ÅPNE_KLAGER = """
