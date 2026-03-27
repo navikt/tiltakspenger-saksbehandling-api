@@ -169,7 +169,7 @@ interface TilbakekrevingBehandlingBuilder {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
-            HttpMethod.Patch,
+            HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/overta")
