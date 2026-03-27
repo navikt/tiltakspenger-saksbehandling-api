@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -29,10 +29,10 @@ fun Route.overtaTilbakekrevingBehandlingRoute(
 ) {
     val logger = KotlinLogging.logger {}
 
-    patch(OVERTA_TILBAKEKREVING_PATH) {
+    post(OVERTA_TILBAKEKREVING_PATH) {
         logger.debug { "Mottatt patch-request på '$OVERTA_TILBAKEKREVING_PATH' - Overtar tilbakekrevingsbehandlingen." }
-        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@patch
-        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
+        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
+        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withTilbakekrevingId { tilbakekrevingId ->
                 val correlationId = call.correlationId()

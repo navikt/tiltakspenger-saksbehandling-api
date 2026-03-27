@@ -139,11 +139,11 @@ class TilbakekrevingBehandlingPostgresRepo(
                         saksbehandler_ident = :ny_saksbehandler,
                         beslutter_ident = CASE WHEN beslutter_ident = :ny_saksbehandler THEN null ELSE beslutter_ident END,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'TIL_BEHANDLING'
+                    WHERE id = :id AND saksbehandler_ident = :naverende_saksbehandler AND status = 'TIL_BEHANDLING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "ny_saksbehandler" to tilbakekrevingBehandling.saksbehandler,
-                    "nåværende_saksbehandler" to nåværendeSaksbehandler,
+                    "naverende_saksbehandler" to nåværendeSaksbehandler,
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
             ) > 0
@@ -162,11 +162,11 @@ class TilbakekrevingBehandlingPostgresRepo(
                     UPDATE tilbakekreving_behandling SET
                         beslutter_ident = :ny_beslutter,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'TIL_GODKJENNING'
+                    WHERE id = :id AND beslutter_ident = :naverende_beslutter AND status = 'TIL_GODKJENNING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "ny_beslutter" to tilbakekrevingBehandling.beslutter,
-                    "nåværende_beslutter" to nåværendeBeslutter,
+                    "naverende_beslutter" to nåværendeBeslutter,
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
             ) > 0
@@ -186,10 +186,10 @@ class TilbakekrevingBehandlingPostgresRepo(
                         saksbehandler_ident = null,
                         status = :status,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'TIL_BEHANDLING'
+                    WHERE id = :id AND saksbehandler_ident = :naverende_saksbehandler AND status = 'TIL_BEHANDLING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
-                    "nåværende_saksbehandler" to nåværendeSaksbehandler,
+                    "naverende_saksbehandler" to nåværendeSaksbehandler,
                     "status" to tilbakekrevingBehandling.status.tilDb(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
@@ -210,10 +210,10 @@ class TilbakekrevingBehandlingPostgresRepo(
                         beslutter_ident = null,
                         status = :status,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'TIL_GODKJENNING'
+                    WHERE id = :id AND beslutter_ident = :naverende_beslutter AND status = 'TIL_GODKJENNING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
-                    "nåværende_beslutter" to nåværendeBeslutter,
+                    "naverende_beslutter" to nåværendeBeslutter,
                     "status" to tilbakekrevingBehandling.status.tilDb(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
