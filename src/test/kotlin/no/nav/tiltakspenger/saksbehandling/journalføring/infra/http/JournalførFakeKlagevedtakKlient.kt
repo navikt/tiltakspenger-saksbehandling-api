@@ -41,12 +41,12 @@ class JournalførFakeKlagevedtakKlient(
         correlationId: CorrelationId,
     ): JournalførteDokumenter {
         return JournalførteDokumenter(
-            journalpostId = journalpostIdData.get()[klagevedtak.id] ?: journalpostIdGenerator.neste().also {
+            journalpostId = journalpostIdData.get()[klagevedtak.id] ?: journalpostIdGenerator.generer().also {
                 journalpostIdData.get().putIfAbsent(klagevedtak.id, it)
             },
             dokumentInfoIder = (
                 dokumentInfoIdData.get()[klagevedtak.id]
-                    ?: listOf(dokumentInfoIdGeneratorGenerator.neste())
+                    ?: listOf(dokumentInfoIdGeneratorGenerator.generer())
                 ).toNonEmptyListOrThrow()
                 .also {
                     dokumentInfoIdData.get().putIfAbsent(klagevedtak.id, it.toList())
@@ -61,12 +61,12 @@ class JournalførFakeKlagevedtakKlient(
         correlationId: CorrelationId,
     ): JournalførteDokumenter {
         return JournalførteDokumenter(
-            journalpostId = journalpostIdData.get()[klagebehandling.id] ?: journalpostIdGenerator.neste().also {
+            journalpostId = journalpostIdData.get()[klagebehandling.id] ?: journalpostIdGenerator.generer().also {
                 journalpostIdData.get().putIfAbsent(klagebehandling.id, it)
             },
             dokumentInfoIder = (
                 dokumentInfoIdData.get()[klagebehandling.id]
-                    ?: listOf(dokumentInfoIdGeneratorGenerator.neste())
+                    ?: listOf(dokumentInfoIdGeneratorGenerator.generer())
                 ).toNonEmptyListOrThrow()
                 .also {
                     dokumentInfoIdData.get().putIfAbsent(klagebehandling.id, it.toList())

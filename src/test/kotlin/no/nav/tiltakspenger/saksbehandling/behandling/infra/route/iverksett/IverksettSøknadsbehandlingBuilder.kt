@@ -72,7 +72,7 @@ interface IverksettSøknadsbehandlingBuilder {
         fnr: Fnr = Fnr.random(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
             tac = tac,

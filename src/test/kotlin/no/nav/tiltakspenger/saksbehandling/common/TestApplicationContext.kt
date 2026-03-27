@@ -8,13 +8,16 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.Tilgangsm
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalClientFake
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 
 abstract class TestApplicationContext(
     override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
+    open val idGenerators: IdGenerators,
 ) : ApplicationContext(
     gitHash = "fake-git-hash",
     clock = clock,
@@ -30,6 +33,9 @@ abstract class TestApplicationContext(
     abstract fun leggTilBruker(token: String, bruker: Bruker<*, *>)
 
     abstract fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?)
+    fun tiltaksdeltakelse(): Tiltaksdeltakelse {
+        return idGenerators.søknadstiltakIdGenerator.tiltaksdeltakelse()
+    }
 
     abstract val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient
 

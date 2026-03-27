@@ -44,7 +44,7 @@ interface VisInnstillingsbrevKlagebehandlingBuilder {
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
-            dokumentInfoId = (klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt).dokumentInfoIder!!.single(),
+            dokumentInfoId = (klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt).dokumentInfoIder.single(),
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,

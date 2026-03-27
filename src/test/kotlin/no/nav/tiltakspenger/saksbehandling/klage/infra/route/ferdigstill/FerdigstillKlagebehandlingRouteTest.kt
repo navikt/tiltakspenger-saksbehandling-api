@@ -62,8 +62,8 @@ class FerdigstillKlagebehandlingRouteTest {
                 distribusjonstidspunktInnstillingsbrev = true,
                 oversendtKlageinstansenTidspunkt = true,
                 ferdigstiltTidspunkt = true,
-                journalpostIdInnstillingsbrev = "2",
-                dokumentInfoIder = listOf("1"),
+                journalpostIdInnstillingsbrev = klagebehandling.journalpostIdInnstillingsbrev!!.toString(),
+                dokumentInfoIder = klagebehandling.dokumentInfoIder.map { it.toString() },
                 klageinstanshendelser = listOf(
                     """
                      {

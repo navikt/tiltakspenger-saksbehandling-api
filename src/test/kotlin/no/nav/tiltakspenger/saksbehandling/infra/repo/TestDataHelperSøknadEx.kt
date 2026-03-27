@@ -18,7 +18,7 @@ internal fun TestDataHelper.persisterSakOgSøknad(
     journalpostId: String = Random.nextInt().toString(),
     sak: Sak = ObjectMother.nySak(
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     søknad: Søknad =
         ObjectMother.nyInnvilgbarSøknad(

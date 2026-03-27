@@ -4,7 +4,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 
 interface JournalpostIdGenerator {
-    fun neste(): JournalpostId
+    fun generer(): JournalpostId
 }
 
 /**
@@ -15,12 +15,12 @@ class JournalpostIdGeneratorSerial(
 ) : JournalpostIdGenerator {
     private val neste = AtomicLong(første)
 
-    override fun neste(): JournalpostId = JournalpostId(neste.getAndIncrement().toString())
+    override fun generer(): JournalpostId = JournalpostId(neste.getAndIncrement().toString())
 }
 
 /**
  * Random id'er for lokal kjøring for å hindre kollisjoner i lokal db
  * */
 class JournalpostIdGeneratorRandom : JournalpostIdGenerator {
-    override fun neste(): JournalpostId = JournalpostId(UUID.randomUUID().toString())
+    override fun generer(): JournalpostId = JournalpostId(UUID.randomUUID().toString())
 }

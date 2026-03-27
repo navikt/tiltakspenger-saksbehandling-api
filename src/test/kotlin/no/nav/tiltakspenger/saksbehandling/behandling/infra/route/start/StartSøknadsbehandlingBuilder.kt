@@ -39,7 +39,7 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = if (sakId == null) {
             opprettSakOgSøknad(
@@ -66,7 +66,7 @@ interface StartSøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettAutomatiskBehandlingKlarTilBeslutning(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = opprettSakOgSøknad(tac, fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
@@ -86,7 +86,7 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
@@ -120,7 +120,7 @@ interface StartSøknadsbehandlingBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingKlarTilBehandling(

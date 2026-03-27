@@ -10,5 +10,5 @@ class DistribusjonIdGenerator(
 ) {
     private val neste = AtomicLong(første)
 
-    fun neste(): DistribusjonId = DistribusjonId(neste.getAndIncrement().toString())
+    fun generer(): DistribusjonId = DistribusjonId(neste.getAndIncrement().toString())
 }

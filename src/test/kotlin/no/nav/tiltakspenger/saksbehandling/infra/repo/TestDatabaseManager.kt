@@ -1,15 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
 import com.zaxxer.hikari.HikariDataSource
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.sessionOf
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
-import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
-import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
+import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.testcontainers.postgresql.PostgreSQLContainer
+import java.time.Clock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.sql.DataSource
 import kotlin.concurrent.read
@@ -39,15 +42,17 @@ internal class TestDatabaseManager {
         }
     }
 
-    private val saksnummerGenerator =
-        TestSaksnummerGenerator(Saksnummer.genererSaknummer(løpenr = "1001", dato = 1.januar(2021)))
+    private val idGenerators: IdGenerators by lazy { IdGenerators() }
+    private val log = KotlinLogging.logger {}
+    private val sessionCounter = SessionCounter(log)
+    val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
 
-    private val lock = ReentrantReadWriteLock()
+    private val lock by lazy { ReentrantReadWriteLock() }
 
     /**
      * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
      */
-    fun withMigratedDb(
+    fun withMigratedDbTestDataHelper(
         runIsolated: Boolean = false,
         clock: TikkendeKlokke = TikkendeKlokke(),
         test: (TestDataHelper) -> Unit,
@@ -55,11 +60,28 @@ internal class TestDatabaseManager {
         if (runIsolated) {
             lock.write {
                 cleanDatabase()
-                test(TestDataHelper(dataSource, saksnummerGenerator, clock))
+                test(TestDataHelper(dataSource, idGenerators, clock))
             }
         } else {
             lock.read {
-                test(TestDataHelper(dataSource, saksnummerGenerator, clock))
+                test(TestDataHelper(dataSource, idGenerators, clock))
+            }
+        }
+    }
+
+    fun withMigratedDb(
+        runIsolated: Boolean = false,
+        clock: TikkendeKlokke = TikkendeKlokke(),
+        test: (SessionFactory, IdGenerators, Clock) -> Unit,
+    ) {
+        if (runIsolated) {
+            lock.write {
+                cleanDatabase()
+                test(sessionFactory, idGenerators, clock)
+            }
+        } else {
+            lock.read {
+                test(sessionFactory, idGenerators, clock)
             }
         }
     }

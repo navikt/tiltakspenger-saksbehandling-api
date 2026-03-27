@@ -14,7 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.Identhende
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
-import no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
+import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
+import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGeneratorForTest
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
@@ -33,9 +34,10 @@ import javax.sql.DataSource
 
 internal class TestDataHelper(
     private val dataSource: DataSource,
-    val saksnummerGenerator: TestSaksnummerGenerator,
+    idGenerators: IdGenerators,
     val clock: TikkendeKlokke = TikkendeKlokke(),
 ) {
+    val saksnummerGenerator: SaksnummerGeneratorForTest = idGenerators.saksnummerGenerator
     private val log = KotlinLogging.logger {}
     private val sessionCounter = SessionCounter(log)
     val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
@@ -69,11 +71,15 @@ internal class TestDataHelper(
     val tiltaksdeltakerRepo = TiltaksdeltakerPostgresRepo(sessionFactory)
 }
 
-private val dbManager = TestDatabaseManager()
+private val dbManager: TestDatabaseManager by lazy { TestDatabaseManager() }
 
 /**
  * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
  */
-internal fun withMigratedDb(runIsolated: Boolean = false, clock: TikkendeKlokke = TikkendeKlokke(), test: (TestDataHelper) -> Unit) {
-    dbManager.withMigratedDb(runIsolated, clock, test)
+internal fun withMigratedDb(
+    runIsolated: Boolean = false,
+    clock: TikkendeKlokke = TikkendeKlokke(),
+    test: (TestDataHelper) -> Unit,
+) {
+    dbManager.withMigratedDbTestDataHelper(runIsolated, clock, test)
 }

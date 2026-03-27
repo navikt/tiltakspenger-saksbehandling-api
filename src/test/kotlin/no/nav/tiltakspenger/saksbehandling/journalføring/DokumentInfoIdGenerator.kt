@@ -5,7 +5,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 
 interface DokumentInfoIdGeneratorGenerator {
-    fun neste(): DokumentInfoId
+    fun generer(): DokumentInfoId
 }
 
 /**
@@ -16,12 +16,12 @@ class DokumentInfoIdGeneratorSerial(
 ) : DokumentInfoIdGeneratorGenerator {
     private val neste = AtomicLong(første)
 
-    override fun neste(): DokumentInfoId = DokumentInfoId(neste.getAndIncrement().toString())
+    override fun generer(): DokumentInfoId = DokumentInfoId(neste.getAndIncrement().toString())
 }
 
 /**
  * Random id'er for lokal kjøring for å hindre kollisjoner i lokal db
  * */
 class DokumentInfoIdGeneratorRandom : DokumentInfoIdGeneratorGenerator {
-    override fun neste(): DokumentInfoId = DokumentInfoId(UUID.randomUUID().toString())
+    override fun generer(): DokumentInfoId = DokumentInfoId(UUID.randomUUID().toString())
 }

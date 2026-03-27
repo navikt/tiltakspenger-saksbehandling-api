@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
-import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
@@ -30,7 +29,8 @@ private data class KlagebehandlingsresultatDbJson(
     val brevdato: LocalDate?,
     val oversendtKlageinstansenTidspunkt: LocalDateTime?,
     val journalpostIdInnstillingsbrev: String?,
-    val dokumentInfoIder: List<String>?,
+    // TODO jah: Kan fjerne nullable når vi har verifisert at databasen ikke har null her eller vi har skrevet et migreringsskript.
+    val dokumentInfoIder: List<String>? = emptyList(),
     val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
     val distribusjonIdInnstillingsbrev: String?,
     val distribusjonstidspunktInnstillingsbrev: LocalDateTime?,
@@ -65,7 +65,7 @@ private data class KlagebehandlingsresultatDbJson(
                 brevdato = brevdato,
                 iverksattOpprettholdelseTidspunkt = iverksattOpprettholdelseTidspunkt,
                 journalpostIdInnstillingsbrev = journalpostIdInnstillingsbrev?.let { JournalpostId(it) },
-                dokumentInfoIder = dokumentInfoIder?.map { DokumentInfoId(it) }?.toNonEmptyListOrThrow(),
+                dokumentInfoIder = dokumentInfoIder?.map { DokumentInfoId(it) } ?: emptyList(),
                 journalføringstidspunktInnstillingsbrev = journalføringstidspunktInnstillingsbrev,
                 distribusjonIdInnstillingsbrev = distribusjonIdInnstillingsbrev?.let { DistribusjonId(it) },
                 distribusjonstidspunktInnstillingsbrev = distribusjonstidspunktInnstillingsbrev,
@@ -93,7 +93,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         brevdato = (this as? Opprettholdt)?.brevdato,
         oversendtKlageinstansenTidspunkt = (this as? Opprettholdt)?.oversendtKlageinstansenTidspunkt,
         journalpostIdInnstillingsbrev = (this as? Opprettholdt)?.journalpostIdInnstillingsbrev?.toString(),
-        dokumentInfoIder = (this as? Opprettholdt)?.dokumentInfoIder?.map { it.toString() },
+        dokumentInfoIder = (this as? Opprettholdt)?.dokumentInfoIder?.map { it.toString() } ?: emptyList(),
         journalføringstidspunktInnstillingsbrev = (this as? Opprettholdt)?.journalføringstidspunktInnstillingsbrev,
         distribusjonIdInnstillingsbrev = (this as? Opprettholdt)?.distribusjonIdInnstillingsbrev?.toString(),
         distribusjonstidspunktInnstillingsbrev = (this as? Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,

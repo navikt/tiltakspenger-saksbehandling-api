@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjerming
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
+import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
@@ -77,15 +78,17 @@ class TestApplicationContextMedInMemoryDb(
     override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
     override val texasClient: TexasClient = TexasClientFake(clock),
     override val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
+    override val idGenerators: IdGenerators = IdGenerators(),
 ) : TestApplicationContext(
     clock = clock,
+    idGenerators = idGenerators,
 ) {
     @Suppress("MemberVisibilityCanBePrivate")
-    val journalpostIdGenerator = JournalpostIdGeneratorSerial()
-    val dokumentInfoIdGeneratorGenerator = DokumentInfoIdGeneratorSerial()
+    val journalpostIdGenerator = idGenerators.journalpostIdGenerator
+    val dokumentInfoIdGeneratorGenerator = idGenerators.dokumentInfoIdGeneratorSerial
 
     @Suppress("MemberVisibilityCanBePrivate")
-    val distribusjonIdGenerator = DistribusjonIdGenerator()
+    val distribusjonIdGenerator = idGenerators.distribusjonIdGenerator
 
     private val utbetalingFakeRepo = UtbetalingFakeRepo()
     private val rammevedtakFakeRepo = RammevedtakFakeRepo(utbetalingFakeRepo)

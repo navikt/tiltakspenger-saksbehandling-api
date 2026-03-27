@@ -26,7 +26,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
     "fødselsdato": "2001-01-01",
     "tiltaksdeltagelse": [
       {
-        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
+        "eksternDeltagelseId": "${søknad.tiltak!!.id}",
         "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
         "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
         "typeKode": "GRUPPE_AMO",
@@ -37,7 +37,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
         "antallDagerPerUke": 5.0,
         "kilde": "Komet",
         "gjennomforingsprosent": null,
-        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"
+        "internDeltakelseId": "${søknad.tiltak!!.tiltaksdeltakerId}"
       }
     ],
     "periode": {
@@ -67,9 +67,9 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
   "resultat": "IKKE_VALGT",
   "søknad": {
     "id": "${søknad.id}",
-    "journalpostId": "123456789",
+    "journalpostId": "${søknad.journalpostId}",
     "tiltak": {
-      "id": "61328250-7d5d-4961-b70e-5cb727a34371",
+      "id": "${søknad.tiltak!!.id}",
       "fraOgMed": "2023-01-01",
       "tilOgMed": "2023-03-31",
       "typeKode": "GRUPPEAMO",

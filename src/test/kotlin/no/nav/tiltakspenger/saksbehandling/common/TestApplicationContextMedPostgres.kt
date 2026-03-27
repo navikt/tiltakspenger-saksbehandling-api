@@ -40,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
+import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
@@ -60,15 +61,17 @@ class TestApplicationContextMedPostgres(
     override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
     override val texasClient: TexasClient = TexasClientFake(clock),
     override val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
+    override val idGenerators: IdGenerators,
 ) : TestApplicationContext(
     clock = clock,
+    idGenerators = idGenerators,
 ) {
     @Suppress("MemberVisibilityCanBePrivate")
-    val journalpostIdGenerator = JournalpostIdGeneratorSerial()
-    val dokumentInfoIdGeneratorGenerator = DokumentInfoIdGeneratorSerial()
+    val journalpostIdGenerator = idGenerators.journalpostIdGenerator
+    val dokumentInfoIdGeneratorGenerator = idGenerators.dokumentInfoIdGeneratorSerial
 
     @Suppress("MemberVisibilityCanBePrivate")
-    val distribusjonIdGenerator = DistribusjonIdGenerator()
+    val distribusjonIdGenerator = idGenerators.distribusjonIdGenerator
 
     private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
     private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
