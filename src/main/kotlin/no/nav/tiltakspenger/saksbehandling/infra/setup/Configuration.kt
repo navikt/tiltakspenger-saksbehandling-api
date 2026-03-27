@@ -7,8 +7,8 @@ import com.natpryce.konfig.Key
 import com.natpryce.konfig.intType
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
-import no.nav.tiltakspenger.libs.auth.core.AdRolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
+import no.nav.tiltakspenger.libs.texas.AdRolle
 
 private const val APPLICATION_NAME = "tiltakspenger-saksbehandling-api"
 const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
