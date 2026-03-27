@@ -5,6 +5,9 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
+import no.nav.tiltakspenger.libs.ktor.common.respondJson
+import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
+import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -13,9 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldekortId
-import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.KanIkkeSendeMeldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
@@ -60,7 +60,7 @@ fun Route.sendMeldekortTilBeslutterRoute(
                             is KanIkkeSendeMeldekortTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
 
                             is KanIkkeSendeMeldekortTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(
-                                valueAndStatus = it.feil.tilErrorJson(),
+                                statusAndValue = it.feil.tilErrorJson(),
                             )
                         }
                     },

@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.ktor.common.respondOk
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
@@ -14,7 +15,6 @@ import no.nav.tiltakspenger.libs.texas.systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreMeldekortRollen
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondOk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus

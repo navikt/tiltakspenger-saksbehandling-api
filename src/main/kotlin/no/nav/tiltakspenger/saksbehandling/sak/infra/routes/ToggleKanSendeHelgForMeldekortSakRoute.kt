@@ -4,6 +4,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.respondJson
+import no.nav.tiltakspenger.libs.ktor.common.withBody
+import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -13,9 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
-import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
 import java.time.Clock
 
 private const val TOGGLE_HELG_MELDEKORT_PATH = "$SAK_PATH/{sakId}/toggle-helg-meldekort"

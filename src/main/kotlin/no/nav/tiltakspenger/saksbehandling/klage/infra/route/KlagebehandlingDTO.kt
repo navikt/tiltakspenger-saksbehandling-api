@@ -155,7 +155,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
             klageinstanshendelser = klageinstanshendelser.toDTO(),
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             journalpostIdInnstillingsbrev = journalpostIdInnstillingsbrev?.toString(),
-            dokumentInfoIder = dokumentInfoIder?.map { it.toString() },
+            dokumentInfoIder = dokumentInfoIder.map { it.toString() },
         )
     }
 }

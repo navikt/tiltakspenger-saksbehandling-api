@@ -5,13 +5,13 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.ktor.common.respondJson
+import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import java.time.LocalDateTime

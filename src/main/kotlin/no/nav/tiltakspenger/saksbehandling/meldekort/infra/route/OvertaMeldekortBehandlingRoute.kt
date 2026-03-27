@@ -6,6 +6,10 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.ktor.common.respondJson
+import no.nav.tiltakspenger.libs.ktor.common.withBody
+import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
+import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -14,10 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
-import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldekortId
-import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortBehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.KunneIkkeOvertaMeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingCommand
@@ -55,7 +55,7 @@ fun Route.overtaMeldekortBehandlingRoute(
                         ),
                     ).fold(
                         {
-                            call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
+                            call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
                         },
                         { (sak, behandling) ->
                             auditService.logMedMeldekortId(

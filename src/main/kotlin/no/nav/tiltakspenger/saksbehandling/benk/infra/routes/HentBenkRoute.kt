@@ -6,6 +6,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.respondJson
+import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
@@ -20,8 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.benk.service.TilgangsfiltrertBenkOver
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
 
 private const val PATH = "/behandlinger"
 

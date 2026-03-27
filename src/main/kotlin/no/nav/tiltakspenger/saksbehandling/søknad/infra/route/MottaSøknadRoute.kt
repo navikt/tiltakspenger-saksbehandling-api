@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.soknad.SøknadDTO
 import no.nav.tiltakspenger.libs.texas.systembruker
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
@@ -15,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
-import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 

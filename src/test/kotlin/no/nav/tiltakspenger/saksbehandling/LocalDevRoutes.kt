@@ -6,10 +6,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.ktor.common.respondOk
+import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondOk
-import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenererLokalKabalHendelseCommand

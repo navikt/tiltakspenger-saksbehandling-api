@@ -8,6 +8,8 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.ktor.common.respondJson
+import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -16,10 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.withDokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
 import no.nav.tiltakspenger.saksbehandling.klage.service.KunneIkkeViseInnstillingsbrev
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
@@ -54,7 +54,7 @@ fun Route.visInnstillingsbrevKlagebehandlingRoute(
                         ),
                     ).fold(
                         ifLeft = {
-                            call.respondJson(valueAndStatus = it.tilStatusOgErrorJson())
+                            call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
                         },
                         ifRight = {
                             auditService.logMedSakId(
