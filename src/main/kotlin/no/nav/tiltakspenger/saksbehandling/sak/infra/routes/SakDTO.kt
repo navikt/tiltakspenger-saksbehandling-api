@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingerDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO
@@ -47,7 +48,7 @@ data class SakDTO(
     val kanSendeInnHelgForMeldekort: Boolean,
 )
 
-fun Sak.toSakDTO(clock: Clock) = SakDTO(
+fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     saksnummer = saksnummer.verdi,
     sakId = id.toString(),
     fnr = fnr.verdi,
@@ -64,7 +65,7 @@ fun Sak.toSakDTO(clock: Clock) = SakDTO(
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
     søknader = this.søknader.map { it.toSøknadDTO() },
     tilbakekrevinger = this.tilbakekrevinger.map {
-        it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!)
+        it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!, saksbehandler)
     },
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
 )

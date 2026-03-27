@@ -20,7 +20,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.saksbehandlerIdent != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_BEHANDLING) return false
+        if (existing.saksbehandler != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_BEHANDLING) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -30,7 +30,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.beslutterIdent != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_GODKJENNING) return false
+        if (existing.beslutter != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_GODKJENNING) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -41,7 +41,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.saksbehandlerIdent != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
+        if (existing.saksbehandler != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -52,7 +52,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.beslutterIdent != nåværendeBeslutter || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING) return false
+        if (existing.beslutter != nåværendeBeslutter || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -63,7 +63,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.saksbehandlerIdent != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
+        if (existing.saksbehandler != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -74,7 +74,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.beslutterIdent != nåværendeBeslutter || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING) return false
+        if (existing.beslutter != nåværendeBeslutter || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }

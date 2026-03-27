@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.UgyldigFnrException
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
-import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -88,7 +87,7 @@ fun Route.søkFnrSaksnummerOgSakIdRoute(
                 correlationId = correlationId,
             )
 
-            call.respondJson(value = sak.toSakDTO(clock))
+            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
         }
     }
 }

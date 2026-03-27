@@ -34,7 +34,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
                 saksbehandler = saksbehandler2,
             )!!
 
-            oppdatertBehandling.saksbehandlerIdent shouldBe "saksbehandler2"
+            oppdatertBehandling.saksbehandler shouldBe "saksbehandler2"
             oppdatertBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
             oppdatertBehandling.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING
 

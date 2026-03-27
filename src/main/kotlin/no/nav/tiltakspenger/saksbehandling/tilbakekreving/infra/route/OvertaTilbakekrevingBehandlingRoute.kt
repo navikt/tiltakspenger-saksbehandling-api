@@ -49,7 +49,7 @@ fun Route.overtaTilbakekrevingBehandlingRoute(
                             behandlingId = tilbakekrevingId,
                         )
 
-                        call.respondJson(value = sak.toSakDTO(clock))
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                     }
             }
         }

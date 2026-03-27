@@ -38,7 +38,7 @@ fun Route.taTilbakekrevingBehandlingRoute(
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                tilbakekrevingBehandlingTildelingService.taBehandling(sakId, tilbakekrevingId, saksbehandler)
+                tilbakekrevingBehandlingTildelingService.tildelBehandling(sakId, tilbakekrevingId, saksbehandler)
                     .also { (sak) ->
                         auditService.logMedSakId(
                             sakId = sakId,
@@ -49,7 +49,7 @@ fun Route.taTilbakekrevingBehandlingRoute(
                             behandlingId = tilbakekrevingId,
                         )
 
-                        call.respondJson(value = sak.toSakDTO(clock))
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                     }
             }
         }

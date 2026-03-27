@@ -33,7 +33,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            oppdatertBehandling.saksbehandlerIdent shouldBe null
+            oppdatertBehandling.saksbehandler shouldBe null
             oppdatertBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
             oppdatertBehandling.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING
 
@@ -109,7 +109,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             )!!
             etterLeggTilbake.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING
             etterLeggTilbake.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-            etterLeggTilbake.saksbehandlerIdent shouldBe null
+            etterLeggTilbake.saksbehandler shouldBe null
 
             // Saksbehandler 2 tar behandlingen
             val (_, etterNyTa, _) = taTilbakekrevingBehandling(
@@ -120,7 +120,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             )!!
             etterNyTa.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING
             etterNyTa.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-            etterNyTa.saksbehandlerIdent shouldBe "saksbehandler2"
+            etterNyTa.saksbehandler shouldBe "saksbehandler2"
         }
     }
 }

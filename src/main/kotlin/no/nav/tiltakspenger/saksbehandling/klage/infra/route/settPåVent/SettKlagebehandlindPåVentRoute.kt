@@ -89,7 +89,7 @@ fun Route.settKlagebehandlingPåVentRoute(
                                 correlationId = correlationId,
                                 behandlingId = behandlingId,
                             )
-                            call.respondJson(value = sak.toSakDTO(clock))
+                            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                         },
                     )
                 }

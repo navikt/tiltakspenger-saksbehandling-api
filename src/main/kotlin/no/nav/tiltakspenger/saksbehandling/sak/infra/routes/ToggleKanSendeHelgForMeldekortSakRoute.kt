@@ -52,7 +52,7 @@ fun Route.toggleKanSendeHelgForMeldekortSakRoute(
                     kanSendeHelg = body.kanSendeHelg,
                 )
                     .also { sak ->
-                        call.respondJson(value = sak.toSakDTO(clock))
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                     }
             }
         }

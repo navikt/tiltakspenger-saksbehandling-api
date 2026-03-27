@@ -12,23 +12,23 @@ fun TilbakekrevingBehandling.leggTilbake(saksbehandler: Saksbehandler, clock: Cl
 
     return when (statusIntern) {
         TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> {
-            require(this.saksbehandlerIdent == saksbehandler.navIdent) {
+            require(this.saksbehandler == saksbehandler.navIdent) {
                 "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen. tilbakekrevingId: $id"
             }
 
             this.copy(
-                saksbehandlerIdent = null,
+                saksbehandler = null,
                 sistEndret = sistEndret,
             )
         }
 
         TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING -> {
-            require(this.beslutterIdent == saksbehandler.navIdent) {
+            require(this.beslutter == saksbehandler.navIdent) {
                 "Kan bare legge tilbake behandling dersom beslutter selv er på behandlingen. tilbakekrevingId: $id"
             }
 
             this.copy(
-                beslutterIdent = null,
+                beslutter = null,
                 sistEndret = sistEndret,
             )
         }

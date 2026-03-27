@@ -139,8 +139,8 @@ class BehandleTilbakekrevingHendelserJobb(
                 kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
                 totaltFeilutbetaltBeløp = hendelse.totaltFeilutbetaltBeløp,
                 varselSendt = hendelse.varselSendt,
-                saksbehandlerIdent = null,
-                beslutterIdent = null,
+                saksbehandler = null,
+                beslutter = null,
             )
         }
 

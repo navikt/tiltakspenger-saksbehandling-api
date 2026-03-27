@@ -72,8 +72,8 @@ class TilbakekrevingBehandlingPostgresRepo(
                     "kravgrunnlag_periode" to tilbakekrevingBehandling.kravgrunnlagTotalPeriode.tilDbPeriode(),
                     "totalt_feilutbetalt_belop" to tilbakekrevingBehandling.totaltFeilutbetaltBeløp,
                     "varsel_sendt" to tilbakekrevingBehandling.varselSendt,
-                    "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandlerIdent,
-                    "beslutter_ident" to tilbakekrevingBehandling.beslutterIdent,
+                    "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandler,
+                    "beslutter_ident" to tilbakekrevingBehandling.beslutter,
                 ).asUpdate,
             )
         }
@@ -95,7 +95,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     WHERE id = :id AND saksbehandler_ident IS NULL AND status = 'TIL_BEHANDLING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
-                    "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandlerIdent,
+                    "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandler,
                     "status" to tilbakekrevingBehandling.status.tilDb(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
@@ -118,7 +118,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     WHERE id = :id AND beslutter_ident IS NULL AND status = 'TIL_GODKJENNING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
-                    "beslutter_ident" to tilbakekrevingBehandling.beslutterIdent,
+                    "beslutter_ident" to tilbakekrevingBehandling.beslutter,
                     "status" to tilbakekrevingBehandling.status.tilDb(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
@@ -142,7 +142,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     WHERE id = :id AND saksbehandler_ident = :nåværende_saksbehandler AND status = 'TIL_BEHANDLING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
-                    "ny_saksbehandler" to tilbakekrevingBehandling.saksbehandlerIdent,
+                    "ny_saksbehandler" to tilbakekrevingBehandling.saksbehandler,
                     "nåværende_saksbehandler" to nåværendeSaksbehandler,
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
@@ -165,7 +165,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     WHERE id = :id AND beslutter_ident = :nåværende_beslutter AND status = 'TIL_GODKJENNING'
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
-                    "ny_beslutter" to tilbakekrevingBehandling.beslutterIdent,
+                    "ny_beslutter" to tilbakekrevingBehandling.beslutter,
                     "nåværende_beslutter" to nåværendeBeslutter,
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
@@ -302,8 +302,8 @@ class TilbakekrevingBehandlingPostgresRepo(
                 kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
                 totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
                 varselSendt = localDateOrNull("varsel_sendt"),
-                saksbehandlerIdent = stringOrNull("saksbehandler_ident"),
-                beslutterIdent = stringOrNull("beslutter_ident"),
+                saksbehandler = stringOrNull("saksbehandler_ident"),
+                beslutter = stringOrNull("beslutter_ident"),
             )
         }
     }

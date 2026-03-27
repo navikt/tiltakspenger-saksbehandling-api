@@ -75,7 +75,7 @@ fun Route.avbrytKlagebehandlingRoute(
                             /*
                             returnerer sak fordi vi oppdaterer klagen 2 forskjellige plasser i json.
                              */
-                            call.respondJson(value = sak.toSakDTO(clock))
+                            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                         },
                     )
                 }

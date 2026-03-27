@@ -14,7 +14,7 @@ class SakDtoTest {
         // TODO - burde muligens ha en sak.nySøknad()
         val sakMedSøknadOgBehandling = sak.copy(søknader = sak.søknader + nySøknad)
 
-        val actual = sakMedSøknadOgBehandling.toSakDTO(fixedClock)
+        val actual = sakMedSøknadOgBehandling.toSakDTO(ObjectMother.saksbehandler(), fixedClock)
         actual.åpneBehandlinger.size shouldBe 2
         actual.åpneBehandlinger.first().let {
             it.type shouldBe ÅpenBehandlingDTO.ÅpenBehandlingTypeDTO.SØKNADSBEHANDLING

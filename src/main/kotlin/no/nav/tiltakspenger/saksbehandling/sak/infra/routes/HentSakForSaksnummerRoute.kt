@@ -64,7 +64,7 @@ fun Route.hentSakForSaksnummerRoute(
                 correlationId = call.correlationId(),
             )
 
-            call.respondJson(value = sak.toSakDTO(clock))
+            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
         }
     }
 }

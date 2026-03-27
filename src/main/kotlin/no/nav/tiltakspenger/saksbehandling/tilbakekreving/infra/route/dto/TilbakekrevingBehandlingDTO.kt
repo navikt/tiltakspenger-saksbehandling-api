@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.dto
 
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.BeregningKildeDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilBeregningKildeDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -26,6 +29,7 @@ data class TilbakekrevingBehandlingDTO(
     val varselSendt: LocalDate?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) {
 
     enum class TilbakekrevingBehandlingsstatusDTO {
@@ -47,7 +51,10 @@ private fun TilbakekrevingBehandlingsstatusIntern.tilDTO() = when (this) {
     TilbakekrevingBehandlingsstatusIntern.AVSLUTTET -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.AVSLUTTET
 }
 
-fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(utbetaling: VedtattUtbetaling): TilbakekrevingBehandlingDTO {
+fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(
+    utbetaling: VedtattUtbetaling,
+    saksbehandler: Saksbehandler,
+): TilbakekrevingBehandlingDTO {
     require(utbetaling.id == utbetalingId)
 
     return TilbakekrevingBehandlingDTO(
@@ -63,7 +70,8 @@ fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(utbetaling: VedtattU
         kravgrunnlagTotalPeriode = kravgrunnlagTotalPeriode.toDTO(),
         totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,
         varselSendt = varselSendt,
-        saksbehandler = saksbehandlerIdent,
-        beslutter = beslutterIdent,
+        saksbehandler = this.saksbehandler,
+        beslutter = beslutter,
+        gyldigeKommandoer = this.gyldigeKommandoer(saksbehandler).tilDTO(),
     )
 }

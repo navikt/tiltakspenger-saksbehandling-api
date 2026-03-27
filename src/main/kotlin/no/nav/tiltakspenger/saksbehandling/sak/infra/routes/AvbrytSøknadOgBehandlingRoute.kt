@@ -54,7 +54,7 @@ fun Route.avbrytSøknadOgBehandling(
                         correlationId = call.correlationId(),
                         contextMessage = "Avsluttet søknad og behandling",
                     )
-                    call.respondJson(value = it.toSakDTO(clock))
+                    call.respondJson(value = it.toSakDTO(saksbehandler, clock))
                 }
             }
         }

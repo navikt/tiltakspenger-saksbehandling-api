@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.overta
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.taBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.tildel
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
 import java.time.Clock
 
@@ -19,13 +19,13 @@ class TilbakekrevingBehandlingTildelingService(
     private val clock: Clock,
 ) {
 
-    fun taBehandling(
+    fun tildelBehandling(
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, TilbakekrevingBehandling> {
         val (sak, behandling) = hentSakOgBehandling(sakId, tilbakekrevingId)
-        val oppdatert = behandling.taBehandling(saksbehandler, clock)
+        val oppdatert = behandling.tildel(saksbehandler, clock)
 
         val harOppdatert = when (oppdatert.statusIntern) {
             TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
@@ -53,10 +53,10 @@ class TilbakekrevingBehandlingTildelingService(
 
         val harOppdatert = when (behandling.statusIntern) {
             TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
-                tilbakekrevingBehandlingRepo.overtaSaksbehandler(oppdatert, behandling.saksbehandlerIdent!!)
+                tilbakekrevingBehandlingRepo.overtaSaksbehandler(oppdatert, behandling.saksbehandler!!)
 
             TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
-                tilbakekrevingBehandlingRepo.overtaBeslutter(oppdatert, behandling.beslutterIdent!!)
+                tilbakekrevingBehandlingRepo.overtaBeslutter(oppdatert, behandling.beslutter!!)
 
             else -> throw IllegalStateException("Uventet status ${behandling.statusIntern} ved overta for $tilbakekrevingId")
         }
@@ -77,10 +77,10 @@ class TilbakekrevingBehandlingTildelingService(
 
         val harOppdatert = when (behandling.statusIntern) {
             TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
-                tilbakekrevingBehandlingRepo.leggTilbakeSaksbehandler(oppdatert, behandling.saksbehandlerIdent!!)
+                tilbakekrevingBehandlingRepo.leggTilbakeSaksbehandler(oppdatert, behandling.saksbehandler!!)
 
             TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
-                tilbakekrevingBehandlingRepo.leggTilbakeBeslutter(oppdatert, behandling.beslutterIdent!!)
+                tilbakekrevingBehandlingRepo.leggTilbakeBeslutter(oppdatert, behandling.beslutter!!)
 
             else -> throw IllegalStateException("Uventet status ${behandling.statusIntern} ved legg tilbake for $tilbakekrevingId")
         }

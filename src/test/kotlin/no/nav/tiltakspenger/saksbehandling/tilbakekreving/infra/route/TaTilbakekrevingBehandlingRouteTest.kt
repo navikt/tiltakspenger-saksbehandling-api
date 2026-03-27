@@ -27,7 +27,7 @@ class TaTilbakekrevingBehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            oppdatertBehandling.saksbehandlerIdent shouldBe "saksbehandlerSomTar"
+            oppdatertBehandling.saksbehandler shouldBe "saksbehandlerSomTar"
             oppdatertBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
             oppdatertBehandling.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING
 
