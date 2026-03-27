@@ -9,8 +9,8 @@ data class TilbakekrevingInfoSvarDTO(
     override val hendelseOpprettet: LocalDateTime,
     val mottaker: TilbakekrevingMottaker,
     val revurdering: TilbakekrevingRevurdering,
-    val utvidPerioder: List<TilbakekrevingUtvidPeriode>,
-    val behandlendeEnhet: String,
+    val utvidPerioder: List<TilbakekrevingUtvidPeriode>?,
+    val behandlendeEnhet: String?,
 ) : TilbakekrevingshendelseDTO {
     override val versjon: Int = 1
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.fagsysteminfo_svar
