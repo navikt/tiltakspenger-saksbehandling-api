@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taTilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
@@ -20,7 +20,7 @@ class TaTilbakekrevingBehandlingRouteTest {
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar")
 
-            val (oppdatertSak, oppdatertBehandling, json) = taTilbakekrevingBehandling(
+            val (oppdatertSak, oppdatertBehandling, json) = tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
@@ -44,14 +44,14 @@ class TaTilbakekrevingBehandlingRouteTest {
             val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
             val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
                 saksbehandler = saksbehandler1,
             )!!
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
@@ -66,7 +66,7 @@ class TaTilbakekrevingBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = TilbakekrevingId.random(),
@@ -81,7 +81,7 @@ class TaTilbakekrevingBehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (_, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = SakId.random(),
                 tilbakekrevingId = behandling.id,

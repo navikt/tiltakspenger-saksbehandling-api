@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaTilbakekrevingBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taTilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import org.junit.jupiter.api.Test
@@ -20,7 +20,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
             val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
             val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
@@ -50,7 +50,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,

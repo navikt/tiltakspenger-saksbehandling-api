@@ -12,7 +12,7 @@ fun Route.tilbakekrevingRoutes(
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
 ) {
-    taTilbakekrevingBehandlingRoute(
+    tildelTilbakekrevingBehandlingRoute(
         auditService = auditService,
         tilbakekrevingBehandlingTildelingService = tilbakekrevingBehandlingTildelingService,
         tilgangskontrollService = tilgangskontrollService,

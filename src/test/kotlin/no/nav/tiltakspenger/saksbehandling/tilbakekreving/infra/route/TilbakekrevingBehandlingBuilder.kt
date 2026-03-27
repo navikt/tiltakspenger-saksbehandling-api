@@ -33,7 +33,7 @@ import java.time.LocalDate
  * Hjelpefunksjoner for å sette opp en [TilbakekrevingBehandling] og kalle tildelingsrutene i tester.
  *
  * Routes:
- * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.taTilbakekrevingBehandlingRoute]
+ * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.tildelTilbakekrevingBehandlingRoute]
  * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.overtaTilbakekrevingBehandlingRoute]
  * - [no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.leggTilbakeTilbakekrevingBehandlingRoute]
  */
@@ -119,9 +119,9 @@ interface TilbakekrevingBehandlingBuilder {
 
     /**
      * Forventer at det allerede finnes en sak og en tilbakekrevingbehandling.
-     * Kaller POST /sak/{sakId}/tilbakekreving/{tilbakekrevingId}/ta
+     * Kaller POST /sak/{sakId}/tilbakekreving/{tilbakekrevingId}/tildel
      */
-    suspend fun ApplicationTestBuilder.taTilbakekrevingBehandling(
+    suspend fun ApplicationTestBuilder.tildelTilbakekrevingBehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         tilbakekrevingId: TilbakekrevingId,
@@ -134,7 +134,7 @@ interface TilbakekrevingBehandlingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/ta")
+                path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/tildel")
             },
             jwt = jwt,
         ).apply {

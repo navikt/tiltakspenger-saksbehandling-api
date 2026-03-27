@@ -19,9 +19,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
 import java.time.Clock
 
-private const val TA_TILBAKEKREVING_PATH = "/sak/{sakId}/tilbakekreving/{tilbakekrevingId}/ta"
+private const val TA_TILBAKEKREVING_PATH = "/sak/{sakId}/tilbakekreving/{tilbakekrevingId}/tildel"
 
-fun Route.taTilbakekrevingBehandlingRoute(
+fun Route.tildelTilbakekrevingBehandlingRoute(
     auditService: AuditService,
     tilbakekrevingBehandlingTildelingService: TilbakekrevingBehandlingTildelingService,
     tilgangskontrollService: TilgangskontrollService,

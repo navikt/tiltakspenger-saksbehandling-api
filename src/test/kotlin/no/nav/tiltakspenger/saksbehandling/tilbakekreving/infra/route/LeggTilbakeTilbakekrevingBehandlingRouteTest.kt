@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taTilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
@@ -50,7 +50,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
             val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
 
-            taTilbakekrevingBehandling(
+            tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
@@ -91,7 +91,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
 
             // Saksbehandler 1 tar behandlingen
-            val (_, etterTa, _) = taTilbakekrevingBehandling(
+            val (_, etterTa, _) = tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
@@ -112,7 +112,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             etterLeggTilbake.saksbehandler shouldBe null
 
             // Saksbehandler 2 tar behandlingen
-            val (_, etterNyTa, _) = taTilbakekrevingBehandling(
+            val (_, etterNyTa, _) = tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
