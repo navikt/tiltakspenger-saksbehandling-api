@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.infra.repo
+package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondText

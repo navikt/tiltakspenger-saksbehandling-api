@@ -18,10 +18,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRamm
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
+import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.Clock
 

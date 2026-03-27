@@ -5,8 +5,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.toSaksbehandlerDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.toSaksbehandlerDTO
 
 internal const val SAKSBEHANDLER_PATH = "/saksbehandler"
 

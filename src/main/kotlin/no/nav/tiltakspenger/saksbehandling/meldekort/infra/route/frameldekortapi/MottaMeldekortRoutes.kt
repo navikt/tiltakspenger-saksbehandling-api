@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.texas.systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreMeldekortRollen
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondOk
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondOk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus

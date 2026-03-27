@@ -10,9 +10,9 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.KunneIkkeHenteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.TiltaksdeltakelseService

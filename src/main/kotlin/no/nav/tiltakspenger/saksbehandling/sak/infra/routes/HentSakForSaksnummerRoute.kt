@@ -15,9 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withSaksnummer
+import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
 import java.time.Clock
 
 fun Route.hentSakForSaksnummerRoute(

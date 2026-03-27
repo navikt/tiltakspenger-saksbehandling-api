@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondOk
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondOk
+import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenererLokalKabalHendelseCommand

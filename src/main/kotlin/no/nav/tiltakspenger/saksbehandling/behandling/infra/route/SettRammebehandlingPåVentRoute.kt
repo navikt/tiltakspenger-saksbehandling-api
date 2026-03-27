@@ -16,11 +16,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRam
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBehandlingId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.withBehandlingId
+import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 import java.time.LocalDate

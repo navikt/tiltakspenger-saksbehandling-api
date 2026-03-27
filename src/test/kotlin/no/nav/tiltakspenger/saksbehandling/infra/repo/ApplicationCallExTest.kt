@@ -18,6 +18,20 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
+import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJsonString
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondNoContent
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondOk
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondStatus
+import no.nav.tiltakspenger.saksbehandling.infra.route.withBehandlingId
+import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldekortId
+import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeId
+import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSøknadId
 import org.junit.jupiter.api.Test
 
 class ApplicationCallExTest {

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.infra.repo
+package no.nav.tiltakspenger.saksbehandling.infra.route
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
@@ -156,7 +157,7 @@ internal suspend inline fun <reified T> ApplicationCall.withBody(
 ) {
     Either.catch {
         val body = this.receiveText()
-        no.nav.tiltakspenger.libs.json.deserialize<T>(body)
+        deserialize<T>(body)
     }.onLeft {
         logger.debug(RuntimeException("Trigger stacktrace for enklere debug")) { "Feil ved deserialisering av request. Se sikkerlogg for mer kontekst." }
         Sikkerlogg.error(it) { "Feil ved deserialisering av request" }

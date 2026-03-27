@@ -14,10 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknad
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.infra.repo.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.respondJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withSakId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withSøknadId
+import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.respondJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.withSøknadId
 
 fun Route.behandleSøknadPåNyttRoute(
     behandleSøknadPåNyttService: BehandleSøknadPåNyttService,

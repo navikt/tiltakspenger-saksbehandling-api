@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withBody
+import no.nav.tiltakspenger.saksbehandling.infra.route.withBody
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 

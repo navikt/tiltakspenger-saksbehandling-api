@@ -6,7 +6,6 @@ import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.rammebehandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.hentBenkRoute
-import no.nav.tiltakspenger.saksbehandling.infra.repo.healthRoutes
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.klagebehandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.meldekortRoutes
