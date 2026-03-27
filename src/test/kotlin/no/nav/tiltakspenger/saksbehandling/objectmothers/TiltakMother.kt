@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.sak.SøknadstiltakIdGenerator
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -40,6 +41,40 @@ interface TiltakMother {
         kilde: Tiltakskilde = Tiltakskilde.Arena,
         deltidsprosentGjennomforing: Double? = null,
         internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString(DEFAULT_TILTAK_DELTAKELSE_INTERN_ID),
+    ): Tiltaksdeltakelse {
+        return Tiltaksdeltakelse(
+            eksternDeltakelseId = eksternTiltaksdeltakelseId,
+            gjennomføringId = eksternTiltaksgjennomføringsId,
+            typeKode = typeKode,
+            typeNavn = typeNavn,
+            rettPåTiltakspenger = rettPåTiltakspenger,
+            deltakelseFraOgMed = fom,
+            deltakelseTilOgMed = tom,
+            deltakelseStatus = status,
+            deltakelseProsent = prosent,
+            kilde = kilde,
+            antallDagerPerUke = dagerPrUke,
+            deltidsprosentGjennomforing = deltidsprosentGjennomforing,
+            internDeltakelseId = internDeltakelseId,
+        )
+    }
+
+    fun SøknadstiltakIdGenerator.tiltaksdeltakelse(
+        periode: Periode = 1.januar(2023) til 31.mars(2023),
+        eksternTiltaksdeltakelseId: String = this.generer(),
+        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
+        // Denne er ikke unik i databasen og brukes ikke i domenelogikken, så den kan være statisk på tvers av alle deltakelser.
+        eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
+        fom: LocalDate = periode.fraOgMed,
+        tom: LocalDate = periode.tilOgMed,
+        status: TiltakDeltakerstatus = Deltar,
+        dagerPrUke: Float? = 5F,
+        prosent: Float? = 100F,
+        rettPåTiltakspenger: Boolean = true,
+        kilde: Tiltakskilde = Komet,
+        deltidsprosentGjennomforing: Double? = null,
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,

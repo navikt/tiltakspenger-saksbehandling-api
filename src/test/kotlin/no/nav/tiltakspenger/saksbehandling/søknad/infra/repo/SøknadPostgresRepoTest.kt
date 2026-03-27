@@ -47,7 +47,7 @@ class SøknadPostgresRepoTest {
             withMigratedDb { testDataHelper ->
                 val søknadRepo = testDataHelper.søknadRepo
                 val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                 val persistertSøknad = testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
@@ -69,7 +69,7 @@ class SøknadPostgresRepoTest {
             withMigratedDb { testDataHelper ->
                 val søknadRepo = testDataHelper.søknadRepo
                 val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                 val persistertSøknad = testDataHelper.persisterSakOgSøknad(
                     fnr = fnr,
                     sak = sak,
@@ -94,7 +94,7 @@ class SøknadPostgresRepoTest {
                 val deltakelseFom = 1.januar(2023)
                 val deltakelseTom = 31.mars(2023)
                 val tiltak = ObjectMother.søknadstiltak(deltakelseFom = deltakelseFom, deltakelseTom = deltakelseTom)
-                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
 
                 val søknad = ObjectMother.nyInnvilgbarSøknad(
                     sakId = sak.id,
@@ -145,7 +145,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -175,7 +175,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -205,7 +205,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -238,7 +238,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -284,7 +284,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -330,7 +330,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -376,7 +376,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -422,7 +422,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -468,7 +468,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -517,7 +517,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -547,7 +547,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -577,7 +577,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -607,7 +607,7 @@ class SøknadPostgresRepoTest {
                 withMigratedDb { testDataHelper ->
                     val søknadRepo = testDataHelper.søknadRepo
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
                     val søknad = ObjectMother.nyInnvilgbarSøknad(
@@ -639,7 +639,7 @@ class SøknadPostgresRepoTest {
             fun `lagrer barnetillegg med fnr dersom fnr eksisterer`() {
                 withMigratedDb { testDataHelper ->
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
 
@@ -679,7 +679,7 @@ class SøknadPostgresRepoTest {
             fun `lagrer barnetillegg uten fnr dersom fnr er null`() {
                 withMigratedDb { testDataHelper ->
                     val fnr = Fnr.random()
-                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.neste())
+                    val sak = ObjectMother.nySak(fnr = fnr, saksnummer = testDataHelper.saksnummerGenerator.generer())
                     val tiltak =
                         ObjectMother.søknadstiltak(deltakelseFom = 1.januar(2023), deltakelseTom = 31.mars(2023))
 

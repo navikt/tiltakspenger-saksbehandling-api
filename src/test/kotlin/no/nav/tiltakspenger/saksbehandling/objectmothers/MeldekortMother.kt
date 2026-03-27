@@ -835,7 +835,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperiode = meldeperiode,
             sakId = sakId,
             dager = dager,
-            journalpostId = JournalpostIdGeneratorSerial().neste(),
+            journalpostId = JournalpostIdGeneratorSerial().generer(),
             oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = behandletAutomatiskStatus,
@@ -867,7 +867,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperiodeId = meldeperiodeId,
             sakId = sakId,
             dager = dager,
-            journalpostId = JournalpostIdGeneratorSerial().neste(),
+            journalpostId = JournalpostIdGeneratorSerial().generer(),
         )
     }
 

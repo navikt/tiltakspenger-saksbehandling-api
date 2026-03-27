@@ -44,7 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
@@ -80,7 +80,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
 internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
@@ -134,7 +134,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
 internal fun TestDataHelper.persisterOpprettholdtKlagebehandling(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(
@@ -193,7 +193,7 @@ internal fun TestDataHelper.persisterOpprettholdtKlagebehandling(
 internal fun TestDataHelper.persisterOversendtKlagebehandling(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(
@@ -244,7 +244,7 @@ internal fun TestDataHelper.persisterOversendtKlagebehandling(
 internal fun TestDataHelper.persisterKlagebehandlingMottattFraKA(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(
@@ -294,7 +294,7 @@ internal fun TestDataHelper.persisterKlagebehandlingMottattFraKA(
 internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(

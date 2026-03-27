@@ -447,9 +447,14 @@ class DelautomatiskBehandlingServiceTest {
     fun `behandleAutomatisk - har åpen behandling - manuell behandling`() {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
-            opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = fnr)
+            val tiltaksdeltakelse = tac.tiltaksdeltakelse()
+            opprettSøknadsbehandlingKlarTilBehandling(tac, fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
 
-            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac, fnr = fnr)
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                tac,
+                fnr = fnr,
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
                 it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID

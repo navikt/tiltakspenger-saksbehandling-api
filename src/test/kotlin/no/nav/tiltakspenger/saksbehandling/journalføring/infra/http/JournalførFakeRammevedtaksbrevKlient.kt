@@ -34,7 +34,7 @@ class JournalførFakeRammevedtaksbrevKlient(
         correlationId: CorrelationId,
     ): Pair<JournalpostId, JournalførBrevMetadata> {
         return (
-            data.get()[vedtak.id] ?: journalpostIdGenerator.neste().also {
+            data.get()[vedtak.id] ?: journalpostIdGenerator.generer().also {
                 data.get().putIfAbsent(vedtak.id, it)
             }
             ) to journalførBrevMetadata

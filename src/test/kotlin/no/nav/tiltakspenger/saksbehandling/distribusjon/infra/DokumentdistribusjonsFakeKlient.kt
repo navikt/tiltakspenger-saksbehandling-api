@@ -20,6 +20,6 @@ class DokumentdistribusjonsFakeKlient(
         journalpostId: JournalpostId,
         correlationId: CorrelationId,
     ): Either<KunneIkkeDistribuereDokument, DistribusjonId> {
-        return data.computeIfAbsent(journalpostId) { distribusjonIdGenerator.neste() }.right()
+        return data.computeIfAbsent(journalpostId) { distribusjonIdGenerator.generer() }.right()
     }
 }

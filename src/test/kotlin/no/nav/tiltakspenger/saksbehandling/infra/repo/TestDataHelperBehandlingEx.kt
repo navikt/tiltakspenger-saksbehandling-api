@@ -47,7 +47,7 @@ import kotlin.random.Random
 
 internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     sakId: SakId = SakId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
@@ -108,7 +108,7 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
 
 internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
     sakId: SakId = SakId.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),
@@ -173,7 +173,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
@@ -252,7 +252,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
@@ -356,7 +356,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
@@ -421,7 +421,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad =
@@ -475,7 +475,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
 internal fun TestDataHelper.persisterNySak(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
-    saksnummer: Saksnummer = this.saksnummerGenerator.neste(),
+    saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
 ): Sak {
     return ObjectMother.nySak(
         sakId = sakId,
@@ -501,7 +501,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     søknadId: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad =
@@ -578,7 +578,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
@@ -643,7 +643,7 @@ internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehand
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     søknad: InnvilgbarSøknad =
         ObjectMother.nyInnvilgbarSøknad(
@@ -711,7 +711,7 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,
         fnr = fnr,
-        saksnummer = this.saksnummerGenerator.neste(),
+        saksnummer = this.saksnummerGenerator.generer(),
     ),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
         periode = tiltaksOgVedtaksperiode,

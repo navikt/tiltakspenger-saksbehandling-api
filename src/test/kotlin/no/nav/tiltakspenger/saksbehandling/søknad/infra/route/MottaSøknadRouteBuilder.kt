@@ -38,7 +38,7 @@ interface MottaSøknadRouteBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         søknadId: SøknadId = SøknadId.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, sak.fnr)
@@ -56,7 +56,7 @@ interface MottaSøknadRouteBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
@@ -74,7 +74,7 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr,
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
     ) {
         val jwt = tac.jwtGenerator.createJwtForSystembruker(
             roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),

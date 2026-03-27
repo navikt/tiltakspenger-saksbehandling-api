@@ -7,6 +7,8 @@ import java.time.LocalDateTime
 import kotlin.reflect.KClass
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.isAccessible
 
 fun <T : Any> T.shouldBeEqualToIgnoringLocalDateTime(
     other: T,
@@ -26,53 +28,163 @@ fun <T : Any> beEqualToIgnoringFieldsOfTypeRecursively(
     type: KClass<*>,
     vararg otherTypes: KClass<*>,
 ): Matcher<T> = object : Matcher<T> {
-    val types = listOf(type) + otherTypes
+    private val ignoredTypes = setOf(type, *otherTypes)
 
     override fun test(value: T): MatcherResult {
         val failures = compareRecursively(value, other, path = "")
         return MatcherResult(
             failures.isEmpty(),
             { "Objects differ:\n${failures.joinToString("\n")}" },
-            { "Objects should differ but were equal ignoring ${types.map { it.simpleName }}" },
+            { "Objects should differ but were equal ignoring ${ignoredTypes.map { it.simpleName }}" },
         )
     }
 
     fun compareRecursively(value: Any?, other: Any?, path: String): List<String> {
-        if (value == null && other == null) return emptyList()
-        if (value == null || other == null) return listOf("$path: expected $other but was $value")
+        val normalizedValue = normalizeBoxedNullValueClass(value)
+        val normalizedOther = normalizeBoxedNullValueClass(other)
 
-        // Handle lists before class check — listOf() vs mutableListOf() have different runtime classes
-        if (value is List<*> && other is List<*>) {
-            if (value.size != other.size) return listOf("$path: expected size ${other.size} but was ${value.size}")
-            return value.zip(other).flatMapIndexed { i, (a, e) ->
-                compareRecursively(a, e, "$path[$i]")
-            }
-        }
+        if (normalizedValue == null && normalizedOther == null) return emptyList()
+        if (normalizedValue == null || normalizedOther == null) return listOf(mismatch(path, normalizedValue, normalizedOther))
 
-        if (value::class != other::class) return listOf("$path: expected type ${other::class.simpleName} but was ${value::class.simpleName}")
+        compareMap(normalizedValue, normalizedOther, path)?.let { return it }
+        compareSet(normalizedValue, normalizedOther, path)?.let { return it }
+        compareIterable(normalizedValue, normalizedOther, path)?.let { return it }
 
-        if (typeIsJavaOrKotlinBuiltIn(value)) {
-            return if (value != other) {
-                listOf("$path: expected $other but was $value")
+        if (normalizedValue::class != normalizedOther::class) return listOf(typeMismatch(path, normalizedValue, normalizedOther))
+        if (normalizedValue::class in ignoredTypes) return emptyList()
+        if (normalizedValue::class.isValue) return compareBuiltIn(normalizedValue, normalizedOther, path)
+        if (typeIsJavaOrKotlinBuiltIn(normalizedValue)) return compareBuiltIn(normalizedValue, normalizedOther, path)
+
+        return compareObject(normalizedValue, normalizedOther, path)
+    }
+
+    private fun compareMap(value: Any, other: Any, path: String): List<String>? {
+        if (value !is Map<*, *> && other !is Map<*, *>) return null
+
+        val valueMap = value as? Map<*, *> ?: return listOf(mismatch(path, value, other))
+        val otherMap = other as? Map<*, *> ?: return listOf(mismatch(path, value, other))
+
+        if (valueMap.size != otherMap.size) return listOf(sizeMismatch(path, valueMap.size, otherMap.size))
+
+        return valueMap.keys.sortedBy { it.toString() }.flatMap { key ->
+            if (!otherMap.containsKey(key)) {
+                listOf("$path[$key]: missing key")
             } else {
-                emptyList()
+                compareRecursively(valueMap[key], otherMap[key], "$path[$key]")
             }
-        }
-
-        if (types.any { it == value::class }) return emptyList()
-
-        val propsToCompare = value::class.memberProperties
-            .filter { prop -> types.none { it == prop.returnType.classifier } }
-            .filter { it.visibility == KVisibility.PUBLIC }
-
-        return propsToCompare.flatMap { prop ->
-            val actualVal = prop.getter.call(value)
-            val expectedVal = prop.getter.call(other)
-            val fieldPath = if (path.isEmpty()) prop.name else "$path.${prop.name}"
-            compareRecursively(actualVal, expectedVal, fieldPath)
         }
     }
+
+    private fun compareSet(value: Any, other: Any, path: String): List<String>? {
+        if (value !is Set<*> && other !is Set<*>) return null
+
+        val valueSet = value as? Set<*> ?: return listOf(mismatch(path, value, other))
+        val otherSet = other as? Set<*> ?: return listOf(mismatch(path, value, other))
+
+        if (valueSet.size != otherSet.size) return listOf(sizeMismatch(path, valueSet.size, otherSet.size))
+
+        val remaining = otherSet.toMutableList()
+        return buildList {
+            valueSet.forEach { actualElement ->
+                val matchIndex = remaining.indexOfFirst { expectedElement ->
+                    compareRecursively(actualElement, expectedElement, path).isEmpty()
+                }
+
+                if (matchIndex == -1) {
+                    add("$path: missing element ${safeValueString(actualElement)}")
+                } else {
+                    remaining.removeAt(matchIndex)
+                }
+            }
+        }
+    }
+
+    private fun compareIterable(value: Any, other: Any, path: String): List<String>? {
+        if (value !is Iterable<*> && other !is Iterable<*>) return null
+
+        val valueList = (value as? Iterable<*>)?.toListOrNullForBoxedNullValueClass()
+        val otherList = (other as? Iterable<*>)?.toListOrNullForBoxedNullValueClass()
+
+        if (valueList == null && otherList == null) return emptyList()
+        if (valueList == null || otherList == null) return listOf(mismatch(path, value, other))
+
+        if (valueList.size != otherList.size) return listOf(sizeMismatch(path, valueList.size, otherList.size))
+
+        return valueList.zip(otherList).flatMapIndexed { index, (actualElement, expectedElement) ->
+            compareRecursively(actualElement, expectedElement, "$path[$index]")
+        }
+    }
+
+    private fun compareBuiltIn(value: Any, other: Any, path: String): List<String> =
+        if (value != other) listOf(mismatch(path, value, other)) else emptyList()
+
+    private fun compareObject(value: Any, other: Any, path: String): List<String> =
+        propertiesToCompare(value::class)
+            .sortedBy { it.name }
+            .flatMap { prop ->
+                prop.isAccessible = true
+                val actualValue = prop.getter.call(value)
+                val expectedValue = prop.getter.call(other)
+                val fieldPath = if (path.isEmpty()) prop.name else "$path.${prop.name}"
+
+                if (prop.returnType.classifier in ignoredTypes) {
+                    compareIgnoredField(actualValue, expectedValue, fieldPath)
+                } else {
+                    compareRecursively(actualValue, expectedValue, fieldPath)
+                }
+            }
+
+    private fun propertiesToCompare(type: KClass<*>) =
+        type.memberProperties.filter { prop ->
+            prop.visibility == KVisibility.PUBLIC || prop.name in constructorPropertyNames(type)
+        }
+
+    private fun constructorPropertyNames(type: KClass<*>) =
+        type.primaryConstructor?.parameters
+            ?.mapNotNull { it.name }
+            ?.toSet()
+            .orEmpty()
+
+    private fun compareIgnoredField(value: Any?, other: Any?, path: String): List<String> =
+        when {
+            value == null && other == null -> emptyList()
+            value == null || other == null -> listOf(mismatch(path, value, other))
+            else -> emptyList()
+        }
+
+    private fun mismatch(path: String, value: Any?, other: Any?): String =
+        "$path: expected ${safeValueString(other)} but was ${safeValueString(value)}"
+
+    private fun sizeMismatch(path: String, valueSize: Int, otherSize: Int): String =
+        "$path: expected size $otherSize but was $valueSize"
+
+    private fun typeMismatch(path: String, value: Any, other: Any): String =
+        "$path: expected type ${other::class.simpleName} but was ${value::class.simpleName}"
 }
+
+private fun normalizeBoxedNullValueClass(value: Any?): Any? {
+    if (value == null || !value::class.isValue) return value
+
+    val underlyingProperty = value::class.memberProperties.singleOrNull() ?: return value
+    underlyingProperty.isAccessible = true
+
+    val underlyingValue = runCatching { underlyingProperty.getter.call(value) }.getOrElse { return value }
+    return if (underlyingValue == null) null else value
+}
+
+private fun Iterable<*>.toListOrNullForBoxedNullValueClass(): List<Any?>? =
+    runCatching { this.toList() }
+        .getOrElse {
+            if (it is NullPointerException && this::class.isValue) {
+                null
+            } else {
+                throw it
+            }
+        }
+
+private fun safeValueString(value: Any?): String =
+    runCatching { value.toString() }
+        .getOrElse { value?.let { "${it::class.simpleName}(unprintable)" } ?: "null" }
 
 private fun typeIsJavaOrKotlinBuiltIn(value: Any): Boolean {
     val typeName = value::class.java.canonicalName ?: return false

@@ -96,6 +96,9 @@ data class Klagebehandling(
     val journalpostIdInnstillingsbrev: JournalpostId? =
         (resultat as? Klagebehandlingsresultat.Opprettholdt)?.journalpostIdInnstillingsbrev
 
+    val dokumentInfoIder: List<DokumentInfoId> =
+        (resultat as? Klagebehandlingsresultat.Opprettholdt)?.dokumentInfoIder ?: emptyList()
+
     /**
      * Siden vi i alle tilfeller genererer brevet på nytt, må vi skille på om vi skal akseptere forhåndsvisningens parametre eller ikke.
      * Etter vi har passert et visst punkt i behandlingen, skal ikke saksbehandler kunne påvirke innholdet i brevet lenger.

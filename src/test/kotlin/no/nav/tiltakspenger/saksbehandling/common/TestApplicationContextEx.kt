@@ -6,12 +6,16 @@ import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDatabaseManager
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
+import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
+import java.time.Clock
 
 private val dbManager = TestDatabaseManager()
 
@@ -23,13 +27,17 @@ fun withTestApplicationContextAndPostgres(
     runIsolated: Boolean = false,
     testBlock: suspend ApplicationTestBuilder.(TestApplicationContextMedPostgres) -> Unit,
 ) {
-    dbManager.withMigratedDb(runIsolated = runIsolated, clock = clock) { testDataHelper ->
+    dbManager.withMigratedDb(
+        runIsolated = runIsolated,
+        clock = clock,
+    ) { sessionFactory: SessionFactory, idGenerators: IdGenerators, _: Clock ->
         with(
             TestApplicationContextMedPostgres(
                 clock = clock,
                 texasClient = texasClient,
-                sessionFactory = testDataHelper.sessionFactory,
+                sessionFactory = sessionFactory as PostgresSessionFactory,
                 tilgangsmaskinFakeClient = tilgangsmaskinFakeClient,
+                idGenerators = idGenerators,
             ),
         ) {
             val tac = this

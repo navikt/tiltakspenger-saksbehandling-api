@@ -180,7 +180,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         iverksattOpprettholdelseTidspunkt: LocalDateTime? = null,
         brevdato: LocalDate? = null,
         journalpostIdInnstillingsbrev: JournalpostId? = null,
-        dokumentInfoIder: NonEmptyList<DokumentInfoId>? = null,
+        dokumentInfoIder: List<DokumentInfoId> = emptyList(),
         journalføringstidspunktInnstillingsbrev: LocalDateTime? = null,
         distribusjonIdInnstillingsbrev: DistribusjonId? = null,
         distribusjonstidspunktInnstillingsbrev: LocalDateTime? = null,
