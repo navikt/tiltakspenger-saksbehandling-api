@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.beregning
 
 /**
  * Tiltakspengeforskriften § 10. Reduksjon av ytelse på grunn av fravær

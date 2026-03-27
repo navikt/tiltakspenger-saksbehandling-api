@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning.infra.dto
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.ReduksjonAvYtelsePåGrunnAvFravær
+import no.nav.tiltakspenger.saksbehandling.beregning.ReduksjonAvYtelsePåGrunnAvFravær
 
 enum class ReduksjonAvYtelsePåGrunnAvFraværDTO {
     INGEN_REDUKSJON,

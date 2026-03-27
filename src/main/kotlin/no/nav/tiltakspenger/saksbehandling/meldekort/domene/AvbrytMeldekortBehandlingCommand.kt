@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene.behandling.avbryt
+package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId

@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.perioder
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import org.jetbrains.annotations.TestOnly
 
 /**

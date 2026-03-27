@@ -1,7 +1,7 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.domene
+package no.nav.tiltakspenger.saksbehandling.felles
 
 import no.nav.tiltakspenger.libs.common.NonBlankString
-import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
+import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen
 import org.jetbrains.annotations.TestOnly
 
 // TODO - denne burde flyttes til libs
@@ -21,7 +21,7 @@ value class Begrunnelse private constructor(
         /** @return null dersom strengen er blank */
         fun create(verdi: String): Begrunnelse? {
             if (verdi.isBlank()) return null
-            return Begrunnelse(NonBlankString.create(saniterBeholdNewline(verdi)))
+            return Begrunnelse(NonBlankString.create(SaniterStringForPdfgen.saniterBeholdNewline(verdi)))
         }
 
         @TestOnly
