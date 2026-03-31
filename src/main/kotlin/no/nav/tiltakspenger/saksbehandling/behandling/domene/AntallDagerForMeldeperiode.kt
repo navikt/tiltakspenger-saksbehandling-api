@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.validerMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.validerMeldeperiode
 
 @JvmInline
 value class AntallDagerForMeldeperiode(val value: Int) : Comparable<AntallDagerForMeldeperiode> {

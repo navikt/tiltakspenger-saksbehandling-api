@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.datadeling
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 

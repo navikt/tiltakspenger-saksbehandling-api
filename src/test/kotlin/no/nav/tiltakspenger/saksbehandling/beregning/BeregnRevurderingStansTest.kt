@@ -38,7 +38,7 @@ class BeregnRevurderingStansTest {
 
         val førsteMeldeperiode = sak.meldeperiodeKjeder.first().periode
 
-        val (sakMedMeldekortBehandlinger: Sak) = sak.leggTilMeldekortBehandletAutomatisk(
+        val (sakMedMeldekortbehandlinger: Sak) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = førsteMeldeperiode,
         ).first.leggTilMeldekortBehandletAutomatisk(periode = førsteMeldeperiode.plus14Dager())
 
@@ -49,7 +49,7 @@ class BeregnRevurderingStansTest {
             saksopplysningsperiode = vedtaksperiode,
         )
 
-        return (sakMedMeldekortBehandlinger.leggTilRevurdering(revurdering)) to revurdering
+        return (sakMedMeldekortbehandlinger.leggTilRevurdering(revurdering)) to revurdering
     }
 
     @Test

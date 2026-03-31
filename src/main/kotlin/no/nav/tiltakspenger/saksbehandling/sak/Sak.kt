@@ -20,15 +20,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
@@ -92,8 +92,8 @@ data class Sak(
         )
     }
 
-    fun hentMeldekortBehandling(meldekortId: MeldekortId): MeldekortBehandling? {
-        return meldekortbehandlinger.hentMeldekortBehandling(meldekortId)
+    fun hentMeldekortbehandling(meldekortId: MeldekortId): Meldekortbehandling? {
+        return meldekortbehandlinger.hentMeldekortbehandling(meldekortId)
     }
 
     fun hentSisteMeldeperiodeForKjede(kjedeId: MeldeperiodeKjedeId): Meldeperiode {
@@ -109,7 +109,7 @@ data class Sak(
         }
     }
 
-    fun hentTilbakekrevingForMeldekortBehandling(id: MeldekortId): TilbakekrevingBehandling? {
+    fun hentTilbakekrevingForMeldekortbehandling(id: MeldekortId): TilbakekrevingBehandling? {
         return utbetalinger.hentUtbetalingForMeldekort(id)?.let { utbetaling ->
             tilbakekrevinger.singleOrNull { it.utbetalingId == utbetaling.id }
         }
@@ -189,7 +189,7 @@ data class Sak(
         return this.copy(behandlinger = this.behandlinger.copy(meldekortbehandlinger = behandlinger))
     }
 
-    fun oppdaterMeldekortbehandling(behandling: MeldekortBehandling): Sak {
+    fun oppdaterMeldekortbehandling(behandling: Meldekortbehandling): Sak {
         return this.copy(behandlinger = this.behandlinger.oppdaterMeldekortbehandling(behandling))
     }
 

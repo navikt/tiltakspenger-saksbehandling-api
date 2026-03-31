@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus

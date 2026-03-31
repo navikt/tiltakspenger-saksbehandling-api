@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime

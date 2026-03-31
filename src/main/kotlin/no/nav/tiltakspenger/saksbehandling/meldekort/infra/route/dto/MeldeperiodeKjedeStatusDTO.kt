@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
@@ -27,11 +27,11 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
 ): MeldeperiodeKjedeStatusDTO {
     val brukersMeldekort = this.brukersMeldekort.filter { it.kjedeId == kjedeId }
     val sisteInnsendteMeldekort = brukersMeldekort.maxByOrNull { it.mottatt }
-    val sisteMeldekortBehandling =
+    val sisteMeldekortbehandling =
         this.meldekortbehandlinger.filter { it.kjedeId == kjedeId }.maxByOrNull { it.opprettet }
 
     val harMottattMeldekortEtterSisteBehandling =
-        sisteInnsendteMeldekort != null && (sisteMeldekortBehandling == null || sisteInnsendteMeldekort.mottatt > sisteMeldekortBehandling.sistEndret)
+        sisteInnsendteMeldekort != null && (sisteMeldekortbehandling == null || sisteInnsendteMeldekort.mottatt > sisteMeldekortbehandling.sistEndret)
 
     if (harMottattMeldekortEtterSisteBehandling) {
         return if (brukersMeldekort.size > 1) {
@@ -43,8 +43,8 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
         }
     }
 
-    if (sisteMeldekortBehandling != null) {
-        return sisteMeldekortBehandling.status.tilMeldeperiodeKjedeStatusDTO()
+    if (sisteMeldekortbehandling != null) {
+        return sisteMeldekortbehandling.status.tilMeldeperiodeKjedeStatusDTO()
     }
 
     val meldeperiode = this.hentSisteMeldeperiodeForKjede(kjedeId)
@@ -74,24 +74,24 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
     return MeldeperiodeKjedeStatusDTO.IKKE_KLAR_TIL_BEHANDLING
 }
 
-fun MeldekortBehandlingStatus.tilMeldeperiodeKjedeStatusDTO(): MeldeperiodeKjedeStatusDTO {
+fun MeldekortbehandlingStatus.tilMeldeperiodeKjedeStatusDTO(): MeldeperiodeKjedeStatusDTO {
     return when (this) {
-        MeldekortBehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
+        MeldekortbehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
 
-        MeldekortBehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
+        MeldekortbehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
 
-        MeldekortBehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
+        MeldekortbehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
 
-        MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
+        MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
 
-        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
+        MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
 
-        MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
+        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
 
-        MeldekortBehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
+        MeldekortbehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
 
         // Vi skal ikke utlede status på meldeperiodekjeden ut fra om det ikke var rett ved forrige behandling
         // Dette skal kun bestemmes av nyeste meldeperiode
-        MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.AVBRUTT
+        MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.AVBRUTT
     }
 }

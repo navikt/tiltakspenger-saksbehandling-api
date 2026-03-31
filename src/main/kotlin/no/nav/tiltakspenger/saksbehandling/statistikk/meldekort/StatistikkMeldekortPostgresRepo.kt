@@ -41,7 +41,7 @@ class StatistikkMeldekortPostgresRepo {
                     mapOf(
                         "meldeperiode_kjede_id" to dto.meldeperiodeKjedeId,
                         "sak_id" to dto.sakId,
-                        "meldekortbehandling_id" to dto.meldekortBehandlingId,
+                        "meldekortbehandling_id" to dto.meldekortbehandlingId,
                         "bruker_id" to dto.brukerId,
                         "saksnummer" to dto.saksnummer,
                         "vedtatt_tidspunkt" to dto.vedtattTidspunkt,

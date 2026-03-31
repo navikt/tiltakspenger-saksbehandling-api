@@ -37,7 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
@@ -813,7 +813,7 @@ suspend fun TestApplicationContext.søknadsbehandlingIverksattMedMeldeperioder(
 /**
  * Oppretter sak, søknad, iverksetter søknadsbehandling og oppretter meldekortbehandling
  */
-suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
+suspend fun TestApplicationContext.meldekortbehandlingOpprettet(
     innvilgelsesperiode: Periode = ObjectMother.vedtaksperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
@@ -827,7 +827,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
         beslutter = beslutter,
         resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
     )
-    tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
+    tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
         sakId = sak.id,
         kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
         saksbehandler = saksbehandler,
@@ -840,7 +840,7 @@ suspend fun TestApplicationContext.meldekortBehandlingOpprettet(
 /**
  * Oppretter sak, søknad, iverksetter søknadsbehandling og oppretter meldekortbehandling
  */
-suspend fun TestApplicationContext.meldekortBehandlingOppdatert(
+suspend fun TestApplicationContext.meldekortbehandlingOppdatert(
     innvilgelsesperiode: Periode = ObjectMother.vedtaksperiode(),
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = saksbehandler(),
@@ -848,13 +848,13 @@ suspend fun TestApplicationContext.meldekortBehandlingOppdatert(
     clock: Clock = this.clock,
 ): Sak {
     val tac = this
-    val sak = meldekortBehandlingOpprettet(
+    val sak = meldekortbehandlingOpprettet(
         innvilgelsesperiode = innvilgelsesperiode,
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
     )
-    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
         sak.meldekortbehandlinger.first().tilOppdaterMeldekortKommando(
             saksbehandler,
         ),
@@ -876,14 +876,14 @@ suspend fun TestApplicationContext.meldekortTilBeslutter(
     clock: Clock = this.clock,
 ): Sak {
     val tac = this
-    val sak = meldekortBehandlingOppdatert(
+    val sak = meldekortbehandlingOppdatert(
         innvilgelsesperiode = innvilgelsesperiode,
         fnr = fnr,
         saksbehandler = saksbehandler,
         beslutter = beslutter,
         clock = clock,
     )
-    tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+    tac.meldekortContext.sendMeldekortbehandlingTilBeslutterService.sendMeldekortTilBeslutter(
         sak.meldekortbehandlinger.first().tilSendMeldekortTilBeslutterKommando(
             saksbehandler,
         ),
@@ -914,13 +914,13 @@ suspend fun TestApplicationContext.førsteMeldekortIverksatt(
         clock = clock,
     )
     val meldekortId = sak.meldekortbehandlinger.first().id
-    tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
+    tac.meldekortContext.taMeldekortbehandlingService.taMeldekortbehandling(
         sakId = sak.id,
         meldekortId = meldekortId,
         saksbehandler = beslutter,
     )
-    tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
-        IverksettMeldekortKommando(
+    tac.meldekortContext.iverksettMeldekortbehandlingService.iverksettMeldekort(
+        IverksettMeldekortbehandlingKommando(
             meldekortId = meldekortId,
             sakId = sak.id,
             beslutter = beslutter,
@@ -947,13 +947,13 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
         beslutter = beslutter,
     )
 
-    val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortBehandlingService.opprettBehandling(
+    val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
         sakId = sak.id,
         kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
         saksbehandler = saksbehandler,
     ).getOrFail()
 
-    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
+    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
         kommando = meldekortbehandling.tilOppdaterMeldekortKommando(saksbehandler),
         clock = clock,
     )

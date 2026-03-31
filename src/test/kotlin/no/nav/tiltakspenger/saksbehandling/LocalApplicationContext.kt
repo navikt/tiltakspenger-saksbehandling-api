@@ -244,7 +244,7 @@ class LocalApplicationContext(
     override val behandlingContext by lazy {
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
-            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,

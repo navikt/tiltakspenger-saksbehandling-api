@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
@@ -56,7 +56,7 @@ internal class TestDataHelper(
         clock = clock,
         statistikkRepo = statistikkRepo,
     )
-    val meldekortRepo = MeldekortBehandlingPostgresRepo(sessionFactory)
+    val meldekortRepo = MeldekortbehandlingPostgresRepo(sessionFactory)
     val meldeperiodeRepo = MeldeperiodePostgresRepo(sessionFactory)
     val meldekortBrukerRepo = BrukersMeldekortPostgresRepo(sessionFactory)
     val meldekortvedtakRepo: MeldekortvedtakRepo = MeldekortvedtakPostgresRepo(sessionFactory)

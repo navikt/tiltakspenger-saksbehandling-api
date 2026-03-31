@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.BeløpDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeKorrigeringDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 
 data class MeldekortBeregningDTO(
     val totalBeløp: BeløpDTO,
@@ -29,7 +29,7 @@ fun Beregning.tilMeldekortBeregningDTO(): MeldekortBeregningDTO {
     )
 }
 
-fun MeldekortBehandletManuelt.tilMeldeperiodeKorrigeringDTO(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKorrigeringDTO =
+fun MeldekortbehandlingManuell.tilMeldeperiodeKorrigeringDTO(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKorrigeringDTO =
     MeldeperiodeKorrigeringDTO(
         meldekortId = this.id.toString(),
         kjedeId = kjedeId.toString(),

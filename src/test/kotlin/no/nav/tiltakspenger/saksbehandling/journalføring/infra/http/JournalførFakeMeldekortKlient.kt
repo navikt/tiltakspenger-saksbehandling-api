@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 
 class JournalførFakeMeldekortKlient(

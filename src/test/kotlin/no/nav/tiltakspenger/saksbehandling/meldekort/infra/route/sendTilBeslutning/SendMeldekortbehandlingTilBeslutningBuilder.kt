@@ -25,8 +25,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortBehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
+import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
@@ -57,7 +57,7 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortBehandletManuelt, MeldekortBehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, _, _) = iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -94,8 +94,8 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortBehandletManuelt, MeldekortBehandlingDTOJson>? {
-        val (sakMedMeldekortbehandlingUnderBeslutning, meldekortBehandlingUnderBeslutning) = opprettOgOppdaterMeldekortbehandling(
+    ): Triple<Sak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
+        val (sakMedMeldekortbehandlingUnderBeslutning, meldekortbehandlingUnderBeslutning) = opprettOgOppdaterMeldekortbehandling(
             tac = tac,
             sakId = sakId,
             kjedeId = kjedeId,
@@ -104,7 +104,7 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
         return sendMeldekortbehandlingTilBeslutning(
             tac = tac,
             sakId = sakMedMeldekortbehandlingUnderBeslutning.id,
-            meldekortId = meldekortBehandlingUnderBeslutning.id,
+            meldekortId = meldekortbehandlingUnderBeslutning.id,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -121,7 +121,7 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortBehandletManuelt, MeldekortBehandlingDTOJson>? {
+    ): Triple<Sak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -146,11 +146,11 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
                 if (forventetJsonBody != null) bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: MeldekortBehandlingDTOJson = JSONObject(bodyAsText)
+            val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,
-                oppdatertSak.hentMeldekortBehandling(meldekortId) as MeldekortBehandletManuelt,
+                oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortbehandlingManuell,
                 jsonObject,
             )
         }

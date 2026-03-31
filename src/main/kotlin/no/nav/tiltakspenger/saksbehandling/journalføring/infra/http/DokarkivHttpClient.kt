@@ -36,7 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.toJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.toJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak

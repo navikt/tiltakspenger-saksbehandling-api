@@ -15,15 +15,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
-import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorSerial
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
@@ -35,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingCont
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -95,7 +92,7 @@ class TestApplicationContextMedInMemoryDb(
     private val meldekortvedtakFakeRepo = MeldekortvedtakFakeRepo(utbetalingFakeRepo)
     private val klagevedtakFakeRepo = KlagevedtakFakeRepo()
     private val statistikkFakeRepo = StatistikkFakeRepo()
-    private val meldekortBehandlingFakeRepo = MeldekortBehandlingFakeRepo()
+    private val meldekortbehandlingFakeRepo = MeldekortbehandlingFakeRepo()
     private val meldeperiodeFakeRepo = MeldeperiodeFakeRepo()
     private val brukersMeldekortFakeRepo = BrukersMeldekortFakeRepo(meldeperiodeFakeRepo)
     private val behandlingFakeRepo = RammebehandlingFakeRepo()
@@ -114,7 +111,7 @@ class TestApplicationContextMedInMemoryDb(
     private val dokumentdistribusjonsFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
     private val benkOversiktFakeRepo =
-        BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortBehandlingFakeRepo, klagebehandlingFakeRepo)
+        BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortbehandlingFakeRepo, klagebehandlingFakeRepo)
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
     private val fakeNavIdentClient = FakeNavIdentClient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
@@ -149,14 +146,14 @@ class TestApplicationContextMedInMemoryDb(
         BenkOversiktFakeRepo(
             søknadFakeRepo = søknadFakeRepo,
             behandlingFakeRepo = behandlingFakeRepo,
-            meldekortBehandlingFakeRepo = meldekortBehandlingFakeRepo,
+            meldekortbehandlingFakeRepo = meldekortbehandlingFakeRepo,
             klagebehandlingFakeRepo = klagebehandlingFakeRepo,
         )
     private val sakFakeRepo =
         SakFakeRepo(
             behandlingRepo = behandlingFakeRepo,
             rammevedtakRepo = rammevedtakFakeRepo,
-            meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
+            meldekortbehandlingRepo = meldekortbehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
             meldekortvedtakRepo = meldekortvedtakFakeRepo,
             klagevedtakRepo = klagevedtakFakeRepo,
@@ -168,7 +165,7 @@ class TestApplicationContextMedInMemoryDb(
         )
 
     private val personFakeRepo =
-        PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortBehandlingFakeRepo, behandlingFakeRepo)
+        PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortbehandlingFakeRepo, behandlingFakeRepo)
 
     override val veilarboppfolgingKlient = VeilarboppfolgingFakeKlient()
     override val navkontorService: NavkontorService = NavkontorService(veilarboppfolgingKlient)
@@ -262,7 +259,7 @@ class TestApplicationContextMedInMemoryDb(
                 navIdentClient = personContext.navIdentClient,
                 statistikkService = statistikkContext.statistikkService,
             ) {
-            override val meldekortBehandlingRepo = meldekortBehandlingFakeRepo
+            override val meldekortbehandlingRepo = meldekortbehandlingFakeRepo
             override val meldeperiodeRepo = meldeperiodeFakeRepo
             override val brukersMeldekortRepo = brukersMeldekortFakeRepo
             override val meldekortApiHttpClient = meldekortApiFakeKlient
@@ -273,7 +270,7 @@ class TestApplicationContextMedInMemoryDb(
     override val behandlingContext by lazy {
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
-            meldekortBehandlingRepo = meldekortBehandlingFakeRepo,
+            meldekortbehandlingRepo = meldekortbehandlingFakeRepo,
             meldeperiodeRepo = meldeperiodeFakeRepo,
             statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,

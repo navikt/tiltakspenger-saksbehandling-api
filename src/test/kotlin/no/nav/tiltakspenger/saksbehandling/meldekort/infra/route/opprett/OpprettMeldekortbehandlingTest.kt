@@ -35,7 +35,7 @@ class OpprettMeldekortbehandlingTest {
                         "fraOgMed": "2025-03-31",
                         "tilOgMed": "2025-04-13"
                       },
-                      "avbrutteMeldekortBehandlinger": [],
+                      "avbrutteMeldekortbehandlinger": [],
                       "tiltaksnavn": [
                         "Arbeidsmarkedsoppfølging gruppe"
                       ],
@@ -72,7 +72,7 @@ class OpprettMeldekortbehandlingTest {
                           "antallDager": 10
                         }
                       ],
-                      "meldekortBehandlinger": [
+                      "meldekortbehandlinger": [
                         {
                           "begrunnelse": null,
                           "avbrutt": null,

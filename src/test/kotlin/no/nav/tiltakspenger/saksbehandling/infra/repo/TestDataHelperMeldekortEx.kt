@@ -13,18 +13,18 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatiskStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.SendMeldekortTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.oppdaterMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettManuellMeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.oppdaterMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.saksbehandlerFyllerUtMeldeperiodeDager
@@ -79,7 +79,7 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
     return this.sakRepo.hentForSakId(generertSak.id)!! to brukersMeldekort
 }
 
-internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling(
+internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = saksbehandler(),
     kjedeId: MeldeperiodeKjedeId? = null,
@@ -87,7 +87,7 @@ internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling
         2.januar(2023),
         15.januar(2023),
     ),
-    navkontor: Navkontor = Navkontor("0012", "Kontor TestDataHelper.persisterManuellMeldekortBehandling"),
+    navkontor: Navkontor = Navkontor("0012", "Kontor TestDataHelper.persisterManuellMeldekortbehandling"),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Sak = { s ->
         s ?: this.persisterIverksattSøknadsbehandling(
@@ -99,45 +99,45 @@ internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling
 ): Pair<Sak, MeldekortUnderBehandling> {
     val generertSak = genererSak(sak)
 
-    val (_, manuellMeldekortBehandling) = generertSak.opprettManuellMeldekortBehandling(
+    val (_, manuellMeldekortbehandling) = generertSak.opprettManuellMeldekortbehandling(
         kjedeId = kjedeId ?: generertSak.meldeperiodeKjeder.first().kjedeId,
         navkontor = navkontor,
         saksbehandler = saksbehandler,
         clock = clock,
     ).getOrFail()
 
-    this.meldekortRepo.lagre(manuellMeldekortBehandling, null)
+    this.meldekortRepo.lagre(manuellMeldekortbehandling, null)
 
-    return this.sakRepo.hentForSakId(manuellMeldekortBehandling.sakId)!! to manuellMeldekortBehandling
+    return this.sakRepo.hentForSakId(manuellMeldekortbehandling.sakId)!! to manuellMeldekortbehandling
 }
 
 /**
  * OBS: Prøver å avslutte siste meldekortbehandling i [sak], hvis den er i tilstanden [MeldekortUnderBehandling].
  * (enklere å begynne med :) )
  */
-internal fun TestDataHelper.persisterAvsluttetMeldekortBehandling(
+internal fun TestDataHelper.persisterAvsluttetMeldekortbehandling(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = saksbehandler(),
     periode: Periode = Periode(
         2.januar(2023),
         15.januar(2023),
     ),
-    begrunnelse: String = "TestDataHelper.persisterAvsluttetMeldekortBehandling",
+    begrunnelse: String = "TestDataHelper.persisterAvsluttetMeldekortbehandling",
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Sak = { s ->
-        s ?: this.persisterKlarTilBehandlingManuellMeldekortBehandling(
+        s ?: this.persisterKlarTilBehandlingManuellMeldekortbehandling(
             s,
             periode = periode,
             clock = clock,
         ).first
     },
-): Pair<Sak, MeldekortBehandling> {
+): Pair<Sak, Meldekortbehandling> {
     val generertSak = genererSak(sak)
-    val meldekortBehandling = generertSak.meldekortbehandlinger
+    val meldekortbehandling = generertSak.meldekortbehandlinger
         .filterIsInstance<MeldekortUnderBehandling>()
         .last { it.meldeperiode.periode == periode }
 
-    val avbruttMeldekortbehandling = meldekortBehandling.avbryt(
+    val avbruttMeldekortbehandling = meldekortbehandling.avbryt(
         avbruttAv = saksbehandler,
         begrunnelse = begrunnelse.toNonBlankString(),
         tidspunkt = LocalDateTime.now(clock),
@@ -148,7 +148,7 @@ internal fun TestDataHelper.persisterAvsluttetMeldekortBehandling(
     return this.sakRepo.hentForSakId(avbruttMeldekortbehandling.sakId)!! to avbruttMeldekortbehandling
 }
 
-internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
+internal fun TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = saksbehandler(),
     periode: Periode = Periode(
@@ -157,22 +157,22 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
     ),
     clock: Clock = this.clock,
     genererSak: (Sak?) -> Pair<Sak, MeldekortUnderBehandling> = { s ->
-        this.persisterKlarTilBehandlingManuellMeldekortBehandling(
+        this.persisterKlarTilBehandlingManuellMeldekortbehandling(
             s,
             periode = periode,
             clock = clock,
         )
     },
-): Pair<Sak, MeldekortBehandling> {
-    val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortBehandling) = genererSak(sak)
-    val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortBehandling.meldeperiode)
-    val begrunnelse = Begrunnelse.create("TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning")
+): Pair<Sak, Meldekortbehandling> {
+    val (sakMedOpprettetMeldekortbehandling, opprettetMeldekortbehandling) = genererSak(sak)
+    val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortbehandling.meldeperiode)
+    val begrunnelse = Begrunnelse.create("TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning")
 
     return runBlocking {
-        val (sakMedOppdatertMeldekortbehandling, meldekortBehandling, simuleringMedMetadata) = sakMedOpprettetMeldekortBehandling.oppdaterMeldekort(
+        val (sakMedOppdatertMeldekortbehandling, meldekortbehandling, simuleringMedMetadata) = sakMedOpprettetMeldekortbehandling.oppdaterMeldekort(
             kommando = ObjectMother.oppdaterMeldekortKommando(
-                sakId = sakMedOpprettetMeldekortBehandling.id,
-                meldekortId = opprettetMeldekortBehandling.id,
+                sakId = sakMedOpprettetMeldekortbehandling.id,
+                meldekortId = opprettetMeldekortbehandling.id,
                 saksbehandler = saksbehandler,
                 begrunnelse = begrunnelse,
                 correlationId = CorrelationId.generate(),
@@ -182,21 +182,21 @@ internal fun TestDataHelper.persisterManuellMeldekortBehandlingTilBeslutning(
             clock = clock,
         ).getOrFail()
 
-        meldekortRepo.oppdater(meldekortBehandling, simuleringMedMetadata)
+        meldekortRepo.oppdater(meldekortbehandling, simuleringMedMetadata)
 
-        val meldekortBehandlingTilBeslutning = meldekortBehandling.sendTilBeslutter(
-            kommando = SendMeldekortTilBeslutterKommando(
+        val meldekortbehandlingTilBeslutning = meldekortbehandling.sendTilBeslutter(
+            kommando = SendMeldekortbehandlingTilBeslutterKommando(
                 sakId = sakMedOppdatertMeldekortbehandling.id,
-                meldekortId = meldekortBehandling.id,
+                meldekortId = meldekortbehandling.id,
                 saksbehandler = saksbehandler,
                 correlationId = CorrelationId.generate(),
             ),
             clock = clock,
         ).getOrFail()
 
-        meldekortRepo.oppdater(meldekortBehandlingTilBeslutning)
+        meldekortRepo.oppdater(meldekortbehandlingTilBeslutning)
 
-        sakRepo.hentForSakId(sakMedOpprettetMeldekortBehandling.id)!! to meldekortBehandlingTilBeslutning
+        sakRepo.hentForSakId(sakMedOpprettetMeldekortbehandling.id)!! to meldekortbehandlingTilBeslutning
     }
 }
 
@@ -208,8 +208,8 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
         15.januar(2023),
     ),
     clock: Clock = this.clock,
-    genererSak: (Sak?) -> Pair<Sak, MeldekortBehandling> = { s ->
-        this.persisterManuellMeldekortBehandlingTilBeslutning(
+    genererSak: (Sak?) -> Pair<Sak, Meldekortbehandling> = { s ->
+        this.persisterManuellMeldekortbehandlingTilBeslutning(
             s,
             periode = periode,
             clock = clock,
@@ -218,16 +218,16 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
 ): Pair<Sak, Meldekortvedtak> {
     val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = genererSak(sak)
 
-    val iverksattMeldekortBehandling =
-        (meldekortbehandlingTilBeslutning.taMeldekortBehandling(beslutter, clock) as MeldekortBehandletManuelt)
+    val iverksattMeldekortbehandling =
+        (meldekortbehandlingTilBeslutning.taMeldekortbehandling(beslutter, clock) as MeldekortbehandlingManuell)
             .iverksettMeldekort(beslutter, clock).getOrFail()
 
-    val meldekortvedtak = iverksattMeldekortBehandling.opprettVedtak(
+    val meldekortvedtak = iverksattMeldekortbehandling.opprettVedtak(
         forrigeUtbetaling = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),
         clock = clock,
     )
 
-    meldekortRepo.oppdater(iverksattMeldekortBehandling)
+    meldekortRepo.oppdater(iverksattMeldekortbehandling)
     meldekortvedtakRepo.lagre(meldekortvedtak)
 
     return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortvedtak
@@ -235,11 +235,11 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
 
 internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
     id: MeldekortId? = null,
-    behandling: MeldekortBehandling? = id?.let { meldekortRepo.hent(it) },
-    dager: OppdaterMeldekortKommando.Dager? = null,
+    behandling: Meldekortbehandling? = id?.let { meldekortRepo.hent(it) },
+    dager: OppdaterMeldekortbehandlingKommando.Dager? = null,
     begrunnelse: Begrunnelse? = null,
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
-): Pair<Sak, MeldekortBehandling> {
+): Pair<Sak, Meldekortbehandling> {
     requireNotNull(behandling) {
         "Meldekortbehandling eller gyldig meldekortbehandling id må spesifiseres"
     }
@@ -249,7 +249,7 @@ internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
 
     val (_, oppdatertBehandling) = runBlocking {
         sak.oppdaterMeldekort(
-            OppdaterMeldekortKommando(
+            OppdaterMeldekortbehandlingKommando(
                 sakId = sakId,
                 meldekortId = behandling.id,
                 saksbehandler = saksbehandler(navIdent = behandling.saksbehandler!!),

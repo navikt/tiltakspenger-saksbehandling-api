@@ -11,10 +11,10 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
@@ -165,13 +165,13 @@ class MeldekortvedtakPostgresRepo(
             val utbetaling = UtbetalingPostgresRepo.hent(utbetalingId, session)
 
             val meldekortId = MeldekortId.fromString(string("meldekort_id"))
-            val meldekortbehandling = MeldekortBehandlingPostgresRepo
+            val meldekortbehandling = MeldekortbehandlingPostgresRepo
                 .hentForMeldekortId(
                     meldekortId,
                     session,
                 )
 
-            require(meldekortbehandling is MeldekortBehandling.Behandlet) {
+            require(meldekortbehandling is Meldekortbehandling.Behandlet) {
                 "Meldekortet $meldekortId på meldekortvedtak $vedtakId er ikke et behandlet meldekort"
             }
 
@@ -187,7 +187,7 @@ class MeldekortvedtakPostgresRepo(
                 journalpostId = journalpostId,
                 journalføringstidspunkt = journalføringstidspunkt,
                 opprettet = opprettet,
-                meldekortBehandling = meldekortbehandling,
+                meldekortbehandling = meldekortbehandling,
                 utbetaling = utbetaling,
             )
         }

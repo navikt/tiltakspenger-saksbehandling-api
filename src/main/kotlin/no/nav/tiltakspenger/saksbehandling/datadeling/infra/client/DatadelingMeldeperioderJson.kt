@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.LocalDate
 import java.time.LocalDateTime
 

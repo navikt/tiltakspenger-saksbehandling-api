@@ -12,8 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.toBeregningSammenligningDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 
@@ -21,7 +21,7 @@ class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val sakRepo: SakRepo,
-    private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val datadelingClient: DatadelingClient,
     private val clock: Clock,
@@ -103,13 +103,13 @@ class SendTilDatadelingService(
 
     private suspend fun sendMeldekortbehandlinger() {
         Either.catch {
-            meldekortBehandlingRepo.hentBehandlingerTilDatadeling().forEach { meldekortbehandling ->
+            meldekortbehandlingRepo.hentBehandlingerTilDatadeling().forEach { meldekortbehandling ->
                 val correlationId = CorrelationId.generate()
 
                 Either.catch {
                     datadelingClient.send(meldekortbehandling, correlationId).onRight {
                         logger.info { "Meldekortbehandling sendt til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
-                        meldekortBehandlingRepo.markerBehandlingSendtTilDatadeling(meldekortbehandling.id, nå(clock))
+                        meldekortbehandlingRepo.markerBehandlingSendtTilDatadeling(meldekortbehandling.id, nå(clock))
                         logger.info { "Meldekortbehandling markert som sendt til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
                     }.onLeft {
                         logger.error { "Meldekortbehandling kunne ikke sendes til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }

@@ -1,12 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.DayOfWeek
 import java.time.LocalDate
 
 /**
  * Dette vil være saksbehandlers eller systemets meldekort, som er det som blir godkjent. Trenger ikke være 1-1 med brukers meldekort.
- * Skal ikke brukes for brukers meldekort; se [BrukersMeldekort].
+ * Skal ikke brukes for brukers meldekort; se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort].
  * Gjelder 14 dager, fra mandag til søndag.
  *
  * @param verdi Liste med 14 dager, fra mandag til søndag. Må inneholde alle dagene eksakt én gang.

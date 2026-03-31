@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.andreMeldekortOpprettet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBeslutterKommando
@@ -18,17 +18,17 @@ internal class IverksettMeldekortServiceTest {
         withTestApplicationContext { tac ->
             val sak = tac.andreMeldekortOpprettet()
             val sakId = sak.id
-            tac.meldekortContext.sendMeldekortTilBeslutterService.sendMeldekortTilBeslutter(
+            tac.meldekortContext.sendMeldekortbehandlingTilBeslutterService.sendMeldekortTilBeslutter(
                 sak.meldekortbehandlinger[1].tilSendMeldekortTilBeslutterKommando(ObjectMother.saksbehandler()),
                 tac.clock,
             )
-            tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
+            tac.meldekortContext.taMeldekortbehandlingService.taMeldekortbehandling(
                 sakId = sakId,
                 meldekortId = sak.meldekortbehandlinger[1].id,
                 saksbehandler = ObjectMother.beslutter(),
             )
-            tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
-                IverksettMeldekortKommando(
+            tac.meldekortContext.iverksettMeldekortbehandlingService.iverksettMeldekort(
+                IverksettMeldekortbehandlingKommando(
                     meldekortId = sak.meldekortbehandlinger[1].id,
                     sakId = sakId,
                     beslutter = ObjectMother.beslutter(),

@@ -15,14 +15,14 @@ import no.nav.tiltakspenger.libs.satser.Satsdag
 import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilMeldeperiodeBeregninger
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-private typealias Dag = OppdaterMeldekortKommando.Dager.Dag
-private typealias Status = OppdaterMeldekortKommando.Status
+private typealias Dag = OppdaterMeldekortbehandlingKommando.Dager.Dag
+private typealias Status = OppdaterMeldekortbehandlingKommando.Status
 
 internal class MeldekortberegningKorrigeringTest {
     private val førsteDag = LocalDate.of(2024, 1, 1)

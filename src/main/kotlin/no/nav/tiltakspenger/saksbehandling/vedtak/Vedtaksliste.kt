@@ -14,14 +14,14 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDate
 
 /**
- * En kombinasjon av [no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak], [Rammevedtak] og [Klagevedtak].
+ * En kombinasjon av [Meldekortvedtak], [Rammevedtak] og [Klagevedtak].
  */
 data class Vedtaksliste(
     val rammevedtaksliste: Rammevedtaksliste,

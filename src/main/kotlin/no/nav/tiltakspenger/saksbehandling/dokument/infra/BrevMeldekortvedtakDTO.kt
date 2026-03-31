@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
 data class BrevMeldekortvedtakDTO(
@@ -116,8 +116,8 @@ suspend fun Meldekortvedtak.toJsonRequest(
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
         korrigering = erKorrigering,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
-        totaltBelop = meldekortBehandling.beløpTotal,
-        brevTekst = this.meldekortBehandling.fritekstTilVedtaksbrev?.verdi,
+        totaltBelop = meldekortbehandling.beløpTotal,
+        brevTekst = this.meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
         forhandsvisning = forhåndsvisning,
     ).let { serialize(it) }
 }

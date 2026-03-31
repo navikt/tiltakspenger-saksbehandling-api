@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptyList
-import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
@@ -9,12 +8,11 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.fixedClock
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
@@ -94,8 +92,8 @@ interface SimuleringMother {
 /**
  * Ment brukt både når man kjører lokalt og i testene for å lage litt mer realistiske testdata.
  */
-fun Sak.genererSimuleringFraMeldekortBehandling(
-    behandling: MeldekortBehandling,
+fun Sak.genererSimuleringFraMeldekortbehandling(
+    behandling: Meldekortbehandling,
     meldeperiodeKjeder: MeldeperiodeKjeder = this.meldeperiodeKjeder,
 ): SimuleringMedMetadata {
     return genererSimuleringFraBeregning(

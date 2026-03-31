@@ -24,9 +24,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.opprettVedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppdaterSøknadsbehandlingAvslagKommando
@@ -664,7 +664,7 @@ internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehand
             saksnummer = sak.saksnummer,
         ),
     clock: Clock = this.clock,
-): Tuple4<Sak, Rammevedtak, Meldekortvedtak, MeldekortBehandletManuelt> {
+): Tuple4<Sak, Rammevedtak, Meldekortvedtak, MeldekortbehandlingManuell> {
     val (sak, rammevedtak) = persisterIverksattSøknadsbehandling(
         sakId = sakId,
         fnr = fnr,

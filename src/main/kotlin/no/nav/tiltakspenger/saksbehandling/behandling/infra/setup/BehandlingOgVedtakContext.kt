@@ -34,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.Jou
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -48,7 +48,7 @@ import java.time.Clock
 
 open class BehandlingOgVedtakContext(
     sessionFactory: SessionFactory,
-    meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    meldekortbehandlingRepo: MeldekortbehandlingRepo,
     meldeperiodeRepo: MeldeperiodeRepo,
     statistikkService: StatistikkService,
     journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient,
@@ -138,7 +138,7 @@ open class BehandlingOgVedtakContext(
         IverksettRammebehandlingService(
             rammebehandlingRepo = rammebehandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
@@ -264,7 +264,7 @@ open class BehandlingOgVedtakContext(
         OppdaterBeregningOgSimuleringService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             simulerService = simulerService,
             sessionFactory = sessionFactory,
             clock = clock,

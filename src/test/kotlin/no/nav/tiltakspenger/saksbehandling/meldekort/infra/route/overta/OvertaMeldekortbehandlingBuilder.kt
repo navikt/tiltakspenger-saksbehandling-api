@@ -19,10 +19,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortBehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
@@ -32,8 +32,8 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overtaMeldekortBehandlingRoute]
- * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortBehandlingDTO]
+ * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overtaMeldekortbehandlingRoute]
+ * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingDTO]
  */
 interface OvertaMeldekortbehandlingBuilder {
 
@@ -48,13 +48,13 @@ interface OvertaMeldekortbehandlingBuilder {
         saksbehandlerSomOvertar: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortBehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
             tac = tac,
             saksbehandler = overtarFraSaksbehandler,
         ) ?: return null
 
-        val (oppdatertSak, oppdatertMeldekortbehandling, json) = overtaMeldekortBehandling(
+        val (oppdatertSak, oppdatertMeldekortbehandling, json) = overtaMeldekortbehandling(
             tac = tac,
             sakId = opprettetMeldekortbehandling.sakId,
             meldekortId = opprettetMeldekortbehandling.id,
@@ -86,13 +86,13 @@ interface OvertaMeldekortbehandlingBuilder {
         beslutterSomOvertar: Saksbehandler = ObjectMother.beslutter("beslutterSomOvertar"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortBehandletManuelt, MeldekortBehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
             tac = tac,
             beslutter = overtarFraBeslutter,
         ) ?: return null
 
-        val (oppdatertSak, oppdatertMeldekortbehandling, json) = overtaMeldekortBehandling(
+        val (oppdatertSak, oppdatertMeldekortbehandling, json) = overtaMeldekortbehandling(
             tac = tac,
             sakId = opprettetMeldekortbehandling.sakId,
             meldekortId = opprettetMeldekortbehandling.id,
@@ -105,16 +105,16 @@ interface OvertaMeldekortbehandlingBuilder {
             oppdatertSak,
             søknad,
             rammevedtakSøknadsbehandling,
-            oppdatertMeldekortbehandling as MeldekortBehandletManuelt,
+            oppdatertMeldekortbehandling as MeldekortbehandlingManuell,
             json,
         )
     }
 
     /**
      * Forventer at det det finnes en sak med en meldeperiode som gir rett til tiltakspenger
-     * @return Dersom statusen er UNDER_BEHANDLING returneres [MeldekortUnderBehandling], ellers hvis statusen er UNDER_BESLUTNING returneres [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt]
+     * @return Dersom statusen er UNDER_BEHANDLING returneres [MeldekortUnderBehandling], ellers hvis statusen er UNDER_BESLUTNING returneres [MeldekortbehandlingManuell]
      */
-    suspend fun ApplicationTestBuilder.overtaMeldekortBehandling(
+    suspend fun ApplicationTestBuilder.overtaMeldekortbehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         meldekortId: MeldekortId,
@@ -122,7 +122,7 @@ interface OvertaMeldekortbehandlingBuilder {
         saksbehandlerEllerBeslutterSomOvertar: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter("saksbehandlerEllerBeslutterSomOvertar"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortBehandling, MeldekortBehandlingDTOJson>? {
+    ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandlerEllerBeslutterSomOvertar)
         tac.leggTilBruker(jwt, saksbehandlerEllerBeslutterSomOvertar)
         defaultRequest(
@@ -144,11 +144,11 @@ interface OvertaMeldekortbehandlingBuilder {
                 if (forventetJsonBody != null) bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: MeldekortBehandlingDTOJson = JSONObject(bodyAsText)
+            val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,
-                oppdatertSak.hentMeldekortBehandling(meldekortId)!!,
+                oppdatertSak.hentMeldekortbehandling(meldekortId)!!,
                 jsonObject,
             )
         }

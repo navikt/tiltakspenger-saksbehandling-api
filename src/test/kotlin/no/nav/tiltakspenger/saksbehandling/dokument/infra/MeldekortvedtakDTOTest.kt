@@ -25,7 +25,7 @@ class MeldekortvedtakDTOTest {
         val meldekortvedtak = ObjectMother.meldekortvedtak(
             saksnummer = saksnummer,
             fnr = fnr,
-            meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
+            meldekortbehandling = ObjectMother.meldekortBehandletManuelt(
                 id = meldekortId,
             ),
             opprettet = LocalDateTime.now(fixedClock),

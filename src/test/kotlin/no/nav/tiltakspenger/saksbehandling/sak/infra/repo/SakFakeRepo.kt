@@ -3,7 +3,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.atomic.Atomic
-import arrow.atomic.value
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -14,9 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
@@ -33,7 +32,7 @@ import java.time.LocalDateTime
 class SakFakeRepo(
     private val behandlingRepo: RammebehandlingFakeRepo,
     private val rammevedtakRepo: RammevedtakFakeRepo,
-    private val meldekortBehandlingRepo: MeldekortBehandlingFakeRepo,
+    private val meldekortbehandlingRepo: MeldekortbehandlingFakeRepo,
     private val meldeperiodeRepo: MeldeperiodeFakeRepo,
     private val meldekortvedtakRepo: MeldekortvedtakFakeRepo,
     private val klagevedtakRepo: KlagevedtakFakeRepo,
@@ -66,7 +65,7 @@ class SakFakeRepo(
     ): Sak? {
         val rammebehandlinger: Rammebehandlinger = behandlingRepo.hentRammebehandlingerForSakId(sakId)
         val meldekortbehandlinger =
-            meldekortBehandlingRepo.hentForSakId(sakId) ?: Meldekortbehandlinger.empty()
+            meldekortbehandlingRepo.hentForSakId(sakId) ?: Meldekortbehandlinger.empty()
         val soknader = søknadFakeRepo.hentForSakId(sakId)
         val klagebehandlinger = klagebehandlingFakeRepo.hentForSakId(sakId)
 

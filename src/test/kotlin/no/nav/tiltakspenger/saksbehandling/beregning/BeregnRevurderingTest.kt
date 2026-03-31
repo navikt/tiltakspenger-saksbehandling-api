@@ -113,12 +113,12 @@ class BeregnRevurderingTest {
     fun `Skal beregne etterbetaling for revurdering når en legger til barn`() {
         val (sak, revurdering) = sakMedRevurdering()
 
-        val (sakMedMeldekortBehandlinger, meldekortBehandling) = sak.leggTilMeldekortBehandletAutomatisk(
+        val (sakMedMeldekortbehandlinger, meldekortbehandling) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = sak.meldeperiodeKjeder.first().periode,
         )
 
         val beløpFørRevurdering =
-            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
+            sakMedMeldekortbehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
 
         val kommando = oppdaterBehandlingKommando(
             revurdering = revurdering,
@@ -128,7 +128,7 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+        val nyBeregning = sakMedMeldekortbehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
@@ -141,7 +141,7 @@ class BeregnRevurderingTest {
 
         // 8 dager med rett i første meldeperiode for dette vedtaket
         nyBeregning.barnetilleggBeløp shouldBe sats2025.satsBarnetillegg * 8
-        nyBeregning.totalBeløp shouldBe meldekortBehandling.beregning.totalBeløp + nyBeregning.barnetilleggBeløp
+        nyBeregning.totalBeløp shouldBe meldekortbehandling.beregning.totalBeløp + nyBeregning.barnetilleggBeløp
 
         nyBeregning.totalBeløp - beløpFørRevurdering shouldBe (sats2025.satsBarnetillegg * 8)
     }
@@ -152,12 +152,12 @@ class BeregnRevurderingTest {
             antallBarnFraSøknad = 2,
         )
 
-        val (sakMedMeldekortBehandlinger, meldekortBehandling) = sak.leggTilMeldekortBehandletAutomatisk(
+        val (sakMedMeldekortbehandlinger, meldekortbehandling) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = sak.meldeperiodeKjeder.first().periode,
         )
 
         val beløpFørRevurdering =
-            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
+            sakMedMeldekortbehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
 
         val kommando = oppdaterBehandlingKommando(
             revurdering = revurdering,
@@ -167,7 +167,7 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+        val nyBeregning = sakMedMeldekortbehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
@@ -180,7 +180,7 @@ class BeregnRevurderingTest {
 
         // 8 dager med rett i første meldeperiode for dette vedtaket
         nyBeregning.barnetilleggBeløp shouldBe sats2025.satsBarnetillegg * 8
-        nyBeregning.totalBeløp shouldBe meldekortBehandling.beregning.totalBeløp - sats2025.satsBarnetillegg * 8
+        nyBeregning.totalBeløp shouldBe meldekortbehandling.beregning.totalBeløp - sats2025.satsBarnetillegg * 8
 
         nyBeregning.totalBeløp - beløpFørRevurdering shouldBe -(sats2025.satsBarnetillegg * 8)
     }
@@ -206,7 +206,7 @@ class BeregnRevurderingTest {
     fun `Skal returnere ny beregning selv om det ikke er endringer på tidligere beregninger`() {
         val (sak, revurdering) = sakMedRevurdering()
 
-        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+        val (sakMedMeldekortbehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = sak.meldeperiodeKjeder.first().periode,
         )
 
@@ -214,7 +214,7 @@ class BeregnRevurderingTest {
             revurdering = revurdering,
         )
 
-        sakMedMeldekortBehandlinger.beregnInnvilgelse(
+        sakMedMeldekortbehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
@@ -234,14 +234,14 @@ class BeregnRevurderingTest {
             periodeForRevurdering = revurderingsperiode,
         )
 
-        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+        val (sakMedMeldekortbehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = førsteMeldeperiode,
         )
 
         val førsteDagIMeldeperioden =
-            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.first().dager.first()
+            sakMedMeldekortbehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.first().dager.first()
         val sisteDagIMeldeperioden =
-            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.last().dager.last()
+            sakMedMeldekortbehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.last().dager.last()
 
         val kommando = oppdaterBehandlingKommando(
             revurdering = revurdering,
@@ -252,7 +252,7 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val beregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+        val beregning = sakMedMeldekortbehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
@@ -274,7 +274,7 @@ class BeregnRevurderingTest {
         val andrePeriode = sak.meldeperiodeKjeder[1].periode
         val tredjePeriode = sak.meldeperiodeKjeder[2].periode
 
-        val (sakMedMeldekortBehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+        val (sakMedMeldekortbehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
             periode = førstePeriode,
         ).let { (sak) ->
             sak.leggTilMeldekortBehandletAutomatisk(periode = andrePeriode)
@@ -283,7 +283,7 @@ class BeregnRevurderingTest {
         }
 
         val beløpFørRevurdering =
-            sakMedMeldekortBehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
+            sakMedMeldekortbehandlinger.meldeperiodeBeregninger.gjeldendeBeregninger.beregnTotalBeløp()
 
         val kommando = oppdaterBehandlingKommando(
             revurdering = revurdering,
@@ -305,7 +305,7 @@ class BeregnRevurderingTest {
             ),
         )
 
-        val nyBeregning = sakMedMeldekortBehandlinger.beregnInnvilgelse(
+        val nyBeregning = sakMedMeldekortbehandlinger.beregnInnvilgelse(
             behandlingId = kommando.behandlingId,
             vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
             innvilgelsesperioder = kommando.tilInnvilgelseperioder(revurdering),
@@ -328,7 +328,7 @@ class BeregnRevurderingTest {
         nyBeregning.totalBeløp shouldBe beløpFørRevurdering + forventetNyttBarnetillegg
 
         // Andre meldeperiode har ingen endringer på beregningen, 0 barn før og etter
-        nyBeregning[1].dager shouldBe sakMedMeldekortBehandlinger.meldekortbehandlinger[1].beregning!!.dager
+        nyBeregning[1].dager shouldBe sakMedMeldekortbehandlinger.meldekortbehandlinger[1].beregning!!.dager
     }
 
     @Test

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.ta
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehadlingLeggTilbakeOgTaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import org.junit.jupiter.api.Test
@@ -12,7 +12,7 @@ class TaMeldekortbehandlingRouteTest {
     fun `beslutter kan ta meldekortbehandling`() {
         withTestApplicationContext { tac ->
             val (_, _, _, meldekortbehandling, _) = this.iverksettSøknadsbehandlingOgBeslutterTarBehandling(tac)!!
-            meldekortbehandling.status shouldBe MeldekortBehandlingStatus.UNDER_BESLUTNING
+            meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
         }
     }
 
@@ -20,7 +20,7 @@ class TaMeldekortbehandlingRouteTest {
     fun `saksbehandler kan ta meldekortbehandling`() {
         withTestApplicationContext { tac ->
             val (_, _, _, meldekortbehandling, _) = this.iverksettSøknadsbehadlingLeggTilbakeOgTaMeldekortbehandling(tac)!!
-            meldekortbehandling.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
+            meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
         }
     }
 }

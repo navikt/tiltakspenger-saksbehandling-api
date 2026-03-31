@@ -358,7 +358,7 @@ open class ApplicationContext(
     open val behandlingContext by lazy {
         BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
-            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = dokumentContext.journalførRammevedtaksbrevKlient,
@@ -439,7 +439,7 @@ open class ApplicationContext(
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             sakRepo = sakContext.sakRepo,
-            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
             meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             datadelingClient = datadelingKlient,
             clock = clock,

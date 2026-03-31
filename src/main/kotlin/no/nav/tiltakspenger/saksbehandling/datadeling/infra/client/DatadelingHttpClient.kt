@@ -11,9 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandli
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
@@ -74,7 +74,7 @@ class DatadelingHttpClient(
     ): Either<FeilVedSendingTilDatadeling, Unit> {
         val jsonPayload = if (behandling is Rammebehandling) {
             behandling.toBehandlingJson()
-        } else if (behandling is MeldekortBehandling) {
+        } else if (behandling is Meldekortbehandling) {
             behandling.toBehandlingJson()
         } else {
             throw IllegalStateException("Kan ikke dele behandling med id ${behandling.id} som ikke er rammebehandling eller meldekortbehandling")

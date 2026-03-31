@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -54,23 +54,23 @@ private data class DatadelingGodkjentMeldekortJson(
 
 fun Meldekortvedtak.toDatadelingJson(totalDifferanse: Int?): String {
     return DatadelingGodkjentMeldekortJson(
-        meldekortbehandlingId = meldekortBehandling.id.toString(),
-        kjedeId = meldekortBehandling.kjedeId.toString(),
+        meldekortbehandlingId = meldekortbehandling.id.toString(),
+        kjedeId = meldekortbehandling.kjedeId.toString(),
         sakId = sakId.toString(),
         meldeperiodeId = meldeperiode.id.toString(),
-        mottattTidspunkt = meldekortBehandling.brukersMeldekort?.mottatt,
+        mottattTidspunkt = meldekortbehandling.brukersMeldekort?.mottatt,
         vedtattTidspunkt = opprettet,
         behandletAutomatisk = automatiskBehandlet,
         korrigert = erKorrigering,
-        fraOgMed = meldekortBehandling.fraOgMed,
-        tilOgMed = meldekortBehandling.tilOgMed,
-        meldekortdager = meldekortBehandling.dager.verdi.map { it.toDatadelingMeldekortDagDTO() },
+        fraOgMed = meldekortbehandling.fraOgMed,
+        tilOgMed = meldekortbehandling.tilOgMed,
+        meldekortdager = meldekortbehandling.dager.verdi.map { it.toDatadelingMeldekortDagDTO() },
         journalpostId = journalpostId!!.toString(),
-        totaltBelop = meldekortBehandling.beløpTotal,
+        totaltBelop = meldekortbehandling.beløpTotal,
         totalDifferanse = totalDifferanse,
-        barnetillegg = meldekortBehandling.barnetilleggBeløp != 0,
+        barnetillegg = meldekortbehandling.barnetilleggBeløp != 0,
         opprettet = opprettet,
-        sistEndret = meldekortBehandling.sistEndret,
+        sistEndret = meldekortbehandling.sistEndret,
     ).let { serialize(it) }
 }
 

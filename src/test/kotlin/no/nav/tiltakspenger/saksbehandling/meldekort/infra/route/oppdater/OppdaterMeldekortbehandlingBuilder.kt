@@ -27,13 +27,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortBehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_TILTAKSDAG
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -47,7 +47,7 @@ import org.json.JSONObject
 import java.time.LocalDate
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdaterMeldekortBehandlingRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdaterMeldekortbehandlingRoute]
  * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO]
  */
 interface OppdaterMeldekortbehandlingBuilder {
@@ -182,11 +182,11 @@ interface OppdaterMeldekortbehandlingBuilder {
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: MeldekortBehandlingDTOJson = JSONObject(bodyAsText)
+            val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,
-                oppdatertSak.hentMeldekortBehandling(meldekortId) as MeldekortUnderBehandling,
+                oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling,
                 jsonObject,
             )
         }
@@ -223,8 +223,8 @@ interface OppdaterMeldekortbehandlingBuilder {
         meldekortId: MeldekortId,
     ): List<Pair<LocalDate, MeldekortDagStatus>> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-        val meldekortBehandling = sak.hentMeldekortBehandling(meldekortId) as MeldekortUnderBehandling
-        val meldeperiode = meldekortBehandling.meldeperiode
+        val meldekortbehandling = sak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
+        val meldeperiode = meldekortbehandling.meldeperiode
         val antallDager = meldeperiode.maksAntallDagerForMeldeperiode
         val dager = meldeperiode.tilMeldekortDager()
 

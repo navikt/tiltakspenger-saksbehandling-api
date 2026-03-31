@@ -11,8 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
@@ -86,7 +86,7 @@ class BehandleTilbakekrevingHendelserJobb(
 
         val infoSvarDTO = when (utbetaling.beregningKilde) {
             is BeregningKilde.BeregningKildeMeldekort ->
-                meldekortbehandlinger.hentMeldekortBehandling(utbetaling.beregningKilde.id)
+                meldekortbehandlinger.hentMeldekortbehandling(utbetaling.beregningKilde.id)
                     ?.tilSvarDTO(hendelse)
 
             is BeregningKilde.BeregningKildeRammebehandling ->
@@ -154,8 +154,8 @@ class BehandleTilbakekrevingHendelserJobb(
         return Unit.right()
     }
 
-    private fun MeldekortBehandling.tilSvarDTO(behov: TilbakekrevingInfoBehovHendelse): TilbakekrevingInfoSvarDTO {
-        require(this.status == MeldekortBehandlingStatus.GODKJENT) {
+    private fun Meldekortbehandling.tilSvarDTO(behov: TilbakekrevingInfoBehovHendelse): TilbakekrevingInfoSvarDTO {
+        require(this.status == MeldekortbehandlingStatus.GODKJENT) {
             "Meldekortet må være godkjent for å produsere svar på info-behov - id: $id, status: $status"
         }
 

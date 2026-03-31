@@ -21,8 +21,8 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -31,8 +31,8 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.underkjennMeldekortBehandlingRoute]
- * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortBehandlingDTO]
+ * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.underkjennMeldekortbehandlingRoute]
+ * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingDTO]
  */
 interface UnderkjennMeldekortbehandlingBuilder {
     /**
@@ -111,8 +111,8 @@ interface UnderkjennMeldekortbehandlingBuilder {
             if (status != HttpStatusCode.OK) return null
             val jsonObject: MeldeperiodeKjedeDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val meldekortbehandling = oppdatertSak.hentMeldekortBehandling(meldekortId) as MeldekortUnderBehandling
-            meldekortbehandling.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
+            val meldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
+            meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
             meldekortbehandling.attesteringer.single().also {
                 it.beslutter shouldBe beslutter.navIdent
                 it.begrunnelse!!.value shouldBe begrunnelse

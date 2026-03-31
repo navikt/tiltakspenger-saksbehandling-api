@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
@@ -27,12 +27,12 @@ class MeldeperiodeBeregningerVedtattTest {
             val v1 = ObjectMother.meldekortvedtak(
                 sakId = sakId,
                 fnr = fnr,
-                meldekortBehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
+                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
             )
             val v2 = ObjectMother.meldekortvedtak(
                 sakId = sakId,
                 fnr = fnr,
-                meldekortBehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
+                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
             )
 
             val vedtaksliste = Vedtaksliste(
@@ -55,7 +55,7 @@ class MeldeperiodeBeregningerVedtattTest {
             val v1 = ObjectMother.meldekortvedtak(
                 sakId = sakId,
                 fnr = fnr,
-                meldekortBehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
+                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
             )
 
             val behandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr)

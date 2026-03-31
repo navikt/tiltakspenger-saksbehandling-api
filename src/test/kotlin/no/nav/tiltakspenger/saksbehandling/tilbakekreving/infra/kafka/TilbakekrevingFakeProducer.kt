@@ -41,7 +41,7 @@ class TilbakekrevingFakeProducer(
                         it.vedtaksperiode!! to it.utbetaling?.simulering
                     }
 
-                    is BeregningKilde.BeregningKildeMeldekort -> hentMeldekortBehandling(beregningKilde.id)?.let {
+                    is BeregningKilde.BeregningKildeMeldekort -> hentMeldekortbehandling(beregningKilde.id)?.let {
                         it.periode to it.simulering
                     }
                 }

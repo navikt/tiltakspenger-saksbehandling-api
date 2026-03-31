@@ -34,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvsluttetMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvsluttetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterBrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterFerdigstiltKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattMeldekortbehandling
@@ -42,9 +42,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattRevurder
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandlingAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlagebehandlingMottattFraKA
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBehandlingManuellMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBehandlingManuellMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterKlarTilBeslutningSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterManuellMeldekortBehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterManuellMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOppdatertMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetKlagebehandlingTilVurdering
@@ -360,8 +360,8 @@ class BenkOversiktPostgresRepoTest {
     fun `henter åpne meldekortbehandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort()
-            val (sakMedOpprettetMeldekortBehandling, opprettetMeldekortbehandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
-            val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
+            val (sakMedOpprettetMeldekortbehandling, opprettetMeldekortbehandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling()
+            val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = testDataHelper.persisterManuellMeldekortbehandlingTilBeslutning()
             testDataHelper.persisterIverksattMeldekortbehandling()
 
             val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
@@ -369,7 +369,7 @@ class BenkOversiktPostgresRepoTest {
             totalAntall shouldBe 3
             totalAntallUfiltrert shouldBe 3
             actual.size shouldBe 3
-            testDataHelper.verifiserViHar3MeldekortBehandlinger()
+            testDataHelper.verifiserViHar3Meldekortbehandlinger()
 
             actual.let {
                 it.first() shouldBe Behandlingssammendrag(
@@ -390,9 +390,9 @@ class BenkOversiktPostgresRepoTest {
                     erUnderkjent = false,
                 )
                 it[1] shouldBe Behandlingssammendrag(
-                    sakId = sakMedOpprettetMeldekortBehandling.id,
-                    fnr = sakMedOpprettetMeldekortBehandling.fnr,
-                    saksnummer = sakMedOpprettetMeldekortBehandling.saksnummer,
+                    sakId = sakMedOpprettetMeldekortbehandling.id,
+                    fnr = sakMedOpprettetMeldekortbehandling.fnr,
+                    saksnummer = sakMedOpprettetMeldekortbehandling.saksnummer,
                     startet = opprettetMeldekortbehandling.opprettet,
                     kravtidspunkt = null,
                     behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
@@ -435,12 +435,12 @@ class BenkOversiktPostgresRepoTest {
             val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort(
                 periode = periode,
             )
-            val (sakMedIverksattMeldekortBehandling, _) = testDataHelper.persisterIverksattMeldekortbehandling(
+            val (sakMedIverksattMeldekortbehandling, _) = testDataHelper.persisterIverksattMeldekortbehandling(
                 sak = sakMedInnsendtBrukersMeldekort,
                 periode = brukersMeldekort.periode,
             )
             val (sakMedKorrigertMeldekort, korrigertMeldekort) = testDataHelper.persisterBrukersMeldekort(
-                sak = sakMedIverksattMeldekortBehandling,
+                sak = sakMedIverksattMeldekortbehandling,
                 periode = periode,
             )
 
@@ -515,7 +515,7 @@ class BenkOversiktPostgresRepoTest {
                 ),
             )
 
-            val (sakEtterBehandling, behandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling(
+            val (sakEtterBehandling, behandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling(
                 sak = sakMedInnsendtBrukersMeldekort,
                 periode = brukersMeldekort.periode,
                 kjedeId = brukersMeldekort.kjedeId,
@@ -546,7 +546,7 @@ class BenkOversiktPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.persisterAvsluttetMeldekortBehandling(sak = sakEtterBehandling, periode = behandling.periode)
+            testDataHelper.persisterAvsluttetMeldekortbehandling(sak = sakEtterBehandling, periode = behandling.periode)
 
             val (actualEtterAvbrytelse, totalAntallEtterAvbrytelse, totalAntallUfiltrertEtterAvbrytelse) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
@@ -575,7 +575,7 @@ class BenkOversiktPostgresRepoTest {
             totalAntallUfiltrertMedNyttMeldekort shouldBe 1
             actualMedNyttMeldekort.single().behandlingstype shouldBe BehandlingssammendragType.INNSENDT_MELDEKORT
 
-            val (sakEtterBehandling, behandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling(
+            val (sakEtterBehandling, behandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling(
                 sak = sakMedInnsendtBrukersMeldekort,
                 periode = brukersMeldekort.periode,
                 kjedeId = brukersMeldekort.kjedeId,
@@ -811,7 +811,7 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterSakOgSøknad()
             testDataHelper.persisterOpprettetSøknadsbehandling()
             testDataHelper.persisterOpprettetRevurdering()
-            testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
+            testDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling()
             testDataHelper.persisterOpprettetKlagebehandlingTilAvvisning()
 
             val (sakMedMeldekortvedtak, meldekortvedtak) = testDataHelper.persisterIverksattMeldekortbehandling()
@@ -846,7 +846,7 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterSakOgSøknad()
             testDataHelper.persisterOpprettetSøknadsbehandling()
             testDataHelper.persisterOpprettetRevurdering()
-            testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
+            testDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling()
 
             val (actualSøknadsbehandlinger, totalAntallSøknadbehandlinger, totalAntallUfiltrertSøknadsbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(behandlingstype = listOf(BehandlingssammendragType.SØKNADSBEHANDLING)),
@@ -854,7 +854,7 @@ class BenkOversiktPostgresRepoTest {
             val (actualRevurderinger, totalAntallRevurderinger, totalAntallUfiltrertRevurderinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(behandlingstype = listOf(BehandlingssammendragType.REVURDERING)),
             )
-            val (actualMeldekortBehandlinger, totalAntallMeldekortbehandlinger, totalAntallUfiltrertMeldekortbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+            val (actualMeldekortbehandlinger, totalAntallMeldekortbehandlinger, totalAntallUfiltrertMeldekortbehandlinger) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(behandlingstype = listOf(BehandlingssammendragType.MELDEKORTBEHANDLING)),
             )
 
@@ -864,7 +864,7 @@ class BenkOversiktPostgresRepoTest {
             actualRevurderinger.size shouldBe 1
             totalAntallRevurderinger shouldBe 1
             totalAntallUfiltrertRevurderinger shouldBe 4
-            actualMeldekortBehandlinger.size shouldBe 1
+            actualMeldekortbehandlinger.size shouldBe 1
             totalAntallMeldekortbehandlinger shouldBe 1
             totalAntallUfiltrertMeldekortbehandlinger shouldBe 4
         }
@@ -882,8 +882,8 @@ class BenkOversiktPostgresRepoTest {
             testDataHelper.persisterRevurderingStansTilBeslutning()
             testDataHelper.persisterRevurderingStansUnderBeslutning()
 
-            testDataHelper.persisterKlarTilBehandlingManuellMeldekortBehandling()
-            testDataHelper.persisterManuellMeldekortBehandlingTilBeslutning()
+            testDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling()
+            testDataHelper.persisterManuellMeldekortbehandlingTilBeslutning()
 
             val (actualKlarTilBehandling, _, totalAntallUfiltrertKlarTilBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(status = listOf(BehandlingssammendragStatus.KLAR_TIL_BEHANDLING)),
@@ -1153,7 +1153,7 @@ class BenkOversiktPostgresRepoTest {
     }
 }
 
-private fun TestDataHelper.verifiserViHar3MeldekortBehandlinger() {
+private fun TestDataHelper.verifiserViHar3Meldekortbehandlinger() {
     sessionFactory.withSession { session ->
         session.run(
             queryOf("SELECT COUNT(*) FROM meldekortbehandling", emptyMap()).map {

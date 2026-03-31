@@ -8,12 +8,11 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utbetaling
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -31,7 +30,7 @@ interface MeldekortvedtakMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(2.januar(2023), 15.januar(2023)),
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
-        meldekortBehandling: MeldekortBehandletManuelt = ObjectMother.meldekortBehandletManuelt(
+        meldekortbehandling: MeldekortbehandlingManuell = ObjectMother.meldekortBehandletManuelt(
             sakId = sakId,
             fnr = fnr,
             saksnummer = saksnummer,
@@ -52,7 +51,7 @@ interface MeldekortvedtakMother : MotherOfAllMothers {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            meldekortBehandling = meldekortBehandling,
+            meldekortbehandling = meldekortbehandling,
             journalpostId = journalpostId,
             journalføringstidspunkt = journalføringstidspunkt,
             utbetaling = utbetaling(
@@ -63,12 +62,12 @@ interface MeldekortvedtakMother : MotherOfAllMothers {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                beregning = meldekortBehandling.beregning,
-                brukerNavkontor = meldekortBehandling.navkontor,
+                beregning = meldekortbehandling.beregning,
+                brukerNavkontor = meldekortbehandling.navkontor,
                 vedtakId = id,
                 opprettet = opprettet,
-                saksbehandler = meldekortBehandling.saksbehandler,
-                beslutter = meldekortBehandling.beslutter!!,
+                saksbehandler = meldekortbehandling.saksbehandler,
+                beslutter = meldekortbehandling.beslutter!!,
                 statusMetadata = statusMetadata,
             ),
         )

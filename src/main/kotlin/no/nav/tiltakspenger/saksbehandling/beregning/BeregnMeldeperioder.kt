@@ -42,7 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.I
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_TILTAKSDAG
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
 import java.time.LocalDateTime

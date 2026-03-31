@@ -17,9 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
@@ -433,7 +433,7 @@ class SakPostgresRepo(
             val id: SakId = SakId.fromString(string("id"))
             return sessionContext.withSession { session ->
                 val rammebehandlinger = RammebehandlingPostgresRepo.hentForSakId(id, session)
-                val meldekortbehandlinger = MeldekortBehandlingPostgresRepo.hentForSakId(id, session)
+                val meldekortbehandlinger = MeldekortbehandlingPostgresRepo.hentForSakId(id, session)
                     ?: Meldekortbehandlinger.empty()
                 val klagebehandlinger = KlagebehandlingPostgresRepo.hentForSakId(id, session)
                 val meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(id, session)

@@ -14,15 +14,12 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilga
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
-import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorSerial
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
@@ -181,7 +178,7 @@ class TestApplicationContextMedPostgres(
     override val behandlingContext by lazy {
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
-            meldekortBehandlingRepo = meldekortContext.meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
             statistikkService = statistikkContext.statistikkService,
             journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient,

@@ -34,7 +34,7 @@ class OppdaterMeldekortbehandlingRouteTest {
             val (_, _, _, meldekortbehandling, json) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
                 tac = tac,
             )!!
-            val meldekortbehandlingJson = json.getJSONArray("meldekortBehandlinger").getJSONObject(0)
+            val meldekortbehandlingJson = json.getJSONArray("meldekortbehandlinger").getJSONObject(0)
             meldekortbehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
                 """
                 {

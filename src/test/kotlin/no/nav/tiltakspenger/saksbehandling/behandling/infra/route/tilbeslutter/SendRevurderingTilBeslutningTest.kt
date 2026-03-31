@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.IverksettMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
@@ -218,13 +218,13 @@ class SendRevurderingTilBeslutningTest {
             )
 
             val meldekortId = sak.meldekortbehandlinger.first().id
-            tac.meldekortContext.taMeldekortBehandlingService.taMeldekortBehandling(
+            tac.meldekortContext.taMeldekortbehandlingService.taMeldekortbehandling(
                 sakId = sak.id,
                 meldekortId = meldekortId,
                 saksbehandler = beslutter(),
             )
-            tac.meldekortContext.iverksettMeldekortService.iverksettMeldekort(
-                IverksettMeldekortKommando(
+            tac.meldekortContext.iverksettMeldekortbehandlingService.iverksettMeldekort(
+                IverksettMeldekortbehandlingKommando(
                     meldekortId = meldekortId,
                     sakId = sak.id,
                     beslutter = beslutter(),

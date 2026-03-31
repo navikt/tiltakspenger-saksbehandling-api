@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import java.time.LocalDateTime
 
 /**
- * Supertype for [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling] og [Rammebehandling].
+ * Supertype for [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling] og [Rammebehandling].
  * Dersom det er ønskelig at den er sealed, må de ligge i samme pakke.
  */
 interface AttesterbarBehandling : Behandling {

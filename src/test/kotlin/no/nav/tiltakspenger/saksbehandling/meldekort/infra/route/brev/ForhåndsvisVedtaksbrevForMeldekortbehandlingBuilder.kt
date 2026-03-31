@@ -19,9 +19,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.buildDagerBody
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
@@ -112,8 +112,8 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
             }
             if (status != HttpStatusCode.OK) return null
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val meldekortbehandling = oppdatertSak.hentMeldekortBehandling(meldekortId) as MeldekortUnderBehandling
-            meldekortbehandling.status shouldBe MeldekortBehandlingStatus.UNDER_BEHANDLING
+            val meldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
+            meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
 
             return Triple(
                 oppdatertSak,

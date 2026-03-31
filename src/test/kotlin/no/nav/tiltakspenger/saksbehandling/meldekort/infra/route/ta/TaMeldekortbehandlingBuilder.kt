@@ -25,10 +25,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortBehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
@@ -41,8 +41,8 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.taMeldekortBehandlingRoute]
- * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortBehandlingDTO]
+ * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.taMeldekortbehandlingRoute]
+ * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingDTO]
  */
 interface TaMeldekortbehandlingBuilder {
 
@@ -60,8 +60,8 @@ interface TaMeldekortbehandlingBuilder {
         saksbehandlerSomTar: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortBehandlingDTOJson>? {
-        val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortBehandling, _) = iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgLeggTilbake(
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
+        val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling, _) = iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgLeggTilbake(
             tac = tac,
             saksbehandler = saksbehandlerSomOppretterOgLeggerTilbake,
         ) ?: return null
@@ -69,7 +69,7 @@ interface TaMeldekortbehandlingBuilder {
         val (sak, tattMeldekort, json) = taMeldekortbehanding(
             tac = tac,
             sakId = rammevedtakSøknadsbehandling.sakId,
-            meldekortId = opprettetMeldekortBehandling.id,
+            meldekortId = opprettetMeldekortbehandling.id,
             saksbehandlerEllerBeslutter = saksbehandlerSomTar,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -102,8 +102,8 @@ interface TaMeldekortbehandlingBuilder {
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortBehandletManuelt, MeldekortBehandlingDTOJson>? {
-        val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortBehandling, _) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
+        val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling, _) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(
             tac = tac,
             saksbehandler = saksbehandler,
             vedtaksperiode = vedtaksperiode,
@@ -114,12 +114,12 @@ interface TaMeldekortbehandlingBuilder {
         val (sak, tattMeldekort, json) = taMeldekortbehanding(
             tac = tac,
             sakId = rammevedtakSøknadsbehandling.sakId,
-            meldekortId = opprettetMeldekortBehandling.id,
+            meldekortId = opprettetMeldekortbehandling.id,
             saksbehandlerEllerBeslutter = beslutter,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        return Tuple5(sak, søknad, rammevedtakSøknadsbehandling, tattMeldekort as MeldekortBehandletManuelt, json)
+        return Tuple5(sak, søknad, rammevedtakSøknadsbehandling, tattMeldekort as MeldekortbehandlingManuell, json)
     }
 
     suspend fun ApplicationTestBuilder.opprettOgBesluttertarMeldekortbehanding(
@@ -130,7 +130,7 @@ interface TaMeldekortbehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortBehandling, MeldekortBehandlingDTOJson>? {
+    ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
         val (sakMedMeldekortbehandlingUnderBeslutning, meldekortbehandling) = opprettOgSendMeldekortbehandlingTilBeslutning(
             tac = tac,
             sakId = sakId,
@@ -153,7 +153,7 @@ interface TaMeldekortbehandlingBuilder {
     /**
      * Fungerer både for saksbehandler og beslutter avhengig av hvilken status meldekortbehandlingen har før den tas.
      *
-     * @return Dersom status går fra KLAR_TIL_BEHANDLING til UNDER_BEHANDLING returneres [MeldekortUnderBehandling]. Dersom status går fra KLAR_TIL_BESLUTNING til UNDER_BESLUTNING returneres [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletManuelt]
+     * @return Dersom status går fra KLAR_TIL_BEHANDLING til UNDER_BEHANDLING returneres [MeldekortUnderBehandling]. Dersom status går fra KLAR_TIL_BESLUTNING til UNDER_BESLUTNING returneres [MeldekortbehandlingManuell]
      */
     suspend fun ApplicationTestBuilder.taMeldekortbehanding(
         tac: TestApplicationContext,
@@ -162,7 +162,7 @@ interface TaMeldekortbehandlingBuilder {
         saksbehandlerEllerBeslutter: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortBehandling, MeldekortBehandlingDTOJson>? {
+    ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandlerEllerBeslutter,
         )
@@ -184,11 +184,11 @@ interface TaMeldekortbehandlingBuilder {
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: MeldekortBehandlingDTOJson = JSONObject(bodyAsText)
+            val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,
-                oppdatertSak.hentMeldekortBehandling(meldekortId)!!,
+                oppdatertSak.hentMeldekortbehandling(meldekortId)!!,
                 jsonObject,
             )
         }

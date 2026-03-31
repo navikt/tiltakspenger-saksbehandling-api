@@ -42,7 +42,7 @@ class UtbetalingDTOKorrigeringTest {
         id = id,
         utbetalingId = utbetalingId,
         opprettet = opprettet,
-        meldekortBehandling = ObjectMother.meldekortBehandletManuelt(
+        meldekortbehandling = ObjectMother.meldekortBehandletManuelt(
             sakId = sakId,
             id = meldekortId,
             periode = periode,

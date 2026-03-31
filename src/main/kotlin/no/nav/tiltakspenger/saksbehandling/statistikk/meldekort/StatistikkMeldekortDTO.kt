@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.GenererMeldekortstatistikk
 import java.time.Clock
 import java.time.LocalDate
@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 data class StatistikkMeldekortDTO(
     val meldeperiodeKjedeId: String,
     val sakId: String,
-    val meldekortBehandlingId: String,
+    val meldekortbehandlingId: String,
     val brukerId: String,
     val saksnummer: String,
     val vedtattTidspunkt: LocalDateTime,
@@ -50,12 +50,12 @@ data class StatistikkMeldekortDTO(
     }
 }
 
-fun MeldekortBehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): GenererMeldekortstatistikk {
+fun Meldekortbehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): GenererMeldekortstatistikk {
     return GenererMeldekortstatistikk {
         StatistikkMeldekortDTO(
             meldeperiodeKjedeId = kjedeId.toString(),
             sakId = sakId.toString(),
-            meldekortBehandlingId = id.toString(),
+            meldekortbehandlingId = id.toString(),
             brukerId = fnr.verdi,
             saksnummer = saksnummer.verdi,
             vedtattTidspunkt = iverksattTidspunkt!!,

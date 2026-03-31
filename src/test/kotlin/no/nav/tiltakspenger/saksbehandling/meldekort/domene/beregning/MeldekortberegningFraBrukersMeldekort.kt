@@ -10,15 +10,15 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekort.BrukersMeldekortDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.InnmeldtStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.BrukersMeldekortDag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-private typealias KommandoStatus = OppdaterMeldekortKommando.Status
+private typealias KommandoStatus = OppdaterMeldekortbehandlingKommando.Status
 
 /** Tester at beregning av brukers meldekort gir samme resultat som ved utfylling av saksbehandler */
 class MeldekortberegningFraBrukersMeldekort {
@@ -59,11 +59,11 @@ class MeldekortberegningFraBrukersMeldekort {
 
         val meldeperiode = sak.meldeperiodeKjeder.first().first()
 
-        val meldekortBehandlingId = MeldekortId.random()
+        val meldekortbehandlingId = MeldekortId.random()
 
         val saksbehandlerBehandling = ObjectMother.meldekortUnderBehandling(
             clock = clock,
-            id = meldekortBehandlingId,
+            id = meldekortbehandlingId,
             sakId = sak.id,
             periode = meldeperiode.periode,
             meldeperiode = meldeperiode,
@@ -86,12 +86,12 @@ class MeldekortberegningFraBrukersMeldekort {
         )
 
         val dagerBeregnetFraBruker = sakMedÅpenMeldekortbehandling.beregnMeldekort(
-            meldekortIdSomBeregnes = meldekortBehandlingId,
+            meldekortIdSomBeregnes = meldekortbehandlingId,
             meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
         ).map { it.dager }
 
         val dagerBeregnetFraSaksbehandler = sakMedÅpenMeldekortbehandling.beregnMeldekort(
-            meldekortIdSomBeregnes = meldekortBehandlingId,
+            meldekortIdSomBeregnes = meldekortbehandlingId,
             meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldeperiode),
         ).map { it.dager }
 

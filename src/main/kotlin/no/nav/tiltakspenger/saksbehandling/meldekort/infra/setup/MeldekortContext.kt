@@ -10,25 +10,25 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortBehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortTilBeslutterService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortbehandlingTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendTilMeldekortApiService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortBehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.overta.OvertaMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
@@ -55,8 +55,8 @@ open class MeldekortContext(
     genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
     navIdentClient: NavIdentClient,
 ) {
-    open val meldekortBehandlingRepo: MeldekortBehandlingRepo by lazy {
-        MeldekortBehandlingPostgresRepo(
+    open val meldekortbehandlingRepo: MeldekortbehandlingRepo by lazy {
+        MeldekortbehandlingPostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }
@@ -76,9 +76,9 @@ open class MeldekortContext(
         )
     }
 
-    val iverksettMeldekortService by lazy {
-        IverksettMeldekortService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val iverksettMeldekortbehandlingService by lazy {
+        IverksettMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
             sakService = sakService,
@@ -88,26 +88,26 @@ open class MeldekortContext(
             statistikkService = statistikkService,
         )
     }
-    val oppdaterMeldekortService by lazy {
-        OppdaterMeldekortService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val oppdaterMeldekortbehandlingService by lazy {
+        OppdaterMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             simulerService = simulerService,
         )
     }
-    val opprettMeldekortBehandlingService by lazy {
-        OpprettMeldekortBehandlingService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val opprettMeldekortbehandlingService by lazy {
+        OpprettMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             navkontorService = navkontorService,
             sessionFactory = sessionFactory,
             clock = clock,
         )
     }
-    val automatiskMeldekortBehandlingService by lazy {
-        AutomatiskMeldekortBehandlingService(
+    val automatiskMeldekortbehandlingService by lazy {
+        AutomatiskMeldekortbehandlingService(
             brukersMeldekortRepo = brukersMeldekortRepo,
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakRepo = sakRepo,
             meldekortvedtakRepo = meldekortvedtakRepo,
             navkontorService = navkontorService,
@@ -132,58 +132,58 @@ open class MeldekortContext(
         )
     }
 
-    val underkjennMeldekortBehandlingService by lazy {
-        UnderkjennMeldekortBehandlingService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val underkjennMeldekortbehandlingService by lazy {
+        UnderkjennMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             clock = clock,
             sakService = sakService,
         )
     }
 
-    val overtaMeldekortBehandlingService by lazy {
-        OvertaMeldekortBehandlingService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val overtaMeldekortbehandlingService by lazy {
+        OvertaMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
         )
     }
 
-    val taMeldekortBehandlingService by lazy {
-        TaMeldekortBehandlingService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val taMeldekortbehandlingService by lazy {
+        TaMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
         )
     }
 
-    val leggTilbakeMeldekortBehandlingService by lazy {
-        LeggTilbakeMeldekortBehandlingService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val leggTilbakeMeldekortbehandlingService by lazy {
+        LeggTilbakeMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
         )
     }
 
-    val sendMeldekortTilBeslutterService by lazy {
-        SendMeldekortTilBeslutterService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val sendMeldekortbehandlingTilBeslutterService by lazy {
+        SendMeldekortbehandlingTilBeslutterService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
         )
     }
 
-    val avbrytMeldekortBehandlingService by lazy {
-        AvbrytMeldekortBehandlingService(
-            meldekortBehandlingRepo = meldekortBehandlingRepo,
+    val avbrytMeldekortbehandlingService by lazy {
+        AvbrytMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,
         )
     }
 
-    val forhåndsvisBrevMeldekortBehandlingService by lazy {
-        ForhåndsvisBrevMeldekortBehandlingService(
+    val forhåndsvisBrevMeldekortbehandlingService by lazy {
+        ForhåndsvisBrevMeldekortbehandlingService(
             genererBrevClient = genererVedtaksbrevForUtbetalingKlient,
             sakService = sakService,
-            meldekortbehandlingRepo = meldekortBehandlingRepo,
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
             navIdentClient = navIdentClient,
         )
     }

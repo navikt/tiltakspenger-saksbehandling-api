@@ -13,13 +13,13 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerComm
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 
 class BenkOversiktFakeRepo(
     private val søknadFakeRepo: SøknadFakeRepo,
     private val behandlingFakeRepo: RammebehandlingFakeRepo,
-    private val meldekortBehandlingFakeRepo: MeldekortBehandlingFakeRepo,
+    private val meldekortbehandlingFakeRepo: MeldekortbehandlingFakeRepo,
     private val klagebehandlingFakeRepo: KlagebehandlingFakeRepo,
 ) : BenkOversiktRepo {
 
@@ -31,17 +31,17 @@ class BenkOversiktFakeRepo(
         return BenkOversikt(
             behandlingssammendrag =
             hentÅpneBehandlinger(command) +
-                hentÅpneMeldekortBehandlinger(command) +
+                hentÅpneMeldekortbehandlinger(command) +
                 hentÅpneSøknader() +
                 hentÅpneKlagebehandlinger(command),
             totalAntall =
             hentÅpneBehandlinger(command).size +
-                hentÅpneMeldekortBehandlinger(command).size +
+                hentÅpneMeldekortbehandlinger(command).size +
                 hentÅpneSøknader().size +
                 hentÅpneKlagebehandlinger(command).size,
             totalAntallUfiltrert =
             hentÅpneBehandlinger(command).size +
-                hentÅpneMeldekortBehandlinger(command).size +
+                hentÅpneMeldekortbehandlinger(command).size +
                 hentÅpneSøknader().size +
                 hentÅpneKlagebehandlinger(command).size,
         )
@@ -152,19 +152,19 @@ class BenkOversiktFakeRepo(
         )
     }
 
-    private fun hentÅpneMeldekortBehandlinger(command: HentÅpneBehandlingerCommand): List<Behandlingssammendrag> {
+    private fun hentÅpneMeldekortbehandlinger(command: HentÅpneBehandlingerCommand): List<Behandlingssammendrag> {
         val ønsketBehandlingsstatus = command.åpneBehandlingerFiltrering.status?.filter {
             Either.catch {
-                it.toMeldekortBehandlingStatus()
+                it.toMeldekortbehandlingStatus()
             }.fold(
                 ifLeft = { false },
                 ifRight = { true },
             )
         }?.map {
-            it.toMeldekortBehandlingStatus()
+            it.toMeldekortbehandlingStatus()
         }
 
-        return meldekortBehandlingFakeRepo.alle.filter {
+        return meldekortbehandlingFakeRepo.alle.filter {
             it.avbrutt == null ||
                 ønsketBehandlingsstatus?.contains(it.status) == true
         }.map {
@@ -188,24 +188,24 @@ class BenkOversiktFakeRepo(
         }
     }
 
-    private fun BehandlingssammendragStatus.toMeldekortBehandlingStatus(): MeldekortBehandlingStatus = when (this) {
+    private fun BehandlingssammendragStatus.toMeldekortbehandlingStatus(): MeldekortbehandlingStatus = when (this) {
         BehandlingssammendragStatus.UNDER_AUTOMATISK_BEHANDLING -> throw IllegalStateException("UNDER_AUTOMATISK_BEHANDLING er ikke en tillatt status for meldekortbehandling")
-        BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING
-        BehandlingssammendragStatus.UNDER_BEHANDLING -> MeldekortBehandlingStatus.UNDER_BEHANDLING
-        BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING
-        BehandlingssammendragStatus.UNDER_BESLUTNING -> MeldekortBehandlingStatus.UNDER_BESLUTNING
+        BehandlingssammendragStatus.KLAR_TIL_BEHANDLING -> MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+        BehandlingssammendragStatus.UNDER_BEHANDLING -> MeldekortbehandlingStatus.UNDER_BEHANDLING
+        BehandlingssammendragStatus.KLAR_TIL_BESLUTNING -> MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
+        BehandlingssammendragStatus.UNDER_BESLUTNING -> MeldekortbehandlingStatus.UNDER_BESLUTNING
         BehandlingssammendragStatus.KLAR_TIL_FERDIGSTILLING -> throw IllegalStateException("KLAR_TIL_FERDIGSTILLING er ikke en tillatt status for meldekortbehandling")
     }
 
-    private fun MeldekortBehandlingStatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
-        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
-        MeldekortBehandlingStatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
-        MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
-        MeldekortBehandlingStatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING
-        MeldekortBehandlingStatus.AVBRUTT -> throw IllegalStateException("Avbrutte meldekortbehandlinger skal ikke være åpne")
-        MeldekortBehandlingStatus.GODKJENT -> throw IllegalStateException("Godkjente meldekortbehandlinger skal ikke være åpne")
-        MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> throw IllegalStateException("Automatisk behandlede meldekortbehandlinger skal ikke være åpne")
-        MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> throw IllegalStateException("Ikke rett til tiltakspenger meldekortbehandlinger skal ikke være åpne")
+    private fun MeldekortbehandlingStatus.toBehandlingssamendragStatus(): BehandlingssammendragStatus = when (this) {
+        MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> BehandlingssammendragStatus.KLAR_TIL_BEHANDLING
+        MeldekortbehandlingStatus.UNDER_BEHANDLING -> BehandlingssammendragStatus.UNDER_BEHANDLING
+        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> BehandlingssammendragStatus.KLAR_TIL_BESLUTNING
+        MeldekortbehandlingStatus.UNDER_BESLUTNING -> BehandlingssammendragStatus.UNDER_BESLUTNING
+        MeldekortbehandlingStatus.AVBRUTT -> throw IllegalStateException("Avbrutte meldekortbehandlinger skal ikke være åpne")
+        MeldekortbehandlingStatus.GODKJENT -> throw IllegalStateException("Godkjente meldekortbehandlinger skal ikke være åpne")
+        MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> throw IllegalStateException("Automatisk behandlede meldekortbehandlinger skal ikke være åpne")
+        MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> throw IllegalStateException("Ikke rett til tiltakspenger meldekortbehandlinger skal ikke være åpne")
     }
 
     private fun hentÅpneKlagebehandlinger(command: HentÅpneBehandlingerCommand): List<Behandlingssammendrag> {

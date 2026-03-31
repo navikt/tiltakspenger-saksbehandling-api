@@ -12,14 +12,14 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Dager.Dag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando.Status.IKKE_TILTAKSDAG
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager.Dag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
 import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortBehandlingOpprettet
+import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortbehandlingOpprettet
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -30,9 +30,9 @@ internal class OppdaterMeldekortServiceTest {
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
-                val sak = tac.meldekortBehandlingOpprettet()
+                val sak = tac.meldekortbehandlingOpprettet()
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
-                val dager = OppdaterMeldekortKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.Dager(
                     dager = nonEmptyListOf(
                         Dag(
                             dag = ikkeUtfyltMeldekort.fraOgMed,
@@ -41,8 +41,8 @@ internal class OppdaterMeldekortServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
-                        OppdaterMeldekortKommando(
+                    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                        OppdaterMeldekortbehandlingKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -63,12 +63,12 @@ internal class OppdaterMeldekortServiceTest {
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
-                val sak = tac.meldekortBehandlingOpprettet(
+                val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
-                val dager = OppdaterMeldekortKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.Dager(
                     dager = dager(
                         førsteDag,
                         IKKE_RETT_TIL_TILTAKSPENGER,
@@ -88,8 +88,8 @@ internal class OppdaterMeldekortServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
-                        OppdaterMeldekortKommando(
+                    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                        OppdaterMeldekortbehandlingKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -110,12 +110,12 @@ internal class OppdaterMeldekortServiceTest {
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
-                val sak = tac.meldekortBehandlingOpprettet(
+                val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                val dager = OppdaterMeldekortKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.Dager(
                     dager = dager(
                         førsteDag,
                         IKKE_RETT_TIL_TILTAKSPENGER,
@@ -136,8 +136,8 @@ internal class OppdaterMeldekortServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
-                        OppdaterMeldekortKommando(
+                    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                        OppdaterMeldekortbehandlingKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -158,12 +158,12 @@ internal class OppdaterMeldekortServiceTest {
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
-                val sak = tac.meldekortBehandlingOpprettet(
+                val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                val dager = OppdaterMeldekortKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.Dager(
                     dager = dager(
                         førsteDag,
                         IKKE_RETT_TIL_TILTAKSPENGER,
@@ -183,8 +183,8 @@ internal class OppdaterMeldekortServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
-                        OppdaterMeldekortKommando(
+                    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                        OppdaterMeldekortbehandlingKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -205,12 +205,12 @@ internal class OppdaterMeldekortServiceTest {
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
-                val sak = tac.meldekortBehandlingOpprettet(
+                val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                val dager = OppdaterMeldekortKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.Dager(
                     dager = dager(
                         førsteDag,
                         // Denne linjen skal gi oss feil
@@ -231,8 +231,8 @@ internal class OppdaterMeldekortServiceTest {
                     ),
                 )
                 shouldThrow<IllegalArgumentException> {
-                    tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
-                        OppdaterMeldekortKommando(
+                    tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                        OppdaterMeldekortbehandlingKommando(
                             sakId = sak.id,
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
@@ -253,18 +253,18 @@ internal class OppdaterMeldekortServiceTest {
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
-                val sak = tac.meldekortBehandlingOpprettet(
+                val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                tac.meldekortContext.oppdaterMeldekortService.oppdaterMeldekort(
-                    OppdaterMeldekortKommando(
+                tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                    OppdaterMeldekortbehandlingKommando(
                         sakId = sak.id,
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = OppdaterMeldekortKommando.Dager(
+                        dager = OppdaterMeldekortbehandlingKommando.Dager(
                             dager = dager(
                                 førsteDag,
                                 IKKE_RETT_TIL_TILTAKSPENGER,
@@ -294,14 +294,14 @@ internal class OppdaterMeldekortServiceTest {
 
     private fun dager(
         førsteDag: LocalDate,
-        vararg statuser: OppdaterMeldekortKommando.Status,
+        vararg statuser: OppdaterMeldekortbehandlingKommando.Status,
     ): NonEmptyList<Dag> {
         return dager(førsteDag, statuser.toList())
     }
 
     private fun dager(
         førsteDag: LocalDate,
-        statuser: List<OppdaterMeldekortKommando.Status>,
+        statuser: List<OppdaterMeldekortbehandlingKommando.Status>,
     ): NonEmptyList<Dag> {
         return statuser.mapIndexed { index, status ->
             Dag(

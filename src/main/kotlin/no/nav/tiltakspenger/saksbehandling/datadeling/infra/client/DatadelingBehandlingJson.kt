@@ -6,8 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingBehandlingJson.Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingBehandlingJson.Behandlingstype
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -73,7 +73,7 @@ fun Rammebehandling.toBehandlingJson(): String {
     ).let { serialize(it) }
 }
 
-fun MeldekortBehandling.toBehandlingJson(): String {
+fun Meldekortbehandling.toBehandlingJson(): String {
     return DatadelingBehandlingJson(
         behandlingId = id.toString(),
         sakId = sakId.toString(),
@@ -111,14 +111,14 @@ fun Rammebehandlingsstatus.toDatadelingStatus(): Behandlingsstatus =
         Rammebehandlingsstatus.AVBRUTT -> Behandlingsstatus.AVBRUTT
     }
 
-fun MeldekortBehandlingStatus.toDatadelingStatus(): Behandlingsstatus =
+fun MeldekortbehandlingStatus.toDatadelingStatus(): Behandlingsstatus =
     when (this) {
-        MeldekortBehandlingStatus.KLAR_TIL_BEHANDLING -> Behandlingsstatus.KLAR_TIL_BEHANDLING
-        MeldekortBehandlingStatus.UNDER_BEHANDLING -> Behandlingsstatus.UNDER_BEHANDLING
-        MeldekortBehandlingStatus.KLAR_TIL_BESLUTNING -> Behandlingsstatus.KLAR_TIL_BESLUTNING
-        MeldekortBehandlingStatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
-        MeldekortBehandlingStatus.GODKJENT -> Behandlingsstatus.GODKJENT
-        MeldekortBehandlingStatus.AUTOMATISK_BEHANDLET -> Behandlingsstatus.AUTOMATISK_BEHANDLET
-        MeldekortBehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> Behandlingsstatus.IKKE_RETT_TIL_TILTAKSPENGER
-        MeldekortBehandlingStatus.AVBRUTT -> Behandlingsstatus.AVBRUTT
+        MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> Behandlingsstatus.KLAR_TIL_BEHANDLING
+        MeldekortbehandlingStatus.UNDER_BEHANDLING -> Behandlingsstatus.UNDER_BEHANDLING
+        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> Behandlingsstatus.KLAR_TIL_BESLUTNING
+        MeldekortbehandlingStatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
+        MeldekortbehandlingStatus.GODKJENT -> Behandlingsstatus.GODKJENT
+        MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> Behandlingsstatus.AUTOMATISK_BEHANDLET
+        MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> Behandlingsstatus.IKKE_RETT_TIL_TILTAKSPENGER
+        MeldekortbehandlingStatus.AVBRUTT -> Behandlingsstatus.AVBRUTT
     }

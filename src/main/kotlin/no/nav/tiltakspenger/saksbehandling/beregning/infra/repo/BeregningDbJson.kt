@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.Fr
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeDeltatt
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.beregning.ReduksjonAvYtelsePåGrunnAvFravær
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortstatusDb
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.MeldekortDagStatusDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakstypeSomGirRett
 import java.time.LocalDate
@@ -46,7 +46,7 @@ data class MeldeperiodeBeregningDbJson(
 data class MeldeperiodeBeregningDagDbJson(
     val tiltakstype: String?,
     val dato: String,
-    val status: MeldekortstatusDb,
+    val status: MeldekortDagStatusDb,
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFraværDb?,
     val beregningsdag: BeregningsdagDbJson?,
 ) {
@@ -69,63 +69,63 @@ data class MeldeperiodeBeregningDagDbJson(
         val parsedTiltakstype = tiltakstype?.toTiltakstypeSomGirRett()
         val parsedBeregningsdag = beregningsdag?.toBeregningsdag()
         return when (status) {
-            MeldekortstatusDb.DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.fromDb(
+            MeldekortDagStatusDb.DELTATT_UTEN_LØNN_I_TILTAKET -> DeltattUtenLønnITiltaket.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.fromDb(
+            MeldekortDagStatusDb.DELTATT_MED_LØNN_I_TILTAKET -> DeltattMedLønnITiltaket.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.FRAVÆR_SYK -> SykBruker.fromDb(
-                parsedDato,
-                parsedTiltakstype!!,
-                reduksjon!!.toDomain(),
-                parsedBeregningsdag!!,
-            )
-
-            MeldekortstatusDb.FRAVÆR_SYKT_BARN -> SyktBarn.fromDb(
+            MeldekortDagStatusDb.FRAVÆR_SYK -> SykBruker.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 reduksjon!!.toDomain(),
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.fromDb(
+            MeldekortDagStatusDb.FRAVÆR_SYKT_BARN -> SyktBarn.fromDb(
+                parsedDato,
+                parsedTiltakstype!!,
+                reduksjon!!.toDomain(),
+                parsedBeregningsdag!!,
+            )
+
+            MeldekortDagStatusDb.FRAVÆR_GODKJENT_AV_NAV -> FraværGodkjentAvNav.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> FraværSterkeVelferdsgrunnerEllerJobbintervju.fromDb(
+            MeldekortDagStatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> FraværSterkeVelferdsgrunnerEllerJobbintervju.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.FRAVÆR_ANNET -> FraværAnnet.fromDb(
+            MeldekortDagStatusDb.FRAVÆR_ANNET -> FraværAnnet.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.IKKE_BESVART -> MeldeperiodeBeregningDag.IkkeBesvart.fromDb(
+            MeldekortDagStatusDb.IKKE_BESVART -> MeldeperiodeBeregningDag.IkkeBesvart.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.IKKE_TILTAKSDAG -> IkkeDeltatt.fromDb(
+            MeldekortDagStatusDb.IKKE_TILTAKSDAG -> IkkeDeltatt.fromDb(
                 parsedDato,
                 parsedTiltakstype!!,
                 parsedBeregningsdag!!,
             )
 
-            MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> IkkeRettTilTiltakspenger(parsedDato)
+            MeldekortDagStatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> IkkeRettTilTiltakspenger(parsedDato)
         }
     }
 }
@@ -139,16 +139,16 @@ private fun List<MeldeperiodeBeregningDag>.toDbJson(): List<MeldeperiodeBeregnin
             beregningsdag = meldekortdag.beregningsdag?.toDbJson(),
             status =
             when (meldekortdag) {
-                is DeltattUtenLønnITiltaket -> MeldekortstatusDb.DELTATT_UTEN_LØNN_I_TILTAKET
-                is DeltattMedLønnITiltaket -> MeldekortstatusDb.DELTATT_MED_LØNN_I_TILTAKET
-                is SykBruker -> MeldekortstatusDb.FRAVÆR_SYK
-                is SyktBarn -> MeldekortstatusDb.FRAVÆR_SYKT_BARN
-                is FraværGodkjentAvNav -> MeldekortstatusDb.FRAVÆR_GODKJENT_AV_NAV
-                is FraværSterkeVelferdsgrunnerEllerJobbintervju -> MeldekortstatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
-                is FraværAnnet -> MeldekortstatusDb.FRAVÆR_ANNET
-                is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortstatusDb.IKKE_BESVART
-                is IkkeDeltatt -> MeldekortstatusDb.IKKE_TILTAKSDAG
-                is IkkeRettTilTiltakspenger -> MeldekortstatusDb.IKKE_RETT_TIL_TILTAKSPENGER
+                is DeltattUtenLønnITiltaket -> MeldekortDagStatusDb.DELTATT_UTEN_LØNN_I_TILTAKET
+                is DeltattMedLønnITiltaket -> MeldekortDagStatusDb.DELTATT_MED_LØNN_I_TILTAKET
+                is SykBruker -> MeldekortDagStatusDb.FRAVÆR_SYK
+                is SyktBarn -> MeldekortDagStatusDb.FRAVÆR_SYKT_BARN
+                is FraværGodkjentAvNav -> MeldekortDagStatusDb.FRAVÆR_GODKJENT_AV_NAV
+                is FraværSterkeVelferdsgrunnerEllerJobbintervju -> MeldekortDagStatusDb.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
+                is FraværAnnet -> MeldekortDagStatusDb.FRAVÆR_ANNET
+                is MeldeperiodeBeregningDag.IkkeBesvart -> MeldekortDagStatusDb.IKKE_BESVART
+                is IkkeDeltatt -> MeldekortDagStatusDb.IKKE_TILTAKSDAG
+                is IkkeRettTilTiltakspenger -> MeldekortDagStatusDb.IKKE_RETT_TIL_TILTAKSPENGER
             },
         )
     }

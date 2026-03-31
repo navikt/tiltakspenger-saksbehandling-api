@@ -62,7 +62,7 @@ const val DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
 /**
  * En rammebehandling fører til et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak]. Dette er en vurderingen av søknaden og inngangsvilkårene - om en bruker har rett til tiltangspenger i en gitt periode.
  * Dette gjelder både søknadsbehandling (innvilgelse og avslag) og revurdering (endring og omgjøring, inkl. stans/opphør, innvilgelse/forlengelse)
- * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
+ * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
  */
 sealed interface Rammebehandling : AttesterbarBehandling {
 

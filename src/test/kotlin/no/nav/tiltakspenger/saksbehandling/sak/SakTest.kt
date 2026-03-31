@@ -22,9 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortvedtaksliste
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak

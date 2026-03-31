@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.SimuleringDbJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringDbJson
 

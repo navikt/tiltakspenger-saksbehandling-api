@@ -4,7 +4,7 @@ import arrow.core.NonEmptyList
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.LocalDate
 import java.time.LocalDateTime
 

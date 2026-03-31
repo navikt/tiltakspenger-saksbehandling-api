@@ -23,8 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnOpphør
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -35,7 +35,7 @@ import java.time.LocalDateTime
 class OppdaterBeregningOgSimuleringService(
     val sakService: SakService,
     val rammebehandlingRepo: RammebehandlingRepo,
-    val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val simulerService: SimulerService,
     val sessionFactory: SessionFactory,
     val clock: Clock,
@@ -48,7 +48,7 @@ class OppdaterBeregningOgSimuleringService(
         sakId: SakId,
         behandlingId: Ulid,
         saksbehandler: Saksbehandler,
-    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
+    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, Meldekortbehandling>>> {
         val sak: Sak = sakService.hentForSakId(sakId)
 
         return if (behandlingId.erBehandlingId()) {
@@ -171,8 +171,8 @@ class OppdaterBeregningOgSimuleringService(
     private suspend fun Sak.oppdaterMeldekortbehandling(
         meldekortbehandlingId: MeldekortId,
         saksbehandler: Saksbehandler,
-    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, MeldekortBehandling>>> {
-        val meldekortbehandling: MeldekortBehandling = this.hentMeldekortBehandling(meldekortbehandlingId)!!
+    ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, Meldekortbehandling>>> {
+        val meldekortbehandling: Meldekortbehandling = this.hentMeldekortbehandling(meldekortbehandlingId)!!
 
         require(saksbehandler.navIdent == meldekortbehandling.saksbehandler) {
             "Kan kun oppdatere simulering på en behandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"
@@ -191,7 +191,7 @@ class OppdaterBeregningOgSimuleringService(
         val oppdatertMeldekortbehandling = meldekortbehandling.oppdaterSimulering(simuleringMedMetadata.simulering)
         val oppdatertSak = this.oppdaterMeldekortbehandling(oppdatertMeldekortbehandling)
         sessionFactory.withTransactionContext { tx ->
-            meldekortBehandlingRepo.oppdater(oppdatertMeldekortbehandling, simuleringMedMetadata, tx)
+            meldekortbehandlingRepo.oppdater(oppdatertMeldekortbehandling, simuleringMedMetadata, tx)
         }
         return (oppdatertSak to oppdatertMeldekortbehandling.right()).right()
     }

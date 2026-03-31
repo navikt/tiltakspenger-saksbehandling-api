@@ -27,7 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
@@ -40,7 +40,7 @@ import java.time.Clock
 class IverksettRammebehandlingService(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
-    private val meldekortBehandlingRepo: MeldekortBehandlingRepo,
+    private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     private val meldeperiodeRepo: MeldeperiodeRepo,
     private val sessionFactory: SessionFactory,
     private val sakService: SakService,
@@ -196,7 +196,7 @@ class IverksettRammebehandlingService(
             statistikkService.lagre(statistikkDTO, tx)
             meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
             // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
-            oppdaterteMeldekort.forEach { meldekortBehandlingRepo.oppdater(it, null, tx) }
+            oppdaterteMeldekort.forEach { meldekortbehandlingRepo.oppdater(it, null, tx) }
 
             tidligereVedtak.forEach {
                 rammevedtakRepo.oppdaterOmgjortAv(

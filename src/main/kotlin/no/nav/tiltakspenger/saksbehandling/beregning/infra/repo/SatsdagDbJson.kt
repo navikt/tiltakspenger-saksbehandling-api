@@ -1,0 +1,17 @@
+package no.nav.tiltakspenger.saksbehandling.beregning.infra.repo
+
+import no.nav.tiltakspenger.libs.satser.Satsdag
+import java.time.LocalDate
+
+data class SatsdagDbJson(
+    val sats: Int,
+    val satsRedusert: Int,
+    val satsBarnetillegg: Int,
+    val satsBarnetilleggRedusert: Int,
+    val dato: LocalDate,
+)
+
+fun SatsdagDbJson.toSatsdag(): Satsdag = Satsdag(sats = sats, satsRedusert = satsRedusert, satsBarnetillegg = satsBarnetillegg, satsBarnetilleggRedusert = satsBarnetilleggRedusert, dato = dato)
+
+fun Satsdag.toDbJson(): SatsdagDbJson =
+    SatsdagDbJson(sats = sats, satsRedusert = satsRedusert, satsBarnetillegg = satsBarnetillegg, satsBarnetilleggRedusert = satsBarnetilleggRedusert, dato = dato)

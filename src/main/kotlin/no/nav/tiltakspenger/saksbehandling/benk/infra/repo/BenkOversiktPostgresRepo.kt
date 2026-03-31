@@ -143,7 +143,7 @@ class BenkOversiktPostgresRepo(
             /*
             Hjelpe-tabell for å finne siste opprettede meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
              */
-            sisteMeldekortBehandlingForKjede as (
+            sisteMeldekortbehandlingForKjede as (
                 select 
                     sak_id,
                     meldeperiode_kjede_id,
@@ -173,7 +173,7 @@ class BenkOversiktPostgresRepo(
             from meldekort_bruker mbr
             join sak s on mbr.sak_id = s.id
             join meldekortMetadata mdk on mbr.id = mdk.meldekortId
-            left join sisteMeldekortBehandlingForKjede smbh
+            left join sisteMeldekortbehandlingForKjede smbh
                 on smbh.sak_id = mbr.sak_id 
                 and smbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id
             where mdk.sisteMeldekortNr = 1
@@ -263,7 +263,7 @@ class BenkOversiktPostgresRepo(
                         åpneSøknaderUtenBehandling as (${BenkSpørringer.ÅPNE_SØKNADER_UTEN_BEHANDLING}),
                         åpneSøknadsbehandlinger as (${BenkSpørringer.ÅPNE_SØKNADSBEHANDLINGER}),
                         åpneRevurderinger as (${BenkSpørringer.ÅPNE_REVURDERINGER}),
-                        åpneMeldekortBehandlinger as (${BenkSpørringer.ÅPNE_MELDEKORTBEHANDLINGER}),
+                        åpneMeldekortbehandlinger as (${BenkSpørringer.ÅPNE_MELDEKORTBEHANDLINGER}),
                         åpneMeldekortTilBehandling as (${BenkSpørringer.ÅPNE_MELDEKORT_TIL_BEHANDLING}),
                         åpneKlager as (${BenkSpørringer.ÅPNE_KLAGER}),
                         åpneTilbakekrevinger as (${BenkSpørringer.ÅPNE_TILBAKEKREVINGER}),
@@ -274,7 +274,7 @@ class BenkOversiktPostgresRepo(
                             union all
                             select * from åpneRevurderinger
                             union all
-                            select * from åpneMeldekortBehandlinger
+                            select * from åpneMeldekortbehandlinger
                             union all
                             select * from åpneMeldekortTilBehandling
                             union all

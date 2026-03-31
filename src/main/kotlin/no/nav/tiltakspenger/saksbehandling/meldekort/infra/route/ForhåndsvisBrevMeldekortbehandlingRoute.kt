@@ -22,10 +22,10 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.OppdaterMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortBehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingCommand
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.KunneIkkeForhåndsviseBrevMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.KunneIkkeForhåndsviseBrevMeldekortbehandling
 import java.time.LocalDate
 
 internal const val FORHÅNDSVIS_BREV_MELDEKORTBEHANDLING_PATH =
@@ -37,12 +37,12 @@ private data class ForhåndsvisBrevMeldekortbehandlingBody(
 ) {
     data class Dag(
         val dato: LocalDate,
-        val status: OppdaterMeldekortKommando.Status,
+        val status: OppdaterMeldekortbehandlingKommando.Status,
     )
 }
 
 fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
-    forhåndsvisBrevMeldekortBehandlingService: ForhåndsvisBrevMeldekortBehandlingService,
+    forhåndsvisBrevMeldekortbehandlingService: ForhåndsvisBrevMeldekortbehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
@@ -58,7 +58,7 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
 
-                    forhåndsvisBrevMeldekortBehandlingService.forhåndsvisBrev(
+                    forhåndsvisBrevMeldekortbehandlingService.forhåndsvisBrev(
                         command = ForhåndsvisBrevMeldekortbehandlingCommand(
                             meldekortbehandlingId = meldekortId,
                             correlationId = correlationId,
@@ -66,9 +66,9 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
                             tekstTilVedtaksbrev = body.tekstTilVedtaksbrev?.toNonBlankString(),
                             // copy-pasta av Oppdater
                             dager = body.dager?.let {
-                                OppdaterMeldekortKommando.Dager(
+                                OppdaterMeldekortbehandlingKommando.Dager(
                                     it.map { dag ->
-                                        OppdaterMeldekortKommando.Dager.Dag(
+                                        OppdaterMeldekortbehandlingKommando.Dager.Dag(
                                             dag = dag.dato,
                                             status = dag.status,
                                         )
@@ -98,9 +98,9 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
     }
 }
 
-internal fun KunneIkkeForhåndsviseBrevMeldekortBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+internal fun KunneIkkeForhåndsviseBrevMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        is KunneIkkeForhåndsviseBrevMeldekortBehandling.FeilVedGenereringAvPdf -> Pair(
+        is KunneIkkeForhåndsviseBrevMeldekortbehandling.FeilVedGenereringAvPdf -> Pair(
             HttpStatusCode.InternalServerError,
             ErrorJson(
                 "Feil ved generering av PDF. Feilen er blitt logget. Vennligst prøv igjen senere.",
@@ -108,7 +108,7 @@ internal fun KunneIkkeForhåndsviseBrevMeldekortBehandling.tilStatusOgErrorJson(
             ),
         )
 
-        KunneIkkeForhåndsviseBrevMeldekortBehandling.FantIkkeMeldekortbehandling -> Pair(
+        KunneIkkeForhåndsviseBrevMeldekortbehandling.FantIkkeMeldekortbehandling -> Pair(
             HttpStatusCode.NotFound,
             ErrorJson(
                 "Fant ikke meldekortbehandling.",

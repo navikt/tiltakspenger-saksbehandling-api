@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgAvbrytMeldekortbehandling
 import org.junit.jupiter.api.Test
@@ -133,7 +133,7 @@ class AvbrytMeldekortbehandlingRouteTest {
             )!!
             oppdatertSak.meldekortbehandlinger.also { meldekortbehandlinger ->
                 meldekortbehandlinger.size shouldBe 2
-                meldekortbehandlinger.forEach { it.status shouldBe MeldekortBehandlingStatus.AVBRUTT }
+                meldekortbehandlinger.forEach { it.status shouldBe MeldekortbehandlingStatus.AVBRUTT }
             }
         }
     }

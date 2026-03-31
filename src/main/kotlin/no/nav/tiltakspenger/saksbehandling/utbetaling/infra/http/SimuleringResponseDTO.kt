@@ -4,7 +4,7 @@ import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag

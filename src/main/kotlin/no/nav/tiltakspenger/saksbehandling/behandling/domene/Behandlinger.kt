@@ -7,10 +7,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandletAutomatisk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
@@ -34,7 +34,7 @@ data class Behandlinger(
         slåttSammen.asReversed().firstNotNullOfOrNull {
             when (it) {
                 is Rammebehandling -> it.utbetaling?.navkontor
-                is MeldekortBehandling -> it.navkontor
+                is Meldekortbehandling -> it.navkontor
                 else -> null
             }
         }
@@ -73,7 +73,7 @@ data class Behandlinger(
         )
     }
 
-    fun oppdaterMeldekortbehandling(behandling: MeldekortBehandling): Behandlinger {
+    fun oppdaterMeldekortbehandling(behandling: Meldekortbehandling): Behandlinger {
         return copy(meldekortbehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(behandling))
     }
 

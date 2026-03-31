@@ -26,8 +26,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortBehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.AvbruttMeldekortBehandling
+import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
@@ -39,8 +39,8 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbrytMeldekortBehandlingRoute]
- * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortBehandlingDTO]
+ * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbrytMeldekortbehandlingRoute]
+ * Dto: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingDTO]
  */
 interface AvbrytMeldekortbehandlingBuilder {
 
@@ -65,7 +65,7 @@ interface AvbrytMeldekortbehandlingBuilder {
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, AvbruttMeldekortBehandling, MeldekortBehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingAvbrutt, MeldekortbehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling, _) = this.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -73,7 +73,7 @@ interface AvbrytMeldekortbehandlingBuilder {
             tiltaksdeltakelse = tiltaksdeltakelse,
             innvilgelsesperioder = innvilgelsesperioder,
         ) ?: return null
-        val (oppdatertSak, avbruttMeldekortbehandling, json) = avbrytMeldekortBehandling(
+        val (oppdatertSak, avbruttMeldekortbehandling, json) = avbrytMeldekortbehandling(
             tac = tac,
             sakId = sak.id,
             meldekortId = opprettetMeldekortbehandling.id,
@@ -104,14 +104,14 @@ interface AvbrytMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, AvbruttMeldekortBehandling, MeldekortBehandlingDTOJson>? {
+    ): Triple<Sak, MeldekortbehandlingAvbrutt, MeldekortbehandlingDTOJson>? {
         val (_, opprettetMeldekortbehandling, _) = opprettMeldekortbehandlingForSakId(
             tac = tac,
             sakId = sakId,
             kjedeId = kjedeId,
             saksbehandler = saksbehandler,
         ) ?: return null
-        val (sakMedAvbruttMeldekortbehandling, avbruttMeldekortbehandling, json) = avbrytMeldekortBehandling(
+        val (sakMedAvbruttMeldekortbehandling, avbruttMeldekortbehandling, json) = avbrytMeldekortbehandling(
             tac = tac,
             sakId = sakId,
             meldekortId = opprettetMeldekortbehandling.id,
@@ -127,7 +127,7 @@ interface AvbrytMeldekortbehandlingBuilder {
         )
     }
 
-    suspend fun ApplicationTestBuilder.avbrytMeldekortBehandling(
+    suspend fun ApplicationTestBuilder.avbrytMeldekortbehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         meldekortId: MeldekortId,
@@ -135,7 +135,7 @@ interface AvbrytMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, AvbruttMeldekortBehandling, MeldekortBehandlingDTOJson>? {
+    ): Triple<Sak, MeldekortbehandlingAvbrutt, MeldekortbehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -159,11 +159,11 @@ interface AvbrytMeldekortbehandlingBuilder {
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: MeldekortBehandlingDTOJson = JSONObject(bodyAsText)
+            val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,
-                oppdatertSak.hentMeldekortBehandling(meldekortId) as AvbruttMeldekortBehandling,
+                oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortbehandlingAvbrutt,
                 jsonObject,
             )
         }
