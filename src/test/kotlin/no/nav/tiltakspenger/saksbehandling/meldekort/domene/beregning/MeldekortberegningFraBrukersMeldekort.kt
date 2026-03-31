@@ -87,12 +87,12 @@ class MeldekortberegningFraBrukersMeldekort {
 
         val dagerBeregnetFraBruker = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
+            meldeperioderSomBeregnes = brukersMeldekort.tilMeldekortDager(),
         ).map { it.dager }
 
         val dagerBeregnetFraSaksbehandler = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldeperiode),
+            meldeperioderSomBeregnes = dager.tilMeldekortDager(meldeperiode),
         ).map { it.dager }
 
         dagerBeregnetFraBruker shouldBeEqual dagerBeregnetFraSaksbehandler
