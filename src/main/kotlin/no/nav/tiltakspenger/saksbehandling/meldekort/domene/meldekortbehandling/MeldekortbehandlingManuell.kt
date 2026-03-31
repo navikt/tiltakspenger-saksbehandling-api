@@ -20,13 +20,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.underkjenn.KanIkkeUnderkjenneMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -53,25 +49,22 @@ data class MeldekortbehandlingManuell(
     override val iverksattTidspunkt: LocalDateTime?,
     override val navkontor: Navkontor,
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
-    override val brukersMeldekort: BrukersMeldekort?,
-    override val meldeperiode: Meldeperiode,
     override val type: MeldekortbehandlingType,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val beregning: Beregning,
     override val simulering: Simulering?,
-    override val dager: MeldekortDager,
     override val sistEndret: LocalDateTime,
-    override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val meldeperioder: BehandledeMeldeperioder,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 
     init {
-        require(meldeperiode.periode.fraOgMed == beregningPeriode.fraOgMed) {
+        require(meldeperioder.fraOgMed == beregningPeriode.fraOgMed) {
             "Fra og med dato for beregningsperioden og meldeperioden må være like"
         }
-        require(meldeperiode.periode.tilOgMed <= beregningPeriode.tilOgMed) {
+        require(meldeperioder.tilOgMed <= beregningPeriode.tilOgMed) {
             "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
         }
         when (status) {
@@ -179,19 +172,16 @@ data class MeldekortbehandlingManuell(
             beregning = beregning,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-            brukersMeldekort = brukersMeldekort,
-            meldeperiode = meldeperiode,
             saksbehandler = saksbehandler,
             type = type,
             attesteringer = attesteringer,
             begrunnelse = begrunnelse,
             simulering = simulering,
             sendtTilBeslutning = sendtTilBeslutning,
-            dager = dager,
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
             sistEndret = nå(clock),
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            meldeperioder = this.meldeperioder,
         ).right()
     }
 
@@ -291,21 +281,24 @@ data class MeldekortbehandlingManuell(
     }
 
     fun tilUnderBehandling(
-        nyMeldeperiode: Meldeperiode?,
+        nyeMeldeperioder: BehandledeMeldeperioder,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
         clock: Clock,
     ): MeldekortUnderBehandling {
-        require(
-            this.status !in listOf(
-                MeldekortbehandlingStatus.GODKJENT,
-                MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
-                MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-                MeldekortbehandlingStatus.AVBRUTT,
-            ),
-        ) {
-            "Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET, AVBRUTT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING"
+        when (this.status) {
+            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
+            MeldekortbehandlingStatus.UNDER_BEHANDLING,
+            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
+            MeldekortbehandlingStatus.UNDER_BESLUTNING,
+            -> Unit
+
+            MeldekortbehandlingStatus.GODKJENT,
+            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
+            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+            MeldekortbehandlingStatus.AVBRUTT,
+            -> throw IllegalStateException("Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET, AVBRUTT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING")
         }
-        val meldeperiode = nyMeldeperiode ?: this.meldeperiode
+
         return MeldekortUnderBehandling(
             id = this.id,
             sakId = this.sakId,
@@ -315,19 +308,16 @@ data class MeldekortbehandlingManuell(
             saksbehandler = saksbehandler,
             navkontor = this.navkontor,
             ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-            brukersMeldekort = brukersMeldekort,
-            meldeperiode = meldeperiode,
             type = type,
             begrunnelse = this.begrunnelse,
             attesteringer = attesteringer,
             sendtTilBeslutning = iverksattTidspunkt,
             beregning = null,
             simulering = null,
-            dager = meldeperiode.tilMeldekortDager(),
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
             sistEndret = nå(clock),
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            meldeperioder = nyeMeldeperioder,
         )
     }
 
@@ -345,20 +335,17 @@ data class MeldekortbehandlingManuell(
             saksbehandler = saksbehandler,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-            brukersMeldekort = brukersMeldekort,
-            meldeperiode = meldeperiode,
             type = type,
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
-            dager = dager,
             avbrutt = Avbrutt(
                 tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
                 begrunnelse = "Ikke rett til tiltakspenger".toNonBlankString(),
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            meldeperioder = this.meldeperioder,
         )
     }
 }

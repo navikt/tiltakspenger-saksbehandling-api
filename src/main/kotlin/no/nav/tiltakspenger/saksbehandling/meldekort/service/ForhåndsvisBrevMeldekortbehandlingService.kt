@@ -35,7 +35,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
         } else {
             sak.beregnMeldekort(
                 meldekortIdSomBeregnes = meldekortbehandling.id,
-                meldeperiodeSomBeregnes = command.dager.tilMeldekortDager(meldekortbehandling.meldeperiode),
+                meldeperioderSomBeregnes = command.dager.tilMeldekortDager(meldekortbehandling.meldeperiode),
             )
         }
 
@@ -70,7 +70,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                         tilOgMed = it.maxOf { it.tilOgMed },
                     )
                 },
-                tiltaksdeltakelser = meldekortbehandling.rammevedtak!!.let {
+                tiltaksdeltakelser = meldekortbehandling.rammevedtakIder!!.let {
                     sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
                 },
                 iverksattTidspunkt = null,

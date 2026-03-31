@@ -82,7 +82,7 @@ data class Meldekortbehandlinger(
 
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortbehandlingKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
+        beregn: (meldeperioder: NonEmptyList<Meldeperiode>) -> NonEmptyList<MeldeperiodeBeregning>,
         simuler: (suspend (Meldekortbehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
         clock: Clock,
     ): Either<KanIkkeOppdatereMeldekortbehandling, Triple<Meldekortbehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
@@ -125,19 +125,15 @@ data class Meldekortbehandlinger(
 
     /**
      * Løper igjennom alle ikke-avsluttede meldekortbehandlinger (også de som er sendt til beslutter), setter tilstanden til under behandling, oppdaterer meldeperioden og resetter utfyllinga.
-     * @param tiltakstypePerioder kan være tom eller inneholde hull.
      */
     fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
         clock: Clock,
     ): Pair<Meldekortbehandlinger, List<Meldekortbehandling>> {
-        return verdi.filter { it.erÅpen() }
+        return verdi
+            .filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortbehandling ->
-                val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(
-                    kjedeId = meldekortbehandling.meldeperiode.kjedeId,
-                )
-                meldekortbehandling.oppdaterMeldeperiode(meldeperiode, tiltakstypePerioder, clock)?.let {
+                meldekortbehandling.oppdaterMeldeperioder(oppdaterteKjeder, clock)?.let {
                     Pair(
                         acc.first.oppdaterMeldekortbehandling(it),
                         acc.second + it,

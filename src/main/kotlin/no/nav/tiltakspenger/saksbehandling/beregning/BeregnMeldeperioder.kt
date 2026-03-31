@@ -412,11 +412,11 @@ private fun Sak.beregnRammebehandling(
 
 fun Sak.beregnMeldekort(
     meldekortIdSomBeregnes: MeldekortId,
-    meldeperiodeSomBeregnes: MeldekortDager,
+    meldeperioderSomBeregnes: NonEmptyList<MeldekortDager>,
 ): NonEmptyList<MeldeperiodeBeregning> {
     return beregnMeldekort(
         meldekortIdSomBeregnes = meldekortIdSomBeregnes,
-        meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
+        meldeperiodeSomBeregnes = meldeperioderSomBeregnes,
         barnetilleggsPerioder = this.barnetilleggsperioder,
         hentInnvilgelse = this.rammevedtaksliste.innvilgelsesperioder::hentVerdiForDag,
         gjeldendeBeregninger = this.meldeperiodeBeregninger,

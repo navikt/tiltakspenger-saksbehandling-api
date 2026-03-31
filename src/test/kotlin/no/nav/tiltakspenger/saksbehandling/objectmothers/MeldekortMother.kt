@@ -117,7 +117,6 @@ interface MeldekortMother : MotherOfAllMothers {
         attesteringer: Attesteringer = Attesteringer.empty(),
         dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
-        behandlingSendtTilDatadeling: LocalDateTime? = null,
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
             id = id,
@@ -139,7 +138,6 @@ interface MeldekortMother : MotherOfAllMothers {
             simulering = null,
             status = status,
             sistEndret = sistEndret,
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = null,
         )
     }
@@ -184,7 +182,6 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: Begrunnelse? = null,
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
-        behandlingSendtTilDatadeling: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): MeldekortbehandlingManuell {
         return MeldekortbehandlingManuell(
@@ -209,7 +206,6 @@ interface MeldekortMother : MotherOfAllMothers {
             attesteringer = attesteringer,
             dager = dager,
             sistEndret = sistEndret,
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         )
     }
@@ -245,7 +241,6 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = opprettet,
-        behandlingSendtTilDatadeling: LocalDateTime? = null,
     ): MeldekortBehandletAutomatisk {
         return MeldekortBehandletAutomatisk(
             id = id,
@@ -262,7 +257,6 @@ interface MeldekortMother : MotherOfAllMothers {
             status = MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
             simulering = simulering,
             sistEndret = sistEndret,
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
 
         )
     }
@@ -577,7 +571,6 @@ interface MeldekortMother : MotherOfAllMothers {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         simulering: Simulering? = null,
         sistEndret: LocalDateTime = opprettet,
-        behandlingSendtTilDatadeling: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): Pair<Meldekortbehandlinger, MeldekortbehandlingManuell> {
         val meldeperiode = meldeperiode(
@@ -614,7 +607,6 @@ interface MeldekortMother : MotherOfAllMothers {
                     simulering = simulering,
                     status = status,
                     sistEndret = sistEndret,
-                    behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 ),
             ),
@@ -678,7 +670,6 @@ interface MeldekortMother : MotherOfAllMothers {
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         sistEndret: LocalDateTime = opprettet,
-        behandlingSendtTilDatadeling: LocalDateTime? = null,
     ): Meldekortbehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
@@ -715,7 +706,6 @@ interface MeldekortMother : MotherOfAllMothers {
                 simulering = null,
                 status = status,
                 sistEndret = sistEndret,
-                behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                 fritekstTilVedtaksbrev = null,
             ),
         )
