@@ -73,4 +73,5 @@ private fun Klagebehandlingsstatus.tilStatistikkBehandlingStatus(): StatistikkBe
     Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> StatistikkBehandlingStatus.UNDER_BEHANDLING
     Klagebehandlingsstatus.FERDIGSTILT -> StatistikkBehandlingStatus.FERDIG_BEHANDLET
     Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS -> StatistikkBehandlingStatus.UNDER_BEHANDLING
+    Klagebehandlingsstatus.OVERSEND_FEILET -> throw IllegalStateException("Skal ikke generere statistikk for status $this")
 }

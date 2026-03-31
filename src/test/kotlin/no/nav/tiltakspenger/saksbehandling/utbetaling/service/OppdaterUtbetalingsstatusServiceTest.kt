@@ -29,25 +29,6 @@ class OppdaterUtbetalingsstatusServiceTest {
     }
 
     @Test
-    fun `innhenting av status som ikke har fått ok etter mange forsøk blir ikke forsøkt på nytt med en gang`() =
-        runTest {
-            val utbetaling = ObjectMother.utbetalingDetSkalHentesStatusFor(
-                forsøkshistorikk = Forsøkshistorikk.opprett(
-                    antallForsøk = 10,
-                    forrigeForsøk = LocalDateTime.now(fixedClock).minusHours(23),
-                    clock = fixedClock,
-                ),
-            )
-            every { utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() } returns listOf(utbetaling)
-
-            sendUtbetalingerService.oppdaterUtbetalingsstatus()
-
-            coVerify(exactly = 1) { utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() }
-            coVerify(exactly = 0) { utbetalingsklient.hentUtbetalingsstatus(any()) }
-            coVerify(exactly = 0) { utbetalingRepo.oppdaterUtbetalingsstatus(any(), any(), any()) }
-        }
-
-    @Test
     fun `innhenting av status som ikke har fått ok etter mange forsøkblir forsøkt på nytt etter en stund`() = runTest {
         val utbetaling = ObjectMother.utbetalingDetSkalHentesStatusFor(
             forsøkshistorikk = Forsøkshistorikk.opprett(

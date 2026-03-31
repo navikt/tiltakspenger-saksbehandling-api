@@ -28,6 +28,8 @@ enum class Klagebehandlingsstatus {
      */
     OVERSENDT,
 
+    OVERSEND_FEILET,
+
     /**
      * Vi har mottatt et svar fra klageinstansen.
      * Basert på hendelsestypen, har vi 3 mulige scenarioer:

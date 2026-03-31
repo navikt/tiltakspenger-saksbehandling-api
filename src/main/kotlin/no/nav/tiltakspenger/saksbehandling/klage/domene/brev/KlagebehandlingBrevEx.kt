@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.M
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSEND_FEILET
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import java.time.LocalDate
@@ -44,7 +45,7 @@ suspend fun Klagebehandling.genererBrev(
         KLAR_TIL_BEHANDLING -> "-"
         UNDER_BEHANDLING -> this.saksbehandler!!
         AVBRUTT -> this.saksbehandler ?: "-"
-        VEDTATT, OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
+        VEDTATT, OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
     val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
     val tilleggstekst: Brevtekster = when (status) {

@@ -50,25 +50,28 @@ class KabalHttpClient(
                 HttpResponse.BodyHandlers.ofString(),
             ).await()
 
+            val metadata = OversendtKlageTilKabalMetadata(
+                request = payload,
+                response = response.body(),
+                statusKode = response.statusCode(),
+                oversendtTidspunkt = nå(clock),
+            )
+
             if (!response.isSuccess()) {
                 logger.error {
                     "Feil ved oversendelse av klagebehandling ${klagebehandling.id} for sak ${klagebehandling.saksnummer} til kabal - " +
                         "status: ${response.statusCode()}, body: ${response.body()}"
                 }
-                FeilVedOversendelseTilKabal.left()
+                FeilVedOversendelseTilKabal.FeilMedResponse(metadata).left()
             } else {
                 logger.info { "Klagebehandling ${klagebehandling.id} for sak ${klagebehandling.saksnummer} ble oversendt til kabal" }
-                OversendtKlageTilKabalMetadata(
-                    request = payload,
-                    response = response.body(),
-                    oversendtTidspunkt = nå(clock),
-                ).right()
+                metadata.right()
             }
         }.mapLeft {
             logger.error(it) {
                 "Feil ved oversendelse av klagebehandling ${klagebehandling.id} for sak ${klagebehandling.saksnummer} til kabal"
             }
-            FeilVedOversendelseTilKabal
+            FeilVedOversendelseTilKabal.UkjentFeil
         }.flatten()
     }
 

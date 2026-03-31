@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSEND_FEILET
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.KanIkkeOpprettholdeKlagebehandling.FeilResultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.KanIkkeOpprettholdeKlagebehandling.MåHaStatusUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.KanIkkeOpprettholdeKlagebehandling.SaksbehandlerMismatch
@@ -56,5 +57,12 @@ fun Klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(tidspunkt: LocalDat
         sistEndret = tidspunkt,
         resultat = (resultat as Opprettholdt).oppdaterOversendtKlageinstansenTidspunkt(tidspunkt),
         status = OVERSENDT,
+    )
+}
+
+fun Klagebehandling.oppdaterOversendtKlageinstansFeilet(tidspunkt: LocalDateTime): Klagebehandling {
+    return this.copy(
+        sistEndret = tidspunkt,
+        status = OVERSEND_FEILET,
     )
 }

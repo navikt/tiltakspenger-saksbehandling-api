@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.FeilVedOversendelseTilKabal
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOversendtKlageinstansFeilet
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOversendtKlageinstansenTidspunkt
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
@@ -53,6 +55,27 @@ class OversendKlageTilKlageinstansJobb(
                             sessionFactory.withTransactionContext { tx ->
                                 klagebehandlingRepo.markerOversendtTilKlageinstans(oppdatertKlagebehandling, it, tx)
                                 statistikkService.lagre(statistikkDTO, tx)
+                            }
+                        }.onLeft {
+                            when (it) {
+                                FeilVedOversendelseTilKabal.UkjentFeil -> return@onLeft
+
+                                is FeilVedOversendelseTilKabal.FeilMedResponse -> {
+                                    if (it.kanPrøvesIgjen) {
+                                        logger.info { "Oversending til klageinstans feilet, men vil prøves igjen ved neste kjøring - $kontekstTilLog" }
+                                        return@onLeft
+                                    }
+
+                                    logger.error { "Oversending til klageinstans feilet med status ${it.metadata.statusKode} - $kontekstTilLog" }
+
+                                    val oppdatertKlagebehandling =
+                                        klagebehandling.oppdaterOversendtKlageinstansFeilet(it.metadata.oversendtTidspunkt)
+
+                                    klagebehandlingRepo.markerOversendtTilKlageinstans(
+                                        oppdatertKlagebehandling,
+                                        it.metadata,
+                                    )
+                                }
                             }
                         }
                     }.onFailure { e ->

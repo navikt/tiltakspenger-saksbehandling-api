@@ -19,6 +19,7 @@ class KabalClientFake(
     ): Either<FeilVedOversendelseTilKabal, OversendtKlageTilKabalMetadata> = OversendtKlageTilKabalMetadata(
         request = "{}",
         response = "",
+        statusKode = 200,
         oversendtTidspunkt = nå(clock),
     ).right()
 }

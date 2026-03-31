@@ -5,5 +5,6 @@ import java.time.LocalDateTime
 data class OversendtKlageTilKabalMetadata(
     val request: String,
     val response: String,
+    val statusKode: Int,
     val oversendtTidspunkt: LocalDateTime,
 )

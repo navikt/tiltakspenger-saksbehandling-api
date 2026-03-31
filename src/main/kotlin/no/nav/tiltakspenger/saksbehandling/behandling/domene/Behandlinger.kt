@@ -139,6 +139,7 @@ data class Behandlinger(
 
                 Klagebehandlingsstatus.OPPRETTHOLDT,
                 Klagebehandlingsstatus.OVERSENDT,
+                Klagebehandlingsstatus.OVERSEND_FEILET,
                 Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS,
                 -> Unit
 

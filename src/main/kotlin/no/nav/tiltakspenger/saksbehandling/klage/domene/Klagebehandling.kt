@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.M
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSEND_FEILET
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
@@ -278,7 +279,7 @@ data class Klagebehandling(
                 }
             }
 
-            OVERSENDT -> {
+            OVERSENDT, OVERSEND_FEILET -> {
                 require(iverksattTidspunkt == null) {
                     "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
                 }

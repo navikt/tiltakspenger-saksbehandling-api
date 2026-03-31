@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -26,16 +25,6 @@ class OppdaterUtbetalingsstatusService(
     suspend fun oppdaterUtbetalingsstatus() {
         Either.catch {
             utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor().forEach {
-                it.forsøkshistorikk.let { forsøkshistorikk ->
-                    val (forrigeForsøk, _, antallForsøk) = forsøkshistorikk
-                    forrigeForsøk?.let { forrigeForsøk ->
-                        val kanPrøvePåNyttNå = forrigeForsøk.shouldRetry(antallForsøk, clock).first
-                        if (!kanPrøvePåNyttNå) {
-                            return@forEach
-                        }
-                    }
-                }
-
                 oppdaterEnkel(it)
             }
         }.onLeft {

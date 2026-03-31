@@ -9,6 +9,7 @@ enum class KlagestatustypeDto {
     VEDTATT,
     OPPRETTHOLDT,
     OVERSENDT,
+    OVERSEND_FEILET,
     FERDIGSTILT,
     MOTTATT_FRA_KLAGEINSTANS,
     OMGJØRING_ETTER_KLAGEINSTANS,
@@ -25,6 +26,7 @@ enum class KlagestatustypeDto {
             Klagebehandlingsstatus.FERDIGSTILT -> FERDIGSTILT
             Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS -> MOTTATT_FRA_KLAGEINSTANS
             Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS -> OMGJØRING_ETTER_KLAGEINSTANS
+            Klagebehandlingsstatus.OVERSEND_FEILET -> OVERSEND_FEILET
         }
     }
 }

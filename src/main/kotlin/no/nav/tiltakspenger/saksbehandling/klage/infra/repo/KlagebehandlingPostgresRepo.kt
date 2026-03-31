@@ -206,6 +206,7 @@ class KlagebehandlingPostgresRepo(
                     {
                         "request": ${metadata.request},
                         "response": "${metadata.response}",
+                        "statusKode": ${metadata.statusKode},
                         "oversendtTidspunkt": "${metadata.oversendtTidspunkt}"
                     }
                     """.trimIndent(),

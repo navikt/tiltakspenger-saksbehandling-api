@@ -263,6 +263,7 @@ class BenkOversiktFakeRepo(
         Klagebehandlingsstatus.VEDTATT,
         Klagebehandlingsstatus.OPPRETTHOLDT,
         Klagebehandlingsstatus.OVERSENDT,
+        Klagebehandlingsstatus.OVERSEND_FEILET,
         Klagebehandlingsstatus.FERDIGSTILT,
         -> throw IllegalStateException("Klagebehandling med status $this skal ikke være åpen")
     }

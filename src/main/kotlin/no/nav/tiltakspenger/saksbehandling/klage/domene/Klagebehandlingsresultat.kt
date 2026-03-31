@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.M
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OPPRETTHOLDT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSENDT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSEND_FEILET
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
@@ -72,7 +73,7 @@ sealed interface Klagebehandlingsresultat {
 
                 KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> true
 
-                OPPRETTHOLDT, OVERSENDT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT -> throw IllegalStateException(
+                OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT -> throw IllegalStateException(
                     "$status er en ugyldig status for Avvist klage.",
                 )
             }
@@ -210,7 +211,7 @@ sealed interface Klagebehandlingsresultat {
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             return when (status) {
                 UNDER_BEHANDLING -> false
-                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT, VEDTATT -> true
+                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT, VEDTATT -> true
                 VEDTATT -> throw IllegalStateException("$status er en ugyldig status for Opprettholdt klage. Bruk FERDIGSTILT.")
             }
         }
