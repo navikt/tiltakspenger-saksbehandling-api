@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -8,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
@@ -19,10 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedt
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -41,36 +39,35 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     override val saksnummer: Saksnummer
     override val fnr: Fnr
     override val opprettet: LocalDateTime
-    val dager: MeldekortDager
-    val beregning: Beregning?
-
-    /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
-    val simulering: Simulering?
-    val meldeperiode: Meldeperiode
-    val type: MeldekortbehandlingType
-
-    /** Pdd har kun automatiske behandlinger tilknyttet et brukers meldekort */
-    val brukersMeldekort: BrukersMeldekort?
-    val kjedeId: MeldeperiodeKjedeId get() = meldeperiode.kjedeId
-    val periode: Periode get() = meldeperiode.periode
-    val fraOgMed: LocalDate get() = periode.fraOgMed
-    val tilOgMed: LocalDate get() = periode.tilOgMed
-
     override val saksbehandler: String?
     override val beslutter: String?
-    val status: MeldekortbehandlingStatus
-    val navkontor: Navkontor
     override val iverksattTidspunkt: LocalDateTime?
     override val sendtTilBeslutning: LocalDateTime?
+    override val attesteringer: Attesteringer
+
+    val status: MeldekortbehandlingStatus
+    val navkontor: Navkontor
     val begrunnelse: Begrunnelse?
     val sistEndret: LocalDateTime
-    val behandlingSendtTilDatadeling: LocalDateTime?
     val skalSendeVedtaksbrev: Boolean
 
     override val attesteringer: Attesteringer
 
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
+    val type: MeldekortbehandlingType
+
+    val meldeperioder: BehandledeMeldeperioder
+
+    val beregning: Beregning?
+
+    /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
+    val simulering: Simulering?
+
+    val periode: Periode get() = meldeperioder.totalPeriode
+
+    val fraOgMed: LocalDate get() = periode.fraOgMed
+    val tilOgMed: LocalDate get() = periode.tilOgMed
 
     /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     override val erAvsluttet
@@ -100,7 +97,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     override val erAvbrutt: Boolean
         get() = avbrutt != null
 
-    val rammevedtak: List<VedtakId>? get() = meldeperiode.rammevedtak.verdier.distinct()
+    val rammevedtakIder: NonEmptyList<VedtakId> get() = meldeperioder.rammevedtak
 
     val erKorrigering: Boolean get() = type == MeldekortbehandlingType.KORRIGERING
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
@@ -109,21 +106,24 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     fun erÅpen(): Boolean = !erAvsluttet
 
     /**
-     * Oppdaterer meldeperioden til [meldeperiode] dersom den har samme kjede id, den er nyere enn den eksisterende og dette ikke er avsluttet meldekortbehandling.
-     * @param tiltakstypePerioder kan være tom eller inneholde hull.
+     * Oppdaterer meldeperiodene under [meldeperioder] til nyeste versjon
      */
-    fun oppdaterMeldeperiode(
-        meldeperiode: Meldeperiode,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
+    fun oppdaterMeldeperioder(
+        oppdaterteKjeder: MeldeperiodeKjeder,
         clock: Clock,
     ): Meldekortbehandling? {
-        require(meldeperiode.kjedeId == kjedeId) {
-            "Meldekortbehandling: Kan ikke oppdatere meldeperiode med annen kjede id. ${meldeperiode.kjedeId} != $kjedeId"
+        if (erAvsluttet) {
+            return null
         }
-        if (erAvsluttet) return null
-        if (meldeperiode.versjon <= this.meldeperiode.versjon) return null
 
-        val ikkeRettTilTiltakspengerTidspunkt = if (meldeperiode.ingenDagerGirRett) nå(clock) else null
+        val oppdaterteMeldeperioder = meldeperioder.oppdaterMeldeperioder(oppdaterteKjeder)
+
+        val ikkeRettTilTiltakspengerTidspunkt = if (oppdaterteMeldeperioder.ingenDagerGirRett) {
+            nå(clock)
+        } else {
+            null
+        }
+
         return when (this) {
             is MeldekortbehandlingManuell -> if (ikkeRettTilTiltakspengerTidspunkt != null) {
                 this.avbrytIkkeRettTilTiltakspenger(
@@ -131,7 +131,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
                 )
             } else {
                 this.tilUnderBehandling(
-                    nyMeldeperiode = meldeperiode,
+                    nyeMeldeperioder = oppdaterteMeldeperioder,
                     ikkeRettTilTiltakspengerTidspunkt = null,
                     clock = clock,
                 )
@@ -143,8 +143,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
                 )
             } else {
                 this.copy(
-                    meldeperiode = meldeperiode,
-                    dager = meldeperiode.tilMeldekortDager(),
+                    meldeperioder = oppdaterteMeldeperioder,
                     ikkeRettTilTiltakspengerTidspunkt = null,
                     beregning = null,
                     simulering = null,
@@ -184,7 +183,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
         override val beløpTotal: Int get() = beregning.totalBeløp
         override val ordinærBeløp: Int get() = beregning.ordinærBeløp
         override val barnetilleggBeløp: Int get() = beregning.barnetilleggBeløp
-        override val rammevedtak: List<VedtakId> get() = super.rammevedtak!!
+        override val rammevedtakIder: NonEmptyList<VedtakId> get() = super.rammevedtakIder
 
         override fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning {
             return super<BeregningMedSimulering>.toSimulertBeregning(beregninger)

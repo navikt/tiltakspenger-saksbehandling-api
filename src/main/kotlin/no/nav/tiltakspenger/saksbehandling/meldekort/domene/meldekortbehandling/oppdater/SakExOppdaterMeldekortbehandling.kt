@@ -19,7 +19,7 @@ suspend fun Sak.oppdaterMeldekort(
         beregn = { meldeperiode ->
             this.beregnMeldekort(
                 meldekortIdSomBeregnes = kommando.meldekortId,
-                meldeperiodeSomBeregnes = kommando.dager.tilMeldekortDager(meldeperiode),
+                meldeperioderSomBeregnes = kommando.dager.tilMeldekortDager(meldeperiode),
             )
         },
         simuler = simuler,

@@ -51,7 +51,6 @@ data class MeldekortBehandletAutomatisk(
     override val type: MeldekortbehandlingType,
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
-    override val behandlingSendtTilDatadeling: LocalDateTime?,
 ) : Meldekortbehandling.Behandlet {
     // Automatiske behandlinger iverksettes umiddelbart
     override val iverksattTidspunkt = opprettet
@@ -121,7 +120,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
 
     val beregninger = this.beregnMeldekort(
         meldekortIdSomBeregnes = meldekortbehandlingId,
-        meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
+        meldeperioderSomBeregnes = brukersMeldekort.tilMeldekortDager(),
     )
     val nå = nå(clock)
     val meldekortBehandletAutomatisk = MeldekortBehandletAutomatisk(
@@ -139,7 +138,6 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         status = MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,
         sistEndret = nå,
-        behandlingSendtTilDatadeling = null,
     )
 
     return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {

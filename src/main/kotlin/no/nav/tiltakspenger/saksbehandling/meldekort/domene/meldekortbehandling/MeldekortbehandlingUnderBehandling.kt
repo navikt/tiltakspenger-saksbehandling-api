@@ -22,8 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.KanIkkeAvbryteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
@@ -53,20 +51,17 @@ data class MeldekortUnderBehandling(
     override val opprettet: LocalDateTime,
     override val navkontor: Navkontor,
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
-    override val brukersMeldekort: BrukersMeldekort?,
-    override val meldeperiode: Meldeperiode,
     override val saksbehandler: String?,
     override val type: MeldekortbehandlingType,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val sendtTilBeslutning: LocalDateTime?,
-    override val dager: MeldekortDager,
     override val beregning: Beregning?,
     override val simulering: Simulering?,
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
-    override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val meldeperioder: BehandledeMeldeperioder,
     override val skalSendeVedtaksbrev: Boolean,
 ) : Meldekortbehandling {
     override val avbrutt: Avbrutt? = null
@@ -88,8 +83,9 @@ data class MeldekortUnderBehandling(
         validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
             return it.tilKanIkkeOppdatereMeldekort().left()
         }
-        val nå = nå(clock)
-        val beregning = Beregning(beregn(meldeperiode), nå)
+        val tidspunkt = nå(clock)
+
+        val beregning = Beregning(beregn(meldeperiode), tidspunkt)
 
         val oppdatertBehandling = this.copy(
             dager = kommando.dager.tilMeldekortDager(meldeperiode),
@@ -97,8 +93,9 @@ data class MeldekortUnderBehandling(
             beregning = beregning,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
-            sistEndret = nå,
+            sistEndret = tidspunkt,
         )
+
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
         return Pair(
@@ -137,7 +134,6 @@ data class MeldekortUnderBehandling(
             attesteringer = this.attesteringer,
             dager = this.dager,
             sistEndret = nå(clock),
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ).right()
@@ -305,7 +301,6 @@ data class MeldekortUnderBehandling(
                 begrunnelse = begrunnelse,
             ),
             sistEndret = tidspunkt,
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ).right()
@@ -337,7 +332,6 @@ data class MeldekortUnderBehandling(
                 begrunnelse = "Ikke rett til tiltakspenger".toNonBlankString(),
             ),
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
-            behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
@@ -424,7 +418,6 @@ fun Sak.opprettManuellMeldekortbehandling(
         dager = meldeperiode.tilMeldekortDager(),
         status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
         sistEndret = nå(clock),
-        behandlingSendtTilDatadeling = null,
         fritekstTilVedtaksbrev = null,
         skalSendeVedtaksbrev = true,
     ).let {
