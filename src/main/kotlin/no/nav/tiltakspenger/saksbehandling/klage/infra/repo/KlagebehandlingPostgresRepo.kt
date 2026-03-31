@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
@@ -202,14 +203,7 @@ class KlagebehandlingPostgresRepo(
                     where id = :id
                     """,
                     "id" to klagebehandling.id.toString(),
-                    "metadata" to """
-                    {
-                        "request": ${metadata.request},
-                        "response": "${metadata.response}",
-                        "statusKode": ${metadata.statusKode},
-                        "oversendtTidspunkt": "${metadata.oversendtTidspunkt}"
-                    }
-                    """.trimIndent(),
+                    "metadata" to serialize(metadata),
                 ).asUpdate,
             )
             lagreKlagebehandling(klagebehandling, tx)
