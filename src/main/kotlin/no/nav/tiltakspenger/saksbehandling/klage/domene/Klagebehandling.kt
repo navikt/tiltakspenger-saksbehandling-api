@@ -261,7 +261,7 @@ data class Klagebehandling(
                 }
             }
 
-            OPPRETTHOLDT -> {
+            OPPRETTHOLDT, OVERSEND_FEILET -> {
                 require(iverksattTidspunkt == null) {
                     "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
                 }
@@ -279,7 +279,7 @@ data class Klagebehandling(
                 }
             }
 
-            OVERSENDT, OVERSEND_FEILET -> {
+            OVERSENDT -> {
                 require(iverksattTidspunkt == null) {
                     "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
                 }
