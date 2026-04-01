@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
@@ -30,6 +31,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortDagerDbJson
@@ -535,14 +538,19 @@ class MeldekortbehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         navkontor = navkontor,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
-                        beregning = beregning!!,
                         simulering = simulering,
-                        dager = dager,
                         type = type,
                         status = status,
                         sistEndret = sistEndret,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                     )
                 }
 
@@ -555,8 +563,6 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler!!,
                         type = type,
                         begrunnelse = begrunnelse,
@@ -567,9 +573,17 @@ class MeldekortbehandlingPostgresRepo(
                         iverksattTidspunkt = iverksattTidspunkt,
                         beregning = beregning!!,
                         simulering = simulering,
-                        dager = dager,
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
@@ -583,8 +597,6 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler,
                         type = type,
                         begrunnelse = begrunnelse,
@@ -592,10 +604,18 @@ class MeldekortbehandlingPostgresRepo(
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         beregning = beregning,
                         simulering = simulering,
-                        dager = dager,
                         status = status,
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
@@ -609,18 +629,24 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler,
                         type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         beregning = beregning,
                         simulering = simulering,
-                        dager = dager,
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }

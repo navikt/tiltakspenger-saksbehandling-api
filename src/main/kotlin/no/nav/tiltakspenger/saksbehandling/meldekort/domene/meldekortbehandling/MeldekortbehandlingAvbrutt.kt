@@ -39,8 +39,8 @@ data class MeldekortbehandlingAvbrutt(
     override val avbrutt: Avbrutt?,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val meldeperioder: Meldeperiodebehandlinger,
     override val skalSendeVedtaksbrev: Boolean,
-    override val meldeperioder: BehandledeMeldeperioder,
 ) : Meldekortbehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null

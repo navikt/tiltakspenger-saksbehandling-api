@@ -28,16 +28,16 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMel
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KunneIkkeForhåndsviseBrevMeldekortbehandling
 import java.time.LocalDate
 
-internal const val FORHÅNDSVIS_BREV_MELDEKORTBEHANDLING_PATH =
+private const val PATH =
     "/sak/{sakId}/meldekortbehandling/{meldekortId}/forhandsvis"
 
 private data class ForhåndsvisBrevMeldekortbehandlingBody(
     val tekstTilVedtaksbrev: String?,
-    val dager: List<Dag>?,
+    val dager: List<Dag>,
 ) {
     data class Dag(
         val dato: LocalDate,
-        val status: OppdaterMeldekortbehandlingKommando.Status,
+        val status: OppdaterMeldekortbehandlingKommando.Status, // :_(
     )
 }
 
@@ -47,8 +47,8 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger { }
-    post(FORHÅNDSVIS_BREV_MELDEKORTBEHANDLING_PATH) {
-        logger.debug { "Mottatt post-request på $FORHÅNDSVIS_BREV_MELDEKORTBEHANDLING_PATH - saksbehandler ønsker å forhåndsvise brev" }
+    post(PATH) {
+        logger.debug { "Mottatt post-request på $PATH - saksbehandler ønsker å forhåndsvise brev" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
@@ -65,14 +65,15 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
                             saksbehandler = saksbehandler,
                             tekstTilVedtaksbrev = body.tekstTilVedtaksbrev?.toNonBlankString(),
                             // copy-pasta av Oppdater
-                            dager = body.dager?.let {
-                                OppdaterMeldekortbehandlingKommando.Dager(
+                            dager = body.dager.let {
+                                OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                                     it.map { dag ->
-                                        OppdaterMeldekortbehandlingKommando.Dager.Dag(
+                                        OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag(
                                             dag = dag.dato,
                                             status = dag.status,
                                         )
                                     }.toNonEmptyListOrNull()!!,
+                                    kjedeId = TODO(),
                                 )
                             },
                         ),

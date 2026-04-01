@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import java.time.LocalDate
 
 data class MeldekortDagDTO(
@@ -8,7 +8,7 @@ data class MeldekortDagDTO(
     val status: MeldekortDagStatusDTO,
 )
 
-fun MeldekortDager.tilMeldekortDagerDTO(): List<MeldekortDagDTO> {
+fun UtfyltMeldeperiode.tilMeldekortDagerDTO(): List<MeldekortDagDTO> {
     return this.toList().map {
         MeldekortDagDTO(
             dato = it.dato,

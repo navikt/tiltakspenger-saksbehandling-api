@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -28,7 +28,7 @@ class MeldekortberegningFraBrukersMeldekort {
     private fun kommandoDager(fraDato: LocalDate, statuser: List<KommandoStatus>) =
         statuser
             .mapIndexed { index, status ->
-                Dager.Dag(
+                OppdatertMeldeperiode.OppdatertDag(
                     dag = fraDato.plusDays(index.toLong()),
                     status = status,
                 )
@@ -70,7 +70,7 @@ class MeldekortberegningFraBrukersMeldekort {
         )
         val sakMedÅpenMeldekortbehandling = sak.leggTilMeldekortbehandling(saksbehandlerBehandling)
 
-        val dager = Dager(
+        val dager = OppdatertMeldeperiode(
             dager = kommandoDager(
                 meldeperiode.periode.fraOgMed,
                 kommandoStatuser,
@@ -92,7 +92,7 @@ class MeldekortberegningFraBrukersMeldekort {
 
         val dagerBeregnetFraSaksbehandler = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperioderSomBeregnes = dager.tilMeldekortDager(meldeperiode),
+            meldeperioderSomBeregnes = dager.tilUtfyltMeldeperiode(meldeperiode),
         ).map { it.dager }
 
         dagerBeregnetFraBruker shouldBeEqual dagerBeregnetFraSaksbehandler

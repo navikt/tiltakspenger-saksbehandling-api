@@ -55,7 +55,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
@@ -68,8 +68,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
@@ -115,9 +116,8 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         type: MeldekortbehandlingType = MeldekortbehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
-        dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
+        dager: UtfyltMeldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
-        behandlingSendtTilDatadeling: LocalDateTime? = null,
         skalSendeVedtaksbrev: Boolean = false,
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
@@ -171,7 +171,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 startDato = meldeperiode.periode.fraOgMed,
                 barnetilleggsPerioder = barnetilleggsPerioder,
             ),
-        dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
+        dager: UtfyltMeldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         saksbehandler: String = "saksbehandler",
         beslutter: String? = "beslutter",
         tiltakstype: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
@@ -510,7 +510,7 @@ interface MeldekortMother : MotherOfAllMothers {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        meldeperioder: NonEmptyList<NonEmptyList<Dager.Dag>>,
+        meldeperioder: NonEmptyList<NonEmptyList<OppdatertMeldeperiode.OppdatertDag>>,
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         begrunnelse: Begrunnelse? = null,
@@ -522,7 +522,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 sakId = sakId,
                 meldekortId = MeldekortId.random(),
                 saksbehandler = saksbehandler,
-                dager = Dager(meldeperiode),
+                meldeperioder = nonEmptyListOf(OppdatertMeldeperiode(meldeperiode)),
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -571,7 +571,7 @@ interface MeldekortMother : MotherOfAllMothers {
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
-        girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
+        girRett: Map<LocalDate, Boolean> = kommando.meldeperioder.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
         begrunnelse: Begrunnelse? = null,
         attesteringer: Attesteringer = Attesteringer.empty(),
@@ -592,7 +592,7 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         )
 
-        val dager = kommando.dager.tilMeldekortDager(meldeperiode)
+        val dager = kommando.meldeperioder.tilMeldekortDager(meldeperiode)
         val meldekortbehandlinger = Meldekortbehandlinger(
             verdi = nonEmptyListOf(
                 MeldekortUnderBehandling(
@@ -629,7 +629,7 @@ interface MeldekortMother : MotherOfAllMothers {
             beregn = {
                 beregnMeldekort(
                     meldekortIdSomBeregnes = meldekortId,
-                    meldeperiodeSomBeregnes = dager,
+                    meldeperioderSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     hentInnvilgelse = innvilgelsesperioder::hentVerdiForDag,
                     gjeldendeBeregninger = meldekortvedtaksliste.tilMeldeperiodeBeregninger(),
@@ -674,7 +674,7 @@ interface MeldekortMother : MotherOfAllMothers {
         barnetilleggsPerioder: Periodisering<AntallBarn>,
         status: MeldekortbehandlingStatus = MeldekortbehandlingStatus.UNDER_BEHANDLING,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
-        girRett: Map<LocalDate, Boolean> = kommando.dager.dager.map { it.dag to it.status.girRett() }.toMap(),
+        girRett: Map<LocalDate, Boolean> = kommando.meldeperioder.dager.map { it.dag to it.status.girRett() }.toMap(),
         antallDagerForPeriode: Int = girRett.count { it.value },
         attesteringer: Attesteringer = Attesteringer.empty(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -694,7 +694,8 @@ interface MeldekortMother : MotherOfAllMothers {
             antallDagerForPeriode = antallDagerForPeriode,
         )
 
-        val dager = kommando.dager.tilMeldekortDager(meldeperiode)
+        val dager = kommando.meldeperioder.tilMeldekortDager(meldeperiode)
+
         val meldekortbehandlinger = this.leggTil(
             MeldekortUnderBehandling(
                 id = meldekortId,
@@ -704,20 +705,18 @@ interface MeldekortMother : MotherOfAllMothers {
                 opprettet = opprettet,
                 navkontor = navkontor,
                 ikkeRettTilTiltakspengerTidspunkt = null,
-                meldeperiode = meldeperiode,
-                brukersMeldekort = null,
                 saksbehandler = kommando.saksbehandler.navIdent,
                 type = MeldekortbehandlingType.FØRSTE_BEHANDLING,
                 begrunnelse = null,
                 attesteringer = attesteringer,
                 sendtTilBeslutning = null,
-                dager = dager,
                 beregning = null,
                 simulering = null,
                 status = status,
                 sistEndret = sistEndret,
                 fritekstTilVedtaksbrev = null,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                meldeperioder = Meldeperiodebehandling(),
             ),
         )
 
@@ -729,7 +728,7 @@ interface MeldekortMother : MotherOfAllMothers {
             beregn = {
                 beregnMeldekort(
                     meldekortIdSomBeregnes = meldekortId,
-                    meldeperiodeSomBeregnes = dager,
+                    meldeperioderSomBeregnes = dager,
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     hentInnvilgelse = innvilgelsesperioder::hentVerdiForDag,
                     gjeldendeBeregninger = meldekortvedtaksliste.tilMeldeperiodeBeregninger(),
@@ -878,7 +877,7 @@ interface MeldekortMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
-        dager: Dager,
+        dager: OppdatertMeldeperiode,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
     ): OppdaterMeldekortbehandlingKommando {
@@ -886,7 +885,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sakId = sakId,
             meldekortId = meldekortId,
             saksbehandler = saksbehandler,
-            dager = dager,
+            meldeperioder = nonEmptyListOf(dager),
             begrunnelse = begrunnelse,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -900,7 +899,7 @@ interface MeldekortMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
-        dager: Dager,
+        dager: OppdatertMeldeperiode,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): SendMeldekortbehandlingTilBeslutterKommando {
         return SendMeldekortbehandlingTilBeslutterKommando(
@@ -916,7 +915,7 @@ fun Meldekortbehandling.tilOppdaterMeldekortKommando(
     saksbehandler: Saksbehandler,
 ): OppdaterMeldekortbehandlingKommando {
     val dager = dager.map { dag ->
-        Dager.Dag(
+        OppdatertMeldeperiode.OppdatertDag(
             dag = dag.dato,
             status = when (dag.status) {
                 MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
@@ -950,7 +949,7 @@ fun Meldekortbehandling.tilOppdaterMeldekortKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,
-        dager = Dager(dager),
+        dager = OppdatertMeldeperiode(dager, kjedeId),
     )
 }
 
@@ -958,7 +957,7 @@ fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
     saksbehandler: Saksbehandler,
 ): SendMeldekortbehandlingTilBeslutterKommando {
     val dager = dager.map { dag ->
-        Dager.Dag(
+        OppdatertMeldeperiode.OppdatertDag(
             dag = dag.dato,
             status = when (dag.status) {
                 MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
@@ -992,7 +991,7 @@ fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,
-        dager = Dager(dager),
+        dager = OppdatertMeldeperiode(dager, kjedeId),
     )
 }
 
@@ -1003,7 +1002,7 @@ fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
  */
 private fun genererMeldekortdagerFraMeldeperiode(
     meldeperiode: Meldeperiode,
-): MeldekortDager {
+): UtfyltMeldeperiode {
     val dager = meldeperiode.girRett.entries.map { (dato, girRett) ->
         MeldekortDag(
             dato = dato,
@@ -1012,7 +1011,7 @@ private fun genererMeldekortdagerFraMeldeperiode(
     }
 
     return if (dager.any { it.status == MeldekortDagStatus.IKKE_BESVART }) {
-        MeldekortDager(dager, meldeperiode)
+        UtfyltMeldeperiode(dager, meldeperiode)
     } else {
         throw IllegalStateException("Alle dagene i en meldekortperiode er IKKE_RETT_TIL_TILTAKSPENGER. Dette har vi ikke støtte for i MVP.")
     }
@@ -1027,26 +1026,27 @@ fun OppdaterMeldekortbehandlingKommando.tilSendMeldekortTilBeslutterKommando(): 
     )
 }
 
-fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): Dager {
-    return Dager(
+fun saksbehandlerFyllerUtMeldeperiodeDager(meldeperiode: Meldeperiode): OppdatertMeldeperiode {
+    return OppdatertMeldeperiode(
         dager = buildList {
             val dagerFraPeriode = meldeperiode.periode.tilDager()
             require(dagerFraPeriode.size == 14)
             addAll(
                 dagerFraPeriode.take(5)
-                    .map { Dager.Dag(it, OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
+                    .map { OppdatertMeldeperiode.OppdatertDag(it, OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
             )
             addAll(
-                dagerFraPeriode.subList(5, 7).map { Dager.Dag(it, OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG) },
+                dagerFraPeriode.subList(5, 7).map { OppdatertMeldeperiode.OppdatertDag(it, OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG) },
             )
             addAll(
                 dagerFraPeriode.subList(7, 12)
-                    .map { Dager.Dag(it, OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
+                    .map { OppdatertMeldeperiode.OppdatertDag(it, OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET) },
             )
             addAll(
-                dagerFraPeriode.subList(12, 14).map { Dager.Dag(it, OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG) },
+                dagerFraPeriode.subList(12, 14).map { OppdatertMeldeperiode.OppdatertDag(it, OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG) },
             )
         }.toNonEmptyListOrNull()!!,
+        kjedeId = meldeperiode.kjedeId,
     )
 }
 

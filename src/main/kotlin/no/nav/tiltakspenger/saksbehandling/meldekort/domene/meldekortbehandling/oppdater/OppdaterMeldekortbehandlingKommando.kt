@@ -5,13 +5,16 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager.Dag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.LocalDate
 
@@ -25,27 +28,40 @@ class OppdaterMeldekortbehandlingKommando(
     val sakId: SakId,
     val meldekortId: MeldekortId,
     val saksbehandler: Saksbehandler,
-    val dager: Dager,
+    val meldeperioder: NonEmptyList<OppdatertMeldeperiode>,
     val begrunnelse: Begrunnelse?,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val skalSendeVedtaksbrev: Boolean,
     val correlationId: CorrelationId,
 ) {
-    val periode: Periode = Periode(dager.first().dag, dager.last().dag)
+    val periode: Periode = Periode(
+        meldeperioder.first().first().dag,
+        meldeperioder.last().last().dag,
+    )
 
-    data class Dager(
-        val dager: NonEmptyList<Dag>,
-    ) : List<Dag> by dager {
-        data class Dag(
+    data class OppdatertMeldeperiode(
+        val dager: NonEmptyList<OppdatertDag>,
+        val kjedeId: MeldeperiodeKjedeId,
+    ) : List<OppdatertDag> by dager {
+
+        data class OppdatertDag(
             val dag: LocalDate,
             val status: Status,
         )
 
-        fun tilMeldekortDager(meldeperiode: Meldeperiode) =
-            MeldekortDager(
-                this.map { MeldekortDag(dato = it.dag, status = it.status.tilMeldekortDagStatus()) },
+        fun tilUtfyltMeldeperiode(meldeperiode: Meldeperiode): UtfyltMeldeperiode {
+            require(meldeperiode.kjedeId == kjedeId)
+
+            return UtfyltMeldeperiode(
+                this.map {
+                    MeldekortDag(
+                        dato = it.dag,
+                        status = it.status.tilMeldekortDagStatus(),
+                    )
+                },
                 meldeperiode,
             )
+        }
     }
 
     /** En spesialisering av [MeldekortDagStatus].

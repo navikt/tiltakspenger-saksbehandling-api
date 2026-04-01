@@ -1,67 +1,63 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
+import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
 import java.time.LocalDate
 
-data class BehandletMeldeperiode(
-    val dager: MeldekortDager,
-    val meldeperiode: Meldeperiode,
-    /** Pdd har kun automatiske behandlinger tilknyttet et brukers meldekort */
-    val brukersMeldekort: BrukersMeldekort?,
-) {
-    val kjedeId: MeldeperiodeKjedeId = meldeperiode.kjedeId
+data class Meldeperiodebehandlinger(
+    val meldeperioder: NonEmptyList<Meldeperiodebehandling>,
+    val beregning: Beregning?,
+) : List<Meldeperiodebehandling> by meldeperioder {
 
-    val periode: Periode = meldeperiode.periode
+    constructor(
+        meldeperiode: Meldeperiodebehandling,
+        beregning: Beregning?,
+    ) : this(nonEmptyListOf(meldeperiode), beregning)
 
-    val fraOgMed: LocalDate = periode.fraOgMed
-    val tilOgMed: LocalDate = periode.tilOgMed
-
-    init {
-        require(dager.meldeperiode == meldeperiode) {
-            "Utfylte dager må tilhøre samme meldeperiode som behandlingens meldeperiode"
-        }
-    }
-}
-
-data class BehandledeMeldeperioder(
-    private val meldeperioder: NonEmptyList<BehandletMeldeperiode>,
-) : List<BehandletMeldeperiode> by meldeperioder {
+    constructor(
+        dager: UtfyltMeldeperiode,
+        beregning: Beregning?,
+        brukersMeldekort: BrukersMeldekort?,
+    ) : this(nonEmptyListOf(Meldeperiodebehandling(dager, brukersMeldekort)), beregning)
 
     val fraOgMed: LocalDate = this.first().fraOgMed
     val tilOgMed: LocalDate = this.last().tilOgMed
 
     val totalPeriode: Periode = Periode(fraOgMed, tilOgMed)
 
+    val kjedeIder: NonEmptyList<MeldeperiodeKjedeId> by lazy {
+        this.map { it.kjedeId }.toNonEmptyListOrThrow()
+    }
+
     val rammevedtak: NonEmptyList<VedtakId> by lazy {
         this.flatMap { it.meldeperiode.rammevedtak.verdier }.distinct().toNonEmptyListOrThrow()
     }
+
+    val brukersMeldekort: List<BrukersMeldekort> by lazy { this.mapNotNull { it.brukersMeldekort } }
 
     val ingenDagerGirRett: Boolean by lazy { this.all { it.meldeperiode.ingenDagerGirRett } }
 
     fun oppdaterMeldeperioder(
         oppdaterteKjeder: MeldeperiodeKjeder,
-    ): BehandledeMeldeperioder {
+    ): Meldeperiodebehandlinger {
         return this.map {
             val sisteMeldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId)
 
             if (sisteMeldeperiode.versjon < it.meldeperiode.versjon) {
                 it
             } else {
-                it.copy(
-                    meldeperiode = sisteMeldeperiode,
-                    dager = sisteMeldeperiode.tilMeldekortDager(),
-                )
+                it.copy(dager = sisteMeldeperiode.tilMeldekortDager())
             }
-        }.let { BehandledeMeldeperioder(it.toNonEmptyListOrThrow()) }
+        }.let { Meldeperiodebehandlinger(it.toNonEmptyListOrThrow(), null) }
     }
 
     init {

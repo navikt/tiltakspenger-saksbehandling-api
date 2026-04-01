@@ -13,7 +13,7 @@ import java.time.LocalDate
  * @param verdi Liste med 14 dager, fra mandag til søndag. Må inneholde alle dagene eksakt én gang.
  * @param meldeperiode Meldeperioden dagene tilhører.
  */
-data class MeldekortDager(
+data class UtfyltMeldeperiode(
     val verdi: List<MeldekortDag>,
     val meldeperiode: Meldeperiode,
 ) : List<MeldekortDag> by verdi {
@@ -58,8 +58,8 @@ data class MeldekortDager(
     }
 }
 
-fun Meldeperiode.tilMeldekortDager(): MeldekortDager {
-    return MeldekortDager(
+fun Meldeperiode.tilMeldekortDager(): UtfyltMeldeperiode {
+    return UtfyltMeldeperiode(
         this.girRett.entries.map { (dato, harRett) ->
             MeldekortDag(
                 dato = dato,

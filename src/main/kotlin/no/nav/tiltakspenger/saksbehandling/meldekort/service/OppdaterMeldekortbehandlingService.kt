@@ -46,17 +46,19 @@ class OppdaterMeldekortbehandlingService(
         }
     }
 
-    // TODO jah: Kopiert til [SendMeldekortTilBeslutterService] - lage noe felles?
-    private fun hentSak(
-        kommando: OppdaterMeldekortbehandlingKommando,
-    ): Sak {
+    private fun hentSak(kommando: OppdaterMeldekortbehandlingKommando): Sak {
         val sak = sakService.hentForSakId(kommando.sakId)
 
         val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)!!
-        val meldeperiode = meldekortbehandling.meldeperiode
-        if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
-            throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
+
+        meldekortbehandling.meldeperioder.forEach {
+            val meldeperiode = it.meldeperiode
+
+            if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
+                throw IllegalStateException("Kan ikke behandle utdaterte meldeperioder (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
+            }
         }
+
         return sak
     }
 }
