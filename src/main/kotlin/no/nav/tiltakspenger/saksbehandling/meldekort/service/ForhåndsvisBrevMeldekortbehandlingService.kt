@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
@@ -13,10 +14,11 @@ import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import java.time.LocalDateTime
 
 class ForhåndsvisBrevMeldekortbehandlingService(
     val genererBrevClient: GenererVedtaksbrevForUtbetalingKlient,
@@ -30,17 +32,14 @@ class ForhåndsvisBrevMeldekortbehandlingService(
 
         val sak = sakService.hentForSakId(meldekortbehandling.sakId)
 
-        val beregning = if (command.dager?.tilMeldekortDager(meldekortbehandling.meldeperiode) == null) {
-            null
-        } else {
-            sak.beregnMeldekort(
-                meldekortIdSomBeregnes = meldekortbehandling.id,
-                meldeperioderSomBeregnes = command.dager.tilMeldekortDager(meldekortbehandling.meldeperiode),
-            )
-        }
+        val beregning = sak.beregnMeldekort(
+            meldekortIdSomBeregnes = meldekortbehandling.id,
+            meldeperioderSomBeregnes = nonEmptyListOf(command.dager.tilUtfyltMeldeperiode(meldekortbehandling.meldeperiode)),
+            beregningstidspunkt = LocalDateTime.now(),
+        )
 
         val nåværendeBeregningMedTidligereBeregning =
-            beregning?.map { meldeperiodeBeregning ->
+            beregning.map { meldeperiodeBeregning ->
                 val tidligereBeregning = sak.meldeperiodeBeregninger.hentForrigeBeregningEllerSiste(
                     meldeperiodeBeregning.id,
                     meldeperiodeBeregning.kjedeId,
@@ -64,19 +63,19 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                 saksbehandler = meldekortbehandling.saksbehandler,
                 beslutter = meldekortbehandling.beslutter,
                 meldekortbehandlingId = meldekortbehandling.id,
-                beregningsperiode = beregning?.let {
+                beregningsperiode = beregning.let {
                     Periode(
                         fraOgMed = it.minOf { it.fraOgMed },
                         tilOgMed = it.maxOf { it.tilOgMed },
                     )
                 },
-                tiltaksdeltakelser = meldekortbehandling.rammevedtakIder!!.let {
+                tiltaksdeltakelser = meldekortbehandling.rammevedtakIder.let {
                     sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
                 },
                 iverksattTidspunkt = null,
                 erKorrigering = meldekortbehandling.erKorrigering,
                 beregninger = nåværendeBeregningMedTidligereBeregning,
-                totaltBeløp = beregning?.sumOf { it.totalBeløp },
+                totaltBeløp = beregning.sumOf { it.totalBeløp },
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
                 forhåndsvisning = true,
             ),
@@ -99,5 +98,5 @@ data class ForhåndsvisBrevMeldekortbehandlingCommand(
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
     val tekstTilVedtaksbrev: NonBlankString?,
-    val dager: Dager?,
+    val dager: OppdatertMeldeperiode, // :_(
 )

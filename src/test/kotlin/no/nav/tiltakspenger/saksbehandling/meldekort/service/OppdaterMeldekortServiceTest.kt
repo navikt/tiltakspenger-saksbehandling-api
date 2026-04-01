@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager.Dag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
@@ -32,9 +32,9 @@ internal class OppdaterMeldekortServiceTest {
             withTestApplicationContext { tac ->
                 val sak = tac.meldekortbehandlingOpprettet()
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
-                val dager = OppdaterMeldekortbehandlingKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = nonEmptyListOf(
-                        Dag(
+                        OppdatertDag(
                             dag = ikkeUtfyltMeldekort.fraOgMed,
                             status = IKKE_RETT_TIL_TILTAKSPENGER,
                         ),
@@ -47,7 +47,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            dager = dager,
+                            meldeperioder = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
@@ -68,7 +68,7 @@ internal class OppdaterMeldekortServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
-                val dager = OppdaterMeldekortbehandlingKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
                         førsteDag,
                         IKKE_RETT_TIL_TILTAKSPENGER,
@@ -94,7 +94,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            dager = dager,
+                            meldeperioder = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
@@ -115,7 +115,7 @@ internal class OppdaterMeldekortServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                val dager = OppdaterMeldekortbehandlingKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
                         førsteDag,
                         IKKE_RETT_TIL_TILTAKSPENGER,
@@ -142,7 +142,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            dager = dager,
+                            meldeperioder = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
@@ -163,7 +163,7 @@ internal class OppdaterMeldekortServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                val dager = OppdaterMeldekortbehandlingKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
                         førsteDag,
                         IKKE_RETT_TIL_TILTAKSPENGER,
@@ -189,7 +189,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            dager = dager,
+                            meldeperioder = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
@@ -210,7 +210,7 @@ internal class OppdaterMeldekortServiceTest {
                 )
                 val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
-                val dager = OppdaterMeldekortbehandlingKommando.Dager(
+                val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
                         førsteDag,
                         // Denne linjen skal gi oss feil
@@ -237,7 +237,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            dager = dager,
+                            meldeperioder = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                         ),
@@ -264,7 +264,7 @@ internal class OppdaterMeldekortServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        dager = OppdaterMeldekortbehandlingKommando.Dager(
+                        meldeperioder = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                             dager = dager(
                                 førsteDag,
                                 IKKE_RETT_TIL_TILTAKSPENGER,
@@ -295,16 +295,16 @@ internal class OppdaterMeldekortServiceTest {
     private fun dager(
         førsteDag: LocalDate,
         vararg statuser: OppdaterMeldekortbehandlingKommando.Status,
-    ): NonEmptyList<Dag> {
+    ): NonEmptyList<OppdatertDag> {
         return dager(førsteDag, statuser.toList())
     }
 
     private fun dager(
         førsteDag: LocalDate,
         statuser: List<OppdaterMeldekortbehandlingKommando.Status>,
-    ): NonEmptyList<Dag> {
+    ): NonEmptyList<OppdatertDag> {
         return statuser.mapIndexed { index, status ->
-            Dag(
+            OppdatertDag(
                 dag = førsteDag.plusDays(index.toLong()),
                 status = status,
             )

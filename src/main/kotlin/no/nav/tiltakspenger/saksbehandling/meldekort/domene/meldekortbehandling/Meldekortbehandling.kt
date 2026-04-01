@@ -8,9 +8,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningMedSimulering
@@ -18,9 +17,12 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedt
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -54,7 +56,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
     val type: MeldekortbehandlingType
 
-    val meldeperioder: BehandledeMeldeperioder
+    val meldeperioder: Meldeperiodebehandlinger
 
     val beregning: Beregning?
 
@@ -65,6 +67,12 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
+
+    /** TODO: fjernes når vi kan behandle flere meldeperioder samtidig */
+    val meldeperiode: Meldeperiode get() = meldeperioder.single().meldeperiode
+    val kjedeId: MeldeperiodeKjedeId get() = meldeperioder.kjedeIder.single()
+    val brukersMeldekort: BrukersMeldekort? get() = meldeperioder.brukersMeldekort.singleOrNullOrThrow()
+    val dager: UtfyltMeldeperiode get() = meldeperioder.single().dager
 
     /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     override val erAvsluttet

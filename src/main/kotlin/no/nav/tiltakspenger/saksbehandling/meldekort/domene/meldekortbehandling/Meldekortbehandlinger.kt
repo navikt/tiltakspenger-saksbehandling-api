@@ -80,21 +80,6 @@ data class Meldekortbehandlinger(
 
     val harÅpenBehandling: Boolean by lazy { åpenMeldekortbehandling != null }
 
-    suspend fun oppdaterMeldekort(
-        kommando: OppdaterMeldekortbehandlingKommando,
-        beregn: (meldeperioder: NonEmptyList<Meldeperiode>) -> NonEmptyList<MeldeperiodeBeregning>,
-        simuler: (suspend (Meldekortbehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
-        clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekortbehandling, Triple<Meldekortbehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-        val meldekort = hentMeldekortbehandling(kommando.meldekortId) as MeldekortUnderBehandling
-        return meldekort.oppdater(
-            kommando = kommando,
-            beregn = beregn,
-            simuler = simuler,
-            clock = clock,
-        ).map { Triple(oppdaterMeldekortbehandling(it.first), it.first, it.second) }
-    }
-
     fun sendTilBeslutter(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
         clock: Clock,

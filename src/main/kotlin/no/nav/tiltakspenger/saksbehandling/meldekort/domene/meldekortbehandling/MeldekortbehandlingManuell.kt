@@ -56,7 +56,7 @@ data class MeldekortbehandlingManuell(
     override val simulering: Simulering?,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    override val meldeperioder: BehandledeMeldeperioder,
+    override val meldeperioder: Meldeperiodebehandlinger,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 
@@ -281,7 +281,7 @@ data class MeldekortbehandlingManuell(
     }
 
     fun tilUnderBehandling(
-        nyeMeldeperioder: BehandledeMeldeperioder,
+        nyeMeldeperioder: Meldeperiodebehandlinger,
         ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
         clock: Clock,
     ): MeldekortUnderBehandling {

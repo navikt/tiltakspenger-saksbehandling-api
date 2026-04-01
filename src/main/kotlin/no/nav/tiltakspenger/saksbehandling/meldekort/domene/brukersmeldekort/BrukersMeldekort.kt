@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 
 /**
  * saksbehandling-api er ikke master for brukers meldekort, så i førsteomgang legger vi ikke på begrensninger i [InnmeldtStatus] her, det må ligge i meldekort-api.
- * Hvis vi ønsker en slik sperre, kan vi legge den i [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling] eller [no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager]
+ * Hvis vi ønsker en slik sperre, kan vi legge den i [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling] eller [no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode]
  *
  * @param id Unik identifikator for denne utfyllingen/innsendingen.
  * @param meldeperiode En gitt versjon av meldeperioden, slik som den var da bruker sendte inn meldekortet.
@@ -88,8 +88,8 @@ data class BrukersMeldekort(
         const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 2
     }
 
-    fun tilMeldekortDager(): MeldekortDager {
-        return MeldekortDager(
+    fun tilMeldekortDager(): UtfyltMeldeperiode {
+        return UtfyltMeldeperiode(
             meldeperiode = meldeperiode,
             verdi = dager.map {
                 MeldekortDag(
