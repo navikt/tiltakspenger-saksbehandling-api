@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -28,8 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -61,8 +58,8 @@ data class MeldekortUnderBehandling(
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
-    override val meldeperioder: BehandledeMeldeperioder,
     override val skalSendeVedtaksbrev: Boolean,
+    override val meldeperioder: Meldeperiodebehandlinger,
 ) : Meldekortbehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -76,30 +73,27 @@ data class MeldekortUnderBehandling(
 
     suspend fun oppdater(
         kommando: OppdaterMeldekortbehandlingKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
+        oppdatertePerioder: Meldeperiodebehandlinger,
         simuler: suspend (Meldekortbehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
         clock: Clock,
     ): Either<KanIkkeOppdatereMeldekortbehandling, Pair<MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler, oppdatertePerioder, clock).onLeft {
             return it.tilKanIkkeOppdatereMeldekort().left()
         }
-        val tidspunkt = nå(clock)
-
-        val beregning = Beregning(beregn(meldeperiode), tidspunkt)
 
         val oppdatertBehandling = this.copy(
-            dager = kommando.dager.tilMeldekortDager(meldeperiode),
+            meldeperioder = oppdatertePerioder,
             begrunnelse = kommando.begrunnelse,
-            beregning = beregning,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
-            sistEndret = tidspunkt,
+            sistEndret = nå(clock),
         )
 
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
         val simuleringMedMetadata = simuler(oppdatertBehandling).getOrElse { null }
+
         return Pair(
-            oppdatertBehandling.copy(simulering = simuleringMedMetadata?.simulering),
+            oppdatertBehandling.oppdaterSimulering(simulering = simuleringMedMetadata?.simulering) as MeldekortUnderBehandling,
             simuleringMedMetadata,
         ).right()
     }
@@ -108,7 +102,7 @@ data class MeldekortUnderBehandling(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortbehandlingTilBeslutter, MeldekortbehandlingManuell> {
-        validerSaksbehandlerOgTilstand(kommando.saksbehandler, clock).onLeft {
+        validerSaksbehandlerOgTilstand(kommando.saksbehandler, this.meldeperioder, clock).onLeft {
             return it.tilKanIkkeSendeMeldekortTilBeslutter().left()
         }
 
@@ -127,15 +121,13 @@ data class MeldekortUnderBehandling(
             iverksattTidspunkt = null,
             navkontor = this.navkontor,
             ikkeRettTilTiltakspengerTidspunkt = null,
-            brukersMeldekort = this.brukersMeldekort,
-            meldeperiode = this.meldeperiode,
             type = this.type,
             begrunnelse = this.begrunnelse,
             attesteringer = this.attesteringer,
-            dager = this.dager,
             sistEndret = nå(clock),
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            meldeperioder = this.meldeperioder,
         ).right()
     }
 
@@ -156,21 +148,27 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    private fun validerSaksbehandlerOgTilstand(saksbehandler: Saksbehandler, clock: Clock): Either<TilgangEllerTilstandsfeil, Unit> {
+    private fun validerSaksbehandlerOgTilstand(
+        saksbehandler: Saksbehandler,
+        perioder: Meldeperiodebehandlinger,
+        clock: Clock,
+    ): Either<TilgangEllerTilstandsfeil, Unit> {
         require(saksbehandler.navIdent == this.saksbehandler)
 
-        require(!this.meldeperiode.ingenDagerGirRett) {
-            "Meldeperioden må ha minst en dag med rett for å kunne behandles - meldeperiode: ${this.meldeperiode.id}"
+        require(!perioder.ingenDagerGirRett) {
+            "Meldeperiodene må ha minst en dag med rett for å kunne behandles"
         }
 
         if (this.status != MeldekortbehandlingStatus.UNDER_BEHANDLING) {
             throw IllegalStateException("Status må være UNDER_BEHANDLING. Kan ikke oppdatere meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler.")
         }
+
         if (!erKlarTilUtfylling(clock)) {
             // John har avklart med Sølvi og Taulant at vi bør ha en begrensning på at vi kan fylle ut et meldekort hvis dagens dato er innenfor meldekortperioden eller senere.
             // Dette kan endres på ved behov.
             return TilgangEllerTilstandsfeil.MeldekortperiodenKanIkkeVæreFremITid.left()
         }
+
         return Unit.right()
     }
 
@@ -289,12 +287,9 @@ data class MeldekortUnderBehandling(
             saksbehandler = avbruttAv.navIdent,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-            brukersMeldekort = brukersMeldekort,
-            meldeperiode = meldeperiode,
             type = type,
             begrunnelse = this.begrunnelse,
             attesteringer = attesteringer,
-            dager = dager,
             avbrutt = Avbrutt(
                 tidspunkt = tidspunkt,
                 saksbehandler = avbruttAv.navIdent,
@@ -303,6 +298,7 @@ data class MeldekortUnderBehandling(
             sistEndret = tidspunkt,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            meldeperioder = this.meldeperioder,
         ).right()
     }
 
@@ -320,12 +316,9 @@ data class MeldekortUnderBehandling(
             saksbehandler = saksbehandler,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-            brukersMeldekort = brukersMeldekort,
-            meldeperiode = meldeperiode,
             type = type,
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
-            dager = dager,
             avbrutt = Avbrutt(
                 tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                 saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
@@ -334,16 +327,11 @@ data class MeldekortUnderBehandling(
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            meldeperioder = this.meldeperioder,
         )
     }
 
     init {
-        require(dager.periode == this.meldeperiode.periode) {
-            "Perioden for meldekortet må være lik meldeperioden"
-        }
-        require(dager.meldeperiode == meldeperiode) {
-            "Meldekortdager.meldeperiode må være lik meldeperioden"
-        }
         require(ikkeRettTilTiltakspengerTidspunkt == null) {
             "Behandlinger der det ikke er rett til tiltakspenger skal ikke være under behandling"
         }
@@ -406,8 +394,6 @@ fun Sak.opprettManuellMeldekortbehandling(
         opprettet = nå(clock),
         navkontor = navkontor,
         ikkeRettTilTiltakspengerTidspunkt = null,
-        brukersMeldekort = null,
-        meldeperiode = meldeperiode,
         saksbehandler = saksbehandler.navIdent,
         type = type,
         begrunnelse = null,
@@ -415,10 +401,13 @@ fun Sak.opprettManuellMeldekortbehandling(
         sendtTilBeslutning = null,
         beregning = null,
         simulering = null,
-        dager = meldeperiode.tilMeldekortDager(),
         status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
         sistEndret = nå(clock),
         fritekstTilVedtaksbrev = null,
+        meldeperioder = Meldeperiodebehandlinger(
+            meldeperioder = nonEmptyListOf(meldeperiode.tilMeldeperiodebehandling()),
+            beregning = null,
+        ),
         skalSendeVedtaksbrev = true,
     ).let {
         Triple(
