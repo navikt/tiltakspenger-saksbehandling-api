@@ -31,7 +31,7 @@ class ValiderJournalpostRouteTest {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             val journalpostId = JournalpostId("1234567")
-            tac.safJournalpostFakeClient.addJournalpost(journalpostId, fnr)
+            tac.leggTilJournalpost(journalpostId, fnr)
             validerJournalpost(tac, fnr, journalpostId).also {
                 val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
                 response.journalpostFinnes shouldBe true
@@ -45,7 +45,7 @@ class ValiderJournalpostRouteTest {
         withTestApplicationContext { tac ->
             val fnr = Fnr.random()
             val journalpostId = JournalpostId("12345678")
-            tac.safJournalpostFakeClient.addJournalpost(journalpostId, Fnr.random())
+            tac.leggTilJournalpost(journalpostId, Fnr.random())
             validerJournalpost(tac, fnr, journalpostId).also {
                 val response = objectMapper.readValue<ValiderJournalpostResponse>(it)
                 response.journalpostFinnes shouldBe true
