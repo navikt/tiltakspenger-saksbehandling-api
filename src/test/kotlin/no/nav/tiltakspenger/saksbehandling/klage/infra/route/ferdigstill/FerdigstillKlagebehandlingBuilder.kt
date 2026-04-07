@@ -164,6 +164,7 @@ interface FerdigstillKlagebehandlingBuilder {
             )
         },
         behandlingstype: String = "REVURDERING_OMGJØRING",
+
     ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
         val (sak, klagebehandling) = this.opprettSakOgOpprettholdKlagebehandling(
             tac = tac,
@@ -174,6 +175,12 @@ interface FerdigstillKlagebehandlingBuilder {
         val søknadId = if (behandlingstype == "SØKNADSBEHANDLING_INNVILGELSE") {
             tac.søknadContext.søknadRepo.hentSøknaderForFnr(fnr)
                 .single().id
+        } else {
+            null
+        }
+
+        val vedtakIdSomOmgjøres = if (behandlingstype == "REVURDERING_OMGJØRING") {
+            sak.rammevedtaksliste.single().id.toString()
         } else {
             null
         }
@@ -192,11 +199,13 @@ interface FerdigstillKlagebehandlingBuilder {
             forventetJsonBody = forventetJsonBody,
             behandlingstype = behandlingstype,
             søknadId = søknadId,
+            vedtakIdSomOmgjøres = vedtakIdSomOmgjøres,
         )
     }
 
     /**
      * @param søknadId - må oppgis hvis behandlingstype er SØKNADSBEHANDLING_INNVILGELSE
+     * @param vedtakIdSomOmgjøres - må oppgis hvis behandlingstype er REVURDERING_OMGJØRING
      */
     suspend fun ApplicationTestBuilder.omgjørKlagebehandlingOgOpprettNyRammebehandling(
         tac: TestApplicationContext,
@@ -207,6 +216,7 @@ interface FerdigstillKlagebehandlingBuilder {
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
         behandlingstype: String = "REVURDERING_OMGJØRING",
         søknadId: SøknadId? = null,
+        vedtakIdSomOmgjøres: String? = null,
     ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
@@ -219,7 +229,14 @@ interface FerdigstillKlagebehandlingBuilder {
             jwt = jwt,
         ) {
             //language=json
-            this.setBody("""{"type": "$behandlingstype", "søknadId": ${søknadId?.let { "\"$it\"" }}}""".trimIndent())
+            this.setBody(
+                """{
+                    "type": "$behandlingstype",
+                    "søknadId": ${søknadId?.let { "\"$it\"" }},
+                    "vedtakIdSomOmgjøres": ${vedtakIdSomOmgjøres?.let { "\"$it\"" }}
+                   }
+                """.trimIndent(),
+            )
         }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(

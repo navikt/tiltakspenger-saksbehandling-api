@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
@@ -34,6 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingF
 private data class OpprettRammebehandlingFraKlage(
     val søknadId: String?,
     val type: Type,
+    val vedtakIdSomOmgjøres: String?,
 ) {
     enum class Type {
         SØKNADSBEHANDLING_INNVILGELSE,
@@ -46,6 +48,7 @@ private data class OpprettRammebehandlingFraKlage(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
         klagebehandlingId: KlagebehandlingId,
+        vedtakIdSomOmgjøres: String?,
     ): OpprettRammebehandlingFraKlageKommando {
         return when (type) {
             Type.SØKNADSBEHANDLING_INNVILGELSE -> {
@@ -68,6 +71,10 @@ private data class OpprettRammebehandlingFraKlage(
                         Type.REVURDERING_OMGJØRING -> OpprettRevurderingFraKlageKommando.Type.OMGJØRING
                     },
                     correlationId = correlationId,
+                    vedtakIdSomOmgjøres = when (type) {
+                        Type.REVURDERING_INNVILGELSE -> null
+                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakIdSomOmgjøres!!)
+                    },
                 )
             }
         }
@@ -99,6 +106,7 @@ fun Route.opprettRammebehandlingFraKlage(
                             saksbehandler = saksbehandler,
                             correlationId = correlationId,
                             klagebehandlingId = klagebehandlingId,
+                            vedtakIdSomOmgjøres = body.vedtakIdSomOmgjøres,
                         ),
                     ).fold(
                         ifLeft = {
