@@ -1,68 +1,40 @@
 package no.nav.tiltakspenger.saksbehandling.common
 
-import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
-import no.nav.tiltakspenger.libs.common.Bruker
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
-import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
-import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
-import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
-import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
-import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingFakeKlient
-import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
-import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
-import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
-import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
-import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseFakeRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
 
 /**
  * Oppretter en tom ApplicationContext for bruk i tester.
@@ -77,16 +49,10 @@ class TestApplicationContextMedInMemoryDb(
     override val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     override val idGenerators: IdGenerators = IdGenerators(),
 ) : TestApplicationContext(
-    clock = clock,
-    idGenerators = idGenerators,
+    initClock = clock,
+    initIdGenerators = idGenerators,
 ) {
-    @Suppress("MemberVisibilityCanBePrivate")
-    val journalpostIdGenerator = idGenerators.journalpostIdGenerator
-    val dokumentInfoIdGeneratorGenerator = idGenerators.dokumentInfoIdGeneratorSerial
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    val distribusjonIdGenerator = idGenerators.distribusjonIdGenerator
-
+    // In-memory fake repos
     private val utbetalingFakeRepo = UtbetalingFakeRepo()
     private val rammevedtakFakeRepo = RammevedtakFakeRepo(utbetalingFakeRepo)
     private val meldekortvedtakFakeRepo = MeldekortvedtakFakeRepo(utbetalingFakeRepo)
@@ -98,57 +64,11 @@ class TestApplicationContextMedInMemoryDb(
     private val behandlingFakeRepo = RammebehandlingFakeRepo()
     private val klagebehandlingFakeRepo = KlagebehandlingFakeRepo()
     private val søknadFakeRepo = SøknadFakeRepo(behandlingFakeRepo)
-    private val tiltaksdeltakelseFakeKlient = TiltaksdeltakelseFakeKlient { søknadFakeRepo }
-    private val sokosUtbetaldataFakeClient = SokosUtbetaldataFakeClient()
-    private val tiltakspengerArenaFakeClient = TiltakspengerArenaFakeClient()
-    private val personFakeKlient = PersonFakeKlient(clock)
-    private val genererFakeVedtaksbrevForUtbetalingKlient = GenererFakeVedtaksbrevForUtbetalingKlient()
-    private val genererFakeVedtaksbrevKlient = GenererFakeVedtaksbrevKlient()
-    private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
-    private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
-    private val journalførFakeKlagevedtaksbrevKlient =
-        JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGeneratorGenerator)
-    private val dokumentdistribusjonsFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
-    private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
-    private val benkOversiktFakeRepo =
-        BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortbehandlingFakeRepo, klagebehandlingFakeRepo)
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
-    private val fakeNavIdentClient = FakeNavIdentClient()
-    private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val tilbakekrevingBehandlingFakeRepo = TilbakekrevingBehandlingFakeRepo()
 
-    override val jwtGenerator: JwtGenerator = JwtGenerator()
-
-    override fun leggTilPerson(
-        fnr: Fnr,
-        person: EnkelPerson,
-        tiltaksdeltakelse: Tiltaksdeltakelse,
-    ) {
-        personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
-        tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
-        tilgangsmaskinFakeClient.leggTil(fnr, Tilgangsvurdering.Godkjent)
-        tiltaksdeltakerFakeRepo.lagre(
-            id = tiltaksdeltakelse.internDeltakelseId,
-            eksternId = tiltaksdeltakelse.eksternDeltakelseId,
-            tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
-        )
-    }
-
-    override fun leggTilBruker(token: String, bruker: Bruker<*, *>) {
-        (texasClient as TexasClientFake).leggTilBruker(token, bruker)
-    }
-
-    override fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?) {
-        tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
-    }
-
-    private val saksoversiktFakeRepo =
-        BenkOversiktFakeRepo(
-            søknadFakeRepo = søknadFakeRepo,
-            behandlingFakeRepo = behandlingFakeRepo,
-            meldekortbehandlingFakeRepo = meldekortbehandlingFakeRepo,
-            klagebehandlingFakeRepo = klagebehandlingFakeRepo,
-        )
+    private val benkOversiktFakeRepo =
+        BenkOversiktFakeRepo(søknadFakeRepo, behandlingFakeRepo, meldekortbehandlingFakeRepo, klagebehandlingFakeRepo)
     private val sakFakeRepo =
         SakFakeRepo(
             behandlingRepo = behandlingFakeRepo,
@@ -167,30 +87,12 @@ class TestApplicationContextMedInMemoryDb(
     private val personFakeRepo =
         PersonFakeRepo(sakFakeRepo, søknadFakeRepo, meldekortbehandlingFakeRepo, behandlingFakeRepo)
 
-    override val veilarboppfolgingKlient = VeilarboppfolgingFakeKlient()
-    override val navkontorService: NavkontorService = NavkontorService(veilarboppfolgingKlient)
-
-    override val oppgaveKlient: OppgaveKlient = OppgaveFakeKlient()
-
-    val safJournalpostFakeClient = SafJournalpostFakeClient(clock)
-    override val hentJournalpostDokumentService: HentJournalpostDokumentService by lazy {
-        HentJournalpostDokumentService(journalpostClient = safJournalpostFakeClient)
-    }
-
     override val personContext =
         object : PersonContext(sessionFactory, texasClient) {
             override val personKlient = personFakeKlient
             override val personRepo = personFakeRepo
             override val navIdentClient = fakeNavIdentClient
         }
-    override val dokumentContext by lazy {
-        object : DokumentContext(texasClient, clock) {
-            override val journalførMeldekortKlient = journalførFakeMeldekortKlient
-            override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
-            override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
-            override val genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient
-        }
-    }
 
     override val statistikkContext by lazy {
         object : StatistikkContext(sessionFactory, personFakeKlient, gitHash, clock) {
@@ -225,6 +127,7 @@ class TestApplicationContextMedInMemoryDb(
             override val tiltaksdeltakerRepo = tiltaksdeltakerFakeRepo
         }
     }
+
     override val sakContext by lazy {
         object : SakContext(
             sessionFactory = sessionFactory,
@@ -234,14 +137,9 @@ class TestApplicationContextMedInMemoryDb(
             clock = clock,
         ) {
             override val sakRepo = sakFakeRepo
-            override val benkOversiktRepo = saksoversiktFakeRepo
+            override val benkOversiktRepo = benkOversiktFakeRepo
         }
     }
-
-    override val tilgangskontrollService = TilgangskontrollService(
-        tilgangsmaskinClient = tilgangsmaskinFakeClient,
-        sakService = sakContext.sakService,
-    )
 
     override val meldekortContext by lazy {
         object :
