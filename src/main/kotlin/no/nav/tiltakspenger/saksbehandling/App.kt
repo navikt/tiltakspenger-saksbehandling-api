@@ -113,14 +113,9 @@ internal fun start(
                         { applicationContext.personhendelseJobb.opprettOppgaveForPersonhendelser() },
                         { applicationContext.personhendelseJobb.opprydning() },
                         { applicationContext.identhendelseJobb.behandleIdenthendelser() },
+                        { applicationContext.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser() },
                     ),
                 )
-            } else {
-                it
-            }
-        }.let {
-            if (!Configuration.isProd()) {
-                it.plus({ applicationContext.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser() })
             } else {
                 it
             }
@@ -135,7 +130,7 @@ internal fun start(
             applicationContext.leesahConsumer,
             applicationContext.aktorV2Consumer,
             applicationContext.kabalKlagehendelseConsumer,
-            if (Configuration.isDev()) applicationContext.tilbakekrevingConsumer else null,
+            applicationContext.tilbakekrevingConsumer,
         )
         consumers.forEach { it.run() }
     }
