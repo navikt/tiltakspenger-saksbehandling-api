@@ -232,6 +232,8 @@ class UtbetalingHttpKlient(
                 val status = httpResponse.statusCode()
                 val responseHeaders = httpResponse.headers().map()
                 if (status == 503) {
+                    log.debug { "503 Service Unavailable fra helved simulering. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId" }
+                    Sikkerlogg.debug { "503 Service Unavailable fra helved simulering. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, body: $httpResponseBody" }
                     return@catch KunneIkkeSimulere.Stengt.left()
                 }
                 if (status == 204) {
