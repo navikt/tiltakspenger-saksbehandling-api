@@ -60,12 +60,13 @@ data class Rammebehandlinger(
          * Denne oppdateringen må derfor propageres til alle rammebehandlinger som har samme klagebehandling tilknyttet
          */
         val ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingTilknyttning = behandlinger.filter {
-            it.klagebehandling != null && behandling.klagebehandling != null && !it.erAvbrutt
+            !it.erAvbrutt && it.klagebehandling != null && it.klagebehandling?.id == behandling.klagebehandling?.id
         }.filter { it.id != behandling.id }.map { rammebehandling ->
             behandling.klagebehandling!!.let { rammebehandling.oppdaterKlagebehandling(it) }
         }
 
-        val alleBehandlingerMedSammeKlagetilknyttning = ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingTilknyttning.plus(behandling)
+        val alleBehandlingerMedSammeKlagetilknyttning =
+            ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingTilknyttning.plus(behandling)
         val iderForRammebehandlingerSomSkalOppdateres = alleBehandlingerMedSammeKlagetilknyttning.map { it.id }
 
         val behandlinger = this.behandlinger.map {

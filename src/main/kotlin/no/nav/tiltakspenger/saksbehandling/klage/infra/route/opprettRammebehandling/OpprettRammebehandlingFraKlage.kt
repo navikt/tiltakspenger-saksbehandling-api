@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingF
 private data class OpprettRammebehandlingFraKlage(
     val søknadId: String?,
     val type: Type,
-    val vedtakIdSomOmgjøres: String?,
+    val vedtakIdSomSkalOmgjøres: String?,
 ) {
     enum class Type {
         SØKNADSBEHANDLING_INNVILGELSE,
@@ -48,7 +48,6 @@ private data class OpprettRammebehandlingFraKlage(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
         klagebehandlingId: KlagebehandlingId,
-        vedtakIdSomOmgjøres: String?,
     ): OpprettRammebehandlingFraKlageKommando {
         return when (type) {
             Type.SØKNADSBEHANDLING_INNVILGELSE -> {
@@ -73,7 +72,7 @@ private data class OpprettRammebehandlingFraKlage(
                     correlationId = correlationId,
                     vedtakIdSomOmgjøres = when (type) {
                         Type.REVURDERING_INNVILGELSE -> null
-                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakIdSomOmgjøres!!)
+                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakIdSomSkalOmgjøres!!)
                     },
                 )
             }
@@ -106,7 +105,6 @@ fun Route.opprettRammebehandlingFraKlage(
                             saksbehandler = saksbehandler,
                             correlationId = correlationId,
                             klagebehandlingId = klagebehandlingId,
-                            vedtakIdSomOmgjøres = body.vedtakIdSomOmgjøres,
                         ),
                     ).fold(
                         ifLeft = {

@@ -85,6 +85,27 @@ interface VurderKlagebehandlingBuilder {
         return Tuple5(oppdatertSak, søknad, rammevedtakSøknadsbehandling, oppdatertKlagebehandling, json)
     }
 
+    suspend fun ApplicationTestBuilder.vurderKlagebehandlingOpprettholdelseForSakId(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        klagebehandlingId: KlagebehandlingId,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        hjemler: List<KlagehjemmelDto> = listOf(KlagehjemmelDto.ARBEIDSMARKEDSLOVEN_17),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
+        return vurderKlagebehandling(
+            tac = tac,
+            sakId = sakId,
+            klagebehandlingId = klagebehandlingId,
+            saksbehandler = saksbehandler,
+            vurderingstype = Vurderingstype.OPPRETTHOLD,
+            begrunnelse = null,
+            årsak = null,
+            hjemler = hjemler,
+        )
+    }
+
     /** Forventer at det allerede finnes en sak. */
     suspend fun ApplicationTestBuilder.vurderKlagebehandling(
         tac: TestApplicationContext,

@@ -4,6 +4,7 @@ import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 fun String.shouldBeKlagebehandlingDTO(
@@ -129,3 +130,98 @@ fun String.shouldBeKlagebehandlingDTO(
 }
 
 private fun String?.toJsonValue(): String = if (this == null) "null" else "\"$this\""
+
+fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
+    ignorerTidspunkt: Boolean = true,
+    resultat: Klagebehandlingsresultat.Opprettholdt,
+    sakId: SakId,
+    saksnummer: Saksnummer = Saksnummer("202501011001"),
+    klagebehandlingId: KlagebehandlingId,
+    fnr: String = "12345678912",
+    iverksattTidspunkt: String? = null,
+    saksbehandler: String? = "saksbehandlerKlagebehandling",
+    journalpostId: String = "12345",
+    vedtakDetKlagesPå: String? = null,
+    behandlingDetKlagesPå: String? = null,
+    brevtekst: List<String> = listOf(
+        """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
+        """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
+        """{"tittel":"Vurdering av klagen","tekst":"<saksbehandler fyller ut>"}""",
+    ),
+    rammebehandlingId: List<String>? = null,
+    åpenRammebehandlingId: String? = null,
+    hjemler: List<String> = listOf("ARBEIDSMARKEDSLOVEN_17"),
+    journalpostIdInnstillingsbrev: String,
+    dokumentInfoIder: List<String> = emptyList(),
+    klageinstanshendelser: List<String> = listOf(
+        """
+         {
+          "klagehendelseId": "${resultat.klageinstanshendelser.single().klagehendelseId}",
+          "klagebehandlingId": "$klagebehandlingId",
+          "opprettet": "TIMESTAMP",
+          "sistEndret": "TIMESTAMP",
+          "eksternKlagehendelseId": "${resultat.klageinstanshendelser.single().eksternKlagehendelseId}",
+          "avsluttetTidspunkt": "TIMESTAMP",
+          "journalpostreferanser": [],
+          "utfall": "STADFESTELSE",
+          "hendelsestype": "KLAGEBEHANDLING_AVSLUTTET"
+        }
+        """.trimIndent(),
+    ),
+    begrunnelseFerdigstilling: String? = null,
+) {
+    val expected =
+        //language=json
+        """
+       {
+         "id": "$klagebehandlingId",
+         "sakId": "$sakId",
+         "saksnummer": "$saksnummer",
+         "fnr": "$fnr",
+         "opprettet": "TIMESTAMP",
+         "sistEndret": "TIMESTAMP",
+         "iverksattTidspunkt": ${iverksattTidspunkt.toJsonValue()},
+         "saksbehandler": ${saksbehandler.toJsonValue()},
+         "klagensJournalpostId": "$journalpostId",
+         "klagensJournalpostOpprettet": "TIMESTAMP",
+         "status": "FERDIGSTILT",
+         "tilknyttedeRammebehandlingIder": ${if (rammebehandlingId.isNullOrEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
+         "åpenRammebehandlingId": ${åpenRammebehandlingId?.toJsonValue()},
+         "resultat": {
+            "brevtekst": [${brevtekst.joinToString()}],
+            "hjemler": [ ${hjemler.joinToString { "\"$it\"" }} ],
+            "iverksattOpprettholdelseTidspunkt": "TIMESTAMP",
+            "journalføringstidspunktInnstillingsbrev":  "TIMESTAMP",
+            "distribusjonstidspunktInnstillingsbrev": "TIMESTAMP",
+            "oversendtKlageinstansenTidspunkt": "TIMESTAMP",
+            "klageinstanshendelser": [ ${klageinstanshendelser.joinToString()} ],
+            "ferdigstiltTidspunkt": "TIMESTAMP",
+            "journalpostIdInnstillingsbrev": ${journalpostIdInnstillingsbrev.let { "\"$it\"" }},
+            "dokumentInfoIder": ${dokumentInfoIder.map { "\"$it\"" }},
+            "type": "OPPRETTHOLDT",
+            "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
+         },
+         "avbrutt": null,
+         "kanIverksetteVedtak": null,
+         "kanIverksetteOpprettholdelse": false,
+         "ventestatus": null,
+         "formkrav": {
+           "vedtakDetKlagesPå": ${vedtakDetKlagesPå.toJsonValue()},
+           "behandlingDetKlagesPå": ${behandlingDetKlagesPå.toJsonValue()},
+           "erKlagerPartISaken": true,
+           "klagesDetPåKonkreteElementerIVedtaket": true,
+           "erKlagefristenOverholdt": true,
+           "erUnntakForKlagefrist": null,
+           "erKlagenSignert": true,
+           "innsendingsdato": "2026-02-16",
+           "innsendingskilde": "DIGITAL"
+         }
+       }
+        """.trimIndent()
+
+    if (ignorerTidspunkt) {
+        this.shouldEqualJsonIgnoringTimestamps(expected)
+    } else {
+        this.shouldEqualJson(expected)
+    }
+}

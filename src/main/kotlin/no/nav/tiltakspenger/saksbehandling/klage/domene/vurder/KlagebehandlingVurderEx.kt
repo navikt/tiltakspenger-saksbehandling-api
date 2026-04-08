@@ -13,7 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Omgjør
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.FERDIGSTILT
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import java.time.Clock
 import java.time.LocalDateTime
@@ -82,7 +84,7 @@ fun Klagebehandling.oppdaterRammebehandlingId(
         sistEndret = if (erFerdigstilt) sistEndret else sistEndret,
         status = when (resultat) {
             is Omgjør -> status
-            is Opprettholdt -> if (erFerdigstilt) status else Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
+            is Opprettholdt -> if (erFerdigstilt) status else OMGJØRING_ETTER_KLAGEINSTANS
         },
     )
 }
@@ -95,8 +97,8 @@ fun Klagebehandling.fjernRammebehandlingId(
     require(erKnyttetTilRammebehandling) {
         "Klagebehandling er ikke knyttet til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
-    require(this.status == KLAR_TIL_BEHANDLING || this.status == UNDER_BEHANDLING || this.status == Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS) {
-        "Klagebehandling må være i status KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, OMGJØRING_ETTER_KLAGEINSTANS for at man kan disassosiere rammebehandling. status was ${this.status}, sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+    require(this.status == KLAR_TIL_BEHANDLING || this.status == UNDER_BEHANDLING || this.status == OMGJØRING_ETTER_KLAGEINSTANS || this.status == FERDIGSTILT) {
+        "Klagebehandling må være i status KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT for at man kan disassosiere rammebehandling. status was ${this.status}, sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(erSaksbehandlerPåBehandlingen(saksbehandler))
     return when (val res = resultat) {
@@ -108,7 +110,7 @@ fun Klagebehandling.fjernRammebehandlingId(
         is Opprettholdt -> this.copy(
             resultat = res.fjernRammebehandlingId(rammebehandlingId),
             sistEndret = sistEndret,
-            status = Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS,
+            status = if (status == OMGJØRING_ETTER_KLAGEINSTANS) Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS else status,
         )
 
         is Klagebehandlingsresultat.Avvist, null -> throw IllegalStateException(

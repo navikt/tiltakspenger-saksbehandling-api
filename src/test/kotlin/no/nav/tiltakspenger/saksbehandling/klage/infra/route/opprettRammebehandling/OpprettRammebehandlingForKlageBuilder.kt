@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -103,7 +102,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
-        if (type == "REVURDERING_OMGJØRING") require(vedtakIdSomOmgjøres != null) { "vedtakIdSomOmgjøres må oppgis ved type REVURDERING_OMGJØRING" }
+        if (type == "REVURDERING_OMGJØRING") require(vedtakIdSomOmgjøres != null) { "vedtakIdSomSkalOmgjøres må oppgis ved type REVURDERING_OMGJØRING" }
 
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
@@ -120,7 +119,7 @@ interface OpprettRammebehandlingForKlageBuilder {
                 """
                 {
                     "søknadId": "${søknadId?.toString()}",
-                    "vedtakIdSomOmgjøres": "$vedtakIdSomOmgjøres",
+                    "vedtakIdSomSkalOmgjøres": "$vedtakIdSomOmgjøres",
                     "type": "$type",
                     "klagebehandlingId": "$klagebehandlingId"
                 }

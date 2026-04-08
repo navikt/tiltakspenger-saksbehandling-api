@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
@@ -33,7 +34,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.klageinstanshendelse.mottaHendelseFraKlageinstansen
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingBrevtekstForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettKlagebehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettholdKlagebehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandlingOpprettholdelseForSakId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.json.JSONObject
 import java.util.UUID
@@ -81,6 +86,49 @@ interface FerdigstillKlagebehandlingBuilder {
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )
+    }
+
+    suspend fun ApplicationTestBuilder.opprettOgFerdigstillOppretholdtKlagebehandlingForSak(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        sak: Sak,
+        vedtakDetKlagesPå: VedtakId = sak.vedtaksliste.alle.last().id,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        utførJobber: Boolean = true,
+        hendelseGenerering: (
+            sak: Sak,
+            klagebehandling: Klagebehandling,
+        ) -> String = { sak, klagebehandling ->
+            GenerererKlageinstanshendelse.avsluttetJson(
+                eventId = UUID.randomUUID().toString(),
+                kildeReferanse = klagebehandling.id.toString(),
+                kabalReferanse = UUID.randomUUID().toString(),
+                avsluttetTidspunkt = nå(tac.clock).toString(),
+                utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.STADFESTELSE,
+                journalpostReferanser = emptyList(),
+            )
+        },
+    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (_, opprettetklagebehandling, _) = this.opprettKlagebehandlingForSakId(tac = tac, sakId = sak.id, vedtakDetKlagesPå = vedtakDetKlagesPå)!!
+        this.vurderKlagebehandlingOpprettholdelseForSakId(tac = tac, sakId = sak.id, klagebehandlingId = opprettetklagebehandling.id)
+        this.oppdaterKlagebehandlingBrevtekstForSakId(tac = tac, sakId = sak.id, klagebehandlingId = opprettetklagebehandling.id)
+        this.opprettholdKlagebehandlingForSakId(tac = tac, sakId = sak.id, klagebehandlingId = opprettetklagebehandling.id)
+
+        if (utførJobber) {
+            tac.mottaHendelseFraKlageinstansen(hendelseGenerering(sak, opprettetklagebehandling))
+            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser()
+        }
+
+        return ferdigstillKlagebehandlingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = opprettetklagebehandling.id,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -164,7 +212,6 @@ interface FerdigstillKlagebehandlingBuilder {
             )
         },
         behandlingstype: String = "REVURDERING_OMGJØRING",
-
     ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
         val (sak, klagebehandling) = this.opprettSakOgOpprettholdKlagebehandling(
             tac = tac,
@@ -233,7 +280,7 @@ interface FerdigstillKlagebehandlingBuilder {
                 """{
                     "type": "$behandlingstype",
                     "søknadId": ${søknadId?.let { "\"$it\"" }},
-                    "vedtakIdSomOmgjøres": ${vedtakIdSomOmgjøres?.let { "\"$it\"" }}
+                    "vedtakIdSomSkalOmgjøres": ${vedtakIdSomOmgjøres?.let { "\"$it\"" }}
                    }
                 """.trimIndent(),
             )
