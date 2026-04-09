@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 import tools.jackson.module.kotlin.readValue
+import java.time.Clock
 import java.util.UUID
 
 class TiltaksdeltakerService(
@@ -21,6 +22,7 @@ class TiltaksdeltakerService(
     private val søknadRepo: SøknadRepo,
     private val arenaDeltakerMapper: ArenaDeltakerMapper,
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
+    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger { }
 
@@ -42,6 +44,7 @@ class TiltaksdeltakerService(
                 arenaKafkaMessage = arenaKafkaMessage,
                 sakId = sakId,
                 tiltaksdeltakerId = tiltaksdeltaker.id,
+                clock = clock,
             )
             if (tiltaksdeltakerKafkaDb != null) {
                 lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(arenaKafkaMessage))

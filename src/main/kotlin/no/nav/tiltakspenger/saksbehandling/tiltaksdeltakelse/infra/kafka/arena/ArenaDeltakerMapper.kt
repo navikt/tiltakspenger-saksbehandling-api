@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
+import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -20,8 +21,9 @@ class ArenaDeltakerMapper {
         arenaKafkaMessage: ArenaKafkaMessage,
         sakId: SakId,
         tiltaksdeltakerId: TiltaksdeltakerId,
+        clock: Clock,
     ): TiltaksdeltakerKafkaDb? {
-        arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId, tiltaksdeltakerId) }
+        arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId, tiltaksdeltakerId, clock) }
 
         if (arenaKafkaMessage.opType == OperationType.D) {
             log.warn { "Deltakelse med id $eksternId er slettet fra Arena" }
@@ -36,6 +38,7 @@ class ArenaDeltakerMapper {
         eksternId: String,
         sakId: SakId,
         tiltaksdeltakerId: TiltaksdeltakerId,
+        clock: Clock,
     ): TiltaksdeltakerKafkaDb {
         val deltakelseFraOgMed = DATO_FRA?.asValidatedLocalDate()
         return TiltaksdeltakerKafkaDb(
@@ -44,7 +47,7 @@ class ArenaDeltakerMapper {
             deltakelseTilOgMed = DATO_TIL?.asValidatedLocalDate(),
             dagerPerUke = ANTALL_DAGER_PR_UKE,
             deltakelsesprosent = PROSENT_DELTID,
-            deltakerstatus = DELTAKERSTATUSKODE.toTiltakDeltakerstatus(deltakelseFraOgMed),
+            deltakerstatus = DELTAKERSTATUSKODE.toTiltakDeltakerstatus(deltakelseFraOgMed, clock = clock),
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
@@ -53,8 +56,11 @@ class ArenaDeltakerMapper {
         )
     }
 
-    private fun ArenaDeltakerStatusType.toTiltakDeltakerstatus(deltakelseFraOgMed: LocalDate?): TiltakDeltakerstatus =
-        this.toDTO(deltakelseFraOgMed).toDomain()
+    private fun ArenaDeltakerStatusType.toTiltakDeltakerstatus(
+        deltakelseFraOgMed: LocalDate?,
+        clock: Clock,
+    ): TiltakDeltakerstatus =
+        this.toDTO(deltakelseFraOgMed, clock = clock).toDomain()
 
     private fun String.asValidatedLocalDate(): LocalDate {
         try {

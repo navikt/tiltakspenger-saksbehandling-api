@@ -8,11 +8,11 @@ import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankStrin
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
@@ -52,7 +52,7 @@ class SakTest {
                 correlationId = CorrelationId.generate(),
                 begrunnelse = "begrunnelse".toNonBlankString(),
             ),
-            avbruttTidspunkt = førsteNovember24,
+            avbruttTidspunkt = 1.november(2024).atStartOfDay(),
         )
         avbruttSøknad?.avbrutt shouldNotBe null
         avbruttBehandling.avbrutt shouldNotBe null

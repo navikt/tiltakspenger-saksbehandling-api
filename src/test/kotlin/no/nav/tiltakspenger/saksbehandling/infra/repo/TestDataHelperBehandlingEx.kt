@@ -9,11 +9,11 @@ import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankStrin
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -416,7 +416,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     deltakelseTom: LocalDate = 31.mars(2023),
     journalpostId: String = Random.nextInt().toString(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    avbruttTidspunkt: LocalDateTime = førsteNovember24,
+    avbruttTidspunkt: LocalDateTime = 1.november(2024).atStartOfDay(),
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
         sakId = sakId,

@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
-import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
@@ -38,7 +38,7 @@ class RammebehandlingTest {
         val avbruttBehandling = behandling.avbryt(
             avbruttAv = ObjectMother.saksbehandler(),
             begrunnelse = "begrunnelse".toNonBlankString(),
-            tidspunkt = førsteNovember24,
+            tidspunkt = 1.november(2024).atStartOfDay(),
             skalAvbryteSøknad = true,
         )
 
@@ -47,7 +47,7 @@ class RammebehandlingTest {
             it shouldNotBe null
             it!!.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
             it.begrunnelse.value shouldBe "begrunnelse"
-            it.tidspunkt shouldBe førsteNovember24
+            it.tidspunkt shouldBe 1.november(2024).atStartOfDay()
         }
         avbruttBehandling.søknad.avbrutt shouldNotBe null
         avbruttBehandling.avbrutt shouldBe avbruttBehandling.søknad.avbrutt
@@ -60,7 +60,7 @@ class RammebehandlingTest {
         val avbruttBehandling = behandling.avbryt(
             avbruttAv = ObjectMother.saksbehandler(),
             begrunnelse = "begrunnelse".toNonBlankString(),
-            tidspunkt = førsteNovember24,
+            tidspunkt = 1.november(2024).atStartOfDay(),
             skalAvbryteSøknad = true,
         )
 
@@ -69,7 +69,7 @@ class RammebehandlingTest {
             it shouldNotBe null
             it!!.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
             it.begrunnelse.value shouldBe "begrunnelse"
-            it.tidspunkt shouldBe førsteNovember24
+            it.tidspunkt shouldBe 1.november(2024).atStartOfDay()
         }
         avbruttBehandling.søknad.avbrutt shouldNotBe null
         avbruttBehandling.avbrutt shouldBe avbruttBehandling.søknad.avbrutt
@@ -79,7 +79,7 @@ class RammebehandlingTest {
     @Test
     fun `kan ikke avbryte en avbrutt behandling`() {
         val avbruttBehandling = ObjectMother.nyAvbruttSøknadsbehandling(
-            tidspunkt = førsteNovember24,
+            tidspunkt = 1.november(2024).atStartOfDay(),
             avbruttAv = ObjectMother.saksbehandler(navIdent = "navident"),
             begrunnelse = "skal få exception",
         )
@@ -88,7 +88,7 @@ class RammebehandlingTest {
             avbruttBehandling.avbryt(
                 avbruttAv = ObjectMother.saksbehandler(),
                 begrunnelse = "begrunnelse".toNonBlankString(),
-                tidspunkt = førsteNovember24,
+                tidspunkt = 1.november(2024).atStartOfDay(),
                 skalAvbryteSøknad = true,
             )
         }
@@ -530,7 +530,7 @@ class RammebehandlingTest {
             status = Attesteringsstatus.SENDT_TILBAKE,
             begrunnelse = "Manglende dokumentasjon".toNonBlankString(),
             beslutter = ObjectMother.beslutter().navIdent,
-            tidspunkt = førsteNovember24,
+            tidspunkt = 1.november(2024).atStartOfDay(),
         )
 
         @Test
@@ -548,7 +548,7 @@ class RammebehandlingTest {
                     attestering.status shouldBe Attesteringsstatus.SENDT_TILBAKE
                     attestering.begrunnelse shouldBe "Manglende dokumentasjon".toNonBlankString()
                     attestering.beslutter shouldBe ObjectMother.beslutter().navIdent
-                    attestering.tidspunkt shouldBe førsteNovember24
+                    attestering.tidspunkt shouldBe 1.november(2024).atStartOfDay()
                 }
             }
         }

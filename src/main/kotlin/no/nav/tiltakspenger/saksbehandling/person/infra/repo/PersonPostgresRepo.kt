@@ -80,7 +80,7 @@ class PersonPostgresRepo(
                 queryOf(
                     """
                         select sak.fnr from meldekortbehandling m
-                        join public.sak sak on sak.id = m.sak_id
+                        join sak on sak.id = m.sak_id
                         where m.id = :meldekort_id
                     """.trimMargin(),
                     mapOf(

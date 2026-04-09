@@ -14,7 +14,7 @@ class PersonPostgresRepoTest {
 
     @Test
     fun hentFnrForBehandlingId() {
-        withMigratedDb { testDataHelper ->
+        withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterOpprettetRevurdering().also {
                 val (sak, behandling) = it
                 testDataHelper.personRepo.hentFnrForSakId(sak.id) shouldBe sak.fnr

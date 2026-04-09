@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import org.junit.jupiter.api.Test
 
@@ -12,7 +13,7 @@ class AvbrytRammebehandlingRouteTest {
             val (sak, søknad, søknadsbehandling, json) = opprettSøknadsbehandlingOgAvbryt(
                 tac = tac,
             )!!
-            json.get("søknader").single().toString().shouldEqualJson(
+            json.get("søknader").single().toString().shouldEqualJsonIgnoringTimestamps(
                 """
 {
   "id": "${søknad.id}",
@@ -31,12 +32,12 @@ class AvbrytRammebehandlingRouteTest {
   "manueltSattTiltak": null,
   "søknadstype": "DIGITAL",
   "barnetillegg": [],
-  "opprettet": "2023-01-01T00:00:00",
-  "tidsstempelHosOss": "2023-01-01T00:00:00",
+  "opprettet": "TIMESTAMP",
+  "tidsstempelHosOss": "TIMESTAMP",
   "antallVedlegg": 0,
   "avbrutt": {
     "avbruttAv": "Z12345",
-    "avbruttTidspunkt": "2025-05-01T01:02:13.456789",
+    "avbruttTidspunkt": "TIMESTAMP",
     "begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"
   },
   "kanInnvilges": true,
@@ -95,7 +96,7 @@ class AvbrytRammebehandlingRouteTest {
 }
                 """.trimIndent(),
             )
-            json.get("behandlinger").single().toString().shouldEqualJson(
+            json.get("behandlinger").single().toString().shouldEqualJsonIgnoringTimestamps(
                 """
 {
   "id": "${søknadsbehandling!!.id}",

@@ -69,7 +69,7 @@ internal class SakRepoTest {
 
     @Test
     fun `Skal flagge saker med iverksatt behandling for sending til meldekort-api`() {
-        withMigratedDb { testDataHelper ->
+        withMigratedDb(runIsolated = true) { testDataHelper ->
             val sakRepo = testDataHelper.sakRepo
 
             val sak1 = testDataHelper.persisterIverksattSøknadsbehandling().first

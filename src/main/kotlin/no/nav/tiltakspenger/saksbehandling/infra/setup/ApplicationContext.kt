@@ -90,6 +90,7 @@ open class ApplicationContext(
             introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
             tokenUrl = Configuration.naisTokenEndpoint,
             tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
+            clock = clock,
         )
     }
 
@@ -176,6 +177,7 @@ open class ApplicationContext(
             søknadRepo = søknadContext.søknadRepo,
             arenaDeltakerMapper = ArenaDeltakerMapper(),
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            clock = clock,
         )
     }
 

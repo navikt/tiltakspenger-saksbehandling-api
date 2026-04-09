@@ -83,7 +83,7 @@ class TestApplicationContextMedPostgres(
     private val meldekortApiFakeKlient = MeldekortApiFakeKlient()
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val fakeNavIdentClient = FakeNavIdentClient()
-    override val jwtGenerator = JwtGenerator()
+    override val jwtGenerator = JwtGenerator(clock = clock)
 
     override val veilarboppfolgingKlient = VeilarboppfolgingFakeKlient()
     override val navkontorService: NavkontorService = NavkontorService(veilarboppfolgingKlient)

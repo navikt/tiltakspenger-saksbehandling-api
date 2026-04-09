@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
-import no.nav.tiltakspenger.libs.common.førsteNovember24
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -106,14 +106,14 @@ class SøknadTest {
     @Test
     fun `avbryter en søknad`() {
         val søknad = ObjectMother.nyInnvilgbarSøknad()
-        val avbruttSøknad = søknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), førsteNovember24)
+        val avbruttSøknad = søknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), 1.november(2024).atStartOfDay())
 
         avbruttSøknad.erAvbrutt shouldBe true
         avbruttSøknad.avbrutt.let {
             it shouldNotBe null
             it!!.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
             it.begrunnelse.value shouldBe "jeg avbryter søknad"
-            it.tidspunkt shouldBe førsteNovember24
+            it.tidspunkt shouldBe 1.november(2024).atStartOfDay()
         }
     }
 
@@ -121,14 +121,14 @@ class SøknadTest {
     fun `kaster exception dersom man prøver å avbryte en avbrutt søknad`() {
         val avbruttSøknad = ObjectMother.nyInnvilgbarSøknad(
             avbrutt = Avbrutt(
-                tidspunkt = førsteNovember24,
+                tidspunkt = 1.november(2024).atStartOfDay(),
                 saksbehandler = "navident",
                 begrunnelse = "skal få exception".toNonBlankString(),
             ),
         )
 
         assertThrows<IllegalStateException> {
-            avbruttSøknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), førsteNovember24)
+            avbruttSøknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), 1.november(2024).atStartOfDay())
         }
     }
 
@@ -144,8 +144,8 @@ class SøknadTest {
                     deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
-                    fraOgMed = førsteNovember24.toLocalDate(),
-                    tilOgMed = førsteNovember24.plusMonths(1).toLocalDate(),
+                    fraOgMed = 1.november(2024).atStartOfDay().toLocalDate(),
+                    tilOgMed = 1.november(2024).atStartOfDay().plusMonths(1).toLocalDate(),
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyInnvilgbarSøknad(
@@ -189,8 +189,8 @@ class SøknadTest {
                     deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
-                    fraOgMed = førsteNovember24.toLocalDate(),
-                    tilOgMed = førsteNovember24.plusMonths(1).toLocalDate(),
+                    fraOgMed = 1.november(2024).atStartOfDay().toLocalDate(),
+                    tilOgMed = 1.november(2024).atStartOfDay().plusMonths(1).toLocalDate(),
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(
@@ -212,8 +212,8 @@ class SøknadTest {
                     deltakelseTom = LocalDate.now(clock).plusMonths(1),
                 )
                 val søknadsperiode = Periode(
-                    fraOgMed = førsteNovember24.toLocalDate(),
-                    tilOgMed = førsteNovember24.plusMonths(1).toLocalDate(),
+                    fraOgMed = 1.november(2024).atStartOfDay().toLocalDate(),
+                    tilOgMed = 1.november(2024).atStartOfDay().plusMonths(1).toLocalDate(),
                 )
 
                 val søknadMedManueltSattPeriode = ObjectMother.nyIkkeInnvilgbarSøknad(

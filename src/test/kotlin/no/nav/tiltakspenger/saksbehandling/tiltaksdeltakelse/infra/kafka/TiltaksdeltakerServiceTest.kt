@@ -30,7 +30,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val deltakerId = "123456789"
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
@@ -46,7 +46,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val deltakerId = "123456789"
             val id = "TA$deltakerId"
             val fnr = Fnr.random()
@@ -85,7 +85,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val deltakerId = "123456789"
             val id = "TA$deltakerId"
             val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
@@ -134,7 +134,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val deltakerId = "123456789"
             val id = "TA$deltakerId"
             val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
@@ -170,7 +170,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val deltakerId = "123456789"
             val id = "TA$deltakerId"
             val fnr = Fnr.random()
@@ -227,7 +227,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
 
@@ -247,7 +247,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
             val fnr = Fnr.random()
@@ -289,7 +289,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
             val fnr = Fnr.random()
@@ -349,7 +349,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
 
@@ -369,7 +369,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
             val fnr = Fnr.random()
@@ -411,7 +411,7 @@ class TiltaksdeltakerServiceTest {
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
-                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo)
+                TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
             val fnr = Fnr.random()

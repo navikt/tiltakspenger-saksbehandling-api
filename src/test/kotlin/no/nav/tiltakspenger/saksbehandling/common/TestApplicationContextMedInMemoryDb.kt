@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.common
 import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.persistering.test.common.TestSessionFactory
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
@@ -117,7 +117,7 @@ class TestApplicationContextMedInMemoryDb(
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val tilbakekrevingBehandlingFakeRepo = TilbakekrevingBehandlingFakeRepo()
 
-    override val jwtGenerator: JwtGenerator = JwtGenerator()
+    override val jwtGenerator: JwtGenerator = JwtGenerator(clock = clock)
 
     override fun leggTilPerson(
         fnr: Fnr,
