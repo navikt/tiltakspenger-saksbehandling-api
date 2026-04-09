@@ -22,16 +22,16 @@ internal class TaOgOvertaRammebehandlingTest {
                 it.saksbehandler shouldBe "Z12345"
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "Z12345", ObjectMother.saksbehandler123()).also { jsonBody ->
-                JSONObject(jsonBody).getString("saksbehandler") shouldBe "123"
+            overtaBehanding(tac, sak.id, behandlingId, "Z12345", ObjectMother.saksbehandler123()).also { (_, _, jsonBody) ->
+                jsonBody.get("saksbehandler") shouldBe "123"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                     it.saksbehandler shouldBe "123"
                 }
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "123", ObjectMother.saksbehandler()).also { jsonBody ->
-                JSONObject(jsonBody).getString("saksbehandler") shouldBe "Z12345"
+            overtaBehanding(tac, sak.id, behandlingId, "123", ObjectMother.saksbehandler()).also { (_, _, jsonBody) ->
+                jsonBody.get("saksbehandler") shouldBe "Z12345"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                     it.saksbehandler shouldBe "Z12345"
@@ -55,16 +55,16 @@ internal class TaOgOvertaRammebehandlingTest {
                 }
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "B12345", ObjectMother.beslutter("B123")).also { jsonBody ->
-                JSONObject(jsonBody).getString("beslutter") shouldBe "B123"
+            overtaBehanding(tac, sak.id, behandlingId, "B12345", ObjectMother.beslutter("B123")).also { (_, _, jsonBody) ->
+                jsonBody.getString("beslutter") shouldBe "B123"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                     it.beslutter shouldBe "B123"
                 }
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "B123", ObjectMother.beslutter()).also { jsonBody ->
-                JSONObject(jsonBody).getString("beslutter") shouldBe "B12345"
+            overtaBehanding(tac, sak.id, behandlingId, "B123", ObjectMother.beslutter()).also { (_, _, jsonBody) ->
+                jsonBody.getString("beslutter") shouldBe "B12345"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                     it.beslutter shouldBe "B12345"
