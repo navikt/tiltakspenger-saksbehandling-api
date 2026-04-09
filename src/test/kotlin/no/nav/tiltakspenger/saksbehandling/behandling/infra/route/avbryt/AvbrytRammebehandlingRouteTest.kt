@@ -369,8 +369,6 @@ class AvbrytRammebehandlingRouteTest {
                 rammebehandlingId = emptyList(),
                 åpenRammebehandlingId = null,
                 brevtekst = listOf("""{"tittel":"Avvisning av klage","tekst":"Din klage er dessverre avvist."}"""),
-                journalpostIdInnstillingsbrev = ferdigstiltOpprettholdtKlagebehandling.journalpostIdInnstillingsbrev!!.toString(),
-                dokumentInfoIder = ferdigstiltOpprettholdtKlagebehandling.dokumentInfoIder.map { it.toString() },
             )
         }
     }

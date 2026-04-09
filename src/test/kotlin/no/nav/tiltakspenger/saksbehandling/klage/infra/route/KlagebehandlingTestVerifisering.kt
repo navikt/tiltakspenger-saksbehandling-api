@@ -138,7 +138,6 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
     saksnummer: Saksnummer = Saksnummer("202501011001"),
     klagebehandlingId: KlagebehandlingId,
     fnr: String = "12345678912",
-    iverksattTidspunkt: String? = null,
     saksbehandler: String? = "saksbehandlerKlagebehandling",
     journalpostId: String = "12345",
     vedtakDetKlagesPå: String? = null,
@@ -151,8 +150,6 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
     rammebehandlingId: List<String>? = null,
     åpenRammebehandlingId: String? = null,
     hjemler: List<String> = listOf("ARBEIDSMARKEDSLOVEN_17"),
-    journalpostIdInnstillingsbrev: String,
-    dokumentInfoIder: List<String> = emptyList(),
     klageinstanshendelser: List<String> = listOf(
         """
          {
@@ -180,7 +177,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          "fnr": "$fnr",
          "opprettet": "TIMESTAMP",
          "sistEndret": "TIMESTAMP",
-         "iverksattTidspunkt": ${iverksattTidspunkt.toJsonValue()},
+         "iverksattTidspunkt": null,
          "saksbehandler": ${saksbehandler.toJsonValue()},
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
@@ -196,8 +193,8 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
             "oversendtKlageinstansenTidspunkt": "TIMESTAMP",
             "klageinstanshendelser": [ ${klageinstanshendelser.joinToString()} ],
             "ferdigstiltTidspunkt": "TIMESTAMP",
-            "journalpostIdInnstillingsbrev": ${journalpostIdInnstillingsbrev.let { "\"$it\"" }},
-            "dokumentInfoIder": ${dokumentInfoIder.map { "\"$it\"" }},
+            "journalpostIdInnstillingsbrev": ${resultat.journalpostIdInnstillingsbrev.let { "\"$it\"" }},
+            "dokumentInfoIder": ${resultat.dokumentInfoIder.map { "\"$it\"" }},
             "type": "OPPRETTHOLDT",
             "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
          },

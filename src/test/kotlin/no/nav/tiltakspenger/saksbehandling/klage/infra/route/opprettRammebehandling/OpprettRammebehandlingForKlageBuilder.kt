@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnnta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.json.JSONObject
 
@@ -77,6 +78,34 @@ interface OpprettRammebehandlingForKlageBuilder {
             saksbehandler = saksbehandlerKlagebehandling,
             søknadId = if (type == "SØKNADSBEHANDLING_INNVILGELSE") søknadId else null,
             vedtakIdSomOmgjøres = if (type == "REVURDERING_OMGJØRING") vedtakIdSomOmgjøres else null,
+            type = type,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )
+    }
+
+    /**
+     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
+     */
+    suspend fun ApplicationTestBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        type: String = "SØKNADSBEHANDLING_INNVILGELSE",
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
+        val (sak, ferdigstiltKlagebehandling, _) = this.opprettSakOgFerdigstillOppretholdtKlagebehandling(
+            tac = tac,
+            saksbehandler = saksbehandler,
+        )!!
+
+        return opprettRammebehandlingForKlage(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = ferdigstiltKlagebehandling.id,
+            saksbehandler = saksbehandler,
+            søknadId = if (type == "SØKNADSBEHANDLING_INNVILGELSE") sak.søknader.single().id else null,
+            vedtakIdSomOmgjøres = if (type == "REVURDERING_OMGJØRING") ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå!!.toString() else null,
             type = type,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,

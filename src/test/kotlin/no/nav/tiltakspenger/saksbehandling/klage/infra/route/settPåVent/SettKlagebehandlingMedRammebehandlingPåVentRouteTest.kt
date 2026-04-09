@@ -10,9 +10,13 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
@@ -102,6 +106,53 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                         ),
                     ),
                 ),
+            )
+        }
+    }
+
+    @Test
+    fun `en rammebehandling med klagebehandling ferdigstilt setter kun rammebehandlingen på vent`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+                type = "REVURDERING_OMGJØRING",
+                saksbehandler = saksbehandler,
+            )!!
+
+            val (_, _, rammebehandlingPåVent, sakJson) = settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = rammebehandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+
+            val rammebehandlingPåVentJson = sakJson.get("behandlinger").last()
+            val klagebehandlingJson = sakJson.get("klageBehandlinger").single()
+
+            rammebehandlingPåVentJson.get("ventestatus").toString().shouldEqualJsonIgnoringTimestamps(
+                """
+                    {
+                        "sattPåVentAv": "saksbehandlerKlagebehandling",
+                        "tidspunkt": "TIMESTAMP",
+                        "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
+                        "erSattPåVent": true,
+                        "frist": null
+                    }
+                """.trimIndent(),
+            )
+
+            klagebehandlingJson.toString().shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                klagebehandlingId = rammebehandling.klagebehandling!!.id,
+                fnr = "12345678911",
+                resultat = rammebehandlingPåVent.klagebehandling!!.resultat as Klagebehandlingsresultat.Opprettholdt,
+                behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
+                rammebehandlingId = listOf(rammebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandling.id.toString(),
+                vedtakDetKlagesPå = rammebehandling.klagebehandling!!.formkrav.vedtakDetKlagesPå!!.toString(),
             )
         }
     }
