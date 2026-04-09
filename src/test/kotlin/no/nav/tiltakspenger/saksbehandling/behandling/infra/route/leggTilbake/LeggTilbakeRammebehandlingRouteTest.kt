@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTil
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 /**
@@ -30,8 +29,8 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandlingId,
                 ObjectMother.saksbehandler(),
-            ).also { (_, _, jsonBody) ->
-                JSONObject(jsonBody).getString("saksbehandler") shouldBe "null"
+            ).also { (_, _, json) ->
+                json.getString("saksbehandler") shouldBe "null"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                     it.saksbehandler shouldBe null
@@ -54,7 +53,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 }
             }
             leggTilbakeRammebehandling(tac, sak.id, behandlingId, ObjectMother.beslutter()).also { (_, _, jsonBody) ->
-                JSONObject(jsonBody).getString("beslutter") shouldBe "null"
+                jsonBody.getString("beslutter") shouldBe "null"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                     it.beslutter shouldBe null

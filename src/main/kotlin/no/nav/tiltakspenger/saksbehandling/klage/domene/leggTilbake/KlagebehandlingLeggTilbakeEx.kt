@@ -20,6 +20,10 @@ fun Klagebehandling.leggTilbake(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeLeggeTilbakeKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (this.erFerdigstilt) {
+        return Pair(this, Statistikkhendelser(emptyList())).right()
+    }
+
     kanOppdatereIDenneStatusen(rammebehandlingsstatus, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeLeggeTilbakeKlagebehandling.KanIkkeOppdateres(it).left()
     }
