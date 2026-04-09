@@ -19,6 +19,10 @@ fun Klagebehandling.ta(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     sistEndret: LocalDateTime,
 ): Either<KanIkkeTaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (this.erFerdigstilt) {
+        return Pair(this, Statistikkhendelser(emptyList())).right()
+    }
+
     kanOppdatereIDenneStatusen(
         rammebehandlingsstatus = rammebehandlingsstatus,
         kanVæreUnderBehandling = false,

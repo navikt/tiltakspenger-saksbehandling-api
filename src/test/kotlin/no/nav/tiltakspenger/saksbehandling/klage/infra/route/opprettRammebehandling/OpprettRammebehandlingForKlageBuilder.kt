@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
 
+import arrow.core.Tuple5
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
@@ -20,6 +21,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -93,13 +95,13 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
-        val (sak, ferdigstiltKlagebehandling, _) = this.opprettSakOgFerdigstillOppretholdtKlagebehandling(
+    ): Tuple5<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson, KlagebehandlingDTOJson>? {
+        val (sak, ferdigstiltKlagebehandling, klagebehandlingJson) = this.opprettSakOgFerdigstillOppretholdtKlagebehandling(
             tac = tac,
             saksbehandler = saksbehandler,
         )!!
 
-        return opprettRammebehandlingForKlage(
+        val (sakEtterRammebehandling, rammebehandling, rammebehandlingJson) = opprettRammebehandlingForKlage(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = ferdigstiltKlagebehandling.id,
@@ -109,6 +111,14 @@ interface OpprettRammebehandlingForKlageBuilder {
             type = type,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
+        )!!
+
+        return Tuple5(
+            sakEtterRammebehandling,
+            rammebehandling,
+            ferdigstiltKlagebehandling,
+            rammebehandlingJson,
+            klagebehandlingJson,
         )
     }
 
