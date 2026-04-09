@@ -6,9 +6,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
@@ -30,7 +28,7 @@ class IverksattOpprettholdelseJobberTest {
                 tac = tac,
                 id = klagebehandling.id,
                 forventetBrevdato = LocalDate.parse("2025-01-01"),
-                forventetJournalpostId = JournalpostId("2"),
+                forventetHarJournalpostId = true,
                 forventetJournalføringstidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
@@ -43,9 +41,9 @@ class IverksattOpprettholdelseJobberTest {
                 tac = tac,
                 id = klagebehandling.id,
                 forventetBrevdato = LocalDate.parse("2025-01-01"),
-                forventetJournalpostId = JournalpostId("2"),
+                forventetHarJournalpostId = true,
                 forventetJournalføringstidspunkt = true,
-                forventetDistribusjonId = DistribusjonId("2"),
+                forventetHarDistribusjonId = true,
                 forventetDistribusjonstidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
@@ -58,9 +56,9 @@ class IverksattOpprettholdelseJobberTest {
                 tac = tac,
                 id = klagebehandling.id,
                 forventetBrevdato = LocalDate.parse("2025-01-01"),
-                forventetJournalpostId = JournalpostId("2"),
+                forventetHarJournalpostId = true,
                 forventetJournalføringstidspunkt = true,
-                forventetDistribusjonId = DistribusjonId("2"),
+                forventetHarDistribusjonId = true,
                 forventetDistribusjonstidspunkt = true,
                 forventetOversendtKlageinstansenTidspunkt = true,
             )
@@ -75,9 +73,9 @@ class IverksattOpprettholdelseJobberTest {
         id: KlagebehandlingId,
         forventetIverksattTidspunkt: Boolean = true,
         forventetBrevdato: LocalDate? = null,
-        forventetJournalpostId: JournalpostId? = null,
+        forventetHarJournalpostId: Boolean = false,
         forventetJournalføringstidspunkt: Boolean = false,
-        forventetDistribusjonId: DistribusjonId? = null,
+        forventetHarDistribusjonId: Boolean = false,
         forventetDistribusjonstidspunkt: Boolean = false,
         forventetOversendtKlageinstansenTidspunkt: Boolean = false,
     ) {
@@ -86,9 +84,9 @@ class IverksattOpprettholdelseJobberTest {
                 it as Klagebehandlingsresultat.Opprettholdt
                 (it.iverksattOpprettholdelseTidspunkt != null) shouldBe forventetIverksattTidspunkt
                 it.brevdato shouldBe forventetBrevdato
-                it.journalpostIdInnstillingsbrev shouldBe forventetJournalpostId
+                (it.journalpostIdInnstillingsbrev != null) shouldBe forventetHarJournalpostId
                 (it.journalføringstidspunktInnstillingsbrev != null) shouldBe forventetJournalføringstidspunkt
-                it.distribusjonIdInnstillingsbrev shouldBe forventetDistribusjonId
+                (it.distribusjonIdInnstillingsbrev != null) shouldBe forventetHarDistribusjonId
                 (it.distribusjonstidspunktInnstillingsbrev != null) shouldBe forventetDistribusjonstidspunkt
                 (it.oversendtKlageinstansenTidspunkt != null) shouldBe forventetOversendtKlageinstansenTidspunkt
             }
