@@ -41,7 +41,6 @@ data class VurderOmgjørKlagebehandlingKommando(
             åpenRammebehandlingId = null,
             ferdigstiltTidspunkt = null,
             begrunnelseFerdigstilling = null,
-
         )
     }
 }

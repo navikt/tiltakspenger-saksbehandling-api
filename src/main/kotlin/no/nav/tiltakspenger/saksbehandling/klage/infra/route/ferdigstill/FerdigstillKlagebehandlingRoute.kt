@@ -67,7 +67,7 @@ fun Route.ferdigstillKlagebehandlingRoute(
                                 sakId = sakId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Ferdigstiller klagebehandling på sak $sakId",
+                                contextMessage = "Ferdigstilt klagebehandling med id ${klagebehandling.id} for sak $sakId,",
                                 correlationId = correlationId,
                                 behandlingId = klagebehandling.id,
                             )
@@ -90,7 +90,7 @@ fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatus
             ),
         )
 
-        KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdtEllerOmgjør -> Pair(
+        KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdEllerOmgjør -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
                 kode = "resultat_må_være_opprettholdt",

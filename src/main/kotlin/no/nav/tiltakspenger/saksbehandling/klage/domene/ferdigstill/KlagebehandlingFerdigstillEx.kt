@@ -41,7 +41,7 @@ fun Klagebehandling.ferdigstill(
     }
 
     if (this.resultat !is Klagebehandlingsresultat.Opprettholdt && this.resultat !is Klagebehandlingsresultat.Omgjør) {
-        return KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdtEllerOmgjør.left()
+        return KunneIkkeFerdigstilleKlagebehandling.`ResultatMåVæreOpprettholdEllerOmgjør`.left()
     }
 
     rammebehandlinger.forEach { rammebehandling ->
@@ -109,7 +109,7 @@ private fun Klagebehandling.feridgstillOmgjør(
 sealed interface KunneIkkeFerdigstilleKlagebehandling {
     data class SaksbehandlerMismatch(val forventetSaksbehandler: String?, val faktiskSaksbehandler: String) : KunneIkkeFerdigstilleKlagebehandling
 
-    data object ResultatMåVæreOpprettholdtEllerOmgjør : KunneIkkeFerdigstilleKlagebehandling
+    data object ResultatMåVæreOpprettholdEllerOmgjør : KunneIkkeFerdigstilleKlagebehandling
     data object KreverUtfallFraKlageinstans : KunneIkkeFerdigstilleKlagebehandling
     data object BehandlingErKnyttetTilEnRammebehandling : KunneIkkeFerdigstilleKlagebehandling
 }
