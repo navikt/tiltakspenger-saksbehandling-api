@@ -1,2 +1,2 @@
 #!/bin/bash
-./gradlew clean spotlessApply build --no-build-cache "$@"
+./gradlew clean spotlessApply --no-build-cache && ./gradlew build --no-build-cache "$@"

@@ -187,10 +187,11 @@ tasks {
     }
 
     register("checkFlywayMigrationNames") {
+        val sqlMigrationDir = project.file("src/main/resources/db/migration")
+        val kotlinMigrationDir = project.file("src/main/kotlin/db/migration")
         doLast {
             val sqlFiles =
-                project
-                    .file("src/main/resources/db/migration")
+                sqlMigrationDir
                     .walk()
                     .filter { it.isFile && it.extension == "sql" }
                     .toList()
@@ -204,8 +205,7 @@ tasks {
                 throw GradleException("Invalid SQL migration filenames:\n${invalidSqlFiles.joinToString("\n")}")
             }
             val kotlinFiles =
-                project
-                    .file("src/main/kotlin/db/migration")
+                kotlinMigrationDir
                     .walk()
                     .filter { it.isFile && (it.extension == "kt" || it.extension == "java") }
                     .toList()

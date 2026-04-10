@@ -1,2 +1,2 @@
 #!/bin/bash
-./gradlew clean spotlessApply build installDist
+./gradlew clean spotlessApply && ./gradlew build installDist
