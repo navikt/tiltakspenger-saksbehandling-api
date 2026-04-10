@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.tiltakspenger.libs.arena.tiltak.ArenaDeltakerStatusType
 
 data class ArenaKafkaMessage(
-    @JsonProperty("op_type")
+    @param:JsonProperty("op_type")
     val opType: OperationType,
     val after: ArenaDeltakerKafka?,
 )
