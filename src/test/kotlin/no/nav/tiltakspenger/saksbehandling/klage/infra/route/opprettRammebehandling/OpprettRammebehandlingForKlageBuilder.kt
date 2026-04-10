@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
 
+import arrow.core.Tuple5
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
@@ -16,12 +17,12 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
@@ -29,7 +30,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnnta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import org.json.JSONObject
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.OpprettRammebehandlingFraKlage]
@@ -56,7 +59,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
+    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgVurderKlagebehandling(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
@@ -84,6 +87,42 @@ interface OpprettRammebehandlingForKlageBuilder {
     }
 
     /**
+     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
+     */
+    suspend fun ApplicationTestBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        type: String = "SØKNADSBEHANDLING_INNVILGELSE",
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple5<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson, KlagebehandlingDTOJson>? {
+        val (sak, ferdigstiltKlagebehandling, klagebehandlingJson) = this.opprettSakOgFerdigstillOppretholdtKlagebehandling(
+            tac = tac,
+            saksbehandler = saksbehandler,
+        )!!
+
+        val (sakEtterRammebehandling, rammebehandling, rammebehandlingJson) = opprettRammebehandlingForKlage(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = ferdigstiltKlagebehandling.id,
+            saksbehandler = saksbehandler,
+            søknadId = if (type == "SØKNADSBEHANDLING_INNVILGELSE") sak.søknader.single().id else null,
+            vedtakIdSomOmgjøres = if (type == "REVURDERING_OMGJØRING") ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå!!.toString() else null,
+            type = type,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )!!
+
+        return Tuple5(
+            sakEtterRammebehandling,
+            rammebehandling,
+            ferdigstiltKlagebehandling,
+            rammebehandlingJson,
+            klagebehandlingJson,
+        )
+    }
+
+    /**
      * Forventer at det allerede finnes en sak, formkravene er OK og man har vurdert til omgjøring.
      * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
      * @param søknadId Påkrevt ved [type] SØKNADSBEHANDLING_INNVILGELSE
@@ -101,7 +140,9 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
+    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
+        if (type == "REVURDERING_OMGJØRING") require(vedtakIdSomOmgjøres != null) { "vedtakIdSomSkalOmgjøres må oppgis ved type REVURDERING_OMGJØRING" }
+
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
@@ -117,7 +158,7 @@ interface OpprettRammebehandlingForKlageBuilder {
                 """
                 {
                     "søknadId": "${søknadId?.toString()}",
-                    "vedtakIdSomOmgjøres": "$vedtakIdSomOmgjøres",
+                    "vedtakIdSomSkalOmgjøres": "$vedtakIdSomOmgjøres",
                     "type": "$type",
                     "klagebehandlingId": "$klagebehandlingId"
                 }
@@ -135,7 +176,7 @@ interface OpprettRammebehandlingForKlageBuilder {
                 bodyAsText.shouldEqualJson(forventetJsonBody)
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
+            val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,

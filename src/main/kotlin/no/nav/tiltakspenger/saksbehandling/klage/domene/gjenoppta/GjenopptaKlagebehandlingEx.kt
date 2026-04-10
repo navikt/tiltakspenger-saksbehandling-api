@@ -5,6 +5,8 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
@@ -39,7 +41,12 @@ fun Klagebehandling.gjenopptaKlagebehandling(
             status = status.toString(),
         ),
         saksbehandler = kommando.saksbehandler.navIdent,
-        status = UNDER_BEHANDLING,
+        status = when (this.resultat) {
+            is Klagebehandlingsresultat.Avvist -> UNDER_BEHANDLING
+            is Klagebehandlingsresultat.Omgjør -> UNDER_BEHANDLING
+            is Klagebehandlingsresultat.Opprettholdt -> if (this.kanOmgjøresEtterKA) OMGJØRING_ETTER_KLAGEINSTANS else UNDER_BEHANDLING
+            null -> UNDER_BEHANDLING
+        },
     )
     val statistikkhendelser = Statistikkhendelser(
         oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.BEHANDLING_GJENOPPTATT),

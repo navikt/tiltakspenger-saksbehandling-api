@@ -16,8 +16,10 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import org.json.JSONObject
 
 interface TaRammebehandlingBuilder {
 
@@ -27,7 +29,7 @@ interface TaRammebehandlingBuilder {
         sakId: SakId,
         behandlingId: BehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Triple<Sak, AttesterbarBehandling, String> {
+    ): Triple<Sak, AttesterbarBehandling, RammebehandlingDTOJson> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -50,7 +52,7 @@ interface TaRammebehandlingBuilder {
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
 
-            return Triple(sak, behandling, bodyAsText)
+            return Triple(sak, behandling, JSONObject(bodyAsText))
         }
     }
 }

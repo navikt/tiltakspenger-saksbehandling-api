@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
@@ -54,7 +54,29 @@ data class Rammebehandlinger(
 
     fun oppdaterRammebehandling(behandling: Rammebehandling): Rammebehandlinger {
         behandlinger.single { it.id == behandling.id }
-        val behandlinger = this.behandlinger.map { if (it.id == behandling.id) behandling else it }
+
+        /**
+         * Fordi klagen har en referanse til en åpen rammebehandling, kan denne bli nullstilt dersom rammebehandlingen blir avbrutt.
+         * Denne oppdateringen må derfor propageres til alle rammebehandlinger som har samme klagebehandling tilknyttet
+         */
+        val ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingtilknytning = behandlinger.filter {
+            !it.erAvbrutt && it.klagebehandling != null && it.klagebehandling?.id == behandling.klagebehandling?.id
+        }.filter { it.id != behandling.id }.map { rammebehandling ->
+            behandling.klagebehandling!!.let { rammebehandling.oppdaterKlagebehandling(it) }
+        }
+
+        val alleBehandlingerMedSammeKlagetilknytning =
+            ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingtilknytning.plus(behandling)
+        val iderForRammebehandlingerSomSkalOppdateres = alleBehandlingerMedSammeKlagetilknytning.map { it.id }
+
+        val behandlinger = this.behandlinger.map {
+            if (iderForRammebehandlingerSomSkalOppdateres.contains(it.id)) {
+                alleBehandlingerMedSammeKlagetilknytning.single { b -> b.id == it.id }
+            } else {
+                it
+            }
+        }
+
         return this.copy(behandlinger = behandlinger)
     }
 

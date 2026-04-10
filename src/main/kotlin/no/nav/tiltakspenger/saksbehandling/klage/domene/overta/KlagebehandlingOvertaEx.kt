@@ -19,6 +19,10 @@ fun Klagebehandling.overta(
     rammebehandlingsstatus: Rammebehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeOvertaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (this.erFerdigstilt) {
+        return Pair(this, Statistikkhendelser(emptyList())).right()
+    }
+
     kanOppdatereIDenneStatusen(rammebehandlingsstatus, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeOvertaKlagebehandling.KanIkkeOppdateres(it).left()
     }

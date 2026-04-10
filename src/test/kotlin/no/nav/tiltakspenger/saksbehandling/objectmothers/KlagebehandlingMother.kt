@@ -165,12 +165,16 @@ interface KlagebehandlingMother : MotherOfAllMothers {
     fun klagebehandlingresultatOmgjør(
         årsak: KlageOmgjøringsårsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
         begrunnelse: Begrunnelse = Begrunnelse.create("klagebehandlingresultatOmgjørt")!!,
-        rammebehandlingId: BehandlingId? = null,
+        rammebehandlingId: List<BehandlingId> = emptyList(),
+        åpenRammebehandlingId: BehandlingId? = null,
     ): Klagebehandlingsresultat.Omgjør {
         return Klagebehandlingsresultat.Omgjør(
             årsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
             begrunnelse = begrunnelse,
             rammebehandlingId = rammebehandlingId,
+            ferdigstiltTidspunkt = null,
+            begrunnelseFerdigstilling = null,
+            åpenRammebehandlingId = åpenRammebehandlingId,
         )
     }
 
@@ -187,7 +191,9 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         oversendtKlageinstansenTidspunkt: LocalDateTime? = null,
         klageinstanshendelser: Klageinstanshendelser = Klageinstanshendelser(listOf(klageinstanshendelseAvsluttet())),
         ferdigstiltTidspunkt: LocalDateTime? = null,
-        rammebehandlingId: BehandlingId? = null,
+        begrunnelseFerdigstilling: Begrunnelse? = null,
+        rammebehandlingId: List<BehandlingId> = emptyList(),
+        åpenRammebehandlingId: BehandlingId? = null,
     ): Klagebehandlingsresultat.Opprettholdt {
         return Klagebehandlingsresultat.Opprettholdt(
             hjemler = hjemler,
@@ -203,6 +209,8 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             klageinstanshendelser = klageinstanshendelser,
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             rammebehandlingId = rammebehandlingId,
+            begrunnelseFerdigstilling = begrunnelseFerdigstilling,
+            åpenRammebehandlingId = åpenRammebehandlingId,
         )
     }
 

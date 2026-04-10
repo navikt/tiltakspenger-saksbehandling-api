@@ -18,6 +18,10 @@ fun Klagebehandling.settPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (this.erFerdigstilt) {
+        return Pair(this, Statistikkhendelser(emptyList())).right()
+    }
+
     kanOppdatereIDenneStatusen(null, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
     }

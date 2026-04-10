@@ -15,8 +15,13 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import org.json.JSONObject
 
 /**
  * Gjelder for både søknadsbehandling og revurdering.
@@ -30,7 +35,7 @@ interface OvertaRammebehandlingBuilder {
         behandlingId: BehandlingId,
         overtarFra: String,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): String {
+    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -51,7 +56,12 @@ interface OvertaRammebehandlingBuilder {
             ) {
                 status shouldBe HttpStatusCode.OK
             }
-            return bodyAsText
+
+            val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+            val behandlingJson = JSONObject(bodyAsText)
+
+            return Triple(sak, behandling, behandlingJson)
         }
     }
 }

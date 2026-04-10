@@ -75,6 +75,8 @@ interface OpprettKlagebehandlingBuilder {
         val (oppdatertSak, _, rammevedtak, klagebehandling) = this.iverksettSøknadsbehandlingOgOpprettKlagebehandling(
             tac = tac,
             forventetStatus = forventetStatus,
+            saksbehandlerKlagebehandling = saksbehandler,
+            saksbehandlerSøknadsbehandling = saksbehandler,
             forventetJsonBody = forventetJsonBody,
         )!!
 
@@ -82,6 +84,7 @@ interface OpprettKlagebehandlingBuilder {
             tac = tac,
             sakId = oppdatertSak.id,
             klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandler,
             vurderingstype = Vurderingstype.OPPRETTHOLD,
             hjemler = listOf(KlagehjemmelDto.ARBEIDSMARKEDSLOVEN_17),
             begrunnelse = null,

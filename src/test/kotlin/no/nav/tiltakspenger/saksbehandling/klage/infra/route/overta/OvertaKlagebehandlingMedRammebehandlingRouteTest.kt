@@ -8,10 +8,13 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaKlagebehandling
 import org.junit.jupiter.api.Test
 
@@ -36,7 +39,8 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 kanIverksetteVedtak = null,
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                rammebehandlingId = "${rammebehandlingMedKlagebehandling.id}",
+                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomOvertarKlagebehandling"
@@ -77,7 +81,8 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
                 kanIverksetteVedtak = null,
-                rammebehandlingId = "${rammebehandlingMedKlagebehandling.id}",
+                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
                 status = "OMGJØRING_ETTER_KLAGEINSTANS",
                 brevtekst = listOf(
                     """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
@@ -89,7 +94,6 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 journalføringstidspunktInnstillingsbrev = true,
                 distribusjonstidspunktInnstillingsbrev = true,
                 oversendtKlageinstansenTidspunkt = true,
-                ferdigstiltTidspunkt = true,
                 journalpostIdInnstillingsbrev = klagebehandling.journalpostIdInnstillingsbrev!!.toString(),
                 dokumentInfoIder = klagebehandling.dokumentInfoIder.map { it.toString() },
                 klageinstanshendelser = listOf(
@@ -108,6 +112,65 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                     """.trimIndent(),
                 ),
             )
+        }
+    }
+
+    @Test
+    fun `kan overta rammebehandling som er tilknyttet en ferdigstilt klagebehandling (gjort fra klagebehandling)`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+                type = "REVURDERING_OMGJØRING",
+            )!!
+            val nySaksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling")
+            clock.spol1timeFrem()
+            val (_, _, sakJson) = overtaKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = rammebehandling.klagebehandling!!.id,
+                saksbehandler = nySaksbehandler,
+                overtarFra = rammebehandling.saksbehandler!!,
+            )!!
+
+            val overtattRammebehandling = sakJson.get("behandlinger").last()
+            val klagebehandling = sakJson.get("klageBehandlinger").single()
+
+            overtattRammebehandling.get("saksbehandler").asString() shouldBe nySaksbehandler.navIdent
+            klagebehandling.toString().shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
+                sakId = sak.id,
+                fnr = sak.fnr.verdi,
+                klagebehandlingId = rammebehandling.klagebehandling!!.id,
+                resultat = rammebehandling.klagebehandling!!.resultat as Klagebehandlingsresultat.Opprettholdt,
+                behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
+                rammebehandlingId = listOf(rammebehandling.id.toString()),
+                åpenRammebehandlingId = rammebehandling.id.toString(),
+                vedtakDetKlagesPå = rammebehandling.klagebehandling!!.formkrav.vedtakDetKlagesPå!!.toString(),
+            )
+        }
+    }
+
+    @Test
+    fun `kan overta rammebehandling som er tilknyttet en ferdigstilt klagebehandling (gjort fra rammebehandling)`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+                tac = tac,
+                type = "REVURDERING_OMGJØRING",
+            )!!
+            val nySaksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling")
+            clock.spol1timeFrem()
+            val (_, overtattRammebehandling, rammebehandlingJson) = overtaBehanding(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
+                saksbehandler = nySaksbehandler,
+                overtarFra = rammebehandling.saksbehandler!!,
+            )
+
+            rammebehandlingJson.get("saksbehandler") shouldBe nySaksbehandler.navIdent
+            overtattRammebehandling.klagebehandling!!.saksbehandler shouldBe rammebehandling.saksbehandler
+            overtattRammebehandling.klagebehandling!!.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
         }
     }
 }

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
@@ -20,7 +21,9 @@ suspend fun Sak.gjenopptaKlagebehandling(
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeGjenopptaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
-        val tilknyttetRammebehandling = klagebehandling.rammebehandlingId?.let { this.hentRammebehandling(it) }
+        val tilknyttetRammebehandling = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
+            rammebehandlingId.map { this.hentRammebehandling(it) }.singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
+        }
         if (tilknyttetRammebehandling != null) {
             // Denne gjenopptar også klagebehandlingen hvis aktuelt.
             gjenopptaRammebehandling(gjenopptaRammebehandling, kommando, tilknyttetRammebehandling)

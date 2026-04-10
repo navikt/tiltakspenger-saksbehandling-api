@@ -86,7 +86,7 @@ private fun KanIkkeOpprettholdeKlagebehandling.toStatusAndErrorJson(): Pair<Http
         is KanIkkeOpprettholdeKlagebehandling.FeilResultat -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "Kan kun opprettholdef klagebehandling med resultat OPPRETTHOLDT",
+                "Kan kun opprettholde klagebehandling med resultat OPPRETTHOLDT",
                 "må_ha_resultat_opprettholdt",
             ),
         )

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import arrow.core.Tuple5
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -274,6 +275,56 @@ interface IverksettRevurderingBuilder {
             tac = tac,
             sakId = sak.id,
             behandlingId = revurdering.id,
+            beslutter = beslutter,
+        )!!
+
+        return Triple(
+            oppdatertSak,
+            rammevedtak,
+            jsonResponseForIverksettRevurdering,
+        )
+    }
+
+    suspend fun ApplicationTestBuilder.iverksettOmgjøringInnvilgelseForBehandlingId(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        rammevedtakIdSomOmgjøres: VedtakId,
+        behandlingId: BehandlingId,
+        saksbehandler: Saksbehandler = saksbehandler(),
+        beslutter: Saksbehandler = beslutter(),
+        innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
+        barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
+        vedtaksperiode: Periode = tac.behandlingContext.rammevedtakRepo.hentForVedtakId(
+            rammevedtakIdSomOmgjøres,
+        )!!.gjeldendeTotalPeriode!!,
+        fritekstTilVedtaksbrev: String? = "brevtekst revurdering",
+        begrunnelseVilkårsvurdering: String? = "begrunnelse revurdering",
+    ): Triple<Sak, Rammevedtak, RammebehandlingDTOJson> {
+        oppdaterOmgjøringInnvilgelse(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
+            innvilgelsesperioder = innvilgelsesperioder,
+            barnetillegg = barnetilleggRevurdering,
+            saksbehandler = saksbehandler,
+            vedtaksperiode = vedtaksperiode,
+        )
+
+        sendRevurderingTilBeslutningForBehandlingId(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
+            saksbehandler = saksbehandler,
+        )
+
+        taBehandling(tac, sakId, behandlingId, saksbehandler = beslutter())
+
+        val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
+            tac = tac,
+            sakId = sakId,
+            behandlingId = behandlingId,
             beslutter = beslutter,
         )!!
 

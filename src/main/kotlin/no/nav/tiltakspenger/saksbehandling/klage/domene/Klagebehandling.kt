@@ -59,6 +59,7 @@ data class Klagebehandling(
 
     val brevtekst: Brevtekster? = resultat?.brevtekst
     val erUnderBehandling = status == UNDER_BEHANDLING
+    val erMottattFraKlageinstans = status == MOTTATT_FRA_KLAGEINSTANS
     val omgjørEtterKA = status == OMGJØRING_ETTER_KLAGEINSTANS
 
     @Suppress("unused")
@@ -90,9 +91,10 @@ data class Klagebehandling(
      * Merk at dersom rammebehandlingen avbrytes vil denne verdien settes til null.
      */
     val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
-    val rammebehandlingId: BehandlingId? = resultat?.rammebehandlingId
-    val skalVæreKnyttetTilRammebehandling = resultat?.skalVæreKnyttetTilRammebehandling
-    val skalOmgjøresEtterKA = resultat?.skalOmgjøresEtterKA == true
+    val rammebehandlingId: List<BehandlingId> = resultat?.rammebehandlingId ?: emptyList()
+    val åpenRammebehandlingId: BehandlingId? = resultat?.åpenRammebehandlingId
+    val kanVæreKnyttetTilRammebehandling = resultat?.kanVæreKnyttetTilRammebehandling
+    val kanOmgjøresEtterKA = resultat?.kanOmgjøresEtterKA == true
 
     val journalpostIdInnstillingsbrev: JournalpostId? =
         (resultat as? Klagebehandlingsresultat.Opprettholdt)?.journalpostIdInnstillingsbrev
@@ -213,35 +215,23 @@ data class Klagebehandling(
                 require(resultat != null) {
                     "Klagebehandling som er $status må ha resultat satt. $loggkontekst"
                 }
+                require(iverksattTidspunkt != null) {
+                    "Klagebehandling som er $status, og skal omgjøres etter KA (har rammebehandling knyttet til seg) må ha iverksattTidspunkt satt. $loggkontekst"
+                }
                 when (resultat) {
                     is Klagebehandlingsresultat.Omgjør -> {
-                        require(iverksattTidspunkt != null) {
-                            "Klagebehandling som er $status må ha iverksattTidspunkt satt. $loggkontekst"
-                        }
-                        require(resultat.rammebehandlingId != null) {
+                        require(resultat.rammebehandlingId.isNotEmpty()) {
                             "Klagebehandling som er $status med omgjøring må ha rammebehandlingId satt. $loggkontekst"
                         }
                     }
 
                     is Klagebehandlingsresultat.Avvist -> {
-                        require(iverksattTidspunkt != null) {
-                            "Klagebehandling som er $status må ha iverksattTidspunkt satt. $loggkontekst"
-                        }
                         require(!resultat.brevtekst.isNullOrEmpty()) {
                             "Klagebehandling som er $status må ha brevtekst satt. $loggkontekst"
                         }
                     }
 
                     is Klagebehandlingsresultat.Opprettholdt -> {
-                        if (skalOmgjøresEtterKA) {
-                            require(iverksattTidspunkt != null) {
-                                "Klagebehandling som er $status, og skal omgjøres etter KA må ha iverksattTidspunkt satt. $loggkontekst"
-                            }
-                        } else {
-                            require(iverksattTidspunkt == null) {
-                                "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
-                            }
-                        }
                         require(resultat.iverksattOpprettholdelseTidspunkt != null) {
                             "Klagebehandling som er $status må ha iverksattOpprettholdelseTidspunkt satt. $loggkontekst"
                         }
@@ -254,7 +244,7 @@ data class Klagebehandling(
                         require(resultat.klageinstanshendelser.isNotEmpty()) {
                             "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
                         }
-                        require(resultat.rammebehandlingId != null) {
+                        require(resultat.rammebehandlingId.isNotEmpty()) {
                             "Klagebehandling som er $status må ha rammebehandlingId satt. $loggkontekst"
                         }
                     }
@@ -334,7 +324,7 @@ data class Klagebehandling(
                 require(resultat.klageinstanshendelser.isNotEmpty()) {
                     "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
                 }
-                require(resultat.rammebehandlingId != null) {
+                require(resultat.rammebehandlingId.isNotEmpty()) {
                     "Klagebehandling som er $status må ha rammebehandlingId satt. $loggkontekst"
                 }
             }
@@ -343,20 +333,25 @@ data class Klagebehandling(
                 require(iverksattTidspunkt == null) {
                     "Klagebehandling som er $status kan ikke ha iverksattTidspunkt satt. $loggkontekst"
                 }
-                require(resultat is Klagebehandlingsresultat.Opprettholdt) {
-                    "Klagebehandling som er $status må ha resultat som opprettholdt satt. $loggkontekst"
+                require(resultat is Klagebehandlingsresultat.Opprettholdt || resultat is Klagebehandlingsresultat.Omgjør) {
+                    "Klagebehandling som er $status må ha resultat opprettholdt/omgjør satt. $loggkontekst"
                 }
-                require(resultat.iverksattOpprettholdelseTidspunkt != null) {
-                    "Klagebehandling som er $status må ha iverksattOpprettholdelseTidspunkt satt. $loggkontekst"
+                require(resultat.ferdigstiltTidspunkt != null) {
+                    "Klagebehandling som er $status må ha ferdigstiltTidspunkt satt. $loggkontekst"
                 }
-                require(resultat.oversendtKlageinstansenTidspunkt != null) {
-                    "Klagebehandling som er $status må ha oversendtKlageinstansenTidspunkt satt. $loggkontekst"
-                }
-                require(!resultat.brevtekst.isNullOrEmpty()) {
-                    "Klagebehandling som er $status må ha brevtekst satt. $loggkontekst"
-                }
-                require(resultat.klageinstanshendelser.isNotEmpty()) {
-                    "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
+                if (resultat is Klagebehandlingsresultat.Opprettholdt) {
+                    require(resultat.iverksattOpprettholdelseTidspunkt != null) {
+                        "Klagebehandling som er $status må ha iverksattOpprettholdelseTidspunkt satt. $loggkontekst"
+                    }
+                    require(resultat.oversendtKlageinstansenTidspunkt != null) {
+                        "Klagebehandling som er $status må ha oversendtKlageinstansenTidspunkt satt. $loggkontekst"
+                    }
+                    require(!resultat.brevtekst.isNullOrEmpty()) {
+                        "Klagebehandling som er $status må ha brevtekst satt. $loggkontekst"
+                    }
+                    require(resultat.klageinstanshendelser.isNotEmpty()) {
+                        "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
+                    }
                 }
             }
         }

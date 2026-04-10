@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.iverksettAvvistKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.leggTilbakeKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprett.opprettKlagebehandlingRoute
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling.opprettRammebehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling.opprettRammebehandlingFraKlageRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppretthold.opprettholdKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.overtaKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.settKlagebehandlingPåVentRoute
@@ -95,7 +95,7 @@ fun Route.klagebehandlingRoutes(
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
     )
-    opprettRammebehandlingFraKlage(
+    opprettRammebehandlingFraKlageRoute(
         opprettRammebehandlingFraKlageService = opprettRammebehandlingFraKlageService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
