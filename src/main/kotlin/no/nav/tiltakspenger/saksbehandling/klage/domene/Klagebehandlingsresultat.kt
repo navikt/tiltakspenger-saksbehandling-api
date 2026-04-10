@@ -53,7 +53,7 @@ sealed interface Klagebehandlingsresultat {
     ): Klagebehandlingsresultat
 
     fun ferdigstill(ferdigstiltTidspunkt: LocalDateTime, begrunnelse: Begrunnelse?): Klagebehandlingsresultat?
-    fun iverksett(): Klagebehandlingsresultat?
+    fun nullstillÅpenRammebehandlingId(): Klagebehandlingsresultat?
 
     /**
      * Merk at en avvisning ikke er det samme som et avslag.
@@ -105,7 +105,7 @@ sealed interface Klagebehandlingsresultat {
         /**
          * resultat avvist har ingen endringer den skal gjøre ved iverksettelse
          */
-        override fun iverksett(): Avvist {
+        override fun nullstillÅpenRammebehandlingId(): Avvist {
             return this
         }
 
@@ -178,7 +178,7 @@ sealed interface Klagebehandlingsresultat {
             return this.copy(ferdigstiltTidspunkt = ferdigstiltTidspunkt, begrunnelseFerdigstilling = begrunnelse)
         }
 
-        override fun iverksett(): Omgjør {
+        override fun nullstillÅpenRammebehandlingId(): Omgjør {
             require(åpenRammebehandlingId != null) {
                 "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
             }
@@ -325,7 +325,7 @@ sealed interface Klagebehandlingsresultat {
             return this.copy(ferdigstiltTidspunkt = ferdigstiltTidspunkt, begrunnelseFerdigstilling = begrunnelse)
         }
 
-        override fun iverksett(): Opprettholdt {
+        override fun nullstillÅpenRammebehandlingId(): Opprettholdt {
             require(åpenRammebehandlingId != null) {
                 "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
             }

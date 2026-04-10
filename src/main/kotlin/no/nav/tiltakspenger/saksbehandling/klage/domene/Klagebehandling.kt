@@ -181,6 +181,13 @@ data class Klagebehandling(
         )
     }
 
+    fun nullstillÅpenRammebehandlingId(): Klagebehandling {
+        require(this.resultat != null) {
+            "Kan ikke iverksette klagebehandling uten resultat. sakId=$sakId, saksnummer=$saksnummer, klagebehandlingId=$id"
+        }
+        return this.copy(resultat = this.resultat.nullstillÅpenRammebehandlingId())
+    }
+
     init {
         val loggkontekst = "sakId=$sakId, saksnummer=$saksnummer, klagebehandlingId=$id"
         if (formkrav.erAvvisning || resultat == Klagebehandlingsresultat.Avvist) {

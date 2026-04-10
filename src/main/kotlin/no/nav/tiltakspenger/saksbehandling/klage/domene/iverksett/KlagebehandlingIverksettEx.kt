@@ -40,7 +40,7 @@ fun Klagebehandling.iverksettOmgjøring(
         sistEndret = kommando.iverksattTidspunkt,
         iverksattTidspunkt = kommando.iverksattTidspunkt,
         status = VEDTATT,
-        resultat = resultat.iverksett(),
+        resultat = resultat.`nullstillÅpenRammebehandlingId`(),
     )
     val statistikkhendelser = Statistikkhendelser(oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING))
     return (oppdatertKlagebehandling to statistikkhendelser).right()
@@ -111,7 +111,7 @@ fun Klagebehandling.iverksettOpprettholdelse(
         sistEndret = kommando.iverksattTidspunkt,
         iverksattTidspunkt = kommando.iverksattTidspunkt,
         status = VEDTATT,
-        resultat = resultat.iverksett(),
+        resultat = resultat.`nullstillÅpenRammebehandlingId`(),
     )
     val statistikkhendelser = Statistikkhendelser(oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING))
     return (oppdatertKlagebehandling to statistikkhendelser).right()

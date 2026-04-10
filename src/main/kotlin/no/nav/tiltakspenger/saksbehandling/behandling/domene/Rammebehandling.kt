@@ -468,9 +468,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     if (klagebehandling?.erFerdigstilt == true) {
                         // man har mulighet til å opprette rammebehandling på en ferdigstilt klagebehandling.
                         // oppdaterer resultatets rammebehandling knyttninger
-                        klagebehandling!!.copy(
-                            resultat = klagebehandling!!.resultat!!.iverksett(),
-                        ) to Statistikkhendelser.empty()
+                        klagebehandling!!.nullstillÅpenRammebehandlingId() to Statistikkhendelser.empty()
                     } else {
                         when (klagebehandling?.resultat) {
                             is Klagebehandlingsresultat.Avvist -> throw IllegalStateException("Klagebehandling med avvist resultat skal ikke være knyttet til en rammebehandling. Dette skjedde for sakId: $sakId, saksnummer: $saksnummer, behandling: ${this.id}, klagebehandlingId: ${klagebehandling!!.id}")
