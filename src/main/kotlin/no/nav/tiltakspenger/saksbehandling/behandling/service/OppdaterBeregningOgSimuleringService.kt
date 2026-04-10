@@ -201,7 +201,6 @@ class OppdaterBeregningOgSimuleringService(
         beregningstidspunkt: LocalDateTime,
     ): Beregning? {
         val behandlingId = behandling.id
-        val vedtaksperiode = behandling.vedtaksperiode!!
 
         return when (behandling.resultat) {
             is Omgjøringsresultat.OmgjøringInnvilgelse,
@@ -217,13 +216,13 @@ class OppdaterBeregningOgSimuleringService(
 
             is Omgjøringsresultat.OmgjøringOpphør -> this.beregnOpphør(
                 behandlingId = behandlingId,
-                opphørsperiode = vedtaksperiode,
+                opphørsperiode = behandling.vedtaksperiode!!,
                 beregningstidspunkt = beregningstidspunkt,
             )
 
             is Revurderingsresultat.Stans -> this.beregnRevurderingStans(
                 behandlingId = behandlingId,
-                stansperiode = vedtaksperiode,
+                stansperiode = behandling.vedtaksperiode!!,
                 beregningstidspunkt = beregningstidspunkt,
             )
 
