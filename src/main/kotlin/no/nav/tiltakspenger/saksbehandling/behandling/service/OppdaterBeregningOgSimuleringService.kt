@@ -201,6 +201,11 @@ class OppdaterBeregningOgSimuleringService(
         beregningstidspunkt: LocalDateTime,
     ): Beregning? {
         val behandlingId = behandling.id
+        fun feilmelding(felt: String): String =
+            "$felt kan ikke være null ved beregning." +
+                " sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}, behandlingId: $behandlingId," +
+                " status: ${behandling.status}, type: ${behandling.behandlingstype}," +
+                " resultat: ${behandling.resultat?.let { it::class.simpleName }}"
 
         return when (behandling.resultat) {
             is Omgjøringsresultat.OmgjøringInnvilgelse,
@@ -208,21 +213,21 @@ class OppdaterBeregningOgSimuleringService(
             is Søknadsbehandlingsresultat.Innvilgelse,
             -> this.beregnInnvilgelse(
                 behandlingId = behandlingId,
-                vedtaksperiode = behandling.vedtaksperiode!!,
-                innvilgelsesperioder = behandling.innvilgelsesperioder!!,
-                barnetilleggsperioder = behandling.barnetillegg!!.periodisering,
+                vedtaksperiode = behandling.vedtaksperiode ?: error(feilmelding("vedtaksperiode")),
+                innvilgelsesperioder = behandling.innvilgelsesperioder ?: error(feilmelding("innvilgelsesperioder")),
+                barnetilleggsperioder = (behandling.barnetillegg ?: error(feilmelding("barnetillegg"))).periodisering,
                 beregningstidspunkt = beregningstidspunkt,
             )
 
             is Omgjøringsresultat.OmgjøringOpphør -> this.beregnOpphør(
                 behandlingId = behandlingId,
-                opphørsperiode = behandling.vedtaksperiode!!,
+                opphørsperiode = behandling.vedtaksperiode ?: error(feilmelding("vedtaksperiode")),
                 beregningstidspunkt = beregningstidspunkt,
             )
 
             is Revurderingsresultat.Stans -> this.beregnRevurderingStans(
                 behandlingId = behandlingId,
-                stansperiode = behandling.vedtaksperiode!!,
+                stansperiode = behandling.vedtaksperiode ?: error(feilmelding("vedtaksperiode")),
                 beregningstidspunkt = beregningstidspunkt,
             )
 
