@@ -327,7 +327,7 @@ sealed interface Klagebehandlingsresultat {
 
         override fun iverksett(): Opprettholdt {
             require(åpenRammebehandlingId != null) {
-                "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
+                "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
             }
 
             return this.copy(åpenRammebehandlingId = null)

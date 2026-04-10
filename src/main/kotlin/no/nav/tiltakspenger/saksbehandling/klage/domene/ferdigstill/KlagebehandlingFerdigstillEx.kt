@@ -55,7 +55,7 @@ fun Klagebehandling.ferdigstill(
     }
 
     return when (this.resultat) {
-        is Klagebehandlingsresultat.Omgjør -> feridgstillOmgjør(kommando, clock)
+        is Klagebehandlingsresultat.Omgjør -> ferdigstillOmgjør(kommando, clock)
         is Klagebehandlingsresultat.Opprettholdt -> ferdigstillOpprettholdelse(kommando, clock)
     }
 }
@@ -85,7 +85,7 @@ private fun Klagebehandling.ferdigstillOpprettholdelse(
     return (oppdatertKlagebehandling to statistikkhendelser).right()
 }
 
-private fun Klagebehandling.feridgstillOmgjør(
+private fun Klagebehandling.ferdigstillOmgjør(
     command: FerdigstillKlagebehandlingKommando,
     clock: Clock,
 ): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {

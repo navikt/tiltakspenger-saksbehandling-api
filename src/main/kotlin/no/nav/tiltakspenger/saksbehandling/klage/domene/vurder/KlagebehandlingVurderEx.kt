@@ -76,12 +76,12 @@ fun Klagebehandling.oppdaterRammebehandlingId(
         "Resultatet var null men forventet at den var definert. Dette skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(erUnderBehandling || erMottattFraKlageinstans || erFerdigstilt) {
-        "Klagebehandling må være i status UNDER_BEHANDLING/MOTTAT_FRA_KLAGEINSTANS for at man kan knytte den til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
+        "Klagebehandling må være i status UNDER_BEHANDLING / MOTTATT_FRA_KLAGEINSTANS / FERDIGSTILT for at man kan knytte den til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(erSaksbehandlerPåBehandlingen(saksbehandler))
     return this.copy(
         resultat = resultat.leggTilNyÅpenRammebehandling(rammebehandlingId, this.id),
-        sistEndret = if (erFerdigstilt) sistEndret else sistEndret,
+        sistEndret = if (erFerdigstilt) this.sistEndret else sistEndret,
         status = when (resultat) {
             is Omgjør -> status
             is Opprettholdt -> if (erFerdigstilt) status else OMGJØRING_ETTER_KLAGEINSTANS

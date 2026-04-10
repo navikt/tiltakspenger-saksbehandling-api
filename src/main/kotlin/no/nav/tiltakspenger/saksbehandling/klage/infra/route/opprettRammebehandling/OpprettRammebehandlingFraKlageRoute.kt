@@ -82,7 +82,7 @@ private data class OpprettRammebehandlingFraKlage(
 
 private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/opprettRammebehandling"
 
-fun Route.opprettRammebehandlingFraKlage(
+fun Route.opprettRammebehandlingFraKlageRoute(
     opprettRammebehandlingFraKlageService: OpprettRammebehandlingFraKlageService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,

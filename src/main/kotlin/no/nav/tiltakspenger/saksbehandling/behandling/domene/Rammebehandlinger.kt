@@ -56,22 +56,22 @@ data class Rammebehandlinger(
         behandlinger.single { it.id == behandling.id }
 
         /**
-         * Fordi klagen har referanse til åpen rammebehandling - kan denne bli nullstillt dersom rammebehandlingen blir avsluttet.
+         * Fordi klagen har en referanse til en åpen rammebehandling, kan denne bli nullstilt dersom rammebehandlingen blir avbrutt.
          * Denne oppdateringen må derfor propageres til alle rammebehandlinger som har samme klagebehandling tilknyttet
          */
-        val ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingTilknyttning = behandlinger.filter {
+        val ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingtilknytning = behandlinger.filter {
             !it.erAvbrutt && it.klagebehandling != null && it.klagebehandling?.id == behandling.klagebehandling?.id
         }.filter { it.id != behandling.id }.map { rammebehandling ->
             behandling.klagebehandling!!.let { rammebehandling.oppdaterKlagebehandling(it) }
         }
 
-        val alleBehandlingerMedSammeKlagetilknyttning =
-            ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingTilknyttning.plus(behandling)
-        val iderForRammebehandlingerSomSkalOppdateres = alleBehandlingerMedSammeKlagetilknyttning.map { it.id }
+        val alleBehandlingerMedSammeKlagetilknytning =
+            ikkeAvbrutteRammebehandlingerMedSammeKlagebehandlingtilknytning.plus(behandling)
+        val iderForRammebehandlingerSomSkalOppdateres = alleBehandlingerMedSammeKlagetilknytning.map { it.id }
 
         val behandlinger = this.behandlinger.map {
             if (iderForRammebehandlingerSomSkalOppdateres.contains(it.id)) {
-                alleBehandlingerMedSammeKlagetilknyttning.single { b -> b.id == it.id }
+                alleBehandlingerMedSammeKlagetilknytning.single { b -> b.id == it.id }
             } else {
                 it
             }
