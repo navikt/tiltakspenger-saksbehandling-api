@@ -83,8 +83,6 @@ data class ManueltRegistrertSøknadBody(
 
     data class PeriodeSpmDTO(
         val svar: JaNeiSvar,
-        @Deprecated("Bruk fraOgMed og tilOgMed feltene i stedet fordi en periode kan ikke mangle verken eller")
-        val periode: PeriodeDTO?,
         val fraOgMed: String?,
         val tilOgMed: String?,
     )
@@ -108,10 +106,8 @@ data class ManueltRegistrertSøknadBody(
 
             JaNeiSvar.JA -> {
                 Søknad.PeriodeSpm.Ja(
-                    fraOgMed = this.fraOgMed?.let { LocalDate.parse(it) }
-                        ?: this.periode?.fraOgMed?.let { LocalDate.parse(it) },
-                    tilOgMed = this.tilOgMed?.let { LocalDate.parse(it) }
-                        ?: this.periode?.tilOgMed?.let { LocalDate.parse(it) },
+                    fraOgMed = this.fraOgMed?.let { LocalDate.parse(it) },
+                    tilOgMed = this.tilOgMed?.let { LocalDate.parse(it) },
                 )
             }
         }
@@ -137,7 +133,8 @@ data class ManueltRegistrertSøknadBody(
             deltakelseTom = this.deltakelseTilOgMed,
             typeKode = this.typeKode.tilTiltakstype(),
             typeNavn = this.typeNavn,
-            tiltaksdeltakerId = internTiltaksdeltakelsesId ?: throw IllegalArgumentException("Mangler intern tiltaksdeltakerid for eksternid ${this.eksternDeltakelseId} for manuelt registrert søknad"),
+            tiltaksdeltakerId = internTiltaksdeltakelsesId
+                ?: throw IllegalArgumentException("Mangler intern tiltaksdeltakerid for eksternid ${this.eksternDeltakelseId} for manuelt registrert søknad"),
         )
 
     fun BarnetilleggDTO.tilDomeneManuell(): BarnetilleggFraSøknad.Manuell {

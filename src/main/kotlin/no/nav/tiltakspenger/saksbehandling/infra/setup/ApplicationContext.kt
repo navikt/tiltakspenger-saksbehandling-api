@@ -481,7 +481,7 @@ open class ApplicationContext(
         )
     }
 
-    val tilbakekrevingConsumer by lazy {
+    open val tilbakekrevingConsumer by lazy {
         TilbakekrevingConsumer(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,

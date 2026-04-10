@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
@@ -52,6 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -355,4 +357,13 @@ class TestApplicationContextMedInMemoryDb(
     override val tilbakekrevingHendelseRepo by lazy { TilbakekrevingHendelseFakeRepo(clock) }
 
     override val tilbakekrevingBehandlingRepo by lazy { tilbakekrevingBehandlingFakeRepo }
+
+    override val tilbakekrevingConsumer by lazy {
+        TilbakekrevingConsumer(
+            topic = Configuration.tilbakekrevingTopic,
+            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            sakRepo = sakContext.sakRepo,
+            log = null,
+        )
+    }
 }
