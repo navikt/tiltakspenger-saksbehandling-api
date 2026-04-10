@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet
 
+import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.kafka.Consumer
 import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
@@ -18,8 +19,8 @@ class TiltaksdeltakerKometConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
+    private val log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<UUID, String?> {
-    private val log = KotlinLogging.logger { }
 
     private val consumer = ManagedKafkaConsumer(
         topic = topic,
@@ -28,13 +29,14 @@ class TiltaksdeltakerKometConsumer(
             valueDeserializer = StringDeserializer(),
             groupId = groupId,
         ),
+        log = log,
         consume = ::consume,
     )
 
     override suspend fun consume(key: UUID, value: String?) {
-        log.info { "Mottatt tiltaksdeltakelse fra komet med key $key" }
+        log?.info { "Mottatt tiltaksdeltakelse fra komet med key $key" }
         if (value == null) {
-            log.warn { "Ignorerer tombstonet deltaker med id $key" }
+            log?.warn { "Ignorerer tombstonet deltaker med id $key" }
             return
         }
         tiltaksdeltakerService.behandleMottattKometdeltaker(deltakerId = key, melding = value)

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena
 
+import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.kafka.Consumer
 import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
@@ -16,8 +17,8 @@ class TiltaksdeltakerArenaConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
+    private val log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, String> {
-    private val log = KotlinLogging.logger { }
 
     private val consumer = ManagedKafkaConsumer(
         topic = topic,
@@ -26,11 +27,12 @@ class TiltaksdeltakerArenaConsumer(
             valueDeserializer = StringDeserializer(),
             groupId = groupId,
         ),
+        log = log,
         consume = ::consume,
     )
 
     override suspend fun consume(key: String, value: String) {
-        log.info { "Mottatt tiltaksdeltakelse fra arena med key $key" }
+        log?.info { "Mottatt tiltaksdeltakelse fra arena med key $key" }
         tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId = key, melding = value)
     }
 

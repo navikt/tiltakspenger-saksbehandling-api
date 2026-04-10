@@ -102,7 +102,6 @@ enum class RevurderingsresultatType {
  * Kommentar jah: Håper vi kan bli kvitt en del av denne funksjonen og flytte den inn i BehandlingResultat-implementasjonene.
  * Dersom vi tillater behandlingene og være "dirty", er det eneste vi må påse at vi nullstiller ValgteTiltaksdeltakelser dersom de forvinner eller perioden krymper.
  */
-@Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
 fun skalNullstilleResultatVedNyeSaksopplysninger(
     valgteTiltaksdeltakelser: List<Tiltaksdeltakelse>,
     nyeSaksopplysninger: Saksopplysninger,

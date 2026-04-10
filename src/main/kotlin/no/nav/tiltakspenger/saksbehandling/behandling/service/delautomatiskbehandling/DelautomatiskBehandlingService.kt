@@ -378,7 +378,6 @@ class DelautomatiskBehandlingService(
         return tiltakFraSaksopplysning.deltakelseFraOgMed == null || tiltakFraSaksopplysning.deltakelseTilOgMed == null
     }
 
-    @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
         tiltakFraSaksopplysning: Tiltaksdeltakelse,

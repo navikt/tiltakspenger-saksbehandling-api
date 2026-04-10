@@ -52,7 +52,6 @@ sealed interface Simulering {
             return simuleringPerMeldeperiode
                 .flatMap { it.simuleringsdager }
                 .singleOrNullOrThrow {
-                    @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
                     it.dato == dato
                 }
         }

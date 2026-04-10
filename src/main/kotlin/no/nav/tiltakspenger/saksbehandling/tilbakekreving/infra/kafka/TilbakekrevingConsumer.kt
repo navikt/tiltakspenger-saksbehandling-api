@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.kafka.Consumer
@@ -9,7 +10,6 @@ import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
-import no.nav.tiltakspenger.libs.texas.log
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
@@ -26,6 +26,7 @@ class TilbakekrevingConsumer(
     topic: String,
     groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v3",
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
+    log: KLogger? = logger,
 ) : Consumer<String, String?> {
 
     private val consumer = ManagedKafkaConsumer(
@@ -35,6 +36,7 @@ class TilbakekrevingConsumer(
             valueDeserializer = StringDeserializer(),
             groupId = groupId,
         ),
+        log = log,
         consume = ::consume,
     )
 

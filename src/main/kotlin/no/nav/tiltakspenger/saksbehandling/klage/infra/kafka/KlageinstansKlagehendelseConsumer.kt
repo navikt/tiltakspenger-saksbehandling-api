@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.kafka
 
+import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -15,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Clock
-import java.time.LocalDateTime
 
 class KlageinstansKlagehendelseConsumer(
     private val klagehendelseRepo: KlagehendelseRepo,
@@ -23,6 +23,7 @@ class KlageinstansKlagehendelseConsumer(
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
     private val clock: Clock,
+    log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, String?> {
     private val consumer = ManagedKafkaConsumer(
         topic = topic,
@@ -31,6 +32,7 @@ class KlageinstansKlagehendelseConsumer(
             valueDeserializer = StringDeserializer(),
             groupId = groupId,
         ),
+        log = log,
         consume = ::consume,
     )
 

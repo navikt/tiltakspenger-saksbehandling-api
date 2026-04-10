@@ -37,7 +37,6 @@ data class MeldeperiodeBeregning(
     val totalBeløp: Int get() = ordinærBeløp + barnetilleggBeløp
     fun hentDag(dato: LocalDate): MeldeperiodeBeregningDag? {
         return dager.singleOrNullOrThrow {
-            @Suppress("IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE")
             it.dato == dato
         }
     }

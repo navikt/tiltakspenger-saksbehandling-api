@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.tiltakspenger.libs.kafka.Consumer
 import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
@@ -17,6 +19,7 @@ class LeesahConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
+    log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, Personhendelse> {
 
     private val consumer = ManagedKafkaConsumer(
@@ -28,6 +31,7 @@ class LeesahConsumer(
             groupId = groupId,
             useSpecificAvroReader = true,
         ),
+        log = log,
         consume = ::consume,
     )
 
