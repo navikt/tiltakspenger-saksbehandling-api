@@ -31,10 +31,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-/**
- * TODO: splitt denne i separate hierarkier for 1. alle states av manuell behandling og 2. automatisk behandling
- * */
-
 sealed interface Meldekortbehandling : AttesterbarBehandling {
     override val id: MeldekortId
     override val sakId: SakId
@@ -61,7 +57,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     val meldeperioder: Meldeperiodebehandlinger
 
-    val beregning: Beregning?
+    val beregning: Beregning? get() = meldeperioder.beregning
 
     /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
     val simulering: Simulering?
@@ -71,7 +67,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
-    /** TODO: fjernes når vi kan behandle flere meldeperioder samtidig */
+    /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder samtidig er på plass */
     val meldeperiode: Meldeperiode get() = meldeperioder.single().meldeperiode
     val kjedeId: MeldeperiodeKjedeId get() = meldeperioder.kjedeIder.single()
     val brukersMeldekort: BrukersMeldekort? get() = meldeperioder.brukersMeldekort.singleOrNullOrThrow()
@@ -191,7 +187,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
         override val beløpTotal: Int get() = beregning.totalBeløp
         override val ordinærBeløp: Int get() = beregning.ordinærBeløp
         override val barnetilleggBeløp: Int get() = beregning.barnetilleggBeløp
-        override val rammevedtakIder: NonEmptyList<VedtakId> get() = super.rammevedtakIder
 
         override fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning {
             return super<BeregningMedSimulering>.toSimulertBeregning(beregninger)
