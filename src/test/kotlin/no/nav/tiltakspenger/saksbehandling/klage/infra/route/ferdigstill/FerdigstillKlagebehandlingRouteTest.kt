@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillKlagebehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
@@ -87,30 +88,14 @@ class FerdigstillKlagebehandlingRouteTest {
                 },
             )!!
             val resultat = klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt
-            json.toString().shouldBeKlagebehandlingDTO(
+            json.toString().shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
                 fnr = "12345678911",
                 saksbehandler = "saksbehandlerKlagebehandling",
-                resultat = "OPPRETTHOLDT",
+                resultat = resultat,
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
                 behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
-                status = "FERDIGSTILT",
-                kanIverksetteVedtak = null,
-                rammebehandlingId = null,
-                brevtekst = listOf(
-                    """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
-                    """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
-                    """{"tittel":"Vurdering av klagen","tekst":"<saksbehandler fyller ut>"}""",
-                ),
-                hjemler = listOf("ARBEIDSMARKEDSLOVEN_17"),
-                iverksattOpprettholdelseTidspunkt = true,
-                journalføringstidspunktInnstillingsbrev = true,
-                distribusjonstidspunktInnstillingsbrev = true,
-                oversendtKlageinstansenTidspunkt = true,
-                ferdigstiltTidspunkt = true,
-                journalpostIdInnstillingsbrev = klagebehandling.journalpostIdInnstillingsbrev!!.toString(),
-                dokumentInfoIder = klagebehandling.dokumentInfoIder.map { it.toString() },
                 klageinstanshendelser = listOf(
                     """
                      {

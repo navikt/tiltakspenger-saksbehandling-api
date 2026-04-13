@@ -8,6 +8,9 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeRevurderingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
@@ -324,134 +327,17 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
 
-            iverksattRammebehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
-                //language=json
-                """
-                {
-                  "attesteringer": [
-                    {
-                      "begrunnelse": null,
-                      "endretAv": "B12345",
-                      "endretTidspunkt": "2025-01-01T01:03:05.456789",
-                      "status": "GODKJENT"
-                    }
-                  ],
-                  "saksnummer": "202501011001",
-                  "utbetalingskontroll": null,
-                  "iverksattTidspunkt": "2025-01-01T01:03:06.456789",
-                  "vedtaksperiode": {
-                    "fraOgMed": "2023-01-01",
-                    "tilOgMed": "2023-03-31"
-                  },
-                  "type": "SØKNADSBEHANDLING",
-                  "utbetaling": null,
-                  "manueltBehandlesGrunner": [],
-                  "saksopplysninger": {
-                    "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
-                    "tiltaksdeltagelse": [
-                      {
-                        "typeKode": "GRUPPE_AMO",
-                        "gjennomforingsprosent": null,
-                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                        "antallDagerPerUke": 5,
-                        "deltakelseStatus": "Deltar",
-                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                        "deltagelseFraOgMed": "2023-01-01",
-                        "deltagelseTilOgMed": "2023-03-31",
-                        "kilde": "Komet",
-                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                        "deltakelseProsent": 100
-                      }
-                    ],
-                    "fødselsdato": "2001-01-01",
-                    "ytelser": [],
-                    "tiltakspengevedtakFraArena": [],
-                    "periode": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    }
-                  },
-                  "sakId": "${sak.id}",
-                  "id": "${rammebehandling.id}",
-                  "avbrutt": null,
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "barnetillegg": {
-                    "begrunnelse": null,
-                    "perioder": [
-                      {
-                        "antallBarn": 0,
-                        "periode": {
-                          "fraOgMed": "2023-01-01",
-                          "tilOgMed": "2023-03-31"
-                        }
-                      }
-                    ]
-                  },
-                  "fritekstTilVedtaksbrev": null,
-                  "resultat": "INNVILGELSE",
-                  "beslutter": "B12345",
-                  "begrunnelseVilkårsvurdering": null,
-                  "klagebehandlingId": "${klagebehandling.id}",
-                  "tilbakekrevingId": null,
-                  "kanInnvilges": true,
-                  "ventestatus": null,
-                  "innvilgelsesperioder": [
-                    {
-                      "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                      "periode": {
-                        "fraOgMed": "2023-01-01",
-                        "tilOgMed": "2023-03-31"
-                      },
-                      "antallDagerPerMeldeperiode": 10
-                    }
-                  ],
-                  "rammevedtakId": "${rammevedtak.id}",
-                  "sistEndret": "2025-01-01T01:03:06.456789",
-                  "automatiskSaksbehandlet": false,
-                  "søknad": {
-                    "avbrutt": null,
-                    "svar": {
-                      "harSøktPåTiltak": { "svar": "JA" },
-                      "kvp": { "svar": "NEI", "periode": null },
-                      "gjenlevendepensjon": { "svar": "NEI", "periode": null },
-                      "harSøktOmBarnetillegg": { "svar": "NEI" },
-                      "sykepenger": { "svar": "NEI", "periode": null },
-                      "etterlønn": { "svar": "NEI" },
-                      "institusjon": { "svar": "NEI", "periode": null },
-                      "trygdOgPensjon": { "svar": "NEI", "periode": null },
-                      "intro": { "svar": "NEI", "periode": null },
-                      "supplerendeStønadAlder": { "svar": "NEI", "periode": null },
-                      "jobbsjansen": { "svar": "NEI", "periode": null },
-                      "alderspensjon": { "svar": "NEI", "fraOgMed": null },
-                      "supplerendeStønadFlyktning": { "svar": "NEI", "periode": null }
-                    },
-                    "tiltaksdeltakelseperiodeDetErSøktOm": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    },
-                    "barnetillegg": [],
-                    "opprettet": "2023-01-01T00:00:00",
-                    "antallVedlegg": 0,
-                    "tiltak": {
-                      "fraOgMed": "2023-01-01",
-                      "typeKode": "GRUPPEAMO",
-                      "tilOgMed": "2023-03-31",
-                      "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                      "id": "61328250-7d5d-4961-b70e-5cb727a34371"
-                    },
-                    "manueltSattTiltak": null,
-                    "søknadstype": "DIGITAL",
-                    "behandlingsarsak": null,
-                    "kanInnvilges": true,
-                    "tidsstempelHosOss": "2023-01-01T00:00:00",
-                    "id": "${(iverksattRammebehandling as Søknadsbehandling).søknad.id}",
-                    "journalpostId": "123456789"
-                  },
-                  "status": "VEDTATT",
-                  "skalSendeVedtaksbrev": true
-                }
-                """.trimIndent(),
+            iverksattRammebehandlingJson.toString().shouldBeSøknadsbehandlingDTO(
+                rammevedtakId = rammevedtak.id,
+                sakId = sak.id,
+                behandlingId = iverksattRammebehandling.id,
+                resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
+                søknadId = (iverksattRammebehandling as Søknadsbehandling).søknad.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = "saksbehandlerKlagebehandling",
+                attesteringer = listOf(
+                    """{"begrunnelse": null, "endretAv": "B12345", "endretTidspunkt": "2025-01-01T01:03:04.456789", "status": "GODKJENT"}""",
+                ),
             )
 
             // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
@@ -507,93 +393,12 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
 
-            iverksattRammebehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
-                //language=json
-                """
-                {
-                  "avbrutt": null,
-                  "attesteringer": [
-                    {
-                      "begrunnelse": null,
-                      "endretAv": "B12345",
-                      "endretTidspunkt": "2025-01-01T01:03:04.456789",
-                      "status": "GODKJENT"
-                    }
-                  ],
-                  "saksnummer": "202501011001",
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "utbetalingskontroll": null,
-                  "barnetillegg": {
-                    "begrunnelse": null,
-                    "perioder": [
-                      {
-                        "antallBarn": 0,
-                        "periode": {
-                          "fraOgMed": "2023-01-01",
-                          "tilOgMed": "2023-03-31"
-                        }
-                      }
-                    ]
-                  },
-                  "iverksattTidspunkt": "2025-01-01T01:03:05.456789",
-                  "vedtaksperiode": {
-                    "fraOgMed": "2023-01-01",
-                    "tilOgMed": "2023-03-31"
-                  },
-                  "fritekstTilVedtaksbrev": null,
-                  "resultat": "REVURDERING_INNVILGELSE",
-                  "automatiskOpprettetGrunn": null,
-                  "type": "REVURDERING",
-                  "beslutter": "B12345",
-                  "begrunnelseVilkårsvurdering": null,
-                  "klagebehandlingId": "${klagebehandling.id}",
-                  "tilbakekrevingId": null,
-                  "utbetaling": null,
-                  "ventestatus": null,
-                  "innvilgelsesperioder": [
-                    {
-                      "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                      "periode": {
-                        "fraOgMed": "2023-01-01",
-                        "tilOgMed": "2023-03-31"
-                      },
-                      "antallDagerPerMeldeperiode": 10
-                    }
-                  ],
-                  "saksopplysninger": {
-                    "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
-                    "tiltaksdeltagelse": [
-                      {
-                        "typeKode": "GRUPPE_AMO",
-                        "gjennomforingsprosent": null,
-                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                        "antallDagerPerUke": 5,
-                        "deltakelseStatus": "Deltar",
-                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                        "deltagelseFraOgMed": "2023-01-01",
-                        "deltagelseTilOgMed": "2023-03-31",
-                        "kilde": "Komet",
-                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                        "deltakelseProsent": 100
-                      }
-                    ],
-                    "fødselsdato": "2001-01-01",
-                    "ytelser": [],
-                    "tiltakspengevedtakFraArena": [],
-                    "periode": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    }
-                  },
-                  "rammevedtakId": "${rammevedtak.id}",
-                  "sistEndret": "2025-01-01T01:03:05.456789",
-                  "sakId": "${sak.id}",
-                  "id": "${iverksattRammebehandling.id}",
-                  "status": "VEDTATT",
-                  "skalSendeVedtaksbrev": true
-                }
-                """.trimIndent(),
+            iverksattRammebehandlingJson.toString().shouldBeRevurderingDTO(
+                klagebehandlingId = klagebehandling.id,
+                rammevedtakId = rammevedtak.id,
+                sakId = sak.id,
+                behandlingId = iverksattRammebehandling.id,
+                resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE,
             )
 
             // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
@@ -648,94 +453,12 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
 
-            iverksattRammebehandlingJson.toString().shouldEqualJsonIgnoringTimestamps(
-                //language=json
-                """
-                {
-                  "avbrutt": null,
-                  "attesteringer": [
-                    {
-                      "begrunnelse": null,
-                      "endretAv": "B12345",
-                      "endretTidspunkt": "2025-01-01T01:03:04.456789",
-                      "status": "GODKJENT"
-                    }
-                  ],
-                  "saksnummer": "202501011001",
-                  "saksbehandler": "saksbehandlerKlagebehandling",
-                  "utbetalingskontroll": null,
-                  "barnetillegg": {
-                    "begrunnelse": null,
-                    "perioder": [
-                      {
-                        "antallBarn": 0,
-                        "periode": {
-                          "fraOgMed": "2023-01-01",
-                          "tilOgMed": "2023-03-31"
-                        }
-                      }
-                    ]
-                  },
-                  "iverksattTidspunkt": "2025-01-01T01:03:05.456789",
-                  "vedtaksperiode": {
-                    "fraOgMed": "2023-01-01",
-                    "tilOgMed": "2023-03-31"
-                  },
-                  "fritekstTilVedtaksbrev": null,
-                  "resultat": "OMGJØRING",
-                  "automatiskOpprettetGrunn": null,
-                  "type": "REVURDERING",
-                  "beslutter": "B12345",
-                  "begrunnelseVilkårsvurdering": null,
-                  "klagebehandlingId": "${klagebehandling.id}",
-                  "tilbakekrevingId": null,
-                  "utbetaling": null,
-                  "ventestatus": null,
-                  "innvilgelsesperioder": [
-                    {
-                      "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                      "periode": {
-                        "fraOgMed": "2023-01-01",
-                        "tilOgMed": "2023-03-31"
-                      },
-                      "antallDagerPerMeldeperiode": 10
-                    }
-                  ],
-                  "omgjørVedtak": "${klagebehandling.formkrav.vedtakDetKlagesPå!!}",
-                  "saksopplysninger": {
-                    "oppslagstidspunkt": "2025-01-01T01:02:52.456789",
-                    "tiltaksdeltagelse": [
-                      {
-                        "typeKode": "GRUPPE_AMO",
-                        "gjennomforingsprosent": null,
-                        "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                        "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                        "antallDagerPerUke": 5,
-                        "deltakelseStatus": "Deltar",
-                        "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                        "deltagelseFraOgMed": "2023-01-01",
-                        "deltagelseTilOgMed": "2023-03-31",
-                        "kilde": "Komet",
-                        "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                        "deltakelseProsent": 100
-                      }
-                    ],
-                    "fødselsdato": "2001-01-01",
-                    "ytelser": [],
-                    "tiltakspengevedtakFraArena": [],
-                    "periode": {
-                      "fraOgMed": "2023-01-01",
-                      "tilOgMed": "2023-03-31"
-                    }
-                  },
-                  "rammevedtakId": "${rammevedtak.id}",
-                  "sistEndret": "2025-01-01T01:03:05.456789",
-                  "sakId": "${sak.id}",
-                  "id": "${rammebehandling.id}",
-                  "status": "VEDTATT",
-                  "skalSendeVedtaksbrev": true
-                }
-                """.trimIndent(),
+            iverksattRammebehandlingJson.toString().shouldBeRevurderingDTO(
+                klagebehandlingId = klagebehandling.id,
+                omgjørVedtak = klagebehandling.formkrav.vedtakDetKlagesPå!!,
+                rammevedtakId = rammevedtak.id,
+                sakId = sak.id,
+                behandlingId = rammebehandling.id,
             )
 
             // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage

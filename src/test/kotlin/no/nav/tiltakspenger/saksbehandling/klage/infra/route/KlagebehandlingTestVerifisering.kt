@@ -147,7 +147,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
         """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
         """{"tittel":"Vurdering av klagen","tekst":"<saksbehandler fyller ut>"}""",
     ),
-    rammebehandlingId: List<String>? = null,
+    rammebehandlingId: List<String> = emptyList(),
     åpenRammebehandlingId: String? = null,
     hjemler: List<String> = listOf("ARBEIDSMARKEDSLOVEN_17"),
     klageinstanshendelser: List<String> = listOf(
@@ -182,7 +182,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
          "status": "FERDIGSTILT",
-         "tilknyttedeRammebehandlingIder": ${if (rammebehandlingId.isNullOrEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
+         "tilknyttedeRammebehandlingIder": ${if (rammebehandlingId.isEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
          "åpenRammebehandlingId": ${åpenRammebehandlingId?.toJsonValue()},
          "resultat": {
             "brevtekst": [${brevtekst.joinToString()}],
