@@ -93,7 +93,7 @@ data class AvtaleDto(
     fun tilTiltaksdeltakerHendelse(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
         TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.random(),
-            deltakerId = avtaleId.toString(),
+            eksternDeltakerId = avtaleId.toString(),
             deltakelseFraOgMed = startDato,
             deltakelseTilOgMed = sluttDato,
             dagerPerUke = antallDagerPerUke?.toFloat(),
@@ -102,7 +102,7 @@ data class AvtaleDto(
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
-            tiltaksdeltakerId = tiltaksdeltakerId,
+            internDeltakerId = tiltaksdeltakerId,
             behandlingId = null,
             kilde = TiltaksdeltakerHendelseKilde.TeamTiltak,
         )

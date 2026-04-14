@@ -105,7 +105,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                         )
                     """.trimIndent(),
                     "hendelse_id" to tiltaksdeltakerHendelse.id.toString(),
-                    "deltaker_id" to tiltaksdeltakerHendelse.deltakerId,
+                    "deltaker_id" to tiltaksdeltakerHendelse.eksternDeltakerId,
                     "deltakelse_fra_og_med" to tiltaksdeltakerHendelse.deltakelseFraOgMed,
                     "deltakelse_til_og_med" to tiltaksdeltakerHendelse.deltakelseTilOgMed,
                     "dager_per_uke" to tiltaksdeltakerHendelse.dagerPerUke,
@@ -116,7 +116,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     "sist_oppdatert" to sistOppdatert,
                     "melding" to melding,
                     "oppgave_sist_sjekket" to tiltaksdeltakerHendelse.oppgaveSistSjekket,
-                    "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.tiltaksdeltakerId.toString(),
+                    "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.internDeltakerId.toString(),
                     "behandling_id" to tiltaksdeltakerHendelse.behandlingId?.toString(),
                     "kilde" to tiltaksdeltakerHendelse.kilde.name,
                 ).asUpdate,
@@ -173,7 +173,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
     private fun Row.tilTiltaksdeltakerHendelse() =
         TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.fromString(string("hendelse_id")),
-            deltakerId = string("deltaker_id"),
+            eksternDeltakerId = string("deltaker_id"),
             deltakelseFraOgMed = localDateOrNull("deltakelse_fra_og_med"),
             deltakelseTilOgMed = localDateOrNull("deltakelse_til_og_med"),
             dagerPerUke = floatOrNull("dager_per_uke"),
@@ -182,7 +182,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
             sakId = SakId.fromString(string("sak_id")),
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
-            tiltaksdeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
+            internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
             behandlingId = stringOrNull("behandling_id")?.let { BehandlingId.fromString(it) },
             kilde = stringOrNull("kilde")?.let { TiltaksdeltakerHendelseKilde.valueOf(it) } ?: TiltaksdeltakerHendelseKilde.Komet,
         )

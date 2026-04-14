@@ -40,23 +40,25 @@ class EndretTiltaksdeltakerJobb(
             endredeDeltakere.forEach { deltaker ->
                 val sakId = deltaker.sakId
                 val hendelseId = deltaker.id
-                val eksternDeltakerId = deltaker.deltakerId
-                val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
+                val eksternDeltakerId = deltaker.eksternDeltakerId
+                val internDeltakerId = deltaker.internDeltakerId
+
+                val logIder = "sakId $sakId / intern deltakerId $internDeltakerId / ekstern deltakerId $eksternDeltakerId / hendelseId $hendelseId"
 
                 Either.catch {
                     val sak = sakRepo.hentForSakId(sakId)!!
 
-                    sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId)
+                    sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(internDeltakerId)
 
                     val endringer = sak.finnEndringer(deltaker)
 
                     if (endringer == null) {
-                        log.info { "Fant ingen endringer for sakId $sakId og deltakerId $tiltaksdeltakerId / $eksternDeltakerId" }
+                        log.info { "Fant ingen endringer for $logIder" }
                         tiltaksdeltakerHendelsePostgresRepo.slett(hendelseId)
                         return@forEach
                     }
 
-                    val revurderingSomSkalOpprettes = sak.vurderRevurdering(tiltaksdeltakerId, endringer)
+                    val revurderingSomSkalOpprettes = sak.vurderRevurdering(internDeltakerId, endringer)
 
                     if (revurderingSomSkalOpprettes != null) {
                         val kommando = StartRevurderingKommando(
@@ -76,9 +78,9 @@ class EndretTiltaksdeltakerJobb(
 
                         tiltaksdeltakerHendelsePostgresRepo.lagreBehandlingId(hendelseId, revurdering.id)
 
-                        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse $tiltaksdeltakerId / $eksternDeltakerId" }
+                        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
                     } else {
-                        log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret uten å opprette revurdering, oppretter oppgave" }
+                        log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
 
                         val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                             sak.fnr,
@@ -88,10 +90,10 @@ class EndretTiltaksdeltakerJobb(
 
                         tiltaksdeltakerHendelsePostgresRepo.lagreOppgaveId(hendelseId, oppgaveId)
 
-                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
+                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse: $logIder" }
                     }
                 }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId)" }
+                    log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse ($logIder)" }
                 }
             }
         }.onLeft {
@@ -115,7 +117,7 @@ class EndretTiltaksdeltakerJobb(
     }
 
     private fun Sak.finnEndringer(deltaker: TiltaksdeltakerHendelse): TiltaksdeltakerEndringer? {
-        val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
+        val tiltaksdeltakerId = deltaker.internDeltakerId
 
         val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier
             .filter { vedtak ->

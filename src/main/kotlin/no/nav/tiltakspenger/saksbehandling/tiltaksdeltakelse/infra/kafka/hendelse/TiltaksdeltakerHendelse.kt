@@ -15,12 +15,14 @@ import java.time.LocalDateTime
 
 /**
  *  [id] Vår interne id for hendelsen
- *  [deltakerId] Id for deltakelsen fra arena/tiltak/komet
+ *  [internDeltakerId] Vår interne id for deltakelsen
+ *  [eksternDeltakerId] Id for deltakelsen fra arena/tiltak/komet
  *  [behandlingId] Er satt dersom endringen førte til at det ble automatisk opprettet en revurdering
  * */
 data class TiltaksdeltakerHendelse(
     val id: TiltaksdeltakerHendelseId,
-    val deltakerId: String,
+    val internDeltakerId: TiltaksdeltakerId,
+    val eksternDeltakerId: String,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
     val dagerPerUke: Float?,
@@ -29,7 +31,6 @@ data class TiltaksdeltakerHendelse(
     val sakId: SakId,
     val oppgaveId: OppgaveId?,
     val oppgaveSistSjekket: LocalDateTime?,
-    val tiltaksdeltakerId: TiltaksdeltakerId,
     val behandlingId: BehandlingId?,
     val kilde: TiltaksdeltakerHendelseKilde,
 ) {

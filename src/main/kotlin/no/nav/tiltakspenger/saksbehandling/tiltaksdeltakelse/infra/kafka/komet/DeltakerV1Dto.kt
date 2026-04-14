@@ -27,7 +27,7 @@ data class DeltakerV1Dto(
     fun tilTiltaksdeltakerHendelse(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
         TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.random(),
-            deltakerId = id.toString(),
+            eksternDeltakerId = id.toString(),
             deltakelseFraOgMed = startDato,
             deltakelseTilOgMed = sluttDato,
             dagerPerUke = dagerPerUke,
@@ -36,7 +36,7 @@ data class DeltakerV1Dto(
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
-            tiltaksdeltakerId = tiltaksdeltakerId,
+            internDeltakerId = tiltaksdeltakerId,
             behandlingId = null,
             kilde = TiltaksdeltakerHendelseKilde.Komet,
         )

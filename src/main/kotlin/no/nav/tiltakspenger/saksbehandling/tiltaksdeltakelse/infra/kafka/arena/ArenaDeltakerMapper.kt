@@ -47,7 +47,7 @@ class ArenaDeltakerMapper {
         val deltakelseFraOgMed = DATO_FRA?.asValidatedLocalDate()
         return TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.random(),
-            deltakerId = eksternId,
+            eksternDeltakerId = eksternId,
             deltakelseFraOgMed = deltakelseFraOgMed,
             deltakelseTilOgMed = DATO_TIL?.asValidatedLocalDate(),
             dagerPerUke = ANTALL_DAGER_PR_UKE,
@@ -56,7 +56,7 @@ class ArenaDeltakerMapper {
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
-            tiltaksdeltakerId = tiltaksdeltakerId,
+            internDeltakerId = tiltaksdeltakerId,
             behandlingId = null,
             kilde = TiltaksdeltakerHendelseKilde.Arena,
         )

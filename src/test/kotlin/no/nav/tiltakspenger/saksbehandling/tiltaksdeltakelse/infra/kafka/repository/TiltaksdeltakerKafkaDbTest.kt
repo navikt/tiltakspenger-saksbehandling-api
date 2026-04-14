@@ -257,7 +257,7 @@ fun getTiltaksdeltakerHendelse(
 ) =
     TiltaksdeltakerHendelse(
         id = hendelseId,
-        deltakerId = id,
+        eksternDeltakerId = id,
         deltakelseFraOgMed = fom,
         deltakelseTilOgMed = tom,
         dagerPerUke = dagerPerUke,
@@ -266,7 +266,7 @@ fun getTiltaksdeltakerHendelse(
         sakId = sakId,
         oppgaveId = oppgaveId,
         oppgaveSistSjekket = oppgaveSistSjekket,
-        tiltaksdeltakerId = tiltaksdeltakerId,
+        internDeltakerId = tiltaksdeltakerId,
         behandlingId = null,
         kilde = kilde,
     )

@@ -78,7 +78,7 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
             tiltaksdeltakerHendelse.oppgaveId shouldBe null
-            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -128,7 +128,7 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
             tiltaksdeltakerHendelse.oppgaveId shouldBe null
-            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -194,7 +194,7 @@ class TiltaksdeltakerServiceTest {
             val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                 id = TiltaksdeltakerHendelseId.random(),
-                deltakerId = id,
+                eksternDeltakerId = id,
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
                 deltakelseTilOgMed = LocalDate.of(2025, 1, 10),
                 dagerPerUke = 3.0F,
@@ -203,7 +203,7 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
-                tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
                 kilde = TiltaksdeltakerHendelseKilde.Arena,
             )
@@ -224,7 +224,7 @@ class TiltaksdeltakerServiceTest {
             nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             nyHendelse.sakId shouldBe sak.id
             nyHendelse.oppgaveId shouldBe null
-            nyHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            nyHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -287,7 +287,7 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
             tiltaksdeltakerHendelse.oppgaveId shouldBe null
-            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -317,7 +317,7 @@ class TiltaksdeltakerServiceTest {
             val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                 id = TiltaksdeltakerHendelseId.random(),
-                deltakerId = deltakerId.toString(),
+                eksternDeltakerId = deltakerId.toString(),
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
                 deltakelseTilOgMed = LocalDate.of(2025, 1, 10),
                 dagerPerUke = 3.0F,
@@ -326,7 +326,7 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
-                tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
                 kilde = TiltaksdeltakerHendelseKilde.Komet,
             )
@@ -350,7 +350,7 @@ class TiltaksdeltakerServiceTest {
             nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             nyHendelse.sakId shouldBe sak.id
             nyHendelse.oppgaveId shouldBe null
-            nyHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            nyHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -413,7 +413,7 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
             tiltaksdeltakerHendelse.oppgaveId shouldBe null
-            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -443,7 +443,7 @@ class TiltaksdeltakerServiceTest {
             val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                 id = TiltaksdeltakerHendelseId.random(),
-                deltakerId = deltakerId,
+                eksternDeltakerId = deltakerId,
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
                 deltakelseTilOgMed = LocalDate.of(2025, 1, 10),
                 dagerPerUke = 3.0F,
@@ -452,7 +452,7 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
-                tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
                 kilde = TiltaksdeltakerHendelseKilde.TeamTiltak,
             )
@@ -476,7 +476,7 @@ class TiltaksdeltakerServiceTest {
             nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             nyHendelse.sakId shouldBe sak.id
             nyHendelse.oppgaveId shouldBe null
-            nyHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            nyHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
