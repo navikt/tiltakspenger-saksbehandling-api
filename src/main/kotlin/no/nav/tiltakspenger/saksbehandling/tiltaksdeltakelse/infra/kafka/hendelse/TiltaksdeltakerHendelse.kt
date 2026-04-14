@@ -18,7 +18,6 @@ import java.time.LocalDateTime
  *  [internDeltakerId] Vår interne id for deltakelsen
  *  [eksternDeltakerId] Id for deltakelsen fra arena/tiltak/komet
  *  [behandlingId] Er satt dersom endringen førte til at det ble automatisk opprettet en revurdering
- *  [kilde] Kilden til hendelsen, arena/tiltak/komet. Null for hendelser fra før 15.april 2026
  * */
 data class TiltaksdeltakerHendelse(
     val id: TiltaksdeltakerHendelseId,
