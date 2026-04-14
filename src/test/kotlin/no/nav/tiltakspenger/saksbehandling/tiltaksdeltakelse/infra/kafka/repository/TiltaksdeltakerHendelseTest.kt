@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -253,7 +252,6 @@ fun getTiltaksdeltakerHendelse(
     oppgaveId: OppgaveId? = null,
     oppgaveSistSjekket: LocalDateTime? = null,
     tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
-    kilde: TiltaksdeltakerHendelseKilde = TiltaksdeltakerHendelseKilde.Komet,
 ) =
     TiltaksdeltakerHendelse(
         id = hendelseId,
@@ -268,5 +266,4 @@ fun getTiltaksdeltakerHendelse(
         oppgaveSistSjekket = oppgaveSistSjekket,
         internDeltakerId = tiltaksdeltakerId,
         behandlingId = null,
-        kilde = kilde,
     )

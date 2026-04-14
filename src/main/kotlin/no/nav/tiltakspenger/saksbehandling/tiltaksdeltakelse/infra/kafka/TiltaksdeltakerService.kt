@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaKafkaMessage
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
@@ -47,7 +48,7 @@ class TiltaksdeltakerService(
                 clock = clock,
             )
             if (tiltaksdeltakerHendelse != null) {
-                lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding)
+                lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding, TiltaksdeltakerHendelseKilde.Arena)
                 log.info { "Lagret melding for arenadeltaker med id $oppdatertEksternId" }
             }
         } else {
@@ -63,7 +64,7 @@ class TiltaksdeltakerService(
             log.info { "Fant sakId $sakId for komet-deltaker med id $deltakerId" }
             val deltakerV1Dto = deserialize<DeltakerV1Dto>(melding)
             val tiltaksdeltakerHendelse = deltakerV1Dto.tilTiltaksdeltakerHendelse(sakId, tiltaksdeltakerId)
-            lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding)
+            lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding, TiltaksdeltakerHendelseKilde.Komet)
             log.info { "Lagret melding for kometdeltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
@@ -78,7 +79,7 @@ class TiltaksdeltakerService(
             log.info { "Fant sakId $sakId for team tiltak-deltaker med id $deltakerId" }
             val avtaleDto = deserialize<AvtaleDto>(melding)
             val tiltaksdeltakerHendelse = avtaleDto.tilTiltaksdeltakerHendelse(sakId, tiltaksdeltakerId)
-            lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding)
+            lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding, TiltaksdeltakerHendelseKilde.TeamTiltak)
             log.info { "Lagret melding for team tiltak-deltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
@@ -104,7 +105,7 @@ class TiltaksdeltakerService(
         return søknadRepo.finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId)
     }
 
-    private fun lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse: TiltaksdeltakerHendelse, melding: String) {
-        tiltaksdeltakerHendelsePostgresRepo.lagre(tiltaksdeltakerHendelse, melding)
+    private fun lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse: TiltaksdeltakerHendelse, melding: String, kilde: TiltaksdeltakerHendelseKilde) {
+        tiltaksdeltakerHendelsePostgresRepo.lagre(tiltaksdeltakerHendelse, melding, kilde)
     }
 }

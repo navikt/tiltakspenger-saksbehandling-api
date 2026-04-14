@@ -32,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.getTiltaksdeltakerHendelse
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -68,6 +69,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -101,6 +103,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -141,6 +144,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -196,6 +200,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -238,6 +243,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -302,6 +308,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -343,6 +350,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -397,6 +405,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                 tiltaksdeltakerHendelse,
                 "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
                 nå(tac.clock).minusMinutes(20),
             )
 
@@ -457,6 +466,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                     tiltaksdeltakerHendelse,
                     "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
                     nå(tac.clock).minusMinutes(20),
                 )
 
@@ -529,11 +539,13 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                     førsteTiltaksdeltakerHendelse,
                     "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
                     nå(tac.clock).minusMinutes(20),
                 )
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                     andreTiltaksdeltakerHendelse,
                     "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
                     nå(tac.clock).minusMinutes(20),
                 )
 
@@ -621,11 +633,13 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                     førsteTiltaksdeltakerHendelse,
                     "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
                     nå(tac.clock).minusMinutes(20),
                 )
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
                     andreTiltaksdeltakerHendelse,
                     "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
                     nå(tac.clock).minusMinutes(20),
                 )
 

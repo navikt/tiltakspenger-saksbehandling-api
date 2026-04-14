@@ -33,7 +33,6 @@ data class TiltaksdeltakerHendelse(
     val oppgaveId: OppgaveId?,
     val oppgaveSistSjekket: LocalDateTime?,
     val behandlingId: BehandlingId?,
-    val kilde: TiltaksdeltakerHendelseKilde?,
 ) {
 
     fun finnEndringer(

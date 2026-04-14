@@ -205,9 +205,8 @@ class TiltaksdeltakerServiceTest {
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
-                kilde = TiltaksdeltakerHendelseKilde.Arena,
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding")
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding", TiltaksdeltakerHendelseKilde.Arena)
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
@@ -328,9 +327,8 @@ class TiltaksdeltakerServiceTest {
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
-                kilde = TiltaksdeltakerHendelseKilde.Komet,
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding")
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding", TiltaksdeltakerHendelseKilde.Komet)
 
             tiltaksdeltakerService.behandleMottattKometdeltaker(
                 deltakerId,
@@ -454,9 +452,8 @@ class TiltaksdeltakerServiceTest {
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
-                kilde = TiltaksdeltakerHendelseKilde.TeamTiltak,
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding")
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding", TiltaksdeltakerHendelseKilde.TeamTiltak)
 
             tiltaksdeltakerService.behandleMottattTeamTiltakdeltaker(
                 deltakerId,

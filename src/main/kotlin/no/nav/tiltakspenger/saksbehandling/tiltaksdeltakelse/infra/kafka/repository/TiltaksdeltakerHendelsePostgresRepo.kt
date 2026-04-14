@@ -64,6 +64,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
     fun lagre(
         tiltaksdeltakerHendelse: TiltaksdeltakerHendelse,
         melding: String,
+        kilde: TiltaksdeltakerHendelseKilde,
         sistOppdatert: LocalDateTime = nå(clock),
     ) {
         sessionFactory.withSession { session ->
@@ -118,7 +119,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     "oppgave_sist_sjekket" to tiltaksdeltakerHendelse.oppgaveSistSjekket,
                     "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.internDeltakerId.toString(),
                     "behandling_id" to tiltaksdeltakerHendelse.behandlingId?.toString(),
-                    "kilde" to tiltaksdeltakerHendelse.kilde?.tilDb(),
+                    "kilde" to kilde.name,
                 ).asUpdate,
             )
         }
@@ -184,28 +185,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
             internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
             behandlingId = stringOrNull("behandling_id")?.let { BehandlingId.fromString(it) },
-            kilde = stringOrNull("kilde")?.tilTiltaksdeltakerHendelseKilde(),
         )
     }
 }
-
-private enum class TiltaksdeltakerHendelseKildeDb {
-    Arena,
-    TeamTiltak,
-    Komet,
-}
-
-private fun TiltaksdeltakerHendelseKilde.tilDb(): String = when (this) {
-    TiltaksdeltakerHendelseKilde.Arena -> TiltaksdeltakerHendelseKildeDb.Arena
-    TiltaksdeltakerHendelseKilde.TeamTiltak -> TiltaksdeltakerHendelseKildeDb.TeamTiltak
-    TiltaksdeltakerHendelseKilde.Komet -> TiltaksdeltakerHendelseKildeDb.Komet
-}.name
-
-private fun String.tilTiltaksdeltakerHendelseKilde(): TiltaksdeltakerHendelseKilde =
-    TiltaksdeltakerHendelseKildeDb.valueOf(this).let {
-        when (it) {
-            TiltaksdeltakerHendelseKildeDb.Arena -> TiltaksdeltakerHendelseKilde.Arena
-            TiltaksdeltakerHendelseKildeDb.TeamTiltak -> TiltaksdeltakerHendelseKilde.TeamTiltak
-            TiltaksdeltakerHendelseKildeDb.Komet -> TiltaksdeltakerHendelseKilde.Komet
-        }
-    }

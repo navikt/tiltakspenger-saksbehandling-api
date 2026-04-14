@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import java.time.LocalDate
 import java.util.UUID
 
@@ -38,7 +37,6 @@ data class DeltakerV1Dto(
             oppgaveSistSjekket = null,
             internDeltakerId = tiltaksdeltakerId,
             behandlingId = null,
-            kilde = TiltaksdeltakerHendelseKilde.Komet,
         )
 
     private fun KometDeltakerStatusType.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
