@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.reposit
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
-import tools.jackson.module.kotlin.readValue
 import java.time.Clock
 import java.util.UUID
 
@@ -30,9 +29,10 @@ class TiltaksdeltakerService(
         val eksternId = "TA$deltakerId"
         val tiltaksdeltaker = tiltaksdeltakerRepo.hentTiltaksdeltaker(eksternId)
         val sakId = tiltaksdeltaker?.let { finnSakIdForTiltaksdeltaker(it.id) }
+
         if (tiltaksdeltaker != null && sakId != null) {
             log.info { "Fant sakId $sakId for arena-deltaker med id $eksternId" }
-            val arenaKafkaMessage = objectMapper.readValue<ArenaKafkaMessage>(melding)
+            val arenaKafkaMessage = deserialize<ArenaKafkaMessage>(melding)
             val oppdatertEksternId = oppdaterEksternId(
                 arenaEksternId = arenaKafkaMessage.after?.EKSTERN_ID,
                 arenaId = eksternId,
@@ -47,7 +47,7 @@ class TiltaksdeltakerService(
                 clock = clock,
             )
             if (tiltaksdeltakerKafkaDb != null) {
-                lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(arenaKafkaMessage))
+                lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, melding)
                 log.info { "Lagret melding for arenadeltaker med id $oppdatertEksternId" }
             }
         } else {
@@ -60,9 +60,9 @@ class TiltaksdeltakerService(
         val sakId = tiltaksdeltakerId?.let { finnSakIdForTiltaksdeltaker(it) }
         if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for komet-deltaker med id $deltakerId" }
-            val deltakerV1Dto = objectMapper.readValue<DeltakerV1Dto>(melding)
+            val deltakerV1Dto = deserialize<DeltakerV1Dto>(melding)
             val tiltaksdeltakerKafkaDb = deltakerV1Dto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
-            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(deltakerV1Dto))
+            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, melding)
             log.info { "Lagret melding for kometdeltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
@@ -74,9 +74,9 @@ class TiltaksdeltakerService(
         val sakId = tiltaksdeltakerId?.let { finnSakIdForTiltaksdeltaker(it) }
         if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for team tiltak-deltaker med id $deltakerId" }
-            val avtaleDto = objectMapper.readValue<AvtaleDto>(melding)
+            val avtaleDto = deserialize<AvtaleDto>(melding)
             val tiltaksdeltakerKafkaDb = avtaleDto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
-            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, objectMapper.writeValueAsString(avtaleDto))
+            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, melding)
             log.info { "Lagret melding for team tiltak-deltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
