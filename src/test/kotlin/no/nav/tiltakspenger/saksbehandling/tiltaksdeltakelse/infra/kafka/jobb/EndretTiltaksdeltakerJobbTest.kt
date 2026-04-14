@@ -32,7 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.getTiltaksdeltakerKafkaDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.getTiltaksdeltakerHendelse
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -60,20 +60,20 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
                 tiltaksdeltakerId = tiltaksdeltakerId,
             )
 
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id) shouldBe null
         }
     }
 
@@ -94,19 +94,19 @@ class EndretTiltaksdeltakerJobbTest {
             )
 
             // Opprett tiltaksdeltaker for en annen deltakerId enn den i behandlingen
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
             )
 
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id) shouldBe null
         }
     }
 
@@ -131,7 +131,7 @@ class EndretTiltaksdeltakerJobbTest {
                 innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
             )
 
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
                 deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
                 fom = null,
@@ -139,17 +139,17 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakerId = tiltaksdeltakerId,
             )
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id)
-            oppdatertTiltaksdeltakerKafkaDb.shouldNotBeNull()
-            oppdatertTiltaksdeltakerKafkaDb.oppgaveId shouldBe oppgaveId
-            oppdatertTiltaksdeltakerKafkaDb.behandlingId.shouldBeNull()
+            val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+            oppdatertTiltaksdeltakerHendelse.shouldNotBeNull()
+            oppdatertTiltaksdeltakerHendelse.oppgaveId shouldBe oppgaveId
+            oppdatertTiltaksdeltakerHendelse.behandlingId.shouldBeNull()
         }
     }
 
@@ -186,7 +186,7 @@ class EndretTiltaksdeltakerJobbTest {
             val behandlingPaVent = behandling.settPåVent(kommando = kommando, clock = tac.clock).first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
 
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
                 deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
                 fom = null,
@@ -194,14 +194,14 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakerId = tiltaksdeltakerId,
             )
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id) shouldBe null
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.mai(2025)
         }
     }
@@ -227,7 +227,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
                 fom = deltakelseFom,
                 tom = deltakelsesTom,
@@ -236,14 +236,14 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakerId = tiltaksdeltakerId,
             )
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id) shouldBe null
         }
     }
 
@@ -291,7 +291,7 @@ class EndretTiltaksdeltakerJobbTest {
             )
 
             // Opprett tiltaksdeltakerKafka med samme forlengede tom som revurderingen
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
                 fom = deltakelseFom,
                 tom = forlengetDeltakelsesTom,
@@ -300,7 +300,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakerId = tiltaksdeltakerId,
             )
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
@@ -308,7 +308,7 @@ class EndretTiltaksdeltakerJobbTest {
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
             // Skal slettes fordi det ikke er noen endring
-            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+            tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id) shouldBe null
         }
     }
 
@@ -333,7 +333,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
                 fom = deltakelseFom,
                 tom = deltakelsesTom.plusMonths(1),
@@ -341,25 +341,25 @@ class EndretTiltaksdeltakerJobbTest {
             )
 
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id)
+            val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
 
             val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
 
-            oppdatertTiltaksdeltakerKafkaDb.shouldNotBeNull()
-            oppdatertTiltaksdeltakerKafkaDb.oppgaveId.shouldBeNull()
-            oppdatertTiltaksdeltakerKafkaDb.behandlingId shouldBe sisteBehandling.id
+            oppdatertTiltaksdeltakerHendelse.shouldNotBeNull()
+            oppdatertTiltaksdeltakerHendelse.oppgaveId.shouldBeNull()
+            oppdatertTiltaksdeltakerHendelse.behandlingId shouldBe sisteBehandling.id
 
             val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
-            revurdering.id shouldBe oppdatertTiltaksdeltakerKafkaDb.behandlingId
+            revurdering.id shouldBe oppdatertTiltaksdeltakerHendelse.behandlingId
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
-            grunn.hendelseId shouldBe tiltaksdeltakerKafkaDb.id.toString()
+            grunn.hendelseId shouldBe tiltaksdeltakerHendelse.id.toString()
             grunn.endringer shouldHaveSize 2
             grunn.endringer.any { it is TiltaksdeltakerEndring.Forlengelse } shouldBe true
             grunn.endringer.any { it is TiltaksdeltakerEndring.EndretDeltakelsesmengde } shouldBe true
@@ -387,7 +387,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+            val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                 sakId = sak.id,
                 fom = deltakelseFom,
                 tom = deltakelsesTom.minusDays(2),
@@ -395,22 +395,22 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakerId = tiltaksdeltakerId,
             )
             tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerKafkaDb,
+                tiltaksdeltakerHendelse,
                 "melding",
                 nå(tac.clock).minusMinutes(20),
             )
 
             tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-            val oppdatertTiltaksdeltakerKafkaDb = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id)
-            oppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-            oppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+            val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+            oppdatertTiltaksdeltakerHendelse shouldNotBe null
+            oppdatertTiltaksdeltakerHendelse?.oppgaveId shouldBe null
 
             val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
             val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
-            revurdering.id shouldBe oppdatertTiltaksdeltakerKafkaDb?.behandlingId
+            revurdering.id shouldBe oppdatertTiltaksdeltakerHendelse?.behandlingId
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
-            grunn.hendelseId shouldBe tiltaksdeltakerKafkaDb.id.toString()
+            grunn.hendelseId shouldBe tiltaksdeltakerHendelse.id.toString()
             grunn.endringer shouldHaveSize 1
             grunn.endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
         }
@@ -446,7 +446,7 @@ class EndretTiltaksdeltakerJobbTest {
                     stansFraOgMed = rammevedtak.fraOgMed,
                 )
 
-                val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                     sakId = sak.id,
                     fom = førsteDeltakelseFom,
                     tom = LocalDate.now(tac.clock),
@@ -455,14 +455,14 @@ class EndretTiltaksdeltakerJobbTest {
                 )
 
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                    tiltaksdeltakerKafkaDb,
+                    tiltaksdeltakerHendelse,
                     "melding",
                     nå(tac.clock).minusMinutes(20),
                 )
 
                 tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-                tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerKafkaDb.id) shouldBe null
+                tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id) shouldBe null
             }
         }
 
@@ -509,7 +509,7 @@ class EndretTiltaksdeltakerJobbTest {
                     tiltaksdeltakelse = andreTiltaksdeltakelse,
                 )
 
-                val førsteTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                val førsteTiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                     id = førsteEksternId,
                     sakId = sak.id,
                     fom = førsteDeltakelseFom,
@@ -517,7 +517,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     tiltaksdeltakerId = førsteTiltaksdeltakerId,
                 )
-                val andreTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                val andreTiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                     id = andreEksternId,
                     sakId = sak.id,
                     fom = andreDeltakelseFom,
@@ -527,34 +527,34 @@ class EndretTiltaksdeltakerJobbTest {
                 )
 
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                    førsteTiltaksdeltakerKafkaDb,
+                    førsteTiltaksdeltakerHendelse,
                     "melding",
                     nå(tac.clock).minusMinutes(20),
                 )
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                    andreTiltaksdeltakerKafkaDb,
+                    andreTiltaksdeltakerHendelse,
                     "melding",
                     nå(tac.clock).minusMinutes(20),
                 )
 
                 tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-                val førsteOppdatertTiltaksdeltakerKafkaDb =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerKafkaDb.id)
-                førsteOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                førsteOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+                val førsteOppdatertTiltaksdeltakerHendelse =
+                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerHendelse.id)
+                førsteOppdatertTiltaksdeltakerHendelse shouldNotBe null
+                førsteOppdatertTiltaksdeltakerHendelse?.oppgaveId shouldBe null
 
                 val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
                 val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
-                revurdering.id shouldBe førsteOppdatertTiltaksdeltakerKafkaDb?.behandlingId
+                revurdering.id shouldBe førsteOppdatertTiltaksdeltakerHendelse?.behandlingId
                 val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
-                grunn.hendelseId shouldBe førsteTiltaksdeltakerKafkaDb.id.toString()
+                grunn.hendelseId shouldBe førsteTiltaksdeltakerHendelse.id.toString()
                 grunn.endringer shouldHaveSize 1
                 grunn.endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
 
-                val andreOppdatertTiltaksdeltakerKafkaDb =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerKafkaDb.id)
-                andreOppdatertTiltaksdeltakerKafkaDb shouldBe null
+                val andreOppdatertTiltaksdeltakerHendelse =
+                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerHendelse.id)
+                andreOppdatertTiltaksdeltakerHendelse shouldBe null
             }
         }
 
@@ -601,7 +601,7 @@ class EndretTiltaksdeltakerJobbTest {
                     tiltaksdeltakelse = andreTiltaksdeltakelse,
                 )
 
-                val førsteTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                val førsteTiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                     id = førsteEksternId,
                     sakId = sak.id,
                     fom = førsteDeltakelseFom,
@@ -609,7 +609,7 @@ class EndretTiltaksdeltakerJobbTest {
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     tiltaksdeltakerId = førsteTiltaksdeltakerId,
                 )
-                val andreTiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+                val andreTiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
                     id = andreEksternId,
                     sakId = sak.id,
                     fom = andreDeltakelseFom,
@@ -619,32 +619,32 @@ class EndretTiltaksdeltakerJobbTest {
                 )
 
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                    førsteTiltaksdeltakerKafkaDb,
+                    førsteTiltaksdeltakerHendelse,
                     "melding",
                     nå(tac.clock).minusMinutes(20),
                 )
                 tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
-                    andreTiltaksdeltakerKafkaDb,
+                    andreTiltaksdeltakerHendelse,
                     "melding",
                     nå(tac.clock).minusMinutes(20),
                 )
 
                 tac.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere()
 
-                val førsteOppdatertTiltaksdeltakerKafkaDb =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerKafkaDb.id)
-                førsteOppdatertTiltaksdeltakerKafkaDb shouldBe null
+                val førsteOppdatertTiltaksdeltakerHendelse =
+                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerHendelse.id)
+                førsteOppdatertTiltaksdeltakerHendelse shouldBe null
 
-                val andreOppdatertTiltaksdeltakerKafkaDb =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerKafkaDb.id)
-                andreOppdatertTiltaksdeltakerKafkaDb shouldNotBe null
-                andreOppdatertTiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
+                val andreOppdatertTiltaksdeltakerHendelse =
+                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerHendelse.id)
+                andreOppdatertTiltaksdeltakerHendelse shouldNotBe null
+                andreOppdatertTiltaksdeltakerHendelse?.oppgaveId shouldBe null
 
                 val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
                 val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
-                revurdering.id shouldBe andreOppdatertTiltaksdeltakerKafkaDb?.behandlingId
+                revurdering.id shouldBe andreOppdatertTiltaksdeltakerHendelse?.behandlingId
                 val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
-                grunn.hendelseId shouldBe andreTiltaksdeltakerKafkaDb.id.toString()
+                grunn.hendelseId shouldBe andreTiltaksdeltakerHendelse.id.toString()
                 grunn.endringer shouldHaveSize 1
                 grunn.endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
             }

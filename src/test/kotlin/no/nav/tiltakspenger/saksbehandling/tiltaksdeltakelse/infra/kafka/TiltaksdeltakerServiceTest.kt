@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
 import org.junit.jupiter.api.Test
@@ -69,15 +70,15 @@ class TiltaksdeltakerServiceTest {
 
             val hendelser = tiltaksdeltakerKafkaRepository.hentForDeltakerId(id)
             hendelser shouldHaveSize 1
-            val tiltaksdeltakerKafkaDb = hendelser.first()
-            tiltaksdeltakerKafkaDb.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerKafkaDb.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerKafkaDb.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerKafkaDb.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerKafkaDb.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe 2.0F
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -119,15 +120,15 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerKafkaRepository.hentForDeltakerId(id).shouldBeEmpty()
             val hendelser = tiltaksdeltakerKafkaRepository.hentForDeltakerId(nyEksternId.toString())
             hendelser shouldHaveSize 1
-            val tiltaksdeltakerKafkaDb = hendelser.first()
-            tiltaksdeltakerKafkaDb.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerKafkaDb.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerKafkaDb.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerKafkaDb.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerKafkaDb.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe 2.0F
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -204,6 +205,7 @@ class TiltaksdeltakerServiceTest {
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
+                kilde = TiltaksdeltakerHendelseKilde.Arena,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding")
 
@@ -277,15 +279,15 @@ class TiltaksdeltakerServiceTest {
 
             val hendelser = tiltaksdeltakerKafkaRepository.hentForDeltakerId(deltakerId.toString())
             hendelser shouldHaveSize 1
-            val tiltaksdeltakerKafkaDb = hendelser.first()
-            tiltaksdeltakerKafkaDb.deltakelseFraOgMed shouldBe kometDeltaker.startDato
-            tiltaksdeltakerKafkaDb.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
-            tiltaksdeltakerKafkaDb.dagerPerUke shouldBe kometDeltaker.dagerPerUke
-            tiltaksdeltakerKafkaDb.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
-            tiltaksdeltakerKafkaDb.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe kometDeltaker.startDato
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe kometDeltaker.dagerPerUke
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -326,6 +328,7 @@ class TiltaksdeltakerServiceTest {
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
+                kilde = TiltaksdeltakerHendelseKilde.Komet,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding")
 
@@ -402,15 +405,15 @@ class TiltaksdeltakerServiceTest {
 
             val hendelser = tiltaksdeltakerKafkaRepository.hentForDeltakerId(deltakerId)
             hendelser shouldHaveSize 1
-            val tiltaksdeltakerKafkaDb = hendelser.first()
-            tiltaksdeltakerKafkaDb.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
-            tiltaksdeltakerKafkaDb.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
-            tiltaksdeltakerKafkaDb.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
-            tiltaksdeltakerKafkaDb.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
-            tiltaksdeltakerKafkaDb.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
@@ -451,6 +454,7 @@ class TiltaksdeltakerServiceTest {
                 oppgaveSistSjekket = oppgaveSistSjekket,
                 tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
+                kilde = TiltaksdeltakerHendelseKilde.TeamTiltak,
             )
             tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding")
 

@@ -39,15 +39,15 @@ class TiltaksdeltakerService(
                 tiltaksdeltaker = tiltaksdeltaker,
             )
 
-            val tiltaksdeltakerKafkaDb = arenaDeltakerMapper.mapArenaDeltaker(
+            val tiltaksdeltakerHendelse = arenaDeltakerMapper.mapArenaDeltaker(
                 eksternId = oppdatertEksternId,
                 arenaKafkaMessage = arenaKafkaMessage,
                 sakId = sakId,
                 tiltaksdeltakerId = tiltaksdeltaker.id,
                 clock = clock,
             )
-            if (tiltaksdeltakerKafkaDb != null) {
-                lagreTiltaksdeltakerHendelse(tiltaksdeltakerKafkaDb, melding)
+            if (tiltaksdeltakerHendelse != null) {
+                lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding)
                 log.info { "Lagret melding for arenadeltaker med id $oppdatertEksternId" }
             }
         } else {
@@ -62,8 +62,8 @@ class TiltaksdeltakerService(
         if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for komet-deltaker med id $deltakerId" }
             val deltakerV1Dto = deserialize<DeltakerV1Dto>(melding)
-            val tiltaksdeltakerKafkaDb = deltakerV1Dto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
-            lagreTiltaksdeltakerHendelse(tiltaksdeltakerKafkaDb, melding)
+            val tiltaksdeltakerHendelse = deltakerV1Dto.tilTiltaksdeltakerHendelse(sakId, tiltaksdeltakerId)
+            lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding)
             log.info { "Lagret melding for kometdeltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
@@ -77,8 +77,8 @@ class TiltaksdeltakerService(
         if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for team tiltak-deltaker med id $deltakerId" }
             val avtaleDto = deserialize<AvtaleDto>(melding)
-            val tiltaksdeltakerKafkaDb = avtaleDto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
-            lagreTiltaksdeltakerHendelse(tiltaksdeltakerKafkaDb, melding)
+            val tiltaksdeltakerHendelse = avtaleDto.tilTiltaksdeltakerHendelse(sakId, tiltaksdeltakerId)
+            lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse, melding)
             log.info { "Lagret melding for team tiltak-deltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }

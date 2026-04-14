@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -24,7 +25,9 @@ class ArenaDeltakerMapper {
         tiltaksdeltakerId: TiltaksdeltakerId,
         clock: Clock,
     ): TiltaksdeltakerHendelse? {
-        arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId, tiltaksdeltakerId, clock) }
+        if (arenaKafkaMessage.after != null) {
+            return arenaKafkaMessage.after.tilTiltaksdeltakerHendelse(eksternId, sakId, tiltaksdeltakerId, clock)
+        }
 
         if (arenaKafkaMessage.opType == OperationType.D) {
             log.warn { "Deltakelse med id $eksternId er slettet fra Arena" }
@@ -35,7 +38,7 @@ class ArenaDeltakerMapper {
         }
     }
 
-    private fun ArenaDeltakerKafka.toTiltaksdeltakerKafkaDb(
+    private fun ArenaDeltakerKafka.tilTiltaksdeltakerHendelse(
         eksternId: String,
         sakId: SakId,
         tiltaksdeltakerId: TiltaksdeltakerId,
@@ -55,6 +58,7 @@ class ArenaDeltakerMapper {
             oppgaveSistSjekket = null,
             tiltaksdeltakerId = tiltaksdeltakerId,
             behandlingId = null,
+            kilde = TiltaksdeltakerHendelseKilde.Arena,
         )
     }
 

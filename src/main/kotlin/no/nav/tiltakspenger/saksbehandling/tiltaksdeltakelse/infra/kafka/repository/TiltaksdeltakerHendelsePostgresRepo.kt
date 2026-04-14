@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -27,7 +28,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     where hendelse_id = :hendelse_id
                 """.trimIndent(),
                 "hendelse_id" to id.toString(),
-            ).map { row -> row.toTiltaksdeltakerKafkaDb() }.asSingle,
+            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asSingle,
         )
     }
 
@@ -40,7 +41,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     where deltaker_id = :deltaker_id
                 """.trimIndent(),
                 "deltaker_id" to deltakerId,
-            ).map { row -> row.toTiltaksdeltakerKafkaDb() }.asList,
+            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
         )
     }
 
@@ -56,7 +57,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                           and sist_oppdatert < :sist_oppdatert
                     """.trimIndent(),
                     "sist_oppdatert" to sistOppdatertTidligereEnn,
-                ).map { row -> row.toTiltaksdeltakerKafkaDb() }.asList,
+                ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
             )
         }
 
@@ -83,7 +84,8 @@ class TiltaksdeltakerHendelsePostgresRepo(
                             melding,
                             oppgave_sist_sjekket,
                             tiltaksdeltaker_id,
-                            behandling_id
+                            behandling_id,
+                            kilde
                         ) values (
                             :hendelse_id,
                             :deltaker_id,
@@ -98,7 +100,8 @@ class TiltaksdeltakerHendelsePostgresRepo(
                             :melding,
                             :oppgave_sist_sjekket,
                             :tiltaksdeltaker_id,
-                            :behandling_id
+                            :behandling_id,
+                            :kilde
                         )
                     """.trimIndent(),
                     "hendelse_id" to tiltaksdeltakerHendelse.id.toString(),
@@ -115,6 +118,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     "oppgave_sist_sjekket" to tiltaksdeltakerHendelse.oppgaveSistSjekket,
                     "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.tiltaksdeltakerId.toString(),
                     "behandling_id" to tiltaksdeltakerHendelse.behandlingId?.toString(),
+                    "kilde" to tiltaksdeltakerHendelse.kilde.name,
                 ).asUpdate,
             )
         }
@@ -166,7 +170,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
         }
     }
 
-    private fun Row.toTiltaksdeltakerKafkaDb() =
+    private fun Row.tilTiltaksdeltakerHendelse() =
         TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.fromString(string("hendelse_id")),
             deltakerId = string("deltaker_id"),
@@ -180,5 +184,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
             tiltaksdeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
             behandlingId = stringOrNull("behandling_id")?.let { BehandlingId.fromString(it) },
+            kilde = stringOrNull("kilde")?.let { TiltaksdeltakerHendelseKilde.valueOf(it) } ?: TiltaksdeltakerHendelseKilde.Komet,
         )
 }

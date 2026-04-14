@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import java.time.LocalDate
 import java.util.UUID
 
@@ -89,7 +90,7 @@ data class AvtaleDto(
         OPPDATERTE_AVTALEKRAV,
     }
 
-    fun toTiltaksdeltakerKafkaDb(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
+    fun tilTiltaksdeltakerHendelse(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
         TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.random(),
             deltakerId = avtaleId.toString(),
@@ -103,6 +104,7 @@ data class AvtaleDto(
             oppgaveSistSjekket = null,
             tiltaksdeltakerId = tiltaksdeltakerId,
             behandlingId = null,
+            kilde = TiltaksdeltakerHendelseKilde.TeamTiltak,
         )
 }
 

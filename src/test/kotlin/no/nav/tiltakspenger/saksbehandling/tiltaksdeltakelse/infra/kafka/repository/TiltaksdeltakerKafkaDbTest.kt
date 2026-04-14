@@ -17,13 +17,14 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class TiltaksdeltakerKafkaDbTest {
+class TiltaksdeltakerHendelseTest {
     private val lagretTiltaksdeltakelse =
         Tiltaksdeltakelse(
             eksternDeltakelseId = UUID.randomUUID().toString(),
@@ -44,18 +45,18 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - ingen endring - returnerer ingen endringer`() {
         val clock = TikkendeKlokke()
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb()
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse()
 
-        tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldBeNull()
+        tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
     fun `tiltaksdeltakelseErEndret - endret startdato - returnerer ENDRET_STARTDATO`() {
         val clock = TikkendeKlokke()
         val nyStartdato = lagretTiltaksdeltakelse.deltakelseFraOgMed!!.minusDays(3)
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(fom = nyStartdato)
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(fom = nyStartdato)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretStartdato>()
         (endringer.first() as TiltaksdeltakerEndring.EndretStartdato).nyStartdato shouldBe nyStartdato
@@ -65,9 +66,9 @@ class TiltaksdeltakerKafkaDbTest {
     fun `tiltaksdeltakelseErEndret - forlengelse - returnerer FORLENGELSE`() {
         val clock = TikkendeKlokke()
         val nySluttdato = lagretTiltaksdeltakelse.deltakelseTilOgMed!!.plusMonths(1)
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(tom = nySluttdato)
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(tom = nySluttdato)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.Forlengelse>()
         (endringer.first() as TiltaksdeltakerEndring.Forlengelse).nySluttdato shouldBe nySluttdato
@@ -76,9 +77,9 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - endret dager pr uke - returnerer ENDRET_DELTAKELSESMENGDE`() {
         val clock = TikkendeKlokke()
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(dagerPerUke = 1F)
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(dagerPerUke = 1F)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesmengde>()
     }
@@ -87,9 +88,9 @@ class TiltaksdeltakerKafkaDbTest {
     fun `tiltaksdeltakelseErEndret - endret deltakelsesmengde - returnerer ENDRET_DELTAKELSESMENGDE`() {
         val clock = TikkendeKlokke()
         val nyDeltakelsesprosent = 60F
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = nyDeltakelsesprosent)
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(deltakelsesprosent = nyDeltakelsesprosent)
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretDeltakelsesmengde>()
         (endringer.first() as TiltaksdeltakerEndring.EndretDeltakelsesmengde).nyDeltakelsesprosent shouldBe nyDeltakelsesprosent
@@ -98,10 +99,10 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - lagret deltakelsesmengde er 0 og mottatt er null - returnerer ingen endringer`() {
         val clock = TikkendeKlokke()
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(deltakelsesprosent = null)
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(deltakelsesprosent = null)
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(deltakelseProsent = 0.0F)
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
+        tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
@@ -111,13 +112,13 @@ class TiltaksdeltakerKafkaDbTest {
             deltakelseFraOgMed = LocalDate.now(clock).minusMonths(3),
             deltakelseTilOgMed = LocalDate.now(clock).plusWeeks(1),
         )
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
             tom = tiltaksdeltakelse.deltakelseTilOgMed!!.minusWeeks(2),
             deltakerstatus = TiltakDeltakerstatus.HarSluttet,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
     }
@@ -129,13 +130,13 @@ class TiltaksdeltakerKafkaDbTest {
             deltakelseFraOgMed = LocalDate.now(clock).minusMonths(3),
             deltakelseTilOgMed = LocalDate.now(clock).minusDays(1),
         )
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
             tom = tiltaksdeltakelse.deltakelseTilOgMed,
             deltakerstatus = TiltakDeltakerstatus.Fullført,
         )
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
+        tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
@@ -145,13 +146,13 @@ class TiltaksdeltakerKafkaDbTest {
             deltakelseFraOgMed = LocalDate.now(clock).minusDays(1),
             deltakelseTilOgMed = LocalDate.now(clock).plusMonths(3),
         )
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
             tom = tiltaksdeltakelse.deltakelseTilOgMed,
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
+        tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
     }
 
     @Test
@@ -162,13 +163,13 @@ class TiltaksdeltakerKafkaDbTest {
             deltakelseTilOgMed = LocalDate.now(clock).plusMonths(3),
         )
         val nySluttdato = tiltaksdeltakelse.deltakelseTilOgMed?.plusWeeks(1)
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
             tom = nySluttdato,
             deltakerstatus = TiltakDeltakerstatus.Deltar,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.Forlengelse>()
         (endringer.first() as TiltaksdeltakerEndring.Forlengelse).nySluttdato shouldBe nySluttdato
@@ -182,13 +183,13 @@ class TiltaksdeltakerKafkaDbTest {
             deltakelseTilOgMed = LocalDate.now(clock).plusWeeks(1),
         )
         val nyStatus = TiltakDeltakerstatus.Fullført
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             fom = tiltaksdeltakelse.deltakelseFraOgMed,
             tom = tiltaksdeltakelse.deltakelseTilOgMed,
             deltakerstatus = nyStatus,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretStatus>()
         (endringer.first() as TiltaksdeltakerEndring.EndretStatus).nyStatus shouldBe nyStatus
@@ -197,11 +198,11 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - kun endret status til avbrutt - returnerer AVBRUTT_DELTAKELSE`() {
         val clock = TikkendeKlokke()
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             deltakerstatus = TiltakDeltakerstatus.Avbrutt,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
     }
@@ -209,12 +210,12 @@ class TiltaksdeltakerKafkaDbTest {
     @Test
     fun `tiltaksdeltakelseErEndret - forlengelse og endret deltakelsesmengde - returnerer begge`() {
         val clock = TikkendeKlokke()
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             tom = lagretTiltaksdeltakelse.deltakelseTilOgMed!!.plusMonths(1),
             dagerPerUke = 1F,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
         endringer.size shouldBe 2
         endringer.any { it is TiltaksdeltakerEndring.Forlengelse } shouldBe true
         endringer.any { it is TiltaksdeltakerEndring.EndretDeltakelsesmengde } shouldBe true
@@ -228,19 +229,19 @@ class TiltaksdeltakerKafkaDbTest {
             deltakelseTilOgMed = LocalDate.now(clock).plusMonths(4),
             deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart,
         )
-        val tiltaksdeltakerKafkaDb = getTiltaksdeltakerKafkaDb(
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
             fom = null,
             tom = null,
             deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
         )
 
-        val endringer = tiltaksdeltakerKafkaDb.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
         endringer shouldHaveSize 1
         endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.IkkeAktuellDeltakelse>()
     }
 }
 
-fun getTiltaksdeltakerKafkaDb(
+fun getTiltaksdeltakerHendelse(
     id: String = UUID.randomUUID().toString(),
     hendelseId: TiltaksdeltakerHendelseId = TiltaksdeltakerHendelseId.random(),
     fom: LocalDate? = 5.januar(2025),
@@ -252,6 +253,7 @@ fun getTiltaksdeltakerKafkaDb(
     oppgaveId: OppgaveId? = null,
     oppgaveSistSjekket: LocalDateTime? = null,
     tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
+    kilde: TiltaksdeltakerHendelseKilde = TiltaksdeltakerHendelseKilde.Komet,
 ) =
     TiltaksdeltakerHendelse(
         id = hendelseId,
@@ -266,4 +268,5 @@ fun getTiltaksdeltakerKafkaDb(
         oppgaveSistSjekket = oppgaveSistSjekket,
         tiltaksdeltakerId = tiltaksdeltakerId,
         behandlingId = null,
+        kilde = kilde,
     )

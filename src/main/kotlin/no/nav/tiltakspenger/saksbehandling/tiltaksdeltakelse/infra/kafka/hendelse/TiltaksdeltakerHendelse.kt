@@ -31,6 +31,7 @@ data class TiltaksdeltakerHendelse(
     val oppgaveSistSjekket: LocalDateTime?,
     val tiltaksdeltakerId: TiltaksdeltakerId,
     val behandlingId: BehandlingId?,
+    val kilde: TiltaksdeltakerHendelseKilde,
 ) {
 
     fun finnEndringer(
@@ -54,7 +55,13 @@ data class TiltaksdeltakerHendelse(
             return null
         }
 
-        if (erAvbruttDeltakelse(sammeStatus = sammeStatus, sammeTom = sammeTom, tiltaksdeltakelseFraBehandling, clock = clock)) {
+        if (erAvbruttDeltakelse(
+                sammeStatus = sammeStatus,
+                sammeTom = sammeTom,
+                tiltaksdeltakelseFraBehandling,
+                clock = clock,
+            )
+        ) {
             endringer.add(TiltaksdeltakerEndring.AvbruttDeltakelse)
             return endringer.tilEndringer()
         }
