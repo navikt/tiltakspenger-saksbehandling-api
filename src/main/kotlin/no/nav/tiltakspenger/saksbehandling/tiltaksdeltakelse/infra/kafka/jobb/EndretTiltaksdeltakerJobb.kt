@@ -15,13 +15,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRe
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerHendelsePostgresRepo
 import java.time.Clock
 import java.time.LocalDate
 
 class EndretTiltaksdeltakerJobb(
-    private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
+    private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
     private val rammebehandlingRepo: RammebehandlingRepo,
@@ -33,13 +33,14 @@ class EndretTiltaksdeltakerJobb(
 
     suspend fun opprettOppgaveEllerRevurderingForEndredeDeltakere() {
         Either.catch {
-            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgaveEllerBehandling(
+            val endredeDeltakere = tiltaksdeltakerHendelsePostgresRepo.hentAlleUtenOppgaveEllerBehandling(
                 sistOppdatertTidligereEnn = nå(clock).minusMinutes(15),
             )
 
             endredeDeltakere.forEach { deltaker ->
                 val sakId = deltaker.sakId
-                val eksternDeltakerId = deltaker.id
+                val hendelseId = deltaker.id
+                val eksternDeltakerId = deltaker.deltakerId
                 val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
                 Either.catch {
@@ -51,7 +52,7 @@ class EndretTiltaksdeltakerJobb(
 
                     if (endringer == null) {
                         log.info { "Fant ingen endringer for sakId $sakId og deltakerId $tiltaksdeltakerId / $eksternDeltakerId" }
-                        tiltaksdeltakerKafkaRepository.slett(eksternDeltakerId)
+                        tiltaksdeltakerHendelsePostgresRepo.slett(hendelseId)
                         return@forEach
                     }
 
@@ -67,13 +68,13 @@ class EndretTiltaksdeltakerJobb(
                             klagebehandlingId = null,
                             automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
                                 endringer = endringer,
-                                hendelseId = eksternDeltakerId,
+                                hendelseId = hendelseId.toString(),
                             ),
                         )
 
                         val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak)
 
-                        tiltaksdeltakerKafkaRepository.lagreBehandlingId(eksternDeltakerId, revurdering.id)
+                        tiltaksdeltakerHendelsePostgresRepo.lagreBehandlingId(hendelseId, revurdering.id)
 
                         log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse $tiltaksdeltakerId / $eksternDeltakerId" }
                     } else {
@@ -85,7 +86,7 @@ class EndretTiltaksdeltakerJobb(
                             endringer.getOppgaveTilleggstekst(),
                         )
 
-                        tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
+                        tiltaksdeltakerHendelsePostgresRepo.lagreOppgaveId(hendelseId, oppgaveId)
 
                         log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
                     }
@@ -113,7 +114,7 @@ class EndretTiltaksdeltakerJobb(
             }
     }
 
-    private fun Sak.finnEndringer(deltaker: TiltaksdeltakerKafkaDb): TiltaksdeltakerEndringer? {
+    private fun Sak.finnEndringer(deltaker: TiltaksdeltakerHendelse): TiltaksdeltakerEndringer? {
         val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
 
         val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier

@@ -15,6 +15,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -240,6 +242,7 @@ class TiltaksdeltakerKafkaDbTest {
 
 fun getTiltaksdeltakerKafkaDb(
     id: String = UUID.randomUUID().toString(),
+    hendelseId: TiltaksdeltakerHendelseId = TiltaksdeltakerHendelseId.random(),
     fom: LocalDate? = 5.januar(2025),
     tom: LocalDate? = 5.april(2025),
     dagerPerUke: Float? = 2.0F,
@@ -250,8 +253,9 @@ fun getTiltaksdeltakerKafkaDb(
     oppgaveSistSjekket: LocalDateTime? = null,
     tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
 ) =
-    TiltaksdeltakerKafkaDb(
-        id = id,
+    TiltaksdeltakerHendelse(
+        id = hendelseId,
+        deltakerId = id,
         deltakelseFraOgMed = fom,
         deltakelseTilOgMed = tom,
         dagerPerUke = dagerPerUke,

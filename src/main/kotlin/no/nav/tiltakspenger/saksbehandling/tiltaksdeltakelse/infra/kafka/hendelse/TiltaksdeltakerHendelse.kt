@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -14,10 +14,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
+ *  [id] Vår interne id for hendelsen
+ *  [deltakerId] Id for deltakelsen fra arena/tiltak/komet
  *  [behandlingId] Er satt dersom endringen førte til at det ble automatisk opprettet en revurdering
  * */
-data class TiltaksdeltakerKafkaDb(
-    val id: String,
+data class TiltaksdeltakerHendelse(
+    val id: TiltaksdeltakerHendelseId,
+    val deltakerId: String,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
     val dagerPerUke: Float?,

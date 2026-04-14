@@ -7,7 +7,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -22,7 +23,7 @@ class ArenaDeltakerMapper {
         sakId: SakId,
         tiltaksdeltakerId: TiltaksdeltakerId,
         clock: Clock,
-    ): TiltaksdeltakerKafkaDb? {
+    ): TiltaksdeltakerHendelse? {
         arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId, tiltaksdeltakerId, clock) }
 
         if (arenaKafkaMessage.opType == OperationType.D) {
@@ -39,10 +40,11 @@ class ArenaDeltakerMapper {
         sakId: SakId,
         tiltaksdeltakerId: TiltaksdeltakerId,
         clock: Clock,
-    ): TiltaksdeltakerKafkaDb {
+    ): TiltaksdeltakerHendelse {
         val deltakelseFraOgMed = DATO_FRA?.asValidatedLocalDate()
-        return TiltaksdeltakerKafkaDb(
-            id = eksternId,
+        return TiltaksdeltakerHendelse(
+            id = TiltaksdeltakerHendelseId.random(),
+            deltakerId = eksternId,
             deltakelseFraOgMed = deltakelseFraOgMed,
             deltakelseTilOgMed = DATO_TIL?.asValidatedLocalDate(),
             dagerPerUke = ANTALL_DAGER_PR_UKE,

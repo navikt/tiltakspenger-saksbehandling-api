@@ -9,27 +9,42 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import java.time.Clock
 import java.time.LocalDateTime
 
-class TiltaksdeltakerKafkaRepository(
+class TiltaksdeltakerHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
 ) {
-    fun hent(id: String): TiltaksdeltakerKafkaDb? = sessionFactory.withSession {
+    fun hent(id: TiltaksdeltakerHendelseId): TiltaksdeltakerHendelse? = sessionFactory.withSession {
         it.run(
             sqlQuery(
                 """
                     select * 
                     from tiltaksdeltaker_kafka 
-                    where id = :id
+                    where hendelse_id = :hendelse_id
                 """.trimIndent(),
-                "id" to id,
+                "hendelse_id" to id.toString(),
             ).map { row -> row.toTiltaksdeltakerKafkaDb() }.asSingle,
         )
     }
 
-    fun hentAlleUtenOppgaveEllerBehandling(sistOppdatertTidligereEnn: LocalDateTime): List<TiltaksdeltakerKafkaDb> =
+    fun hentForDeltakerId(deltakerId: String): List<TiltaksdeltakerHendelse> = sessionFactory.withSession {
+        it.run(
+            sqlQuery(
+                """
+                    select * 
+                    from tiltaksdeltaker_kafka 
+                    where deltaker_id = :deltaker_id
+                """.trimIndent(),
+                "deltaker_id" to deltakerId,
+            ).map { row -> row.toTiltaksdeltakerKafkaDb() }.asList,
+        )
+    }
+
+    fun hentAlleUtenOppgaveEllerBehandling(sistOppdatertTidligereEnn: LocalDateTime): List<TiltaksdeltakerHendelse> =
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
@@ -46,7 +61,7 @@ class TiltaksdeltakerKafkaRepository(
         }
 
     fun lagre(
-        tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb,
+        tiltaksdeltakerHendelse: TiltaksdeltakerHendelse,
         melding: String,
         sistOppdatert: LocalDateTime = nå(clock),
     ) {
@@ -55,7 +70,8 @@ class TiltaksdeltakerKafkaRepository(
                 sqlQuery(
                     """
                         insert into tiltaksdeltaker_kafka (
-                            id,
+                            hendelse_id,
+                            deltaker_id,
                             deltakelse_fra_og_med,
                             deltakelse_til_og_med,
                             dager_per_uke,
@@ -69,7 +85,8 @@ class TiltaksdeltakerKafkaRepository(
                             tiltaksdeltaker_id,
                             behandling_id
                         ) values (
-                            :id,
+                            :hendelse_id,
+                            :deltaker_id,
                             :deltakelse_fra_og_med,
                             :deltakelse_til_og_med,
                             :dager_per_uke,
@@ -82,82 +99,77 @@ class TiltaksdeltakerKafkaRepository(
                             :oppgave_sist_sjekket,
                             :tiltaksdeltaker_id,
                             :behandling_id
-                        ) on conflict (id) do update set
-                            deltakelse_fra_og_med = :deltakelse_fra_og_med,
-                            deltakelse_til_og_med = :deltakelse_til_og_med,
-                            dager_per_uke = :dager_per_uke,
-                            deltakelsesprosent = :deltakelsesprosent,
-                            deltakerstatus = :deltakerstatus,
-                            sist_oppdatert = :sist_oppdatert,
-                            melding = :melding
+                        )
                     """.trimIndent(),
-                    "id" to tiltaksdeltakerKafkaDb.id,
-                    "deltakelse_fra_og_med" to tiltaksdeltakerKafkaDb.deltakelseFraOgMed,
-                    "deltakelse_til_og_med" to tiltaksdeltakerKafkaDb.deltakelseTilOgMed,
-                    "dager_per_uke" to tiltaksdeltakerKafkaDb.dagerPerUke,
-                    "deltakelsesprosent" to tiltaksdeltakerKafkaDb.deltakelsesprosent,
-                    "deltakerstatus" to tiltaksdeltakerKafkaDb.deltakerstatus.name,
-                    "sak_id" to tiltaksdeltakerKafkaDb.sakId.toString(),
-                    "oppgave_id" to tiltaksdeltakerKafkaDb.oppgaveId?.toString(),
+                    "hendelse_id" to tiltaksdeltakerHendelse.id.toString(),
+                    "deltaker_id" to tiltaksdeltakerHendelse.deltakerId,
+                    "deltakelse_fra_og_med" to tiltaksdeltakerHendelse.deltakelseFraOgMed,
+                    "deltakelse_til_og_med" to tiltaksdeltakerHendelse.deltakelseTilOgMed,
+                    "dager_per_uke" to tiltaksdeltakerHendelse.dagerPerUke,
+                    "deltakelsesprosent" to tiltaksdeltakerHendelse.deltakelsesprosent,
+                    "deltakerstatus" to tiltaksdeltakerHendelse.deltakerstatus.name,
+                    "sak_id" to tiltaksdeltakerHendelse.sakId.toString(),
+                    "oppgave_id" to tiltaksdeltakerHendelse.oppgaveId?.toString(),
                     "sist_oppdatert" to sistOppdatert,
                     "melding" to melding,
-                    "oppgave_sist_sjekket" to tiltaksdeltakerKafkaDb.oppgaveSistSjekket,
-                    "tiltaksdeltaker_id" to tiltaksdeltakerKafkaDb.tiltaksdeltakerId.toString(),
-                    "behandling_id" to tiltaksdeltakerKafkaDb.behandlingId?.toString(),
+                    "oppgave_sist_sjekket" to tiltaksdeltakerHendelse.oppgaveSistSjekket,
+                    "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.tiltaksdeltakerId.toString(),
+                    "behandling_id" to tiltaksdeltakerHendelse.behandlingId?.toString(),
                 ).asUpdate,
             )
         }
     }
 
-    fun slett(id: String) {
+    fun slett(id: TiltaksdeltakerHendelseId) {
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
                         delete from tiltaksdeltaker_kafka 
-                        where id = :id
+                        where hendelse_id = :hendelse_id
                     """.trimIndent(),
-                    "id" to id,
+                    "hendelse_id" to id.toString(),
                 ).asUpdate,
             )
         }
     }
 
-    fun lagreOppgaveId(id: String, oppgaveId: OppgaveId) {
+    fun lagreOppgaveId(id: TiltaksdeltakerHendelseId, oppgaveId: OppgaveId) {
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
                         update tiltaksdeltaker_kafka 
                         set oppgave_id = :oppgave_id 
-                        where id = :id
+                        where hendelse_id = :hendelse_id
                     """.trimIndent(),
                     "oppgave_id" to oppgaveId.toString(),
-                    "id" to id,
+                    "hendelse_id" to id.toString(),
                 ).asUpdate,
             )
         }
     }
 
-    fun lagreBehandlingId(id: String, behandlingId: BehandlingId) {
+    fun lagreBehandlingId(id: TiltaksdeltakerHendelseId, behandlingId: BehandlingId) {
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
                         update tiltaksdeltaker_kafka 
                         set behandling_id = :behandling_id 
-                        where id = :id
+                        where hendelse_id = :hendelse_id
                     """.trimIndent(),
                     "behandling_id" to behandlingId.toString(),
-                    "id" to id,
+                    "hendelse_id" to id.toString(),
                 ).asUpdate,
             )
         }
     }
 
     private fun Row.toTiltaksdeltakerKafkaDb() =
-        TiltaksdeltakerKafkaDb(
-            id = string("id"),
+        TiltaksdeltakerHendelse(
+            id = TiltaksdeltakerHendelseId.fromString(string("hendelse_id")),
+            deltakerId = string("deltaker_id"),
             deltakelseFraOgMed = localDateOrNull("deltakelse_fra_og_med"),
             deltakelseTilOgMed = localDateOrNull("deltakelse_til_og_med"),
             dagerPerUke = floatOrNull("dager_per_uke"),

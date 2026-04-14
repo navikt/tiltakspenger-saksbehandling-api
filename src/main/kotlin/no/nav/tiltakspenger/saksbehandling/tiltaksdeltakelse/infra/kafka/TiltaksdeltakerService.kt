@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaKafkaMessage
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
@@ -17,7 +17,7 @@ import java.time.Clock
 import java.util.UUID
 
 class TiltaksdeltakerService(
-    private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
+    private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
     private val søknadRepo: SøknadRepo,
     private val arenaDeltakerMapper: ArenaDeltakerMapper,
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -47,7 +47,7 @@ class TiltaksdeltakerService(
                 clock = clock,
             )
             if (tiltaksdeltakerKafkaDb != null) {
-                lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, melding)
+                lagreTiltaksdeltakerHendelse(tiltaksdeltakerKafkaDb, melding)
                 log.info { "Lagret melding for arenadeltaker med id $oppdatertEksternId" }
             }
         } else {
@@ -58,11 +58,12 @@ class TiltaksdeltakerService(
     fun behandleMottattKometdeltaker(deltakerId: UUID, melding: String) {
         val tiltaksdeltakerId = tiltaksdeltakerRepo.hentInternId(deltakerId.toString())
         val sakId = tiltaksdeltakerId?.let { finnSakIdForTiltaksdeltaker(it) }
+
         if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for komet-deltaker med id $deltakerId" }
             val deltakerV1Dto = deserialize<DeltakerV1Dto>(melding)
             val tiltaksdeltakerKafkaDb = deltakerV1Dto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
-            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, melding)
+            lagreTiltaksdeltakerHendelse(tiltaksdeltakerKafkaDb, melding)
             log.info { "Lagret melding for kometdeltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
@@ -72,11 +73,12 @@ class TiltaksdeltakerService(
     fun behandleMottattTeamTiltakdeltaker(deltakerId: String, melding: String) {
         val tiltaksdeltakerId = tiltaksdeltakerRepo.hentInternId(deltakerId)
         val sakId = tiltaksdeltakerId?.let { finnSakIdForTiltaksdeltaker(it) }
+
         if (tiltaksdeltakerId != null && sakId != null) {
             log.info { "Fant sakId $sakId for team tiltak-deltaker med id $deltakerId" }
             val avtaleDto = deserialize<AvtaleDto>(melding)
             val tiltaksdeltakerKafkaDb = avtaleDto.toTiltaksdeltakerKafkaDb(sakId, tiltaksdeltakerId)
-            lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb, melding)
+            lagreTiltaksdeltakerHendelse(tiltaksdeltakerKafkaDb, melding)
             log.info { "Lagret melding for team tiltak-deltaker med id $deltakerId" }
         } else {
             log.info { "Fant ingen sak eller intern deltakerid knyttet til eksternId $deltakerId, lagrer ikke" }
@@ -102,7 +104,7 @@ class TiltaksdeltakerService(
         return søknadRepo.finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId)
     }
 
-    private fun lagreEllerOppdaterTiltaksdeltaker(tiltaksdeltakerKafkaDb: TiltaksdeltakerKafkaDb, melding: String) {
-        tiltaksdeltakerKafkaRepository.lagre(tiltaksdeltakerKafkaDb, melding)
+    private fun lagreTiltaksdeltakerHendelse(tiltaksdeltakerHendelse: TiltaksdeltakerHendelse, melding: String) {
+        tiltaksdeltakerHendelsePostgresRepo.lagre(tiltaksdeltakerHendelse, melding)
     }
 }
