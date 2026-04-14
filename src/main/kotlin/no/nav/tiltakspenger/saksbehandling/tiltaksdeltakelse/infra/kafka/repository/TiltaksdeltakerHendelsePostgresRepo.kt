@@ -118,7 +118,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     "oppgave_sist_sjekket" to tiltaksdeltakerHendelse.oppgaveSistSjekket,
                     "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.internDeltakerId.toString(),
                     "behandling_id" to tiltaksdeltakerHendelse.behandlingId?.toString(),
-                    "kilde" to tiltaksdeltakerHendelse.kilde.name,
+                    "kilde" to tiltaksdeltakerHendelse.kilde.toDb().name,
                 ).asUpdate,
             )
         }
@@ -184,6 +184,24 @@ class TiltaksdeltakerHendelsePostgresRepo(
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
             internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
             behandlingId = stringOrNull("behandling_id")?.let { BehandlingId.fromString(it) },
-            kilde = stringOrNull("kilde")?.let { TiltaksdeltakerHendelseKilde.valueOf(it) } ?: TiltaksdeltakerHendelseKilde.Komet,
+            kilde = stringOrNull("kilde")?.let { TiltaksdeltakerHendelseKildeDb.valueOf(it).toDomain() } ?: TiltaksdeltakerHendelseKilde.Komet,
         )
+}
+
+private enum class TiltaksdeltakerHendelseKildeDb {
+    Arena,
+    TeamTiltak,
+    Komet,
+}
+
+private fun TiltaksdeltakerHendelseKilde.toDb(): TiltaksdeltakerHendelseKildeDb = when (this) {
+    TiltaksdeltakerHendelseKilde.Arena -> TiltaksdeltakerHendelseKildeDb.Arena
+    TiltaksdeltakerHendelseKilde.TeamTiltak -> TiltaksdeltakerHendelseKildeDb.TeamTiltak
+    TiltaksdeltakerHendelseKilde.Komet -> TiltaksdeltakerHendelseKildeDb.Komet
+}
+
+private fun TiltaksdeltakerHendelseKildeDb.toDomain(): TiltaksdeltakerHendelseKilde = when (this) {
+    TiltaksdeltakerHendelseKildeDb.Arena -> TiltaksdeltakerHendelseKilde.Arena
+    TiltaksdeltakerHendelseKildeDb.TeamTiltak -> TiltaksdeltakerHendelseKilde.TeamTiltak
+    TiltaksdeltakerHendelseKildeDb.Komet -> TiltaksdeltakerHendelseKilde.Komet
 }
