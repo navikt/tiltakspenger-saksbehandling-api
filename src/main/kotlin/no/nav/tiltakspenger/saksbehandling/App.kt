@@ -104,7 +104,7 @@ internal fun start(
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
             { applicationContext.meldekortContext.automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock) },
 
-            { applicationContext.endretTiltaksdeltakerJobb.opprettOppgaveEllerRevurderingForEndredeDeltakere() },
+            { applicationContext.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser() },
         ).let {
             if (Configuration.isNais()) {
                 it.plus(

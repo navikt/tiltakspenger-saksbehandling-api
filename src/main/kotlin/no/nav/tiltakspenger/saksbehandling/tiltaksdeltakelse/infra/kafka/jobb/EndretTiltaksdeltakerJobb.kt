@@ -27,77 +27,93 @@ class EndretTiltaksdeltakerJobb(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val startRevurderingService: StartRevurderingService,
-
 ) {
     private val log = KotlinLogging.logger {}
 
-    suspend fun opprettOppgaveEllerRevurderingForEndredeDeltakere() {
+    suspend fun håndterEndretTiltaksdeltakerHendelser() {
         Either.catch {
-            val endredeDeltakere = tiltaksdeltakerHendelsePostgresRepo.hentAlleUtenOppgaveEllerBehandling(
+            val ubehandledeHendelser = tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(
                 sistOppdatertTidligereEnn = nå(clock).minusMinutes(15),
             )
 
-            endredeDeltakere.forEach { deltaker ->
-                val sakId = deltaker.sakId
-                val hendelseId = deltaker.id
-                val eksternDeltakerId = deltaker.eksternDeltakerId
-                val internDeltakerId = deltaker.internDeltakerId
+            val hendelserPerDeltaker = ubehandledeHendelser.groupBy { it.internDeltakerId }
 
-                val logIder = "sakId $sakId / intern deltakerId $internDeltakerId / ekstern deltakerId $eksternDeltakerId / hendelseId $hendelseId"
+            hendelserPerDeltaker.forEach { (_, hendelser) ->
+                val nyesteHendelse = hendelser.last()
 
-                Either.catch {
-                    val sak = sakRepo.hentForSakId(sakId)!!
-
-                    sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(internDeltakerId)
-
-                    val endringer = sak.finnEndringer(deltaker)
-
-                    if (endringer == null) {
-                        log.info { "Fant ingen endringer for $logIder" }
-                        tiltaksdeltakerHendelsePostgresRepo.slett(hendelseId)
-                        return@forEach
+                // Marker eldre hendelser for samme deltaker som behandlet uten videre håndtering
+                hendelser.dropLast(1).forEach { eldreHendelse ->
+                    log.info {
+                        "Hendelse ${eldreHendelse.id} er erstattet av en nyere hendelse for deltaker ${eldreHendelse.internDeltakerId}"
                     }
-
-                    val revurderingSomSkalOpprettes = sak.vurderRevurdering(internDeltakerId, endringer)
-
-                    if (revurderingSomSkalOpprettes != null) {
-                        val kommando = StartRevurderingKommando(
-                            sakId = sak.id,
-                            correlationId = CorrelationId.generate(),
-                            saksbehandler = null,
-                            revurderingType = revurderingSomSkalOpprettes.type,
-                            vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
-                            klagebehandlingId = null,
-                            automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
-                                endringer = endringer,
-                                hendelseId = hendelseId.toString(),
-                            ),
-                        )
-
-                        val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak)
-
-                        tiltaksdeltakerHendelsePostgresRepo.lagreBehandlingId(hendelseId, revurdering.id)
-
-                        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
-                    } else {
-                        log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
-
-                        val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                            sak.fnr,
-                            Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                            endringer.getOppgaveTilleggstekst(),
-                        )
-
-                        tiltaksdeltakerHendelsePostgresRepo.lagreOppgaveId(hendelseId, oppgaveId)
-
-                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse: $logIder" }
-                    }
-                }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse ($logIder)" }
+                    tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletOgIgnorert(eldreHendelse.id)
                 }
+
+                behandleHendelse(nyesteHendelse)
             }
         }.onLeft {
             log.error(it) { "Feil ved opprettelse av oppgaver/revurderinger for endret tiltaksdeltakelse" }
+        }
+    }
+
+    private suspend fun behandleHendelse(deltakerHendelse: TiltaksdeltakerHendelse) {
+        val sakId = deltakerHendelse.sakId
+        val hendelseId = deltakerHendelse.id
+        val eksternDeltakerId = deltakerHendelse.eksternDeltakerId
+        val internDeltakerId = deltakerHendelse.internDeltakerId
+
+        val logIder =
+            "sakId $sakId / intern deltakerId $internDeltakerId / ekstern deltakerId $eksternDeltakerId / hendelseId $hendelseId"
+
+        Either.catch {
+            val sak = sakRepo.hentForSakId(sakId)!!
+
+            sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(internDeltakerId)
+
+            val endringer = sak.finnEndringer(deltakerHendelse)
+
+            if (endringer == null) {
+                log.info { "Fant ingen endringer for $logIder" }
+                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletOgIgnorert(hendelseId)
+                return
+            }
+
+            val revurderingSomSkalOpprettes = sak.vurderRevurdering(internDeltakerId, endringer)
+
+            if (revurderingSomSkalOpprettes != null) {
+                val kommando = StartRevurderingKommando(
+                    sakId = sak.id,
+                    correlationId = CorrelationId.generate(),
+                    saksbehandler = null,
+                    revurderingType = revurderingSomSkalOpprettes.type,
+                    vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
+                    klagebehandlingId = null,
+                    automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
+                        endringer = endringer,
+                        hendelseId = hendelseId.toString(),
+                    ),
+                )
+
+                val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak)
+
+                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletMedRevurdering(hendelseId, revurdering.id)
+
+                log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
+            } else {
+                log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
+
+                val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                    sak.fnr,
+                    Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                    endringer.getOppgaveTilleggstekst(),
+                )
+
+                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletMedOppgave(hendelseId, oppgaveId)
+
+                log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse: $logIder" }
+            }
+        }.onLeft {
+            log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse ($logIder)" }
         }
     }
 
@@ -160,7 +176,8 @@ class EndretTiltaksdeltakerJobb(
         }
 
         if (endringer.forlengelse != null) {
-            return vurderRevurderingForForlengelse(endringer.forlengelse!!)
+            val forlengelse = vurderRevurderingForForlengelse(endringer.forlengelse!!)
+            if (forlengelse != null) return forlengelse
         }
 
         return when {

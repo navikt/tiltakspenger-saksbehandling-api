@@ -45,16 +45,16 @@ class TiltaksdeltakerHendelsePostgresRepo(
         )
     }
 
-    fun hentAlleUtenOppgaveEllerBehandling(sistOppdatertTidligereEnn: LocalDateTime): List<TiltaksdeltakerHendelse> =
+    fun hentUbehandlede(sistOppdatertTidligereEnn: LocalDateTime): List<TiltaksdeltakerHendelse> =
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
                         select * 
                         from tiltaksdeltaker_kafka
-                        where oppgave_id is null 
-                          and behandling_id is null 
+                        where behandlet_tidspunkt is null 
                           and sist_oppdatert < :sist_oppdatert
+                        order by sist_oppdatert asc
                     """.trimIndent(),
                     "sist_oppdatert" to sistOppdatertTidligereEnn,
                 ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
@@ -125,29 +125,33 @@ class TiltaksdeltakerHendelsePostgresRepo(
         }
     }
 
-    fun slett(id: TiltaksdeltakerHendelseId) {
+    fun markerSomBehandletOgIgnorert(id: TiltaksdeltakerHendelseId) {
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
-                        delete from tiltaksdeltaker_kafka 
+                        update tiltaksdeltaker_kafka 
+                        set behandlet_tidspunkt = :behandlet_tidspunkt
                         where hendelse_id = :hendelse_id
                     """.trimIndent(),
+                    "behandlet_tidspunkt" to nå(clock),
                     "hendelse_id" to id.toString(),
                 ).asUpdate,
             )
         }
     }
 
-    fun lagreOppgaveId(id: TiltaksdeltakerHendelseId, oppgaveId: OppgaveId) {
+    fun markerSomBehandletMedOppgave(id: TiltaksdeltakerHendelseId, oppgaveId: OppgaveId) {
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
                         update tiltaksdeltaker_kafka 
-                        set oppgave_id = :oppgave_id 
+                        set behandlet_tidspunkt = :behandlet_tidspunkt,
+                            oppgave_id = :oppgave_id
                         where hendelse_id = :hendelse_id
                     """.trimIndent(),
+                    "behandlet_tidspunkt" to nå(clock),
                     "oppgave_id" to oppgaveId.toString(),
                     "hendelse_id" to id.toString(),
                 ).asUpdate,
@@ -155,15 +159,17 @@ class TiltaksdeltakerHendelsePostgresRepo(
         }
     }
 
-    fun lagreBehandlingId(id: TiltaksdeltakerHendelseId, behandlingId: BehandlingId) {
+    fun markerSomBehandletMedRevurdering(id: TiltaksdeltakerHendelseId, behandlingId: BehandlingId) {
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
                         update tiltaksdeltaker_kafka 
-                        set behandling_id = :behandling_id 
+                        set behandlet_tidspunkt = :behandlet_tidspunkt,
+                            behandling_id = :behandling_id
                         where hendelse_id = :hendelse_id
                     """.trimIndent(),
+                    "behandlet_tidspunkt" to nå(clock),
                     "behandling_id" to behandlingId.toString(),
                     "hendelse_id" to id.toString(),
                 ).asUpdate,
