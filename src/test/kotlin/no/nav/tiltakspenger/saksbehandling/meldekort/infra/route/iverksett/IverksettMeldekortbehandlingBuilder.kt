@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.iverksett
 
-import arrow.core.Tuple5
+import arrow.core.Tuple4
+import arrow.core.Tuple6
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -28,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
@@ -71,7 +73,7 @@ interface IverksettMeldekortbehandlingBuilder {
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
+    ): Tuple6<Sak, Søknad, Rammevedtak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
         val (sakMedMeldekortbehandlingUnderBeslutning, søknad, rammevedtakSøknadsbehandling, meldekortbehandlingUnderBeslutning) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -80,7 +82,7 @@ interface IverksettMeldekortbehandlingBuilder {
             tiltaksdeltakelse = tiltaksdeltakelse,
             innvilgelsesperioder = innvilgelsesperioder,
         ) ?: return null
-        val (oppdatertSak, oppdatertMeldekort, json) = iverksettMeldekortbehandling(
+        val (oppdatertSak, meldekortvedtak, oppdatertMeldekort, json) = iverksettMeldekortbehandling(
             tac = tac,
             sakId = sakMedMeldekortbehandlingUnderBeslutning.id,
             meldekortId = meldekortbehandlingUnderBeslutning.id,
@@ -88,10 +90,11 @@ interface IverksettMeldekortbehandlingBuilder {
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        return Tuple5(
+        return Tuple6(
             oppdatertSak,
             søknad,
             rammevedtakSøknadsbehandling,
+            meldekortvedtak,
             oppdatertMeldekort,
             json,
         )
@@ -115,7 +118,7 @@ interface IverksettMeldekortbehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
+    ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
         val (sak, meldekortbehandling) = opprettOgBesluttertarMeldekortbehanding(
             tac = tac,
             sakId = sakId,
@@ -143,7 +146,7 @@ interface IverksettMeldekortbehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
+    ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = beslutter,
         )
@@ -171,13 +174,15 @@ interface IverksettMeldekortbehandlingBuilder {
             val jsonObject: MeldeperiodeKjedeDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val meldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortbehandlingManuell
+            val meldekortvedtak = oppdatertSak.meldekortvedtaksliste.single { it.behandlingId == meldekortbehandling.id }
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.GODKJENT
 
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
             tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
 
-            return Triple(
+            return Tuple4(
                 oppdatertSak,
+                meldekortvedtak,
                 meldekortbehandling,
                 jsonObject,
             )

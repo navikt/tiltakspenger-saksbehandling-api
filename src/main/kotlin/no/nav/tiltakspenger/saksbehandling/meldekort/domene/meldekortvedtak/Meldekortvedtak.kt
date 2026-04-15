@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
@@ -54,6 +55,7 @@ data class Meldekortvedtak(
     val beregningsperiode: Periode = meldekortbehandling.beregning.periode
     val antallDagerPerMeldeperiode: Int = meldeperiode.maksAntallDagerForMeldeperiode
     val dager: List<MeldekortDag> = meldekortbehandling.dager
+    val kjedeId: MeldeperiodeKjedeId = meldekortbehandling.kjedeId
 
     override val periode: Periode = meldeperiode.periode
 

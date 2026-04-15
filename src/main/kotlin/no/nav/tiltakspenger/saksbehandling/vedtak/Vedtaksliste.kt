@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -101,6 +102,17 @@ data class Vedtaksliste(
         return rammevedtaksliste.hentRammevedtakForId(vedtakId).rammebehandling
     }
 
+    fun hentBehandlingForVedtakId(vedtakId: VedtakId): Behandling {
+        val vedtak = this.alle.single { it.id == vedtakId }
+
+        return when (vedtak) {
+            is Rammevedtak -> vedtak.rammebehandling
+            is Meldekortvedtak -> vedtak.meldekortbehandling
+            is Klagevedtak -> vedtak.behandling
+            else -> throw IllegalStateException("Ukjent vedtakstype for vedtakId=$vedtakId")
+        }
+    }
+
     init {
         require(alle.nonDistinctBy { it.opprettet }.isEmpty()) {
             "Vedtakene i Vedtaksliste kan ikke ha samme opprettet-tidspunkt."
@@ -126,5 +138,5 @@ private fun slåSammenVedtakslistene(
     meldekortvedtaksliste: Meldekortvedtaksliste,
     klagevedtaksliste: Klagevedtaksliste,
 ): List<Vedtak> {
-    return (rammevedtaksliste.verdi + meldekortvedtaksliste.verdi + klagevedtaksliste.verdi).sortedBy { it.opprettet }
+    return (rammevedtaksliste.verdi + meldekortvedtaksliste + klagevedtaksliste.verdi).sortedBy { it.opprettet }
 }

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis
 
+import arrow.core.Tuple4
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -22,7 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortVedtakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -48,6 +51,33 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
         ) ?: return null
         return Triple(
             sak,
+            klagebehandling,
+            forhåndsvisKlagebehandlingsbrev(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = saksbehandler,
+                forventetStatus = forventetStatus,
+                forventetPdf = forventetPdf,
+            )!!,
+        )
+    }
+
+    suspend fun ApplicationTestBuilder.iverksettMeldekortvedtakOgForhåndsvisKlagebehandlingTilAvvisningsbrev(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetPdf: PdfA? = null,
+    ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, PdfA>? {
+        val (sak, meldekortvedtak, klagebehandling, _) = this.iverksettMeldekortVedtakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
+            tac = tac,
+            saksbehandler = saksbehandler,
+            fnr = fnr,
+        ) ?: return null
+        return Tuple4(
+            sak,
+            meldekortvedtak,
             klagebehandling,
             forhåndsvisKlagebehandlingsbrev(
                 tac = tac,

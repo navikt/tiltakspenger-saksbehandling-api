@@ -32,10 +32,12 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnnta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
@@ -129,6 +131,43 @@ interface OpprettKlagebehandlingBuilder {
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
         return Tuple5(oppdatertSak, søknad, vedtakSøknadsbehandling, klagebehandling, klagebehandlingJson)
+    }
+
+    suspend fun ApplicationTestBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning(
+        tac: TestApplicationContext,
+        saksbehandlerMeldekortbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerMeldekortbehandling"),
+        saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        journalpostId: JournalpostId = JournalpostId("12345"),
+        erKlagerPartISaken: Boolean = true,
+        klagesDetPåKonkreteElementerIVedtaket: Boolean = false,
+        erKlagefristenOverholdt: Boolean = true,
+        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
+        erKlagenSignert: Boolean = true,
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, _, _, meldekortedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(
+            tac = tac,
+            saksbehandler = saksbehandlerMeldekortbehandling,
+        ) ?: return null
+
+        val (oppdatertSak, klagebehandling, klagebehandlingJson) = this.opprettKlagebehandlingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            saksbehandler = saksbehandlerKlagebehandling,
+            journalpostId = journalpostId,
+            vedtakDetKlagesPå = meldekortedtak.id,
+            erKlagerPartISaken = erKlagerPartISaken,
+            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+            erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erUnntakForKlagefrist = erUnntakForKlagefrist,
+            erKlagenSignert = erKlagenSignert,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        ) ?: return null
+
+        return Tuple4(oppdatertSak, meldekortedtak, klagebehandling, klagebehandlingJson)
     }
 
     /** Forventer at det allerede finnes en sak. */

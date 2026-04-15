@@ -7,7 +7,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagevedtakDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortVedtakDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
@@ -42,6 +44,7 @@ data class SakDTO(
     val innvilgetTidslinje: TidslinjeDTO,
     val alleRammevedtak: List<RammevedtakDTO>,
     val alleKlagevedtak: List<KlagevedtakDTO>,
+    val meldekortvedtak: List<MeldekortVedtakDto>,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
     val søknader: List<SøknadDTO>,
     val tilbakekrevinger: List<TilbakekrevingBehandlingDTO>,
@@ -68,4 +71,5 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
         it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!, saksbehandler)
     },
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+    meldekortvedtak = this.vedtaksliste.meldekortvedtaksliste.toDto(),
 )

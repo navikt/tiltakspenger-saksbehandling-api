@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett
 
+import arrow.core.Tuple4
 import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
@@ -22,7 +23,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagevedtakForKlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortVedtakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -54,6 +57,35 @@ interface IverksettKlagebehandlingBuilder {
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
+        )
+    }
+
+    suspend fun ApplicationTestBuilder.iverksettMeldekortvedtakOgKlagebehandlingTilAvvisning(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple4<Sak, Meldekortvedtak, Klagevedtak, KlagebehandlingDTOJson>? {
+        val (sak, meldekortVedtak, klagebehandling, _) = this.iverksettMeldekortVedtakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
+            tac = tac,
+            saksbehandler = saksbehandler,
+            fnr = fnr,
+        ) ?: return null
+        val (sakEtterIverksettelse, klagevedtak, klagebehandlingJson) = iverksettKlagebehandlingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandler,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        ) ?: return null
+
+        return Tuple4(
+            sakEtterIverksettelse,
+            meldekortVedtak,
+            klagevedtak,
+            klagebehandlingJson,
         )
     }
 

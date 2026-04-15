@@ -26,7 +26,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilOpprettholdelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -108,6 +110,38 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
         )!!
 
         return Tuple4(oppdatertSak, rammevedtak, oppdatertKlagebehandling, klagebehandlingJson)
+    }
+
+    suspend fun ApplicationTestBuilder.iverksettMeldekortVedtakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        brevtekst: List<TittelOgTekst> = listOf(
+            TittelOgTekst(
+                tittel = NonBlankString.create("Avvisning av klage"),
+                tekst = NonBlankString.create("Din klage er dessverre avvist."),
+            ),
+        ),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, meldekortvedtak, klagebehandling, _) = this.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning(
+            tac = tac,
+            saksbehandlerKlagebehandling = saksbehandler,
+            fnr = fnr,
+        ) ?: return null
+
+        val (oppdatertSak, oppdatertKlagebehandling, klagebehandlingJson) = oppdaterKlagebehandlingBrevtekstForSakId(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandler,
+            brevtekst = brevtekst,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        )!!
+
+        return Tuple4(oppdatertSak, meldekortvedtak, oppdatertKlagebehandling, klagebehandlingJson)
     }
 
     /** Forventer at det allerede finnes en sak. */

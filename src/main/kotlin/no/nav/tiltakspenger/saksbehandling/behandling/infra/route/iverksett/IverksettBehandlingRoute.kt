@@ -23,14 +23,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingen
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 
+private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/iverksett"
+
 fun Route.iverksettRammebehandlingRoute(
     iverksettRammebehandlingService: IverksettRammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
-    post("/sak/{sakId}/behandling/{behandlingId}/iverksett") {
-        logger.debug { "Mottatt post-request på '/sak/{sakId}/behandling/{behandlingId}/iverksett' - iverksetter behandlingen, oppretter vedtak, evt. genererer meldekort og asynkront sender brev." }
+    post(PATH) {
+        logger.debug { "Mottatt post-request på '$PATH' - iverksetter behandlingen, oppretter vedtak, evt. genererer meldekort og asynkront sender brev." }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->

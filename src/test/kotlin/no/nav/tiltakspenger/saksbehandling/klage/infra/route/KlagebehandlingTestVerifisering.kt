@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -215,6 +217,60 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          }
        }
         """.trimIndent()
+
+    if (ignorerTidspunkt) {
+        this.shouldEqualJsonIgnoringTimestamps(expected)
+    } else {
+        this.shouldEqualJson(expected)
+    }
+}
+
+fun String.shouldBeKlagevedtakJson(
+    ignorerTidspunkt: Boolean = true,
+    klagebehandlingId: KlagebehandlingId,
+    sakId: SakId,
+    saksnummer: Saksnummer = Saksnummer("202601011001"),
+    vedtakDetKlagesPå: VedtakId?,
+    behandlingDetKlagesPå: Ulid?,
+) {
+    val expected = """{
+                  "id": "$klagebehandlingId",
+                  "sakId": "$sakId",
+                  "saksnummer": "$saksnummer",
+                  "fnr": "12345678911",
+                  "opprettet": "TIMESTAMP",
+                  "sistEndret": "TIMESTAMP",
+                  "iverksattTidspunkt": "TIMESTAMP",
+                  "saksbehandler": "saksbehandlerKlagebehandling",
+                  "klagensJournalpostId": "12345",
+                  "klagensJournalpostOpprettet": "TIMESTAMP",
+                  "status": "VEDTATT",
+                  "resultat": {
+                    "brevtekst": [
+                      {"tittel":"Avvisning av klage","tekst":"Din klage er dessverre avvist."}
+                    ],
+                    "begrunnelseFerdigstilling": null,
+                    "type": "AVVIST"
+                  },
+                  "avbrutt": null,
+                  "kanIverksetteVedtak": false,
+                  "kanIverksetteOpprettholdelse": false,
+                  "ventestatus": null,
+                  "formkrav": {
+                    "vedtakDetKlagesPå": "$vedtakDetKlagesPå",
+                    "behandlingDetKlagesPå": "$behandlingDetKlagesPå",
+                    "erKlagerPartISaken": true,
+                    "klagesDetPåKonkreteElementerIVedtaket": false,
+                    "erKlagefristenOverholdt": true,
+                    "erUnntakForKlagefrist": null,
+                    "erKlagenSignert": true,
+                    "innsendingsdato": "2026-02-16",
+                    "innsendingskilde": "DIGITAL"
+                  },
+                  "tilknyttedeRammebehandlingIder": [],
+                  "åpenRammebehandlingId": null
+                }
+    """.trimIndent()
 
     if (ignorerTidspunkt) {
         this.shouldEqualJsonIgnoringTimestamps(expected)

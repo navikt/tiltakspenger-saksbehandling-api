@@ -42,13 +42,14 @@ class OpprettKlagebehandlingService(
             // Dette er ikke en forventet feil - så vi lager ikke en left for den.
             "Journalpost ${kommando.journalpostId} mangler datoOpprettet. sakId=${kommando.sakId}"
         }
+
         val klagebehandling = Klagebehandling.opprett(
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
             opprettet = nå(clock),
             journalpostOpprettet = journalpost.datoOpprettet,
             kommando = kommando,
-            behandlingDetKlagesPå = kommando.vedtakDetKlagesPå?.let { sak.vedtaksliste.hentRammebehandlingForVedtakId(it).id },
+            behandlingDetKlagesPå = kommando.vedtakDetKlagesPå?.let { sak.vedtaksliste.hentBehandlingForVedtakId(it).id },
         )
 
         val oppdatertSak = sak.leggTilKlagebehandling(klagebehandling)

@@ -10,7 +10,7 @@ data class KlagebehandlingId private constructor(
     private val ulid: UlidBase,
 ) : Ulid by ulid {
     companion object {
-        private const val PREFIX = "klage"
+        const val PREFIX = "klage"
 
         fun random() = KlagebehandlingId(ulid = UlidBase("${PREFIX}_${ULID.randomULID()}"))
 

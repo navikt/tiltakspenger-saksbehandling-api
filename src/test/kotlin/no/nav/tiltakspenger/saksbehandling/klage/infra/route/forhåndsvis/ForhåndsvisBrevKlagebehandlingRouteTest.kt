@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis
 
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhåndsvisKlagebehandlingsbrev
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgForhåndsvisKlagebehandlingTilAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgForhåndsvisKlagebehandlingTilAvvisningsbrev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst
 import org.junit.jupiter.api.Test
@@ -27,6 +28,15 @@ class ForhåndsvisBrevKlagebehandlingRouteTest {
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
             )
+        }
+    }
+
+    @Test
+    fun `kan forhåndsvise klagebehandling til avvisning der vedtak er utbetalingsvedtak`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            iverksettMeldekortvedtakOgForhåndsvisKlagebehandlingTilAvvisningsbrev(
+                tac = tac,
+            )!!
         }
     }
 }

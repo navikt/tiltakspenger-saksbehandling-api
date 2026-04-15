@@ -23,10 +23,12 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshen
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagevedtakJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
@@ -463,6 +465,23 @@ class IverksettKlagebehandlingRouteTest {
 
             // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
             hentSakForSaksnummer(tac, sak.saksnummer)!!
+        }
+    }
+
+    @Test
+    fun `kan iverksette avvist klagebehandling der vedtaket er utbetalingsvedtak`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, meldekortvedtak, klagevedtak, klagevedtakJson) = iverksettMeldekortvedtakOgKlagebehandlingTilAvvisning(
+                tac = tac,
+            )!!
+
+            klagevedtakJson.toString().shouldBeKlagevedtakJson(
+                klagebehandlingId = klagevedtak.behandling.id,
+                sakId = sak.id,
+                vedtakDetKlagesPå = meldekortvedtak.id,
+                behandlingDetKlagesPå = klagevedtak.behandling.formkrav.behandlingDetKlagesPå!!,
+            )
         }
     }
 }

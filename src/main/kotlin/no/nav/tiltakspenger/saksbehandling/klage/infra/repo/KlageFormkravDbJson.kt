@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
@@ -39,6 +42,20 @@ enum class KlageInnsendingskildeDb {
     }
 }
 
+private fun String.toBehandlingIdDetKlagesPå(): Ulid {
+    if (this.startsWith(BehandlingId.PREFIX)) {
+        return BehandlingId.fromString(this)
+    }
+    if (this.startsWith(MeldekortId.PREFIX)) {
+        return MeldekortId.fromString(this)
+    }
+    if (this.startsWith(KlagebehandlingId.PREFIX)) {
+        return KlagebehandlingId.fromString(this)
+    }
+
+    throw IllegalArgumentException("Ukjent format for behandlingDetKlagesPå: $this. Forventet å starte med 'beh_' eller 'meldekort'.")
+}
+
 private data class KlagebehandlingFormkravDbJson(
     val vedtakDetKlagesPå: String?,
     val behandlingDetKlagesPå: String?,
@@ -53,7 +70,7 @@ private data class KlagebehandlingFormkravDbJson(
     fun toDomain(): KlageFormkrav {
         return KlageFormkrav(
             vedtakDetKlagesPå = vedtakDetKlagesPå?.let { VedtakId.fromString(it) },
-            behandlingDetKlagesPå = behandlingDetKlagesPå?.let { BehandlingId.fromString(it) },
+            behandlingDetKlagesPå = behandlingDetKlagesPå?.toBehandlingIdDetKlagesPå(),
             erKlagerPartISaken = erKlagerPartISaken,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
             erKlagefristenOverholdt = erKlagefristenOverholdt,

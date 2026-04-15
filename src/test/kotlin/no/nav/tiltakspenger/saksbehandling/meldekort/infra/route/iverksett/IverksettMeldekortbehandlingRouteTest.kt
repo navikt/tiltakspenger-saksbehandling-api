@@ -10,7 +10,7 @@ class IverksettMeldekortbehandlingRouteTest {
     @Test
     fun `saksbehandler kan iverksette meldekortbehandling`() {
         withTestApplicationContext { tac ->
-            val (_, _, _, meldekortbehandling, _) = this.iverksettSøknadsbehandlingOgMeldekortbehandling(
+            val (_, _, _, _, meldekortbehandling, _) = this.iverksettSøknadsbehandlingOgMeldekortbehandling(
                 tac = tac,
             )!!
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.GODKJENT

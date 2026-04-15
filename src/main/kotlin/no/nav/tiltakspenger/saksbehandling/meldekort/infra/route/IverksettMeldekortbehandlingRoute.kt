@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperi
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
 import java.time.Clock
 
+private const val PATH = "sak/{sakId}/meldekort/{meldekortId}/iverksett"
+
 fun Route.iverksettMeldekortRoute(
     iverksettMeldekortbehandlingService: IverksettMeldekortbehandlingService,
     auditService: AuditService,
@@ -32,8 +34,8 @@ fun Route.iverksettMeldekortRoute(
 ) {
     val logger = KotlinLogging.logger { }
 
-    post("sak/{sakId}/meldekort/{meldekortId}/iverksett") {
-        logger.debug { "Mottatt post-request på sak/{sakId}/meldekort/{meldekortId}/iverksett - iverksetter meldekort" }
+    post(PATH) {
+        logger.debug { "Mottatt post-request på '$PATH' - iverksetter meldekort" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->

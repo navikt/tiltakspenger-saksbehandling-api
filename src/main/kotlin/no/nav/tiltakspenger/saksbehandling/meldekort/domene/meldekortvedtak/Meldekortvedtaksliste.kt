@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 
 data class Meldekortvedtaksliste(
-    val verdi: List<Meldekortvedtak>,
+    private val verdi: List<Meldekortvedtak>,
 ) : List<Meldekortvedtak> by verdi {
     @Suppress("unused")
     constructor(value: Meldekortvedtak) : this(listOf(value))
