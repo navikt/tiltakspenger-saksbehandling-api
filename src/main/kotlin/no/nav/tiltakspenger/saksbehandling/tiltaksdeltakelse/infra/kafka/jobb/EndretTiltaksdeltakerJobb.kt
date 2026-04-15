@@ -33,7 +33,7 @@ class EndretTiltaksdeltakerJobb(
     suspend fun håndterEndretTiltaksdeltakerHendelser() {
         Either.catch {
             val hendelserPerDeltaker = tiltaksdeltakerHendelsePostgresRepo
-                .hentUbehandlede(nå(clock).minusMinutes(MINUTES_DELAY))
+                .hentUbehandlede(MINUTTER_FORSINKELSE)
                 .groupBy { it.internDeltakerId }
 
             hendelserPerDeltaker.forEach { (_, hendelser) ->
@@ -121,7 +121,7 @@ class EndretTiltaksdeltakerJobb(
             .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
             .forEach {
                 it.oppdaterVenterTil(
-                    nyVenterTil = nå(clock).plusMinutes(MINUTES_DELAY), // venter i tilfelle det kommer flere endringer
+                    nyVenterTil = nå(clock).plusMinutes(MINUTTER_FORSINKELSE), // venter i tilfelle det kommer flere endringer
                     clock = clock,
                 ).let { behandling ->
                     rammebehandlingRepo.lagre(behandling)
@@ -251,7 +251,9 @@ class EndretTiltaksdeltakerJobb(
     }
 
     companion object {
-        private const val MINUTES_DELAY: Long = 15L
+        // Vi legger til en liten forsinkelse for behandling av hendelser
+        // i tilfelle det kommer flere hendelser for samme deltakelse i løpet av kort tid
+        private const val MINUTTER_FORSINKELSE: Long = 15L
     }
 }
 

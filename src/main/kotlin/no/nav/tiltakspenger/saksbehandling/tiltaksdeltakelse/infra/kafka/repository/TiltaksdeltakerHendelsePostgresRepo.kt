@@ -45,7 +45,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
         )
     }
 
-    fun hentUbehandlede(sistOppdatertTidligereEnn: LocalDateTime): List<TiltaksdeltakerHendelse> =
+    fun hentUbehandlede(minutterForsinkelse: Long = 0): List<TiltaksdeltakerHendelse> =
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
@@ -56,7 +56,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                           and sist_oppdatert < :sist_oppdatert
                         order by sist_oppdatert asc
                     """.trimIndent(),
-                    "sist_oppdatert" to sistOppdatertTidligereEnn,
+                    "sist_oppdatert" to nå(clock).minusMinutes(minutterForsinkelse),
                 ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
             )
         }

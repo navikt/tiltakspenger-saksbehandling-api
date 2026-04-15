@@ -43,6 +43,58 @@ class EndretTiltaksdeltakerJobbTest {
     private val oppgaveId = oppgaveId()
 
     @Test
+    fun `hendelser innenfor forsinkelsesvinduet blir ikke behandlet`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = 5.januar(2025)
+            val deltakelsesTom = 5.mai(2025)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            // Hendelse innenfor forsinkelsesvinduet (10 min siden, vindu er 15 min)
+            val nyligHendelse = getTiltaksdeltakerHendelse(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = deltakelsesTom.minusDays(2),
+                deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                nyligHendelse,
+                "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
+                nå(tac.clock).minusMinutes(10),
+            )
+
+            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+
+            // Hendelsen skal fortsatt være ubehandlet
+            val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
+            ubehandlede.any { it.id == nyligHendelse.id } shouldBe true
+
+            val ubehandletHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(nyligHendelse.id)
+            ubehandletHendelse.shouldNotBeNull()
+            ubehandletHendelse.oppgaveId.shouldBeNull()
+            ubehandletHendelse.behandlingId.shouldBeNull()
+
+            // Saken skal ikke ha fått noen ny behandling
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger shouldHaveSize 1
+        }
+    }
+
+    @Test
     fun `ingen opprettet behandling - ignorerer`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val fnr = Fnr.random()
@@ -75,7 +127,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -109,7 +161,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -206,7 +258,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.mai(2025)
         }
     }
@@ -249,7 +301,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -314,7 +366,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -471,7 +523,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
             }
         }
 
@@ -566,7 +618,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val andreOppdatertTiltaksdeltakerHendelse =
                     tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerHendelse.id)
                 andreOppdatertTiltaksdeltakerHendelse shouldNotBe null
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == andreTiltaksdeltakerHendelse.id } shouldBe true
+                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == andreTiltaksdeltakerHendelse.id } shouldBe true
             }
         }
 
@@ -648,7 +700,7 @@ class EndretTiltaksdeltakerJobbTest {
                 val førsteOppdatertTiltaksdeltakerHendelse =
                     tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerHendelse.id)
                 førsteOppdatertTiltaksdeltakerHendelse shouldNotBe null
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == førsteTiltaksdeltakerHendelse.id } shouldBe true
+                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == førsteTiltaksdeltakerHendelse.id } shouldBe true
 
                 val andreOppdatertTiltaksdeltakerHendelse =
                     tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerHendelse.id)
@@ -726,13 +778,13 @@ class EndretTiltaksdeltakerJobbTest {
                 oppdatertEldreHendelse.shouldNotBeNull()
                 oppdatertEldreHendelse.oppgaveId.shouldBeNull()
                 oppdatertEldreHendelse.behandlingId.shouldBeNull()
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == eldreHendelse.id } shouldBe true
+                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == eldreHendelse.id } shouldBe true
 
                 // Nyeste hendelse skal ha blitt evaluert og opprettet revurdering
                 val oppdatertNyesteHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(nyesteHendelse.id)
                 oppdatertNyesteHendelse.shouldNotBeNull()
                 oppdatertNyesteHendelse.behandlingId.shouldNotBeNull()
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock)).none { it.id == nyesteHendelse.id } shouldBe true
+                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == nyesteHendelse.id } shouldBe true
 
                 val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
                 val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
@@ -804,7 +856,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-                val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock))
+                val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
 
                 // Alle tre skal være markert som behandlet
                 ubehandlede.none { it.id == eldsteHendelse.id } shouldBe true
@@ -915,7 +967,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
 
-                val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(nå(tac.clock))
+                val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
                 ubehandlede.none { it.id == førsteEldreHendelse.id } shouldBe true
                 ubehandlede.none { it.id == førsteNyesteHendelse.id } shouldBe true
                 ubehandlede.none { it.id == andreHendelse.id } shouldBe true
