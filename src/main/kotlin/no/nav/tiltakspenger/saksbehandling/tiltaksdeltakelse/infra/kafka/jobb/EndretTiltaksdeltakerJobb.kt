@@ -32,11 +32,9 @@ class EndretTiltaksdeltakerJobb(
 
     suspend fun håndterEndretTiltaksdeltakerHendelser() {
         Either.catch {
-            val ubehandledeHendelser = tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede(
-                sistOppdatertTidligereEnn = nå(clock).minusMinutes(15),
-            )
-
-            val hendelserPerDeltaker = ubehandledeHendelser.groupBy { it.internDeltakerId }
+            val hendelserPerDeltaker = tiltaksdeltakerHendelsePostgresRepo
+                .hentUbehandlede(nå(clock).minusMinutes(MINUTES_DELAY))
+                .groupBy { it.internDeltakerId }
 
             hendelserPerDeltaker.forEach { (_, hendelser) ->
                 val nyesteHendelse = hendelser.last()
@@ -123,7 +121,7 @@ class EndretTiltaksdeltakerJobb(
             .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
             .forEach {
                 it.oppdaterVenterTil(
-                    nyVenterTil = nå(clock).plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
+                    nyVenterTil = nå(clock).plusMinutes(MINUTES_DELAY), // venter i tilfelle det kommer flere endringer
                     clock = clock,
                 ).let { behandling ->
                     rammebehandlingRepo.lagre(behandling)
@@ -250,6 +248,10 @@ class EndretTiltaksdeltakerJobb(
             type = StartRevurderingType.OMGJØRING,
             vedtakIdSomOmgjøres = vedtakMedRelevantTiltaksdeltakelse.single().id,
         )
+    }
+
+    companion object {
+        private const val MINUTES_DELAY: Long = 15L
     }
 }
 
