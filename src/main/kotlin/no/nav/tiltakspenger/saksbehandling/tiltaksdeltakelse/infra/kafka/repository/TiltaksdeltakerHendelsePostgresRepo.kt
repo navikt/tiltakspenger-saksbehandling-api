@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
+import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -19,31 +20,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
 ) {
-    fun hent(id: TiltaksdeltakerHendelseId): TiltaksdeltakerHendelse? = sessionFactory.withSession {
-        it.run(
-            sqlQuery(
-                """
-                    select * 
-                    from tiltaksdeltaker_kafka 
-                    where hendelse_id = :hendelse_id
-                """.trimIndent(),
-                "hendelse_id" to id.toString(),
-            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asSingle,
-        )
-    }
-
-    fun hentForDeltakerId(deltakerId: String): List<TiltaksdeltakerHendelse> = sessionFactory.withSession {
-        it.run(
-            sqlQuery(
-                """
-                    select * 
-                    from tiltaksdeltaker_kafka 
-                    where deltaker_id = :deltaker_id
-                """.trimIndent(),
-                "deltaker_id" to deltakerId,
-            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
-        )
-    }
 
     fun hentUbehandlede(minutterForsinkelse: Long = 0): List<TiltaksdeltakerHendelse> =
         sessionFactory.withSession {
@@ -191,6 +167,34 @@ class TiltaksdeltakerHendelsePostgresRepo(
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
             internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
             behandlingId = stringOrNull("behandling_id")?.let { BehandlingId.fromString(it) },
+        )
+    }
+
+    @TestOnly
+    fun hent(id: TiltaksdeltakerHendelseId): TiltaksdeltakerHendelse? = sessionFactory.withSession {
+        it.run(
+            sqlQuery(
+                """
+                    select * 
+                    from tiltaksdeltaker_kafka 
+                    where hendelse_id = :hendelse_id
+                """.trimIndent(),
+                "hendelse_id" to id.toString(),
+            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asSingle,
+        )
+    }
+
+    @TestOnly
+    fun hentForEksternDeltakerId(id: String): List<TiltaksdeltakerHendelse> = sessionFactory.withSession {
+        it.run(
+            sqlQuery(
+                """
+                    select * 
+                    from tiltaksdeltaker_kafka 
+                    where deltaker_id = :deltaker_id
+                """.trimIndent(),
+                "deltaker_id" to id,
+            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
         )
     }
 }
