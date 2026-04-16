@@ -100,7 +100,6 @@ data class AvtaleDto(
             deltakerstatus = this.toTiltakDeltakerStatus(),
             sakId = sakId,
             oppgaveId = null,
-            oppgaveSistSjekket = null,
             internDeltakerId = tiltaksdeltakerId,
             behandlingId = null,
         )

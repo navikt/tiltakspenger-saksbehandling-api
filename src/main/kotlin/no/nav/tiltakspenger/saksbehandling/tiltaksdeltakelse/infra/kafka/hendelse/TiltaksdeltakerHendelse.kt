@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.Ti
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndringer.Companion.tilEndringer
 import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  *  [id] Vår interne id for hendelsen
@@ -30,7 +29,6 @@ data class TiltaksdeltakerHendelse(
     val deltakerstatus: TiltakDeltakerstatus,
     val sakId: SakId,
     val oppgaveId: OppgaveId?,
-    val oppgaveSistSjekket: LocalDateTime?,
     val behandlingId: BehandlingId?,
 ) {
 

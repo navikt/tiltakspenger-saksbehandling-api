@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendels
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class TiltaksdeltakerHendelseTest {
@@ -250,7 +249,6 @@ fun getTiltaksdeltakerHendelse(
     deltakerstatus: TiltakDeltakerstatus = TiltakDeltakerstatus.Deltar,
     sakId: SakId = SakId.random(),
     oppgaveId: OppgaveId? = null,
-    oppgaveSistSjekket: LocalDateTime? = null,
     tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
 ) =
     TiltaksdeltakerHendelse(
@@ -263,7 +261,6 @@ fun getTiltaksdeltakerHendelse(
         deltakerstatus = deltakerstatus,
         sakId = sakId,
         oppgaveId = oppgaveId,
-        oppgaveSistSjekket = oppgaveSistSjekket,
         internDeltakerId = tiltaksdeltakerId,
         behandlingId = null,
     )

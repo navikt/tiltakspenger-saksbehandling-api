@@ -59,7 +59,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
                             oppgave_id,
                             sist_oppdatert,
                             melding,
-                            oppgave_sist_sjekket,
                             tiltaksdeltaker_id,
                             behandling_id,
                             kilde
@@ -75,7 +74,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
                             :oppgave_id,
                             :sist_oppdatert,
                             :melding,
-                            :oppgave_sist_sjekket,
                             :tiltaksdeltaker_id,
                             :behandling_id,
                             :kilde
@@ -92,7 +90,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     "oppgave_id" to tiltaksdeltakerHendelse.oppgaveId?.toString(),
                     "sist_oppdatert" to sistOppdatert,
                     "melding" to melding,
-                    "oppgave_sist_sjekket" to tiltaksdeltakerHendelse.oppgaveSistSjekket,
                     "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.internDeltakerId.toString(),
                     "behandling_id" to tiltaksdeltakerHendelse.behandlingId?.toString(),
                     "kilde" to kilde.name,
@@ -164,7 +161,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
             deltakerstatus = TiltakDeltakerstatus.valueOf(string("deltakerstatus")),
             sakId = SakId.fromString(string("sak_id")),
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
-            oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
             internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
             behandlingId = stringOrNull("behandling_id")?.let { BehandlingId.fromString(it) },
         )

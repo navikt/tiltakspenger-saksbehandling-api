@@ -5,7 +5,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
@@ -191,7 +190,6 @@ class TiltaksdeltakerServiceTest {
                 sak = sak,
                 søknad = soknad,
             )
-            val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                 id = TiltaksdeltakerHendelseId.random(),
                 eksternDeltakerId = id,
@@ -202,7 +200,6 @@ class TiltaksdeltakerServiceTest {
                 deltakerstatus = TiltakDeltakerstatus.HarSluttet,
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
-                oppgaveSistSjekket = oppgaveSistSjekket,
                 internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
             )
@@ -313,7 +310,6 @@ class TiltaksdeltakerServiceTest {
                 sak = sak,
                 søknad = soknad,
             )
-            val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                 id = TiltaksdeltakerHendelseId.random(),
                 eksternDeltakerId = deltakerId.toString(),
@@ -324,7 +320,6 @@ class TiltaksdeltakerServiceTest {
                 deltakerstatus = TiltakDeltakerstatus.HarSluttet,
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
-                oppgaveSistSjekket = oppgaveSistSjekket,
                 internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
             )
@@ -438,7 +433,6 @@ class TiltaksdeltakerServiceTest {
                 sak = sak,
                 søknad = soknad,
             )
-            val oppgaveSistSjekket = nå(testDataHelper.clock)
             val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                 id = TiltaksdeltakerHendelseId.random(),
                 eksternDeltakerId = deltakerId,
@@ -449,7 +443,6 @@ class TiltaksdeltakerServiceTest {
                 deltakerstatus = TiltakDeltakerstatus.HarSluttet,
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
-                oppgaveSistSjekket = oppgaveSistSjekket,
                 internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
             )
