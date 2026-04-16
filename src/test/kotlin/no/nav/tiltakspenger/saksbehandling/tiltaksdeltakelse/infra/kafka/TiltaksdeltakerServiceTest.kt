@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka
 
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -12,12 +14,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class TiltaksdeltakerServiceTest {
@@ -26,7 +29,7 @@ class TiltaksdeltakerServiceTest {
     @Test
     fun `behandleMottattArenadeltaker - finnes ingen sak - ignorerer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -35,14 +38,14 @@ class TiltaksdeltakerServiceTest {
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
-            tiltaksdeltakerKafkaRepository.hent(deltakerId) shouldBe null
+            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId).shouldBeEmpty()
         }
     }
 
     @Test
     fun `behandleMottattArenadeltaker - finnes sak, ikke lagret melding - lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -65,23 +68,24 @@ class TiltaksdeltakerServiceTest {
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id)
+            hendelser shouldHaveSize 1
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe 2.0F
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
     @Test
     fun `behandleMottattArenadeltaker - finnes sak, har eksternId - oppdaterer eksternId og lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -113,24 +117,25 @@ class TiltaksdeltakerServiceTest {
             oppdatertTiltaksdeltaker?.tiltakstype shouldBe soknadstiltak.typeKode
             oppdatertTiltaksdeltaker?.utdatertEksternId shouldBe id
 
-            tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString())
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id).shouldBeEmpty()
+            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(nyEksternId.toString())
+            hendelser shouldHaveSize 1
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe 2.0F
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
     @Test
     fun `behandleMottattArenadeltaker - finnes sak for arena-eksternId - lagrer ikke`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -158,15 +163,15 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldNotBe null
             tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
 
-            tiltaksdeltakerKafkaRepository.hent(nyEksternId.toString()) shouldBe null
-            tiltaksdeltakerKafkaRepository.hent(id) shouldBe null
+            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(nyEksternId.toString()).shouldBeEmpty()
+            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id).shouldBeEmpty()
         }
     }
 
     @Test
-    fun `behandleMottattArenadeltaker - finnes sak og melding med oppgaveId - lagrer og beholder oppgaveId`() {
+    fun `behandleMottattArenadeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -187,8 +192,9 @@ class TiltaksdeltakerServiceTest {
                 søknad = soknad,
             )
             val oppgaveSistSjekket = nå(testDataHelper.clock)
-            val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
-                id = id,
+            val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
+                id = TiltaksdeltakerHendelseId.random(),
+                eksternDeltakerId = id,
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
                 deltakelseTilOgMed = LocalDate.of(2025, 1, 10),
                 dagerPerUke = 3.0F,
@@ -197,33 +203,34 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
-                tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding", TiltaksdeltakerHendelseKilde.Arena)
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(id)
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
-            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(
-                ChronoUnit.MINUTES,
-            )
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id)
+            hendelser shouldHaveSize 2
+            val opprinnelig = tiltaksdeltakerKafkaRepository.hent(opprinneligTiltaksdeltakerHendelse.id)
+            opprinnelig shouldNotBe null
+            opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
+            val nyHendelse = hendelser.first { it.id != opprinneligTiltaksdeltakerHendelse.id }
+            nyHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
+            nyHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
+            nyHendelse.dagerPerUke shouldBe 2.0F
+            nyHendelse.deltakelsesprosent shouldBe 50.0F
+            nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            nyHendelse.sakId shouldBe sak.id
+            nyHendelse.oppgaveId shouldBe null
+            nyHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
     @Test
     fun `behandleMottattKometdeltaker - finnes ingen sak - ignorerer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -236,14 +243,14 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(kometDeltaker),
             )
 
-            tiltaksdeltakerKafkaRepository.hent(deltakerId.toString()) shouldBe null
+            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId.toString()).shouldBeEmpty()
         }
     }
 
     @Test
     fun `behandleMottattKometdeltaker - finnes sak, ikke lagret melding - lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -269,23 +276,24 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(kometDeltaker),
             )
 
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId.toString())
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe kometDeltaker.startDato
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe kometDeltaker.dagerPerUke
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId.toString())
+            hendelser shouldHaveSize 1
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe kometDeltaker.startDato
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe kometDeltaker.dagerPerUke
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
     @Test
-    fun `behandleMottattKometdeltaker - finnes sak og melding med oppgaveId - lagrer og beholder oppgaveId`() {
+    fun `behandleMottattKometdeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -306,8 +314,9 @@ class TiltaksdeltakerServiceTest {
                 søknad = soknad,
             )
             val oppgaveSistSjekket = nå(testDataHelper.clock)
-            val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
-                id = deltakerId.toString(),
+            val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
+                id = TiltaksdeltakerHendelseId.random(),
+                eksternDeltakerId = deltakerId.toString(),
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
                 deltakelseTilOgMed = LocalDate.of(2025, 1, 10),
                 dagerPerUke = 3.0F,
@@ -316,36 +325,37 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
-                tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding", TiltaksdeltakerHendelseKilde.Komet)
 
             tiltaksdeltakerService.behandleMottattKometdeltaker(
                 deltakerId,
                 objectMapper.writeValueAsString(kometDeltaker),
             )
 
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId.toString())
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe kometDeltaker.startDato
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe kometDeltaker.dagerPerUke
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
-            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(
-                ChronoUnit.MINUTES,
-            )
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId.toString())
+            hendelser shouldHaveSize 2
+            val opprinnelig = tiltaksdeltakerKafkaRepository.hent(opprinneligTiltaksdeltakerHendelse.id)
+            opprinnelig shouldNotBe null
+            opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
+            val nyHendelse = hendelser.first { it.id != opprinneligTiltaksdeltakerHendelse.id }
+            nyHendelse.deltakelseFraOgMed shouldBe kometDeltaker.startDato
+            nyHendelse.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
+            nyHendelse.dagerPerUke shouldBe kometDeltaker.dagerPerUke
+            nyHendelse.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
+            nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            nyHendelse.sakId shouldBe sak.id
+            nyHendelse.oppgaveId shouldBe null
+            nyHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
     @Test
     fun `behandleMottattTeamTiltakdeltaker - finnes ingen sak - ignorerer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -358,14 +368,14 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(teamTiltakDeltaker),
             )
 
-            tiltaksdeltakerKafkaRepository.hent(deltakerId) shouldBe null
+            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId).shouldBeEmpty()
         }
     }
 
     @Test
     fun `behandleMottattTeamTiltakdeltaker - finnes sak, ikke lagret melding - lagrer`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -391,23 +401,24 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(teamTiltakDeltaker),
             )
 
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId)
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe null
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId)
+            hendelser shouldHaveSize 1
+            val tiltaksdeltakerHendelse = hendelser.first()
+            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
+            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
+            tiltaksdeltakerHendelse.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
+            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
+            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            tiltaksdeltakerHendelse.sakId shouldBe sak.id
+            tiltaksdeltakerHendelse.oppgaveId shouldBe null
+            tiltaksdeltakerHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 
     @Test
-    fun `behandleMottattTeamTiltakdeltaker - finnes sak og melding med oppgaveId - lagrer og beholder oppgaveId`() {
+    fun `behandleMottattTeamTiltakdeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerKafkaRepository
+            val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
@@ -428,8 +439,9 @@ class TiltaksdeltakerServiceTest {
                 søknad = soknad,
             )
             val oppgaveSistSjekket = nå(testDataHelper.clock)
-            val opprinneligTiltaksdeltakerKafkaDb = TiltaksdeltakerKafkaDb(
-                id = deltakerId,
+            val opprinneligTiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
+                id = TiltaksdeltakerHendelseId.random(),
+                eksternDeltakerId = deltakerId,
                 deltakelseFraOgMed = LocalDate.of(2024, 10, 14),
                 deltakelseTilOgMed = LocalDate.of(2025, 1, 10),
                 dagerPerUke = 3.0F,
@@ -438,29 +450,30 @@ class TiltaksdeltakerServiceTest {
                 sakId = sak.id,
                 oppgaveId = ObjectMother.oppgaveId(),
                 oppgaveSistSjekket = oppgaveSistSjekket,
-                tiltaksdeltakerId = soknad.tiltak.tiltaksdeltakerId,
+                internDeltakerId = soknad.tiltak.tiltaksdeltakerId,
                 behandlingId = null,
             )
-            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerKafkaDb, "melding")
+            tiltaksdeltakerKafkaRepository.lagre(opprinneligTiltaksdeltakerHendelse, "melding", TiltaksdeltakerHendelseKilde.TeamTiltak)
 
             tiltaksdeltakerService.behandleMottattTeamTiltakdeltaker(
                 deltakerId,
                 objectMapper.writeValueAsString(teamTiltakDeltaker),
             )
 
-            val tiltaksdeltakerKafkaDb = tiltaksdeltakerKafkaRepository.hent(deltakerId)
-            tiltaksdeltakerKafkaDb shouldNotBe null
-            tiltaksdeltakerKafkaDb?.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
-            tiltaksdeltakerKafkaDb?.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
-            tiltaksdeltakerKafkaDb?.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
-            tiltaksdeltakerKafkaDb?.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
-            tiltaksdeltakerKafkaDb?.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerKafkaDb?.sakId shouldBe sak.id
-            tiltaksdeltakerKafkaDb?.oppgaveId shouldBe opprinneligTiltaksdeltakerKafkaDb.oppgaveId
-            tiltaksdeltakerKafkaDb?.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe oppgaveSistSjekket.truncatedTo(
-                ChronoUnit.MINUTES,
-            )
-            tiltaksdeltakerKafkaDb?.tiltaksdeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
+            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId)
+            hendelser shouldHaveSize 2
+            val opprinnelig = tiltaksdeltakerKafkaRepository.hent(opprinneligTiltaksdeltakerHendelse.id)
+            opprinnelig shouldNotBe null
+            opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
+            val nyHendelse = hendelser.first { it.id != opprinneligTiltaksdeltakerHendelse.id }
+            nyHendelse.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
+            nyHendelse.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
+            nyHendelse.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
+            nyHendelse.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
+            nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
+            nyHendelse.sakId shouldBe sak.id
+            nyHendelse.oppgaveId shouldBe null
+            nyHendelse.internDeltakerId shouldBe soknad.tiltak.tiltaksdeltakerId
         }
     }
 

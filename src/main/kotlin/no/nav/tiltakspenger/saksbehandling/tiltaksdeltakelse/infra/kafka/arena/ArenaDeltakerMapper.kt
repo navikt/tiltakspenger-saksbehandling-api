@@ -7,7 +7,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -22,8 +23,10 @@ class ArenaDeltakerMapper {
         sakId: SakId,
         tiltaksdeltakerId: TiltaksdeltakerId,
         clock: Clock,
-    ): TiltaksdeltakerKafkaDb? {
-        arenaKafkaMessage.after?.let { return it.toTiltaksdeltakerKafkaDb(eksternId, sakId, tiltaksdeltakerId, clock) }
+    ): TiltaksdeltakerHendelse? {
+        if (arenaKafkaMessage.after != null) {
+            return arenaKafkaMessage.after.tilTiltaksdeltakerHendelse(eksternId, sakId, tiltaksdeltakerId, clock)
+        }
 
         if (arenaKafkaMessage.opType == OperationType.D) {
             log.warn { "Deltakelse med id $eksternId er slettet fra Arena" }
@@ -34,15 +37,16 @@ class ArenaDeltakerMapper {
         }
     }
 
-    private fun ArenaDeltakerKafka.toTiltaksdeltakerKafkaDb(
+    private fun ArenaDeltakerKafka.tilTiltaksdeltakerHendelse(
         eksternId: String,
         sakId: SakId,
         tiltaksdeltakerId: TiltaksdeltakerId,
         clock: Clock,
-    ): TiltaksdeltakerKafkaDb {
+    ): TiltaksdeltakerHendelse {
         val deltakelseFraOgMed = DATO_FRA?.asValidatedLocalDate()
-        return TiltaksdeltakerKafkaDb(
-            id = eksternId,
+        return TiltaksdeltakerHendelse(
+            id = TiltaksdeltakerHendelseId.random(),
+            eksternDeltakerId = eksternId,
             deltakelseFraOgMed = deltakelseFraOgMed,
             deltakelseTilOgMed = DATO_TIL?.asValidatedLocalDate(),
             dagerPerUke = ANTALL_DAGER_PR_UKE,
@@ -51,7 +55,7 @@ class ArenaDeltakerMapper {
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
-            tiltaksdeltakerId = tiltaksdeltakerId,
+            internDeltakerId = tiltaksdeltakerId,
             behandlingId = null,
         )
     }

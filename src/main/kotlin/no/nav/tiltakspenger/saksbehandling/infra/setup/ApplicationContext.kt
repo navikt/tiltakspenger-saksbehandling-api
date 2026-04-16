@@ -61,7 +61,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.A
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TiltaksdeltakerTeamTiltakConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
@@ -165,15 +165,15 @@ open class ApplicationContext(
         )
     }
 
-    open val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository by lazy {
-        TiltaksdeltakerKafkaRepository(
+    open val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo by lazy {
+        TiltaksdeltakerHendelsePostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             clock = clock,
         )
     }
     open val tiltaksdeltakerService: TiltaksdeltakerService by lazy {
         TiltaksdeltakerService(
-            tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             søknadRepo = søknadContext.søknadRepo,
             arenaDeltakerMapper = ArenaDeltakerMapper(),
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
@@ -183,7 +183,7 @@ open class ApplicationContext(
 
     open val endretTiltaksdeltakerJobb by lazy {
         EndretTiltaksdeltakerJobb(
-            tiltaksdeltakerKafkaRepository = tiltaksdeltakerKafkaRepository,
+            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,

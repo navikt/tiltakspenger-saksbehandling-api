@@ -15,86 +15,105 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRe
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerHendelsePostgresRepo
 import java.time.Clock
 import java.time.LocalDate
 
 class EndretTiltaksdeltakerJobb(
-    private val tiltaksdeltakerKafkaRepository: TiltaksdeltakerKafkaRepository,
+    private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val startRevurderingService: StartRevurderingService,
-
 ) {
     private val log = KotlinLogging.logger {}
 
-    suspend fun opprettOppgaveEllerRevurderingForEndredeDeltakere() {
+    suspend fun håndterEndretTiltaksdeltakerHendelser() {
         Either.catch {
-            val endredeDeltakere = tiltaksdeltakerKafkaRepository.hentAlleUtenOppgaveEllerBehandling(
-                sistOppdatertTidligereEnn = nå(clock).minusMinutes(15),
-            )
+            val hendelserPerDeltaker = tiltaksdeltakerHendelsePostgresRepo
+                .hentUbehandlede(MINUTTER_FORSINKELSE)
+                .groupBy { it.internDeltakerId }
 
-            endredeDeltakere.forEach { deltaker ->
-                val sakId = deltaker.sakId
-                val eksternDeltakerId = deltaker.id
-                val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
+            log.debug { "Fant $hendelserPerDeltaker hendelser for endret tiltaksdeltakelse som skal behandles" }
 
-                Either.catch {
-                    val sak = sakRepo.hentForSakId(sakId)!!
+            hendelserPerDeltaker.forEach { (_, hendelser) ->
+                val nyesteHendelse = hendelser.last()
 
-                    sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId)
-
-                    val endringer = sak.finnEndringer(deltaker)
-
-                    if (endringer == null) {
-                        log.info { "Fant ingen endringer for sakId $sakId og deltakerId $tiltaksdeltakerId / $eksternDeltakerId" }
-                        tiltaksdeltakerKafkaRepository.slett(eksternDeltakerId)
-                        return@forEach
+                // Marker eldre hendelser for samme deltaker som behandlet uten videre håndtering
+                hendelser.dropLast(1).forEach { eldreHendelse ->
+                    log.info {
+                        "Hendelse ${eldreHendelse.id} er erstattet av en nyere hendelse for deltaker ${eldreHendelse.internDeltakerId}"
                     }
-
-                    val revurderingSomSkalOpprettes = sak.vurderRevurdering(tiltaksdeltakerId, endringer)
-
-                    if (revurderingSomSkalOpprettes != null) {
-                        val kommando = StartRevurderingKommando(
-                            sakId = sak.id,
-                            correlationId = CorrelationId.generate(),
-                            saksbehandler = null,
-                            revurderingType = revurderingSomSkalOpprettes.type,
-                            vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
-                            klagebehandlingId = null,
-                            automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
-                                endringer = endringer,
-                                hendelseId = eksternDeltakerId,
-                            ),
-                        )
-
-                        val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak)
-
-                        tiltaksdeltakerKafkaRepository.lagreBehandlingId(eksternDeltakerId, revurdering.id)
-
-                        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse $tiltaksdeltakerId / $eksternDeltakerId" }
-                    } else {
-                        log.info { "Tiltaksdeltakelse $eksternDeltakerId er endret uten å opprette revurdering, oppretter oppgave" }
-
-                        val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                            sak.fnr,
-                            Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                            endringer.getOppgaveTilleggstekst(),
-                        )
-
-                        tiltaksdeltakerKafkaRepository.lagreOppgaveId(eksternDeltakerId, oppgaveId)
-
-                        log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse $eksternDeltakerId" }
-                    }
-                }.onLeft {
-                    log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse (deltakelseId $eksternDeltakerId - sakId $sakId)" }
+                    tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletOgIgnorert(eldreHendelse.id)
                 }
+
+                behandleHendelse(nyesteHendelse)
             }
         }.onLeft {
             log.error(it) { "Feil ved opprettelse av oppgaver/revurderinger for endret tiltaksdeltakelse" }
+        }
+    }
+
+    private suspend fun behandleHendelse(deltakerHendelse: TiltaksdeltakerHendelse) {
+        val sakId = deltakerHendelse.sakId
+        val hendelseId = deltakerHendelse.id
+        val eksternDeltakerId = deltakerHendelse.eksternDeltakerId
+        val internDeltakerId = deltakerHendelse.internDeltakerId
+
+        val logIder =
+            "sakId $sakId / intern deltakerId $internDeltakerId / ekstern deltakerId $eksternDeltakerId / hendelseId $hendelseId"
+
+        Either.catch {
+            val sak = sakRepo.hentForSakId(sakId)!!
+
+            sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(internDeltakerId)
+
+            val endringer = sak.finnEndringer(deltakerHendelse)
+
+            if (endringer == null) {
+                log.info { "Fant ingen endringer for $logIder" }
+                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletOgIgnorert(hendelseId)
+                return
+            }
+
+            val revurderingSomSkalOpprettes = sak.vurderRevurdering(internDeltakerId, endringer)
+
+            if (revurderingSomSkalOpprettes != null) {
+                val kommando = StartRevurderingKommando(
+                    sakId = sak.id,
+                    correlationId = CorrelationId.generate(),
+                    saksbehandler = null,
+                    revurderingType = revurderingSomSkalOpprettes.type,
+                    vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
+                    klagebehandlingId = null,
+                    automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
+                        endringer = endringer,
+                        hendelseId = hendelseId.toString(),
+                    ),
+                )
+
+                val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak)
+
+                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletMedRevurdering(hendelseId, revurdering.id)
+
+                log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
+            } else {
+                log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
+
+                val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                    sak.fnr,
+                    Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                    endringer.getOppgaveTilleggstekst(),
+                )
+
+                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletMedOppgave(hendelseId, oppgaveId)
+
+                log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse: $logIder" }
+            }
+        }.onLeft {
+            log.error(it) { "Feil ved opprettelse av oppgave/revurdering for endret tiltaksdeltakelse ($logIder)" }
         }
     }
 
@@ -104,7 +123,7 @@ class EndretTiltaksdeltakerJobb(
             .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
             .forEach {
                 it.oppdaterVenterTil(
-                    nyVenterTil = nå(clock).plusMinutes(15), // venter i 15 minutter i tilfelle det kommer flere endringer
+                    nyVenterTil = nå(clock).plusMinutes(MINUTTER_FORSINKELSE), // venter i tilfelle det kommer flere endringer
                     clock = clock,
                 ).let { behandling ->
                     rammebehandlingRepo.lagre(behandling)
@@ -113,8 +132,8 @@ class EndretTiltaksdeltakerJobb(
             }
     }
 
-    private fun Sak.finnEndringer(deltaker: TiltaksdeltakerKafkaDb): TiltaksdeltakerEndringer? {
-        val tiltaksdeltakerId = deltaker.tiltaksdeltakerId
+    private fun Sak.finnEndringer(deltaker: TiltaksdeltakerHendelse): TiltaksdeltakerEndringer? {
+        val tiltaksdeltakerId = deltaker.internDeltakerId
 
         val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier
             .filter { vedtak ->
@@ -157,7 +176,8 @@ class EndretTiltaksdeltakerJobb(
         }
 
         if (endringer.forlengelse != null) {
-            return vurderRevurderingForForlengelse(endringer.forlengelse!!)
+            val forlengelse = vurderRevurderingForForlengelse(endringer.forlengelse!!)
+            if (forlengelse != null) return forlengelse
         }
 
         return when {
@@ -230,6 +250,12 @@ class EndretTiltaksdeltakerJobb(
             type = StartRevurderingType.OMGJØRING,
             vedtakIdSomOmgjøres = vedtakMedRelevantTiltaksdeltakelse.single().id,
         )
+    }
+
+    companion object {
+        // Vi legger til en liten forsinkelse for behandling av hendelser
+        // i tilfelle det kommer flere hendelser for samme deltakelse i løpet av kort tid
+        private const val MINUTTER_FORSINKELSE: Long = 15L
     }
 }
 

@@ -5,7 +5,8 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaDb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -88,9 +89,10 @@ data class AvtaleDto(
         OPPDATERTE_AVTALEKRAV,
     }
 
-    fun toTiltaksdeltakerKafkaDb(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
-        TiltaksdeltakerKafkaDb(
-            id = avtaleId.toString(),
+    fun tilTiltaksdeltakerHendelse(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
+        TiltaksdeltakerHendelse(
+            id = TiltaksdeltakerHendelseId.random(),
+            eksternDeltakerId = avtaleId.toString(),
             deltakelseFraOgMed = startDato,
             deltakelseTilOgMed = sluttDato,
             dagerPerUke = antallDagerPerUke?.toFloat(),
@@ -99,7 +101,7 @@ data class AvtaleDto(
             sakId = sakId,
             oppgaveId = null,
             oppgaveSistSjekket = null,
-            tiltaksdeltakerId = tiltaksdeltakerId,
+            internDeltakerId = tiltaksdeltakerId,
             behandlingId = null,
         )
 }

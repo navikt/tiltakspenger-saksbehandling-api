@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.Saksstatist
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerKafkaRepository
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
@@ -61,7 +61,7 @@ internal class TestDataHelper(
     val meldekortBrukerRepo = BrukersMeldekortPostgresRepo(sessionFactory)
     val meldekortvedtakRepo: MeldekortvedtakRepo = MeldekortvedtakPostgresRepo(sessionFactory)
     val personRepo = PersonPostgresRepo(sessionFactory)
-    val tiltaksdeltakerKafkaRepository = TiltaksdeltakerKafkaRepository(sessionFactory, clock)
+    val tiltaksdeltakerHendelsePostgresRepo = TiltaksdeltakerHendelsePostgresRepo(sessionFactory, clock)
     val personhendelseRepository = PersonhendelseRepository(sessionFactory, clock)
     val identhendelseRepository = IdenthendelseRepository(sessionFactory, clock)
     val benkOversiktRepo = BenkOversiktPostgresRepo(sessionFactory)
