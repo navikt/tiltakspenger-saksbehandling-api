@@ -36,7 +36,7 @@ class EndretTiltaksdeltakerJobb(
                 .hentUbehandlede(MINUTTER_FORSINKELSE)
                 .groupBy { it.internDeltakerId }
 
-            log.debug { "Fant $hendelserPerDeltaker hendelser for endret tiltaksdeltakelse som skal behandles" }
+            log.debug { "Fant ${hendelserPerDeltaker.size} hendelser for endret tiltaksdeltakelse som skal behandles" }
 
             hendelserPerDeltaker.forEach { (_, hendelser) ->
                 val nyesteHendelse = hendelser.last()
