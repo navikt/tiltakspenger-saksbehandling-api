@@ -95,6 +95,7 @@ sealed interface KlagebehandlingsresultatDTO {
         val årsak: String,
         val begrunnelse: String,
         override val begrunnelseFerdigstilling: String?,
+        val ferdigstiltTidspunkt: LocalDateTime?,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OMGJØR
     }
@@ -150,6 +151,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
             årsak = årsak.name,
             begrunnelse = begrunnelse.verdi,
             begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
+            ferdigstiltTidspunkt = ferdigstiltTidspunkt,
         )
 
         is Klagebehandlingsresultat.Opprettholdt -> KlagebehandlingsresultatDTO.Opprettholdt(

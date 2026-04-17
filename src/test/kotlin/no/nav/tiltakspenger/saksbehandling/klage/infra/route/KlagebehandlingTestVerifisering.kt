@@ -98,7 +98,8 @@ fun String.shouldBeKlagebehandlingDTO(
                       "type": "OMGJØR",
                       "årsak": ${årsak.toJsonValue()},
                       "begrunnelse": ${begrunnelse.toJsonValue()},
-                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
+                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()},
+                      "ferdigstiltTidspunkt": ${if (ferdigstiltTidspunkt) "\"TIMESTAMP\"" else "null"}
                     }
                 """.trimIndent()
 
