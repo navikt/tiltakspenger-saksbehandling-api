@@ -120,11 +120,13 @@ data class Klagebehandling(
         rammebehandlingsstatus: Rammebehandlingsstatus?,
         kanVæreUnderBehandling: Boolean = true,
         kanVæreKlarTilBehandling: Boolean = false,
+        kanVæreMottattFraKA: Boolean = false,
         kanVæreOmgjørEtterKA: Boolean = false,
     ): Either<KanIkkeOppdatereKlagebehandling, Unit> {
         val forventetKlagebehandlingsstatuser = listOfNotNull(
             if (kanVæreUnderBehandling) UNDER_BEHANDLING else null,
             if (kanVæreKlarTilBehandling) KLAR_TIL_BEHANDLING else null,
+            if (kanVæreMottattFraKA) MOTTATT_FRA_KLAGEINSTANS else null,
             if (kanVæreOmgjørEtterKA) OMGJØRING_ETTER_KLAGEINSTANS else null,
         ).toNonEmptyListOrThrow()
         val forventetRammebehandlingstatuser = listOfNotNull(
