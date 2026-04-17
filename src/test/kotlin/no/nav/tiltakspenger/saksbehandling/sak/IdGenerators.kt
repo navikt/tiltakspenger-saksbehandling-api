@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak
 
+import no.nav.tiltakspenger.libs.common.SaksnummerGeneratorForTest
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial

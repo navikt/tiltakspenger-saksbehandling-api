@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- *  [eksternFagsakId] Tilsvarer saksnummer [no.nav.tiltakspenger.saksbehandling.sak.Saksnummer] for brukerens sak
+ *  [eksternFagsakId] Tilsvarer saksnummer [no.nav.tiltakspenger.libs.common.Saksnummer] for brukerens sak
  *
  * */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hendelsestype")

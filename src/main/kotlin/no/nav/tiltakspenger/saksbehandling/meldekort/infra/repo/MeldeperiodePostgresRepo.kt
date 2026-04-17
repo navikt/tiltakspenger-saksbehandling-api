@@ -5,6 +5,7 @@ import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
@@ -18,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldepe
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toDbJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toPeriodiserteVedtakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 import tools.jackson.core.type.TypeReference
 import java.time.LocalDate
 

@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 fun String.shouldBeKlagebehandlingDTO(
     ignorerTidspunkt: Boolean = true,

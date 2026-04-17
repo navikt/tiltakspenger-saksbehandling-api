@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
@@ -18,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo.Companion.IKKE_TILDELT
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 data class BehandlingssamendragMedCount(
     val behandlingssammendrag: Behandlingssammendrag,

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.SaksnummerGeneratorForTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
@@ -15,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
-import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGeneratorForTest
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService

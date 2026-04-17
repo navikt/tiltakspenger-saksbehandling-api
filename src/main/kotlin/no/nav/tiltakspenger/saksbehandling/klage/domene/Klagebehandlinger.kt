@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 /**
  * En liste med klagebehandlinger tilhørende samme sak.

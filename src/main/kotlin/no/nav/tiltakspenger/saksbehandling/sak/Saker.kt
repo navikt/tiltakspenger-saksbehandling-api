@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak
 
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.Saksnummer
 
 /**
  * Inneholder en liste over alle saker som er tilgjengelig for en bruker/ident.

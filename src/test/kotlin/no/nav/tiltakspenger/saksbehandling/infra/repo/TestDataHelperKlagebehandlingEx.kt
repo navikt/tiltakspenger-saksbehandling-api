@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
@@ -35,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOppretthold
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.vurder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.sak.Saksnummer
 
 /**
  * Enkelt case der man kun trenger en sak for å opprette en klagebehandling til avvisning (knyttes ikke til et vedtak).

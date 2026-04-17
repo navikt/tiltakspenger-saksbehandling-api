@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.setup
 
+import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
@@ -9,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
-import no.nav.tiltakspenger.saksbehandling.sak.SaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import java.time.Clock
 
