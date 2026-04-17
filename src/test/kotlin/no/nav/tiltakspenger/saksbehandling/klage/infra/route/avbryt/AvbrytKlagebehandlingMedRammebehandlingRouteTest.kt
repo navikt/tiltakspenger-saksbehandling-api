@@ -108,6 +108,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                                 "avbruttTidspunkt": "TIMESTAMP",
                                 "begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"
                               },
+                              "opprettet": "TIMESTAMP",
                               "sistEndret": "TIMESTAMP",
                               "iverksattTidspunkt": null,
                               "ventestatus": null,

@@ -158,6 +158,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                   "fritekstTilVedtaksbrev": null,
                   "begrunnelseVilkårsvurdering": null,
                   "avbrutt": null,
+                  "opprettet": "TIMESTAMP",
                   "sistEndret": "TIMESTAMP",
                   "iverksattTidspunkt": null,
                   "ventestatus": {

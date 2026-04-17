@@ -38,6 +38,7 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val fritekstTilVedtaksbrev: String?
     val begrunnelseVilkårsvurdering: String?
     val avbrutt: AvbruttDTO?
+    val opprettet: LocalDateTime
     val sistEndret: LocalDateTime
     val iverksattTidspunkt: LocalDateTime?
     val ventestatus: VentestatusHendelseDTO?
@@ -62,6 +63,7 @@ data class SøknadsbehandlingDTO(
     override val fritekstTilVedtaksbrev: String?,
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
+    override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
@@ -94,6 +96,7 @@ data class RevurderingDTO(
     override val fritekstTilVedtaksbrev: String?,
     override val begrunnelseVilkårsvurdering: String?,
     override val avbrutt: AvbruttDTO?,
+    override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
     override val iverksattTidspunkt: LocalDateTime?,
     override val ventestatus: VentestatusHendelseDTO?,
@@ -158,6 +161,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
         søknad = this.søknad.toSøknadDTO(),
         avbrutt = this.avbrutt?.toAvbruttDTO(),
+        opprettet = this.opprettet,
         sistEndret = this.sistEndret,
         iverksattTidspunkt = this.iverksattTidspunkt,
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
@@ -196,6 +200,7 @@ fun Revurdering.tilRevurderingDTO(
         fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
         avbrutt = this.avbrutt?.toAvbruttDTO(),
+        opprettet = this.opprettet,
         sistEndret = this.sistEndret,
         iverksattTidspunkt = this.iverksattTidspunkt,
         ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),

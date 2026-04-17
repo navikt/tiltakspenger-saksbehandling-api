@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenoppta
 
-import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import org.junit.jupiter.api.Test
@@ -53,6 +52,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
   "fritekstTilVedtaksbrev": null,
   "begrunnelseVilkårsvurdering": null,
   "avbrutt": null,
+  "opprettet": "TIMESTAMP",
   "sistEndret": "2025-05-01T01:02:16.456789",
   "iverksattTidspunkt": null,
   "ventestatus": {

@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
-import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -15,6 +14,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
@@ -153,6 +153,7 @@ class RammebehandlingDTOTest {
           "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
           "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
           "avbrutt": null,
+          "opprettet": "TIMESTAMP",
           "sistEndret": "2025-01-01T01:02:03.456789",
           "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
           "ventestatus": null,
@@ -264,7 +265,7 @@ class RammebehandlingDTOTest {
         }
         """.trimIndent()
 
-        behandlingJson.shouldEqualJson(expectedJson)
+        behandlingJson.shouldEqualJsonIgnoringTimestamps(expectedJson)
     }
 
     @Test
@@ -367,6 +368,7 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyBehandlingUnderBeslutning()",
               "begrunnelseVilkårsvurdering": "nyBehandlingUnderBeslutning()",
               "avbrutt": null,
+              "opprettet": "TIMESTAMP",
               "sistEndret": "2025-01-01T01:02:03.456789",
               "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
               "ventestatus": null,
@@ -459,7 +461,7 @@ class RammebehandlingDTOTest {
             }
         """.trimIndent()
 
-        behandlingJson.shouldEqualJson(expectedJson)
+        behandlingJson.shouldEqualJsonIgnoringTimestamps(expectedJson)
     }
 
     @Test
@@ -551,6 +553,7 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
+              "opprettet": "TIMESTAMP",
               "sistEndret": "2025-01-01T01:02:03.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
@@ -640,7 +643,7 @@ class RammebehandlingDTOTest {
             }
         """.trimIndent()
 
-        behandlingJson.shouldEqualJson(expectedJson)
+        behandlingJson.shouldEqualJsonIgnoringTimestamps(expectedJson)
     }
 
     @Test
@@ -732,6 +735,7 @@ class RammebehandlingDTOTest {
           "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
           "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
           "avbrutt": null,
+          "opprettet": "TIMESTAMP",
           "sistEndret": "2025-01-01T01:02:03.456789",
           "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
           "ventestatus": null,
@@ -766,7 +770,7 @@ class RammebehandlingDTOTest {
         }
         """.trimIndent()
 
-        behandlingJson.shouldEqualJson(expectedJson)
+        behandlingJson.shouldEqualJsonIgnoringTimestamps(expectedJson)
     }
 
     @Test
@@ -861,6 +865,7 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": "nyRevurderingKlarTilBeslutning()",
               "begrunnelseVilkårsvurdering": "nyRevurderingKlarTilBeslutning()",
               "avbrutt": null,
+              "opprettet": "TIMESTAMP",
               "sistEndret": "2025-01-01T01:02:03.456789",
               "iverksattTidspunkt": "2025-01-01T01:02:03.456789",
               "ventestatus": null,
@@ -877,7 +882,7 @@ class RammebehandlingDTOTest {
             }
         """.trimIndent()
 
-        behandlingJson.shouldEqualJson(expectedJson)
+        behandlingJson.shouldEqualJsonIgnoringTimestamps(expectedJson)
     }
 
     @Test
@@ -1004,6 +1009,7 @@ class RammebehandlingDTOTest {
               "fritekstTilVedtaksbrev": null,
               "begrunnelseVilkårsvurdering": null,
               "avbrutt": null,
+              "opprettet": "TIMESTAMP",
               "sistEndret": "2025-01-01T01:02:03.456789",
               "iverksattTidspunkt": null,
               "ventestatus": null,
@@ -1019,6 +1025,6 @@ class RammebehandlingDTOTest {
             }
         """.trimIndent()
 
-        behandlingJson.shouldEqualJson(expectedJson)
+        behandlingJson.shouldEqualJsonIgnoringTimestamps(expectedJson)
     }
 }

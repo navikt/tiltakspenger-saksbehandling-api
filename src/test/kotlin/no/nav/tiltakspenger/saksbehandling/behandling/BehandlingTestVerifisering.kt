@@ -155,6 +155,7 @@ fun String.shouldBeRevurderingDTO(
             }
           },
           "rammevedtakId": ${rammevedtakId?.let { "\"$it\"" }},
+          "opprettet": "TIMESTAMP",
           "sistEndret": "$sistEndret",
           "status": "$status",
           "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
@@ -288,6 +289,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         }
     }
         "rammevedtakId": ${rammevedtakId?.let { "\"$it\"" }},
+        "opprettet": "TIMESTAMP",
         "sistEndret": "$sistEndret",
         "automatiskSaksbehandlet": $automatiskSaksbehandlet,
         "søknad": {

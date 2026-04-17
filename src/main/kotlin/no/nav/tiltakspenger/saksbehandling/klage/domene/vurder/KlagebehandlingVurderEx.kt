@@ -78,7 +78,9 @@ fun Klagebehandling.oppdaterRammebehandlingId(
     require(erUnderBehandling || erMottattFraKlageinstans || erFerdigstilt) {
         "Klagebehandling må være i status UNDER_BEHANDLING / MOTTATT_FRA_KLAGEINSTANS / FERDIGSTILT for at man kan knytte den til en rammebehandling. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
-    require(erSaksbehandlerPåBehandlingen(saksbehandler))
+    if (!erFerdigstilt) {
+        require(erSaksbehandlerPåBehandlingen(saksbehandler))
+    }
     return this.copy(
         resultat = resultat.leggTilNyÅpenRammebehandling(rammebehandlingId, this.id),
         sistEndret = if (erFerdigstilt) this.sistEndret else sistEndret,

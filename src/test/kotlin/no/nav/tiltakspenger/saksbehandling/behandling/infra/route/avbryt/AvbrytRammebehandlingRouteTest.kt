@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt
 
-import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
@@ -143,6 +142,7 @@ class AvbrytRammebehandlingRouteTest {
     "avbruttTidspunkt": "2025-05-01T01:02:13.456789",
     "begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"
   },
+  "opprettet": "TIMESTAMP",
   "sistEndret": "2025-05-01T01:02:13.456789",
   "iverksattTidspunkt": null,
   "ventestatus": null,
