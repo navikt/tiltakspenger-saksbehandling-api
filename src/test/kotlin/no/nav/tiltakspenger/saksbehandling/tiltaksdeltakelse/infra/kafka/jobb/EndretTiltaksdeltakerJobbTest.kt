@@ -719,6 +719,195 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Nested
+    inner class `har vedtak eller åpen manuellBehandlingForDeltakelse` {
+
+        @Test
+        fun `kun automatisk behandling for deltakelse uten vedtak - ignorerer hendelse`() {
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = deltakelsesTom.minusDays(5),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+
+                // Hendelsen skal være markert som behandlet og ignorert (ingen oppgave eller revurdering)
+                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                oppdatertHendelse.shouldNotBeNull()
+                oppdatertHendelse.oppgaveId.shouldBeNull()
+                oppdatertHendelse.behandlingId.shouldBeNull()
+            }
+        }
+
+        @Test
+        fun `vedtak for annen deltakelse, ingen behandling for denne - ignorerer hendelse`() {
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val fnr = Fnr.random()
+                val vedtakDeltakerId = TiltaksdeltakerId.random()
+                val annenDeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = vedtakDeltakerId,
+                )
+
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                // Hendelse for en annen deltakerId enn den som har vedtak
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = deltakelsesTom.minusDays(5),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = annenDeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+
+                // Hendelsen skal være markert som behandlet og ignorert
+                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                oppdatertHendelse.shouldNotBeNull()
+                oppdatertHendelse.oppgaveId.shouldBeNull()
+                oppdatertHendelse.behandlingId.shouldBeNull()
+            }
+        }
+
+        @Test
+        fun `åpen manuell behandling for deltakelse uten vedtak - oppretter oppgave`() {
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = LocalDate.now(tac.clock).minusDays(2)
+                val deltakelsesTom = LocalDate.now(tac.clock).plusMonths(3)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                    tac = tac,
+                    fnr = fnr,
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                )
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = deltakelsesTom.minusDays(5),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+
+                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                oppdatertHendelse.shouldNotBeNull()
+                oppdatertHendelse.oppgaveId shouldBe oppgaveId
+                oppdatertHendelse.behandlingId.shouldBeNull()
+            }
+        }
+
+        @Test
+        fun `vedtak for deltakelse - oppretter revurdering ved endring`() {
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = deltakelsesTom.minusDays(2),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+
+                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                oppdatertHendelse.shouldNotBeNull()
+                oppdatertHendelse.oppgaveId.shouldBeNull()
+                oppdatertHendelse.behandlingId.shouldNotBeNull()
+
+                val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+                sisteBehandling.shouldBeInstanceOf<Revurdering>()
+                sisteBehandling.id shouldBe oppdatertHendelse.behandlingId
+            }
+        }
+    }
+
+    @Nested
     inner class `Flere hendelser for samme internDeltakerId` {
 
         @Test

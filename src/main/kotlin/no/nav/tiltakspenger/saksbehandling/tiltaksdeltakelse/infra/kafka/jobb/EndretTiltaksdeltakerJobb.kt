@@ -70,6 +70,12 @@ class EndretTiltaksdeltakerJobb(
 
             sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(internDeltakerId)
 
+            if (!sak.harVedtakEllerÅpenManuellBehandlingForDeltakelse(internDeltakerId)) {
+                log.info { "Fant ingen vedtak eller åpne manuelle behandlinger for deltaker: $logIder" }
+                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletOgIgnorert(hendelseId)
+                return
+            }
+
             val endringer = sak.finnEndringer(deltakerHendelse)
 
             if (endringer == null) {
@@ -130,6 +136,17 @@ class EndretTiltaksdeltakerJobb(
                 }
                 log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
             }
+    }
+
+    private fun Sak.harVedtakEllerÅpenManuellBehandlingForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): Boolean {
+        val harÅpenManuellBehandling = rammebehandlinger.åpneSøknadsbehandlinger
+            .any { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && !it.erUnderAutomatiskBehandling }
+
+        val harVedtakMedDeltakelse by lazy {
+            rammevedtaksliste.valgteTiltaksdeltakelser.any { it.verdi.internDeltakelseId == tiltaksdeltakerId }
+        }
+
+        return harÅpenManuellBehandling || harVedtakMedDeltakelse
     }
 
     private fun Sak.finnEndringer(deltaker: TiltaksdeltakerHendelse): TiltaksdeltakerEndringer? {
