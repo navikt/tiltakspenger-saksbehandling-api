@@ -102,7 +102,9 @@ fun Klagebehandling.fjernRammebehandlingId(
     require(this.status == KLAR_TIL_BEHANDLING || this.status == UNDER_BEHANDLING || this.status == OMGJØRING_ETTER_KLAGEINSTANS || this.status == FERDIGSTILT) {
         "Klagebehandling må være i status KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT for at man kan disassosiere rammebehandling. status was ${this.status}, sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
-    require(erSaksbehandlerPåBehandlingen(saksbehandler))
+    if (!erFerdigstilt) {
+        require(erSaksbehandlerPåBehandlingen(saksbehandler))
+    }
     return when (val res = resultat) {
         is Omgjør -> this.copy(
             resultat = res.fjernRammebehandlingId(rammebehandlingId),
