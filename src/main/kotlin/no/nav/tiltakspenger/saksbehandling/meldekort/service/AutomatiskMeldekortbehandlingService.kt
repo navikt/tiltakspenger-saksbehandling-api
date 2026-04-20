@@ -209,6 +209,16 @@ class AutomatiskMeldekortbehandlingService(
             return it.left()
         }
 
+        if (simulering?.simulering?.harJustering == true) {
+            logger.error { "Behandling av brukers meldekort $meldekortId viser justeringer i simuleringen" }
+            return MeldekortBehandletAutomatiskStatus.HAR_JUSTERING.left()
+        }
+
+        if (simulering?.simulering?.harFeilutbetaling == true) {
+            logger.error { "Behandling av brukers meldekort $meldekortId viser feilutbetaling i simuleringen" }
+            return MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING.left()
+        }
+
         val meldekortvedtak = meldekortbehandling.opprettVedtak(
             forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
             clock = clock,
@@ -247,7 +257,10 @@ class AutomatiskMeldekortbehandlingService(
         return meldekortbehandling.right()
     }
 
-    private suspend fun opprettOppgaveForAdressebeskyttetEllerSkjermetBruker(fnr: Fnr, journalpostId: JournalpostId): Boolean {
+    private suspend fun opprettOppgaveForAdressebeskyttetEllerSkjermetBruker(
+        fnr: Fnr,
+        journalpostId: JournalpostId,
+    ): Boolean {
         val pdlPerson = sakService.hentEnkelPersonMedSkjermingForFnr(fnr, CorrelationId.generate()).getOrThrow()
         if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig || pdlPerson.skjermet) {
             logger.info { "Person har adressebeskyttelse eller er skjermet, oppretter oppgave i Gosys" }

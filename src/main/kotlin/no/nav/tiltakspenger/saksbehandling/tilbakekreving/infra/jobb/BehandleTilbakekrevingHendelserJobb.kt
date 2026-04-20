@@ -155,8 +155,12 @@ class BehandleTilbakekrevingHendelserJobb(
     }
 
     private fun Meldekortbehandling.tilSvarDTO(behov: TilbakekrevingInfoBehovHendelse): TilbakekrevingInfoSvarDTO {
-        require(this.status == MeldekortbehandlingStatus.GODKJENT) {
+        require(this.erGodkjent) {
             "Meldekortet må være godkjent for å produsere svar på info-behov - id: $id, status: $status"
+        }
+
+        if (this.status == MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
+            logger.error { "Automatisk behandlet meldekort $id har ført til en tilbakekrevingssak (hendelse id ${behov.id}). Dette burde ikke kunne skje." }
         }
 
         return TilbakekrevingInfoSvarDTO(

@@ -38,6 +38,8 @@ enum class MeldekortBehandletAutomatiskStatusDTO {
     MÅ_BEHANDLE_FØRSTE_KJEDE,
     MÅ_BEHANDLE_NESTE_KJEDE,
     INGEN_DAGER_GIR_RETT,
+    HAR_JUSTERING,
+    HAR_FEILUTBETALING,
 }
 
 data class BrukersMeldekortDTO(
@@ -86,6 +88,8 @@ private fun MeldekortBehandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO()
         MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatusDTO.MÅ_BEHANDLE_FØRSTE_KJEDE
         MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatusDTO.MÅ_BEHANDLE_NESTE_KJEDE
         MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatusDTO.INGEN_DAGER_GIR_RETT
+        MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING -> MeldekortBehandletAutomatiskStatusDTO.HAR_FEILUTBETALING
+        MeldekortBehandletAutomatiskStatus.HAR_JUSTERING -> MeldekortBehandletAutomatiskStatusDTO.HAR_JUSTERING
     }
 }
 

@@ -20,4 +20,6 @@ enum class MeldekortBehandletAutomatiskStatus(val loggesSomError: Boolean) {
     UTDATERT_MELDEPERIODE(true),
     FOR_MANGE_DAGER_REGISTRERT(true),
     KAN_IKKE_MELDE_HELG(true),
+    HAR_FEILUTBETALING(true),
+    HAR_JUSTERING(true),
 }

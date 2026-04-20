@@ -18,6 +18,9 @@ sealed interface Simulering {
     val simuleringstidspunkt: LocalDateTime
     fun hentDag(dato: LocalDate): Simuleringsdag?
 
+    val harJustering: Boolean get() = this is Endring && harJustering
+    val harFeilutbetaling: Boolean get() = this is Endring && harFeilutbetaling
+
     data class Endring(
         val simuleringPerMeldeperiode: NonEmptyList<SimuleringForMeldeperiode>,
         val datoBeregnet: LocalDate,
@@ -40,11 +43,11 @@ sealed interface Simulering {
         val totalJustering: Int by lazy { simuleringPerMeldeperiode.sumOf { it.simuleringsdager.sumOf { dag -> dag.totalJustering } } }
         val totalTrekk: Int by lazy { simuleringPerMeldeperiode.sumOf { it.totalTrekk } }
 
-        val harJustering: Boolean by lazy {
+        override val harJustering: Boolean by lazy {
             simuleringPerMeldeperiode.any { it.harJustering }
         }
 
-        val harFeilutbetaling: Boolean by lazy {
+        override val harFeilutbetaling: Boolean by lazy {
             totalFeilutbetaling != 0 || totalMotpostering != 0
         }
 

@@ -93,10 +93,10 @@ object OppsummeringGenerator {
      * Disse vil komme uten en MOTP.
      */
     private fun beregnJustering(posteringer: PosteringerForDag): Int =
-        posteringer.summerPosteringer(Posteringstype.FEILUTBETALING, KLASSEKODE_JUSTERING)
+        posteringer.summerPosteringer(Posteringstype.JUSTERING, KLASSEKODE_JUSTERING)
 
     private fun harJustering(posteringer: PosteringerForDag): Boolean =
-        posteringer.posteringer.any { it.type == Posteringstype.FEILUTBETALING && it.klassekode == KLASSEKODE_JUSTERING }
+        posteringer.posteringer.any { it.type == Posteringstype.JUSTERING && it.klassekode == KLASSEKODE_JUSTERING }
 
     private fun PosteringerForDag.summerBarePositivePosteringer(type: Posteringstype): Int =
         this.posteringer.filter { it.beløp > 0 && it.type == type }.sumOf { it.beløp }
