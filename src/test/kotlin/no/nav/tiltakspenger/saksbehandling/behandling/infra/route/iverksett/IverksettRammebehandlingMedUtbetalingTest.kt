@@ -2,15 +2,17 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
@@ -52,10 +54,12 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 saksbehandler = beslutter(),
             )
 
-            iverksettRevurderingStans(
+            // En annen omgjøring med barnetillegg iverksettes i mellomtiden, som øker utbetalingen
+            iverksettOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                harValgtStansFraFørsteDagSomGirRett = true,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                barnetilleggRevurdering = barnetillegg(periode = søknadvedtak.periode, antallBarn = AntallBarn(2)),
             )
 
             iverksettForBehandlingId(

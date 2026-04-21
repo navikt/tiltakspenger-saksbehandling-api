@@ -28,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
@@ -170,10 +169,12 @@ class SendRevurderingTilBeslutningTest {
                 vedtaksperiode = søknadvedtak.periode,
             )
 
-            iverksettRevurderingStans(
+            // Et annet opphør iverksettes i mellomtiden!
+            iverksettOmgjøringOpphør(
                 tac = tac,
                 sakId = sak.id,
-                harValgtStansFraFørsteDagSomGirRett = true,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
+                vedtaksperiode = søknadvedtak.fraOgMed til søknadvedtak.fraOgMed.plusDays(7),
             )
 
             val response = sendRevurderingTilBeslutningForBehandlingId(

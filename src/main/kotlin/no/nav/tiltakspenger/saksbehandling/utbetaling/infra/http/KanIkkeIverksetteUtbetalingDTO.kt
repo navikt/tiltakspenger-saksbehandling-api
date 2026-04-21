@@ -6,6 +6,8 @@ enum class KanIkkeIverksetteUtbetalingDTO {
     SimuleringMangler,
     JusteringStøttesIkke,
     SimuleringHarEndringer,
+    BehandlingstypeStøtterIkkeFeilutbetaling,
+    BehandlingstypeStøtterIkkeJustering,
 }
 
 fun KanIkkeIverksetteUtbetaling.tilKanIkkeIverksetteUtbetalingDTO(): KanIkkeIverksetteUtbetalingDTO {
@@ -13,5 +15,7 @@ fun KanIkkeIverksetteUtbetaling.tilKanIkkeIverksetteUtbetalingDTO(): KanIkkeIver
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> KanIkkeIverksetteUtbetalingDTO.SimuleringMangler
         KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> KanIkkeIverksetteUtbetalingDTO.JusteringStøttesIkke
         KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> KanIkkeIverksetteUtbetalingDTO.SimuleringHarEndringer
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling -> KanIkkeIverksetteUtbetalingDTO.BehandlingstypeStøtterIkkeFeilutbetaling
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering -> KanIkkeIverksetteUtbetalingDTO.BehandlingstypeStøtterIkkeJustering
     }
 }

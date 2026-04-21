@@ -20,5 +20,15 @@ fun KanIkkeIverksetteUtbetaling.tilErrorJson(): Pair<HttpStatusCode, ErrorJson> 
             "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
             "simulering_endret",
         )
+
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling -> HttpStatusCode.BadRequest to ErrorJson(
+            "Vedtak som fører til feilutbetaling støttes kun ved omgjøring.",
+            "feil_behandlingstype_for_feilutbetaling",
+        )
+
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering -> HttpStatusCode.BadRequest to ErrorJson(
+            "Vedtak som fører til justeringer i utbetalingen støttes kun ved omgjøring.",
+            "feil_behandlingstype_for_justering",
+        )
     }
 }

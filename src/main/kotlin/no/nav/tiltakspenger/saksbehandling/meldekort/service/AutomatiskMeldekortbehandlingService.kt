@@ -47,8 +47,8 @@ class AutomatiskMeldekortbehandlingService(
     private val oppgaveKlient: OppgaveKlient,
     private val statistikkService: StatistikkService,
 ) {
-    val logger = KotlinLogging.logger { }
-    val venteIntervaller: Map<Long, Duration> = mapOf(
+    private val logger = KotlinLogging.logger { }
+    private val venteIntervaller: Map<Long, Duration> = mapOf(
         1L to 1.days,
         2L to 2.days,
         3L to 3.days,

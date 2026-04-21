@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.satser.Satser.Companion.sats
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -25,10 +24,11 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.IverksettV2Dto
@@ -146,7 +146,7 @@ class UtbetalingerIT {
     }
 
     @Test
-    fun `Feilutbetaling ved stans over utbetalt periode`() {
+    fun `Feilutbetaling ved omgjøring opphør over utbetalt periode`() {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = vedtaksperiode,
@@ -154,38 +154,36 @@ class UtbetalingerIT {
                 clock = fixedClockAt(vedtaksperiode.tilOgMed),
             )
 
-            val (_, revurdering, _) = startRevurderingForSakId(
+            val søknadvedtak = sak.rammevedtaksliste.single()
+
+            val (_, omgjøring, _) = startRevurderingOmgjøring(
                 tac = tac,
                 sakId = sak.id,
-                type = RevurderingsresultatType.STANS,
+                rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterRevurderingStans(
+            oppdaterOmgjøringOpphør(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = revurdering.id,
-                fritekstTilVedtaksbrev = "lol",
-                begrunnelseVilkårsvurdering = "what",
-                valgteHjemler = setOf(HjemmelForStans.Alder),
-                stansFraOgMed = vedtaksperiode.fraOgMed,
-                harValgtStansFraFørsteDagSomGirRett = false,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = vedtaksperiode,
             )
 
             sendRevurderingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
-                revurdering.id,
+                omgjøring.id,
             )
-            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taBehandling(tac, sak.id, omgjøring.id, saksbehandler = ObjectMother.beslutter())
 
-            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id, utførJobber = false)!!
+            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, omgjøring.id, utførJobber = false)!!
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortvedtaksliste.first().utbetaling,
                 oppdatertSak.rammevedtaksliste.last().utbetaling,
             )
 
-            val revurderingUtbetalingId = oppdatertSak.rammevedtaksliste.last().utbetaling!!.id
+            val omgjøringUtbetalingId = oppdatertSak.rammevedtaksliste.last().utbetaling!!.id
 
             val utbetalingerSomVenter = tac.utbetalingContext.utbetalingRepo.hentForUtsjekk()
             utbetalingerSomVenter.size shouldBe 1
@@ -194,9 +192,9 @@ class UtbetalingerIT {
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
 
             tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
-            tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
+            tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(omgjøringUtbetalingId)!!.let { json ->
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
-                // Sender tom liste med utbetalinger når hele sakens periode stanses
+                // Sender tom liste med utbetalinger når hele sakens periode opphøres
                 iverksettDto.vedtak.utbetalinger.shouldBeEmpty()
             }
         }

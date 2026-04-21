@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.desember
@@ -20,9 +21,11 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
@@ -37,7 +40,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksa
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
 
@@ -332,7 +337,7 @@ class BeregnRevurderingTest {
     }
 
     @Test
-    fun `skal beregne ny utbetaling dersom en utbetalt periode stanses og så innvilges på nytt`() {
+    fun `send til beslutning for stans med feilutbetaling skal feile med 400`() {
         withTestApplicationContext { tac ->
             val periode = 1.januar(2025) til 31.januar(2025)
 
@@ -343,21 +348,30 @@ class BeregnRevurderingTest {
 
             sak.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
 
-            val (sakMedStans) = iverksettRevurderingStans(
+            val (sakMedRevurdering, revurdering) = startRevurderingStans(
                 tac = tac,
                 sakId = sak.id,
+            )!!
+
+            oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sakMedRevurdering.id,
+                behandlingId = revurdering.id,
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = periode.fraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
             )
 
-            sakMedStans.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe 0
-
-            val (sakMedNyInnvilgelse) = iverksettRevurderingInnvilgelse(
+            val response = sendRevurderingTilBeslutningForBehandlingId(
                 tac = tac,
-                sakId = sak.id,
-                innvilgelsesperioder = innvilgelsesperioder(periode),
+                sakId = sakMedRevurdering.id,
+                behandlingId = revurdering.id,
+                forventetStatus = HttpStatusCode.BadRequest,
             )
 
-            sakMedNyInnvilgelse.meldeperiodeBeregninger.gjeldendeBeregninger.single().totalBeløp shouldBe sats2025.sats * 8
+            response harKode "feil_behandlingstype_for_feilutbetaling"
         }
     }
 

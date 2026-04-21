@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 
 fun Meldekortbehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
@@ -25,6 +26,15 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
 
     if (simulering == null) {
         return KanIkkeIverksetteUtbetaling.SimuleringMangler.left()
+    }
+
+    if (this.resultat !is Omgjøringsresultat) {
+        if (simulering.harFeilutbetaling) {
+            return KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling.left()
+        }
+        if (simulering.harJustering) {
+            return KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering.left()
+        }
     }
 
     return simulering.validerKanIverksetteUtbetaling()
@@ -66,4 +76,6 @@ enum class KanIkkeIverksetteUtbetaling {
     SimuleringMangler,
     JusteringStøttesIkke,
     KontrollSimuleringHarEndringer,
+    BehandlingstypeStøtterIkkeFeilutbetaling,
+    BehandlingstypeStøtterIkkeJustering,
 }
