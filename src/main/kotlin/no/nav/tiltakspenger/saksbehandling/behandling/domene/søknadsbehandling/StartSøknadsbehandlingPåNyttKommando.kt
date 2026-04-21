@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -13,5 +13,5 @@ data class StartSøknadsbehandlingPåNyttKommando(
     val klagebehandlingId: KlagebehandlingId?,
     val saksbehandler: Saksbehandler,
     val correlationId: CorrelationId,
-    val søknadsbehandlingId: BehandlingId = BehandlingId.random(),
+    val søknadsbehandlingId: RammebehandlingId = RammebehandlingId.random(),
 )

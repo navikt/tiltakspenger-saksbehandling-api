@@ -8,7 +8,7 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
-import no.nav.tiltakspenger.libs.ktor.common.withBehandlingId
+import no.nav.tiltakspenger.libs.ktor.common.withRammebehandlingId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -40,7 +40,7 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
-            call.withBehandlingId { behandlingId ->
+            call.withRammebehandlingId { behandlingId ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
@@ -63,7 +63,7 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                         is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson())
                     }
                 }.onRight { (sak, behandling) ->
-                    auditService.logMedBehandlingId(
+                    auditService.logMedRammebehandlingId(
                         behandlingId = behandlingId,
                         navIdent = saksbehandler.navIdent,
                         action = AuditLogEvent.Action.UPDATE,

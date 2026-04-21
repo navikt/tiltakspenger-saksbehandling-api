@@ -18,7 +18,7 @@ internal class ForhåndsvisAvslagVedtaksbrevTest {
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
             val behandlingId = behandling.id
             val fritekstTilVedtaksbrev = "some_tekst"
-            val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
+            val (_, _, responseJson) = `forhåndsvisVedtaksbrevForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandlingId,

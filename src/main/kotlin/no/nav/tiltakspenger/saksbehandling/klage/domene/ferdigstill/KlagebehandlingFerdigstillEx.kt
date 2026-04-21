@@ -41,7 +41,7 @@ fun Klagebehandling.ferdigstill(
     }
 
     if (this.resultat !is Klagebehandlingsresultat.Opprettholdt && this.resultat !is Klagebehandlingsresultat.Omgjør) {
-        return KunneIkkeFerdigstilleKlagebehandling.`ResultatMåVæreOpprettholdEllerOmgjør`.left()
+        return KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdEllerOmgjør.left()
     }
 
     rammebehandlinger.forEach { rammebehandling ->

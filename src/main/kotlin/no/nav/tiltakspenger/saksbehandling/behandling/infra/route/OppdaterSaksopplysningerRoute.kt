@@ -7,7 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.patch
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
-import no.nav.tiltakspenger.libs.ktor.common.withBehandlingId
+import no.nav.tiltakspenger.libs.ktor.common.withRammebehandlingId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -34,7 +34,7 @@ fun Route.oppdaterSaksopplysningerRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@patch
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@patch
         call.withSakId { sakId ->
-            call.withBehandlingId { behandlingId ->
+            call.withRammebehandlingId { behandlingId ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
@@ -48,7 +48,7 @@ fun Route.oppdaterSaksopplysningerRoute(
                         call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
                     },
                     ifRight = { (sak) ->
-                        auditService.logMedBehandlingId(
+                        auditService.logMedRammebehandlingId(
                             behandlingId = behandlingId,
                             navIdent = saksbehandler.navIdent,
                             action = AuditLogEvent.Action.UPDATE,

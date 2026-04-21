@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 internal class TaOgOvertaRammebehandlingTest {
@@ -30,7 +29,7 @@ internal class TaOgOvertaRammebehandlingTest {
                 }
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "123", ObjectMother.saksbehandler()).also { (_, _, jsonBody) ->
+            overtaBehanding(tac, sak.id, behandlingId, "123").also { (_, _, jsonBody) ->
                 jsonBody.get("saksbehandler") shouldBe "Z12345"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING

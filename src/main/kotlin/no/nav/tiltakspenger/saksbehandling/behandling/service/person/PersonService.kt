@@ -2,15 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.person
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
-import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
@@ -23,8 +22,8 @@ class PersonService(
 ) {
     val logger = KotlinLogging.logger {}
 
-    fun hentFnrForBehandlingId(behandlingId: BehandlingId): Fnr {
-        return personRepo.hentFnrForBehandlingId(behandlingId)
+    fun hentFnrForRammebehandlingId(behandlingId: RammebehandlingId): Fnr {
+        return personRepo.hentFnrForRammebehandlingId(behandlingId)
     }
 
     fun hentFnrForSakId(sakId: SakId): Fnr {

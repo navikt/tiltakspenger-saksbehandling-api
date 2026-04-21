@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -38,7 +38,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Revurdering(
-    override val id: BehandlingId,
+    override val id: RammebehandlingId,
     override val status: Rammebehandlingsstatus,
     override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
@@ -215,7 +215,7 @@ data class Revurdering(
     companion object {
         fun opprettStans(
             sakId: SakId,
-            revurderingId: BehandlingId = BehandlingId.random(),
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
             saksnummer: Saksnummer,
             fnr: Fnr,
             saksbehandler: Saksbehandler?,
@@ -245,7 +245,7 @@ data class Revurdering(
             saksopplysninger: Saksopplysninger,
             opprettet: LocalDateTime,
             klagebehandling: Klagebehandling?,
-            revurderingId: BehandlingId = BehandlingId.random(),
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
             automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
         ): Revurdering {
             return opprett(
@@ -271,7 +271,7 @@ data class Revurdering(
             omgjørRammevedtak: Rammevedtak,
             klagebehandling: Klagebehandling?,
             opprettet: LocalDateTime,
-            revurderingId: BehandlingId = BehandlingId.random(),
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
             automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
         ): Revurdering {
             return opprett(
@@ -292,7 +292,7 @@ data class Revurdering(
 
         private fun opprett(
             sakId: SakId,
-            revurderingId: BehandlingId = BehandlingId.random(),
+            revurderingId: RammebehandlingId = RammebehandlingId.random(),
             saksnummer: Saksnummer,
             fnr: Fnr,
             saksbehandler: Saksbehandler?,

@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.sak
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -101,10 +101,10 @@ data class Sak(
         return meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(kjedeId)
     }
 
-    fun hentRammebehandling(rammebehandlingId: BehandlingId): Rammebehandling? =
+    fun hentRammebehandling(rammebehandlingId: RammebehandlingId): Rammebehandling? =
         rammebehandlinger.hentRammebehandling(rammebehandlingId)
 
-    fun hentTilbakekrevingForRammebehandling(id: BehandlingId): TilbakekrevingBehandling? {
+    fun hentTilbakekrevingForRammebehandling(id: RammebehandlingId): TilbakekrevingBehandling? {
         return utbetalinger.hentUtbetalingForRammebehandling(id)?.let { utbetaling ->
             tilbakekrevinger.singleOrNull { it.utbetalingId == utbetaling.id }
         }

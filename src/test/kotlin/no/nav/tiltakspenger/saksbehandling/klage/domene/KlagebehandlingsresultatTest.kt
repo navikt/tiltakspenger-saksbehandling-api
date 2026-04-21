@@ -23,7 +23,7 @@ class KlagebehandlingsresultatTest {
 
     @Test
     fun `OMGJØR skal alltid være knyttet til rammebehandling`() {
-        val resultat = ObjectMother.klagebehandlingresultatOmgjør()
+        val resultat = ObjectMother.`klagebehandlingresultatOmgjør`()
 
         resultat.`kanVæreKnyttetTilRammebehandling` shouldBe true
     }

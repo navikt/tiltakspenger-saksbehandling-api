@@ -74,7 +74,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 ventestatus = Ventestatus(),
             )
 
-            json.toString().shouldBeSøknadsbehandlingDTO(
+            json.toString().`shouldBeSøknadsbehandlingDTO`(
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 sakId = sak.id,
                 saksnummer = Saksnummer("202505011001"),

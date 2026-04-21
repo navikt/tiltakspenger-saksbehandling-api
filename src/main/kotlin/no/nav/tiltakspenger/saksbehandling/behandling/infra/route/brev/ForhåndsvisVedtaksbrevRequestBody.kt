@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev
 import arrow.core.toNonEmptySetOrThrow
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
@@ -49,7 +49,7 @@ import java.time.LocalDate
 sealed interface ForhåndsvisVedtaksbrevRequestBody {
     fun toDomain(
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         correlationId: CorrelationId,
         saksbehandler: Saksbehandler,
     ): ForhåndsvisVedtaksbrevKommando
@@ -61,7 +61,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             correlationId: CorrelationId,
             saksbehandler: Saksbehandler,
         ): ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando {
@@ -83,7 +83,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             correlationId: CorrelationId,
             saksbehandler: Saksbehandler,
         ): ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando {
@@ -105,7 +105,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             correlationId: CorrelationId,
             saksbehandler: Saksbehandler,
         ): ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando {
@@ -129,7 +129,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             correlationId: CorrelationId,
             saksbehandler: Saksbehandler,
         ): ForhåndsvisVedtaksbrevForRevurderingStansKommando {
@@ -152,7 +152,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             correlationId: CorrelationId,
             saksbehandler: Saksbehandler,
         ): ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando {
@@ -175,7 +175,7 @@ sealed interface ForhåndsvisVedtaksbrevRequestBody {
     ) : ForhåndsvisVedtaksbrevRequestBody {
         override fun toDomain(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             correlationId: CorrelationId,
             saksbehandler: Saksbehandler,
         ): ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando {

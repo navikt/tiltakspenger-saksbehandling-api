@@ -4,8 +4,8 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -305,7 +305,7 @@ private fun Meldekortvedtak.tilSkalBeregnes(): MeldeperiodeSomSkalBeregnes {
 }
 
 fun Sak.beregnRevurderingStans(
-    behandlingId: BehandlingId,
+    behandlingId: RammebehandlingId,
     stansperiode: Periode,
     beregningstidspunkt: LocalDateTime,
 ): Beregning? {
@@ -324,7 +324,7 @@ fun Sak.beregnRevurderingStans(
 }
 
 fun Sak.beregnOpphør(
-    behandlingId: BehandlingId,
+    behandlingId: RammebehandlingId,
     opphørsperiode: Periode,
     beregningstidspunkt: LocalDateTime,
 ): Beregning? {
@@ -350,7 +350,7 @@ fun Sak.beregnOpphør(
  * Dersom deler av vedtaksperioden ikke overlapper med [innvilgelsesperioder], gir disse periodene ikke tiltakspenger (delvis avslag)
  */
 fun Sak.beregnInnvilgelse(
-    behandlingId: BehandlingId,
+    behandlingId: RammebehandlingId,
     vedtaksperiode: Periode,
     innvilgelsesperioder: Innvilgelsesperioder,
     barnetilleggsperioder: Periodisering<AntallBarn>,
@@ -372,7 +372,7 @@ fun Sak.beregnInnvilgelse(
  *  @param innvilgelsesperioder Perioder med rett til tiltakspenger innenfor [vedtaksperiode]
  * */
 private fun Sak.beregnRammebehandling(
-    behandlingId: BehandlingId,
+    behandlingId: RammebehandlingId,
     vedtaksperiode: Periode,
     innvilgelsesperioder: Innvilgelsesperioder?,
     nyeBarnetilleggsperioder: Periodisering<AntallBarn>? = null,

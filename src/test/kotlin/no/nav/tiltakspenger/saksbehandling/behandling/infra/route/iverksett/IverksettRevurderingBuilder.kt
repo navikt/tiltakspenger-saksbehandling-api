@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import arrow.core.Tuple5
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -289,7 +289,7 @@ interface IverksettRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         rammevedtakIdSomOmgjøres: VedtakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),

@@ -11,7 +11,7 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
@@ -40,7 +40,7 @@ interface SendRevurderingTilBeslutningBuilder {
     suspend fun ApplicationTestBuilder.sendRevurderingStansTilBeslutning(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Tuple4<Sak, Søknad, BehandlingId, String> {
+    ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
             tac,
         )
@@ -115,7 +115,7 @@ interface SendRevurderingTilBeslutningBuilder {
     suspend fun ApplicationTestBuilder.sendRevurderingTilBeslutningForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): String {

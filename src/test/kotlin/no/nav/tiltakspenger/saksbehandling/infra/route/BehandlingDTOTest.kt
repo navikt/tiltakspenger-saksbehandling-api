@@ -36,7 +36,7 @@ class BehandlingDTOTest {
 
                 val behandlingSattPåVent = behandling
                     .settPåVent(
-                        SettRammebehandlingPåVentKommando(
+                        `SettRammebehandlingPåVentKommando`(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
                             begrunnelse = "1",
@@ -56,7 +56,7 @@ class BehandlingDTOTest {
                         clock,
                     ) { behandling.saksopplysninger }.getOrFail()
                     .first.settPåVent(
-                        SettRammebehandlingPåVentKommando(
+                        `SettRammebehandlingPåVentKommando`(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
                             begrunnelse = "2",

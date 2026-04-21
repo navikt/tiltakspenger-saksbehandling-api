@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
@@ -70,7 +70,7 @@ suspend fun Sak.startRevurdering(
 }
 
 private suspend fun Sak.startRevurderingStans(
-    revurderingId: BehandlingId = BehandlingId.random(),
+    revurderingId: RammebehandlingId = RammebehandlingId.random(),
     saksbehandler: Saksbehandler?,
     hentSaksopplysninger: HentSaksopplysninger,
     correlationId: CorrelationId,
@@ -104,7 +104,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
     correlationId: CorrelationId,
     opprettet: LocalDateTime,
     klagebehandling: Klagebehandling?,
-    revurderingId: BehandlingId = BehandlingId.random(),
+    revurderingId: RammebehandlingId = RammebehandlingId.random(),
     automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Revurdering {
     require(harFørstegangsvedtak) {
@@ -138,7 +138,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
     rammevedtakIdSomOmgjøres: VedtakId,
     klagebehandling: Klagebehandling?,
     opprettet: LocalDateTime,
-    revurderingId: BehandlingId = BehandlingId.random(),
+    revurderingId: RammebehandlingId = RammebehandlingId.random(),
     automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ): Revurdering {
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)

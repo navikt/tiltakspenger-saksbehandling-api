@@ -11,7 +11,7 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.serialize
@@ -37,10 +37,10 @@ import java.time.LocalDate
 
 interface OppdaterRammebehandlingBuilder {
 
-    suspend fun ApplicationTestBuilder.oppdaterSøknadsbehandlingInnvilgelse(
+    suspend fun ApplicationTestBuilder.`oppdaterSøknadsbehandlingInnvilgelse`(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
@@ -75,10 +75,10 @@ interface OppdaterRammebehandlingBuilder {
         )
     }
 
-    suspend fun ApplicationTestBuilder.oppdaterSøknadsbehandlingIkkeValgt(
+    suspend fun ApplicationTestBuilder.`oppdaterSøknadsbehandlingIkkeValgt`(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
@@ -106,7 +106,7 @@ interface OppdaterRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.oppdaterSøknadsbehandlingAvslag(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         avslagsgrunner: Set<Avslagsgrunnlag> = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
@@ -138,7 +138,7 @@ interface OppdaterRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.oppdaterRevurderingInnvilgelse(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
@@ -176,7 +176,7 @@ interface OppdaterRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.oppdaterOmgjøringInnvilgelse(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         vedtaksperiode: Periode,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
@@ -216,7 +216,7 @@ interface OppdaterRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.oppdaterOmgjøringOpphør(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         vedtaksperiode: Periode,
         valgteHjemler: Set<HjemmelForOpphør> = setOf(HjemmelForOpphør.DeltarIkkePåArbeidsmarkedstiltak),
         begrunnelseVilkårsvurdering: String? = null,
@@ -250,7 +250,7 @@ interface OppdaterRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.oppdaterOmgjøringIkkeValgt(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
     ): Triple<Sak, Rammebehandling, String> {
@@ -274,7 +274,7 @@ interface OppdaterRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.oppdaterRevurderingStans(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         stansFraOgMed: LocalDate? = null,
@@ -310,7 +310,7 @@ interface OppdaterRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.oppdaterBehandling(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         body: String,
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),

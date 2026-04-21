@@ -3,22 +3,20 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import java.time.LocalDateTime
 
 class RammebehandlingFakeRepo : RammebehandlingRepo {
-    private val data = Atomic(mutableMapOf<BehandlingId, Rammebehandling>())
+    private val data = Atomic(mutableMapOf<RammebehandlingId, Rammebehandling>())
 
     val alle get() = data.get().values.toList()
 
@@ -30,7 +28,7 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
     }
 
     override fun oppdaterSimuleringMetadata(
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         originalResponseBody: String?,
         sessionContext: SessionContext,
     ) {
@@ -38,7 +36,7 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
     }
 
     override fun hent(
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         sessionContext: SessionContext?,
     ): Rammebehandling {
         return data.get()[behandlingId]!!
@@ -52,7 +50,7 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         }
     }
 
-    override fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime) {
+    override fun markerSendtTilDatadeling(id: RammebehandlingId, tidspunkt: LocalDateTime) {
         val behandling = data.get()[id]!!
 
         data.get()[id] = when (behandling) {

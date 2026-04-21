@@ -34,7 +34,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -96,7 +96,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -155,7 +155,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,

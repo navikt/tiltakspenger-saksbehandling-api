@@ -13,8 +13,8 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -51,7 +51,7 @@ interface GjenopptaRammebehandlingBuilder {
             fnr = fnr,
         )
         // Først setter vi behandlingen på vent
-        settRammebehandlingPåVent(
+        `settRammebehandlingPåVent`(
             tac = tac,
             sakId = sak.id,
             rammebehandlingId = søknadsbehandling.id,
@@ -60,11 +60,11 @@ interface GjenopptaRammebehandlingBuilder {
 
         return gjenopptaRammebehandling(
             tac = tac,
+            sakId = sak.id,
             rammebehandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
-            sakId = sak.id,
         )
     }
 
@@ -74,7 +74,7 @@ interface GjenopptaRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.gjenopptaRammebehandling(
         tac: TestApplicationContext,
         sakId: SakId,
-        rammebehandlingId: BehandlingId,
+        rammebehandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,

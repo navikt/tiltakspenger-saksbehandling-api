@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -22,7 +22,7 @@ class LeggTilbakeRammebehandlingService(
 
     suspend fun leggTilbakeRammebehandling(
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler,
     ): Pair<Sak, Rammebehandling> {
         val (sak, rammebehandling) = behandlingService.hentSakOgRammebehandling(

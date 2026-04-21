@@ -201,7 +201,7 @@ class RammebehandlingTest {
                 .leggTilbakeRammebehandling(saksbehandler = saksbehandler, clock = clock).first
 
             assertThrows<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
                     begrunnelse = "Denne kaster exception",
@@ -217,7 +217,7 @@ class RammebehandlingTest {
         fun `kan sette behandling (under behandling) på vent`() {
             val saksbehandler = ObjectMother.saksbehandler(navIdent = "Z111111")
             val behandling = ObjectMother.nySøknadsbehandlingUnderkjent(saksbehandler = saksbehandler)
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på mer informasjon",
@@ -243,7 +243,7 @@ class RammebehandlingTest {
             val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
 
             assertThrows<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
                     begrunnelse = "Denne kaster exception",
@@ -260,7 +260,7 @@ class RammebehandlingTest {
             val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
             val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på mer informasjon",
@@ -287,7 +287,7 @@ class RammebehandlingTest {
             val behandling = ObjectMother.nyVedtattSøknadsbehandling(saksbehandler = saksbehandler)
 
             assertThrows<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
                     begrunnelse = "Denne kaster exception",
@@ -305,7 +305,7 @@ class RammebehandlingTest {
             val behandling = ObjectMother.nyAvbruttSøknadsbehandling(saksbehandler = saksbehandler)
 
             assertThrows<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
                     begrunnelse = "Denne kaster exception",
@@ -331,7 +331,7 @@ class RammebehandlingTest {
                 val behandlingSattPåVent =
                     ObjectMother.nySøknadsbehandlingUnderkjent(saksbehandler = saksbehandler).let {
                         it.settPåVent(
-                            SettRammebehandlingPåVentKommando(
+                            `SettRammebehandlingPåVentKommando`(
                                 sakId = it.sakId,
                                 rammebehandlingId = it.id,
                                 begrunnelse = "1",
@@ -373,7 +373,7 @@ class RammebehandlingTest {
                 val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
                 val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
                     begrunnelse = "Venter på mer informasjon",
@@ -412,7 +412,7 @@ class RammebehandlingTest {
                 val saksbehandler = ObjectMother.saksbehandler(navIdent = "Z111111")
                 val clockPaVent = Clock.fixed(Instant.parse("2025-07-01T12:00:00Z"), ZoneOffset.UTC)
                 val behandling = ObjectMother.nyOpprettetAutomatiskSøknadsbehandling()
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
@@ -452,7 +452,7 @@ class RammebehandlingTest {
                 val behandling = ObjectMother.nyVedtattSøknadsbehandling(saksbehandler = saksbehandler)
 
                 assertThrows<IllegalStateException> {
-                    val kommando = SettRammebehandlingPåVentKommando(
+                    val kommando = `SettRammebehandlingPåVentKommando`(
                         sakId = behandling.sakId,
                         rammebehandlingId = behandling.id,
                         begrunnelse = "Denne kaster exception og skal ikke kunne bli gjenopptatt",
@@ -481,7 +481,7 @@ class RammebehandlingTest {
                 val behandling = ObjectMother.nyAvbruttSøknadsbehandling(saksbehandler = saksbehandler)
 
                 assertThrows<IllegalStateException> {
-                    val kommando = SettRammebehandlingPåVentKommando(
+                    val kommando = `SettRammebehandlingPåVentKommando`(
                         sakId = behandling.sakId,
                         rammebehandlingId = behandling.id,
                         begrunnelse = "Denne kaster exception og skal ikke kunne bli gjenopptatt",

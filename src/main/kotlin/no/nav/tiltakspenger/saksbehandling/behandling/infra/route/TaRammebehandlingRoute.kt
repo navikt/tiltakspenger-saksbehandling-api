@@ -5,7 +5,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
-import no.nav.tiltakspenger.libs.ktor.common.withBehandlingId
+import no.nav.tiltakspenger.libs.ktor.common.withRammebehandlingId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -31,13 +31,13 @@ fun Route.taRammebehandlingRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
-            call.withBehandlingId { behandlingId ->
+            call.withRammebehandlingId { behandlingId ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 taBehandlingService.taBehandling(sakId, behandlingId, saksbehandler)
                     .also { (sak) ->
-                        auditService.logMedBehandlingId(
+                        auditService.logMedRammebehandlingId(
                             behandlingId = behandlingId,
                             navIdent = saksbehandler.navIdent,
                             action = AuditLogEvent.Action.UPDATE,

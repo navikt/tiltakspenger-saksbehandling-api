@@ -38,7 +38,7 @@ class OppdaterSøknadsbehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            oppdaterSøknadsbehandlingIkkeValgt(
+            `oppdaterSøknadsbehandlingIkkeValgt`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -76,7 +76,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             val nyeInnvilgelsesperioder = innvilgelsesperioder(nyInnvilgelsesperiode, tiltaksdeltakelse)
 
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -120,7 +120,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             val nyeInnvilgelsesperioder = innvilgelsesperioder(nyInnvilgelsesperiode, tiltaksdeltakelse)
 
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -149,7 +149,7 @@ class OppdaterSøknadsbehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            oppdaterSøknadsbehandlingAvslag(
+            `oppdaterSøknadsbehandlingAvslag`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -173,7 +173,7 @@ class OppdaterSøknadsbehandlingRouteTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            oppdaterSøknadsbehandlingAvslag(
+            `oppdaterSøknadsbehandlingAvslag`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -214,7 +214,7 @@ class OppdaterSøknadsbehandlingRouteTest {
 
             val oppdatertTiltaksdeltakelsesPeriode = tiltaksdeltakelsePeriode.minusFraOgMed(7)
 
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac,
                 sak.id,
                 behandlingId,
@@ -260,7 +260,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 (17.januar(2026) til 31.januar(2026)),
             )
 
-            val (_, _, responseJson) = oppdaterSøknadsbehandlingInnvilgelse(
+            val (_, _, responseJson) = `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac,
                 sakId = sak.id,
                 behandlingId = nesteSøknadsbehandling.id,

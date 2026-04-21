@@ -37,7 +37,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.beslutter shouldBe null
             }
 
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac,
                 sak.id,
                 behandlingId,
@@ -72,7 +72,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.beslutter shouldBe null
             }
 
-            val response = sendSøknadsbehandlingTilBeslutningReturnerRespons(
+            val response = `sendSøknadsbehandlingTilBeslutningReturnerRespons`(
                 tac,
                 sak.id,
                 behandlingId,
@@ -99,7 +99,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
 
             val behandlingId = behandling.id
 
-            oppdaterSøknadsbehandlingIkkeValgt(
+            `oppdaterSøknadsbehandlingIkkeValgt`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandlingId,
@@ -111,7 +111,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.resultat.shouldBeNull()
             }
 
-            sendSøknadsbehandlingTilBeslutningReturnerRespons(
+            `sendSøknadsbehandlingTilBeslutningReturnerRespons`(
                 tac,
                 sak.id,
                 behandlingId,

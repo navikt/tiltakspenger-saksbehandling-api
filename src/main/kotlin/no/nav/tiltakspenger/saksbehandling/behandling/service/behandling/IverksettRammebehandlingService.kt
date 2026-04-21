@@ -6,8 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -51,7 +51,7 @@ class IverksettRammebehandlingService(
     private val logger = KotlinLogging.logger { }
 
     suspend fun iverksettRammebehandling(
-        rammebehandlingId: BehandlingId,
+        rammebehandlingId: RammebehandlingId,
         beslutter: Saksbehandler,
         sakId: SakId,
         correlationId: CorrelationId,

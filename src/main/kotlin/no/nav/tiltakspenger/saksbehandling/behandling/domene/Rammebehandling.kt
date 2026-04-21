@@ -4,10 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -66,7 +66,7 @@ const val DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
  */
 sealed interface Rammebehandling : AttesterbarBehandling {
 
-    override val id: BehandlingId
+    override val id: RammebehandlingId
     val status: Rammebehandlingsstatus
     override val opprettet: LocalDateTime
 

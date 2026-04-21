@@ -52,7 +52,7 @@ fun Route.oppdaterSimuleringRoute(
                 ifRight = { (sak, behandling) ->
                     behandling.fold(
                         ifLeft = {
-                            auditService.logMedBehandlingId(
+                            auditService.logMedRammebehandlingId(
                                 behandlingId = it.id,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,

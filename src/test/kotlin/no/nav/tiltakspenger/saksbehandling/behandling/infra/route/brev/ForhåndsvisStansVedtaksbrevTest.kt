@@ -23,7 +23,7 @@ internal class ForhåndsvisStansVedtaksbrevTest {
             )
             val behandlingId = revurdering.id
             val fritekstTilVedtaksbrev = "some_tekst"
-            val (_, _, responseJson) = forhåndsvisVedtaksbrevForBehandlingId(
+            val (_, _, responseJson) = `forhåndsvisVedtaksbrevForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandlingId,

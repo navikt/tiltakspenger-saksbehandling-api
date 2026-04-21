@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.NonEmptySet
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando {
     override val sakId: SakId
-    override val behandlingId: BehandlingId
+    override val behandlingId: RammebehandlingId
     override val saksbehandler: Saksbehandler
     override val correlationId: CorrelationId
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
@@ -20,7 +20,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
 
     data class Innvilgelse(
         override val sakId: SakId,
-        override val behandlingId: BehandlingId,
+        override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
@@ -34,7 +34,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
 
     data class Avslag(
         override val sakId: SakId,
-        override val behandlingId: BehandlingId,
+        override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
@@ -50,7 +50,7 @@ sealed interface OppdaterSøknadsbehandlingKommando : OppdaterBehandlingKommando
      */
     data class IkkeValgtResultat(
         override val sakId: SakId,
-        override val behandlingId: BehandlingId,
+        override val behandlingId: RammebehandlingId,
         override val saksbehandler: Saksbehandler,
         override val correlationId: CorrelationId,
         override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
@@ -42,7 +42,7 @@ data class Utbetalinger(
         return utbetalingerMap[id]
     }
 
-    fun hentUtbetalingForRammebehandling(id: BehandlingId): VedtattUtbetaling? {
+    fun hentUtbetalingForRammebehandling(id: RammebehandlingId): VedtattUtbetaling? {
         return utbetalingerMap[id]
     }
 

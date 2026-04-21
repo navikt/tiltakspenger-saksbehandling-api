@@ -129,7 +129,7 @@ class DelautomatiskBehandlingServiceTest {
                     status = TiltakDeltakerstatus.Deltar,
                 ),
             )
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
@@ -180,7 +180,7 @@ class DelautomatiskBehandlingServiceTest {
                     status = TiltakDeltakerstatus.SøktInn,
                 ),
             )
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
@@ -231,7 +231,7 @@ class DelautomatiskBehandlingServiceTest {
                     status = TiltakDeltakerstatus.VenterPåOppstart,
                 ),
             )
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",

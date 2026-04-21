@@ -227,7 +227,7 @@ internal class StartRevurderingTest {
             )
 
             // Men kan opphøre opprinnelig vedtaksperiode
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,

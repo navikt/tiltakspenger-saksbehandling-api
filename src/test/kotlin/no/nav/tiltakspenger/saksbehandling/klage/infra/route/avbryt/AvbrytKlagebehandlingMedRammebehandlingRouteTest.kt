@@ -30,7 +30,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 type = "REVURDERING_OMGJØRING",
             )!!
             val saksbehandler = ObjectMother.saksbehandler(omgjøringsbehandling.saksbehandler!!)
-            val (_, rammevedtak) = iverksettOmgjøringInnvilgelseForBehandlingId(
+            val (_, rammevedtak) = `iverksettOmgjøringInnvilgelseForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = (sak.vedtaksliste.alle.first() as Rammevedtak).id,

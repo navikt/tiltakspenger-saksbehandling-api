@@ -10,8 +10,8 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -62,7 +62,7 @@ interface BehandleSøknadPåNyttBuilder {
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {}
-            val behandlingId = BehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
+            val behandlingId = RammebehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
             return tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) to bodyAsText
         }
     }

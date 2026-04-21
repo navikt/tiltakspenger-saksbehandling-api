@@ -37,7 +37,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
             )!!
 
-            val (_, oppdatertOmgjøring) = oppdaterOmgjøringOpphør(
+            val (_, oppdatertOmgjøring) = `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -67,7 +67,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
             )!!
 
-            val (_, oppdatertOmgjøring) = oppdaterOmgjøringOpphør(
+            val (_, oppdatertOmgjøring) = `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -98,7 +98,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
             )!!
 
-            val (_, oppdatertOmgjøring) = oppdaterOmgjøringOpphør(
+            val (_, oppdatertOmgjøring) = `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -129,14 +129,14 @@ class OppdaterRevurderingOpphørRouteTest {
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = opphørsperiode,
             )
 
-            val (_, oppdatertOmgjøring) = oppdaterOmgjøringIkkeValgt(
+            val (_, oppdatertOmgjøring) = `oppdaterOmgjøringIkkeValgt`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -172,7 +172,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 rammevedtakIdSomOmgjøres = søknadVedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -182,7 +182,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 response harKode "kan_ikke_omgjøre_flere_vedtak"
             }
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -217,7 +217,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 rammevedtakIdSomOmgjøres = stansvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -245,7 +245,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -255,7 +255,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 response harKode "ugyldig_periode_for_opphør"
             }
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -266,7 +266,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 response.shouldContain("Perioden som opphøres må slutte i en gjeldende innvilgelsesperiode")
             }
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,

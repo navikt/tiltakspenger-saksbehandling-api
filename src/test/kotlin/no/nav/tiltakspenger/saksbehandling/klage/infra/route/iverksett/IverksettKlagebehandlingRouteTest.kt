@@ -226,13 +226,13 @@ class IverksettKlagebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
@@ -303,13 +303,13 @@ class IverksettKlagebehandlingRouteTest {
             klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
 
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
@@ -329,7 +329,7 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
 
-            iverksattRammebehandlingJson.toString().shouldBeSøknadsbehandlingDTO(
+            iverksattRammebehandlingJson.toString().`shouldBeSøknadsbehandlingDTO`(
                 rammevedtakId = rammevedtak.id,
                 sakId = sak.id,
                 behandlingId = iverksattRammebehandling.id,
@@ -428,7 +428,7 @@ class IverksettKlagebehandlingRouteTest {
             sak.vedtaksliste.alle.size shouldBe 1
 
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterOmgjøringInnvilgelse(
+            `oppdaterOmgjøringInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,

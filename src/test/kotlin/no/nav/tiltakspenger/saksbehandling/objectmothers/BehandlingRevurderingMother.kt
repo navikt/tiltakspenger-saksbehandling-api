@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -58,7 +58,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
 
     fun nyOpprettetRevurderingStans(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -86,7 +86,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
 
     fun nyRevurderingStansKlarTilBeslutning(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -140,7 +140,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
 
     fun nyVedtattRevurderingStans(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -193,7 +193,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
      */
     fun nyOpprettetRevurderingInnvilgelse(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -226,7 +226,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
      */
     fun nyRevurderingInnvilgelseKlarTilBeslutning(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -296,7 +296,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
      */
     fun nyVedtattRevurderingInnvilgelse(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -354,7 +354,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
 
     fun nyOpprettetRevurderingOmgjøring(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -392,7 +392,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
 
     fun nyRevurderingOmgjøringUnderTilBeslutning(
         clock: Clock = this.clock,
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -462,7 +462,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         clock: Clock = this.clock,
         iverksettendeBeslutter: Saksbehandler = beslutter(),
         attestering: Attestering = godkjentAttestering(),
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),

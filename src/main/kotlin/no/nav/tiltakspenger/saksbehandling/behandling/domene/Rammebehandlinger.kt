@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
@@ -48,7 +48,7 @@ data class Rammebehandlinger(
         return this.copy(behandlinger = this.behandlinger + revurdering)
     }
 
-    fun hentRammebehandling(rammebehandlingId: BehandlingId): Rammebehandling? {
+    fun hentRammebehandling(rammebehandlingId: RammebehandlingId): Rammebehandling? {
         return behandlinger.singleOrNullOrThrow { it.id == rammebehandlingId }
     }
 

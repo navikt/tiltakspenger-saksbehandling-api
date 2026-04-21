@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 sealed interface OppdaterBehandlingKommando {
     val sakId: SakId
-    val behandlingId: BehandlingId
+    val behandlingId: RammebehandlingId
     val saksbehandler: Saksbehandler
     val correlationId: CorrelationId
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?

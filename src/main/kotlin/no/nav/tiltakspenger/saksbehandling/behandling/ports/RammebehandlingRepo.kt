@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.ports
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
 
@@ -17,13 +15,13 @@ interface RammebehandlingRepo {
     )
 
     fun oppdaterSimuleringMetadata(
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         originalResponseBody: String?,
         sessionContext: SessionContext,
     )
 
     fun hent(
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         sessionContext: SessionContext? = null,
     ): Rammebehandling
 
@@ -31,7 +29,7 @@ interface RammebehandlingRepo {
 
     fun hentBehandlingerTilDatadeling(limit: Int = 10): List<Rammebehandling>
 
-    fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime)
+    fun markerSendtTilDatadeling(id: RammebehandlingId, tidspunkt: LocalDateTime)
 
     fun taBehandlingSaksbehandler(
         rammebehandling: Rammebehandling,

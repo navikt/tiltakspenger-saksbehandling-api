@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -27,7 +27,7 @@ data class OppdaterKlagebehandlingFormkravKommando(
     val innsendingskilde: KlageInnsendingskilde,
     val correlationId: CorrelationId,
 ) {
-    fun toKlageFormkrav(behandlingDetKlagesPå: BehandlingId?): KlageFormkrav {
+    fun toKlageFormkrav(behandlingDetKlagesPå: RammebehandlingId?): KlageFormkrav {
         return KlageFormkrav(
             vedtakDetKlagesPå = vedtakDetKlagesPå,
             behandlingDetKlagesPå = behandlingDetKlagesPå,

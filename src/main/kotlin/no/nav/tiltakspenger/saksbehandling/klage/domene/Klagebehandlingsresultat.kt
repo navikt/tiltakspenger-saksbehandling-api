@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.NonEmptyList
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 sealed interface Klagebehandlingsresultat {
 
     val kanVæreKnyttetTilRammebehandling: Boolean
-    val rammebehandlingId: List<BehandlingId>
+    val rammebehandlingId: List<RammebehandlingId>
     val brevtekst: Brevtekster?
     val ferdigstiltTidspunkt: LocalDateTime?
     val begrunnelseFerdigstilling: Begrunnelse?
@@ -40,7 +40,7 @@ sealed interface Klagebehandlingsresultat {
     fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean?
     fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean
     val erKnyttetTilRammebehandling: Boolean
-    val åpenRammebehandlingId: BehandlingId?
+    val åpenRammebehandlingId: RammebehandlingId?
     fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean
     val kanOmgjøresEtterKA: Boolean
 
@@ -48,7 +48,7 @@ sealed interface Klagebehandlingsresultat {
      * @param klagebehandlingId - kun brukt for logging
      */
     fun leggTilNyÅpenRammebehandling(
-        rammebehandlingId: BehandlingId,
+        rammebehandlingId: RammebehandlingId,
         klagebehandlingId: KlagebehandlingId,
     ): Klagebehandlingsresultat
 
@@ -65,8 +65,8 @@ sealed interface Klagebehandlingsresultat {
 
         override val erKnyttetTilRammebehandling = false
         override val kanVæreKnyttetTilRammebehandling: Boolean = false
-        override val åpenRammebehandlingId: BehandlingId? = null
-        override val rammebehandlingId: List<BehandlingId> = emptyList()
+        override val åpenRammebehandlingId: RammebehandlingId? = null
+        override val rammebehandlingId: List<RammebehandlingId> = emptyList()
         override val kanOversendeKlageinstans = false
         override val harJournalførtInnstillingsbrev = false
         override val harDistribuertInnstillingsbrev = false
@@ -88,7 +88,7 @@ sealed interface Klagebehandlingsresultat {
         }
 
         override fun leggTilNyÅpenRammebehandling(
-            rammebehandlingId: BehandlingId,
+            rammebehandlingId: RammebehandlingId,
             klagebehandlingId: KlagebehandlingId,
         ): Avvist {
             throw IllegalStateException("Avvist klage kan ikke knyttes til rammebehandling. Dette skjedde for klagebehandlingId=$klagebehandlingId")
@@ -137,8 +137,8 @@ sealed interface Klagebehandlingsresultat {
         val begrunnelse: Begrunnelse,
         override val ferdigstiltTidspunkt: LocalDateTime?,
         override val begrunnelseFerdigstilling: Begrunnelse?,
-        override val rammebehandlingId: List<BehandlingId>,
-        override val `åpenRammebehandlingId`: BehandlingId?,
+        override val rammebehandlingId: List<RammebehandlingId>,
+        override val åpenRammebehandlingId: RammebehandlingId?,
     ) : Klagebehandlingsresultat {
         override val kanOversendeKlageinstans = false
         override val brevtekst = null
@@ -153,7 +153,7 @@ sealed interface Klagebehandlingsresultat {
         }
 
         override fun leggTilNyÅpenRammebehandling(
-            rammebehandlingId: BehandlingId,
+            rammebehandlingId: RammebehandlingId,
             klagebehandlingId: KlagebehandlingId,
         ): Omgjør {
             require(åpenRammebehandlingId == null) {
@@ -212,8 +212,8 @@ sealed interface Klagebehandlingsresultat {
         val klageinstanshendelser: Klageinstanshendelser,
         override val ferdigstiltTidspunkt: LocalDateTime?,
         override val begrunnelseFerdigstilling: Begrunnelse?,
-        override val rammebehandlingId: List<BehandlingId>,
-        override val åpenRammebehandlingId: BehandlingId?,
+        override val rammebehandlingId: List<RammebehandlingId>,
+        override val åpenRammebehandlingId: RammebehandlingId?,
     ) : Klagebehandlingsresultat {
 
         override val erKnyttetTilRammebehandling = rammebehandlingId.isNotEmpty()
@@ -261,7 +261,7 @@ sealed interface Klagebehandlingsresultat {
         }
 
         override fun leggTilNyÅpenRammebehandling(
-            rammebehandlingId: BehandlingId,
+            rammebehandlingId: RammebehandlingId,
             klagebehandlingId: KlagebehandlingId,
         ): Opprettholdt {
             require(åpenRammebehandlingId == null) {

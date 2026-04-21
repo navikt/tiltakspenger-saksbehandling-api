@@ -5,8 +5,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -72,7 +72,7 @@ class RammebehandlingPostgresRepo(
 
     @TestOnly
     override fun hent(
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         sessionContext: SessionContext?,
     ): Rammebehandling {
         return sessionFactory.withSession(sessionContext) { session ->
@@ -122,7 +122,7 @@ class RammebehandlingPostgresRepo(
      * Denne blir kalt samtidig som [lagre] i en og samme transaksjon, så vi trenger ikke mutere sist_endret her.
      */
     override fun oppdaterSimuleringMetadata(
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         originalResponseBody: String?,
         sessionContext: SessionContext,
     ) {
@@ -246,7 +246,7 @@ class RammebehandlingPostgresRepo(
 
     companion object {
         fun hentOrNull(
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             session: Session,
         ): Rammebehandling? =
             session.run(
@@ -306,7 +306,7 @@ class RammebehandlingPostgresRepo(
         }
 
         private fun hentSistEndret(
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             session: Session,
         ): LocalDateTime? =
             session.run(
@@ -320,7 +320,7 @@ class RammebehandlingPostgresRepo(
 
         fun Row.toBehandling(session: Session): Rammebehandling {
             val behandlingstype = string("behandlingstype").toBehandlingstype()
-            val id = BehandlingId.fromString(string("id"))
+            val id = RammebehandlingId.fromString(string("id"))
             val sakId = SakId.fromString(string("sak_id"))
             val status = string("status").toBehandlingsstatus()
             val saksbehandler = stringOrNull("saksbehandler")
@@ -689,7 +689,7 @@ class RammebehandlingPostgresRepo(
         }
     }
 
-    override fun markerSendtTilDatadeling(id: BehandlingId, tidspunkt: LocalDateTime) {
+    override fun markerSendtTilDatadeling(id: RammebehandlingId, tidspunkt: LocalDateTime) {
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(

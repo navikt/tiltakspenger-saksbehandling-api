@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -76,7 +76,7 @@ data class Rammevedtak(
     val omgjortAvRammevedtak: OmgjortAvRammevedtak,
 ) : Vedtak,
     Periodiserbar {
-    override val behandlingId: BehandlingId = rammebehandling.id
+    override val behandlingId: RammebehandlingId = rammebehandling.id
     override val fnr: Fnr = rammebehandling.fnr
     override val saksnummer: Saksnummer = rammebehandling.saksnummer
     override val saksbehandler: String = rammebehandling.saksbehandler!!

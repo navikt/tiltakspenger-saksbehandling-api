@@ -13,8 +13,8 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -273,7 +273,7 @@ interface StartRevurderingBuilder {
                 }
                 if (status != HttpStatusCode.OK) return null
                 val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
-                val revurderingId = BehandlingId.fromString(jsonObject.getString("id"))
+                val revurderingId = RammebehandlingId.fromString(jsonObject.getString("id"))
                 val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
                 return Triple(
                     oppdatertSak,

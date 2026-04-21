@@ -195,7 +195,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = automatiskBehandling.sakId,
                     rammebehandlingId = automatiskBehandling.id,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
@@ -234,7 +234,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val (sak, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
-                val kommando = SettRammebehandlingPåVentKommando(
+                val kommando = `SettRammebehandlingPåVentKommando`(
                     sakId = automatiskBehandling.sakId,
                     rammebehandlingId = automatiskBehandling.id,
                     begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",

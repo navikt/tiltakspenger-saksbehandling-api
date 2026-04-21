@@ -988,7 +988,7 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",
@@ -1014,7 +1014,7 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",
@@ -1041,7 +1041,7 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",

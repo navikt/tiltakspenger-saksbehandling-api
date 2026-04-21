@@ -11,11 +11,10 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
@@ -32,7 +31,7 @@ interface OvertaRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.overtaBehanding(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         overtarFra: String,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson> {

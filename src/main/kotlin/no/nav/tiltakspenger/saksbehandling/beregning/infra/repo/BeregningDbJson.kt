@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.beregning.infra.repo
 
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
@@ -205,7 +205,7 @@ private fun BeregningDbJson.tilBeregning(beregningKilde: BeregningKilde): Beregn
     )
 }
 
-fun BeregningDbJson.tilBeregningFraRammebehandling(behandlingId: BehandlingId): Beregning {
+fun BeregningDbJson.tilBeregningFraRammebehandling(behandlingId: RammebehandlingId): Beregning {
     return tilBeregning(BeregningKilde.BeregningKildeRammebehandling(behandlingId))
 }
 
@@ -213,6 +213,6 @@ fun String.tilBeregningFraMeldekortbehandling(meldekortId: MeldekortId): Beregni
     return tilBeregningDbJson().tilBeregning(BeregningKilde.BeregningKildeMeldekort(meldekortId))
 }
 
-fun String.tilBeregningFraRammebehandling(behandlingId: BehandlingId): Beregning {
+fun String.tilBeregningFraRammebehandling(behandlingId: RammebehandlingId): Beregning {
     return tilBeregningDbJson().tilBeregning(BeregningKilde.BeregningKildeRammebehandling(behandlingId))
 }

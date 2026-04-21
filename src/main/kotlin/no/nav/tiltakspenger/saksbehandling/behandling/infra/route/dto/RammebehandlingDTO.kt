@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
@@ -112,7 +112,7 @@ data class RevurderingDTO(
     override val type = RammebehandlingstypeDTO.REVURDERING
 }
 
-fun Sak.tilRammebehandlingDTO(behandlingId: BehandlingId): RammebehandlingDTO {
+fun Sak.tilRammebehandlingDTO(behandlingId: RammebehandlingId): RammebehandlingDTO {
     val behandling = rammebehandlinger.hentRammebehandling(behandlingId)
 
     requireNotNull(behandling) {

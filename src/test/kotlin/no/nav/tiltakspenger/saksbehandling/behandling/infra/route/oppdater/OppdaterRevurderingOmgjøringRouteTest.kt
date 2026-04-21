@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext

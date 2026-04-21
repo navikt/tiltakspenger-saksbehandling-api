@@ -10,7 +10,7 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
@@ -28,7 +28,7 @@ interface OppdaterRammebehandlingSaksopplysningerBuilder {
     suspend fun ApplicationTestBuilder.oppdaterSaksopplysningerForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Triple<Sak, Rammebehandling, String> {

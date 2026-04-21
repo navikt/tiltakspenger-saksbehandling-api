@@ -5,8 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -34,7 +34,7 @@ class RammebehandlingService(
 
     fun hentSakOgRammebehandling(
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
     ): Pair<Sak, Rammebehandling> {
         val sak = sakService.hentForSakId(sakId)
         val behandling = sak.hentRammebehandling(behandlingId)
@@ -48,7 +48,7 @@ class RammebehandlingService(
 
     suspend fun underkjennBehandling(
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         beslutter: Saksbehandler,
         begrunnelse: String?,
     ): Either<KanIkkeUnderkjenne, Pair<Sak, Rammebehandling>> {

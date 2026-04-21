@@ -14,8 +14,8 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -68,7 +68,7 @@ interface AvbrytRammebehandlingBuilder {
         tac: TestApplicationContext,
         saksnummer: Saksnummer,
         sakId: SakId,
-        rammebehandlingId: BehandlingId,
+        rammebehandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "begrunnelse for avbryt søknad og/eller rammebehandling",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,

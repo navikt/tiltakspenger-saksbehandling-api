@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -339,7 +339,7 @@ class RammevedtakPostgresRepo(
                 sakId = SakId.fromString(string("sak_id")),
                 rammebehandling =
                 RammebehandlingPostgresRepo.hentOrNull(
-                    BehandlingId.fromString(string("behandling_id")),
+                    RammebehandlingId.fromString(string("behandling_id")),
                     session,
                 )!!,
                 vedtaksdato = localDateOrNull("vedtaksdato"),

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository
 
 import kotliquery.Row
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -132,7 +132,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
         }
     }
 
-    fun markerSomBehandletMedRevurdering(id: TiltaksdeltakerHendelseId, behandlingId: BehandlingId) {
+    fun markerSomBehandletMedRevurdering(id: TiltaksdeltakerHendelseId, behandlingId: RammebehandlingId) {
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
@@ -162,7 +162,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
             sakId = SakId.fromString(string("sak_id")),
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
             internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
-            behandlingId = stringOrNull("behandling_id")?.let { BehandlingId.fromString(it) },
+            behandlingId = stringOrNull("behandling_id")?.let { RammebehandlingId.fromString(it) },
         )
     }
 

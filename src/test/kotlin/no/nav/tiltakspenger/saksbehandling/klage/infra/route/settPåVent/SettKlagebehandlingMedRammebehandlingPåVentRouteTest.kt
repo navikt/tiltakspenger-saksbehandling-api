@@ -77,7 +77,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
-            val (_, _, oppdatertRammebehandlingMedKlagebehandling, json) = settRammebehandlingPåVent(
+            val (_, _, oppdatertRammebehandlingMedKlagebehandling, json) = `settRammebehandlingPåVent`(
                 tac = tac,
                 sakId = sak.id,
                 rammebehandlingId = rammebehandlingMedKlagebehandling.id,
@@ -121,7 +121,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            val (_, _, rammebehandlingPåVent, sakJson) = settRammebehandlingPåVent(
+            val (_, _, rammebehandlingPåVent, sakJson) = `settRammebehandlingPåVent`(
                 tac = tac,
                 sakId = sak.id,
                 rammebehandlingId = rammebehandling.id,

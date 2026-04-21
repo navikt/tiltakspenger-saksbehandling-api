@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
@@ -60,8 +60,8 @@ private data class KlagebehandlingsresultatDbJson(
             KlagebehandlingsresultatDbEnum.OMGJØR -> Omgjør(
                 årsak = omgjørÅrsak!!.toDomain(),
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
-                rammebehandlingId = rammebehandlingId.map { BehandlingId.fromString(it) },
-                åpenRammebehandlingId = åpenRammebehandlingId?.let { BehandlingId.fromString(it) },
+                rammebehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
+                åpenRammebehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
             )
@@ -79,9 +79,9 @@ private data class KlagebehandlingsresultatDbJson(
                 oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,
                 klageinstanshendelser = Klageinstanshendelser(klageinstanshendelser.map { it.toDomain() }),
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
-                rammebehandlingId = rammebehandlingId.map { BehandlingId.fromString(it) },
+                rammebehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
-                åpenRammebehandlingId = åpenRammebehandlingId?.let { BehandlingId.fromString(it) },
+                åpenRammebehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
             )
         }
     }

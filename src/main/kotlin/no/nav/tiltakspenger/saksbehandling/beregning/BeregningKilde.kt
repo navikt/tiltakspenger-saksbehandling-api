@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 
 sealed interface BeregningKilde {
@@ -13,5 +13,5 @@ sealed interface BeregningKilde {
 
     /** @param id Id for behandlingen/revurderingen som utløste denne beregningen.
      * */
-    data class BeregningKildeRammebehandling(override val id: BehandlingId) : BeregningKilde
+    data class BeregningKildeRammebehandling(override val id: RammebehandlingId) : BeregningKilde
 }

@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.auditlog
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -207,15 +207,15 @@ object AuditLogger {
 class AuditService(
     private val personService: PersonService,
 ) {
-    fun logMedBehandlingId(
-        behandlingId: BehandlingId,
+    fun logMedRammebehandlingId(
+        behandlingId: RammebehandlingId,
         navIdent: String,
         action: AuditLogEvent.Action,
         contextMessage: String,
         correlationId: CorrelationId,
     ) {
         Either.catch {
-            val berørtBrukerId = personService.hentFnrForBehandlingId(behandlingId)
+            val berørtBrukerId = personService.hentFnrForRammebehandlingId(behandlingId)
 
             AuditLogger.log(
                 AuditLogEvent(
@@ -237,7 +237,7 @@ class AuditService(
         action: AuditLogEvent.Action,
         correlationId: CorrelationId,
         contextMessage: String,
-        behandlingId: BehandlingId? = null,
+        behandlingId: RammebehandlingId? = null,
     ) {
         Either.catch {
             val berørtBrukerId = personService.hentFnrForMeldekortId(meldekortId)
@@ -287,7 +287,7 @@ class AuditService(
         action: AuditLogEvent.Action,
         correlationId: CorrelationId,
         contextMessage: String,
-        behandlingId: BehandlingId? = null,
+        behandlingId: RammebehandlingId? = null,
     ) {
         Either.catch {
             val berørtBrukerId = personService.hentFnrForSaksnummer(saksnummer = saksnummer)
@@ -312,7 +312,7 @@ class AuditService(
         action: AuditLogEvent.Action,
         correlationId: CorrelationId,
         contextMessage: String,
-        behandlingId: BehandlingId? = null,
+        behandlingId: RammebehandlingId? = null,
     ) {
         Either.catch {
             AuditLogger.log(
@@ -335,7 +335,7 @@ class AuditService(
         action: AuditLogEvent.Action,
         correlationId: CorrelationId,
         contextMessage: String,
-        behandlingId: BehandlingId? = null,
+        behandlingId: RammebehandlingId? = null,
     ) {
         Either.catch {
             val berørtBrukerFnr = personService.hentFnrForSøknadId(søknadId)

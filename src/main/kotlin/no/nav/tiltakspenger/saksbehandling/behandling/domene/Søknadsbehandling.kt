@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -44,7 +44,7 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 data class Søknadsbehandling(
-    override val id: BehandlingId,
+    override val id: RammebehandlingId,
     override val status: Rammebehandlingsstatus,
     override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
@@ -253,7 +253,7 @@ data class Søknadsbehandling(
     companion object {
         suspend fun opprett(
             sak: Sak,
-            søknadsbehandlingId: BehandlingId = BehandlingId.random(),
+            søknadsbehandlingId: RammebehandlingId = RammebehandlingId.random(),
             søknad: Søknad,
             saksbehandler: Saksbehandler,
             hentSaksopplysninger: HentSaksopplysninger,
@@ -337,7 +337,7 @@ data class Søknadsbehandling(
                 true,
             )
             val opprettetSøknadsbehandling = Søknadsbehandling(
-                id = BehandlingId.random(),
+                id = RammebehandlingId.random(),
                 saksnummer = søknad.saksnummer,
                 sakId = søknad.sakId,
                 fnr = søknad.fnr,

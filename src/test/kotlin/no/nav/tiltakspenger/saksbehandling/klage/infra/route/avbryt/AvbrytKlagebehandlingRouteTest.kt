@@ -249,13 +249,13 @@ class AvbrytKlagebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,

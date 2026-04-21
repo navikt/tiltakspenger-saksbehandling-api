@@ -4,9 +4,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
@@ -74,7 +74,7 @@ data class AvsluttSøknadOgBehandlingBody(
     ): AvbrytRammebehandlingKommando {
         return AvbrytRammebehandlingKommando(
             saksnummer = saksnummer,
-            behandlingId = BehandlingId.fromString(behandlingId),
+            behandlingId = RammebehandlingId.fromString(behandlingId),
             avsluttetAv = avsluttetAv,
             correlationId = correlationId,
             begrunnelse = saniterBeholdNewline(begrunnelse).toNonBlankString(),

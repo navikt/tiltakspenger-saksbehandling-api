@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.NonBlankString
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -59,7 +59,7 @@ sealed interface KunneIkkeAvbryteSøknadOgBehandling {
  */
 data class AvbrytRammebehandlingKommando(
     val saksnummer: Saksnummer,
-    val behandlingId: BehandlingId,
+    val behandlingId: RammebehandlingId,
     val avsluttetAv: Saksbehandler,
     val correlationId: CorrelationId,
     val begrunnelse: NonBlankString,

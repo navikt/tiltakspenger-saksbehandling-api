@@ -7,7 +7,7 @@ import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
-import no.nav.tiltakspenger.libs.ktor.common.withBehandlingId
+import no.nav.tiltakspenger.libs.ktor.common.withRammebehandlingId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -36,7 +36,7 @@ fun Route.iverksettRammebehandlingRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
-            call.withBehandlingId { behandlingId ->
+            call.withRammebehandlingId { behandlingId ->
                 val correlationId = call.correlationId()
                 krevBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)

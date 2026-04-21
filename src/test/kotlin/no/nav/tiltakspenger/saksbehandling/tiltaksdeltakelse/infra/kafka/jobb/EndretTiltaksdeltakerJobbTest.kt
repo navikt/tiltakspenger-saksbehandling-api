@@ -230,7 +230,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            val kommando = SettRammebehandlingPåVentKommando(
+            val kommando = `SettRammebehandlingPåVentKommando`(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",

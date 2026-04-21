@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.ta
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 suspend fun Sak.taKlagebehandling(
     kommando: TaKlagebehandlingKommando,
     sistEndret: LocalDateTime,
-    taRammebehandling: suspend (SakId, BehandlingId, Saksbehandler) -> Pair<Sak, Rammebehandling>,
+    taRammebehandling: suspend (SakId, RammebehandlingId, Saksbehandler) -> Pair<Sak, Rammebehandling>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeTaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->

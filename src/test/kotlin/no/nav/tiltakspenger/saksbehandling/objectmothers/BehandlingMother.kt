@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptySet
 import kotlinx.coroutines.runBlocking
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -90,7 +90,7 @@ interface BehandlingMother : MotherOfAllMothers {
         )
 
     fun nyOpprettetSøknadsbehandling(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -122,7 +122,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 
     fun nyOpprettetAutomatiskSøknadsbehandling(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -148,7 +148,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 
     fun nyAutomatiskSøknadsbehandlingManuellBehandling(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -179,7 +179,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 
     fun oppdatertSøknadsbehandling(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -246,7 +246,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 
     fun nySøknadsbehandlingKlarTilBeslutning(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -301,7 +301,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 
     fun nySøknadsbehandlingUnderBeslutning(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -355,7 +355,7 @@ interface BehandlingMother : MotherOfAllMothers {
 
     @Suppress("unused")
     fun nySøknadsbehandlingUnderkjent(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -419,7 +419,7 @@ interface BehandlingMother : MotherOfAllMothers {
      * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode]. Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
      */
     fun nyVedtattSøknadsbehandling(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),
@@ -483,7 +483,7 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 
     fun nyAvbruttSøknadsbehandling(
-        id: BehandlingId = BehandlingId.random(),
+        id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
         fnr: Fnr = Fnr.random(),

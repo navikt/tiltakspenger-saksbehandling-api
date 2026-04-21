@@ -155,7 +155,7 @@ class IverksettSøknadsbehandlingTest {
                 it.saksbehandler shouldBe saksbehandler.navIdent
                 it.beslutter shouldBe null
             }
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac,
                 sak.id,
                 behandlingId,

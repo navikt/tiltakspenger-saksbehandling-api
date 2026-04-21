@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling
 
 import io.kotest.assertions.json.shouldEqualJson
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -14,7 +14,7 @@ fun String.shouldBeRevurderingDTO(
     ignorerTidspunkt: Boolean = true,
     sakId: SakId,
     saksnummer: Saksnummer = Saksnummer("202501011001"),
-    behandlingId: BehandlingId,
+    behandlingId: RammebehandlingId,
     klagebehandlingId: KlagebehandlingId,
     omgjørVedtak: VedtakId? = null,
     rammevedtakId: VedtakId?,
@@ -173,7 +173,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     ignorerTidspunkt: Boolean = true,
     sakId: SakId,
     saksnummer: Saksnummer = Saksnummer("202501011001"),
-    behandlingId: BehandlingId,
+    behandlingId: RammebehandlingId,
     klagebehandlingId: KlagebehandlingId,
     rammevedtakId: VedtakId? = null,
     søknadId: SøknadId,

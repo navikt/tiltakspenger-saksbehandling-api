@@ -14,8 +14,8 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
@@ -56,7 +56,7 @@ interface SettRammebehandlingPåVentBuilder {
             fnr = fnr,
             clock = clock,
         )
-        return settRammebehandlingPåVent(
+        return `settRammebehandlingPåVent`(
             tac = tac,
             rammebehandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
@@ -73,7 +73,7 @@ interface SettRammebehandlingPåVentBuilder {
     suspend fun ApplicationTestBuilder.settRammebehandlingPåVent(
         tac: TestApplicationContext,
         sakId: SakId,
-        rammebehandlingId: BehandlingId,
+        rammebehandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "Begrunnelse for å sette rammebehandling på vent",
         frist: LocalDate? = null,

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.overlappendePerioder
@@ -174,7 +174,7 @@ data class Rammevedtaksliste(
         return verdi.single { it.id == rammevedtakId }
     }
 
-    fun finnRammevedtakForBehandling(id: BehandlingId): Rammevedtak? {
+    fun finnRammevedtakForBehandling(id: RammebehandlingId): Rammevedtak? {
         return this.singleOrNullOrThrow { vedtak -> vedtak.rammebehandling.id == id }
     }
 
@@ -264,7 +264,7 @@ data class Rammevedtaksliste(
         }.sortedBy { it.periode.fraOgMed }.tilPeriodisering()
     }
 
-    fun hentVedtakForBehandlingId(behandlingId: BehandlingId): Rammevedtak {
+    fun hentVedtakForBehandlingId(behandlingId: RammebehandlingId): Rammevedtak {
         return this.single { it.rammebehandling.id == behandlingId }
     }
 }

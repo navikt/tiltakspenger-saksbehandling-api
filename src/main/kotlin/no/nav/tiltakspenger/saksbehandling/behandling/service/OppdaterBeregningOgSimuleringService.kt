@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Ulid
@@ -42,7 +42,7 @@ class OppdaterBeregningOgSimuleringService(
 ) {
     /**
      * Oppdaterer beregning og simuleringen av utbetaling på en åpen behandling som er under behandling eller beslutning
-     * @param behandlingId id til behandlingen som skal oppdateres ([BehandlingId] eller [MeldekortId])
+     * @param behandlingId id til behandlingen som skal oppdateres ([RammebehandlingId] eller [MeldekortId])
      */
     suspend fun oppdaterSimulering(
         sakId: SakId,
@@ -51,9 +51,9 @@ class OppdaterBeregningOgSimuleringService(
     ): Either<KunneIkkeSimulere, Pair<Sak, Either<Rammebehandling, Meldekortbehandling>>> {
         val sak: Sak = sakService.hentForSakId(sakId)
 
-        return if (behandlingId.erBehandlingId()) {
+        return if (behandlingId.erRammebehandlingId()) {
             sak.oppdaterRammebehandling(
-                behandlingId = behandlingId.toBehandlingId(),
+                behandlingId = behandlingId.toRammebehandlingId(),
                 saksbehandlerEllerBeslutter = saksbehandler,
             ).map { (oppdatertSak, oppdatertBehandling) ->
                 (oppdatertSak to oppdatertBehandling.left())
@@ -68,7 +68,7 @@ class OppdaterBeregningOgSimuleringService(
 
     suspend fun oppdaterUtbetalingskontroll(
         sak: Sak,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandlerEllerBeslutter: Saksbehandler,
     ): Either<KunneIkkeSimulere, Pair<Sak, Rammebehandling>> {
         val behandling = sak.hentRammebehandling(behandlingId)!!
@@ -95,7 +95,7 @@ class OppdaterBeregningOgSimuleringService(
     }
 
     private suspend fun Sak.oppdaterRammebehandling(
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandlerEllerBeslutter: Saksbehandler,
     ): Either<KunneIkkeSimulere, Pair<Sak, Rammebehandling>> {
         val behandling = this.hentRammebehandling(behandlingId)!!
@@ -239,10 +239,10 @@ class OppdaterBeregningOgSimuleringService(
     }
 }
 
-private fun Ulid.toBehandlingId(): BehandlingId = BehandlingId.fromString(this.toString())
+private fun Ulid.toRammebehandlingId(): RammebehandlingId = RammebehandlingId.fromString(this.toString())
 private fun Ulid.toMeldekortId(): MeldekortId = MeldekortId.fromString(this.toString())
 
-private fun Ulid.erBehandlingId(): Boolean = Either.catch { BehandlingId.fromString(this.toString()) }.fold(
+private fun Ulid.erRammebehandlingId(): Boolean = Either.catch { RammebehandlingId.fromString(this.toString()) }.fold(
     ifLeft = { false },
     ifRight = { true },
 )

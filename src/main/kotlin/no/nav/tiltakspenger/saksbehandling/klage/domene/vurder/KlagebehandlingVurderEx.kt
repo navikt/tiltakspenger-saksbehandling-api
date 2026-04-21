@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.vurder
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -68,7 +68,7 @@ private fun Klagebehandling.vurderOpprettholdelse(
 }
 
 fun Klagebehandling.oppdaterRammebehandlingId(
-    rammebehandlingId: BehandlingId,
+    rammebehandlingId: RammebehandlingId,
     saksbehandler: Saksbehandler,
     sistEndret: LocalDateTime,
 ): Klagebehandling {
@@ -92,7 +92,7 @@ fun Klagebehandling.oppdaterRammebehandlingId(
 }
 
 fun Klagebehandling.fjernRammebehandlingId(
-    rammebehandlingId: BehandlingId,
+    rammebehandlingId: RammebehandlingId,
     saksbehandler: Saksbehandler,
     sistEndret: LocalDateTime,
 ): Klagebehandling {
@@ -123,7 +123,7 @@ fun Klagebehandling.fjernRammebehandlingId(
     }
 }
 
-private fun Omgjør.fjernRammebehandlingId(rammebehandlingId: BehandlingId): Omgjør {
+private fun Omgjør.fjernRammebehandlingId(rammebehandlingId: RammebehandlingId): Omgjør {
     require(this.rammebehandlingId.contains(rammebehandlingId)) {
         "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
     }
@@ -133,7 +133,7 @@ private fun Omgjør.fjernRammebehandlingId(rammebehandlingId: BehandlingId): Omg
     return this.copy(rammebehandlingId = this.rammebehandlingId.minus(rammebehandlingId), åpenRammebehandlingId = null)
 }
 
-private fun Opprettholdt.fjernRammebehandlingId(rammebehandlingId: BehandlingId): Opprettholdt {
+private fun Opprettholdt.fjernRammebehandlingId(rammebehandlingId: RammebehandlingId): Opprettholdt {
     require(this.rammebehandlingId.contains(rammebehandlingId)) {
         "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
     }

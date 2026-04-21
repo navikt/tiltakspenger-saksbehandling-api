@@ -12,7 +12,7 @@ import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
@@ -37,7 +37,7 @@ interface UnderkjennRammebehandlingBuilder {
         tac: TestApplicationContext,
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-    ): Tuple4<Sak, Søknad, BehandlingId, String> {
+    ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
         taBehandling(tac, sak.id, behandlingId, beslutter)
         return Tuple4(
@@ -52,7 +52,7 @@ interface UnderkjennRammebehandlingBuilder {
         tac: TestApplicationContext,
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-    ): Tuple4<Sak, Søknad, BehandlingId, String> {
+    ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
         taBehandling(tac, sak.id, behandling.id, beslutter)
         return Tuple4(
@@ -67,7 +67,7 @@ interface UnderkjennRammebehandlingBuilder {
     suspend fun ApplicationTestBuilder.underkjennForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         begrunnelse: String = "send_tilbake_begrunnelse",
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): String {

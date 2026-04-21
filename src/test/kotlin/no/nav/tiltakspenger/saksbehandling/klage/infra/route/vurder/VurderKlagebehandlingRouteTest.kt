@@ -119,13 +119,13 @@ class VurderKlagebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
@@ -162,13 +162,13 @@ class VurderKlagebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
@@ -212,13 +212,13 @@ class VurderKlagebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandlingg.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            oppdaterSøknadsbehandlingInnvilgelse(
+            `oppdaterSøknadsbehandlingInnvilgelse`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandlingg.id,
                 saksbehandler = saksbehandler,
             )
-            sendSøknadsbehandlingTilBeslutningForBehandlingId(
+            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandlingg.id,

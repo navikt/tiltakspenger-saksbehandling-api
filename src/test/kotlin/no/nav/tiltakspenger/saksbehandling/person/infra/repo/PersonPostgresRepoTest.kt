@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test
 class PersonPostgresRepoTest {
 
     @Test
-    fun hentFnrForBehandlingId() {
+    fun hentFnrForRammebehandlingId() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterOpprettetRevurdering().also {
                 val (sak, behandling) = it
                 testDataHelper.personRepo.hentFnrForSakId(sak.id) shouldBe sak.fnr
-                testDataHelper.personRepo.hentFnrForBehandlingId(behandling.id) shouldBe sak.fnr
-                testDataHelper.personRepo.hentFnrForBehandlingId(behandling.id) shouldBe sak.fnr
+                testDataHelper.personRepo.hentFnrForRammebehandlingId(behandling.id) shouldBe sak.fnr
+                testDataHelper.personRepo.hentFnrForRammebehandlingId(behandling.id) shouldBe sak.fnr
                 testDataHelper.personRepo.hentFnrForSaksnummer(sak.saksnummer) shouldBe sak.fnr
                 testDataHelper.personRepo.hentFnrForSøknadId(sak.rammebehandlinger.søknadsbehandlinger.singleOrNullOrThrow()!!.søknad.id) shouldBe sak.fnr
             }

@@ -28,7 +28,6 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandlingId,
-                ObjectMother.saksbehandler(),
             ).also { (_, _, json) ->
                 json.getString("saksbehandler") shouldBe "null"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {

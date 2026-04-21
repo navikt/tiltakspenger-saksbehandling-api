@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 import arrow.core.toNonEmptySetOrThrow
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
@@ -36,7 +36,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
         override fun tilDomene(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterRevurderingKommando.Innvilgelse {
@@ -76,7 +76,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
         override fun tilDomene(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterRevurderingKommando.Stans {
@@ -106,7 +106,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
         override fun tilDomene(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterOmgjøringKommando.OmgjøringInnvilgelse {
@@ -138,7 +138,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
         override fun tilDomene(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterOmgjøringKommando.OmgjøringOpphør {
@@ -164,7 +164,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
 
         override fun tilDomene(
             sakId: SakId,
-            behandlingId: BehandlingId,
+            behandlingId: RammebehandlingId,
             saksbehandler: Saksbehandler,
             correlationId: CorrelationId,
         ): OppdaterOmgjøringKommando.OmgjøringIkkeValgt {

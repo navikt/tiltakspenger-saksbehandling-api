@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning.infra.repo
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
@@ -20,7 +20,7 @@ fun Utbetalingskontroll.tilDbJson(): String {
     ).let { serialize(it) }
 }
 
-fun String.tilRammebehandlingUtbetalingskontroll(id: BehandlingId, meldeperiodekjeder: MeldeperiodeKjeder): Utbetalingskontroll {
+fun String.tilRammebehandlingUtbetalingskontroll(id: RammebehandlingId, meldeperiodekjeder: MeldeperiodeKjeder): Utbetalingskontroll {
     val dbJson = deserialize<UtbetalingskontrollDbJson>(this)
 
     return Utbetalingskontroll(

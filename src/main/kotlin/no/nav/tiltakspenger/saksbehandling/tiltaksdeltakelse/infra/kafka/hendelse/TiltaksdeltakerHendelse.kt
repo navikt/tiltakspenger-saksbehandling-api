@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -29,7 +29,7 @@ data class TiltaksdeltakerHendelse(
     val deltakerstatus: TiltakDeltakerstatus,
     val sakId: SakId,
     val oppgaveId: OppgaveId?,
-    val behandlingId: BehandlingId?,
+    val behandlingId: RammebehandlingId?,
 ) {
 
     fun finnEndringer(

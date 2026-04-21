@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -243,7 +243,7 @@ class UtbetalingPostgresRepo(
                 vedtakId to beregningJson.tilBeregningFraMeldekortbehandling(meldekortId)
             } ?: run {
                 val vedtakId = VedtakId.fromString(rammevedtakId!!)
-                val behandlingId = BehandlingId.fromString(string("behandling_id"))
+                val behandlingId = RammebehandlingId.fromString(string("behandling_id"))
                 vedtakId to beregningJson.tilBeregningFraRammebehandling(behandlingId)
             }
 

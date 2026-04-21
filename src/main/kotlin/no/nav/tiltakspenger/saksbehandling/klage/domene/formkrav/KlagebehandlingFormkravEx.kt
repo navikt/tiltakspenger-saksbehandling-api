@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -14,7 +14,7 @@ fun Klagebehandling.oppdaterFormkrav(
     kommando: OppdaterKlagebehandlingFormkravKommando,
     journalpostOpprettet: LocalDateTime,
     clock: Clock,
-    behandlingDetKlagesPå: BehandlingId?,
+    behandlingDetKlagesPå: RammebehandlingId?,
 ): Either<KanIkkeOppdatereFormkravPåKlagebehandling, Klagebehandling> {
     if (!erUnderBehandling) return KanIkkeOppdatereFormkravPåKlagebehandling.KanIkkeOppdateres.left()
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {

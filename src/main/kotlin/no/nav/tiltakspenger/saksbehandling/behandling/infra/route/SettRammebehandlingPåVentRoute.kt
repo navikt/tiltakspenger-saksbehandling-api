@@ -4,12 +4,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
-import no.nav.tiltakspenger.libs.ktor.common.withBehandlingId
 import no.nav.tiltakspenger.libs.ktor.common.withBody
+import no.nav.tiltakspenger.libs.ktor.common.withRammebehandlingId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
@@ -33,7 +33,7 @@ private data class SettPåVentBody(
 ) {
     fun toKommando(
         sakId: SakId,
-        behandlingId: BehandlingId,
+        behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler,
     ) = SettRammebehandlingPåVentKommando(
         sakId = sakId,
@@ -56,7 +56,7 @@ fun Route.settRammebehandlingPåVentRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
-            call.withBehandlingId { behandlingId ->
+            call.withRammebehandlingId { behandlingId ->
                 call.withBody<SettPåVentBody> { body ->
                     val correlationId = call.correlationId()
                     krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
@@ -65,7 +65,7 @@ fun Route.settRammebehandlingPåVentRoute(
                     settBehandlingPåVentService.settBehandlingPåVent(
                         body.toKommando(sakId, behandlingId, saksbehandler),
                     ).also { (sak) ->
-                        auditService.logMedBehandlingId(
+                        auditService.logMedRammebehandlingId(
                             behandlingId = behandlingId,
                             navIdent = saksbehandler.navIdent,
                             action = AuditLogEvent.Action.UPDATE,

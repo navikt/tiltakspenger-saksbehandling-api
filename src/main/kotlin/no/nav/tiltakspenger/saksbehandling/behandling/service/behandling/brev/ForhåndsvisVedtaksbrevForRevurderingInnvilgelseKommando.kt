@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.trekkFra
@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
  */
 data class ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando(
     override val sakId: SakId,
-    override val behandlingId: BehandlingId,
+    override val behandlingId: RammebehandlingId,
     override val correlationId: CorrelationId,
     override val saksbehandler: Saksbehandler,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,

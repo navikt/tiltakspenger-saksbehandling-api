@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -40,7 +40,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
 
     fun oppdaterSøknadsbehandlingInnvilgelseKommando(
         sakId: SakId = SakId.random(),
-        behandlingId: BehandlingId = BehandlingId.random(),
+        behandlingId: RammebehandlingId = RammebehandlingId.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: String? = null,
         begrunnelseVilkårsvurdering: String? = null,
@@ -71,7 +71,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
 
     fun oppdaterSøknadsbehandlingAvslagKommando(
         sakId: SakId = SakId.random(),
-        behandlingId: BehandlingId = BehandlingId.random(),
+        behandlingId: RammebehandlingId = RammebehandlingId.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: String? = null,
         begrunnelseVilkårsvurdering: String? = null,
@@ -93,7 +93,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
 
     fun oppdaterRevurderingInnvilgelseKommando(
         sakId: SakId = SakId.random(),
-        behandlingId: BehandlingId = BehandlingId.random(),
+        behandlingId: RammebehandlingId = RammebehandlingId.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: String? = null,
         begrunnelseVilkårsvurdering: String? = null,
@@ -114,7 +114,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.createOrThrow(it) },
-            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
+            `begrunnelseVilkårsvurdering` = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
             innvilgelsesperioder = innvilgelsesperioder.tilPeriodisering(),
             barnetillegg = barnetillegg,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.json.deserialize
@@ -43,8 +43,8 @@ enum class KlageInnsendingskildeDb {
 }
 
 private fun String.toBehandlingIdDetKlagesPå(): Ulid {
-    if (this.startsWith(BehandlingId.PREFIX)) {
-        return BehandlingId.fromString(this)
+    if (this.startsWith(RammebehandlingId.PREFIX)) {
+        return RammebehandlingId.fromString(this)
     }
     if (this.startsWith(MeldekortId.PREFIX)) {
         return MeldekortId.fromString(this)

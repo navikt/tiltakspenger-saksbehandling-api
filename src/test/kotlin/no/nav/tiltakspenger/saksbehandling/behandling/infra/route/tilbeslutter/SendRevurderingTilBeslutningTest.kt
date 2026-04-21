@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -86,7 +86,7 @@ class SendRevurderingTilBeslutningTest {
 
             val revurdering =
                 tac.behandlingContext.rammebehandlingRepo.hent(
-                    BehandlingId.fromString(
+                    RammebehandlingId.fromString(
                         JSONObject(jsonResponse).getString(
                             "id",
                         ),
@@ -162,7 +162,7 @@ class SendRevurderingTilBeslutningTest {
                 rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -211,7 +211,7 @@ class SendRevurderingTilBeslutningTest {
                 rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
@@ -257,7 +257,7 @@ class SendRevurderingTilBeslutningTest {
                 rammevedtakIdSomOmgjøres = søknadvedtak.id,
             )!!
 
-            oppdaterOmgjøringOpphør(
+            `oppdaterOmgjøringOpphør`(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,

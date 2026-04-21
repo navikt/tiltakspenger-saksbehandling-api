@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -35,7 +35,7 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 
 class RammebehandlingDTOTest {
-    private val behandlingId = BehandlingId.fromString("beh_01K8R3V8S9X8KGR8HDXXDXN9P3")
+    private val behandlingId = RammebehandlingId.fromString("beh_01K8R3V8S9X8KGR8HDXXDXN9P3")
     private val sakId = SakId.fromString("sak_01K8QWMR1KZZB728K0F4RQG184")
     private val saksnummer = Saksnummer("202510291001")
     private val vedtakId = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
@@ -922,7 +922,7 @@ class RammebehandlingDTOTest {
             ),
         )
 
-        val omgjøringId = BehandlingId.fromString("beh_01K8R3V8S9X8KGR8HDXXDXN9P4")
+        val omgjøringId = RammebehandlingId.fromString("beh_01K8R3V8S9X8KGR8HDXXDXN9P4")
         val omgjøringVedtakId = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S7")
 
         val omgjøring = nyOpprettetRevurderingOmgjøring(
