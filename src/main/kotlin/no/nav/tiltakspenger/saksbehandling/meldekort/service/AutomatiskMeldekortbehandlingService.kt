@@ -28,6 +28,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
@@ -209,14 +211,25 @@ class AutomatiskMeldekortbehandlingService(
             return it.left()
         }
 
-        if (simulering?.simulering?.harJustering == true) {
-            logger.error { "Behandling av brukers meldekort $meldekortId viser justeringer i simuleringen" }
-            return MeldekortBehandletAutomatiskStatus.HAR_JUSTERING.left()
-        }
+        meldekortbehandling.validerKanIverksetteUtbetaling().onLeft {
+            when (it) {
+                KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling -> {
+                    logger.error { "Behandling av brukers meldekort $meldekortId viser feilutbetaling i simuleringen" }
+                    return MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING.left()
+                }
 
-        if (simulering?.simulering?.harFeilutbetaling == true) {
-            logger.error { "Behandling av brukers meldekort $meldekortId viser feilutbetaling i simuleringen" }
-            return MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING.left()
+                KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
+                KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering,
+                -> {
+                    logger.error { "Behandling av brukers meldekort $meldekortId viser justeringer i simuleringen" }
+                    return MeldekortBehandletAutomatiskStatus.HAR_JUSTERING.left()
+                }
+
+                // TODO: ikke implemenert for meldekort ennå
+                KanIkkeIverksetteUtbetaling.SimuleringMangler,
+                KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer,
+                -> Unit
+            }
         }
 
         val meldekortvedtak = meldekortbehandling.opprettVedtak(

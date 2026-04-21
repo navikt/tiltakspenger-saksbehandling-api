@@ -6,9 +6,26 @@ import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 
 fun Meldekortbehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
-    return if (beregning == null) Unit.right() else simulering.validerKanIverksetteUtbetaling()
+    // Ingenting å validere dersom det ikke finnes beregning
+    // Beregning er non-nullable for de tilstandene der den er påkrevd
+    if (beregning == null) {
+        return Unit.right()
+    }
+
+    if (status == MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
+        if (simulering?.harJustering == true) {
+            return KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering.left()
+        }
+
+        if (simulering?.harFeilutbetaling == true) {
+            return KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling.left()
+        }
+    }
+
+    return simulering.validerKanIverksetteUtbetaling()
 }
 
 fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
