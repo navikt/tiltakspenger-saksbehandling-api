@@ -18,10 +18,12 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.OpprettetBehandlingFraKlageDtoJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -37,14 +39,14 @@ import org.json.JSONObject
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.OpprettRammebehandlingFraKlage]
  */
-interface OpprettRammebehandlingForKlageBuilder {
+interface OpprettBehandlingForKlageBuilder {
     /** 1. Oppretter ny sak
      *  2. Starter klagebehandling med godkjente formkrav
      *  3. Oppdaterer formkrav
      *
-     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
+     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING, MELDEKORTBEHANDLING]
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
         tac: TestApplicationContext,
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -59,7 +61,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
+    ): Triple<Sak, AttesterbarBehandling, OpprettetBehandlingFraKlageDtoJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgVurderKlagebehandling(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
@@ -73,7 +75,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         ) ?: return null
         val søknadId = søknad.id
         val vedtakIdSomOmgjøres = rammevedtakSøknadsbehandling.id.toString()
-        return opprettRammebehandlingForKlage(
+        return opprettBehandlingForKlage(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
@@ -87,21 +89,21 @@ interface OpprettRammebehandlingForKlageBuilder {
     }
 
     /**
-     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
+     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING, MELDEKORTBEHANDLING]
      */
-    suspend fun ApplicationTestBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+    suspend fun ApplicationTestBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettBehandlingForKlage(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Tuple5<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson, KlagebehandlingDTOJson>? {
+    ): Tuple5<Sak, AttesterbarBehandling, Klagebehandling, OpprettetBehandlingFraKlageDtoJson, KlagebehandlingDTOJson>? {
         val (sak, ferdigstiltKlagebehandling, klagebehandlingJson) = this.opprettSakOgFerdigstillOppretholdtKlagebehandling(
             tac = tac,
             saksbehandler = saksbehandler,
         )!!
 
-        val (sakEtterRammebehandling, rammebehandling, rammebehandlingJson) = opprettRammebehandlingForKlage(
+        val (sakEtterRammebehandling, rammebehandling, rammebehandlingJson) = opprettBehandlingForKlage(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = ferdigstiltKlagebehandling.id,
@@ -124,13 +126,13 @@ interface OpprettRammebehandlingForKlageBuilder {
 
     /**
      * Forventer at det allerede finnes en sak, formkravene er OK og man har vurdert til omgjøring.
-     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING]
+     * @param type En av: [SØKNADSBEHANDLING_INNVILGELSE, REVURDERING_INNVILGELSE, REVURDERING_OMGJØRING, MELDEKORTBEHANDLING]
      * @param søknadId Påkrevt ved [type] SØKNADSBEHANDLING_INNVILGELSE
      * @param vedtakIdSomOmgjøres Påkrevt ved [type] REVURDERING_OMGJØRING
      *
      * @return Merk at [Rammebehandling] inneholder [Klagebehandling]
      */
-    suspend fun ApplicationTestBuilder.opprettRammebehandlingForKlage(
+    suspend fun ApplicationTestBuilder.opprettBehandlingForKlage(
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
@@ -140,7 +142,7 @@ interface OpprettRammebehandlingForKlageBuilder {
         type: String,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
+    ): Triple<Sak, AttesterbarBehandling, OpprettetBehandlingFraKlageDtoJson>? {
         if (type == "REVURDERING_OMGJØRING") require(vedtakIdSomOmgjøres != null) { "vedtakIdSomSkalOmgjøres må oppgis ved type REVURDERING_OMGJØRING" }
 
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)

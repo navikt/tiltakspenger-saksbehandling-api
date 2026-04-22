@@ -4,6 +4,7 @@ import arrow.core.Tuple5
 import io.kotest.assertions.json.CompareJsonOptions
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -13,8 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettBehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggKlagebehandlingTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -48,7 +49,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
-        val (sak, rammebehandlingMedKlagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandlingMedKlagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
@@ -67,7 +68,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        return Triple(oppdatertSak, oppdatertSak.hentRammebehandling(rammebehandlingMedKlagebehandling.id)!!, json)
+        return Triple(oppdatertSak, oppdatertSak.hentRammebehandling(rammebehandlingMedKlagebehandling.id as RammebehandlingId)!!, json)
     }
 
     suspend fun ApplicationTestBuilder.ferdigstiltOppretholdKlagebehandlingMedRammebehandlingLagtTilbake(
@@ -77,7 +78,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple5<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson, KlagebehandlingDTOJson>? {
-        val (sak, rammebehandling, klagebehandling, _, klagebehandlingJson) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandling, klagebehandling, _, klagebehandlingJson) = ferdigstillOpprettholdtKlagebehandlingOgOpprettBehandlingForKlage(
             tac = tac,
             type = type,
             saksbehandler = saksbehandler,
@@ -86,7 +87,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         val (sakMedLagtTilbakeRammebehandling, lagtTilbakerammebehandling, json) = leggTilbakeRammebehandling(
             tac = tac,
             sakId = sak.id,
-            behandlingId = rammebehandling.id,
+            behandlingId = rammebehandling.id as RammebehandlingId,
             saksbehandler = saksbehandler,
         )
 

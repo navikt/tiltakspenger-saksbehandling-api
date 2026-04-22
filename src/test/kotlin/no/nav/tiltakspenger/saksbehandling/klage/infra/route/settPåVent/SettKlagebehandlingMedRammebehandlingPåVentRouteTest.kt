@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
@@ -16,8 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettBehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import org.junit.jupiter.api.Test
@@ -73,14 +74,14 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
-            val (_, _, oppdatertRammebehandlingMedKlagebehandling, json) = `settRammebehandlingPåVent`(
+            val (_, _, oppdatertRammebehandlingMedKlagebehandling, json) = settRammebehandlingPåVent(
                 tac = tac,
                 sakId = sak.id,
-                rammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                rammebehandlingId = rammebehandlingMedKlagebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
                 frist = null,
             )!!
@@ -115,16 +116,16 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettBehandlingForKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
                 saksbehandler = saksbehandler,
             )!!
 
-            val (_, _, rammebehandlingPåVent, sakJson) = `settRammebehandlingPåVent`(
+            val (_, _, rammebehandlingPåVent, sakJson) = settRammebehandlingPåVent(
                 tac = tac,
                 sakId = sak.id,
-                rammebehandlingId = rammebehandling.id,
+                rammebehandlingId = rammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )!!
 

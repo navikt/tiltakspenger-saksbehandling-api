@@ -4,6 +4,7 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
@@ -29,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgKlagebehandlingTilAvvisning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
@@ -221,34 +222,34 @@ class IverksettKlagebehandlingRouteTest {
     fun `kan iverksette klagebehandling til omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterSøknadsbehandlingInnvilgelse`(
+            oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandling.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandling.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
             taBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandling.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id as RammebehandlingId,
                 saksbehandler = beslutter,
             )
             val (_, rammevedtak, _, json) = iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandling.id,
+                behandlingId = rammebehandlingMedKlagebehandling.id as RammebehandlingId,
                 beslutter = beslutter,
             )!!
             rammevedtak.klagebehandling!!.also {

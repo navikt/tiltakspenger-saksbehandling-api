@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent
 import io.kotest.assertions.json.CompareJsonOptions
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -10,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -33,7 +34,7 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
-        val (sak, rammebehandlingMedSøknadsbehandling, _) = this.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandlingMedSøknadsbehandling, _) = this.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
@@ -50,7 +51,7 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
         val oppdatertRammebehandlingMedKlagebehandling =
-            oppdatertSak.hentRammebehandling(rammebehandlingMedSøknadsbehandling.id)!!
+            oppdatertSak.hentRammebehandling(rammebehandlingMedSøknadsbehandling.id as RammebehandlingId)!!
         return Triple(oppdatertSak, oppdatertRammebehandlingMedKlagebehandling, json)
     }
 }

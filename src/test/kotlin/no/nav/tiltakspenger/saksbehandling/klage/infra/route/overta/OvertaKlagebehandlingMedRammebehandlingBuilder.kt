@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta
 import io.kotest.assertions.json.CompareJsonOptions
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -10,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -37,7 +38,7 @@ interface OvertaKlagebehandlingMedRammebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Rammebehandling, SakDTOJson>? {
-        val (sak, rammebehandlingMedKlagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandlingMedKlagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
@@ -60,7 +61,7 @@ interface OvertaKlagebehandlingMedRammebehandlingBuilder {
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
         val oppdatertRammebehandlingMedKlagebehandling =
-            oppdatertSak.hentRammebehandling(rammebehandlingMedKlagebehandling.id)!!
+            oppdatertSak.hentRammebehandling(rammebehandlingMedKlagebehandling.id as RammebehandlingId)!!
         return Triple(oppdatertSak, oppdatertRammebehandlingMedKlagebehandling, json)
     }
 }

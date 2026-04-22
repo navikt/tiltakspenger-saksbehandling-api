@@ -12,9 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinsta
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillKlagebehandlingForSakId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgMottaOppretholdtKlagebehandlingFraKa
 import org.junit.jupiter.api.Test
@@ -158,7 +158,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 tac = tac,
             )!!
 
-            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+            val (_, opprettetRammebehandling) = opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = oversendtKlagebehandling.id,
@@ -189,7 +189,7 @@ class FerdigstillKlagebehandlingRouteTest {
     fun `kan ikke ferdigstille en klagebehandling (omgjøring) som har en aktiv rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
                 tac = tac,
             )!!
 

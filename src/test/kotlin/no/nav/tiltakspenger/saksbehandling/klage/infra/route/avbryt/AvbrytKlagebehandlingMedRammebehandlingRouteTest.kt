@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
 
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -10,9 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstilt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelseForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettBehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgFerdigstillOppretholdtKlagebehandlingForSak
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 
@@ -25,7 +26,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
     fun `kan avbryte rammebehandling hvor klagebehandlingen har flere rammebehandlinger tilknyttet hvor det finnes flere ulike klager og behandlinger`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, omgjøringsbehandling) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, omgjøringsbehandling) = iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
             )!!
@@ -34,7 +35,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 rammevedtakIdSomOmgjøres = (sak.vedtaksliste.alle.first() as Rammevedtak).id,
-                behandlingId = omgjøringsbehandling.id,
+                behandlingId = omgjøringsbehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )
 
@@ -44,7 +45,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 vedtakDetKlagesPå = rammevedtak.id,
             )!!
 
-            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+            val (_, opprettetRammebehandling) = opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = ferdigstiltOpprettholdtKlagebehandling.id,
@@ -57,7 +58,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
                 saksnummer = sak.saksnummer,
                 sakId = sak.id,
-                rammebehandlingId = opprettetRammebehandling.id,
+                rammebehandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )!!
 
