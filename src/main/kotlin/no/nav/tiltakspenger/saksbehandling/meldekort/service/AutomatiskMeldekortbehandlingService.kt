@@ -48,6 +48,7 @@ class AutomatiskMeldekortbehandlingService(
     private val sakService: SakService,
     private val oppgaveKlient: OppgaveKlient,
     private val statistikkService: StatistikkService,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger { }
     private val venteIntervaller: Map<Long, Duration> = mapOf(
@@ -56,23 +57,30 @@ class AutomatiskMeldekortbehandlingService(
         3L to 3.days,
     )
 
-    suspend fun behandleBrukersMeldekort(clock: Clock) {
-        if (!erInnenforØkonomisystemetsÅpningstider(clock)) return
+    suspend fun behandleBrukersMeldekort() {
+        if (!erInnenforØkonomisystemetsÅpningstider(clock)) {
+            return
+        }
 
-        Either.catch {
-            val meldekortListe = brukersMeldekortRepo.hentMeldekortSomSkalBehandlesAutomatisk()
+        val meldekortListe = Either.catch {
+            brukersMeldekortRepo.hentMeldekortSomSkalBehandlesAutomatisk()
+        }.getOrElse {
+            logger.error(it) { "Feil ved henting av meldekort til automatisk behandling - ${it.message}" }
+            return
+        }
 
-            logger.debug { "Fant ${meldekortListe.size} meldekort som skal behandles automatisk" }
+        logger.debug { "Fant ${meldekortListe.size} meldekort som skal behandles automatisk" }
 
-            for (meldekort in meldekortListe) {
-                if (skalHoppeOverMeldekort(meldekort, clock)) continue
+        meldekortListe.forEach { meldekort ->
+            if (skalHoppeOverMeldekort(meldekort, clock)) {
+                return@forEach
+            }
 
-                behandleEttMeldekort(meldekort, clock).onLeft {
-                    logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
+            meldekort.behandle(clock).onLeft {
+                logger.error(it) {
+                    "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}"
                 }
             }
-        }.onLeft {
-            logger.error(it) { "Feil ved automatisk behandling av meldekort fra bruker - ${it.message}" }
         }
     }
 
@@ -82,12 +90,13 @@ class AutomatiskMeldekortbehandlingService(
      * som saksbehandlerne må behandle manuelt, som egentlig fint kunne ha blitt behandlet automatisk.
      */
     private fun skalHoppeOverMeldekort(meldekort: BrukersMeldekort, clock: Clock): Boolean {
-        if (meldekort.behandletAutomatiskStatus != MeldekortBehandletAutomatiskStatus.UKJENT_FEIL_PRØVER_IGJEN) return false
-
         val (forrigeForsøk, _, antallForsøk) = meldekort.behandletAutomatiskForsøkshistorikk
-        if (forrigeForsøk == null) return false
+        if (forrigeForsøk == null) {
+            return false
+        }
 
         val kanPrøvePåNyttNå = forrigeForsøk.shouldRetry(antallForsøk, clock, venteIntervaller, 5.days).first
+
         return !kanPrøvePåNyttNå
     }
 
@@ -97,28 +106,27 @@ class AutomatiskMeldekortbehandlingService(
      * - Domenefeil kommer som en left med [MeldekortBehandletAutomatiskStatus] fra [opprettMeldekortbehandling].
      * - Uventede exceptions fanges og håndteres per meldekort, slik at resten kan fortsette.
      */
-    private suspend fun behandleEttMeldekort(
-        meldekort: BrukersMeldekort,
+    private suspend fun BrukersMeldekort.behandle(
         clock: Clock,
     ): Either<Throwable, Unit> {
         val sak = try {
-            sakRepo.hentForSakId(meldekort.sakId)!!
+            sakRepo.hentForSakId(sakId)!!
         } catch (e: Exception) {
-            logger.error { "Kunne ikke hente sak for mottatt meldekort med id ${meldekort.id}, sakId ${meldekort.sakId}, ${e.message}" }
+            logger.error { "Kunne ikke hente sak for mottatt meldekort med id $id, sakId $sakId, ${e.message}" }
             throw e
         }
 
         return Either.catch {
-            opprettMeldekortbehandling(meldekort, sak, clock)
+            opprettMeldekortbehandling(this, sak, clock)
                 .onLeft { status ->
-                    håndterOpprettBehandlingFeil(status, meldekort, sak, clock)
+                    håndterOpprettBehandlingFeil(status, this, sak, clock)
                 }
                 .onRight { behandling ->
-                    logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId}" }
+                    logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort $id på sak $sakId" }
                 }
             return@catch
-        }.onLeft { throwable ->
-            håndterUkjentFeil(throwable, meldekort, sak, clock)
+        }.onLeft {
+            håndterUkjentFeil(it, this, sak, clock)
         }
     }
 

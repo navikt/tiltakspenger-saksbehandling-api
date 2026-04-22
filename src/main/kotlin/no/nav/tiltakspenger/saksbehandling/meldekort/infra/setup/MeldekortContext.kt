@@ -116,6 +116,7 @@ open class MeldekortContext(
             sakService = sakService,
             oppgaveKlient = oppgaveKlient,
             statistikkService = statistikkService,
+            clock = clock,
         )
     }
 
