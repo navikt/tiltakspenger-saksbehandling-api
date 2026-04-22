@@ -1,11 +1,14 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettbehandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -19,28 +22,30 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.KanIkkeOppretteRammebehandlingFraKlage
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRammebehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRevurderingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.KanIkkeOppretteBehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettMeldekortbehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettRevurderingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettbehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 private data class OpprettRammebehandlingFraKlage(
     val søknadId: String?,
     val type: Type,
-    val vedtakIdSomSkalOmgjøres: String?,
+    val vedtakId: String?,
 ) {
     enum class Type {
         SØKNADSBEHANDLING_INNVILGELSE,
         REVURDERING_INNVILGELSE,
         REVURDERING_OMGJØRING,
+        MELDEKORTBEHANDLING,
     }
 
     fun tilKommando(
@@ -48,7 +53,7 @@ private data class OpprettRammebehandlingFraKlage(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
         klagebehandlingId: KlagebehandlingId,
-    ): OpprettRammebehandlingFraKlageKommando {
+    ): OpprettbehandlingFraKlageKommando {
         return when (type) {
             Type.SØKNADSBEHANDLING_INNVILGELSE -> {
                 OpprettSøknadsbehandlingFraKlageKommando(
@@ -72,17 +77,25 @@ private data class OpprettRammebehandlingFraKlage(
                     correlationId = correlationId,
                     vedtakIdSomOmgjøres = when (type) {
                         Type.REVURDERING_INNVILGELSE -> null
-                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakIdSomSkalOmgjøres!!)
+                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakId!!)
                     },
                 )
             }
+
+            Type.MELDEKORTBEHANDLING -> OpprettMeldekortbehandlingFraKlageKommando(
+                sakId = sakId,
+                saksbehandler = saksbehandler,
+                klagebehandlingId = klagebehandlingId,
+                correlationId = correlationId,
+                vedtakId = VedtakId.fromString(vedtakId!!),
+            )
         }
     }
 }
 
-private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/opprettRammebehandling"
+private const val PATH = "/sak/{sakId}/klage/{klagebehandlingId}/opprettBehandling"
 
-fun Route.opprettRammebehandlingFraKlageRoute(
+fun Route.opprettBehandlingFraKlageRoute(
     opprettRammebehandlingFraKlageService: OpprettRammebehandlingFraKlageService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
@@ -90,7 +103,7 @@ fun Route.opprettRammebehandlingFraKlageRoute(
     val logger = KotlinLogging.logger {}
 
     post(PATH) {
-        logger.debug { "Mottatt post-request på '$PATH' - Oppretter rammebehandling fra klage" }
+        logger.debug { "Mottatt post-request på '$PATH' - Oppretter behandling fra klage" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
@@ -110,19 +123,20 @@ fun Route.opprettRammebehandlingFraKlageRoute(
                         ifLeft = {
                             call.respondJson(it.toStatusAndErrorJson())
                         },
-                        ifRight = { (sak, rammebehandling) ->
-                            val klagebehandling = rammebehandling.klagebehandling!!
+                        ifRight = { (sak, behandling) ->
+                            val klagebehandling = behandling.klagebehandling!!
                             val klagebehandlingId = klagebehandling.id
-                            val rammebehandlingId = rammebehandling.id
+                            val behandlingId = behandling.id
                             auditService.logMedSakId(
                                 sakId = sakId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.UPDATE,
-                                contextMessage = "Opprettet rammebehandling $rammebehandlingId fra klagebehandling $klagebehandlingId på sak $sakId",
+                                contextMessage = "Opprettet behandling $behandlingId fra klagebehandling $klagebehandlingId på sak $sakId",
                                 correlationId = correlationId,
-                                behandlingId = rammebehandlingId,
+                                behandlingId = behandlingId,
                             )
-                            call.respondJson(value = sak.tilRammebehandlingDTO(rammebehandlingId))
+
+                            call.respondJson(value = sak.tilOpprettetBehandlingFraKlageDto(behandlingId))
                         },
                     )
                 }
@@ -131,9 +145,42 @@ fun Route.opprettRammebehandlingFraKlageRoute(
     }
 }
 
-fun KanIkkeOppretteRammebehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+data class OpprettetBehandlingFraKlageDto(
+    val sakId: String,
+    val behandlingId: String,
+    val type: Type,
+) {
+    companion object {
+        enum class Type {
+            RAMMEBEHANDLING,
+            MELDEKORTBEHANDLING,
+        }
+    }
+}
+
+private fun Sak.tilOpprettetBehandlingFraKlageDto(behandlingId: BehandlingId): OpprettetBehandlingFraKlageDto {
+    if (behandlingId.prefixPart().startsWith(RammebehandlingId.PREFIX)) {
+        return OpprettetBehandlingFraKlageDto(
+            sakId = this.id.toString(),
+            behandlingId = behandlingId.toString(),
+            type = OpprettetBehandlingFraKlageDto.Companion.Type.RAMMEBEHANDLING,
+        )
+    }
+
+    if (behandlingId.prefixPart().startsWith(MeldekortId.PREFIX)) {
+        return OpprettetBehandlingFraKlageDto(
+            sakId = this.id.toString(),
+            behandlingId = behandlingId.toString(),
+            type = OpprettetBehandlingFraKlageDto.Companion.Type.MELDEKORTBEHANDLING,
+        )
+    }
+
+    throw IllegalArgumentException("Ukjent behandlingstype for behandlingId: $behandlingId")
+}
+
+fun KanIkkeOppretteBehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        is KanIkkeOppretteRammebehandlingFraKlage.SaksbehandlerMismatch -> {
+        is KanIkkeOppretteBehandlingFraKlage.SaksbehandlerMismatch -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 behandlingenEiesAvAnnenSaksbehandler(
@@ -142,11 +189,11 @@ fun KanIkkeOppretteRammebehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpStat
             )
         }
 
-        is KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling -> {
+        is KanIkkeOppretteBehandlingFraKlage.`FinnesÅpenBehandling` -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 ErrorJson(
-                    "Det finnes allerede en åpen rammebehandling ${this.rammebehandlingId} for denne klagebehandlingen.",
+                    "Det finnes allerede en åpen rammebehandling ${this.behandlingId} for denne klagebehandlingen.",
                     "finnes_åpen_rammebehandling",
                 ),
             )

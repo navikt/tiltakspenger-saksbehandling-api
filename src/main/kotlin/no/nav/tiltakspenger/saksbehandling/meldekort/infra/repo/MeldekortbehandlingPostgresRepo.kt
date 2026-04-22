@@ -23,6 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -52,6 +54,13 @@ class MeldekortbehandlingPostgresRepo(
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
+            if (meldekortbehandling.klagebehandling != null) {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(
+                    klagebehandling = meldekortbehandling.klagebehandling!!,
+                    session = tx,
+                )
+            }
+
             tx.run(
                 sqlQuery(
                     """
@@ -145,6 +154,13 @@ class MeldekortbehandlingPostgresRepo(
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
+            if (meldekortbehandling.klagebehandling != null) {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(
+                    klagebehandling = meldekortbehandling.klagebehandling!!,
+                    session = tx,
+                )
+            }
+
             tx.run(
                 sqlQuery(
                     """
@@ -191,6 +207,13 @@ class MeldekortbehandlingPostgresRepo(
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
+            if (meldekortbehandling.klagebehandling != null) {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(
+                    klagebehandling = meldekortbehandling.klagebehandling!!,
+                    session = tx,
+                )
+            }
+
             tx.run(
                 sqlQuery(
                     """
@@ -575,6 +598,9 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
+                            KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
+                        },
                     )
                 }
 
@@ -601,6 +627,9 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
+                            KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
+                        },
                     )
                 }
 
@@ -626,6 +655,9 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
+                            KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
+                        },
                     )
                 }
             }

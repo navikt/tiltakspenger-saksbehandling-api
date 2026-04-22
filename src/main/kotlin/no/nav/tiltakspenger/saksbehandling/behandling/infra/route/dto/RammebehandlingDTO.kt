@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.BehandlingDto
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
@@ -23,7 +24,9 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingI
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.LocalDateTime
 
-sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
+sealed interface RammebehandlingDTO :
+    RammebehandlingResultatDTO,
+    BehandlingDto {
     val id: String
     val type: RammebehandlingstypeDTO
     val status: RammebehandlingsstatusDTO

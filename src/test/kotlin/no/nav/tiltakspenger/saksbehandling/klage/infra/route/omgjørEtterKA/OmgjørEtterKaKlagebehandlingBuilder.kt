@@ -120,7 +120,7 @@ interface OmgjørEtterKaKlagebehandlingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/opprettRammebehandling")
+                path("/sak/$sakId/klage/$klagebehandlingId/opprettBehandling")
             },
             jwt = jwt,
         ) {

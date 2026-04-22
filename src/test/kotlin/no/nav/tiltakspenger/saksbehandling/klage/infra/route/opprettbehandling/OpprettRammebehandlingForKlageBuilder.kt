@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettbehandling
 
 import arrow.core.Tuple5
 import io.kotest.assertions.json.CompareJsonOptions
@@ -149,7 +149,7 @@ interface OpprettRammebehandlingForKlageBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/opprettRammebehandling")
+                path("/sak/$sakId/klage/$klagebehandlingId/opprettBehandling")
             },
             jwt = jwt,
         ) {

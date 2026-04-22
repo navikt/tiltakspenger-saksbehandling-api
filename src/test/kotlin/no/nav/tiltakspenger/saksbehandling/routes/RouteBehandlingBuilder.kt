@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.LeggKla
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.mottattFraKa.MottattFraKaKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingBrevtekstBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingFormkravBuilder
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling.OpprettRammebehandlingForKlageBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettbehandling.OpprettRammebehandlingForKlageBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppretthold.OpprettholdKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.OvertaKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.OvertaKlagebehandlingMedRammebehandlingBuilder

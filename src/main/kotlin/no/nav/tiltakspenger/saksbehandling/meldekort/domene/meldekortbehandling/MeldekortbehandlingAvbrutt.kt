@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
@@ -46,6 +47,7 @@ data class MeldekortbehandlingAvbrutt(
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val klagebehandling: Klagebehandling?,
 ) : Meldekortbehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null

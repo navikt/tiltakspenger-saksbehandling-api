@@ -301,6 +301,7 @@ class LocalApplicationContext(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
+            opprettMeldekortbehandlingService = meldekortContext.opprettMeldekortbehandlingService,
             statistikkService = statistikkContext.statistikkService,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             texasClient = texasClient,

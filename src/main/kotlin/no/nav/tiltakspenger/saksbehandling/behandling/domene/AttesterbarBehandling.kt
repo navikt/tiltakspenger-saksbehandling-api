@@ -1,10 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
-import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import java.time.LocalDateTime
 
 /**
@@ -12,7 +13,7 @@ import java.time.LocalDateTime
  * Dersom det er ønskelig at den er sealed, må de ligge i samme pakke.
  */
 interface AttesterbarBehandling : Behandling {
-    override val id: Ulid
+    override val id: BehandlingId
     override val opprettet: LocalDateTime
     override val sakId: SakId
     override val saksnummer: Saksnummer
@@ -25,4 +26,5 @@ interface AttesterbarBehandling : Behandling {
     override val erAvsluttet: Boolean
     override val erAvbrutt: Boolean
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
+    val klagebehandling: Klagebehandling?
 }

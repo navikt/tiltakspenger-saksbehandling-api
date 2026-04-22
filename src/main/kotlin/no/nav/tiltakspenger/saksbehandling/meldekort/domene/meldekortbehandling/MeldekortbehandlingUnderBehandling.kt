@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.KanIkkeAvbryteMeldekortbehandling
@@ -67,6 +68,7 @@ data class MeldekortUnderBehandling(
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val klagebehandling: Klagebehandling?,
 ) : Meldekortbehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -137,6 +139,7 @@ data class MeldekortUnderBehandling(
             sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            klagebehandling = this.klagebehandling,
         ).right()
     }
 
@@ -304,6 +307,7 @@ data class MeldekortUnderBehandling(
             sistEndret = tidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            klagebehandling = this.klagebehandling,
         ).right()
     }
 
@@ -335,6 +339,7 @@ data class MeldekortUnderBehandling(
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            klagebehandling = this.klagebehandling,
         )
     }
 
@@ -421,6 +426,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         sistEndret = nå(clock),
         behandlingSendtTilDatadeling = null,
         fritekstTilVedtaksbrev = null,
+        klagebehandling = null,
     ).let {
         Triple(
             this.leggTilMeldekortbehandling(it),

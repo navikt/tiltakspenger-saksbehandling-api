@@ -402,6 +402,7 @@ open class ApplicationContext(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
+            opprettMeldekortbehandlingService = meldekortContext.opprettMeldekortbehandlingService,
             texasClient = texasClient,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
             statistikkService = statistikkContext.statistikkService,

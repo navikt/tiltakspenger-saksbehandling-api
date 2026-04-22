@@ -1,8 +1,9 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage
+package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage
 
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -11,31 +12,38 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.StartSøknadsbehandlingPåNyttKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.åpneRammebehandlingerMedKlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.`åpneBehandlingerMedKlagebehandlingId`
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-suspend fun Sak.opprettRammebehandlingFraKlage(
-    kommando: OpprettRammebehandlingFraKlageKommando,
+suspend fun Sak.opprettBehandlingFraKlage(
+    kommando: OpprettbehandlingFraKlageKommando,
     opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak) -> Pair<Sak, Søknadsbehandling>,
     opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Pair<Sak, Revurdering>,
-): Either<KanIkkeOppretteRammebehandlingFraKlage, Pair<Sak, Rammebehandling>> {
+    opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingFraKlageKommando, Sak) -> Pair<Sak, Meldekortbehandling>,
+): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, AttesterbarBehandling>> {
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
-    this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).also {
+    this.åpneBehandlingerMedKlagebehandlingId(klagebehandling.id).also {
         if (it.isNotEmpty()) {
-            return KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling(it.first().id).left()
+            return KanIkkeOppretteBehandlingFraKlage.FinnesÅpenBehandling(it.first().id).left()
         }
     }
     return when (kommando) {
         is OpprettSøknadsbehandlingFraKlageKommando -> this.opprettSøknadsbehandlingFraKlage(
             kommando = kommando,
             opprettSøknadsbehandling = opprettSøknadsbehandling,
-        )
+        ).right()
 
         is OpprettRevurderingFraKlageKommando -> this.opprettRevurderingFraKlage(
             kommando = kommando,
             opprettRevurdering = opprettRevurdering,
+        ).right()
+
+        is OpprettMeldekortbehandlingFraKlageKommando -> this.opprettMeldekortbehandlingFraKlage(
+            kommando = kommando,
+            opprettMeldekortbehandling = opprettMeldekortbehandling,
         )
-    }.right()
+    }
 }
 
 private suspend fun Sak.opprettSøknadsbehandlingFraKlage(
@@ -75,4 +83,11 @@ private suspend fun Sak.opprettRevurderingFraKlage(
         ),
         this,
     )
+}
+
+private suspend fun Sak.opprettMeldekortbehandlingFraKlage(
+    kommando: OpprettMeldekortbehandlingFraKlageKommando,
+    opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingFraKlageKommando, Sak) -> Pair<Sak, Meldekortbehandling>,
+): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, Meldekortbehandling>> {
+    TODO("Implementer opprettelse av meldekortbehandling fra klage")
 }

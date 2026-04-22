@@ -48,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåV
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.time.Clock
@@ -70,6 +71,7 @@ open class KlagebehandlingContext(
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
     private val gjenopptaRammebehandlingService: GjenopptaRammebehandlingService,
     private val settRammebehandlingPåVentService: SettRammebehandlingPåVentService,
+    private val opprettMeldekortbehandlingService: OpprettMeldekortbehandlingService,
     private val statistikkService: StatistikkService,
     private val rammevedtakRepo: RammevedtakRepo,
     private val texasClient: TexasClient,
@@ -197,6 +199,7 @@ open class KlagebehandlingContext(
             sakService = sakService,
             behandleSøknadPåNyttService = behandleSøknadPåNyttService,
             startRevurderingService = startRevurderingService,
+            opprettMeldekortbehandlingService = opprettMeldekortbehandlingService,
         )
     }
     open val overtaKlagebehandlingService by lazy {

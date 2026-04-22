@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage
+package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 
-sealed interface OpprettRammebehandlingFraKlageKommando {
+sealed interface OpprettbehandlingFraKlageKommando {
     val sakId: SakId
     val saksbehandler: Saksbehandler
     val klagebehandlingId: KlagebehandlingId
@@ -21,7 +21,7 @@ data class OpprettRevurderingFraKlageKommando(
     val type: Type,
     override val correlationId: CorrelationId,
     val vedtakIdSomOmgjøres: VedtakId?,
-) : OpprettRammebehandlingFraKlageKommando {
+) : OpprettbehandlingFraKlageKommando {
 
     init {
         if (type == Type.OMGJØRING && vedtakIdSomOmgjøres == null) {
@@ -41,4 +41,12 @@ data class OpprettSøknadsbehandlingFraKlageKommando(
     override val klagebehandlingId: KlagebehandlingId,
     val søknadId: SøknadId,
     override val correlationId: CorrelationId,
-) : OpprettRammebehandlingFraKlageKommando
+) : OpprettbehandlingFraKlageKommando
+
+data class OpprettMeldekortbehandlingFraKlageKommando(
+    override val sakId: SakId,
+    override val saksbehandler: Saksbehandler,
+    override val klagebehandlingId: KlagebehandlingId,
+    override val correlationId: CorrelationId,
+    val vedtakId: VedtakId,
+) : OpprettbehandlingFraKlageKommando

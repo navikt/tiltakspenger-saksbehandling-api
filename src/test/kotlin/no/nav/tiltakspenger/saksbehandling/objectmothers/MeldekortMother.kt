@@ -52,6 +52,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
@@ -118,6 +119,7 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        klagebehandling: Klagebehandling? = null,
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
             id = id,
@@ -141,6 +143,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = null,
+            klagebehandling = klagebehandling,
         )
     }
 
@@ -186,6 +189,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        klagebehandling: Klagebehandling? = null,
     ): MeldekortbehandlingManuell {
         return MeldekortbehandlingManuell(
             id = id,
@@ -211,6 +215,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            klagebehandling = klagebehandling,
         )
     }
 
@@ -579,6 +584,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        klagebehandling: Klagebehandling? = null,
     ): Pair<Meldekortbehandlinger, MeldekortbehandlingManuell> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -616,6 +622,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     sistEndret = sistEndret,
                     behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                    klagebehandling = klagebehandling,
                 ),
             ),
         )
@@ -679,6 +686,7 @@ interface MeldekortMother : MotherOfAllMothers {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        klagebehandling: Klagebehandling? = null,
     ): Meldekortbehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
@@ -717,6 +725,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 sistEndret = sistEndret,
                 behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                 fritekstTilVedtaksbrev = null,
+                klagebehandling = klagebehandling,
             ),
         )
 

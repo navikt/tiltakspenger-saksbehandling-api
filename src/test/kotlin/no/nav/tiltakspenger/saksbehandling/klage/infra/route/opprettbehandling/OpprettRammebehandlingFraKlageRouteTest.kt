@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettbehandling
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe

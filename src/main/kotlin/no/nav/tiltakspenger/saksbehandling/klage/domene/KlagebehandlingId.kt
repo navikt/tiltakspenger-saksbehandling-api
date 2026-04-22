@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.uuidToUlid
@@ -8,7 +9,8 @@ import java.util.UUID
 
 data class KlagebehandlingId private constructor(
     private val ulid: UlidBase,
-) : Ulid by ulid {
+) : BehandlingId,
+    Ulid by ulid {
     companion object {
         const val PREFIX = "klage"
 

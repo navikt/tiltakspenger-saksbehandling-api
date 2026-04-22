@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav
 
-import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import java.time.LocalDate
 
@@ -12,7 +12,7 @@ import java.time.LocalDate
  */
 data class KlageFormkrav(
     val vedtakDetKlagesPå: VedtakId?,
-    val behandlingDetKlagesPå: Ulid?,
+    val behandlingDetKlagesPå: BehandlingId?,
     val erKlagerPartISaken: Boolean,
     val klagesDetPåKonkreteElementerIVedtaket: Boolean,
     val erKlagefristenOverholdt: Boolean,

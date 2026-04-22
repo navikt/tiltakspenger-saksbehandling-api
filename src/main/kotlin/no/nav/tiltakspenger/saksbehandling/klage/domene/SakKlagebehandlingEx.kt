@@ -17,8 +17,8 @@ fun Sak.hentKlagebehandling(klagebehandlingId: KlagebehandlingId): Klagebehandli
     return this.behandlinger.hentKlagebehandling(klagebehandlingId)
 }
 
-fun Sak.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
-    return this.behandlinger.hentÅpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
+fun Sak.åpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
+    return this.behandlinger.hentÅpneBehandlingerMedKlagebehandlingId(klagebehandlingId)
 }
 
 fun Sak.hentKlagebehandlingerSomSkalOversendesKlageinstansen(): List<Klagebehandling> {

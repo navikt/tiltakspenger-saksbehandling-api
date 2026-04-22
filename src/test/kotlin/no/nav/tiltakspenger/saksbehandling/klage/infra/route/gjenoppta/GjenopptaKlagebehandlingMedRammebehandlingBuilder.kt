@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
-import no.nav.tiltakspenger.saksbehandling.klage.domene.åpneRammebehandlingerMedKlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.`åpneBehandlingerMedKlagebehandlingId`
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
@@ -53,7 +53,7 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        val oppdatertRammebehandling = oppdatertSak.åpneRammebehandlingerMedKlagebehandlingId(oppdatertKlagebehandling.id).first()
+        val oppdatertRammebehandling = oppdatertSak.`åpneBehandlingerMedKlagebehandlingId`(oppdatertKlagebehandling.id).first()
         val klagebehandlingJson = sakJson.get("klageBehandlinger").first()
         return Triple(oppdatertSak, oppdatertRammebehandling, klagebehandlingJson)
     }

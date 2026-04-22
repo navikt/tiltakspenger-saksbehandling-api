@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.opprett
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
-import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
@@ -17,7 +17,7 @@ fun Klagebehandling.Companion.opprett(
     opprettet: LocalDateTime,
     journalpostOpprettet: LocalDateTime,
     kommando: OpprettKlagebehandlingKommando,
-    behandlingDetKlagesPå: Ulid?,
+    behandlingDetKlagesPå: BehandlingId?,
 ): Klagebehandling {
     val formkrav = kommando.toKlageFormkrav(behandlingDetKlagesPå)
     return Klagebehandling(

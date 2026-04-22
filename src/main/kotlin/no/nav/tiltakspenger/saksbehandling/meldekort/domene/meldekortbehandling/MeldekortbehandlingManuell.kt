@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
@@ -64,6 +65,7 @@ data class MeldekortbehandlingManuell(
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val klagebehandling: Klagebehandling?,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 
@@ -192,6 +194,7 @@ data class MeldekortbehandlingManuell(
             sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            klagebehandling = klagebehandling,
         ).right()
     }
 
@@ -328,6 +331,7 @@ data class MeldekortbehandlingManuell(
             sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            klagebehandling = klagebehandling,
         )
     }
 
@@ -359,6 +363,7 @@ data class MeldekortbehandlingManuell(
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            klagebehandling = klagebehandling,
         )
     }
 }

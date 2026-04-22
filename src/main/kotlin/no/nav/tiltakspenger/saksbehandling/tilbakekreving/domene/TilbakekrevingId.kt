@@ -1,12 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.UlidBase
 import ulid.ULID
 
 data class TilbakekrevingId private constructor(
     private val ulid: UlidBase,
-) : Ulid by ulid {
+) : BehandlingId,
+    Ulid by ulid {
     companion object {
         private const val PREFIX = "tilbakekreving"
 
