@@ -69,10 +69,17 @@ class TilbakekrevingConsumer(
                 return
             }
 
+            val eksternFagsakId = hendelse.eksternFagsakId
+
             val sakId: SakId? = Either.catch {
-                sakRepo.hentSakIdForSaksnummer(Saksnummer(hendelse.eksternFagsakId))
+                sakRepo.hentSakIdForSaksnummer(Saksnummer(eksternFagsakId))
             }.getOrElse {
-                logger.error { "Mottatt tilbakekrevingshendelse. Fant ikke sak for eksternFagsakId ${hendelse.eksternFagsakId}, lagrer hendelse uten sakId" }
+                if (erFakeSak(eksternFagsakId)) {
+                    logger.info { "Mottatt tilbakekrevingshendelse for fake sak $eksternFagsakId - ignorerer" }
+                    return
+                }
+
+                logger.error { "Mottatt tilbakekrevingshendelse. Fant ikke sak for eksternFagsakId $eksternFagsakId, lagrer hendelse uten sakId" }
                 null
             }
 
@@ -84,5 +91,14 @@ class TilbakekrevingConsumer(
                 logger.info { "Lagret ny tilbakekrevingshendelse type ${hendelse.hendelsestype}. sakId $sakId" }
             }
         }
+
+        // Team tilbake sender noen ganger saker de har generert selv for å teste i dev
+        private fun erFakeSak(eksternSakId: String): Boolean {
+            return erDev && eksternSakId.startsWith(FAKE_SAK_PREFIX)
+        }
+
+        private val erDev: Boolean = Configuration.isDev()
+
+        private const val FAKE_SAK_PREFIX = "BF"
     }
 }
