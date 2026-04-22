@@ -40,7 +40,7 @@ class OppdaterUtbetalingsstatusService(
                 val forsøkshistorikk = if (it.erOK()) {
                     utbetaling.forsøkshistorikk
                 } else {
-                    utbetaling.forsøkshistorikk.inkrementer(clock)
+                    utbetaling.forsøkshistorikk.inkrementer(clock = clock)
                 }
 
                 utbetalingRepo.oppdaterUtbetalingsstatus(utbetaling.utbetalingId, it, forsøkshistorikk)

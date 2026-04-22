@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 class BrukersMeldekortPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BrukersMeldekortRepo {
+
     override fun lagre(
         brukersMeldekort: BrukersMeldekort,
         sessionContext: SessionContext?,

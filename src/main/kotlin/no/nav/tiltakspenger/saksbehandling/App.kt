@@ -102,7 +102,7 @@ internal fun start(
             { applicationContext.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser() },
 
             { applicationContext.meldekortContext.sendTilMeldekortApiService.sendSaker() },
-            { applicationContext.meldekortContext.automatiskMeldekortbehandlingService.behandleBrukersMeldekort() },
+            { applicationContext.meldekortContext.automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock) },
 
             { applicationContext.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser() },
         ).let {
