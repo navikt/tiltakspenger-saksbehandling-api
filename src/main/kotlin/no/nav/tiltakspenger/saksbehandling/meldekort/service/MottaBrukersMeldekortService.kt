@@ -7,7 +7,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.LagreBrukersMeldekortKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
@@ -15,6 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
+import kotlin.collections.all
+import kotlin.collections.windowed
 
 class MottaBrukerutfyltMeldekortService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
@@ -108,15 +109,21 @@ class MottaBrukerutfyltMeldekortService(
             return MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
         }
 
-        val harForMangeDagerSammenhengendeGodkjentFravær = kommando.dager
-            .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
-            .any { forMangeDager -> forMangeDager.all { it.status == InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV || it.status == InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU } }
-
-        if (harForMangeDagerSammenhengendeGodkjentFravær) {
+        if (kommando.harForMangeDagerSammenhengendeGodkjentFravær()) {
             return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR.left()
         }
 
         return Unit.right()
+    }
+
+    private fun LagreBrukersMeldekortKommando.harForMangeDagerSammenhengendeGodkjentFravær(): Boolean {
+        return dager
+            .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
+            .any { forMangeDager ->
+                forMangeDager.all {
+                    it.status.erGodkjentFravær()
+                }
+            }
     }
 }
 
