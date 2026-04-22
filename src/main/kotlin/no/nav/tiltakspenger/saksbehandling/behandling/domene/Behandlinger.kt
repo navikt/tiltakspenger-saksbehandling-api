@@ -92,9 +92,9 @@ data class Behandlinger(
         return klagebehandlinger.hentKlagebehandling(klagebehandlingId)
     }
 
-    fun hentÅpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
-//        return rammebehandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
-        TODO("implementert henting av åpne behandlinger med klagebehandlingId")
+    fun hentÅpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<AttesterbarBehandling> {
+        return rammebehandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId) +
+            meldekortbehandlinger.åpneMeldekortbehandlingerMedKlagebehandlingId(klagebehandlingId)
     }
 
     fun hentKlagebehandlingerSomSkalOversendesKlageinstansen(): List<Klagebehandling> {

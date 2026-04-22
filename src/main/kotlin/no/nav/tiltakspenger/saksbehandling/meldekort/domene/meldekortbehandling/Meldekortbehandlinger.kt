@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
@@ -170,6 +171,9 @@ data class Meldekortbehandlinger(
             verdi = verdi.plus(behandling).sortedBy { it.opprettet },
         )
     }
+
+    fun åpneMeldekortbehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Meldekortbehandling> =
+        this.filter { it.klagebehandling?.id == klagebehandlingId && it.erÅpen() }
 
     init {
         verdi.zipWithNext { a, b ->

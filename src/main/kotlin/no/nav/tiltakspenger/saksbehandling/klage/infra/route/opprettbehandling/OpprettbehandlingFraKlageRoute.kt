@@ -36,10 +36,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlag
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-private data class OpprettRammebehandlingFraKlage(
+private data class OpprettBehandlingFraKlage(
     val søknadId: String?,
     val type: Type,
-    val vedtakId: String?,
+    val vedtakIdSomSkalOmgjøres: String?,
 ) {
     enum class Type {
         SØKNADSBEHANDLING_INNVILGELSE,
@@ -77,7 +77,7 @@ private data class OpprettRammebehandlingFraKlage(
                     correlationId = correlationId,
                     vedtakIdSomOmgjøres = when (type) {
                         Type.REVURDERING_INNVILGELSE -> null
-                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakId!!)
+                        Type.REVURDERING_OMGJØRING -> VedtakId.fromString(vedtakIdSomSkalOmgjøres!!)
                     },
                 )
             }
@@ -87,7 +87,6 @@ private data class OpprettRammebehandlingFraKlage(
                 saksbehandler = saksbehandler,
                 klagebehandlingId = klagebehandlingId,
                 correlationId = correlationId,
-                vedtakId = VedtakId.fromString(vedtakId!!),
             )
         }
     }
@@ -108,7 +107,7 @@ fun Route.opprettBehandlingFraKlageRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withKlagebehandlingId { klagebehandlingId ->
-                call.withBody<OpprettRammebehandlingFraKlage> { body ->
+                call.withBody<OpprettBehandlingFraKlage> { body ->
                     val correlationId = call.correlationId()
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)

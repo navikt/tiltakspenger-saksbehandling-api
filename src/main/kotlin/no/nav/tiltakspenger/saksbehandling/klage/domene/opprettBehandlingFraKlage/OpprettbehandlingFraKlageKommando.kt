@@ -48,5 +48,4 @@ data class OpprettMeldekortbehandlingFraKlageKommando(
     override val saksbehandler: Saksbehandler,
     override val klagebehandlingId: KlagebehandlingId,
     override val correlationId: CorrelationId,
-    val vedtakId: VedtakId,
 ) : OpprettbehandlingFraKlageKommando

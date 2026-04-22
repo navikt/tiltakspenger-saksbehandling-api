@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -17,7 +17,7 @@ fun Sak.hentKlagebehandling(klagebehandlingId: KlagebehandlingId): Klagebehandli
     return this.behandlinger.hentKlagebehandling(klagebehandlingId)
 }
 
-fun Sak.åpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
+fun Sak.åpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<AttesterbarBehandling> {
     return this.behandlinger.hentÅpneBehandlingerMedKlagebehandlingId(klagebehandlingId)
 }
 

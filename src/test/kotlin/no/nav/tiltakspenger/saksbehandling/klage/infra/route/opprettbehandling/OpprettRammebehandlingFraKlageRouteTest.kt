@@ -1,15 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettbehandling
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
-import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeRevurderingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
@@ -74,20 +71,13 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 ventestatus = Ventestatus(),
             )
 
-            json.toString().`shouldBeSøknadsbehandlingDTO`(
-                behandlingId = rammebehandlingMedKlagebehandling.id,
-                sakId = sak.id,
-                saksnummer = Saksnummer("202505011001"),
-                klagebehandlingId = klagebehandling.id,
-                søknadId = rammebehandlingMedKlagebehandling.søknad.id,
-                rammevedtakId = null,
-                status = "UNDER_BEHANDLING",
-                iverksattTidspunkt = null,
-                beslutter = null,
-                resultat = RammebehandlingResultatTypeDTO.IKKE_VALGT,
-                vedtaksperiode = null,
-                innvilgelsesperiode = false,
-                barnetillegg = false,
+            json.toString().shouldEqualJson(
+                """{
+                    "behandlingId": "${rammebehandlingMedKlagebehandling.id}",
+                    "sakId": "${sak.id}",
+                    "type": "${OpprettetBehandlingFraKlageDto.Companion.Type.RAMMEBEHANDLING}"
+                }
+                """.trimIndent(),
             )
         }
     }
@@ -136,20 +126,13 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 ventestatus = Ventestatus(),
             )
 
-            json.toString().shouldBeRevurderingDTO(
-                behandlingId = rammebehandlingMedKlagebehandling.id,
-                status = "UNDER_BEHANDLING",
-                sakId = sak.id,
-                saksnummer = Saksnummer("202505011001"),
-                klagebehandlingId = klagebehandling.id,
-                rammevedtakId = null,
-                resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE,
-                attesteringer = emptyList(),
-                iverksattTidspunkt = null,
-                beslutter = null,
-                vedtaksperiode = null,
-                barnetillegg = false,
-                innvilgelsesperiode = false,
+            json.toString().shouldEqualJson(
+                """{
+                  "behandlingId": "${rammebehandlingMedKlagebehandling.id}",   
+                    "sakId": "${sak.id}",
+                    "type": "${OpprettetBehandlingFraKlageDto.Companion.Type.RAMMEBEHANDLING}"
+                }
+                """.trimIndent(),
             )
         }
     }
@@ -198,21 +181,13 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 ventestatus = Ventestatus(),
             )
 
-            json.toString().shouldBeRevurderingDTO(
-                behandlingId = rammebehandlingMedKlagebehandling.id,
-                status = "UNDER_BEHANDLING",
-                sakId = rammebehandlingMedKlagebehandling.sakId,
-                saksnummer = Saksnummer("202505011001"),
-                klagebehandlingId = klagebehandling.id,
-                rammevedtakId = null,
-                resultat = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT,
-                attesteringer = emptyList(),
-                iverksattTidspunkt = null,
-                beslutter = null,
-                vedtaksperiode = null,
-                barnetillegg = false,
-                innvilgelsesperiode = false,
-                omgjørVedtak = sak.vedtaksliste.rammevedtaksliste.first().id,
+            json.toString().shouldEqualJson(
+                """{
+                  "behandlingId": "${rammebehandlingMedKlagebehandling.id}",   
+                    "sakId": "${sak.id}",
+                    "type": "${OpprettetBehandlingFraKlageDto.Companion.Type.RAMMEBEHANDLING}"
+                }
+                """.trimIndent(),
             )
         }
     }
@@ -328,7 +303,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                     """.trimIndent()
                 },
             )
-            val opprinneligvedtaksperiode = sak.vedtaksliste.rammevedtaksliste.single { it.id == ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå }
+            val opprinneligvedtaksperiode =
+                sak.vedtaksliste.rammevedtaksliste.single { it.id == ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå }
             oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,

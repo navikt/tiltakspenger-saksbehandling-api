@@ -297,7 +297,7 @@ interface FerdigstillKlagebehandlingBuilder {
             }
             if (status != HttpStatusCode.OK) return null
             val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
-            val behandlingId = RammebehandlingId.fromString(jsonObject.get("id").toString())
+            val behandlingId = RammebehandlingId.fromString(jsonObject.get("behandlingId").toString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
 
             return Tuple4(
