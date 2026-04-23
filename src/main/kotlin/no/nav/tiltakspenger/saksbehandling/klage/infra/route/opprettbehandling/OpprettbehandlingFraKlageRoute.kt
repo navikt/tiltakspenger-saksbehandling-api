@@ -7,8 +7,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
@@ -22,6 +20,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.match
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
@@ -157,25 +156,23 @@ data class OpprettetBehandlingFraKlageDto(
     }
 }
 
-private fun Sak.tilOpprettetBehandlingFraKlageDto(behandlingId: BehandlingId): OpprettetBehandlingFraKlageDto {
-    if (behandlingId.prefixPart().startsWith(RammebehandlingId.PREFIX)) {
-        return OpprettetBehandlingFraKlageDto(
-            sakId = this.id.toString(),
-            behandlingId = behandlingId.toString(),
-            type = OpprettetBehandlingFraKlageDto.Companion.Type.RAMMEBEHANDLING,
-        )
-    }
-
-    if (behandlingId.prefixPart().startsWith(MeldekortId.PREFIX)) {
-        return OpprettetBehandlingFraKlageDto(
-            sakId = this.id.toString(),
-            behandlingId = behandlingId.toString(),
-            type = OpprettetBehandlingFraKlageDto.Companion.Type.MELDEKORTBEHANDLING,
-        )
-    }
-
-    throw IllegalArgumentException("Ukjent behandlingstype for behandlingId: $behandlingId")
-}
+private fun Sak.tilOpprettetBehandlingFraKlageDto(behandlingId: BehandlingId): OpprettetBehandlingFraKlageDto =
+    behandlingId.match(
+        rammebehandlingId = {
+            OpprettetBehandlingFraKlageDto(
+                sakId = this.id.toString(),
+                behandlingId = behandlingId.toString(),
+                type = OpprettetBehandlingFraKlageDto.Companion.Type.RAMMEBEHANDLING,
+            )
+        },
+        meldekortId = {
+            OpprettetBehandlingFraKlageDto(
+                sakId = this.id.toString(),
+                behandlingId = behandlingId.toString(),
+                type = OpprettetBehandlingFraKlageDto.Companion.Type.MELDEKORTBEHANDLING,
+            )
+        },
+    )
 
 fun KanIkkeOppretteBehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {

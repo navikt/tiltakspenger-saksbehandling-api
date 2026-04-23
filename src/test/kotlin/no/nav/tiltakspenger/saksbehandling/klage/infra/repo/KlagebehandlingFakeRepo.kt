@@ -31,7 +31,7 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
     }
 
     override fun hentForRammebehandlingId(rammebehandlingId: RammebehandlingId): Klagebehandling? {
-        return data.get().values.singleOrNullOrThrow { it.rammebehandlingId.singleOrNullOrThrow { it == rammebehandlingId } == rammebehandlingId }
+        return data.get().values.singleOrNullOrThrow { it.tilknyttetBehandlingId.singleOrNullOrThrow { it == rammebehandlingId } == rammebehandlingId }
     }
 
     override fun taBehandling(

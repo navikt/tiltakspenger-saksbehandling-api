@@ -60,8 +60,8 @@ private data class KlagebehandlingsresultatDbJson(
             KlagebehandlingsresultatDbEnum.OMGJØR -> Omgjør(
                 årsak = omgjørÅrsak!!.toDomain(),
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
-                rammebehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
-                åpenRammebehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
+                tilknyttetBehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
+                åpenBehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
             )
@@ -79,9 +79,9 @@ private data class KlagebehandlingsresultatDbJson(
                 oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,
                 klageinstanshendelser = Klageinstanshendelser(klageinstanshendelser.map { it.toDomain() }),
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
-                rammebehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
+                tilknyttetBehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
-                åpenRammebehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
+                åpenBehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
             )
         }
     }
@@ -96,7 +96,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         },
         omgjørBegrunnelse = (this as? Omgjør)?.begrunnelse?.verdi,
         omgjørÅrsak = (this as? Omgjør)?.årsak?.toDbEnum(),
-        rammebehandlingId = this.rammebehandlingId.map { it.toString() },
+        rammebehandlingId = this.tilknyttetBehandlingId.map { it.toString() },
         hjemler = (this as? Opprettholdt)?.hjemler?.map { it.toDb() },
         iverksattOpprettholdelseTidspunkt = (this as? Opprettholdt)?.iverksattOpprettholdelseTidspunkt,
         brevdato = (this as? Opprettholdt)?.brevdato,
@@ -109,7 +109,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         klageinstanshendelser = (this as? Opprettholdt)?.klageinstanshendelser?.toDb() ?: emptyList(),
         ferdigstiltTidspunkt = this.ferdigstiltTidspunkt,
         begrunnelseFerdigstilling = this.begrunnelseFerdigstilling?.verdi,
-        åpenRammebehandlingId = this.åpenRammebehandlingId?.toString(),
+        åpenRammebehandlingId = this.åpenBehandlingId?.toString(),
     ).let { serialize(it) }
 }
 

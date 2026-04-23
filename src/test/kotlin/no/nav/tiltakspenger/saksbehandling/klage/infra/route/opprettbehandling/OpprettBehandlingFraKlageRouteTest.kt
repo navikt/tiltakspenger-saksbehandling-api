@@ -51,10 +51,10 @@ class OpprettBehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    tilknyttetBehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -106,10 +106,10 @@ class OpprettBehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    tilknyttetBehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -146,7 +146,6 @@ class OpprettBehandlingFraKlageRouteTest {
                 type = "REVURDERING_OMGJØRING",
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            rammebehandlingMedKlagebehandling as Revurdering
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,
                 sakId = sak.id,
@@ -161,10 +160,10 @@ class OpprettBehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    tilknyttetBehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -187,6 +186,61 @@ class OpprettBehandlingFraKlageRouteTest {
                   "behandlingId": "${rammebehandlingMedKlagebehandling.id}",   
                     "sakId": "${sak.id}",
                     "type": "${OpprettetBehandlingFraKlageDto.Companion.Type.RAMMEBEHANDLING}"
+                }
+                """.trimIndent(),
+            )
+        }
+    }
+
+    @Test
+    fun `kan opprette meldekortbehandling for klagebehandling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, meldekortbehandlingMedKlagebheandling, opprettetBehandlingJson) = iverksettSøknadsbehandlingOgOpprettBehandlingForKlage(
+                tac = tac,
+                type = "MELDEKORTBEHANDLING",
+            )!!
+
+            val klagebehandling = meldekortbehandlingMedKlagebheandling.klagebehandling!!
+            klagebehandling shouldBe Klagebehandling(
+                id = klagebehandling.id,
+                sakId = sak.id,
+                opprettet = klagebehandling.opprettet,
+                sistEndret = klagebehandling.sistEndret,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                status = Klagebehandlingsstatus.UNDER_BEHANDLING,
+                klagensJournalpostId = JournalpostId("12345"),
+                klagensJournalpostOpprettet = klagebehandling.klagensJournalpostOpprettet,
+                saksbehandler = "saksbehandlerKlagebehandling",
+                resultat = Klagebehandlingsresultat.Omgjør(
+                    årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
+                    begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
+                    tilknyttetBehandlingId = nonEmptyListOf(meldekortbehandlingMedKlagebheandling.id),
+                    ferdigstiltTidspunkt = null,
+                    begrunnelseFerdigstilling = null,
+                    åpenBehandlingId = meldekortbehandlingMedKlagebheandling.id,
+                ),
+                formkrav = KlageFormkrav(
+                    erKlagerPartISaken = true,
+                    klagesDetPåKonkreteElementerIVedtaket = true,
+                    erKlagefristenOverholdt = true,
+                    erKlagenSignert = true,
+                    erUnntakForKlagefrist = null,
+                    vedtakDetKlagesPå = sak.vedtaksliste.rammevedtaksliste.first().id,
+                    behandlingDetKlagesPå = sak.vedtaksliste.rammevedtaksliste.first().rammebehandling.id,
+                    innsendingsdato = 16.februar(2026),
+                    innsendingskilde = KlageInnsendingskilde.DIGITAL,
+                ),
+                iverksattTidspunkt = null,
+                avbrutt = null,
+                ventestatus = Ventestatus(),
+            )
+
+            opprettetBehandlingJson.toString().shouldEqualJson(
+                """{
+                  "behandlingId": "${meldekortbehandlingMedKlagebheandling.id}",   
+                    "sakId": "${sak.id}",
+                    "type": "${OpprettetBehandlingFraKlageDto.Companion.Type.MELDEKORTBEHANDLING}"
                 }
                 """.trimIndent(),
             )

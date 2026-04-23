@@ -135,8 +135,8 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
     resultat = resultat?.tilKlagebehandlingsresultatDTO(),
     formkrav = formkrav.toDTO(),
-    tilknyttedeRammebehandlingIder = rammebehandlingId.map { it.toString() },
-    åpenRammebehandlingId = åpenRammebehandlingId?.toString(),
+    tilknyttedeRammebehandlingIder = tilknyttetBehandlingId.map { it.toString() },
+    åpenRammebehandlingId = åpenBehandlingId?.toString(),
 )
 
 fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): KlagebehandlingsresultatDTO {

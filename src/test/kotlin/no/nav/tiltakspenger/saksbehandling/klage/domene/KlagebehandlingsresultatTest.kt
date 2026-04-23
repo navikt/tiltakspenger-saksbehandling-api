@@ -18,14 +18,14 @@ class KlagebehandlingsresultatTest {
     fun `AVVIST skal ikke være knyttet til rammebehandling`() {
         val resultat = ObjectMother.klagebehandlingresultatAvvist()
 
-        resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
+        resultat.kanVæreKnyttetTilBehandling shouldBe false
     }
 
     @Test
     fun `OMGJØR skal alltid være knyttet til rammebehandling`() {
         val resultat = ObjectMother.`klagebehandlingresultatOmgjør`()
 
-        resultat.`kanVæreKnyttetTilRammebehandling` shouldBe true
+        resultat.kanVæreKnyttetTilBehandling shouldBe true
     }
 
     @Test
@@ -36,15 +36,15 @@ class KlagebehandlingsresultatTest {
             )
 
             when (entry) {
-                KlagehendelseKlagebehandlingAvsluttetUtfall.TRUKKET -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseKlagebehandlingAvsluttetUtfall.RETUR -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe true
-                KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe true
-                KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe true
-                KlagehendelseKlagebehandlingAvsluttetUtfall.STADFESTELSE -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe true
-                KlagehendelseKlagebehandlingAvsluttetUtfall.AVVIST -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseKlagebehandlingAvsluttetUtfall.HENLAGT -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
+                KlagehendelseKlagebehandlingAvsluttetUtfall.TRUKKET -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseKlagebehandlingAvsluttetUtfall.RETUR -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseKlagebehandlingAvsluttetUtfall.OPPHEVET -> resultat.kanVæreKnyttetTilBehandling shouldBe true
+                KlagehendelseKlagebehandlingAvsluttetUtfall.MEDHOLD -> resultat.kanVæreKnyttetTilBehandling shouldBe true
+                KlagehendelseKlagebehandlingAvsluttetUtfall.DELVIS_MEDHOLD -> resultat.kanVæreKnyttetTilBehandling shouldBe true
+                KlagehendelseKlagebehandlingAvsluttetUtfall.STADFESTELSE -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseKlagebehandlingAvsluttetUtfall.UGUNST -> resultat.kanVæreKnyttetTilBehandling shouldBe true
+                KlagehendelseKlagebehandlingAvsluttetUtfall.AVVIST -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseKlagebehandlingAvsluttetUtfall.HENLAGT -> resultat.kanVæreKnyttetTilBehandling shouldBe false
             }
         }
     }
@@ -59,8 +59,8 @@ class KlagebehandlingsresultatTest {
             )
 
             when (entry) {
-                OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35 -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                OmgjøringskravbehandlingAvsluttetUtfall.UGUNST -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe true
+                OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35 -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                OmgjøringskravbehandlingAvsluttetUtfall.UGUNST -> resultat.kanVæreKnyttetTilBehandling shouldBe true
             }
         }
     }
@@ -73,11 +73,11 @@ class KlagebehandlingsresultatTest {
             )
 
             when (entry) {
-                KlagehendelseFeilregistrertType.KLAGE -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseFeilregistrertType.ANKE -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseFeilregistrertType.ANKE_I_TRYGDERETTEN -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseFeilregistrertType.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
-                KlagehendelseFeilregistrertType.OMGJOERINGSKRAV -> resultat.`kanVæreKnyttetTilRammebehandling` shouldBe false
+                KlagehendelseFeilregistrertType.KLAGE -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseFeilregistrertType.ANKE -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseFeilregistrertType.ANKE_I_TRYGDERETTEN -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseFeilregistrertType.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> resultat.kanVæreKnyttetTilBehandling shouldBe false
+                KlagehendelseFeilregistrertType.OMGJOERINGSKRAV -> resultat.kanVæreKnyttetTilBehandling shouldBe false
             }
         }
     }

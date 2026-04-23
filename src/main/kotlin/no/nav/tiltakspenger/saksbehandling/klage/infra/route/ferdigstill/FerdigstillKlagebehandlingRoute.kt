@@ -105,7 +105,7 @@ fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatus
             ),
         )
 
-        KunneIkkeFerdigstilleKlagebehandling.BehandlingErKnyttetTilEnRammebehandling -> Pair(
+        KunneIkkeFerdigstilleKlagebehandling.ErKnyttetTilEnBehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
                 kode = "klagebehandling_er_knyttet_til_rammebehandling",

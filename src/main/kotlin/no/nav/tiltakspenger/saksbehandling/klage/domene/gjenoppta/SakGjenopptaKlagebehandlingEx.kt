@@ -5,6 +5,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.match
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -21,11 +22,18 @@ suspend fun Sak.gjenopptaKlagebehandling(
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeGjenopptaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
-        val tilknyttetRammebehandling = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
-            rammebehandlingId.map { this.hentRammebehandling(it) }.singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
-        }
+        val tilknyttetRammebehandling =
+            klagebehandling.tilknyttetBehandlingId
+                .map { behandlingId ->
+                    behandlingId.match(
+                        rammebehandlingId = { this.hentRammebehandling(it) },
+                        meldekortId = { this.hentMeldekortbehandling(it) },
+                    )
+                }
+                .singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
         if (tilknyttetRammebehandling != null) {
             // Denne gjenopptar også klagebehandlingen hvis aktuelt.
+
             gjenopptaRammebehandling(gjenopptaRammebehandling, kommando, tilknyttetRammebehandling)
         } else {
             gjenopptaKlagebehandling(klagebehandling, kommando, clock, lagre)

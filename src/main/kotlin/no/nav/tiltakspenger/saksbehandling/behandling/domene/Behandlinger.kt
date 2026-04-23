@@ -108,8 +108,8 @@ data class Behandlinger(
         require(slåttSammen.distinctBy { it.id }.size == slåttSammen.size) {
             "Behandlingene må ha unike IDer."
         }
-        klagebehandlinger.filter { it.rammebehandlingId.isNotEmpty() }.forEach { klagebehandling ->
-            val rammebehandlinger = klagebehandling.rammebehandlingId.let { klagensRammebehandlingId ->
+        klagebehandlinger.filter { it.tilknyttetBehandlingId.isNotEmpty() }.forEach { klagebehandling ->
+            val rammebehandlinger = klagebehandling.tilknyttetBehandlingId.let { klagensRammebehandlingId ->
                 rammebehandlinger.filter { klagensRammebehandlingId.contains(it.id) }
             }
 

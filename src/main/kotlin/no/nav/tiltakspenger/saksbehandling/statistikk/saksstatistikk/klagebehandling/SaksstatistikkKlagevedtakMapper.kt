@@ -19,7 +19,7 @@ fun Klagevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
             sakId = this.behandling.sakId.toString(),
             saksnummer = this.behandling.saksnummer.toString(),
             behandlingId = this.behandling.id.toString(),
-            relatertBehandlingId = this.behandling.resultat?.rammebehandlingId?.toString(),
+            relatertBehandlingId = this.behandling.resultat?.tilknyttetBehandlingId?.toString(),
             fnr = this.behandling.fnr.verdi,
             mottattTidspunkt = this.behandling.klagensJournalpostOpprettet,
             registrertTidspunkt = this.behandling.opprettet,

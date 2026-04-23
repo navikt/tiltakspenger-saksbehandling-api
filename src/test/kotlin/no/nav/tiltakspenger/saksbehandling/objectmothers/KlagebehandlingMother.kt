@@ -171,10 +171,10 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         return Klagebehandlingsresultat.Omgjør(
             årsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
             begrunnelse = begrunnelse,
-            rammebehandlingId = rammebehandlingId,
+            tilknyttetBehandlingId = rammebehandlingId,
             ferdigstiltTidspunkt = null,
             begrunnelseFerdigstilling = null,
-            åpenRammebehandlingId = åpenRammebehandlingId,
+            åpenBehandlingId = åpenRammebehandlingId,
         )
     }
 
@@ -208,9 +208,9 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,
             klageinstanshendelser = klageinstanshendelser,
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
-            rammebehandlingId = rammebehandlingId,
+            tilknyttetBehandlingId = rammebehandlingId,
             begrunnelseFerdigstilling = begrunnelseFerdigstilling,
-            åpenRammebehandlingId = åpenRammebehandlingId,
+            åpenBehandlingId = åpenRammebehandlingId,
         )
     }
 

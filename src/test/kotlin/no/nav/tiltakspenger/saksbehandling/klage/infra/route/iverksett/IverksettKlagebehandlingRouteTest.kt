@@ -270,13 +270,13 @@ class IverksettKlagebehandlingRouteTest {
                 Klagebehandling::erAvsluttet,
                 Klagebehandling::erUnderBehandling,
                 Klagebehandling::erÅpen,
-                klagebehandling::åpenRammebehandlingId,
+                klagebehandling::åpenBehandlingId,
                 Klagebehandling::resultat,
             )
             rammevedtak.klagebehandlingsresultat!!.shouldBeEqualToIgnoringFields(
                 klagebehandling.resultat!!,
                 // denne er fortsatt satt når den er åpen, men fjernes ved iverksettelse av omgjøring, så vi ignorerer den i sammenligningen
-                Klagebehandlingsresultat::åpenRammebehandlingId,
+                Klagebehandlingsresultat::åpenBehandlingId,
             )
             json.getString("klagebehandlingId") shouldBe klagebehandling.id.toString()
         }

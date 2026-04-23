@@ -27,4 +27,6 @@ interface AttesterbarBehandling : Behandling {
     override val erAvbrutt: Boolean
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val klagebehandling: Klagebehandling?
+
+    val erUnderAktivBehandling: Boolean
 }

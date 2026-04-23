@@ -68,6 +68,13 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     override val attesteringer: Attesteringer
 
+    val erKlarTilBehandling: Boolean get() = status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+    val erUnderBehandling: Boolean get() = status == MeldekortbehandlingStatus.UNDER_BEHANDLING
+    val erKlarTIlBeslutning: Boolean get() = status == MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
+    val erUnderBeslutning: Boolean get() = status == MeldekortbehandlingStatus.UNDER_BESLUTNING
+
+    override val erUnderAktivBehandling: Boolean get() = erKlarTilBehandling || erUnderBehandling || erKlarTIlBeslutning || erUnderBeslutning || erUnderkjent
+
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
 

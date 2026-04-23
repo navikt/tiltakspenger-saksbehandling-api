@@ -21,7 +21,7 @@ suspend fun Sak.leggTilbakeKlagebehandling(
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeLeggeTilbakeKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
-        val rammebehandling = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
+        val rammebehandling = klagebehandling.tilknyttetBehandlingId.let { rammebehandlingId ->
             rammebehandlingId.map { this.hentRammebehandling(it) }
                 .singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
         }

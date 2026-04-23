@@ -14,7 +14,7 @@ fun Sak.vurderKlagebehandling(
 ): Either<KanIkkeVurdereKlagebehandling, Pair<Sak, Klagebehandling>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let {
         // TODO jah: Vurder å lage et domeneobjekt som wrapper klagebehandling med rammebehandling.
-        val rammebehandlingsstatus = it.rammebehandlingId.let { rammebehandlingId ->
+        val rammebehandlingsstatus = it.tilknyttetBehandlingId.let { rammebehandlingId ->
             rammebehandlingId.map { this.hentRammebehandling(it) }.singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
         }?.status
         it.vurder(kommando, rammebehandlingsstatus, clock)

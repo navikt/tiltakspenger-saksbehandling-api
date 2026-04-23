@@ -109,7 +109,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val erKlarTIlBeslutning: Boolean get() = status == KLAR_TIL_BESLUTNING
     val erUnderBeslutning: Boolean get() = status == UNDER_BESLUTNING
     val erUnderBehandlingEllerBeslutning: Boolean get() = erUnderBehandling || erUnderBeslutning
-    val erUnderAktivBehandling: Boolean get() = erKlarTilBehandling || erUnderBehandling || erKlarTIlBeslutning || erUnderBeslutning || erUnderkjent
+    override val erUnderAktivBehandling: Boolean get() = erKlarTilBehandling || erUnderBehandling || erKlarTIlBeslutning || erUnderBeslutning || erUnderkjent
 
     override val erAvbrutt: Boolean get() = status == AVBRUTT
     val erVedtatt: Boolean get() = status == VEDTATT
@@ -466,7 +466,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     if (klagebehandling?.erFerdigstilt == true) {
                         // man har mulighet til å opprette rammebehandling på en ferdigstilt klagebehandling.
                         // oppdaterer resultatets rammebehandling knyttninger
-                        klagebehandling!!.nullstillÅpenRammebehandlingId() to Statistikkhendelser.empty()
+                        klagebehandling!!.nullstillÅpenBehandlingId() to Statistikkhendelser.empty()
                     } else {
                         when (klagebehandling?.resultat) {
                             is Klagebehandlingsresultat.Avvist -> throw IllegalStateException("Klagebehandling med avvist resultat skal ikke være knyttet til en rammebehandling. Dette skjedde for sakId: $sakId, saksnummer: $saksnummer, behandling: ${this.id}, klagebehandlingId: ${klagebehandling!!.id}")
@@ -752,7 +752,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
             AVBRUTT -> {
                 requireNotNull(avbrutt)
-                require(klagebehandling?.rammebehandlingId == null || klagebehandling?.rammebehandlingId?.contains(id) == false) {
+                require(klagebehandling?.tilknyttetBehandlingId == null || klagebehandling?.tilknyttetBehandlingId?.contains(id) == false) {
                     // Merk at vi beholder koblingen til klagebehandlingen ved avbrutt rammebehandling for historikkens skyld (men ikke omvendt). Hvis dette biter oss senere, kan vi fjerne koblingen.
                     "En klagebehandling skal ikke peke på en avbrutt rammebehandling. I de tilfellene ønsker vi nok et annet resultat på klagebehandlingen, eller å knytte den til en ny rammebehandling. sakId: ${this.sakId}, saksnummer: ${this.saksnummer}, rammebehandlingId: ${this.id}, klagebehandlingId: ${this.klagebehandling?.id}"
                 }
@@ -769,7 +769,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 "Klagebehandlingens saksnummer må være lik behandlingens saksnummer. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
             if (!this.erAvbrutt) {
-                require(klagebehandling!!.rammebehandlingId.contains(this.id)) {
+                require(klagebehandling!!.tilknyttetBehandlingId.contains(this.id)) {
                     "Klagebehandlingens rammebehandlingId må inneholde behandlingens id. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                 }
             }

@@ -19,7 +19,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Triple<Sak, Klagebehandling, Rammebehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
-        val rammebehandling = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
+        val rammebehandling = klagebehandling.tilknyttetBehandlingId.let { rammebehandlingId ->
             rammebehandlingId.map { this.hentRammebehandling(it) }.singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
         }
         if (rammebehandling != null) {

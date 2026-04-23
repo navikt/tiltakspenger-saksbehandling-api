@@ -4,7 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.match
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
@@ -21,16 +22,19 @@ fun Sak.ferdigstillKlagebehandling(
 ): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     val klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
 
-    val tilknyttedeRammebehandlinger = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
-        rammebehandlingId.mapNotNull { this.hentRammebehandling(it) }
+    val tilknyttedeBehandlinger = klagebehandling.tilknyttetBehandlingId.mapNotNull { behandlingId ->
+        behandlingId.match(
+            rammebehandlingId = { this.hentRammebehandling(it) },
+            meldekortId = { this.hentMeldekortbehandling(it) },
+        )
     }
 
-    return klagebehandling.ferdigstill(kommando, tilknyttedeRammebehandlinger, clock)
+    return klagebehandling.ferdigstill(kommando, tilknyttedeBehandlinger, clock)
 }
 
 fun Klagebehandling.ferdigstill(
     kommando: FerdigstillKlagebehandlingKommando,
-    rammebehandlinger: List<Rammebehandling>,
+    behandlinger: List<AttesterbarBehandling>,
     clock: Clock,
 ): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
@@ -44,14 +48,14 @@ fun Klagebehandling.ferdigstill(
         return KunneIkkeFerdigstilleKlagebehandling.ResultatMåVæreOpprettholdEllerOmgjør.left()
     }
 
-    rammebehandlinger.forEach { rammebehandling ->
-        require(this.rammebehandlingId.contains(rammebehandling.id)) {
-            "Klagebehandling $id på sak $sakId har rammebehandlingId ${this.rammebehandlingId} som ikke finnes i listen over rammebehandlinger"
+    behandlinger.forEach { behandling ->
+        require(this.tilknyttetBehandlingId.contains(behandling.id)) {
+            "Klagebehandling $id på sak $sakId har behandlingId ${this.tilknyttetBehandlingId} som ikke finnes i listen over behandlinger"
         }
     }
 
-    if (!rammebehandlinger.all { it.erAvsluttet }) {
-        return KunneIkkeFerdigstilleKlagebehandling.BehandlingErKnyttetTilEnRammebehandling.left()
+    if (!behandlinger.all { it.erAvsluttet }) {
+        return KunneIkkeFerdigstilleKlagebehandling.ErKnyttetTilEnBehandling.left()
     }
 
     return when (this.resultat) {
@@ -111,5 +115,5 @@ sealed interface KunneIkkeFerdigstilleKlagebehandling {
 
     data object ResultatMåVæreOpprettholdEllerOmgjør : KunneIkkeFerdigstilleKlagebehandling
     data object KreverUtfallFraKlageinstans : KunneIkkeFerdigstilleKlagebehandling
-    data object BehandlingErKnyttetTilEnRammebehandling : KunneIkkeFerdigstilleKlagebehandling
+    data object ErKnyttetTilEnBehandling : KunneIkkeFerdigstilleKlagebehandling
 }

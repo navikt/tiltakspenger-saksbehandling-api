@@ -37,8 +37,8 @@ data class VurderOmgjørKlagebehandlingKommando(
         return Klagebehandlingsresultat.Omgjør(
             årsak = årsak,
             begrunnelse = begrunnelse,
-            rammebehandlingId = emptyList(),
-            åpenRammebehandlingId = null,
+            tilknyttetBehandlingId = emptyList(),
+            åpenBehandlingId = null,
             ferdigstiltTidspunkt = null,
             begrunnelseFerdigstilling = null,
         )

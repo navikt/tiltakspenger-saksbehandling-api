@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.NonEmptyList
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -27,8 +27,8 @@ import java.time.LocalDateTime
 
 sealed interface Klagebehandlingsresultat {
 
-    val kanVæreKnyttetTilRammebehandling: Boolean
-    val rammebehandlingId: List<RammebehandlingId>
+    val kanVæreKnyttetTilBehandling: Boolean
+    val tilknyttetBehandlingId: List<BehandlingId>
     val brevtekst: Brevtekster?
     val ferdigstiltTidspunkt: LocalDateTime?
     val begrunnelseFerdigstilling: Begrunnelse?
@@ -39,21 +39,21 @@ sealed interface Klagebehandlingsresultat {
     val harDistribuertInnstillingsbrev: Boolean
     fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean?
     fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean
-    val erKnyttetTilRammebehandling: Boolean
-    val åpenRammebehandlingId: RammebehandlingId?
+    val erKnyttetTilBehandling: Boolean
+    val åpenBehandlingId: BehandlingId?
     fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean
     val kanOmgjøresEtterKA: Boolean
 
     /**
      * @param klagebehandlingId - kun brukt for logging
      */
-    fun leggTilNyÅpenRammebehandling(
-        rammebehandlingId: RammebehandlingId,
+    fun leggTilNyÅpenBehandling(
+        behandlingId: BehandlingId,
         klagebehandlingId: KlagebehandlingId,
     ): Klagebehandlingsresultat
 
     fun ferdigstill(ferdigstiltTidspunkt: LocalDateTime, begrunnelse: Begrunnelse?): Klagebehandlingsresultat?
-    fun nullstillÅpenRammebehandlingId(): Klagebehandlingsresultat?
+    fun nullstillÅpenBehandlingId(): Klagebehandlingsresultat?
 
     /**
      * Merk at en avvisning ikke er det samme som et avslag.
@@ -63,10 +63,10 @@ sealed interface Klagebehandlingsresultat {
         override val brevtekst: Brevtekster?,
     ) : Klagebehandlingsresultat {
 
-        override val erKnyttetTilRammebehandling = false
-        override val kanVæreKnyttetTilRammebehandling: Boolean = false
-        override val åpenRammebehandlingId: RammebehandlingId? = null
-        override val rammebehandlingId: List<RammebehandlingId> = emptyList()
+        override val erKnyttetTilBehandling = false
+        override val kanVæreKnyttetTilBehandling: Boolean = false
+        override val åpenBehandlingId: BehandlingId? = null
+        override val tilknyttetBehandlingId: List<BehandlingId> = emptyList()
         override val kanOversendeKlageinstans = false
         override val harJournalførtInnstillingsbrev = false
         override val harDistribuertInnstillingsbrev = false
@@ -87,11 +87,11 @@ sealed interface Klagebehandlingsresultat {
             }
         }
 
-        override fun leggTilNyÅpenRammebehandling(
-            rammebehandlingId: RammebehandlingId,
+        override fun leggTilNyÅpenBehandling(
+            behandlingId: BehandlingId,
             klagebehandlingId: KlagebehandlingId,
         ): Avvist {
-            throw IllegalStateException("Avvist klage kan ikke knyttes til rammebehandling. Dette skjedde for klagebehandlingId=$klagebehandlingId")
+            throw IllegalStateException("Avvist klage kan ikke knyttes til behandling. Dette skjedde for klagebehandlingId=$klagebehandlingId")
         }
 
         /** Avvist klagebehandling kan ikke ferdigstilles, så denne funksjonen returnerer alltid null. */
@@ -105,7 +105,7 @@ sealed interface Klagebehandlingsresultat {
         /**
          * resultat avvist har ingen endringer den skal gjøre ved iverksettelse
          */
-        override fun nullstillÅpenRammebehandlingId(): Avvist {
+        override fun nullstillÅpenBehandlingId(): Avvist {
             return this
         }
 
@@ -129,45 +129,45 @@ sealed interface Klagebehandlingsresultat {
     }
 
     /**
-     * Grunnen til at dette er et imperativ verb, er at selve klagebehandlingen utfører ikke omgjøringen; det er den følgende rammebehandlingen som gjør.
-     * @param rammebehandlingId Genereres av systemet når klagen omgjøres til en rammebehandling. Vil være null ved f.eks. medhold på klage om tilbakekreving.
+     * Grunnen til at dette er et imperativ verb, er at selve klagebehandlingen utfører ikke omgjøringen; det er den følgende behandlingen som gjør.
+     * @param tilknyttetBehandlingId Genereres av systemet når klagen omgjøres til en behandling. Vil være null ved f.eks. medhold på klage om tilbakekreving.
      */
     data class Omgjør(
         val årsak: KlageOmgjøringsårsak,
         val begrunnelse: Begrunnelse,
         override val ferdigstiltTidspunkt: LocalDateTime?,
         override val begrunnelseFerdigstilling: Begrunnelse?,
-        override val rammebehandlingId: List<RammebehandlingId>,
-        override val åpenRammebehandlingId: RammebehandlingId?,
+        override val tilknyttetBehandlingId: List<BehandlingId>,
+        override val åpenBehandlingId: BehandlingId?,
     ) : Klagebehandlingsresultat {
         override val kanOversendeKlageinstans = false
         override val brevtekst = null
-        override val kanVæreKnyttetTilRammebehandling: Boolean = true
+        override val kanVæreKnyttetTilBehandling: Boolean = true
         override val kanOmgjøresEtterKA = false
         override val harJournalførtInnstillingsbrev = false
         override val harDistribuertInnstillingsbrev = false
-        override val erKnyttetTilRammebehandling = rammebehandlingId.isNotEmpty()
+        override val erKnyttetTilBehandling = tilknyttetBehandlingId.isNotEmpty()
 
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             throw IllegalStateException("Omgjort klage skal ikke generere brev, så denne funksjonen skal ikke brukes.")
         }
 
-        override fun leggTilNyÅpenRammebehandling(
-            rammebehandlingId: RammebehandlingId,
+        override fun leggTilNyÅpenBehandling(
+            behandlingId: BehandlingId,
             klagebehandlingId: KlagebehandlingId,
         ): Omgjør {
-            require(åpenRammebehandlingId == null) {
-                "Kan kun legge til én åpen rammebehandlingId. Eksisterende åpenRammebehandlingId var $åpenRammebehandlingId, forsøkte å legge til $rammebehandlingId for klagebehandlingId $klagebehandlingId. Dersom $åpenRammebehandlingId har blitt iverksatt/avbrutt, må den fjernes fra feltet åpenRammebehandlingId"
+            require(åpenBehandlingId == null) {
+                "Kan kun legge til én åpen behandlingId. Eksisterende åpenBehandlingId var $åpenBehandlingId, forsøkte å legge til $behandlingId for klagebehandlingId $klagebehandlingId. Dersom $åpenBehandlingId har blitt iverksatt/avbrutt, må den fjernes fra feltet åpenBehandlingId"
             }
             return this.copy(
-                rammebehandlingId = this.rammebehandlingId.plus(rammebehandlingId),
-                åpenRammebehandlingId = rammebehandlingId,
+                tilknyttetBehandlingId = this.tilknyttetBehandlingId.plus(behandlingId),
+                åpenBehandlingId = behandlingId,
             )
         }
 
         /** Brukes av frontend. Man kan ikke iverksette klagebehandlingen*/
         override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean? {
-            if (status != UNDER_BEHANDLING || rammebehandlingId.isEmpty()) return false
+            if (status != UNDER_BEHANDLING || tilknyttetBehandlingId.isEmpty()) return false
             return null
         }
 
@@ -178,14 +178,14 @@ sealed interface Klagebehandlingsresultat {
             return this.copy(ferdigstiltTidspunkt = ferdigstiltTidspunkt, begrunnelseFerdigstilling = begrunnelse)
         }
 
-        override fun nullstillÅpenRammebehandlingId(): Omgjør {
-            require(åpenRammebehandlingId != null) {
-                "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
+        override fun nullstillÅpenBehandlingId(): Omgjør {
+            require(åpenBehandlingId != null) {
+                "ÅpenBehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
             }
-            return this.copy(åpenRammebehandlingId = null)
+            return this.copy(åpenBehandlingId = null)
         }
 
-        /** Kan oppdatere frem til rammebehandlingen er KLAR_TIL_BESLUTNING */
+        /** Kan oppdatere frem til behandlingen er KLAR_TIL_BESLUTNING */
         fun oppdater(kommando: VurderOmgjørKlagebehandlingKommando): Omgjør {
             return this.copy(
                 årsak = kommando.årsak,
@@ -212,11 +212,11 @@ sealed interface Klagebehandlingsresultat {
         val klageinstanshendelser: Klageinstanshendelser,
         override val ferdigstiltTidspunkt: LocalDateTime?,
         override val begrunnelseFerdigstilling: Begrunnelse?,
-        override val rammebehandlingId: List<RammebehandlingId>,
-        override val åpenRammebehandlingId: RammebehandlingId?,
+        override val tilknyttetBehandlingId: List<BehandlingId>,
+        override val åpenBehandlingId: BehandlingId?,
     ) : Klagebehandlingsresultat {
 
-        override val erKnyttetTilRammebehandling = rammebehandlingId.isNotEmpty()
+        override val erKnyttetTilBehandling = tilknyttetBehandlingId.isNotEmpty()
         override val harJournalførtInnstillingsbrev: Boolean = journalpostIdInnstillingsbrev != null
         override val harDistribuertInnstillingsbrev: Boolean = distribusjonIdInnstillingsbrev != null
         override val kanOversendeKlageinstans =
@@ -243,7 +243,7 @@ sealed interface Klagebehandlingsresultat {
         }
 
         override val kanOmgjøresEtterKA = kanVidereBehandlesEtterSvarFraKA
-        override val kanVæreKnyttetTilRammebehandling = kanVidereBehandlesEtterSvarFraKA
+        override val kanVæreKnyttetTilBehandling = kanVidereBehandlesEtterSvarFraKA
 
         override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean? = null
 
@@ -260,19 +260,19 @@ sealed interface Klagebehandlingsresultat {
             }
         }
 
-        override fun leggTilNyÅpenRammebehandling(
-            rammebehandlingId: RammebehandlingId,
+        override fun leggTilNyÅpenBehandling(
+            behandlingId: BehandlingId,
             klagebehandlingId: KlagebehandlingId,
         ): Opprettholdt {
-            require(åpenRammebehandlingId == null) {
-                "Kan kun legge til én åpen rammebehandlingId. Eksisterende åpenRammebehandlingId var $åpenRammebehandlingId, forsøkte å legge til $rammebehandlingId for klagebehandlingId $klagebehandlingId. Dersom $åpenRammebehandlingId har blitt iverksatt/avbrutt, må den fjernes fra feltet åpenRammebehandlingId"
+            require(åpenBehandlingId == null) {
+                "Kan kun legge til én åpen behandlingId. Eksisterende åpenBehandlingId var $åpenBehandlingId, forsøkte å legge til $behandlingId for klagebehandlingId $klagebehandlingId. Dersom $åpenBehandlingId har blitt iverksatt/avbrutt, må den fjernes fra feltet åpenBehandlingId"
             }
             require(klageinstanshendelser.isNotEmpty()) {
-                "Kan kun legge til ny rammebehandlingId dersom klagebehandlingen har mottatt minst én klageinstanshendelse. Dette for å sikre at vi ikke knytter klagebehandlingen til en rammebehandling før vi har mottatt svar fra KA, og dermed unngår at klagebehandlingen blir videre behandlet."
+                "Kan kun legge til ny behandlingId dersom klagebehandlingen har mottatt minst én klageinstanshendelse. Dette for å sikre at vi ikke knytter klagebehandlingen til en behandling før vi har mottatt svar fra KA, og dermed unngår at klagebehandlingen blir videre behandlet."
             }
             return this.copy(
-                rammebehandlingId = this.rammebehandlingId.plus(rammebehandlingId),
-                åpenRammebehandlingId = rammebehandlingId,
+                tilknyttetBehandlingId = this.tilknyttetBehandlingId.plus(behandlingId),
+                åpenBehandlingId = behandlingId,
             )
         }
 
@@ -325,12 +325,12 @@ sealed interface Klagebehandlingsresultat {
             return this.copy(ferdigstiltTidspunkt = ferdigstiltTidspunkt, begrunnelseFerdigstilling = begrunnelse)
         }
 
-        override fun nullstillÅpenRammebehandlingId(): Opprettholdt {
-            require(åpenRammebehandlingId != null) {
-                "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
+        override fun nullstillÅpenBehandlingId(): Opprettholdt {
+            require(åpenBehandlingId != null) {
+                "ÅpenBehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
             }
 
-            return this.copy(åpenRammebehandlingId = null)
+            return this.copy(åpenBehandlingId = null)
         }
 
         companion object {
@@ -348,9 +348,9 @@ sealed interface Klagebehandlingsresultat {
                     distribusjonstidspunktInnstillingsbrev = null,
                     klageinstanshendelser = Klageinstanshendelser.empty(),
                     ferdigstiltTidspunkt = null,
-                    rammebehandlingId = emptyList(),
+                    tilknyttetBehandlingId = emptyList(),
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = null,
+                    åpenBehandlingId = null,
                 )
             }
         }

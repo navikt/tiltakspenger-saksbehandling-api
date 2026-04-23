@@ -55,9 +55,9 @@ private fun Klagebehandling.vurderOpprettholdelse(
     kommando: VurderOpprettholdKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeVurdereKlagebehandling, Klagebehandling> {
-    if (this.rammebehandlingId.isNotEmpty()) {
+    if (this.tilknyttetBehandlingId.isNotEmpty()) {
         return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
-            KanIkkeOppdatereKlagebehandling.KlageErKnyttetTilRammebehandling(rammebehandlingId = this.rammebehandlingId),
+            KanIkkeOppdatereKlagebehandling.KlageErKnyttetTilRammebehandling(rammebehandlingId = this.tilknyttetBehandlingId),
         ).left()
     }
 
@@ -82,7 +82,7 @@ fun Klagebehandling.oppdaterRammebehandlingId(
         require(erSaksbehandlerPåBehandlingen(saksbehandler))
     }
     return this.copy(
-        resultat = resultat.leggTilNyÅpenRammebehandling(rammebehandlingId, this.id),
+        resultat = resultat.leggTilNyÅpenBehandling(rammebehandlingId, this.id),
         sistEndret = if (erFerdigstilt) this.sistEndret else sistEndret,
         status = when (resultat) {
             is Omgjør -> status
@@ -96,7 +96,7 @@ fun Klagebehandling.fjernRammebehandlingId(
     saksbehandler: Saksbehandler,
     sistEndret: LocalDateTime,
 ): Klagebehandling {
-    require(erKnyttetTilRammebehandling) {
+    require(erKnyttetTilBehandling) {
         "Klagebehandling er ikke knyttet til en rammebehandling.sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
     }
     require(this.status == KLAR_TIL_BEHANDLING || this.status == UNDER_BEHANDLING || this.status == OMGJØRING_ETTER_KLAGEINSTANS || this.status == FERDIGSTILT) {
@@ -124,21 +124,21 @@ fun Klagebehandling.fjernRammebehandlingId(
 }
 
 private fun Omgjør.fjernRammebehandlingId(rammebehandlingId: RammebehandlingId): Omgjør {
-    require(this.rammebehandlingId.contains(rammebehandlingId)) {
+    require(this.tilknyttetBehandlingId.contains(rammebehandlingId)) {
         "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
     }
-    require(åpenRammebehandlingId == rammebehandlingId) {
+    require(åpenBehandlingId == rammebehandlingId) {
         "Kan kun fjerne rammebehandlingId hvis åpenRammebehandlingId matcher rammebehandlingId som skal fjernes"
     }
-    return this.copy(rammebehandlingId = this.rammebehandlingId.minus(rammebehandlingId), åpenRammebehandlingId = null)
+    return this.copy(tilknyttetBehandlingId = this.tilknyttetBehandlingId.minus(rammebehandlingId), åpenBehandlingId = null)
 }
 
 private fun Opprettholdt.fjernRammebehandlingId(rammebehandlingId: RammebehandlingId): Opprettholdt {
-    require(this.rammebehandlingId.contains(rammebehandlingId)) {
+    require(this.tilknyttetBehandlingId.contains(rammebehandlingId)) {
         "Kan kun fjerne rammebehandlingId hvis den matcher eksisterende verdi"
     }
-    require(åpenRammebehandlingId == rammebehandlingId) {
+    require(åpenBehandlingId == rammebehandlingId) {
         "Kan kun fjerne rammebehandlingId hvis åpenRammebehandlingId matcher rammebehandlingId som skal fjernes"
     }
-    return this.copy(rammebehandlingId = this.rammebehandlingId.minus(rammebehandlingId), åpenRammebehandlingId = null)
+    return this.copy(tilknyttetBehandlingId = this.tilknyttetBehandlingId.minus(rammebehandlingId), åpenBehandlingId = null)
 }
