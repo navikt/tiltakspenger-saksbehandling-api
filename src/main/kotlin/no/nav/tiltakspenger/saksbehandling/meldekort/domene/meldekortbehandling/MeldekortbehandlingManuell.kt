@@ -64,6 +64,7 @@ data class MeldekortbehandlingManuell(
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val skalSendeVedtaksbrev: Boolean,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
 
@@ -192,6 +193,7 @@ data class MeldekortbehandlingManuell(
             sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ).right()
     }
 
@@ -328,6 +330,7 @@ data class MeldekortbehandlingManuell(
             sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 
@@ -359,6 +362,7 @@ data class MeldekortbehandlingManuell(
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 }

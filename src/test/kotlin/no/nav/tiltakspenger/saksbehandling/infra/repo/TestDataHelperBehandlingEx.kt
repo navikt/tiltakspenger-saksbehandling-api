@@ -664,6 +664,7 @@ internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehand
             saksnummer = sak.saksnummer,
         ),
     clock: Clock = this.clock,
+    skalSendeVedtaksbrev: Boolean = true,
 ): Tuple4<Sak, Rammevedtak, Meldekortvedtak, MeldekortbehandlingManuell> {
     val (sak, rammevedtak) = persisterIverksattSøknadsbehandling(
         sakId = sakId,
@@ -687,6 +688,7 @@ internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehand
         meldeperiode = meldeperioder.first(),
         periode = meldeperioder.first().periode,
         clock = clock,
+        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
     )
     val meldekortvedtak =
         behandletMeldekort.opprettVedtak(

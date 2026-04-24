@@ -110,7 +110,8 @@ class AvbrytMeldekortbehandlingRouteTest {
                       "godkjentTidspunkt": null,
                       "utbetalingsstatus": "AVBRUTT",
                       "tekstTilVedtaksbrev": null,
-                      "status": "AVBRUTT"
+                      "status": "AVBRUTT",
+                      "skalSendeVedtaksbrev": true
                     }
                 """.trimIndent(),
             )

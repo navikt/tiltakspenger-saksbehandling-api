@@ -50,6 +50,7 @@ internal class OppdaterMeldekortServiceTest {
                             dager = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
+                            skalSendeVedtaksbrev = true,
                         ),
                         clock,
                     )
@@ -97,6 +98,7 @@ internal class OppdaterMeldekortServiceTest {
                             dager = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
+                            skalSendeVedtaksbrev = true,
                         ),
                         clock,
                     )
@@ -145,6 +147,7 @@ internal class OppdaterMeldekortServiceTest {
                             dager = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
+                            skalSendeVedtaksbrev = true,
                         ),
                         clock,
                     )
@@ -192,6 +195,7 @@ internal class OppdaterMeldekortServiceTest {
                             dager = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
+                            skalSendeVedtaksbrev = true,
                         ),
                         clock,
                     )
@@ -240,6 +244,7 @@ internal class OppdaterMeldekortServiceTest {
                             dager = dager,
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
+                            skalSendeVedtaksbrev = true,
                         ),
                         clock,
                     )
@@ -285,6 +290,7 @@ internal class OppdaterMeldekortServiceTest {
                         ),
                         begrunnelse = null,
                         fritekstTilVedtaksbrev = null,
+                        skalSendeVedtaksbrev = true,
                     ),
                     clock,
                 ).getOrFail()

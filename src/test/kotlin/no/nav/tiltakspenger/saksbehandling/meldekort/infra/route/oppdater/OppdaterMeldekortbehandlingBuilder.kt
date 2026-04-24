@@ -63,6 +63,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
         dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        skalSendeVedtaksbrev: Boolean = true,
         vedtaksperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = vedtaksperiode.fraOgMed,
@@ -92,6 +93,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             dager = dager,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
@@ -116,6 +118,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
         dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
@@ -129,6 +132,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             tac = tac,
             sakId = sakId,
             meldekortId = opprettetMeldekortbehandling.id,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             saksbehandler = saksbehandler,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -147,6 +151,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
         dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
@@ -168,7 +173,8 @@ interface OppdaterMeldekortbehandlingBuilder {
                     {
                     "begrunnelse":${if (begrunnelse != null) "\"$begrunnelse\"" else null},
                     "tekstTilVedtaksbrev":${if (tekstTilVedtaksbrev != null) "\"$tekstTilVedtaksbrev\"" else null},
-                    "dager":$dagerIBody
+                    "dager":$dagerIBody,
+                    "skalSendeVedtaksbrev":$skalSendeVedtaksbrev
                     }
                 """.trimIndent(),
             )

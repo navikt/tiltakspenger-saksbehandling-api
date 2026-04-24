@@ -35,4 +35,24 @@ class MeldekortvedtakRepoImplTest {
             meldekortvedtakRepo.hentDeSomSkalJournalføres() shouldBe emptyList()
         }
     }
+
+    @Test
+    fun `skal ikke journalføre vedtak som ikke skal sendes brev for`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
+                deltakelseFom = 2.januar(2023),
+                deltakelseTom = 2.april(2023),
+            )
+            testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
+                deltakelseFom = 2.januar(2023),
+                deltakelseTom = 2.april(2023),
+                skalSendeVedtaksbrev = false,
+            )
+            val meldekortvedtakRepo = testDataHelper.meldekortvedtakRepo as MeldekortvedtakPostgresRepo
+
+            val actual = meldekortvedtakRepo.hentDeSomSkalJournalføres(10)
+            actual.size shouldBe 1
+            actual.single() shouldBe meldekortvedtak
+        }
+    }
 }

@@ -84,10 +84,11 @@ class MeldekortvedtakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                    select v.*, s.saksnummer, s.fnr 
+                    select v.*, s.saksnummer, s.fnr
                     from meldekortvedtak v
-                    join sak s on s.id = v.sak_id
-                    where v.journalpost_id is null
+                        join sak s on s.id = v.sak_id
+                        join meldekortbehandling mb on mb.id = v.meldekort_id
+                    where v.journalpost_id is null and mb.skal_sende_vedtaksbrev = true
                     limit :limit
                     """,
                     "limit" to limit,

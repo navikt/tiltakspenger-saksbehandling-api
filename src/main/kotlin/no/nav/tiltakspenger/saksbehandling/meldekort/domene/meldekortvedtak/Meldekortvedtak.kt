@@ -56,6 +56,7 @@ data class Meldekortvedtak(
     val antallDagerPerMeldeperiode: Int = meldeperiode.maksAntallDagerForMeldeperiode
     val dager: List<MeldekortDag> = meldekortbehandling.dager
     val kjedeId: MeldeperiodeKjedeId = meldekortbehandling.kjedeId
+    val skalSendeVedtaksbrev: Boolean = meldekortbehandling.skalSendeVedtaksbrev
 
     override val periode: Periode = meldeperiode.periode
 

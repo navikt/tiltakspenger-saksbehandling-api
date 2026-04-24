@@ -14,6 +14,7 @@ data class OppdaterMeldekortbehandlingDTO(
     val dager: List<Dag>,
     val begrunnelse: String?,
     val tekstTilVedtaksbrev: String?,
+    val skalSendeVedtaksbrev: Boolean,
 ) {
     data class Dag(
         val dato: LocalDate,
@@ -41,6 +42,7 @@ data class OppdaterMeldekortbehandlingDTO(
             meldekortId = meldekortId,
             begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
             fritekstTilVedtaksbrev = tekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 }

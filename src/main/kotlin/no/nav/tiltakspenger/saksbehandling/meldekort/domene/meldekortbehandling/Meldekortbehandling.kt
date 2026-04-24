@@ -65,6 +65,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val begrunnelse: Begrunnelse?
     val sistEndret: LocalDateTime
     val behandlingSendtTilDatadeling: LocalDateTime?
+    val skalSendeVedtaksbrev: Boolean
 
     override val attesteringer: Attesteringer
 

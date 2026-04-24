@@ -80,7 +80,8 @@ class MeldekortbehandlingPostgresRepo(
                         brukers_meldekort_id,
                         avbrutt,
                         sist_endret,
-                        behandling_sendt_til_datadeling
+                        behandling_sendt_til_datadeling,
+                        skal_sende_vedtaksbrev
                     ) values (
                         :id,
                         :meldeperiode_kjede_id,
@@ -106,7 +107,8 @@ class MeldekortbehandlingPostgresRepo(
                         :brukers_meldekort_id,
                         to_jsonb(:avbrutt::jsonb),
                         :sist_endret,
-                        :behandling_sendt_til_datadeling
+                        :behandling_sendt_til_datadeling,
+                        :skal_sende_vedtaksbrev
                     )
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -135,6 +137,7 @@ class MeldekortbehandlingPostgresRepo(
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "behandling_sendt_til_datadeling" to meldekortbehandling.behandlingSendtTilDatadeling,
+                    "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                 ).asUpdate,
             )
         }
@@ -212,7 +215,8 @@ class MeldekortbehandlingPostgresRepo(
                         avbrutt = to_jsonb(:avbrutt::jsonb),
                         sist_endret = :sist_endret,
                         behandling_sendt_til_datadeling = :behandling_sendt_til_datadeling,
-                        tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev
+                        tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
+                        skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -234,6 +238,7 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "behandling_sendt_til_datadeling" to meldekortbehandling.behandlingSendtTilDatadeling,
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
+                    "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                 ).asUpdate,
             )
         }
@@ -525,6 +530,8 @@ class MeldekortbehandlingPostgresRepo(
                 FritekstTilVedtaksbrev.create(it)
             }
 
+            val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
+
             return when (val status = row.string("status").toMeldekortbehandlingStatus()) {
                 MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> {
                     requireNotNull(brukersMeldekort) {
@@ -575,6 +582,7 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
 
@@ -601,6 +609,7 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
 
@@ -626,6 +635,7 @@ class MeldekortbehandlingPostgresRepo(
                         sistEndret = sistEndret,
                         behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
             }

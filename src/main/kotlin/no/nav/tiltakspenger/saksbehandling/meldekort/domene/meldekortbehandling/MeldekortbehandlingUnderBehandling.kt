@@ -67,6 +67,7 @@ data class MeldekortUnderBehandling(
     override val sistEndret: LocalDateTime,
     override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val skalSendeVedtaksbrev: Boolean,
 ) : Meldekortbehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -95,6 +96,7 @@ data class MeldekortUnderBehandling(
             begrunnelse = kommando.begrunnelse,
             beregning = beregning,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
             sistEndret = nå,
         )
         // TODO jah: I første omgang kjører vi simulering som best effort. Men dersom den feiler, er det viktig at vi nuller den ut. Også kan vi senere tvinge den på, evt. kunne ha et flagg som dropper kjøre simulering.
@@ -137,6 +139,7 @@ data class MeldekortUnderBehandling(
             sistEndret = nå(clock),
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ).right()
     }
 
@@ -304,6 +307,7 @@ data class MeldekortUnderBehandling(
             sistEndret = tidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ).right()
     }
 
@@ -335,6 +339,7 @@ data class MeldekortUnderBehandling(
             sistEndret = ikkeRettTilTiltakspengerTidspunkt,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 
@@ -421,6 +426,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         sistEndret = nå(clock),
         behandlingSendtTilDatadeling = null,
         fritekstTilVedtaksbrev = null,
+        skalSendeVedtaksbrev = true,
     ).let {
         Triple(
             this.leggTilMeldekortbehandling(it),

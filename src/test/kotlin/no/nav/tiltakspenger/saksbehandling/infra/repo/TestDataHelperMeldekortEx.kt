@@ -239,6 +239,7 @@ internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
     dager: OppdaterMeldekortbehandlingKommando.Dager? = null,
     begrunnelse: Begrunnelse? = null,
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+    skalSendeVedtaksbrev: Boolean = true,
 ): Pair<Sak, Meldekortbehandling> {
     requireNotNull(behandling) {
         "Meldekortbehandling eller gyldig meldekortbehandling id må spesifiseres"
@@ -257,6 +258,7 @@ internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
                 begrunnelse = begrunnelse,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 correlationId = CorrelationId.generate(),
+                skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             ),
             simuler = { ObjectMother.simuleringMedMetadata().right() },
             clock = clock,

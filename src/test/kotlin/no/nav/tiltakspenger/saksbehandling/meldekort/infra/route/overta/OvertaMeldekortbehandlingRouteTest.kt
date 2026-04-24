@@ -102,7 +102,8 @@ class OvertaMeldekortbehandlingRouteTest {
                       "godkjentTidspunkt": null,
                       "utbetalingsstatus": "IKKE_GODKJENT",
                       "tekstTilVedtaksbrev": null,
-                      "status": "UNDER_BEHANDLING"
+                      "status": "UNDER_BEHANDLING",
+                      "skalSendeVedtaksbrev": true
                     }
                 """.trimIndent(),
             )

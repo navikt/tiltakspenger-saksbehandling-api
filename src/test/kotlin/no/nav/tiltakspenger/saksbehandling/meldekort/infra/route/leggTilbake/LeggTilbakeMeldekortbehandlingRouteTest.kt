@@ -98,7 +98,8 @@ class LeggTilbakeMeldekortbehandlingRouteTest {
                       "godkjentTidspunkt": null,
                       "utbetalingsstatus": "IKKE_GODKJENT",
                       "tekstTilVedtaksbrev": null,
-                      "status": "KLAR_TIL_BEHANDLING"
+                      "status": "KLAR_TIL_BEHANDLING",
+                      "skalSendeVedtaksbrev": true
                     }
                 """.trimIndent(),
             )

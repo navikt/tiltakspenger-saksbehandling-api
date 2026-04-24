@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager.Dag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.LocalDate
 
@@ -29,6 +28,7 @@ class OppdaterMeldekortbehandlingKommando(
     val dager: Dager,
     val begrunnelse: Begrunnelse?,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    val skalSendeVedtaksbrev: Boolean,
     val correlationId: CorrelationId,
 ) {
     val periode: Periode = Periode(dager.first().dag, dager.last().dag)

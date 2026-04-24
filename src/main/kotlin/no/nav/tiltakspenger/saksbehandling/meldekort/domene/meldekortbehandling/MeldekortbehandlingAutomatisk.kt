@@ -64,6 +64,7 @@ data class MeldekortBehandletAutomatisk(
 
     override val attesteringer = Attesteringer.empty()
     override val avbrutt: Avbrutt? = null
+    override val skalSendeVedtaksbrev: Boolean = true
 
     init {
         require(type == MeldekortbehandlingType.FØRSTE_BEHANDLING) {

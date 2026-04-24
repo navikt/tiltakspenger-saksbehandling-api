@@ -49,6 +49,7 @@ data class MeldekortbehandlingDTO(
     val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
     val tekstTilVedtaksbrev: String?,
     val tilbakekrevingId: String?,
+    val skalSendeVedtaksbrev: Boolean,
 )
 
 fun Meldekortbehandling.tilMeldekortbehandlingDTO(
@@ -86,6 +87,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
             ?.tilKanIkkeIverksetteUtbetalingDTO(),
         tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         tilbakekrevingId = tilbakekreving?.id?.toString(),
+        skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
     )
 }
 

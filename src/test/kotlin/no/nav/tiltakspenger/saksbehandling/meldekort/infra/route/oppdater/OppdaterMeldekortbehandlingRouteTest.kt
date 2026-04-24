@@ -1,11 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater
 
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
@@ -802,10 +804,28 @@ class OppdaterMeldekortbehandlingRouteTest {
                   "godkjentTidspunkt": null,
                   "utbetalingsstatus": "IKKE_GODKJENT",
                   "tekstTilVedtaksbrev": null,
-                  "status": "UNDER_BEHANDLING"
+                  "status": "UNDER_BEHANDLING",
+                  "skalSendeVedtaksbrev": true
                 }
                 """.trimIndent(),
             )
+        }
+    }
+
+    @Test
+    fun `kan velge å ikke sende vedtaksbrev`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, _, meldekortbehandling, json) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
+                tac = tac,
+                skalSendeVedtaksbrev = false,
+            )!!
+
+            meldekortbehandling.skalSendeVedtaksbrev shouldBe false
+            val skalSendeVedtaksbrevJson =
+                json.getJSONArray("meldekortbehandlinger").getJSONObject(0).get("skalSendeVedtaksbrev")
+            skalSendeVedtaksbrevJson shouldBe false
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.skalSendeVedtaksbrev shouldBe false
         }
     }
 }

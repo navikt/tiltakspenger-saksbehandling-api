@@ -118,6 +118,7 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: MeldekortDager = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        skalSendeVedtaksbrev: Boolean = false,
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
             id = id,
@@ -141,6 +142,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = null,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 
@@ -186,6 +188,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        skalSendeVedtaksbrev: Boolean = true,
     ): MeldekortbehandlingManuell {
         return MeldekortbehandlingManuell(
             id = id,
@@ -211,6 +214,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = sistEndret,
             behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 
@@ -516,6 +520,7 @@ interface MeldekortMother : MotherOfAllMothers {
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
         begrunnelse: Begrunnelse? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        skalSendeVedtaksbrev: Boolean = true,
     ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             OppdaterMeldekortbehandlingKommando(
@@ -526,6 +531,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 correlationId = CorrelationId.generate(),
                 begrunnelse = begrunnelse,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             )
         }
 
@@ -579,6 +585,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        skalSendeVedtaksbrev: Boolean = true,
     ): Pair<Meldekortbehandlinger, MeldekortbehandlingManuell> {
         val meldeperiode = meldeperiode(
             periode = kommando.periode,
@@ -616,6 +623,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     sistEndret = sistEndret,
                     behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                    skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 ),
             ),
         )
@@ -679,6 +687,7 @@ interface MeldekortMother : MotherOfAllMothers {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         sistEndret: LocalDateTime = opprettet,
         behandlingSendtTilDatadeling: LocalDateTime? = null,
+        skalSendeVedtaksbrev: Boolean = true,
     ): Meldekortbehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
@@ -717,6 +726,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 sistEndret = sistEndret,
                 behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                 fritekstTilVedtaksbrev = null,
+                skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             ),
         )
 
@@ -879,6 +889,7 @@ interface MeldekortMother : MotherOfAllMothers {
         correlationId: CorrelationId = CorrelationId.generate(),
         dager: Dager,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        skalSendeVedtaksbrev: Boolean = true,
     ): OppdaterMeldekortbehandlingKommando {
         return OppdaterMeldekortbehandlingKommando(
             sakId = sakId,
@@ -888,6 +899,7 @@ interface MeldekortMother : MotherOfAllMothers {
             begrunnelse = begrunnelse,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 
