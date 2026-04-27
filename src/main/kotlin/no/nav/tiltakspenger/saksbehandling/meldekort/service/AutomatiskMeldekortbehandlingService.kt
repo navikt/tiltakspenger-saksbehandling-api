@@ -147,13 +147,20 @@ class AutomatiskMeldekortbehandlingService(
             }
         }
 
-        val oppgaveOpprettet = opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(sak.fnr, meldekort.journalpostId)
+        val skalPrøvePåNytt = status.skalPrøvePåNytt()
+
+        if (!skalPrøvePåNytt) {
+            opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(sak.fnr, meldekort.journalpostId)
+        }
 
         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
             meldekortId = meldekort.id,
             status = status,
-            behandlesAutomatisk = !oppgaveOpprettet && status.skalPrøvePåNytt(),
-            metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(clock = clock),
+            behandlesAutomatisk = skalPrøvePåNytt,
+            metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(
+                delays = venteIntervaller,
+                clock = clock,
+            ),
         )
     }
 
@@ -244,7 +251,10 @@ class AutomatiskMeldekortbehandlingService(
                 meldekortId = meldekortId,
                 status = MeldekortBehandletAutomatiskStatus.BEHANDLET,
                 behandlesAutomatisk = true,
-                metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(clock = clock),
+                metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(
+                    delays = venteIntervaller,
+                    clock = clock,
+                ),
                 tx,
             )
             statistikkService.lagre(statistikkDTO, tx)
