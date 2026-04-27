@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingService.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
@@ -276,6 +277,173 @@ class AutomatiskMeldekortbehandlingServiceTest {
     }
 
     @Test
+    fun `skal prøve på nytt etter 1 minutt for første forsøk`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val forrigeForsøk = LocalDateTime.now(clock)
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                    behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(
+                        forrigeForsøk = forrigeForsøk,
+                        antallForsøk = 1L,
+                        clock = clock,
+                    ),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                // 59 sekunder etter forrige forsøk - skal hoppe over
+                service.behandleBrukersMeldekort(clock = fixedClockAt(forrigeForsøk.plusSeconds(59)))
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                // 1 minutt og 1 sekund etter forrige forsøk - skal prøve på nytt
+                service.behandleBrukersMeldekort(clock = fixedClockAt(forrigeForsøk.plusSeconds(61)))
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!
+                    .sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+            }
+        }
+    }
+
+    @Test
+    fun `skal prøve på nytt etter 5 minutter for antallForsøk = 6`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val forrigeForsøk = LocalDateTime.now(clock)
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                    behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(
+                        forrigeForsøk = forrigeForsøk,
+                        antallForsøk = 6,
+                        clock = clock,
+                    ),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                // 1 minutt etter forrige forsøk - skal fortsatt hoppe over (trenger 5 min)
+                service.behandleBrukersMeldekort(clock = fixedClockAt(forrigeForsøk.plusMinutes(1)))
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                // 4 minutter og 59 sekunder etter forrige forsøk - skal fortsatt hoppe over
+                service.behandleBrukersMeldekort(clock = fixedClockAt(forrigeForsøk.plusMinutes(4).plusSeconds(59)))
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                // 5 minutter og 1 sekund etter forrige forsøk - skal prøve på nytt
+                service.behandleBrukersMeldekort(clock = fixedClockAt(forrigeForsøk.plusMinutes(5).plusSeconds(1)))
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!
+                    .sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+            }
+        }
+    }
+
+    @Test
+    fun `skal prøve på nytt etter 15 minutter (max delay) for antallForsøk 7 og flere`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val forrigeForsøk = LocalDateTime.now(clock)
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                    behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(
+                        forrigeForsøk = forrigeForsøk,
+                        antallForsøk = 7L,
+                        clock = clock,
+                    ),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                // 14 minutter og 59 sekunder etter forrige forsøk - skal fortsatt hoppe over
+                service.behandleBrukersMeldekort(
+                    clock = fixedClockAt(
+                        forrigeForsøk.plusMinutes(14).plusSeconds(59),
+                    ),
+                )
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                // 15 minutter og 1 sekund etter forrige forsøk - skal prøve på nytt
+                service.behandleBrukersMeldekort(clock = fixedClockAt(forrigeForsøk.plusMinutes(15).plusSeconds(1)))
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!
+                    .sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke prøve på nytt ved status som ikke skal retries (feks ALLEREDE_BEHANDLET)`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                // Duplikat for samme meldeperiode -> vil feile med ALLEREDE_BEHANDLET
+                val duplikat = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                )
+                brukersMeldekortRepo.lagre(duplikat)
+                service.behandleBrukersMeldekort(clock)
+
+                val lagretDuplikat = brukersMeldekortRepo.hentForMeldekortId(duplikat.id)!!
+                lagretDuplikat.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+                // Skal være markert som ikke-automatisk, slik at den ikke plukkes opp igjen
+                lagretDuplikat.behandlesAutomatisk shouldBe false
+
+                // Selv langt frem i tid (godt over maxDelay) skal den ikke retries
+                service.behandleBrukersMeldekort(clock = fixedClockAt(LocalDateTime.now(clock).plusHours(1)))
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
+            }
+        }
+    }
+
+    @Test
     fun `skal ikke behandle brukers meldekort som venter på neste forsøk`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
@@ -295,16 +463,58 @@ class AutomatiskMeldekortbehandlingServiceTest {
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
                     behandlesAutomatisk = true,
-                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL_PRØVER_IGJEN,
-                    behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock).inkrementer(clock),
+                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+                    behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock)
+                        .inkrementer(clock = clock),
                 )
 
                 brukersMeldekortRepo.lagre(brukersMeldekort)
 
-                val nesteDag = fixedClockAt(nå.plusDays(1))
+                val nesteDag = fixedClockAt(nå.plusSeconds(30))
                 automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock = nesteDag)
 
                 meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `skal slutte å prøve på nytt etter MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Bruker andre kjede slik at behandlingen faller tilbake på en retry-bar status (MÅ_BEHANDLE_FØRSTE_KJEDE)
+                val mottatt = LocalDateTime.now(clock)
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder[1].hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                    mottatt = mottatt,
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                // Innenfor MAKS_DELAY (1 dag etter mottatt) -> skal forbli markert for automatisk retry
+                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusHours(23)))
+
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
+                    it.behandlesAutomatisk shouldBe true
+                }
+
+                // Etter MAKS_DELAY (mer enn 1 dag siden mottatt) -> skal ikke prøves automatisk på nytt
+                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusSeconds(1) + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING))
+
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
+                    it.behandlesAutomatisk shouldBe false
+                }
             }
         }
     }

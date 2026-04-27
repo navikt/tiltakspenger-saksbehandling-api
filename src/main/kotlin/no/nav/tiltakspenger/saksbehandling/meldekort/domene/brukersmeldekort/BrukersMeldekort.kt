@@ -145,6 +145,10 @@ enum class InnmeldtStatus {
 
         IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
     }
+
+    fun erGodkjentFravær(): Boolean {
+        return this == FRAVÆR_GODKJENT_AV_NAV || this == FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
+    }
 }
 
 fun List<BrukersMeldekort.BrukersMeldekortDag>.antallDagerRegistrert(): Int {

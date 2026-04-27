@@ -14,7 +14,7 @@ class ForsøkshistorikkTest {
         assertNull(historikk.forrigeForsøk)
 
         repeat(10) { i ->
-            historikk = historikk.inkrementer(fixedClock)
+            historikk = historikk.inkrementer(clock = fixedClock)
             assertEquals(nå(fixedClock), historikk.forrigeForsøk)
             assertEquals(i + 1L, historikk.antallForsøk)
         }
