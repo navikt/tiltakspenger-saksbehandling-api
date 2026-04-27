@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER

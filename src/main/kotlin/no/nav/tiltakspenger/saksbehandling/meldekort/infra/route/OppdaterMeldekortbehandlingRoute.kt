@@ -102,6 +102,7 @@ private data class OppdaterMeldekortbehandlingBody(
     val meldeperioder: List<Meldeperiode>,
     val begrunnelse: String?,
     val tekstTilVedtaksbrev: String?,
+    val skalSendeVedtaksbrev: Boolean,
 ) {
 
     data class Meldeperiode(
@@ -138,6 +139,7 @@ private data class OppdaterMeldekortbehandlingBody(
             meldekortId = meldekortId,
             begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
             fritekstTilVedtaksbrev = tekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }
 }

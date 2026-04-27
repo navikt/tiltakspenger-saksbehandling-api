@@ -49,8 +49,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
 
-    override val attesteringer: Attesteringer
-
     /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
     val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
     val type: MeldekortbehandlingType
