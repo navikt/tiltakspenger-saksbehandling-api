@@ -126,41 +126,26 @@ class BenkOversiktPostgresRepo(
         """
 
         const val ÅPNE_MELDEKORT_TIL_BEHANDLING = """
-            /*
-             * meldekortMetadata er en hjelpe-tabell som vi bruker for å finne riktig behandlingstype, og
-             * for at vi ikke skal gi ut 'duplikate' rader til benken
-             */
-            with meldekortMetadata as (
-                select 
-                    mbr.sak_id,
-                    mbr.meldeperiode_kjede_id,
-                    count(*) over (partition by mbr.sak_id, mbr.meldeperiode_kjede_id) as antallInnsendteMeldekort,
-                    mbr.id as meldekortId,
-                    row_number() over (partition by mbr.sak_id, mbr.meldeperiode_kjede_id order by mbr.mottatt desc) as sisteMeldekortNr
-                from meldekort_bruker mbr
-                where behandles_automatisk = false
-            ),
-            /*
-            Hjelpe-tabell for å finne siste opprettede meldekortbehandling på en sak/kjede - dette er for å vite om et meldekort er potensielt tatt stilling til
-             */
-            sisteMeldekortbehandlingForKjede as (
-                select 
-                    sak_id,
-                    meldeperiode_kjede_id,
-                    max(sist_endret) as sist_endret_tidspunkt
-                from meldekortbehandling
-                group by sak_id, meldeperiode_kjede_id
+            with sisteMeldekortPerKjede as (
+                select distinct on (sak_id, meldeperiode_kjede_id)
+                    id, sak_id, meldeperiode_kjede_id, mottatt
+                from meldekort_bruker
+                where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
+                order by sak_id, meldeperiode_kjede_id, mottatt desc
             )
             select 
                 s.id                           as sakId,
                 s.fnr                          as fnr,
                 s.saksnummer                   as saksnummer,
-                mbr.mottatt                    as startet,
-                case
-                    when mdk.sisteMeldekortNr = mdk.antallInnsendteMeldekort
-                        then 'INNSENDT_MELDEKORT'
-                    else 'KORRIGERT_MELDEKORT'
-                end                            as behandlingstype,
+                siste.mottatt                      as startet,
+                case when exists (
+                    select 1 from meldekort_bruker tidligere
+                    where tidligere.sak_id = siste.sak_id
+                      and tidligere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
+                      and tidligere.id <> siste.id
+                      and tidligere.behandlet_automatisk_status != 'BEHANDLET'
+                      and tidligere.behandles_automatisk = false
+                ) then 'KORRIGERT_MELDEKORT' else 'INNSENDT_MELDEKORT' end as behandlingstype,
                 'KLAR_TIL_BEHANDLING'          as status,
                 null                           as saksbehandler,
                 null                           as beslutter,
@@ -170,14 +155,18 @@ class BenkOversiktPostgresRepo(
                 null::date                     as sattPåVentFrist,
                 null::timestamp with time zone as sist_endret,
                 null::jsonb                    as attesteringer
-            from meldekort_bruker mbr
-            join sak s on mbr.sak_id = s.id
-            join meldekortMetadata mdk on mbr.id = mdk.meldekortId
-            left join sisteMeldekortbehandlingForKjede smbh
-                on smbh.sak_id = mbr.sak_id 
-                and smbh.meldeperiode_kjede_id = mbr.meldeperiode_kjede_id
-            where mdk.sisteMeldekortNr = 1
-              and (mbr.mottatt > smbh.sist_endret_tidspunkt or smbh.sist_endret_tidspunkt is null)
+            from sisteMeldekortPerKjede siste
+            join sak s on s.id = siste.sak_id
+            /*
+             * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere
+             * eller samtidig med innsendingen - da er meldekortet potensielt allerede tatt stilling til.
+             */
+            where not exists (
+                select 1 from meldekortbehandling mb
+                where mb.sak_id = siste.sak_id
+                  and mb.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
+                  and mb.sist_endret >= siste.mottatt
+            )
         """
 
         const val ÅPNE_TILBAKEKREVINGER = """
