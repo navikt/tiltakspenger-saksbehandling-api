@@ -48,7 +48,7 @@ sealed interface Simulering {
         }
 
         override val harFeilutbetaling: Boolean by lazy {
-            totalFeilutbetaling != 0 || totalMotpostering != 0
+            totalFeilutbetaling != 0
         }
 
         override fun hentDag(dato: LocalDate): Simuleringsdag? {
