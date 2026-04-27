@@ -78,7 +78,7 @@ class AutomatiskMeldekortbehandlingService(
                 val sak = sakRepo.hentForSakId(sakId)
 
                 require(sak != null) {
-                    "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId,"
+                    "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId"
                 }
 
                 opprettMeldekortbehandling(meldekort, sak, clock)
