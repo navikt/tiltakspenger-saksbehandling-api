@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -10,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
@@ -97,41 +99,22 @@ data class MeldekortBehandletAutomatisk(
 
 suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     brukersMeldekort: BrukersMeldekort,
-    navkontor: Navkontor,
+    hentNavkontor: suspend (fnr: Fnr) -> Navkontor,
     clock: Clock,
-    simuler: suspend (behandling: Meldekortbehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
+    simuler: suspend (behandling: Meldekortbehandling, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
 ): Either<MeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
-    val meldekortId = brukersMeldekort.id
-    val kjedeId = brukersMeldekort.kjedeId
-
-    validerOpprettAutomatiskMeldekortbehandling(kjedeId).onLeft {
-        return when (it) {
-            ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
-            ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
-            ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
-            ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT
-        }.left()
+    validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort).onLeft {
+        return it.left()
     }
 
-    val sisteMeldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
-
-    val behandlingerKnyttetTilKjede = this.meldekortbehandlinger.hentMeldekortbehandlingerForKjede(kjedeId)
-
-    if (!brukersMeldekort.behandlesAutomatisk) {
-        logger.error { "Brukers meldekort $meldekortId skal ikke behandles automatisk" }
-        return MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
-    }
-    if (behandlingerKnyttetTilKjede.isNotEmpty()) {
-        logger.error { "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker (meldekort id $meldekortId)" }
-        return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
-    }
-    if (brukersMeldekort.meldeperiode != sisteMeldeperiode) {
-        logger.error { "Meldeperioden for brukers meldekort må være like siste meldeperiode på kjeden for å kunne behandles (meldekort id $meldekortId)" }
-        return MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE.left()
-    }
-    if (brukersMeldekort.antallDagerRegistrert > sisteMeldeperiode.maksAntallDagerForMeldeperiode) {
-        logger.error { "Brukers meldekort $meldekortId har for mange dager registret" }
-        return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
+    val navkontor = Either.catch {
+        hentNavkontor(fnr)
+    }.getOrElse {
+        with("Kunne ikke hente navkontor for sak $id") {
+            logger.error(it) { this }
+            Sikkerlogg.error(it) { "$this - fnr ${fnr.verdi}" }
+        }
+        return MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET.left()
     }
 
     val meldekortbehandlingId = MeldekortId.random()
@@ -149,7 +132,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         opprettet = nå,
         navkontor = navkontor,
         brukersMeldekort = brukersMeldekort,
-        meldeperiode = sisteMeldeperiode,
+        meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(brukersMeldekort.kjedeId),
         dager = brukersMeldekort.tilMeldekortDager(),
         beregning = Beregning(beregninger, nå),
         type = MeldekortbehandlingType.FØRSTE_BEHANDLING,
@@ -158,7 +141,8 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         sistEndret = nå,
         behandlingSendtTilDatadeling = null,
     )
-    return simuler(meldekortBehandletAutomatisk).mapLeft {
+
+    return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {
         // Simuleringsklienten logger feil selv. I førsteomgang ønsker vi ikke stoppe den automatiske utbetalingen selv om simuleringen feiler.
         return Pair(meldekortBehandletAutomatisk, null).right()
     }.map { Pair(meldekortBehandletAutomatisk.copy(simulering = it.simulering), it) }

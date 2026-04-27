@@ -8,7 +8,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
@@ -154,25 +153,11 @@ class AutomatiskMeldekortbehandlingService(
     ): Either<MeldekortBehandletAutomatiskStatus, MeldekortBehandletAutomatisk> {
         val meldekortId = meldekort.id
 
-        if (sak.revurderinger.harÅpenRevurdering()) {
-            return MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING.left()
-        }
-
-        val navkontor = Either.catch {
-            navkontorService.hentOppfolgingsenhet(sak.fnr)
-        }.getOrElse {
-            with("Kunne ikke hente navkontor for sak ${sak.id}") {
-                logger.error(it) { this }
-                Sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
-            }
-            return MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET.left()
-        }
-
         val (meldekortbehandling, simulering) = sak.opprettAutomatiskMeldekortbehandling(
             brukersMeldekort = meldekort,
-            navkontor = navkontor,
+            hentNavkontor = navkontorService::hentOppfolgingsenhet,
             clock = clock,
-            simuler = { behandling ->
+            simuler = { behandling, navkontor ->
                 simulerService.simulerMeldekort(
                     behandling,
                     sak.utbetalinger.lastOrNull(),
@@ -205,17 +190,17 @@ class AutomatiskMeldekortbehandlingService(
             }
         }
 
-        val meldekortvedtak = meldekortbehandling.opprettVedtak(
-            forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
-            clock = clock,
-        )
-
         Either.catch {
             sak.leggTilMeldekortbehandling(meldekortbehandling)
         }.onLeft {
             logger.error(it) { "Automatisk behandling av brukers meldekort $meldekortId kunne ikke legges til sak ${sak.id}" }
             return MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK.left()
         }
+
+        val meldekortvedtak = meldekortbehandling.opprettVedtak(
+            forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+            clock = clock,
+        )
 
         Either.catch {
             sak.leggTilMeldekortvedtak(meldekortvedtak)
@@ -227,6 +212,7 @@ class AutomatiskMeldekortbehandlingService(
         val statistikkDTO = statistikkService.generer(
             Statistikkhendelser(meldekortbehandling.tilStatistikkMeldekortDTO(clock)),
         )
+
         sessionFactory.withTransactionContext { tx ->
             meldekortbehandlingRepo.lagre(meldekortbehandling, simulering, tx)
             meldekortvedtakRepo.lagre(meldekortvedtak, tx)
