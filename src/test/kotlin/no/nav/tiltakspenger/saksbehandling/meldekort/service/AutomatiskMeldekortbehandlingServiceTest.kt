@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingService.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
@@ -473,6 +474,47 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock = nesteDag)
 
                 meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `skal slutte å prøve på nytt etter MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Bruker andre kjede slik at behandlingen faller tilbake på en retry-bar status (MÅ_BEHANDLE_FØRSTE_KJEDE)
+                val mottatt = LocalDateTime.now(clock)
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder[1].hentSisteMeldeperiode(),
+                    behandlesAutomatisk = true,
+                    mottatt = mottatt,
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                // Innenfor MAKS_DELAY (1 dag etter mottatt) -> skal forbli markert for automatisk retry
+                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusHours(23)))
+
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
+                    it.behandlesAutomatisk shouldBe true
+                }
+
+                // Etter MAKS_DELAY (mer enn 1 dag siden mottatt) -> skal ikke prøves automatisk på nytt
+                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusSeconds(1) + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING))
+
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
+                    it.behandlesAutomatisk shouldBe false
+                }
             }
         }
     }

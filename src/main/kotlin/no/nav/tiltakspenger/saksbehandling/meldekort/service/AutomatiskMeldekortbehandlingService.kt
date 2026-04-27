@@ -8,6 +8,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -35,7 +36,9 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toJavaDuration
 
 class AutomatiskMeldekortbehandlingService(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
@@ -147,7 +150,7 @@ class AutomatiskMeldekortbehandlingService(
             }
         }
 
-        val skalPrøvePåNytt = status.skalPrøvePåNytt()
+        val skalPrøvePåNytt = meldekort.skalPrøvePåNytt(status, clock)
 
         if (!skalPrøvePåNytt) {
             opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(sak.fnr, meldekort.journalpostId)
@@ -281,44 +284,52 @@ class AutomatiskMeldekortbehandlingService(
 
         return false
     }
-}
 
-private fun MeldekortBehandletAutomatiskStatus.skalPrøvePåNytt(): Boolean {
-    return when (this) {
-        MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-        MeldekortBehandletAutomatiskStatus.BEHANDLET,
-        MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
-        MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
-        MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT,
-        MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING,
-        MeldekortBehandletAutomatiskStatus.HAR_JUSTERING,
-        MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG,
-        MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT,
-        MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE,
-        MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK,
-        MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK,
-        MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
-        -> false
+    private fun BrukersMeldekort.skalPrøvePåNytt(nyStatus: MeldekortBehandletAutomatiskStatus, clock: Clock): Boolean {
+        if (nå(clock) > mottatt + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING) {
+            return false
+        }
 
-        MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING,
-        MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING,
-        MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE,
-        MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE,
-        MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
-        MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET,
-        -> true
+        return when (nyStatus) {
+            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            MeldekortBehandletAutomatiskStatus.BEHANDLET,
+            MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
+            MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
+            MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT,
+            MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING,
+            MeldekortBehandletAutomatiskStatus.HAR_JUSTERING,
+            MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG,
+            MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT,
+            MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE,
+            MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK,
+            MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK,
+            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+            -> false
+
+            MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING,
+            MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING,
+            MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE,
+            MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE,
+            MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
+            MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET,
+            -> true
+        }
+    }
+
+    companion object {
+        private val venteIntervaller: List<Duration> = listOf(
+            1.minutes,
+            1.minutes,
+            1.minutes,
+            1.minutes,
+            1.minutes,
+            5.minutes,
+            15.minutes,
+        )
+
+        private val venteIntervallerMap: Map<Long, Duration> =
+            venteIntervaller.withIndex().associate { (index, duration) -> index.toLong() + 1 to duration }
+
+        val MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING = 1.days.toJavaDuration()
     }
 }
-
-private val venteIntervaller: List<Duration> = listOf(
-    1.minutes,
-    1.minutes,
-    1.minutes,
-    1.minutes,
-    1.minutes,
-    5.minutes,
-    15.minutes,
-)
-
-private val venteIntervallerMap: Map<Long, Duration> =
-    venteIntervaller.withIndex().associate { (index, duration) -> index.toLong() + 1 to duration }
