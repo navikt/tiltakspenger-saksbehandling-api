@@ -82,9 +82,7 @@ class AutomatiskMeldekortbehandlingService(
     }
 
     /**
-     * Logikk for å vente på å behandle brukers meldekort på nytt dersom meldekortet ikke kunne behandles grunnet en ukjent feil.
-     * Dette er for at ved en feilsituasjon på et perfekt tidspunkt ikke skal føre til at det plutselig blir mange meldekort
-     * som saksbehandlerne må behandle manuelt, som egentlig fint kunne ha blitt behandlet automatisk.
+     * @return true dersom meldekortet ikke skal behandles automatisk ennå
      */
     private fun skalHoppeOverMeldekort(meldekort: BrukersMeldekort, clock: Clock): Boolean {
         val (forrigeForsøk, _, antallForsøk) = meldekort.behandletAutomatiskForsøkshistorikk
