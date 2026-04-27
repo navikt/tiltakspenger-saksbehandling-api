@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
@@ -16,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
@@ -69,14 +67,30 @@ class AutomatiskMeldekortbehandlingService(
         logger.debug { "Fant ${meldekortListe.size} meldekort som skal behandles automatisk" }
 
         meldekortListe.forEach { meldekort ->
-            if (skalHoppeOverMeldekort(meldekort, clock)) {
-                return@forEach
-            }
-
-            behandleMeldekort(meldekort, clock).onLeft {
-                logger.error(it) {
-                    "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}"
+            Either.catch {
+                if (skalHoppeOverMeldekort(meldekort, clock)) {
+                    return@forEach
                 }
+
+                val id = meldekort.id
+                val sakId = meldekort.sakId
+
+                val sak = sakRepo.hentForSakId(sakId)
+
+                require(sak != null) {
+                    "Fant ikke sak for mottatt meldekort med id $id, sakId $sakId,"
+                }
+
+                opprettMeldekortbehandling(meldekort, sak, clock)
+                    .onLeft { status ->
+                        håndterOpprettBehandlingFeil(status, meldekort, clock)
+                    }
+                    .onRight { behandling ->
+                        logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort $id på sak $sakId" }
+                    }
+            }.onLeft {
+                logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker ${meldekort.id} - ${it.message}" }
+                håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, clock)
             }
         }
     }
@@ -100,44 +114,9 @@ class AutomatiskMeldekortbehandlingService(
         return !kanPrøvePåNyttNå
     }
 
-    /**
-     * Behandler ett meldekort.
-     *
-     * - Domenefeil kommer som en left med [MeldekortBehandletAutomatiskStatus] fra [opprettMeldekortbehandling].
-     * - Uventede exceptions fanges og håndteres per meldekort, slik at resten kan fortsette.
-     */
-    private suspend fun behandleMeldekort(
-        meldekort: BrukersMeldekort,
-        clock: Clock,
-    ): Either<Throwable, Unit> {
-        val id = meldekort.id
-        val sakId = meldekort.sakId
-
-        val sak = sakRepo.hentForSakId(sakId)
-
-        require(sak != null) {
-            "Kunne ikke hente sak for mottatt meldekort med id $id, sakId $sakId,"
-        }
-
-        return Either.catch {
-            opprettMeldekortbehandling(meldekort, sak, clock)
-                .onLeft { status ->
-                    håndterOpprettBehandlingFeil(status, meldekort, sak, clock)
-                }
-                .onRight { behandling ->
-                    logger.info { "Opprettet automatisk behandling ${behandling.id} for brukers meldekort $id på sak $sakId" }
-                }
-            return@catch
-        }.onLeft {
-            logger.error(it) { "Ukjent feil ved automatisk behandling av meldekort fra bruker $id - ${it.message}" }
-            håndterOpprettBehandlingFeil(MeldekortBehandletAutomatiskStatus.UKJENT_FEIL, meldekort, sak, clock)
-        }
-    }
-
     private suspend fun håndterOpprettBehandlingFeil(
         status: MeldekortBehandletAutomatiskStatus,
         meldekort: BrukersMeldekort,
-        sak: Sak,
         clock: Clock,
     ) {
         with("Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Status: $status") {
@@ -151,7 +130,7 @@ class AutomatiskMeldekortbehandlingService(
         val skalPrøvePåNytt = meldekort.skalPrøvePåNytt(status, clock)
 
         if (!skalPrøvePåNytt) {
-            opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(sak.fnr, meldekort.journalpostId)
+            meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker()
         }
 
         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
@@ -264,23 +243,19 @@ class AutomatiskMeldekortbehandlingService(
         return meldekortbehandling.right()
     }
 
-    private suspend fun opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(
-        fnr: Fnr,
-        journalpostId: JournalpostId,
-    ): Boolean {
-        val pdlPerson = sakService.hentEnkelPersonMedSkjermingForFnr(fnr, CorrelationId.generate()).getOrThrow()
+    private suspend fun BrukersMeldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker() {
+        val pdlPerson = sakService
+            .hentEnkelPersonMedSkjermingForSakId(this.sakId, CorrelationId.generate())
+            .getOrThrow()
 
         if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig || pdlPerson.skjermet) {
             logger.info { "Person har adressebeskyttelse eller er skjermet, oppretter oppgave i Gosys" }
             oppgaveKlient.opprettOppgave(
-                fnr = fnr,
-                journalpostId = journalpostId,
+                fnr = pdlPerson.fnr,
+                journalpostId = this.journalpostId,
                 oppgavebehov = Oppgavebehov.NYTT_MELDEKORT,
             )
-            return true
         }
-
-        return false
     }
 
     private fun BrukersMeldekort.skalPrøvePåNytt(nyStatus: MeldekortBehandletAutomatiskStatus, clock: Clock): Boolean {
@@ -302,13 +277,13 @@ class AutomatiskMeldekortbehandlingService(
             MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK,
             MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK,
             MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
+            MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
             -> false
 
             MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING,
             MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING,
             MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE,
             MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE,
-            MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
             MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET,
             -> true
         }
