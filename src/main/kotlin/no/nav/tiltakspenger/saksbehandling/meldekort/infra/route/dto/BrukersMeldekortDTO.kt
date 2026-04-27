@@ -65,7 +65,11 @@ fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
             )
         },
         behandletAutomatiskStatus = behandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO(),
-        behandlesAutomatiskNesteForsøk = if (behandlesAutomatisk) behandletAutomatiskForsøkshistorikk.nesteForsøk else null,
+        behandlesAutomatiskNesteForsøk = if (behandlesAutomatisk && behandletAutomatiskStatus != MeldekortBehandletAutomatiskStatus.BEHANDLET) {
+            behandletAutomatiskForsøkshistorikk.nesteForsøk
+        } else {
+            null
+        },
     )
 }
 
