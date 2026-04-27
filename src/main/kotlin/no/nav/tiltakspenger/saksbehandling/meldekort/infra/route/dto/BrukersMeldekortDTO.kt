@@ -46,6 +46,7 @@ data class BrukersMeldekortDTO(
     val mottatt: LocalDateTime,
     val dager: List<DagDTO>,
     val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatusDTO,
+    val behandlesAutomatiskNesteForsøk: LocalDateTime?,
 ) {
     data class DagDTO(
         val status: String,
@@ -64,6 +65,7 @@ fun BrukersMeldekort.toBrukersMeldekortDTO(): BrukersMeldekortDTO {
             )
         },
         behandletAutomatiskStatus = behandletAutomatiskStatus.tilBehandletAutomatiskStatusDTO(),
+        behandlesAutomatiskNesteForsøk = if (behandlesAutomatisk) behandletAutomatiskForsøkshistorikk.nesteForsøk else null,
     )
 }
 
