@@ -121,7 +121,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            val (_, _, rammebehandlingPåVent, sakJson) = `settRammebehandlingPåVent`(
+            val (_, _, rammebehandlingPåVent, sakJson) = settRammebehandlingPåVent(
                 tac = tac,
                 sakId = sak.id,
                 rammebehandlingId = rammebehandling.id,
@@ -132,14 +132,15 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
             val klagebehandlingJson = sakJson.get("klageBehandlinger").single()
 
             rammebehandlingPåVentJson.get("ventestatus").toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                    {
+                """[
+                 {
                         "sattPåVentAv": "saksbehandlerKlagebehandling",
                         "tidspunkt": "TIMESTAMP",
                         "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
                         "erSattPåVent": true,
                         "frist": null
                     }
+                ]
                 """.trimIndent(),
             )
 

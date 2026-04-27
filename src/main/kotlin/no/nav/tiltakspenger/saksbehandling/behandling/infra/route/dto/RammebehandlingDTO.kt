@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskon
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilVentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -41,7 +41,7 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val opprettet: LocalDateTime
     val sistEndret: LocalDateTime
     val iverksattTidspunkt: LocalDateTime?
-    val ventestatus: VentestatusHendelseDTO?
+    val ventestatus: List<VentestatusHendelseDTO>
     val utbetaling: BehandlingUtbetalingDTO?
     val utbetalingskontroll: UtbetalingskontrollDTO?
     val klagebehandlingId: String?
@@ -66,7 +66,7 @@ data class SøknadsbehandlingDTO(
     override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
     override val iverksattTidspunkt: LocalDateTime?,
-    override val ventestatus: VentestatusHendelseDTO?,
+    override val ventestatus: List<VentestatusHendelseDTO>,
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
@@ -99,7 +99,7 @@ data class RevurderingDTO(
     override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
     override val iverksattTidspunkt: LocalDateTime?,
-    override val ventestatus: VentestatusHendelseDTO?,
+    override val ventestatus: List<VentestatusHendelseDTO>,
     override val utbetaling: BehandlingUtbetalingDTO?,
     override val utbetalingskontroll: UtbetalingskontrollDTO?,
     override val klagebehandlingId: String?,
@@ -169,7 +169,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         vedtaksperiode = this.vedtaksperiode?.toDTO(),
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
-        ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
+        ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, tilbakekrevingId),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilSøknadsbehandlingResultatDTO(),
@@ -203,7 +203,7 @@ fun Revurdering.tilRevurderingDTO(
         opprettet = this.opprettet,
         sistEndret = this.sistEndret,
         iverksattTidspunkt = this.iverksattTidspunkt,
-        ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
+        ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         utbetaling = utbetaling?.tilDTO(utbetalingsstatus, beregninger, tilbakekrevingId),
         utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(utbetaling, beregninger),
         resultatDTO = this.resultat.tilRevurderingResultatDTO(),

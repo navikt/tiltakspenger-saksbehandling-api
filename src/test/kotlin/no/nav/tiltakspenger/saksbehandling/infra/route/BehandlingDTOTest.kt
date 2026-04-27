@@ -36,7 +36,7 @@ class BehandlingDTOTest {
 
                 val behandlingSattPåVent = behandling
                     .settPåVent(
-                        `SettRammebehandlingPåVentKommando`(
+                        SettRammebehandlingPåVentKommando(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
                             begrunnelse = "1",
@@ -56,7 +56,7 @@ class BehandlingDTOTest {
                         clock,
                     ) { behandling.saksopplysninger }.getOrFail()
                     .first.settPåVent(
-                        `SettRammebehandlingPåVentKommando`(
+                        SettRammebehandlingPåVentKommando(
                             sakId = behandling.sakId,
                             rammebehandlingId = behandling.id,
                             begrunnelse = "2",
@@ -76,9 +76,10 @@ class BehandlingDTOTest {
 
                 val dto = sak.tilRammebehandlingDTO(behandlingSattPåVent.id)
 
-                dto.ventestatus?.erSattPåVent shouldBe true
-                dto.ventestatus?.sattPåVentAv shouldBe beslutter.navIdent
-                dto.ventestatus?.begrunnelse shouldBe "2"
+                dto.ventestatus.size shouldBe 3
+                dto.ventestatus.last().erSattPåVent shouldBe true
+                dto.ventestatus.last().sattPåVentAv shouldBe beslutter.navIdent
+                dto.ventestatus.last().begrunnelse shouldBe "2"
                 dto.beslutter shouldBe null
             }
         }

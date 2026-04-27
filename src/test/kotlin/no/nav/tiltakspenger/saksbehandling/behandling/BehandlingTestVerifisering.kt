@@ -15,7 +15,7 @@ fun String.shouldBeRevurderingDTO(
     sakId: SakId,
     saksnummer: Saksnummer = Saksnummer("202501011001"),
     behandlingId: RammebehandlingId,
-    klagebehandlingId: KlagebehandlingId,
+    klagebehandlingId: KlagebehandlingId? = null,
     omgjørVedtak: VedtakId? = null,
     rammevedtakId: VedtakId?,
     avbrutt: String? = null,
@@ -41,26 +41,46 @@ fun String.shouldBeRevurderingDTO(
     begrunnelseVilkårsvurdering: String? = null,
     tilbakekrevingId: String? = null,
     utbetaling: String? = null,
-    ventestatus: String? = null,
+    ventestatus: List<String> = emptyList(),
     internDeltakelseId: String = "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
     innvilgelsesperiode: Boolean = true,
     antallDagerPerMeldeperiode: Int = 10,
     sistEndret: String = "2025-01-01T01:03:05.456789",
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
+    periodeFraOgMed: String = "2023-01-01",
+    periodeTilOgMed: String = "2023-03-31",
+    eksternDeltagelseId: String = "61328250-7d5d-4961-b70e-5cb727a34371",
+    eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
+    tiltakTypeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
+    deltakelseProsent: String = "100",
+    antallDagerPerUke: String = "5",
+    valgtHjemmelHarIkkeRettighet: List<String>? = null,
+    harValgtStansFraFørsteDagSomGirRett: Boolean? = null,
 ) {
+    val skjulPeriodebaserteFelter = resultat == RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT ||
+        resultat == RammebehandlingResultatTypeDTO.STANS
+    val visBarnetilleggField = !skjulPeriodebaserteFelter
+    val visInnvilgelsesperioderField = !skjulPeriodebaserteFelter
+    val valgtHjemmelJson = valgtHjemmelHarIkkeRettighet
+        ?.let { """"valgtHjemmelHarIkkeRettighet": [${it.joinToString(",") { v -> "\"$v\"" }}],""" }
+        ?: ""
+    val harValgtStansJson = harValgtStansFraFørsteDagSomGirRett
+        ?.let { """"harValgtStansFraFørsteDagSomGirRett": $it,""" }
+        ?: ""
+
     val expected = """
         {
           "id": "$behandlingId",
           "sakId": "$sakId",
           "saksnummer": "$saksnummer",
-          "klagebehandlingId": "$klagebehandlingId",
-          "avbrutt": ${avbrutt?.let { "\"$it\"" } ?: "null"},
+          "klagebehandlingId": ${klagebehandlingId?.let { "\"$it\"" }},
+          "avbrutt": $avbrutt,
           "attesteringer": $attesteringer,
           "saksbehandler": "$saksbehandler",
           "utbetalingskontroll": ${utbetalingskontroll?.let { "\"$it\"" } ?: "null"},
           ${
-        if (resultat != RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT) {
+        if (visBarnetilleggField) {
             """
                   "barnetillegg": ${
                 if (barnetillegg) {
@@ -70,8 +90,8 @@ fun String.shouldBeRevurderingDTO(
                     {
                         "antallBarn": $antallBarn,
                         "periode": {
-                            "fraOgMed": "2023-01-01",
-                            "tilOgMed": "2023-03-31"
+                            "fraOgMed": "$periodeFraOgMed",
+                            "tilOgMed": "$periodeTilOgMed"
                         }
                     }
                 ]
@@ -95,9 +115,11 @@ fun String.shouldBeRevurderingDTO(
           "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.let { "\"$it\"" }},
           "tilbakekrevingId": ${tilbakekrevingId?.let { "\"$it\"" }},
           "utbetaling": ${utbetaling?.let { "\"$it\"" }},
-          "ventestatus": ${ventestatus?.let { "\"$it\"" }},
+          "ventestatus": ${ventestatus.let { "[${it.joinToString(",")}]" }},
+          $valgtHjemmelJson
+          $harValgtStansJson
           ${
-        if (resultat != RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT) {
+        if (visInnvilgelsesperioderField) {
             """"innvilgelsesperioder": ${
                 if (innvilgelsesperiode) {
                     """
@@ -105,8 +127,8 @@ fun String.shouldBeRevurderingDTO(
             {
                 "internDeltakelseId": "$internDeltakelseId",
                 "periode": {
-                "fraOgMed": "2023-01-01",
-                "tilOgMed": "2023-03-31"
+                "fraOgMed": "$periodeFraOgMed",
+                "tilOgMed": "$periodeTilOgMed"
                 },
                 "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
             }
@@ -134,24 +156,24 @@ fun String.shouldBeRevurderingDTO(
               {
                 "typeKode": "GRUPPE_AMO",
                 "gjennomforingsprosent": null,
-                "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                "antallDagerPerUke": 5,
+                "eksternDeltagelseId": "$eksternDeltagelseId",
+                "gjennomføringId": "$eksternTiltaksgjennomføringsId",
+                "antallDagerPerUke": $antallDagerPerUke,
                 "deltakelseStatus": "Deltar",
-                "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                "deltagelseFraOgMed": "2023-01-01",
-                "deltagelseTilOgMed": "2023-03-31",
+                "typeNavn": "$tiltakTypeNavn",
+                "deltagelseFraOgMed": "$periodeFraOgMed",
+                "deltagelseTilOgMed": "$periodeTilOgMed",
                 "kilde": "Komet",
-                "internDeltakelseId": "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
-                "deltakelseProsent": 100
+                "internDeltakelseId": "$internDeltakelseId",
+                "deltakelseProsent": $deltakelseProsent
               }
             ],
             "fødselsdato": "2001-01-01",
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
             "periode": {
-              "fraOgMed": "2023-01-01",
-              "tilOgMed": "2023-03-31"
+              "fraOgMed": "$periodeFraOgMed",
+              "tilOgMed": "$periodeTilOgMed"
             }
           },
           "rammevedtakId": ${rammevedtakId?.let { "\"$it\"" }},
@@ -174,7 +196,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     sakId: SakId,
     saksnummer: Saksnummer = Saksnummer("202501011001"),
     behandlingId: RammebehandlingId,
-    klagebehandlingId: KlagebehandlingId,
+    klagebehandlingId: KlagebehandlingId? = null,
     rammevedtakId: VedtakId? = null,
     søknadId: SøknadId,
     vedtaksperiode: String? = """{"fraOgMed": "2023-01-01","tilOgMed": "2023-03-31"}""",
@@ -191,7 +213,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     begrunnelseVilkårsvurdering: String? = null,
     tilbakekrevingId: String? = null,
     utbetaling: String? = null,
-    ventestatus: String? = null,
+    ventestatus: List<String> = emptyList(),
     internDeltakelseId: String = "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0",
     innvilgelsesperiode: Boolean = true,
     antallDagerPerMeldeperiode: Int = 10,
@@ -201,7 +223,25 @@ fun String.shouldBeSøknadsbehandlingDTO(
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
     manueltBehandlesGrunner: List<String> = emptyList(),
+    eksternDeltagelseId: String = "61328250-7d5d-4961-b70e-5cb727a34371",
+    søknadTiltakId: String = "61328250-7d5d-4961-b70e-5cb727a34371",
+    avbrutt: String? = null,
+    periodeFraOgMed: String = "2023-01-01",
+    periodeTilOgMed: String = "2023-03-31",
+    journalpostId: String = "123456789",
+    eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
+    tiltakTypeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
+    søknadTiltakTypeNavn: String = tiltakTypeNavn,
+    deltakelseProsent: String = "100",
+    antallDagerPerUke: String = "5",
+    avslagsgrunner: List<String>? = null,
 ) {
+    val avslagsgrunnerJson = avslagsgrunner
+        ?.let { """"avslagsgrunner": [${it.joinToString(",") { v -> "\"$v\"" }}],""" }
+        ?: ""
+    val visBarnetillegg = barnetillegg && avslagsgrunner == null
+    val visInnvilgelsesperiode = innvilgelsesperiode && avslagsgrunner == null
+
     val expected = """
         {
           "attesteringer": [
@@ -220,32 +260,32 @@ fun String.shouldBeSøknadsbehandlingDTO(
               {
                 "typeKode": "GRUPPE_AMO",
                 "gjennomforingsprosent": null,
-                "eksternDeltagelseId": "61328250-7d5d-4961-b70e-5cb727a34371",
-                "gjennomføringId": "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
-                "antallDagerPerUke": 5,
+                "eksternDeltagelseId": "$eksternDeltagelseId",
+                "gjennomføringId": "$eksternTiltaksgjennomføringsId",
+                "antallDagerPerUke": $antallDagerPerUke,
                 "deltakelseStatus": "Deltar",
-                "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-                "deltagelseFraOgMed": "2023-01-01",
-                "deltagelseTilOgMed": "2023-03-31",
+                "typeNavn": "$tiltakTypeNavn",
+                "deltagelseFraOgMed": "$periodeFraOgMed",
+                "deltagelseTilOgMed": "$periodeTilOgMed",
                 "kilde": "Komet",
                 "internDeltakelseId": "$internDeltakelseId",
-                "deltakelseProsent": 100
+                "deltakelseProsent": $deltakelseProsent
               }
             ],
             "fødselsdato": "2001-01-01",
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
             "periode": {
-                "fraOgMed": "2023-01-01",
-                "tilOgMed": "2023-03-31"
+                "fraOgMed": "$periodeFraOgMed",
+                "tilOgMed": "$periodeTilOgMed"
             }
           },
           "sakId": "$sakId",
           "id": "$behandlingId",
-          "avbrutt": null,
+          "avbrutt": $avbrutt,
           "saksbehandler": "$saksbehandler",
           ${
-        if (barnetillegg) {
+        if (visBarnetillegg) {
             """
             "barnetillegg": {
                 "begrunnelse": ${barnetilleggBegrunnelse?.let { "\"$it\"" }},
@@ -253,8 +293,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
                     {
                         "antallBarn": $antallBarn,
                         "periode": {
-                            "fraOgMed": "2023-01-01",
-                            "tilOgMed": "2023-03-31"
+                            "fraOgMed": "$periodeFraOgMed",
+                            "tilOgMed": "$periodeTilOgMed"
                         }
                     }
                 ]
@@ -268,18 +308,19 @@ fun String.shouldBeSøknadsbehandlingDTO(
           "resultat": "$resultat",
           "beslutter": ${beslutter?.let { "\"$it\"" }},
           "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.let { "\"$it\"" }},
-          "klagebehandlingId": "$klagebehandlingId",
+          "klagebehandlingId": ${klagebehandlingId?.let { "\"$it\"" }},
           "tilbakekrevingId": ${tilbakekrevingId?.let { "\"$it\"" }},
           "kanInnvilges": $kanInnvilges,
-          "ventestatus": ${ventestatus?.let { "\"$it\"" }},
+          "ventestatus": ${ventestatus.let { "[${it.joinToString(",")}]" }},
+          $avslagsgrunnerJson
           ${
-        if (innvilgelsesperiode) {
+        if (visInnvilgelsesperiode) {
             """"innvilgelsesperioder": [
             {
                 "internDeltakelseId": "$internDeltakelseId",
                 "periode": {
-                "fraOgMed": "2023-01-01",
-                "tilOgMed": "2023-03-31"
+                "fraOgMed": "$periodeFraOgMed",
+                "tilOgMed": "$periodeTilOgMed"
                 },
                 "antallDagerPerMeldeperiode": $antallDagerPerMeldeperiode
             }
@@ -293,7 +334,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "sistEndret": "$sistEndret",
         "automatiskSaksbehandlet": $automatiskSaksbehandlet,
         "søknad": {
-            "avbrutt": null,
+            "avbrutt": $avbrutt,
             "svar": {
             "harSøktPåTiltak": { "svar": "JA" },
             "kvp": { "svar": "NEI", "periode": null },
@@ -310,18 +351,18 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "supplerendeStønadFlyktning": { "svar": "NEI", "periode": null }
         },
             "tiltaksdeltakelseperiodeDetErSøktOm": {
-            "fraOgMed": "2023-01-01",
-            "tilOgMed": "2023-03-31"
+            "fraOgMed": "$periodeFraOgMed",
+            "tilOgMed": "$periodeTilOgMed"
         },
             "barnetillegg": [],
             "opprettet": "2023-01-01T00:00:00",
             "antallVedlegg": 0,
             "tiltak": {
-            "fraOgMed": "2023-01-01",
+            "fraOgMed": "$periodeFraOgMed",
             "typeKode": "GRUPPEAMO",
-            "tilOgMed": "2023-03-31",
-            "typeNavn": "Arbeidsmarkedsoppfølging gruppe",
-            "id": "61328250-7d5d-4961-b70e-5cb727a34371"
+            "tilOgMed": "$periodeTilOgMed",
+            "typeNavn": "$søknadTiltakTypeNavn",
+            "id": "$søknadTiltakId"
         },
             "manueltSattTiltak": null,
             "søknadstype": "DIGITAL",
@@ -329,7 +370,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "kanInnvilges": true,
             "tidsstempelHosOss": "2023-01-01T00:00:00",
             "id": "$søknadId",
-            "journalpostId": "123456789"
+            "journalpostId": "$journalpostId"
         },
         "status": "$status",
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
