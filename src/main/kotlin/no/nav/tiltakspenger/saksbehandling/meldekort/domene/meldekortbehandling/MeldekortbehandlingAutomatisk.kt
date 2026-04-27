@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -131,10 +130,6 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         fnr = this.fnr,
         opprettet = tidspunkt,
         navkontor = navkontor,
-        brukersMeldekort = brukersMeldekort,
-        meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(brukersMeldekort.kjedeId),
-        dager = brukersMeldekort.tilMeldekortDager(),
-        beregning = Beregning(beregninger, nå),
         type = MeldekortbehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,
