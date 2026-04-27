@@ -60,7 +60,7 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
 
     override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
         return data.get().values
-            .filter { it.behandlesAutomatisk && it.behandletAutomatiskStatus != MeldekortBehandletAutomatiskStatus.BEHANDLET }
+            .filter { it.behandlesAutomatisk }
             .sortedBy { it.periode.fraOgMed }.distinctBy { it.sakId }
     }
 
@@ -74,6 +74,18 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         data.get()[meldekortId] = data.get()[meldekortId]!!.copy(
             behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = status,
+            behandletAutomatiskForsøkshistorikk = metadata,
+        )
+    }
+
+    override fun markerSomAutomatiskBehandlet(
+        meldekortId: MeldekortId,
+        metadata: Forsøkshistorikk,
+        sessionContext: SessionContext?,
+    ) {
+        data.get()[meldekortId] = data.get()[meldekortId]!!.copy(
+            behandlesAutomatisk = false,
+            behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.BEHANDLET,
             behandletAutomatiskForsøkshistorikk = metadata,
         )
     }

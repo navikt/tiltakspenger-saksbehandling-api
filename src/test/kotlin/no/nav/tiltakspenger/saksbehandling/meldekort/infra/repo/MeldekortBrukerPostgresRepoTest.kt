@@ -126,8 +126,11 @@ class MeldekortBrukerPostgresRepoTest {
                 true,
                 MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             )
-                .copy(behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.BEHANDLET)
             meldekortBrukerRepo.lagre(meldekort1)
+            meldekortBrukerRepo.markerSomAutomatiskBehandlet(
+                meldekort1.id,
+                Forsøkshistorikk.opprett(clock = testDataHelper.clock),
+            )
 
             val meldekort2 = lagBrukersMeldekort(
                 sak.meldeperiodeKjeder[1].first(),

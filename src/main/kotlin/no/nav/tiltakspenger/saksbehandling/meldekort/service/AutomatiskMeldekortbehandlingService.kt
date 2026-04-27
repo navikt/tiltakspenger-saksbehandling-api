@@ -216,10 +216,8 @@ class AutomatiskMeldekortbehandlingService(
         sessionFactory.withTransactionContext { tx ->
             meldekortbehandlingRepo.lagre(meldekortbehandling, simulering, tx)
             meldekortvedtakRepo.lagre(meldekortvedtak, tx)
-            brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
+            brukersMeldekortRepo.markerSomAutomatiskBehandlet(
                 meldekortId = meldekortId,
-                status = MeldekortBehandletAutomatiskStatus.BEHANDLET,
-                behandlesAutomatisk = true,
                 metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(
                     delays = venteIntervaller,
                     clock = clock,

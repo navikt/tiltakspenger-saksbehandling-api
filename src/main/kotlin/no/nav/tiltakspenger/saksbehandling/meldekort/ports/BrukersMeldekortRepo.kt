@@ -47,4 +47,10 @@ interface BrukersMeldekortRepo {
         metadata: Forsøkshistorikk,
         sessionContext: SessionContext? = null,
     )
+
+    fun markerSomAutomatiskBehandlet(
+        meldekortId: MeldekortId,
+        metadata: Forsøkshistorikk,
+        sessionContext: SessionContext? = null,
+    )
 }

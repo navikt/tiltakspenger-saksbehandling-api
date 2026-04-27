@@ -120,7 +120,6 @@ class BrukersMeldekortPostgresRepo(
                         mk.*
                     from meldekort_bruker mk
                     where mk.behandles_automatisk is true
-                    and behandlet_automatisk_status is distinct from 'BEHANDLET'
                     and not exists (
                         select 1 
                         from utbetaling u 
@@ -155,6 +154,28 @@ class BrukersMeldekortPostgresRepo(
                     "id" to meldekortId.toString(),
                     "behandlet_automatisk_status" to status.tilDb(),
                     "behandles_automatisk" to behandlesAutomatisk,
+                    "behandlet_automatisk_metadata" to metadata.toDbJson(),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun markerSomAutomatiskBehandlet(
+        meldekortId: MeldekortId,
+        metadata: Forsøkshistorikk,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    update meldekort_bruker set
+                        behandlet_automatisk_status = 'BEHANDLET',
+                        behandles_automatisk = false,
+                        behandlet_automatisk_metadata = to_jsonb(:behandlet_automatisk_metadata::jsonb)
+                    where id = :id
+                    """,
+                    "id" to meldekortId.toString(),
                     "behandlet_automatisk_metadata" to metadata.toDbJson(),
                 ).asUpdate,
             )
