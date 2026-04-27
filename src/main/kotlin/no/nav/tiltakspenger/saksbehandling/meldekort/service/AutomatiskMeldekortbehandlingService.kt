@@ -119,17 +119,20 @@ class AutomatiskMeldekortbehandlingService(
         meldekort: BrukersMeldekort,
         clock: Clock,
     ) {
-        with("Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Status: $status") {
-            if (status.loggesSomError) {
-                logger.error { this }
-            } else {
-                logger.info { this }
-            }
-        }
+        val logMsg =
+            "Kunne ikke opprette automatisk behandling for brukers meldekort ${meldekort.id} på sak ${meldekort.sakId} - Status: $status"
 
         val skalPrøvePåNytt = meldekort.skalPrøvePåNytt(status, clock)
 
-        if (!skalPrøvePåNytt) {
+        if (skalPrøvePåNytt) {
+            logger.info { "$logMsg - Denne vil prøves på nytt" }
+        } else {
+            if (status.loggesSomError) {
+                logger.error { logMsg }
+            } else {
+                logger.info { logMsg }
+            }
+
             meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker()
         }
 
