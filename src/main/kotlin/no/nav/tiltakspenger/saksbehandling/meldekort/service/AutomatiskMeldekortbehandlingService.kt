@@ -277,7 +277,6 @@ class AutomatiskMeldekortbehandlingService(
             MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK,
             MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK,
             MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
-            MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
             -> false
 
             MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING,
@@ -285,6 +284,7 @@ class AutomatiskMeldekortbehandlingService(
             MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE,
             MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE,
             MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET,
+            MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
             -> true
         }
     }
