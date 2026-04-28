@@ -170,12 +170,11 @@ class BehandleTilbakekrevingHendelserJobb(
                 ident = this.fnr.verdi,
             ),
             revurdering = TilbakekrevingRevurdering(
-                behandlingId = behov.kravgrunnlagReferanse,
+                behandlingId = id.toString(),
                 årsak = TilbakekrevingInfoSvarDTO.TilbakekrevingRevurderingÅrsak.KORRIGERING,
                 årsakTilFeilutbetaling = this.begrunnelse?.verdi,
                 vedtaksdato = this.iverksattTidspunkt!!.toLocalDate(),
             ),
-            // TODO: dette er nok ikke riktig, avventer tilbakemelding fra team tilbake
             utvidPerioder = listOf(
                 TilbakekrevingUtvidPeriode(
                     kravgrunnlagPeriode = TilbakekrevingPeriodeDTO(
@@ -204,12 +203,11 @@ class BehandleTilbakekrevingHendelserJobb(
                 ident = this.fnr.verdi,
             ),
             revurdering = TilbakekrevingRevurdering(
-                behandlingId = behov.kravgrunnlagReferanse,
+                behandlingId = id.toString(),
                 årsak = TilbakekrevingInfoSvarDTO.TilbakekrevingRevurderingÅrsak.NYE_OPPLYSNINGER,
                 årsakTilFeilutbetaling = this.begrunnelseVilkårsvurdering?.verdi,
                 vedtaksdato = this.iverksattTidspunkt!!.toLocalDate(),
             ),
-            // TODO: dette er nok ikke riktig, avventer tilbakemelding fra team tilbake
             utvidPerioder = listOf(
                 TilbakekrevingUtvidPeriode(
                     kravgrunnlagPeriode = TilbakekrevingPeriodeDTO(
