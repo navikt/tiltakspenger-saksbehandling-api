@@ -25,7 +25,10 @@ class GjenopptaKlagebehandlingRouteTest {
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
                 behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 status = "UNDER_BEHANDLING",
-                ventestatus = """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
+                ventestatus = listOf(
+                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
+                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
+                ),
             )
         }
     }

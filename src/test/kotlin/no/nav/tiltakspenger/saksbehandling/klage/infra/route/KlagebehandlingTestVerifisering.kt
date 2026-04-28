@@ -37,7 +37,7 @@ fun String.shouldBeKlagebehandlingDTO(
     begrunnelse: String? = null,
     rammebehandlingId: List<String>? = null,
     åpenRammebehandlingId: String? = null,
-    ventestatus: String? = null,
+    ventestatus: List<String> = emptyList(),
     hjemler: List<String> = emptyList(),
     iverksattOpprettholdelseTidspunkt: Boolean = false,
     journalføringstidspunktInnstillingsbrev: Boolean = false,
@@ -204,7 +204,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          "avbrutt": null,
          "kanIverksetteVedtak": null,
          "kanIverksetteOpprettholdelse": false,
-         "ventestatus": null,
+         "ventestatus": [],
          "formkrav": {
            "vedtakDetKlagesPå": ${vedtakDetKlagesPå.toJsonValue()},
            "behandlingDetKlagesPå": ${behandlingDetKlagesPå.toJsonValue()},
@@ -256,7 +256,7 @@ fun String.shouldBeKlagevedtakJson(
                   "avbrutt": null,
                   "kanIverksetteVedtak": false,
                   "kanIverksetteOpprettholdelse": false,
-                  "ventestatus": null,
+                  "ventestatus": [],
                   "formkrav": {
                     "vedtakDetKlagesPå": "$vedtakDetKlagesPå",
                     "behandlingDetKlagesPå": "$behandlingDetKlagesPå",

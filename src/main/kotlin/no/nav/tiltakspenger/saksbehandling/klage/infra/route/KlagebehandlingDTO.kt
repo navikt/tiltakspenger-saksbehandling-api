@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
 import no.nav.tiltakspenger.saksbehandling.dokument.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.tilVentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -38,7 +38,7 @@ data class KlagebehandlingDTO(
     val kanIverksetteVedtak: Boolean?,
     val kanIverksetteOpprettholdelse: Boolean,
     /** Vil være null mens den ikke er på vent. */
-    val ventestatus: VentestatusHendelseDTO?,
+    val ventestatus: List<VentestatusHendelseDTO>,
     val formkrav: KlageFormkravDTO,
     val tilknyttedeRammebehandlingIder: List<String>,
     val åpenRammebehandlingId: String?,
@@ -132,7 +132,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     avbrutt = avbrutt?.toAvbruttDTO(),
     kanIverksetteVedtak = kanIverksetteVedtak,
     kanIverksetteOpprettholdelse = kanIverksetteOpprettholdelse,
-    ventestatus = ventestatus.ventestatusHendelser.lastOrNull()?.tilVentestatusHendelseDTO(),
+    ventestatus = ventestatus.ventestatusHendelser.tilDto(),
     resultat = resultat?.tilKlagebehandlingsresultatDTO(),
     formkrav = formkrav.toDTO(),
     tilknyttedeRammebehandlingIder = rammebehandlingId.map { it.toString() },
