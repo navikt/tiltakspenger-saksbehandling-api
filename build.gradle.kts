@@ -70,7 +70,7 @@ dependencies {
 
     // Auth
     api("com.auth0:java-jwt:4.5.1")
-    api("com.auth0:jwks-rsa:0.23.0")
+    api("com.auth0:jwks-rsa:0.23.1")
 
     // DB
     implementation("org.flywaydb:flyway-database-postgresql:12.4.0")
