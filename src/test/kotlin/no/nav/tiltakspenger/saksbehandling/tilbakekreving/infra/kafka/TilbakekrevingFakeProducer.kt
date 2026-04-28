@@ -1,12 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka
 
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tilBehandlingIdFraTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO.TilbakekrevingHendelseStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
@@ -33,19 +36,21 @@ class TilbakekrevingFakeProducer(
     }
 
     private fun Sak.sendBehandlingEndretHendelse(infoSvar: TilbakekrevingInfoSvarDTO) {
-        val (periode, simulering) = utbetalinger
-            .hentUtbetalingForUuid(infoSvar.revurdering.behandlingId)
-            ?.beregningKilde?.let { beregningKilde ->
-                when (beregningKilde) {
-                    is BeregningKilde.BeregningKildeRammebehandling -> hentRammebehandling(beregningKilde.id)?.let {
-                        it.vedtaksperiode!! to it.utbetaling?.simulering
-                    }
+        val behandlingId = infoSvar.revurdering.behandlingId.tilBehandlingIdFraTilbakekreving().mapLeft {
+            utbetalinger.hentUtbetalingForUuid(it)?.beregningKilde?.id
+        }.getOrThrow()
 
-                    is BeregningKilde.BeregningKildeMeldekort -> hentMeldekortbehandling(beregningKilde.id)?.let {
-                        it.periode to it.simulering
-                    }
-                }
-            } ?: return
+        val (periode, simulering) = when (behandlingId) {
+            is RammebehandlingId -> hentRammebehandling(behandlingId)?.let {
+                it.vedtaksperiode!! to it.utbetaling?.simulering
+            }
+
+            is MeldekortId -> hentMeldekortbehandling(behandlingId)?.let {
+                it.periode to it.simulering
+            }
+
+            else -> throw IllegalArgumentException()
+        } ?: return
 
         val tilbakeBehandlingId = UUID.randomUUID().toString()
 

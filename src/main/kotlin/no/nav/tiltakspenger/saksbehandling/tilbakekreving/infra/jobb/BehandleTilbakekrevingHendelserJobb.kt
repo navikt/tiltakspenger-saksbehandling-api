@@ -5,6 +5,8 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -19,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingI
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tilBehandlingIdFraTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO.TilbakekrevingMottaker
@@ -27,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.Tilbak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 
 class BehandleTilbakekrevingHendelserJobb(
@@ -108,7 +112,25 @@ class BehandleTilbakekrevingHendelserJobb(
     }
 
     private fun Sak.håndterBehandlingEndret(hendelse: TilbakekrevingBehandlingEndretHendelse): Either<TilbakekrevinghendelseFeil, Unit> {
-        val utbetaling = hendelse.eksternBehandlingId?.let { utbetalinger.hentUtbetalingForUuid(it) }
+        // Dette burde ikke kunne skje
+        if (hendelse.eksternBehandlingId == null) {
+            return TilbakekrevinghendelseFeil.FantIkkeUtbetaling.left()
+        }
+
+        val utbetaling: VedtattUtbetaling? = hendelse.eksternBehandlingId
+            .tilBehandlingIdFraTilbakekreving()
+            .fold(
+                ifLeft = {
+                    utbetalinger.hentUtbetalingForUuid(it)
+                },
+                ifRight = {
+                    when (it) {
+                        is RammebehandlingId -> utbetalinger.hentUtbetalingForRammebehandling(it)
+                        is MeldekortId -> utbetalinger.hentUtbetalingForMeldekort(it)
+                        else -> throw IllegalArgumentException("Ugyldig behandlingId: $it")
+                    }
+                },
+            )
 
         if (utbetaling == null) {
             return TilbakekrevinghendelseFeil.FantIkkeUtbetaling.left()
