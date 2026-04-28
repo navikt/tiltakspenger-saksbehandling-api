@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregning
 
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.equals.shouldBeEqual
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -75,6 +77,7 @@ class MeldekortberegningFraBrukersMeldekort {
                 meldeperiode.periode.fraOgMed,
                 kommandoStatuser,
             ),
+            kjedeId = meldeperiode.kjedeId,
         )
         val brukersMeldekort = ObjectMother.brukersMeldekort(
             sakId = sak.id,
@@ -85,14 +88,18 @@ class MeldekortberegningFraBrukersMeldekort {
             ),
         )
 
+        val beregningstidspunkt = nå(clock)
+
         val dagerBeregnetFraBruker = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperioderSomBeregnes = brukersMeldekort.tilMeldekortDager(),
+            meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilMeldekortDager()),
+            beregningstidspunkt = beregningstidspunkt,
         ).map { it.dager }
 
         val dagerBeregnetFraSaksbehandler = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperioderSomBeregnes = dager.tilUtfyltMeldeperiode(meldeperiode),
+            meldeperioderSomBeregnes = nonEmptyListOf(dager.tilUtfyltMeldeperiode(meldeperiode)),
+            beregningstidspunkt = beregningstidspunkt,
         ).map { it.dager }
 
         dagerBeregnetFraBruker shouldBeEqual dagerBeregnetFraSaksbehandler
