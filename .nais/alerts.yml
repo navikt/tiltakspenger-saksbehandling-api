@@ -29,23 +29,3 @@ spec:
             severity: critical
             send_resolved: "false"
             datasource: {{datasource}}
-        - alert: Rammebehandling med feilutbetaling har blitt iverksatt
-          expr: sum(increase(tpts_saksbehandlingapi_behandling_med_feilutbetaling_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[10m])) > 0
-          annotations:
-            action: "Sjekk loggene til saksbehandling-api for å se hvilke behandlinger som har blitt iverksatt med feilutbetaling"
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service/tiltakspenger-saksbehandling-api/logs?var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-ds={{datasource}}&from=now-24h&to=now&var-lineFilters=caseInsensitive,0%7C__gfp__%3D%7CRammebehandling%20med%20feilutbetaling%20har%20blitt%20iverksatt'
-          labels:
-            namespace: tpts
-            severity: warning
-            send_resolved: "false"
-            datasource: {{datasource}}
-        - alert: Meldekort med feilutbetaling har blitt iverksatt
-          expr: sum(increase(tpts_saksbehandlingapi_meldekort_med_feilutbetaling_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[10m])) > 0
-          annotations:
-            action: "Sjekk loggene til saksbehandling-api for å se hvilke meldekort som har blitt iverksatt med feilutbetaling"
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service/tiltakspenger-saksbehandling-api/logs?var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-ds={{datasource}}&from=now-24h&to=now&var-lineFilters=caseInsensitive,0%7C__gfp__%3D%7CMeldekort%20med%20feilutbetaling%20har%20blitt%20iverksatt'
-          labels:
-            namespace: tpts
-            severity: warning
-            send_resolved: "false"
-            datasource: {{datasource}}
