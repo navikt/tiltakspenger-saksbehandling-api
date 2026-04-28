@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraMeldekortbehandling
@@ -80,25 +81,18 @@ class MeldekortbehandlingRepoImplTest {
                     deltakelseFom = 1.januar(2024),
                     deltakelseTom = 31.mars(2024),
                 )
-                val meldekortbehandling = sak.opprettManuellMeldekortbehandling(
+                val (sakMedMeldekortbehandling, meldekortbehandling) = sak.opprettManuellMeldekortbehandling(
                     sak.meldeperiodeKjeder.first().kjedeId,
                     ObjectMother.navkontor(),
                     ObjectMother.saksbehandler(),
                     fixedClock,
-                ).getOrFail().second
+                ).getOrFail()
 
                 val meldekortRepo = testDataHelper.meldekortRepo
 
                 meldekortRepo.lagre(meldekortbehandling, null)
 
-                val (oppdatertMeldekortbehandling, simulering) = meldekortbehandling.oppdater(
-                    beregn = {
-                        ObjectMother.meldekortBeregning(
-                            startDato = meldekortbehandling.periode.fraOgMed,
-                            meldekortId = meldekortbehandling.id,
-                            maksDagerMedTiltakspengerForPeriode = meldekortbehandling.meldeperiode.maksAntallDagerForMeldeperiode,
-                        ).beregninger
-                    },
+                val (oppdatertMeldekortbehandling, simulering) = sakMedMeldekortbehandling.oppdaterMeldekort(
                     simuler = { KunneIkkeSimulere.UkjentFeil.left() },
                     kommando = meldekortbehandling.tilOppdaterMeldekortKommando(
                         ObjectMother.saksbehandler(),
