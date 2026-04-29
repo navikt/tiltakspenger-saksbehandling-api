@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
@@ -21,6 +22,13 @@ class OppdaterMeldekortbehandlingService(
     private val simulerService: SimulerService,
 ) {
     private val logger = KotlinLogging.logger {}
+
+    fun hentKjedeIdForMeldekort(
+        sakId: no.nav.tiltakspenger.libs.common.SakId,
+        meldekortId: no.nav.tiltakspenger.libs.common.MeldekortId,
+    ): MeldeperiodeKjedeId {
+        return sakService.hentForSakId(sakId).hentMeldekortbehandling(meldekortId)!!.kjedeId
+    }
 
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortbehandlingKommando,

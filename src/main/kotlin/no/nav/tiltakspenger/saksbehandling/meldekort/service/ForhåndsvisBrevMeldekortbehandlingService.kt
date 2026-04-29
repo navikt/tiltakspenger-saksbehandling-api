@@ -26,6 +26,10 @@ class ForhåndsvisBrevMeldekortbehandlingService(
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val navIdentClient: NavIdentClient,
 ) {
+    fun hentKjedeIdForMeldekortbehandling(meldekortbehandlingId: MeldekortId): String {
+        return meldekortbehandlingRepo.hent(meldekortbehandlingId)!!.kjedeId.verdi
+    }
+
     suspend fun forhåndsvisBrev(command: ForhåndsvisBrevMeldekortbehandlingCommand): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, PdfOgJson> {
         val meldekortbehandling = meldekortbehandlingRepo.hent(command.meldekortbehandlingId)
             ?: return KunneIkkeForhåndsviseBrevMeldekortbehandling.FantIkkeMeldekortbehandling.left()
