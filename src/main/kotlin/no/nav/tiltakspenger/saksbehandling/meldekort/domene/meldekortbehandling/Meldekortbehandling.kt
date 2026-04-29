@@ -118,7 +118,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
             return null
         }
 
-        val oppdaterteMeldeperioder = meldeperioder.oppdaterMeldeperioder(oppdaterteKjeder)
+        val oppdaterteMeldeperioder = meldeperioder.oppdaterMedNyeKjeder(oppdaterteKjeder) ?: return null
 
         val ikkeRettTilTiltakspengerTidspunkt = if (oppdaterteMeldeperioder.ingenDagerGirRett) {
             nå(clock)
