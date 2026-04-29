@@ -54,7 +54,7 @@ class BrevRevurderingStansDTOTest {
                     "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
                   "barnetillegg": false,
-                  "kontor": "Nav Tiltakspenger"
+                  "kontor": "Nav Tiltak Oslo"
                 }
             """.trimIndent()
 
@@ -100,7 +100,7 @@ class BrevRevurderingStansDTOTest {
                         "du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
                   "barnetillegg": true,
-                  "kontor": "Nav Tiltakspenger"
+                  "kontor": "Nav Tiltak Oslo"
                 }
             """.trimIndent()
 
