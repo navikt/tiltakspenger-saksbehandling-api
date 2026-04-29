@@ -46,18 +46,25 @@ data class Meldeperiodebehandlinger(
 
     val ingenDagerGirRett: Boolean by lazy { this.all { it.meldeperiode.ingenDagerGirRett } }
 
-    fun oppdaterMeldeperioder(
+    // Returnerer null dersom ingen kjeder har nyere meldeperioder (ingenting å oppdatere)
+    fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,
-    ): Meldeperiodebehandlinger {
-        return this.map {
-            val sisteMeldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId)
+    ): Meldeperiodebehandlinger? {
+        val (erEndret, oppdatert) = this.fold(false to emptyList<Meldeperiodebehandling>()) { (erOppdatert, oppdatert), meldeperiode ->
+            val sisteMeldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(meldeperiode.kjedeId)
 
-            if (sisteMeldeperiode.versjon < it.meldeperiode.versjon) {
-                it
+            if (sisteMeldeperiode.versjon <= meldeperiode.meldeperiode.versjon) {
+                erOppdatert to oppdatert.plus(meldeperiode)
             } else {
-                it.copy(dager = sisteMeldeperiode.tilMeldekortDager())
+                true to oppdatert.plus(meldeperiode.copy(dager = sisteMeldeperiode.tilMeldekortDager()))
             }
-        }.let { Meldeperiodebehandlinger(it.toNonEmptyListOrThrow(), null) }
+        }
+
+        return if (erEndret) {
+            Meldeperiodebehandlinger(oppdatert.toNonEmptyListOrThrow(), null)
+        } else {
+            null
+        }
     }
 
     init {
