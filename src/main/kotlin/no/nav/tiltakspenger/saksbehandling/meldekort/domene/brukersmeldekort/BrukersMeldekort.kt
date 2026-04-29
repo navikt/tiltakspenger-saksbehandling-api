@@ -88,7 +88,7 @@ data class BrukersMeldekort(
         const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 2
     }
 
-    fun tilMeldekortDager(): UtfyltMeldeperiode {
+    fun tilUtfyltMeldeperiode(): UtfyltMeldeperiode {
         return UtfyltMeldeperiode(
             meldeperiode = meldeperiode,
             verdi = dager.map {

@@ -31,7 +31,7 @@ fun Meldeperiode.tilMeldeperiodebehandling(): Meldeperiodebehandling {
 
 fun BrukersMeldekort.tilMeldeperiodebehandling(): Meldeperiodebehandling {
     return Meldeperiodebehandling(
-        dager = this.tilMeldekortDager(),
+        dager = this.tilUtfyltMeldeperiode(),
         brukersMeldekort = this,
     )
 }

@@ -119,7 +119,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
 
     val beregning = this.beregnMeldekort(
         meldekortIdSomBeregnes = meldekortbehandlingId,
-        meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilMeldekortDager()),
+        meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilUtfyltMeldeperiode()),
         beregningstidspunkt = tidspunkt,
     )
 
