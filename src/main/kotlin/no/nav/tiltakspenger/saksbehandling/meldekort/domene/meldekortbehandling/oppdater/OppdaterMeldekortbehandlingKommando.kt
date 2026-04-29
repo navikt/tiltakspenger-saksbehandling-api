@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
 import java.time.LocalDate
 
 /**
@@ -95,5 +95,31 @@ class OppdaterMeldekortbehandlingKommando(
             IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
             IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
         }
+    }
+}
+
+fun MeldekortDagStatusDTO.tilOppdaterKommandoStatus(): OppdaterMeldekortbehandlingKommando.Status {
+    return when (this) {
+        MeldekortDagStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+
+        MeldekortDagStatusDTO.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+
+        MeldekortDagStatusDTO.FRAVÆR_SYK -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYK
+
+        MeldekortDagStatusDTO.FRAVÆR_SYKT_BARN -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYKT_BARN
+
+        MeldekortDagStatusDTO.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
+
+        MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_GODKJENT_AV_NAV
+
+        MeldekortDagStatusDTO.FRAVÆR_ANNET -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_ANNET
+
+        MeldekortDagStatusDTO.IKKE_TILTAKSDAG -> OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
+
+        MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
+
+        MeldekortDagStatusDTO.IKKE_BESVART -> throw IllegalArgumentException(
+            "IKKE_BESVART er ikke en gyldig status når saksbehandler oppdaterer et meldekort - saksbehandler må ta stilling til alle dagene",
+        )
     }
 }

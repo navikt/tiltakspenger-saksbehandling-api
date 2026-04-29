@@ -53,7 +53,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 val sisteMeldekortbehandling = meldekortbehandlinger.sisteGodkjenteMeldekort!!
 
                 sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
+                sisteMeldekortbehandling.brukersMeldekort!!.id shouldBe brukersMeldekort.id
             }
         }
     }

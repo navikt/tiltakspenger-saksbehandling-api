@@ -83,7 +83,7 @@ class MeldekortbehandlingPostgresRepo(
                         brukers_meldekort_id,
                         avbrutt,
                         sist_endret,
-                        skalSendeVedtaksbrev
+                        skal_sende_vedtaksbrev
                     ) values (
                         :id,
                         :meldeperiode_kjede_id,
@@ -571,7 +571,6 @@ class MeldekortbehandlingPostgresRepo(
                         beslutter = row.stringOrNull("beslutter"),
                         status = status,
                         iverksattTidspunkt = iverksattTidspunkt,
-                        beregning = beregning!!,
                         simulering = simulering,
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -602,7 +601,6 @@ class MeldekortbehandlingPostgresRepo(
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
-                        beregning = beregning,
                         simulering = simulering,
                         status = status,
                         sistEndret = sistEndret,
@@ -633,7 +631,6 @@ class MeldekortbehandlingPostgresRepo(
                         type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
-                        beregning = beregning,
                         simulering = simulering,
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                         sistEndret = sistEndret,

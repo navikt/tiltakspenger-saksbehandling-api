@@ -92,7 +92,7 @@ class MeldekortbehandlingRepoImplTest {
 
                 meldekortRepo.lagre(meldekortbehandling, null)
 
-                val (oppdatertMeldekortbehandling, simulering) = sakMedMeldekortbehandling.oppdaterMeldekort(
+                val (_, oppdatertMeldekortbehandling, simulering) = sakMedMeldekortbehandling.oppdaterMeldekort(
                     simuler = { KunneIkkeSimulere.UkjentFeil.left() },
                     kommando = meldekortbehandling.tilOppdaterMeldekortKommando(
                         ObjectMother.saksbehandler(),

@@ -39,6 +39,7 @@ internal class OppdaterMeldekortServiceTest {
                             status = IKKE_RETT_TIL_TILTAKSPENGER,
                         ),
                     ),
+                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -47,7 +48,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            meldeperioder = dager,
+                            meldeperioder = nonEmptyListOf(dager),
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
@@ -87,6 +88,7 @@ internal class OppdaterMeldekortServiceTest {
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         IKKE_TILTAKSDAG,
                     ),
+                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -95,7 +97,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            meldeperioder = dager,
+                            meldeperioder = nonEmptyListOf(dager),
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
@@ -136,6 +138,7 @@ internal class OppdaterMeldekortServiceTest {
                         IKKE_TILTAKSDAG,
                         IKKE_RETT_TIL_TILTAKSPENGER,
                     ),
+                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -144,7 +147,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            meldeperioder = dager,
+                            meldeperioder = nonEmptyListOf(dager),
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
@@ -184,6 +187,7 @@ internal class OppdaterMeldekortServiceTest {
                         IKKE_RETT_TIL_TILTAKSPENGER,
                         IKKE_RETT_TIL_TILTAKSPENGER,
                     ),
+                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -192,7 +196,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            meldeperioder = dager,
+                            meldeperioder = nonEmptyListOf(dager),
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
@@ -233,6 +237,7 @@ internal class OppdaterMeldekortServiceTest {
                         IKKE_TILTAKSDAG,
                         IKKE_TILTAKSDAG,
                     ),
+                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -241,7 +246,7 @@ internal class OppdaterMeldekortServiceTest {
                             meldekortId = ikkeUtfyltMeldekort.id,
                             saksbehandler = ObjectMother.saksbehandler(),
                             correlationId = correlationId,
-                            meldeperioder = dager,
+                            meldeperioder = nonEmptyListOf(dager),
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
@@ -269,23 +274,26 @@ internal class OppdaterMeldekortServiceTest {
                         meldekortId = ikkeUtfyltMeldekort.id,
                         saksbehandler = ObjectMother.saksbehandler(),
                         correlationId = correlationId,
-                        meldeperioder = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
-                            dager = dager(
-                                førsteDag,
-                                IKKE_RETT_TIL_TILTAKSPENGER,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                IKKE_TILTAKSDAG,
-                                IKKE_TILTAKSDAG,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                DELTATT_UTEN_LØNN_I_TILTAKET,
-                                IKKE_TILTAKSDAG,
-                                IKKE_TILTAKSDAG,
+                        meldeperioder = nonEmptyListOf(
+                            OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
+                                dager = dager(
+                                    førsteDag,
+                                    IKKE_RETT_TIL_TILTAKSPENGER,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    IKKE_TILTAKSDAG,
+                                    IKKE_TILTAKSDAG,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    DELTATT_UTEN_LØNN_I_TILTAKET,
+                                    IKKE_TILTAKSDAG,
+                                    IKKE_TILTAKSDAG,
+                                ),
+                                kjedeId = ikkeUtfyltMeldekort.kjedeId,
                             ),
                         ),
                         begrunnelse = null,

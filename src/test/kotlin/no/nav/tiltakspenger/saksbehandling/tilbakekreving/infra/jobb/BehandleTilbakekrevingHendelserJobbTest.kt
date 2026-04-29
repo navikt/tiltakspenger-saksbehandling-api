@@ -7,6 +7,9 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdaterMeldekortdagDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
@@ -397,13 +400,21 @@ class BehandleTilbakekrevingHendelserJobbTest {
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = meldekortbehandling.kjedeId,
-                dager = meldekortbehandling.dager.map {
-                    it.dato to if (it.status === MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {
-                        MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
-                    } else {
-                        MeldekortDagStatus.IKKE_TILTAKSDAG
-                    }
-                },
+                meldeperioder = listOf(
+                    OppdatertMeldeperiodeDTO(
+                        kjedeId = meldekortbehandling.kjedeId.verdi,
+                        dager = meldekortbehandling.dager.map {
+                            OppdaterMeldekortdagDTO(
+                                dato = it.dato,
+                                status = if (it.status === MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {
+                                    MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
+                                } else {
+                                    MeldekortDagStatusDTO.IKKE_TILTAKSDAG
+                                },
+                            )
+                        },
+                    ),
+                ),
             )!!
 
             tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(korrigeringVedtak.utbetaling)
