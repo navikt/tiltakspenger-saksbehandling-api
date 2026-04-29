@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -23,23 +24,19 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.tilOppdaterKommandoStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KunneIkkeForhåndsviseBrevMeldekortbehandling
-import java.time.LocalDate
 
 private const val PATH =
     "/sak/{sakId}/meldekortbehandling/{meldekortId}/forhandsvis"
 
 private data class ForhåndsvisBrevMeldekortbehandlingBody(
     val tekstTilVedtaksbrev: String?,
-    val dager: List<Dag>,
-) {
-    data class Dag(
-        val dato: LocalDate,
-        val status: OppdaterMeldekortbehandlingKommando.Status, // :_(
-    )
-}
+    val meldeperioder: List<OppdatertMeldeperiodeDTO>,
+)
 
 fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
     forhåndsvisBrevMeldekortbehandlingService: ForhåndsvisBrevMeldekortbehandlingService,
@@ -64,16 +61,15 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
                             correlationId = correlationId,
                             saksbehandler = saksbehandler,
                             tekstTilVedtaksbrev = body.tekstTilVedtaksbrev?.toNonBlankString(),
-                            // copy-pasta av Oppdater
-                            dager = body.dager.let {
+                            meldeperioder = body.meldeperioder.map {
                                 OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
-                                    it.map { dag ->
+                                    it.dager.map { dag ->
                                         OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag(
                                             dag = dag.dato,
-                                            status = dag.status,
+                                            status = dag.status.tilOppdaterKommandoStatus(),
                                         )
                                     }.toNonEmptyListOrNull()!!,
-                                    kjedeId = TODO(),
+                                    kjedeId = MeldeperiodeKjedeId(it.kjedeId),
                                 )
                             },
                         ),
@@ -99,7 +95,7 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
     }
 }
 
-internal fun KunneIkkeForhåndsviseBrevMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+private fun KunneIkkeForhåndsviseBrevMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         is KunneIkkeForhåndsviseBrevMeldekortbehandling.FeilVedGenereringAvPdf -> Pair(
             HttpStatusCode.InternalServerError,

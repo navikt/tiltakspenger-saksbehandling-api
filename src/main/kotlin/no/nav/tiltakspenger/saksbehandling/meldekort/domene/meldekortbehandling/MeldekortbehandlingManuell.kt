@@ -52,7 +52,6 @@ data class MeldekortbehandlingManuell(
     override val type: MeldekortbehandlingType,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
-    override val beregning: Beregning,
     override val simulering: Simulering?,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
@@ -60,6 +59,7 @@ data class MeldekortbehandlingManuell(
     override val meldeperioder: Meldeperiodebehandlinger,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
+    override val beregning: Beregning get() = meldeperioder.beregning!!
 
     init {
         require(meldeperioder.fraOgMed == beregningPeriode.fraOgMed) {
@@ -170,7 +170,6 @@ data class MeldekortbehandlingManuell(
             saksnummer = saksnummer,
             fnr = fnr,
             opprettet = opprettet,
-            beregning = beregning,
             navkontor = navkontor,
             ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
             saksbehandler = saksbehandler,
@@ -314,7 +313,6 @@ data class MeldekortbehandlingManuell(
             begrunnelse = this.begrunnelse,
             attesteringer = attesteringer,
             sendtTilBeslutning = iverksattTidspunkt,
-            beregning = null,
             simulering = null,
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
             sistEndret = nå(clock),
@@ -333,7 +331,6 @@ data class MeldekortbehandlingManuell(
             saksnummer = saksnummer,
             fnr = fnr,
             opprettet = opprettet,
-            beregning = null,
             simulering = null,
             saksbehandler = saksbehandler,
             navkontor = navkontor,

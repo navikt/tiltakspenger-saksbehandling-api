@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.nonEmptyListOf
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
@@ -34,7 +34,13 @@ class ForhåndsvisBrevMeldekortbehandlingService(
 
         val beregning = sak.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandling.id,
-            meldeperioderSomBeregnes = nonEmptyListOf(command.dager.tilUtfyltMeldeperiode(meldekortbehandling.meldeperiode)),
+            meldeperioderSomBeregnes = command.meldeperioder
+                .map {
+                    it.tilUtfyltMeldeperiode(
+                        sak.meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId),
+                    )
+                }
+                .toNonEmptyListOrThrow(),
             beregningstidspunkt = LocalDateTime.now(),
         )
 
@@ -98,5 +104,5 @@ data class ForhåndsvisBrevMeldekortbehandlingCommand(
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,
     val tekstTilVedtaksbrev: NonBlankString?,
-    val dager: OppdatertMeldeperiode, // :_(
+    val meldeperioder: List<OppdatertMeldeperiode>,
 )

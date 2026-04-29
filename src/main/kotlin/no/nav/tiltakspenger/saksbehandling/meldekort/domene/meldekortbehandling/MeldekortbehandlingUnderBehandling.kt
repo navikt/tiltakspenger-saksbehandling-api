@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -53,7 +52,6 @@ data class MeldekortUnderBehandling(
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val sendtTilBeslutning: LocalDateTime?,
-    override val beregning: Beregning?,
     override val simulering: Simulering?,
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
@@ -112,7 +110,6 @@ data class MeldekortUnderBehandling(
             saksnummer = this.saksnummer,
             fnr = this.fnr,
             opprettet = this.opprettet,
-            beregning = this.beregning!!,
             simulering = this.simulering,
             saksbehandler = this.saksbehandler!!,
             sendtTilBeslutning = nå(clock),
@@ -282,7 +279,6 @@ data class MeldekortUnderBehandling(
             saksnummer = saksnummer,
             fnr = fnr,
             opprettet = opprettet,
-            beregning = beregning,
             simulering = simulering,
             saksbehandler = avbruttAv.navIdent,
             navkontor = navkontor,
@@ -311,7 +307,6 @@ data class MeldekortUnderBehandling(
             saksnummer = saksnummer,
             fnr = fnr,
             opprettet = opprettet,
-            beregning = null,
             simulering = null,
             saksbehandler = saksbehandler,
             navkontor = navkontor,
@@ -399,7 +394,6 @@ fun Sak.opprettManuellMeldekortbehandling(
         begrunnelse = null,
         attesteringer = Attesteringer.empty(),
         sendtTilBeslutning = null,
-        beregning = null,
         simulering = null,
         status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
         sistEndret = nå(clock),

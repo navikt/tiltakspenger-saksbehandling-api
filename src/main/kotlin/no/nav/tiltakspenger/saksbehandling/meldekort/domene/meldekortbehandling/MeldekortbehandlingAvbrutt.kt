@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -28,7 +27,6 @@ data class MeldekortbehandlingAvbrutt(
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val opprettet: LocalDateTime,
-    override val beregning: Beregning?,
     override val simulering: Simulering?,
     override val type: MeldekortbehandlingType,
     override val saksbehandler: String?,

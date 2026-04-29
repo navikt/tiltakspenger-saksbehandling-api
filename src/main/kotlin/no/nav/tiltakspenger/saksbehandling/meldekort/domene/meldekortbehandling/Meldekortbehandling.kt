@@ -147,7 +147,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
                 this.copy(
                     meldeperioder = oppdaterteMeldeperioder,
                     ikkeRettTilTiltakspengerTidspunkt = null,
-                    beregning = null,
                     simulering = null,
                 )
             }
