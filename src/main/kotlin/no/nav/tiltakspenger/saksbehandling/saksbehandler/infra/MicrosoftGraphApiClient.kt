@@ -23,13 +23,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-/**
- * Responsen kan testes ut i https://developer.microsoft.com/en-us/graph/graph-explorer
- * Du kan bruke default url 'https://graph.microsoft.com/v1.0/me' for å hente informasjon om deg selv, hvis du logger inn.
- */
 private data class MicrosoftGraphResponse(
-    val givenName: String,
-    val surname: String,
+    val displayName: String,
 )
 
 private data class ListOfMicrosoftGraphResponse(
@@ -74,7 +69,7 @@ class MicrosoftGraphApiClient(
             "Automatisk saksbehandlet"
         } else {
             hentBrukerinformasjonForNavIdent(navIdent).let { brukerInfo ->
-                val saksbehandlersNavn = "${brukerInfo.givenName} ${brukerInfo.surname}".trim()
+                val saksbehandlersNavn = brukerInfo.displayName.trim()
                 if (saksbehandlersNavn.isBlank()) {
                     throw RuntimeException("Fant ikke saksbehandlerens navn i microsoftGraphApi $navIdent. Responsen var blank.")
                 }

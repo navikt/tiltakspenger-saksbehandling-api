@@ -60,7 +60,7 @@ class BrevOmgjøringOpphørDTOTest {
                     "Du er deltaker i introduksjonsprogram denne perioden. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
                   "barnetillegg": false,
-                  "kontor": "Nav Tiltak Oslo"
+                  "kontor": "Nav Tiltakspenger"
                 }
             """.trimIndent()
 
@@ -111,7 +111,7 @@ class BrevOmgjøringOpphørDTOTest {
                         "Du er deltaker i introduksjonsprogram denne perioden. Deltakere i introduksjonsprogram har ikke rett til tiltakspenger og barnetillegg.\n\nDette kommer frem av tiltakspengeforskriften § 7 tredje ledd."
                   ],
                   "barnetillegg": true,
-                  "kontor": "Nav Tiltak Oslo"
+                  "kontor": "Nav Tiltakspenger"
                 }
             """.trimIndent()
 

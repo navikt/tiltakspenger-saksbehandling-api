@@ -22,7 +22,7 @@ data class BrevKlageInnstillingDTO private constructor(
     val innsendingsdato: String,
 ) {
     @JsonInclude
-    val kontor: String = "Nav Tiltak Oslo"
+    val kontor: String = "Nav Tiltakspenger"
 
     companion object {
         suspend fun create(

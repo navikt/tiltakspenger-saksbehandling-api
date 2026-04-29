@@ -15,7 +15,7 @@ sealed interface BrevRammevedtakBaseDTO {
     val datoForUtsending: String
     val tilleggstekst: String?
     val forhandsvisning: Boolean
-    val kontor: String get() = "Nav Tiltak Oslo"
+    val kontor: String get() = "Nav Tiltakspenger"
 }
 
 sealed interface BrevRammevedtakInnvilgelseBaseDTO : BrevRammevedtakBaseDTO {
