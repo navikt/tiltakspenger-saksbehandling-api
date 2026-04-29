@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
@@ -39,6 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
+import java.time.LocalDate
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.iverksettMeldekortRoute]
@@ -116,6 +118,10 @@ interface IverksettMeldekortbehandlingBuilder {
         kjedeId: MeldeperiodeKjedeId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
+        begrunnelse: String? = null,
+        tekstTilVedtaksbrev: String? = null,
+        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
@@ -125,6 +131,10 @@ interface IverksettMeldekortbehandlingBuilder {
             kjedeId = kjedeId,
             saksbehandler = saksbehandler,
             beslutter = beslutter,
+            begrunnelse = begrunnelse,
+            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
+            dager = dager,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ) ?: return null
         return iverksettMeldekortbehandling(
             tac = tac,

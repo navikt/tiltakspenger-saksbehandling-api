@@ -42,7 +42,12 @@ abstract class TestApplicationContext(
     val kabalClientFake by lazy { KabalClientFake(clock) }
 
     protected val utbetalingFakeKlient by lazy {
-        UtbetalingFakeKlient(sakContext.sakRepo, tilbakekrevingHendelseRepo, clock)
+        UtbetalingFakeKlient(
+            sakRepo = sakContext.sakRepo,
+            clock = clock,
+            tilbakekrevingProducer = tilbakekrevingProducer,
+            skalStarteTilbakekrevinger = false,
+        )
     }
 
     override val tilbakekrevingProducer by lazy {

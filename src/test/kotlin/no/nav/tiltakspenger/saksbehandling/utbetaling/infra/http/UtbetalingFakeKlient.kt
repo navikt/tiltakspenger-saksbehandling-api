@@ -9,21 +9,15 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
-import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoBehovDTO
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
@@ -36,8 +30,9 @@ import java.time.Clock
 
 class UtbetalingFakeKlient(
     private val sakRepo: SakRepo,
-    private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
     private val clock: Clock = fixedClock,
+    private val tilbakekrevingProducer: TilbakekrevingFakeProducer,
+    var skalStarteTilbakekrevinger: Boolean,
 ) : Utbetalingsklient {
 
     override suspend fun iverksett(
@@ -51,29 +46,8 @@ class UtbetalingFakeKlient(
             responseStatus = 202,
         )
 
-        val sak = sakRepo.hentForSakId(utbetaling.sakId)!!
-
-        val harFeilutbetaling = when (utbetaling.beregningKilde) {
-            is BeregningKilde.BeregningKildeRammebehandling ->
-                sak.hentRammebehandling(utbetaling.beregningKilde.id)?.utbetaling?.simulering.harFeilutbetaling()
-
-            is BeregningKilde.BeregningKildeMeldekort ->
-                sak.hentMeldekortbehandling(utbetaling.beregningKilde.id)?.simulering.harFeilutbetaling()
-        }
-
-        if (harFeilutbetaling) {
-            TilbakekrevingConsumer.consume(
-                key = utbetaling.fnr.verdi,
-                value = serialize(
-                    TilbakekrevingInfoBehovDTO(
-                        eksternFagsakId = utbetaling.saksnummer.toString(),
-                        hendelseOpprettet = nå(clock),
-                        kravgrunnlagReferanse = utbetaling.id.uuidPart(),
-                    ),
-                ),
-                tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
-                sakRepo = sakRepo,
-            )
+        if (skalStarteTilbakekrevinger) {
+            tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(utbetaling)
         }
 
         return response.right()
@@ -100,9 +74,5 @@ class UtbetalingFakeKlient(
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         val sak = sakRepo.hentForSakId(sakId)!!
         return sak.genererSimuleringFraBeregning(beregning = beregning, clock = clock).right()
-    }
-
-    private fun Simulering?.harFeilutbetaling(): Boolean {
-        return (this as? Simulering.Endring)?.harFeilutbetaling ?: false
     }
 }

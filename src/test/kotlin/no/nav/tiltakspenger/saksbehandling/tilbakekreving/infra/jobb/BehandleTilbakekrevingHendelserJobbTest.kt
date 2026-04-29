@@ -6,13 +6,15 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -23,34 +25,28 @@ class BehandleTilbakekrevingHendelserJobbTest {
     @Test
     fun `infobehov - behandles og svar produseres når utbetaling finnes`() {
         withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
-            val utbetaling = sak.utbetalinger.first()
-            val kravgrunnlagReferanse = utbetaling.id.uuidPart()
+            val (_, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
 
-            @Language("JSON")
-            val hendelseJson = """
-                {
-                    "hendelsestype": "fagsysteminfo_behov",
-                    "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock)}",
-                    "kravgrunnlagReferanse": "$kravgrunnlagReferanse"
-                }
-            """.trimIndent()
-
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
+            val opphørUtbetaling = opphørVedtak.utbetaling!!
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørUtbetaling)
 
             val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single()
 
             hendelse.shouldBeInstanceOf<TilbakekrevingInfoBehovHendelse>()
             hendelse.hendelsestype shouldBe TilbakekrevinghendelseType.InfoBehov
             hendelse.eksternFagsakId shouldBe sak.saksnummer.verdi
-            hendelse.kravgrunnlagReferanse shouldBe kravgrunnlagReferanse
+            hendelse.kravgrunnlagReferanse shouldBe opphørUtbetaling.id.uuidPart()
 
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
-            // Hendelsen skal være behandlet (ikke lenger i ubehandlede)
+            // InfoBehov er behandlet, og en ny BehandlingEndret-hendelse er generert som svar
             tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
                 .single().hendelsestype shouldBe TilbakekrevinghendelseType.BehandlingEndret
         }
@@ -122,107 +118,39 @@ class BehandleTilbakekrevingHendelserJobbTest {
     }
 
     @Test
-    fun `behandlingendret - oppretter ny tilbakekrevingbehandling når utbetaling finnes`() {
-        withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
-
-            val utbetaling = sak.utbetalinger.first()
-            val eksternBehandlingId = utbetaling.id.uuidPart()
-
-            @Language("JSON")
-            val hendelseJson = """
-                {
-                    "hendelsestype": "behandling_endret",
-                    "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock)}",
-                    "eksternBehandlingId": "$eksternBehandlingId",
-                    "tilbakekreving": {
-                        "behandlingId": "tilbake-behandling-123",
-                        "sakOpprettet": "${nå(tac.clock)}",
-                        "varselSendt": "${LocalDate.now(tac.clock)}",
-                        "behandlingsstatus": "OPPRETTET",
-                        "forrigeBehandlingsstatus": null,
-                        "totaltFeilutbetaltBeløp": 1500.00,
-                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/123",
-                        "fullstendigPeriode": {
-                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
-                            "tom": "${LocalDate.now(tac.clock)}"
-                        }
-                    }
-                }
-            """.trimIndent()
-
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
-
-            tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).size shouldBe 0
-
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
-
-            // Hendelsen skal være behandlet
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
-
-            // TilbakekrevingBehandling skal være opprettet
-            val tilbakekrevingBehandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id)
-            tilbakekrevingBehandlinger.size shouldBe 1
-
-            val tilbakekrevingBehandling = tilbakekrevingBehandlinger.first()
-            tilbakekrevingBehandling.sakId shouldBe sak.id
-            tilbakekrevingBehandling.utbetalingId shouldBe utbetaling.id
-            tilbakekrevingBehandling.tilbakeBehandlingId shouldBe "tilbake-behandling-123"
-            tilbakekrevingBehandling.status shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
-            tilbakekrevingBehandling.totaltFeilutbetaltBeløp shouldBe BigDecimal("1500.00")
-        }
-    }
-
-    @Test
     fun `behandlingendret - oppdaterer eksisterende tilbakekrevingbehandling`() {
         withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
-            val utbetaling = sak.utbetalinger.first()
-            val eksternBehandlingId = utbetaling.id.uuidPart()
-            val tilbakeBehandlingId = "tilbake-behandling-456"
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
 
-            // Først opprett en behandling
-            @Language("JSON")
-            val førsteHendelseJson = """
-                {
-                    "hendelsestype": "behandling_endret",
-                    "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock)}",
-                    "eksternBehandlingId": "$eksternBehandlingId",
-                    "tilbakekreving": {
-                        "behandlingId": "$tilbakeBehandlingId",
-                        "sakOpprettet": "${nå(tac.clock)}",
-                        "varselSendt": null,
-                        "behandlingsstatus": "OPPRETTET",
-                        "forrigeBehandlingsstatus": null,
-                        "totaltFeilutbetaltBeløp": 1000.00,
-                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/456",
-                        "fullstendigPeriode": {
-                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
-                            "tom": "${LocalDate.now(tac.clock)}"
-                        }
-                    }
-                }
-            """.trimIndent()
-
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, førsteHendelseJson)
+            // Trigg infobehov + behandling-endret flyten via fake-produseren slik at en
+            // TilbakekrevingBehandling med status OPPRETTET opprettes.
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
-            val førsteBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).first()
+            val førsteBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
             førsteBehandling.status shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
 
-            // Så oppdater med ny hendelse
+            // Send en oppdatering med samme tilbakeBehandlingId men ny status og beløp.
+            // Vi bygger denne som rå JSON fordi fake-produseren alltid genererer en ny
+            // tilbakeBehandlingId, og vi vil verifisere at en eksisterende behandling oppdateres.
+            val tilbakeBehandlingId = førsteBehandling.tilbakeBehandlingId
+            val eksternBehandlingId = opphørVedtak.behandlingId
+
             @Language("JSON")
-            val andreHendelseJson = """
+            val oppdateringJson = """
                 {
                     "hendelsestype": "behandling_endret",
                     "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock).plusSeconds(10)}",
+                    "eksternFagsakId": "${sakMedOpphør.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
                     "eksternBehandlingId": "$eksternBehandlingId",
                     "tilbakekreving": {
                         "behandlingId": "$tilbakeBehandlingId",
@@ -231,7 +159,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
                         "behandlingsstatus": "TIL_BEHANDLING",
                         "forrigeBehandlingsstatus": "OPPRETTET",
                         "totaltFeilutbetaltBeløp": 1200.00,
-                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/456",
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/oppdatert",
                         "fullstendigPeriode": {
                             "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
                             "tom": "${LocalDate.now(tac.clock)}"
@@ -240,11 +168,10 @@ class BehandleTilbakekrevingHendelserJobbTest {
                 }
             """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, andreHendelseJson)
+            tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, oppdateringJson)
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
-            // Skal fortsatt bare være én behandling (oppdatert)
-            val behandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id)
+            val behandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id)
             behandlinger.size shouldBe 1
 
             val oppdatertBehandling = behandlinger.first()
@@ -350,67 +277,6 @@ class BehandleTilbakekrevingHendelserJobbTest {
     }
 
     @Test
-    fun `flere hendelser - behandler alle ubehandlede hendelser`() {
-        withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
-
-            val utbetaling = sak.utbetalinger.first()
-            val kravgrunnlagReferanse = utbetaling.id.uuidPart()
-
-            // Opprett en infobehov-hendelse
-            @Language("JSON")
-            val infoBehovJson = """
-                {
-                    "hendelsestype": "fagsysteminfo_behov",
-                    "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock)}",
-                    "kravgrunnlagReferanse": "$kravgrunnlagReferanse"
-                }
-            """.trimIndent()
-
-            // Opprett en behandlingendret-hendelse
-            @Language("JSON")
-            val behandlingEndretJson = """
-                {
-                    "hendelsestype": "behandling_endret",
-                    "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock)}",
-                    "eksternBehandlingId": "$kravgrunnlagReferanse",
-                    "tilbakekreving": {
-                        "behandlingId": "tilbake-multi-123",
-                        "sakOpprettet": "${nå(tac.clock)}",
-                        "varselSendt": null,
-                        "behandlingsstatus": "OPPRETTET",
-                        "forrigeBehandlingsstatus": null,
-                        "totaltFeilutbetaltBeløp": 2000.00,
-                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/multi",
-                        "fullstendigPeriode": {
-                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
-                            "tom": "${LocalDate.now(tac.clock)}"
-                        }
-                    }
-                }
-            """.trimIndent()
-
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, infoBehovJson)
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, behandlingEndretJson)
-
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 2
-
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
-
-            // Begge hendelsene skal være behandlet, men infobehov genererer en ny BehandlingEndret hendelse
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-                .single().hendelsestype shouldBe TilbakekrevinghendelseType.BehandlingEndret
-
-            // TilbakekrevingBehandling skal være opprettet fra behandlingendret-hendelsen
-            tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).size shouldBe 1
-        }
-    }
-
-    @Test
     fun `ingen ubehandlede hendelser - gjør ingenting`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
@@ -429,59 +295,42 @@ class BehandleTilbakekrevingHendelserJobbTest {
     @Test
     fun `behandlingendret - hopper over oppdatering når hendelse er utdatert`() {
         withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
-            val utbetaling = sak.utbetalinger.first()
-            val eksternBehandlingId = utbetaling.id.uuidPart()
-            val tilbakeBehandlingId = "tilbake-utdatert-123"
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
 
-            // Opprett første hendelse med nyere timestamp
-            @Language("JSON")
-            val nyHendelseJson = """
-                {
-                    "hendelsestype": "behandling_endret",
-                    "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock).plusMinutes(10)}",
-                    "eksternBehandlingId": "$eksternBehandlingId",
-                    "tilbakekreving": {
-                        "behandlingId": "$tilbakeBehandlingId",
-                        "sakOpprettet": "${nå(tac.clock)}",
-                        "varselSendt": null,
-                        "behandlingsstatus": "TIL_BEHANDLING",
-                        "forrigeBehandlingsstatus": null,
-                        "totaltFeilutbetaltBeløp": 1500.00,
-                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/utdatert",
-                        "fullstendigPeriode": {
-                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
-                            "tom": "${LocalDate.now(tac.clock)}"
-                        }
-                    }
-                }
-            """.trimIndent()
-
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, nyHendelseJson)
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
-            val behandlingFørUtdatertHendelse = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).first()
-            behandlingFørUtdatertHendelse.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
+            val behandlingFørUtdatertHendelse = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            val opprinneligStatus = behandlingFørUtdatertHendelse.status
+            val opprinneligBeløp = behandlingFørUtdatertHendelse.totaltFeilutbetaltBeløp
+            val tilbakeBehandlingId = behandlingFørUtdatertHendelse.tilbakeBehandlingId
+            val eksternBehandlingId = opphørVedtak.behandlingId
+            val utdatertTimestamp = behandlingFørUtdatertHendelse.sistEndret.minusMinutes(10)
 
-            // Opprett utdatert hendelse med eldre timestamp
+            // Send en utdatert hendelse (eldre timestamp) med samme tilbakeBehandlingId
             @Language("JSON")
             val utdatertHendelseJson = """
                 {
                     "hendelsestype": "behandling_endret",
                     "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternFagsakId": "${sakMedOpphør.saksnummer.verdi}",
+                    "hendelseOpprettet": "$utdatertTimestamp",
                     "eksternBehandlingId": "$eksternBehandlingId",
                     "tilbakekreving": {
                         "behandlingId": "$tilbakeBehandlingId",
-                        "sakOpprettet": "${nå(tac.clock)}",
+                        "sakOpprettet": "$utdatertTimestamp",
                         "varselSendt": null,
-                        "behandlingsstatus": "OPPRETTET",
-                        "forrigeBehandlingsstatus": null,
-                        "totaltFeilutbetaltBeløp": 1000.00,
+                        "behandlingsstatus": "TIL_BEHANDLING",
+                        "forrigeBehandlingsstatus": "OPPRETTET",
+                        "totaltFeilutbetaltBeløp": 1.00,
                         "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/utdatert",
                         "fullstendigPeriode": {
                             "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
@@ -491,46 +340,108 @@ class BehandleTilbakekrevingHendelserJobbTest {
                 }
             """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, utdatertHendelseJson)
+            tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, utdatertHendelseJson)
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet, men behandlingen skal ikke være oppdatert
             tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
 
-            val behandlingEtterUtdatertHendelse = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).first()
-            behandlingEtterUtdatertHendelse.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-            behandlingEtterUtdatertHendelse.totaltFeilutbetaltBeløp shouldBe BigDecimal("1500.00")
+            val behandlingEtterUtdatertHendelse =
+                tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            behandlingEtterUtdatertHendelse.status shouldBe opprinneligStatus
+            behandlingEtterUtdatertHendelse.totaltFeilutbetaltBeløp shouldBe opprinneligBeløp
+        }
+    }
+
+    @Test
+    fun `behandlingendret - oppretter tilbakekrevingbehandling for omgjøring til opphør`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+
+            // Lag en stans-revurdering på saken og bruk dens rammebehandlingId for hendelsen
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
+
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
+
+            // Håndterer info-behov hendelse som følge av feilutbetaling
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            // Håndterer behandling endret hendelse som følge av info-svar
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+
+            val forventetUtbetaling =
+                sakMedOpphør.utbetalinger.hentUtbetalingForRammebehandling(opphørVedtak.behandlingId)!!
+
+            val tilbakekrevingBehandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id)
+            tilbakekrevingBehandlinger.size shouldBe 1
+
+            val tilbakekrevingBehandling = tilbakekrevingBehandlinger.first()
+            tilbakekrevingBehandling.sakId shouldBe sakMedOpphør.id
+            tilbakekrevingBehandling.utbetalingId shouldBe forventetUtbetaling.id
+        }
+    }
+
+    @Test
+    fun `behandlingendret - oppretter tilbakekrevingbehandling for korrigert meldekort med feilutbetaling`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+
+            val (sakMedKorrigering, korrigeringVedtak) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = meldekortbehandling.kjedeId,
+                dager = meldekortbehandling.dager.map {
+                    it.dato to if (it.status === MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {
+                        MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
+                    } else {
+                        MeldekortDagStatus.IKKE_TILTAKSDAG
+                    }
+                },
+            )!!
+
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(korrigeringVedtak.utbetaling)
+
+            // Håndterer info-behov hendelse som følge av feilutbetaling
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            // Håndterer behandling endret hendelse som følge av info-svar
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+
+            val forventetUtbetaling =
+                sakMedKorrigering.utbetalinger.hentUtbetalingForMeldekort(korrigeringVedtak.meldekortId)!!
+
+            val tilbakekrevingBehandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedKorrigering.id)
+            tilbakekrevingBehandlinger.size shouldBe 1
+
+            val tilbakekrevingBehandling = tilbakekrevingBehandlinger.first()
+            tilbakekrevingBehandling.sakId shouldBe sakMedKorrigering.id
+            tilbakekrevingBehandling.utbetalingId shouldBe forventetUtbetaling.id
         }
     }
 
     @Test
     fun `postgres - full flyt fra InfoBehov til TilbakekrevingBehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, _, _, _) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
-            val utbetaling = sak.utbetalinger.first()
-            val kravgrunnlagReferanse = utbetaling.id.uuidPart()
-
-            // Simuler mottak av InfoBehov hendelse via Kafka consumer
-            val key = "test-key-infobehov"
-
-            @Language("JSON")
-            val value = """
-                {
-                    "hendelsestype": "fagsysteminfo_behov",
-                    "versjon": 1,
-                    "eksternFagsakId": "${sak.saksnummer.verdi}",
-                    "hendelseOpprettet": "${nå(tac.clock)}",
-                    "kravgrunnlagReferanse": "$kravgrunnlagReferanse"
-                }
-            """.trimIndent()
-
-            TilbakekrevingConsumer.consume(
-                key = key,
-                value = value,
-                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
             )
+
+            // Trigg InfoBehov via fake-produseren (som følge av feilutbetaling i opphør-utbetalingen)
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
 
             // Verifiser at InfoBehov hendelse er lagret og ubehandlet
             val ubehandledeFørFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -546,7 +457,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             ubehandledeEtterFørsteKjøring.single().hendelsestype shouldBe TilbakekrevinghendelseType.BehandlingEndret
 
             // Verifiser at det ennå ikke er opprettet noen TilbakekrevingBehandling
-            tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).size shouldBe 0
+            tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).size shouldBe 0
 
             // Andre kjøring av jobben - håndterer BehandlingEndret hendelsen
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
@@ -555,11 +466,11 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
 
             // Verifiser at TilbakekrevingBehandling er opprettet i databasen
-            val tilbakekrevingBehandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id)
+            val tilbakekrevingBehandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id)
             tilbakekrevingBehandlinger.size shouldBe 1
 
             val tilbakekrevingBehandling = tilbakekrevingBehandlinger.first()
-            tilbakekrevingBehandling.sakId shouldBe sak.id
+            tilbakekrevingBehandling.sakId shouldBe sakMedOpphør.id
             tilbakekrevingBehandling.status shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
         }
     }

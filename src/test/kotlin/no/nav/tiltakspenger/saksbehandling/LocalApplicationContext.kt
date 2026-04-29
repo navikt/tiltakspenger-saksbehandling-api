@@ -197,7 +197,12 @@ class LocalApplicationContext(
     }
 
     private val utbetalingFakeKlient by lazy {
-        UtbetalingFakeKlient(sakContext.sakRepo, tilbakekrevingHendelseRepo, clock)
+        UtbetalingFakeKlient(
+            sakRepo = sakContext.sakRepo,
+            clock = clock,
+            tilbakekrevingProducer = tilbakekrevingProducer,
+            skalStarteTilbakekrevinger = true,
+        )
     }
 
     override val tilbakekrevingProducer by lazy {

@@ -134,6 +134,9 @@ interface OppdaterMeldekortbehandlingBuilder {
             meldekortId = opprettetMeldekortbehandling.id,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             saksbehandler = saksbehandler,
+            dager = dager,
+            begrunnelse = begrunnelse,
+            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         )

@@ -6,16 +6,19 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tilBehandlingIdFraTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingBehandlingEndretDTO.TilbakekrevingHendelseStatusDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoBehovDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingInfoSvarDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.TilbakekrevingPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.Clock
 import java.util.UUID
 
@@ -33,6 +36,33 @@ class TilbakekrevingFakeProducer(
             ?.sendBehandlingEndretHendelse(infoSvar)
 
         return serialize(infoSvar)
+    }
+
+    fun produserInfoBehovVedFeilutbetaling(utbetaling: VedtattUtbetaling) {
+        val sak = sakRepo.hentForSakId(utbetaling.sakId)!!
+
+        val harFeilutbetaling = when (utbetaling.beregningKilde) {
+            is BeregningKilde.BeregningKildeRammebehandling ->
+                sak.hentRammebehandling(utbetaling.beregningKilde.id)?.utbetaling?.simulering
+
+            is BeregningKilde.BeregningKildeMeldekort ->
+                sak.hentMeldekortbehandling(utbetaling.beregningKilde.id)?.simulering
+        }?.harFeilutbetaling ?: false
+
+        if (harFeilutbetaling) {
+            TilbakekrevingConsumer.consume(
+                key = utbetaling.fnr.verdi,
+                value = serialize(
+                    TilbakekrevingInfoBehovDTO(
+                        eksternFagsakId = utbetaling.saksnummer.verdi,
+                        hendelseOpprettet = nå(clock),
+                        kravgrunnlagReferanse = utbetaling.id.uuidPart(),
+                    ),
+                ),
+                tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+                sakRepo = sakRepo,
+            )
+        }
     }
 
     private fun Sak.sendBehandlingEndretHendelse(infoSvar: TilbakekrevingInfoSvarDTO) {
