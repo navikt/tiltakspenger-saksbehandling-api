@@ -92,7 +92,7 @@ class MeldekortberegningFraBrukersMeldekort {
 
         val dagerBeregnetFraBruker = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilMeldekortDager()),
+            meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilUtfyltMeldeperiode()),
             beregningstidspunkt = beregningstidspunkt,
         ).map { it.dager }
 

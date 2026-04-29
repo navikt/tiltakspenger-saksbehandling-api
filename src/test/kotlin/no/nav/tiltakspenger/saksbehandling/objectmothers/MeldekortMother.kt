@@ -262,7 +262,7 @@ interface MeldekortMother : MotherOfAllMothers {
             simulering = simulering,
             sistEndret = sistEndret,
             meldeperioder = Meldeperiodebehandlinger(
-                dager = brukersMeldekort.tilMeldekortDager(),
+                dager = brukersMeldekort.tilUtfyltMeldeperiode(),
                 beregning = beregning,
                 brukersMeldekort = brukersMeldekort,
             ),
@@ -318,7 +318,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     kjedeId = kjedeId,
                     meldekortId = meldekortbehandlingId,
                     beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortbehandlingId),
-                    dager = tilMeldekortDager().map {
+                    dager = tilUtfyltMeldeperiode().map {
                         val dato = it.dato
                         val antallBarn: AntallBarn by lazy {
                             barnetilleggsPerioder?.hentVerdiForDag(dato) ?: AntallBarn.ZERO
