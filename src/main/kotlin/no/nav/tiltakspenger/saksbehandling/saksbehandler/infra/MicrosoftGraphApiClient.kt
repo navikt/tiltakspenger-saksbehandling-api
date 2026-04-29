@@ -23,14 +23,26 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
+/**
+ * Disse feltene hentes ut som en del av select-query parameter i uri().
+ */
 private data class MicrosoftGraphResponse(
-    val displayName: String,
+    val givenName: String,
+    val surname: String,
 )
 
 private data class ListOfMicrosoftGraphResponse(
     val value: List<MicrosoftGraphResponse>,
 )
 
+/**
+ * Api'et kan testes ut her: https://developer.microsoft.com/en-us/graph/graph-explorer
+ * Eksempel request: GET v1.0 https://graph.microsoft.com/v1.0/users?$select=givenName,surname&$filter=onPremisesSamAccountName eq 'din nav ident med apostrof'&$count=true
+ *
+ * Kan enkelt testes ut ved å se hvilken informasjon du kan hente ut ved å bruke https://graph.microsoft.com/v1.0/me
+ *
+ * Microsoft docs: https://learn.microsoft.com/en-us/graph/use-the-api
+ */
 class MicrosoftGraphApiClient(
     private val getToken: suspend () -> AccessToken,
     private val timeout: Duration = 1.seconds,
@@ -47,7 +59,7 @@ class MicrosoftGraphApiClient(
             protocol = if (Configuration.isNais()) URLProtocol.HTTPS else URLProtocol.HTTP
             host = baseUrl
             encodedPath = "/users"
-            parameters.append("\$select", "displayName")
+            parameters.append("\$select", "givenName,surname")
             parameters.append("\$filter", "onPremisesSamAccountName eq '$navIdent'")
             parameters.append("\$count", "true")
         }
@@ -69,7 +81,7 @@ class MicrosoftGraphApiClient(
             "Automatisk saksbehandlet"
         } else {
             hentBrukerinformasjonForNavIdent(navIdent).let { brukerInfo ->
-                val saksbehandlersNavn = brukerInfo.displayName.trim()
+                val saksbehandlersNavn = "${brukerInfo.givenName} ${brukerInfo.surname}".trim()
                 if (saksbehandlersNavn.isBlank()) {
                     throw RuntimeException("Fant ikke saksbehandlerens navn i microsoftGraphApi $navIdent. Responsen var blank.")
                 }
