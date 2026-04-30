@@ -91,7 +91,7 @@ data class BrukersMeldekort(
     fun tilUtfyltMeldeperiode(): UtfyltMeldeperiode {
         return UtfyltMeldeperiode(
             meldeperiode = meldeperiode,
-            verdi = dager.map {
+            dager = dager.map {
                 MeldekortDag(
                     dato = it.dato,
                     status =

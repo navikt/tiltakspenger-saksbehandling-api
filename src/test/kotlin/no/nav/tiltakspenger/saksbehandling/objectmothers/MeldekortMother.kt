@@ -140,7 +140,7 @@ interface MeldekortMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = null,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             meldeperioder = Meldeperiodebehandlinger(
-                dager = dager,
+                meldeperiode = dager,
                 beregning = null,
                 brukersMeldekort = null,
             ),
@@ -211,7 +211,7 @@ interface MeldekortMother : MotherOfAllMothers {
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             meldeperioder = Meldeperiodebehandlinger(
-                dager = dager,
+                meldeperiode = dager,
                 beregning = meldekortperiodeBeregning,
                 brukersMeldekort = null,
             ),
@@ -262,7 +262,7 @@ interface MeldekortMother : MotherOfAllMothers {
             simulering = simulering,
             sistEndret = sistEndret,
             meldeperioder = Meldeperiodebehandlinger(
-                dager = brukersMeldekort.tilUtfyltMeldeperiode(),
+                meldeperiode = brukersMeldekort.tilUtfyltMeldeperiode(),
                 beregning = beregning,
                 brukersMeldekort = brukersMeldekort,
             ),
@@ -624,7 +624,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     meldeperioder = Meldeperiodebehandlinger(
-                        dager = dager,
+                        meldeperiode = dager,
                         beregning = null,
                         brukersMeldekort = null,
                     ),
@@ -743,7 +743,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 fritekstTilVedtaksbrev = null,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 meldeperioder = Meldeperiodebehandlinger(
-                    dager = dager,
+                    meldeperiode = dager,
                     beregning = null,
                     brukersMeldekort = null,
                 ),

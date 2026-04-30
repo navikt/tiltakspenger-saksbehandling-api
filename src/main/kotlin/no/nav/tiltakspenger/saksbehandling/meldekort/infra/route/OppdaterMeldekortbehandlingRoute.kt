@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.json.deserialize
@@ -48,11 +49,10 @@ fun Route.oppdaterMeldekortbehandlingRoute(
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 val correlationId = call.correlationId()
-                val rawBody = call.receiveText()
+
                 val body = runCatching {
-                    deserializeCompatOppdaterMeldekortbehandlingDTO(
-                        rawBody = rawBody,
-                        hentLegacyKjedeId = {
+                    call.deserializeOppdaterMeldekortbehandlingDTO(
+                        hentKjedeId = {
                             oppdaterMeldekortbehandlingService.hentKjedeIdForMeldekort(
                                 sakId = sakId,
                                 meldekortId = meldekortId,
@@ -137,13 +137,14 @@ private data class LegacyOppdaterMeldekortbehandlingDTO(
     }
 }
 
-private fun deserializeCompatOppdaterMeldekortbehandlingDTO(
-    rawBody: String,
-    hentLegacyKjedeId: () -> MeldeperiodeKjedeId,
+private suspend fun RoutingCall.deserializeOppdaterMeldekortbehandlingDTO(
+    hentKjedeId: () -> MeldeperiodeKjedeId,
 ): OppdaterMeldekortbehandlingDTO {
-    return runCatching {
-        deserialize<OppdaterMeldekortbehandlingDTO>(rawBody)
-    }.getOrElse {
-        deserialize<LegacyOppdaterMeldekortbehandlingDTO>(rawBody).toNyDto(hentLegacyKjedeId())
+    return this.receiveText().let { body ->
+        runCatching {
+            deserialize<OppdaterMeldekortbehandlingDTO>(body)
+        }.getOrElse {
+            deserialize<LegacyOppdaterMeldekortbehandlingDTO>(body).toNyDto(hentKjedeId())
+        }
     }
 }

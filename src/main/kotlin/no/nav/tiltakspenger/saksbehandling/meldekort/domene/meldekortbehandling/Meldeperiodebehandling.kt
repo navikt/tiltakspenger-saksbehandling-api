@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilUtfyltMeldeperiode
 import java.time.LocalDate
 
 data class Meldeperiodebehandling(
@@ -24,7 +24,7 @@ data class Meldeperiodebehandling(
 
 fun Meldeperiode.tilMeldeperiodebehandling(): Meldeperiodebehandling {
     return Meldeperiodebehandling(
-        dager = this.tilMeldekortDager(),
+        dager = this.tilUtfyltMeldeperiode(),
         brukersMeldekort = null,
     )
 }

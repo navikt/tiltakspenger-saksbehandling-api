@@ -290,7 +290,7 @@ private fun UtfyltMeldeperiode.tilSkalBeregnes(meldekortId: MeldekortId): Meldep
     return MeldeperiodeSomSkalBeregnes(
         kjedeId = this.meldeperiode.kjedeId,
         meldekortId = meldekortId,
-        dager = this.verdi.toNonEmptyListOrThrow(),
+        dager = this.dager.toNonEmptyListOrThrow(),
     )
 }
 

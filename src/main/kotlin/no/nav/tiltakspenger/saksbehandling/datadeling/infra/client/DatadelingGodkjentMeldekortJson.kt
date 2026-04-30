@@ -64,7 +64,7 @@ fun Meldekortvedtak.toDatadelingJson(totalDifferanse: Int?): String {
         korrigert = erKorrigering,
         fraOgMed = meldekortbehandling.fraOgMed,
         tilOgMed = meldekortbehandling.tilOgMed,
-        meldekortdager = meldekortbehandling.dager.verdi.map { it.toDatadelingMeldekortDagDTO() },
+        meldekortdager = meldekortbehandling.dager.dager.map { it.toDatadelingMeldekortDagDTO() },
         journalpostId = journalpostId!!.toString(),
         totaltBelop = meldekortbehandling.beløpTotal,
         totalDifferanse = totalDifferanse,

@@ -10,13 +10,13 @@ import java.time.LocalDate
  * Skal ikke brukes for brukers meldekort; se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort].
  * Gjelder 14 dager, fra mandag til søndag.
  *
- * @param verdi Liste med 14 dager, fra mandag til søndag. Må inneholde alle dagene eksakt én gang.
+ * @param dager Liste med 14 dager, fra mandag til søndag. Må inneholde alle dagene eksakt én gang.
  * @param meldeperiode Meldeperioden dagene tilhører.
  */
 data class UtfyltMeldeperiode(
-    val verdi: List<MeldekortDag>,
+    val dager: List<MeldekortDag>,
     val meldeperiode: Meldeperiode,
-) : List<MeldekortDag> by verdi {
+) : List<MeldekortDag> by dager {
 
     val maksAntallDagerForPeriode = meldeperiode.maksAntallDagerForMeldeperiode
 
@@ -33,7 +33,7 @@ data class UtfyltMeldeperiode(
         require(periode == meldeperiode.periode) {
             "MeldekortDager (periode=$periode) må være lik meldeperioden ${meldeperiode.periode}"
         }
-        verdi.zipWithNext { a, b ->
+        dager.zipWithNext { a, b ->
             require(a.dato.plusDays(1) == b.dato) {
                 "Datoene må være i stigende rekkefølge (sammenhengende, sortert og uten duplikater)."
             }
@@ -44,28 +44,28 @@ data class UtfyltMeldeperiode(
         require(maksAntallDagerForPeriode >= antallDagerMedDeltattEllerFravær) {
             "For mange dager utfylt - $antallDagerMedDeltattEllerFravær var utfylt, maks antall for perioden er $maksAntallDagerForPeriode (meldeperiode id ${meldeperiode.id})"
         }
-        meldeperiode.girRett.toList().zip(verdi) { (dato, harRett), dag ->
+        meldeperiode.girRett.toList().zip(dager) { (dato, harRett), dag ->
             require(dato == dag.dato) {
                 "Meldeperiodedatoene må stemme overens med dagene."
             }
             if (harRett && dag.status == MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {
-                throw IllegalArgumentException("Kan ikke endre dag til IKKE_RETT_TIL_TILTAKSPENGER. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
+                throw IllegalArgumentException("Kan ikke endre dag til IKKE_RETT_TIL_TILTAKSPENGER. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $dager")
             }
             if (!harRett && dag.status != MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {
-                throw IllegalArgumentException("Kan ikke endre dag fra IKKE_RETT_TIL_TILTAKSPENGER. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $verdi")
+                throw IllegalArgumentException("Kan ikke endre dag fra IKKE_RETT_TIL_TILTAKSPENGER. Meldeperiode (id ${meldeperiode.id}): ${meldeperiode.girRett}. Innsendte dager: $dager")
             }
         }
     }
 }
 
-fun Meldeperiode.tilMeldekortDager(): UtfyltMeldeperiode {
+fun Meldeperiode.tilUtfyltMeldeperiode(): UtfyltMeldeperiode {
     return UtfyltMeldeperiode(
-        this.girRett.entries.map { (dato, harRett) ->
+        periode.datoer.map { dato ->
             MeldekortDag(
                 dato = dato,
-                status = if (harRett) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+                status = if (girRett[dato] == true) MeldekortDagStatus.IKKE_BESVART else MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             )
-        },
+        }.toList(),
         this,
     )
 }
