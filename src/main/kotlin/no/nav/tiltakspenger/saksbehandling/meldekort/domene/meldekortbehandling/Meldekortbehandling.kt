@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedt
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
@@ -67,8 +66,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder samtidig er på plass */
     val meldeperiode: Meldeperiode get() = meldeperioder.single().meldeperiode
-    val kjedeId: MeldeperiodeKjedeId get() = meldeperioder.kjedeIder.single()
-    val brukersMeldekort: BrukersMeldekort? get() = meldeperioder.brukersMeldekort.singleOrNullOrThrow()
+    val kjedeId: MeldeperiodeKjedeId get() = meldeperiode.kjedeId
+    val brukersMeldekort: BrukersMeldekort? get() = meldeperioder.single().brukersMeldekort
     val dager: UtfyltMeldeperiode get() = meldeperioder.single().dager
 
     /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
@@ -99,7 +98,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     override val erAvbrutt: Boolean
         get() = avbrutt != null
 
-    val rammevedtakIder: NonEmptyList<VedtakId> get() = meldeperioder.rammevedtak
+    val rammevedtakIder: NonEmptyList<VedtakId> get() = meldeperioder.rammevedtakIder
 
     val erKorrigering: Boolean get() = type == MeldekortbehandlingType.KORRIGERING
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
@@ -108,7 +107,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     fun erÅpen(): Boolean = !erAvsluttet
 
     /**
-     * Oppdaterer meldeperiodene under [meldeperioder] til nyeste versjon
+     * Oppdaterer meldeperiodene for denne behandlingen til nyeste versjoner for kjedene
      */
     fun oppdaterMeldeperioder(
         oppdaterteKjeder: MeldeperiodeKjeder,
