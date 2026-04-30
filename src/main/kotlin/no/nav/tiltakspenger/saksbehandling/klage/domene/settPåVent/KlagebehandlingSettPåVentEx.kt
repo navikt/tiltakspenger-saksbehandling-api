@@ -22,7 +22,7 @@ fun Klagebehandling.settPåVent(
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }
 
-    kanOppdatereIDenneStatusen(null, kanVæreOmgjørEtterKA = true).onLeft {
+    kanOppdatereIDenneStatusen(null, kanVæreMottattFraKA = true, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
     }
     if (saksbehandler != kommando.saksbehandler.navIdent) {
