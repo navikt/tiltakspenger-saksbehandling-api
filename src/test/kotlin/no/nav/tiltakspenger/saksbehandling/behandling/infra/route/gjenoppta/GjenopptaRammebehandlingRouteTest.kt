@@ -25,8 +25,8 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
                 beslutter = null,
                 //language=json
                 ventestatus = listOf(
-                    """{"sattPåVentAv": "Z12345","tidspunkt": "2025-05-01T01:02:17.456789","begrunnelse": "Begrunnelse for å sette rammebehandling på vent","erSattPåVent": true,"frist": null}""",
-                    """{"sattPåVentAv": "Z12345","tidspunkt": "2025-05-01T01:02:16.456789","begrunnelse": "","erSattPåVent": false,"frist": null}""",
+                    """{"sattPåVentAv": "Z12345", "status": "UNDER_BEHANDLING","tidspunkt": "2025-05-01T01:02:17.456789","begrunnelse": "Begrunnelse for å sette rammebehandling på vent","erSattPåVent": true,"frist": null}""",
+                    """{"sattPåVentAv": "Z12345","status": "KLAR_TIL_BEHANDLING","tidspunkt": "2025-05-01T01:02:16.456789","begrunnelse": "","erSattPåVent": false,"frist": null}""",
                 ),
                 status = "UNDER_BEHANDLING",
                 eksternDeltagelseId = "ekstern_tiltaksdeltakelse_id_1",

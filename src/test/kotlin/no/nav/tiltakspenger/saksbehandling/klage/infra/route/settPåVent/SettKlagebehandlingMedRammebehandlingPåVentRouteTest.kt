@@ -47,7 +47,8 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 begrunnelse = "Begrunnelse for omgjøring",
                 rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
                 åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
-                ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}"""),
+                //language=json
+                ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}"""),
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe null
@@ -138,7 +139,8 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                         "tidspunkt": "TIMESTAMP",
                         "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
                         "erSattPåVent": true,
-                        "frist": null
+                        "frist": null,
+                        "status": "UNDER_BEHANDLING"
                     }
                 ]
                 """.trimIndent(),
