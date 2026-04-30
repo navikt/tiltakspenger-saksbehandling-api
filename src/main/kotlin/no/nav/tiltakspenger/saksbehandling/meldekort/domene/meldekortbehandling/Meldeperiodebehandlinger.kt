@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilUtfyltMeldeperiode
 import java.time.LocalDate
 
 data class Meldeperiodebehandlinger(
@@ -24,10 +24,10 @@ data class Meldeperiodebehandlinger(
     ) : this(nonEmptyListOf(meldeperiode), beregning)
 
     constructor(
-        dager: UtfyltMeldeperiode,
+        meldeperiode: UtfyltMeldeperiode,
         beregning: Beregning?,
         brukersMeldekort: BrukersMeldekort?,
-    ) : this(nonEmptyListOf(Meldeperiodebehandling(dager, brukersMeldekort)), beregning)
+    ) : this(nonEmptyListOf(Meldeperiodebehandling(meldeperiode, brukersMeldekort)), beregning)
 
     val fraOgMed: LocalDate = this.first().fraOgMed
     val tilOgMed: LocalDate = this.last().tilOgMed
@@ -50,18 +50,19 @@ data class Meldeperiodebehandlinger(
     fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,
     ): Meldeperiodebehandlinger? {
-        val (erEndret, oppdatert) = this.fold(false to emptyList<Meldeperiodebehandling>()) { (erOppdatert, oppdatert), meldeperiode ->
-            val sisteMeldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(meldeperiode.kjedeId)
+        val (erEndret, oppdaterteMeldeperioder) = this
+            .fold(false to emptyList<Meldeperiodebehandling>()) { (erEndret, oppdaterteMeldeperioder), meldeperiode ->
+                val sisteMeldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(meldeperiode.kjedeId)
 
-            if (sisteMeldeperiode.versjon <= meldeperiode.meldeperiode.versjon) {
-                erOppdatert to oppdatert.plus(meldeperiode)
-            } else {
-                true to oppdatert.plus(meldeperiode.copy(dager = sisteMeldeperiode.tilMeldekortDager()))
+                if (sisteMeldeperiode.versjon <= meldeperiode.meldeperiode.versjon) {
+                    erEndret to oppdaterteMeldeperioder.plus(meldeperiode)
+                } else {
+                    true to oppdaterteMeldeperioder.plus(meldeperiode.copy(dager = sisteMeldeperiode.tilUtfyltMeldeperiode()))
+                }
             }
-        }
 
         return if (erEndret) {
-            Meldeperiodebehandlinger(oppdatert.toNonEmptyListOrThrow(), null)
+            Meldeperiodebehandlinger(oppdaterteMeldeperioder.toNonEmptyListOrThrow(), null)
         } else {
             null
         }
