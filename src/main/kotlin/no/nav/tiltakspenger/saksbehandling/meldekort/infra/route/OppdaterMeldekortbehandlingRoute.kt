@@ -121,7 +121,7 @@ private data class LegacyOppdaterMeldekortbehandlingDTO(
         return OppdaterMeldekortbehandlingDTO(
             meldeperioder = listOf(
                 OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO(
-                    kjedeId = kjedeId.toString(),
+                    kjedeId = kjedeId.verdi,
                     dager = dager.map {
                         OppdaterMeldekortbehandlingDTO.OppdaterMeldekortdagDTO(
                             dato = it.dato,
