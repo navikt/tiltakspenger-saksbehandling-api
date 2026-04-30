@@ -26,8 +26,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
@@ -37,7 +37,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
-import java.time.LocalDate
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendMeldekortTilBeslutterRoute]
@@ -96,7 +95,7 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
-        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
@@ -108,7 +107,7 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
-            dager = dager,
+            meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ) ?: return null
         return sendMeldekortbehandlingTilBeslutning(

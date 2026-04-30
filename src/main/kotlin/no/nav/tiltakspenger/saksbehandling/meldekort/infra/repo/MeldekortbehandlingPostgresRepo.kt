@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
@@ -30,6 +31,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortDagerDbJson
@@ -80,7 +83,6 @@ class MeldekortbehandlingPostgresRepo(
                         brukers_meldekort_id,
                         avbrutt,
                         sist_endret,
-                        behandling_sendt_til_datadeling,
                         skal_sende_vedtaksbrev
                     ) values (
                         :id,
@@ -107,7 +109,6 @@ class MeldekortbehandlingPostgresRepo(
                         :brukers_meldekort_id,
                         to_jsonb(:avbrutt::jsonb),
                         :sist_endret,
-                        :behandling_sendt_til_datadeling,
                         :skal_sende_vedtaksbrev
                     )
                     """,
@@ -136,7 +137,6 @@ class MeldekortbehandlingPostgresRepo(
                     "brukers_meldekort_id" to meldekortbehandling.brukersMeldekort?.id?.toString(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
-                    "behandling_sendt_til_datadeling" to meldekortbehandling.behandlingSendtTilDatadeling,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                 ).asUpdate,
             )
@@ -164,8 +164,7 @@ class MeldekortbehandlingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
-                        sist_endret = :sist_endret,
-                        behandling_sendt_til_datadeling = :behandling_sendt_til_datadeling
+                        sist_endret = :sist_endret
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -182,7 +181,6 @@ class MeldekortbehandlingPostgresRepo(
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
-                    "behandling_sendt_til_datadeling" to meldekortbehandling.behandlingSendtTilDatadeling,
                 ).asUpdate,
             )
         }
@@ -214,7 +212,6 @@ class MeldekortbehandlingPostgresRepo(
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
                         sist_endret = :sist_endret,
-                        behandling_sendt_til_datadeling = :behandling_sendt_til_datadeling,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
                     where id = :id
@@ -236,7 +233,6 @@ class MeldekortbehandlingPostgresRepo(
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
-                    "behandling_sendt_til_datadeling" to meldekortbehandling.behandlingSendtTilDatadeling,
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                 ).asUpdate,
@@ -403,7 +399,7 @@ class MeldekortbehandlingPostgresRepo(
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {
         return sessionFactory.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     """
                         select
                           m.*,
@@ -423,16 +419,14 @@ class MeldekortbehandlingPostgresRepo(
     override fun markerBehandlingSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime) {
         sessionFactory.withSession { session ->
             session.run(
-                queryOf(
+                sqlQuery(
                     """
                     update meldekortbehandling
                     set behandling_sendt_til_datadeling = :tidspunkt
                     where id = :id
                     """.trimIndent(),
-                    mapOf(
-                        "id" to meldekortId.toString(),
-                        "tidspunkt" to tidspunkt,
-                    ),
+                    "id" to meldekortId.toString(),
+                    "tidspunkt" to tidspunkt,
                 ).asUpdate,
             )
         }
@@ -521,7 +515,6 @@ class MeldekortbehandlingPostgresRepo(
 
             val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = row.localDateTime("sist_endret")
-            val behandlingSendtTilDatadeling = row.localDateTimeOrNull("behandling_sendt_til_datadeling")
 
             val beregning = row.stringOrNull("beregninger")
                 ?.tilBeregningFraMeldekortbehandling(id)
@@ -545,15 +538,19 @@ class MeldekortbehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         navkontor = navkontor,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
-                        beregning = beregning!!,
                         simulering = simulering,
-                        dager = dager,
                         type = type,
                         status = status,
                         sistEndret = sistEndret,
-                        behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                     )
                 }
 
@@ -566,8 +563,6 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler!!,
                         type = type,
                         begrunnelse = begrunnelse,
@@ -576,12 +571,18 @@ class MeldekortbehandlingPostgresRepo(
                         beslutter = row.stringOrNull("beslutter"),
                         status = status,
                         iverksattTidspunkt = iverksattTidspunkt,
-                        beregning = beregning!!,
                         simulering = simulering,
-                        dager = dager,
                         sistEndret = sistEndret,
-                        behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
@@ -595,20 +596,24 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler,
                         type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
-                        beregning = beregning,
                         simulering = simulering,
-                        dager = dager,
                         status = status,
                         sistEndret = sistEndret,
-                        behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
@@ -622,19 +627,23 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                        brukersMeldekort = brukersMeldekort,
-                        meldeperiode = meldeperiode,
                         saksbehandler = saksbehandler,
                         type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
-                        beregning = beregning,
                         simulering = simulering,
-                        dager = dager,
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                         sistEndret = sistEndret,
-                        behandlingSendtTilDatadeling = behandlingSendtTilDatadeling,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+                        meldeperioder = Meldeperiodebehandlinger(
+                            meldeperioder = nonEmptyListOf(
+                                Meldeperiodebehandling(
+                                    dager = dager,
+                                    brukersMeldekort = brukersMeldekort,
+                                ),
+                            ),
+                            beregning = beregning,
+                        ),
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }

@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.beregning
 
+import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.equals.shouldBeEqual
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
@@ -13,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.BrukersMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -28,7 +30,7 @@ class MeldekortberegningFraBrukersMeldekort {
     private fun kommandoDager(fraDato: LocalDate, statuser: List<KommandoStatus>) =
         statuser
             .mapIndexed { index, status ->
-                Dager.Dag(
+                OppdatertMeldeperiode.OppdatertDag(
                     dag = fraDato.plusDays(index.toLong()),
                     status = status,
                 )
@@ -70,11 +72,12 @@ class MeldekortberegningFraBrukersMeldekort {
         )
         val sakMedÅpenMeldekortbehandling = sak.leggTilMeldekortbehandling(saksbehandlerBehandling)
 
-        val dager = Dager(
+        val dager = OppdatertMeldeperiode(
             dager = kommandoDager(
                 meldeperiode.periode.fraOgMed,
                 kommandoStatuser,
             ),
+            kjedeId = meldeperiode.kjedeId,
         )
         val brukersMeldekort = ObjectMother.brukersMeldekort(
             sakId = sak.id,
@@ -85,14 +88,18 @@ class MeldekortberegningFraBrukersMeldekort {
             ),
         )
 
+        val beregningstidspunkt = nå(clock)
+
         val dagerBeregnetFraBruker = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
+            meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilUtfyltMeldeperiode()),
+            beregningstidspunkt = beregningstidspunkt,
         ).map { it.dager }
 
         val dagerBeregnetFraSaksbehandler = sakMedÅpenMeldekortbehandling.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandlingId,
-            meldeperiodeSomBeregnes = dager.tilMeldekortDager(meldeperiode),
+            meldeperioderSomBeregnes = nonEmptyListOf(dager.tilUtfyltMeldeperiode(meldeperiode)),
+            beregningstidspunkt = beregningstidspunkt,
         ).map { it.dager }
 
         dagerBeregnetFraBruker shouldBeEqual dagerBeregnetFraSaksbehandler

@@ -34,7 +34,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.D
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_TILTAKSDAG
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.tilMeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdaterMeldekortdagDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagStatusDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
@@ -62,7 +65,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
-        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
         vedtaksperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
@@ -92,7 +95,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             saksbehandler = saksbehandler,
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
-            dager = dager,
+            meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
@@ -108,7 +111,7 @@ interface OppdaterMeldekortbehandlingBuilder {
 
     /**
      * Forventer at meldekortbehandlingen er i status UNDER_BEHANDLING.
-     * @param dager Dersom null, fylles dager basert på sakens meldeperioden.
+     * @param meldeperioder Dersom null, bygges en standard meldeperiode basert på sakens meldeperioder.
      */
     suspend fun ApplicationTestBuilder.opprettOgOppdaterMeldekortbehandling(
         tac: TestApplicationContext,
@@ -117,7 +120,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
-        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
@@ -134,7 +137,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             meldekortId = opprettetMeldekortbehandling.id,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             saksbehandler = saksbehandler,
-            dager = dager,
+            meldeperioder = meldeperioder,
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             forventetStatus = forventetStatus,
@@ -144,7 +147,7 @@ interface OppdaterMeldekortbehandlingBuilder {
 
     /**
      * Forventer at meldekortbehandlingen er i status UNDER_BEHANDLING.
-     * @param dager Dersom null, fylles dager basert på sakens meldeperioden.
+     * @param meldeperioder Dersom null, fylles dager basert på sakens meldeperioden.
      */
     suspend fun ApplicationTestBuilder.oppdaterMeldekortbehandling(
         tac: TestApplicationContext,
@@ -153,7 +156,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
-        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
@@ -170,13 +173,13 @@ interface OppdaterMeldekortbehandlingBuilder {
             },
             jwt = jwt,
         ) {
-            val dagerIBody = buildDagerBody(tac = tac, sakId = sakId, meldekortId = meldekortId, dager = dager)
+            val meldeperioderIBody = buildMeldeperioderBody(tac = tac, sakId = sakId, meldekortId = meldekortId, meldeperioder = meldeperioder)
             this.setBody(
                 """
                     {
                     "begrunnelse":${if (begrunnelse != null) "\"$begrunnelse\"" else null},
                     "tekstTilVedtaksbrev":${if (tekstTilVedtaksbrev != null) "\"$tekstTilVedtaksbrev\"" else null},
-                    "dager":$dagerIBody,
+                    "meldeperioder":$meldeperioderIBody,
                     "skalSendeVedtaksbrev":$skalSendeVedtaksbrev
                     }
                 """.trimIndent(),
@@ -201,41 +204,60 @@ interface OppdaterMeldekortbehandlingBuilder {
         }
     }
 
-    fun buildDagerBody(
+    fun buildMeldeperioderBody(
         tac: TestApplicationContext,
         sakId: SakId,
         meldekortId: MeldekortId,
-        dager: List<Pair<LocalDate, MeldekortDagStatus>>?,
-    ): String? {
-        return (dager ?: defaultDagerBasertPåMeldeperiode(tac, sakId, meldekortId)).let {
-            it.joinToString(
-                prefix = "[",
-                postfix = "]",
-                separator = ",",
-            ) { (dato, status) ->
+        meldeperioder: List<OppdatertMeldeperiodeDTO>?,
+    ): String {
+        val perioder = meldeperioder ?: defaultMeldeperioderBasertPåMeldekort(tac, sakId, meldekortId)
+        return perioder.joinToString(prefix = "[", postfix = "]", separator = ",") { mp ->
+            val dagerJson = mp.dager.joinToString(prefix = "[", postfix = "]", separator = ",") { dag ->
                 """
                     {
-                        "dato":"$dato",
-                        "status":"$status"
+                        "dato":"${dag.dato}",
+                        "status":"${dag.status}"
                     }
                 """.trimIndent()
             }
+            """
+                {
+                    "kjedeId":"${mp.kjedeId}",
+                    "dager":$dagerJson
+                }
+            """.trimIndent()
         }
     }
 
     /**
-     * TODO jah: Bør kunne styre om man skal kunne melde helg.
+     * Bygger standard [OppdatertMeldeperiodeDTO]-er for hele meldekortbehandlingen.
      */
-    fun defaultDagerBasertPåMeldeperiode(
+    fun defaultMeldeperioderBasertPåMeldekort(
         tac: TestApplicationContext,
         sakId: SakId,
         meldekortId: MeldekortId,
-    ): List<Pair<LocalDate, MeldekortDagStatus>> {
+    ): List<OppdatertMeldeperiodeDTO> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val meldekortbehandling = sak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
-        val meldeperiode = meldekortbehandling.meldeperiode
+        return meldekortbehandling.meldeperioder.map { meldeperiodebehandling ->
+            OppdatertMeldeperiodeDTO(
+                kjedeId = meldeperiodebehandling.kjedeId.verdi,
+                dager = defaultDagerBasertPåMeldeperiode(meldeperiodebehandling).map { (dato, status) ->
+                    OppdaterMeldekortdagDTO(
+                        dato = dato,
+                        status = status.tilMeldekortDagStatusDTO(),
+                    )
+                },
+            )
+        }
+    }
+
+    private fun defaultDagerBasertPåMeldeperiode(
+        meldeperiodebehandling: Meldeperiodebehandling,
+    ): List<Pair<LocalDate, MeldekortDagStatus>> {
+        val meldeperiode = meldeperiodebehandling.meldeperiode
         val antallDager = meldeperiode.maksAntallDagerForMeldeperiode
-        val dager = meldeperiode.tilMeldekortDager()
+        val dager = meldeperiodebehandling.dager
 
         // Resten av dagene er IKKE_RETT_TIL_TILTAKSPENGER og kan aldri overstyres.
         val tilgjengeligeDager = dager.filter { it.status == MeldekortDagStatus.IKKE_BESVART }

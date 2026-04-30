@@ -25,7 +25,7 @@ suspend fun NonEmptyList<NonEmptyList<DagMedForventning>>.assertForventning(
 ) {
     val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
         vedtaksperiode = vedtaksperiode,
-        meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortbehandlingKommando.Dager.Dag(it.dag, it.status) } },
+        meldeperioder = this.map { outer -> outer.map { OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag(it.dag, it.status) } },
     )
 
     meldekortbehandlinger.tilMeldeperiodeBeregninger(clock).gjeldendeBeregningPerKjede.values
