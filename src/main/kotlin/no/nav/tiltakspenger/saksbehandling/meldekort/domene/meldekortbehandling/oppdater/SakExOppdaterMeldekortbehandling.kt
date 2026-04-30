@@ -19,21 +19,21 @@ suspend fun Sak.oppdaterMeldekort(
 ): Either<KanIkkeOppdatereMeldekortbehandling, Triple<Sak, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
     val meldekort = this.meldekortbehandlinger.hentMeldekortbehandling(kommando.meldekortId) as MeldekortUnderBehandling
 
-    val dager = kommando.meldeperioder.map {
+    val meldeperioder = kommando.meldeperioder.map {
         val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId)
         it.tilUtfyltMeldeperiode(meldeperiode)
     }
 
     val beregning = this.beregnMeldekort(
         meldekortIdSomBeregnes = kommando.meldekortId,
-        meldeperioderSomBeregnes = dager,
+        meldeperioderSomBeregnes = meldeperioder,
         beregningstidspunkt = nå(clock),
     )
 
     return meldekort.oppdater(
         kommando = kommando,
         oppdatertePerioder = Meldeperiodebehandlinger(
-            meldeperioder = dager.map {
+            meldeperioder = meldeperioder.map {
                 Meldeperiodebehandling(
                     dager = it,
                     brukersMeldekort = null,

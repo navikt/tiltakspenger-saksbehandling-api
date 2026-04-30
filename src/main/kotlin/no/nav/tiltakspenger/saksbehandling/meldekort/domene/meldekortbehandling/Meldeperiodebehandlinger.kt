@@ -38,7 +38,7 @@ data class Meldeperiodebehandlinger(
         this.map { it.kjedeId }.toNonEmptyListOrThrow()
     }
 
-    val rammevedtak: NonEmptyList<VedtakId> by lazy {
+    val rammevedtakIder: NonEmptyList<VedtakId> by lazy {
         this.flatMap { it.meldeperiode.rammevedtak.verdier }.distinct().toNonEmptyListOrThrow()
     }
 

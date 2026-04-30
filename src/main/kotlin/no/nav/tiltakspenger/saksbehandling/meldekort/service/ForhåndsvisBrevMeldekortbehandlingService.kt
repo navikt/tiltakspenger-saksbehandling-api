@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
@@ -18,13 +19,14 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
-import java.time.LocalDateTime
+import java.time.Clock
 
 class ForhåndsvisBrevMeldekortbehandlingService(
     val genererBrevClient: GenererVedtaksbrevForUtbetalingKlient,
     val sakService: SakService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val navIdentClient: NavIdentClient,
+    val clock: Clock,
 ) {
     fun hentKjedeIdForMeldekortbehandling(meldekortbehandlingId: MeldekortId): String {
         return meldekortbehandlingRepo.hent(meldekortbehandlingId)!!.kjedeId.verdi
@@ -45,7 +47,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                     )
                 }
                 .toNonEmptyListOrThrow(),
-            beregningstidspunkt = LocalDateTime.now(),
+            beregningstidspunkt = nå(clock),
         )
 
         val nåværendeBeregningMedTidligereBeregning =
