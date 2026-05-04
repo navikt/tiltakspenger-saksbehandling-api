@@ -80,21 +80,6 @@ data class Meldekortbehandlinger(
 
     val harÅpenBehandling: Boolean by lazy { åpenMeldekortbehandling != null }
 
-    suspend fun oppdaterMeldekort(
-        kommando: OppdaterMeldekortbehandlingKommando,
-        beregn: (meldeperiode: Meldeperiode) -> NonEmptyList<MeldeperiodeBeregning>,
-        simuler: (suspend (Meldekortbehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
-        clock: Clock,
-    ): Either<KanIkkeOppdatereMeldekortbehandling, Triple<Meldekortbehandlinger, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-        val meldekort = hentMeldekortbehandling(kommando.meldekortId) as MeldekortUnderBehandling
-        return meldekort.oppdater(
-            kommando = kommando,
-            beregn = beregn,
-            simuler = simuler,
-            clock = clock,
-        ).map { Triple(oppdaterMeldekortbehandling(it.first), it.first, it.second) }
-    }
-
     fun sendTilBeslutter(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
         clock: Clock,
@@ -125,19 +110,15 @@ data class Meldekortbehandlinger(
 
     /**
      * Løper igjennom alle ikke-avsluttede meldekortbehandlinger (også de som er sendt til beslutter), setter tilstanden til under behandling, oppdaterer meldeperioden og resetter utfyllinga.
-     * @param tiltakstypePerioder kan være tom eller inneholde hull.
      */
     fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,
-        tiltakstypePerioder: Periodisering<TiltakstypeSomGirRett>,
         clock: Clock,
     ): Pair<Meldekortbehandlinger, List<Meldekortbehandling>> {
-        return verdi.filter { it.erÅpen() }
+        return verdi
+            .filter { it.erÅpen() }
             .fold(Pair(this, emptyList())) { acc, meldekortbehandling ->
-                val meldeperiode = oppdaterteKjeder.hentSisteMeldeperiodeForKjede(
-                    kjedeId = meldekortbehandling.meldeperiode.kjedeId,
-                )
-                meldekortbehandling.oppdaterMeldeperiode(meldeperiode, tiltakstypePerioder, clock)?.let {
+                meldekortbehandling.oppdaterMeldeperioder(oppdaterteKjeder, clock)?.let {
                     Pair(
                         acc.first.oppdaterMeldekortbehandling(it),
                         acc.second + it,

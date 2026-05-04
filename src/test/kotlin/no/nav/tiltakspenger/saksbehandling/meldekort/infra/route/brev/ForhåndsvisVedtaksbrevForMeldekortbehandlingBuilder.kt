@@ -19,16 +19,15 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.buildDagerBody
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.buildMeldeperioderBody
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import java.time.LocalDate
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.forhåndsvisBrevMeldekortbehandlingRoute]
@@ -39,7 +38,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         tekstTilVedtaksbrev: String? = "Dette er et vedtaksbrev",
-        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetPdf: PdfA? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, PdfA>? {
@@ -52,7 +51,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
             meldekortId = opprettetMeldekortbehandling.id,
             saksbehandler = saksbehandler,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
-            dager = dager,
+            meldeperioder = meldeperioder,
             forventetStatus = forventetStatus,
             forventetPdf = forventetPdf,
         ) ?: return null
@@ -74,7 +73,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
         meldekortId: MeldekortId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         tekstTilVedtaksbrev: String? = "Dette er et vedtaksbrev",
-        dager: List<Pair<LocalDate, MeldekortDagStatus>>? = null,
+        meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetPdf: PdfA? = null,
     ): Triple<Sak, MeldekortUnderBehandling, PdfA>? {
@@ -82,7 +81,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        val dagerIBody = buildDagerBody(tac = tac, sakId = sakId, meldekortId = meldekortId, dager = dager)
+        val meldeperioderIBody = buildMeldeperioderBody(tac = tac, sakId = sakId, meldekortId = meldekortId, meldeperioder = meldeperioder)
         defaultRequest(
             HttpMethod.Post,
             url {
@@ -95,7 +94,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
                 """
                     {
                     "tekstTilVedtaksbrev":${if (tekstTilVedtaksbrev != null) "\"$tekstTilVedtaksbrev\"" else null},
-                    "dager":$dagerIBody
+                    "meldeperioder":$meldeperioderIBody
                     }
                 """.trimIndent(),
             )

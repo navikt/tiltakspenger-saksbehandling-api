@@ -7,14 +7,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
@@ -31,12 +27,8 @@ data class MeldekortbehandlingAvbrutt(
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val opprettet: LocalDateTime,
-    override val dager: MeldekortDager,
-    override val beregning: Beregning?,
     override val simulering: Simulering?,
-    override val meldeperiode: Meldeperiode,
     override val type: MeldekortbehandlingType,
-    override val brukersMeldekort: BrukersMeldekort?,
     override val saksbehandler: String?,
     override val navkontor: Navkontor,
     override val begrunnelse: Begrunnelse?,
@@ -44,14 +36,15 @@ data class MeldekortbehandlingAvbrutt(
     override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
     override val avbrutt: Avbrutt?,
     override val sistEndret: LocalDateTime,
-    override val behandlingSendtTilDatadeling: LocalDateTime?,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
+    override val meldeperioder: Meldeperiodebehandlinger,
     override val skalSendeVedtaksbrev: Boolean,
 ) : Meldekortbehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null
 
-    override val status = if (ikkeRettTilTiltakspengerTidspunkt == null) MeldekortbehandlingStatus.AVBRUTT else MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
+    override val status =
+        if (ikkeRettTilTiltakspengerTidspunkt == null) MeldekortbehandlingStatus.AVBRUTT else MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
 
     override val beslutter = null
 

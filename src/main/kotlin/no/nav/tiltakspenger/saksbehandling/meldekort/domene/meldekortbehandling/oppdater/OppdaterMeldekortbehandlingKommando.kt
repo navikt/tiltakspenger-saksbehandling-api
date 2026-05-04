@@ -5,14 +5,16 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Dager.Dag
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
 import java.time.LocalDate
 
 /**
@@ -25,27 +27,40 @@ class OppdaterMeldekortbehandlingKommando(
     val sakId: SakId,
     val meldekortId: MeldekortId,
     val saksbehandler: Saksbehandler,
-    val dager: Dager,
+    val meldeperioder: NonEmptyList<OppdatertMeldeperiode>,
     val begrunnelse: Begrunnelse?,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val skalSendeVedtaksbrev: Boolean,
     val correlationId: CorrelationId,
 ) {
-    val periode: Periode = Periode(dager.first().dag, dager.last().dag)
+    val periode: Periode = Periode(
+        meldeperioder.first().first().dag,
+        meldeperioder.last().last().dag,
+    )
 
-    data class Dager(
-        val dager: NonEmptyList<Dag>,
-    ) : List<Dag> by dager {
-        data class Dag(
+    data class OppdatertMeldeperiode(
+        val dager: NonEmptyList<OppdatertDag>,
+        val kjedeId: MeldeperiodeKjedeId,
+    ) : List<OppdatertDag> by dager {
+
+        data class OppdatertDag(
             val dag: LocalDate,
             val status: Status,
         )
 
-        fun tilMeldekortDager(meldeperiode: Meldeperiode) =
-            MeldekortDager(
-                this.map { MeldekortDag(dato = it.dag, status = it.status.tilMeldekortDagStatus()) },
+        fun tilUtfyltMeldeperiode(meldeperiode: Meldeperiode): UtfyltMeldeperiode {
+            require(meldeperiode.kjedeId == kjedeId)
+
+            return UtfyltMeldeperiode(
+                this.map {
+                    MeldekortDag(
+                        dato = it.dag,
+                        status = it.status.tilMeldekortDagStatus(),
+                    )
+                },
                 meldeperiode,
             )
+        }
     }
 
     /** En spesialisering av [MeldekortDagStatus].
@@ -80,5 +95,31 @@ class OppdaterMeldekortbehandlingKommando(
             IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
             IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
         }
+    }
+}
+
+fun MeldekortDagStatusDTO.tilOppdaterKommandoStatus(): OppdaterMeldekortbehandlingKommando.Status {
+    return when (this) {
+        MeldekortDagStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
+
+        MeldekortDagStatusDTO.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
+
+        MeldekortDagStatusDTO.FRAVÆR_SYK -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYK
+
+        MeldekortDagStatusDTO.FRAVÆR_SYKT_BARN -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYKT_BARN
+
+        MeldekortDagStatusDTO.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
+
+        MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_GODKJENT_AV_NAV
+
+        MeldekortDagStatusDTO.FRAVÆR_ANNET -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_ANNET
+
+        MeldekortDagStatusDTO.IKKE_TILTAKSDAG -> OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
+
+        MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
+
+        MeldekortDagStatusDTO.IKKE_BESVART -> throw IllegalArgumentException(
+            "IKKE_BESVART er ikke en gyldig status når saksbehandler oppdaterer et meldekort - saksbehandler må ta stilling til alle dagene",
+        )
     }
 }

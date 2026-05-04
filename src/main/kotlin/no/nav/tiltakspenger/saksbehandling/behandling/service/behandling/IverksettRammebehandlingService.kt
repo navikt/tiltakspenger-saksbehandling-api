@@ -174,7 +174,6 @@ class IverksettRammebehandlingService(
         val (sakOppdatertMedMeldeperioder, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) = this.meldekortbehandlinger.oppdaterMedNyeKjeder(
             oppdaterteKjeder = sakOppdatertMedMeldeperioder.meldeperiodeKjeder,
-            tiltakstypePerioder = tiltakstypeperioder,
             clock = clock,
         )
         val sakOppdatertMedMeldekortbehandlinger =

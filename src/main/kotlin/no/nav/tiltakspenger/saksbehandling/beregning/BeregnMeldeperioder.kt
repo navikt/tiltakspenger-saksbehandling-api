@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
 import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -41,7 +40,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.F
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_BESVART
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus.IKKE_TILTAKSDAG
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
@@ -287,11 +286,11 @@ private data class MeldeperiodeSomSkalBeregnes(
 }
 
 /** Nytt meldekort */
-private fun MeldekortDager.tilSkalBeregnes(meldekortId: MeldekortId): MeldeperiodeSomSkalBeregnes {
+private fun UtfyltMeldeperiode.tilSkalBeregnes(meldekortId: MeldekortId): MeldeperiodeSomSkalBeregnes {
     return MeldeperiodeSomSkalBeregnes(
         kjedeId = this.meldeperiode.kjedeId,
         meldekortId = meldekortId,
-        dager = this.verdi.toNonEmptyListOrThrow(),
+        dager = this.dager.toNonEmptyListOrThrow(),
     )
 }
 
@@ -412,28 +411,29 @@ private fun Sak.beregnRammebehandling(
 
 fun Sak.beregnMeldekort(
     meldekortIdSomBeregnes: MeldekortId,
-    meldeperiodeSomBeregnes: MeldekortDager,
-): NonEmptyList<MeldeperiodeBeregning> {
+    meldeperioderSomBeregnes: NonEmptyList<UtfyltMeldeperiode>,
+    beregningstidspunkt: LocalDateTime,
+): Beregning {
     return beregnMeldekort(
         meldekortIdSomBeregnes = meldekortIdSomBeregnes,
-        meldeperiodeSomBeregnes = meldeperiodeSomBeregnes,
+        meldeperioderSomBeregnes = meldeperioderSomBeregnes,
         barnetilleggsPerioder = this.barnetilleggsperioder,
         hentInnvilgelse = this.rammevedtaksliste.innvilgelsesperioder::hentVerdiForDag,
         gjeldendeBeregninger = this.meldeperiodeBeregninger,
         meldekortvedtakTidslinje = this.meldekortvedtaksliste.tidslinje,
-    )
+    ).let { Beregning(it, beregningstidspunkt) }
 }
 
 fun beregnMeldekort(
     meldekortIdSomBeregnes: MeldekortId,
-    meldeperiodeSomBeregnes: MeldekortDager,
+    meldeperioderSomBeregnes: NonEmptyList<UtfyltMeldeperiode>,
     barnetilleggsPerioder: Periodisering<AntallBarn>,
     hentInnvilgelse: HentInnvilgelse,
     gjeldendeBeregninger: MeldeperiodeBeregningerVedtatt,
     meldekortvedtakTidslinje: Periodisering<Meldekortvedtak>,
 ): NonEmptyList<MeldeperiodeBeregning> {
     return BeregnMeldeperioder(
-        meldeperioderSomBeregnes = nonEmptyListOf(meldeperiodeSomBeregnes.tilSkalBeregnes(meldekortIdSomBeregnes)),
+        meldeperioderSomBeregnes = meldeperioderSomBeregnes.map { it.tilSkalBeregnes(meldekortIdSomBeregnes) },
         hentAntallBarn = barnetilleggsPerioder::hentVerdiForDag,
         hentInnvilgelse = hentInnvilgelse,
         beregningKilde = BeregningKilde.BeregningKildeMeldekort(meldekortIdSomBeregnes),

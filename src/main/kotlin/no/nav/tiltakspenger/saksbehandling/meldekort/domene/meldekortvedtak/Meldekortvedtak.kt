@@ -51,7 +51,7 @@ data class Meldekortvedtak(
     val automatiskBehandlet: Boolean = meldekortbehandling is MeldekortBehandletAutomatisk
     val erKorrigering: Boolean = meldekortbehandling.type == MeldekortbehandlingType.KORRIGERING
     val begrunnelse: String? = meldekortbehandling.begrunnelse?.verdi
-    val rammevedtak: List<VedtakId> = meldekortbehandling.rammevedtak
+    val rammevedtak: List<VedtakId> = meldekortbehandling.rammevedtakIder
     val beregningsperiode: Periode = meldekortbehandling.beregning.periode
     val antallDagerPerMeldeperiode: Int = meldeperiode.maksAntallDagerForMeldeperiode
     val dager: List<MeldekortDag> = meldekortbehandling.dager

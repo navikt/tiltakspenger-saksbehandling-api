@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater
 
 import arrow.core.Either
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -14,15 +17,37 @@ suspend fun Sak.oppdaterMeldekort(
     simuler: (suspend (Meldekortbehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
     clock: Clock,
 ): Either<KanIkkeOppdatereMeldekortbehandling, Triple<Sak, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-    return this.meldekortbehandlinger.oppdaterMeldekort(
+    val meldekort = this.meldekortbehandlinger.hentMeldekortbehandling(kommando.meldekortId) as MeldekortUnderBehandling
+
+    val meldeperioder = kommando.meldeperioder.map {
+        val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId)
+        it.tilUtfyltMeldeperiode(meldeperiode)
+    }
+
+    val beregning = this.beregnMeldekort(
+        meldekortIdSomBeregnes = kommando.meldekortId,
+        meldeperioderSomBeregnes = meldeperioder,
+        beregningstidspunkt = nå(clock),
+    )
+
+    return meldekort.oppdater(
         kommando = kommando,
-        beregn = { meldeperiode ->
-            this.beregnMeldekort(
-                meldekortIdSomBeregnes = kommando.meldekortId,
-                meldeperiodeSomBeregnes = kommando.dager.tilMeldekortDager(meldeperiode),
-            )
-        },
+        oppdatertePerioder = Meldeperiodebehandlinger(
+            meldeperioder = meldeperioder.map {
+                Meldeperiodebehandling(
+                    dager = it,
+                    brukersMeldekort = null,
+                )
+            },
+            beregning = beregning,
+        ),
         simuler = simuler,
         clock = clock,
-    ).map { Triple(this.oppdaterMeldekortbehandlinger(it.first), it.second, it.third) }
+    ).map { (meldekortbehandling, simulering) ->
+        Triple(
+            this.oppdaterMeldekortbehandling(meldekortbehandling),
+            meldekortbehandling,
+            simulering,
+        )
+    }
 }

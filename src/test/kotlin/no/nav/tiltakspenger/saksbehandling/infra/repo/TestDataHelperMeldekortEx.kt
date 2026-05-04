@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.repo
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -236,7 +237,7 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
 internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
     id: MeldekortId? = null,
     behandling: Meldekortbehandling? = id?.let { meldekortRepo.hent(it) },
-    dager: OppdaterMeldekortbehandlingKommando.Dager? = null,
+    dager: OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode? = null,
     begrunnelse: Begrunnelse? = null,
     fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     skalSendeVedtaksbrev: Boolean = true,
@@ -254,7 +255,7 @@ internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
                 sakId = sakId,
                 meldekortId = behandling.id,
                 saksbehandler = saksbehandler(navIdent = behandling.saksbehandler!!),
-                dager = dager ?: saksbehandlerFyllerUtMeldeperiodeDager(behandling.meldeperiode),
+                meldeperioder = nonEmptyListOf(dager ?: saksbehandlerFyllerUtMeldeperiodeDager(behandling.meldeperiode)),
                 begrunnelse = begrunnelse,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 correlationId = CorrelationId.generate(),

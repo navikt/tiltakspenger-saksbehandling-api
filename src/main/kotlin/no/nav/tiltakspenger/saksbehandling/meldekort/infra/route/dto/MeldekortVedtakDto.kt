@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
 import java.time.LocalDateTime
@@ -37,7 +37,7 @@ fun Meldekortvedtak.toDto(): MeldekortVedtakDto = MeldekortVedtakDto(
     beslutter = beslutter,
     periode = periode.toDTO(),
     beregningsperiode = beregningsperiode.toDTO(),
-    dager = MeldekortDager(dager, meldeperiode).tilMeldekortDagerDTO(),
+    dager = UtfyltMeldeperiode(dager, meldeperiode).tilMeldekortDagerDTO(),
     beregning = beregning.tilMeldekortBeregningDTO(),
     automatiskBehandlet = automatiskBehandlet,
     erKorrigering = erKorrigering,

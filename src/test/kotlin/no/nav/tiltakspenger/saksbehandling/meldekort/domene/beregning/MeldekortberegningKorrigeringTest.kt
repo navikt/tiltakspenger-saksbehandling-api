@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.tilMeldeperiodeBeregnin
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-private typealias Dag = OppdaterMeldekortbehandlingKommando.Dager.Dag
+private typealias Dag = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
 private typealias Status = OppdaterMeldekortbehandlingKommando.Status
 
 internal class MeldekortberegningKorrigeringTest {

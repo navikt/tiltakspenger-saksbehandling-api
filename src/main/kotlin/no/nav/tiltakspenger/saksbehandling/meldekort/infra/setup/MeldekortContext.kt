@@ -185,6 +185,7 @@ open class MeldekortContext(
             sakService = sakService,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             navIdentClient = navIdentClient,
+            clock = clock,
         )
     }
 }

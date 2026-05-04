@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -12,16 +13,13 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDager
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -42,16 +40,12 @@ data class MeldekortBehandletAutomatisk(
     override val saksnummer: Saksnummer,
     override val fnr: Fnr,
     override val opprettet: LocalDateTime,
-    override val dager: MeldekortDager,
-    override val beregning: Beregning,
     override val simulering: Simulering?,
-    override val meldeperiode: Meldeperiode,
-    override val brukersMeldekort: BrukersMeldekort,
     override val navkontor: Navkontor,
     override val type: MeldekortbehandlingType,
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
-    override val behandlingSendtTilDatadeling: LocalDateTime?,
+    override val meldeperioder: Meldeperiodebehandlinger,
 ) : Meldekortbehandling.Behandlet {
     // Automatiske behandlinger iverksettes umiddelbart
     override val iverksattTidspunkt = opprettet
@@ -61,12 +55,14 @@ data class MeldekortBehandletAutomatisk(
     override val beslutter = AUTOMATISK_SAKSBEHANDLER_ID
 
     override val begrunnelse = null
-    override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null
+    override val fritekstTilVedtaksbrev = null
     override val ikkeRettTilTiltakspengerTidspunkt = null
 
     override val attesteringer = Attesteringer.empty()
     override val avbrutt: Avbrutt? = null
     override val skalSendeVedtaksbrev: Boolean = true
+
+    override val beregning: Beregning get() = meldeperioder.beregning!!
 
     init {
         require(type == MeldekortbehandlingType.FØRSTE_BEHANDLING) {
@@ -119,27 +115,29 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
 
     val meldekortbehandlingId = MeldekortId.random()
 
-    val beregninger = this.beregnMeldekort(
+    val tidspunkt = nå(clock)
+
+    val beregning = this.beregnMeldekort(
         meldekortIdSomBeregnes = meldekortbehandlingId,
-        meldeperiodeSomBeregnes = brukersMeldekort.tilMeldekortDager(),
+        meldeperioderSomBeregnes = nonEmptyListOf(brukersMeldekort.tilUtfyltMeldeperiode()),
+        beregningstidspunkt = tidspunkt,
     )
-    val nå = nå(clock)
+
     val meldekortBehandletAutomatisk = MeldekortBehandletAutomatisk(
         id = meldekortbehandlingId,
         sakId = this.id,
         saksnummer = this.saksnummer,
         fnr = this.fnr,
-        opprettet = nå,
+        opprettet = tidspunkt,
         navkontor = navkontor,
-        brukersMeldekort = brukersMeldekort,
-        meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(brukersMeldekort.kjedeId),
-        dager = brukersMeldekort.tilMeldekortDager(),
-        beregning = Beregning(beregninger, nå),
         type = MeldekortbehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,
-        sistEndret = nå,
-        behandlingSendtTilDatadeling = null,
+        sistEndret = tidspunkt,
+        meldeperioder = Meldeperiodebehandlinger(
+            meldeperioder = nonEmptyListOf(brukersMeldekort.tilMeldeperiodebehandling()),
+            beregning = beregning,
+        ),
     )
 
     return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {
