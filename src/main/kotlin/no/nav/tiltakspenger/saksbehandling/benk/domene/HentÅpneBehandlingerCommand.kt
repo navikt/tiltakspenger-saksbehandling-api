@@ -43,6 +43,7 @@ enum class BenkSorteringKolonne {
     SIST_ENDRET,
     SAKSBEHANDLER,
     BESLUTTER,
+    BELØP,
     ;
 
     companion object {

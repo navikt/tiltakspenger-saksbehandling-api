@@ -404,6 +404,7 @@ private fun BenkSorteringKolonne.toDbString(): String =
         BenkSorteringKolonne.STATUS -> "status"
         BenkSorteringKolonne.SAKSBEHANDLER -> "saksbehandler"
         BenkSorteringKolonne.BESLUTTER -> "beslutter"
+        BenkSorteringKolonne.BELØP -> "beløp"
     }
 
 private fun SorteringRetning.toDbString(): String =
