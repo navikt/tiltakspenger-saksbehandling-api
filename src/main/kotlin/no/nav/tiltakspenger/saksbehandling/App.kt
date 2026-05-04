@@ -11,6 +11,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.Route
 import io.ktor.util.AttributeKey
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookup
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupClient
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
@@ -85,7 +86,7 @@ internal fun start(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
         mdcCallIdKey = CALL_ID_MDC_KEY,
-        tasks = listOfNotNull<suspend () -> Any>(
+        tasks = listOfNotNull<suspend (CorrelationId) -> Any>(
             { applicationContext.delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader() },
             { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
             { applicationContext.utbetalingContext.journalførMeldekortvedtakService.journalfør() },
