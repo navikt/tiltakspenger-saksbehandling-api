@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.service.TilgangsfiltrertBenkOver
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 
 private const val PATH = "/behandlinger"
 
@@ -62,6 +63,11 @@ private data class HentBenkOversiktBody(
                 behandlingstype = filters.behandlingstype?.map { BehandlingssammendragType.valueOf(it) },
                 status = filters.status?.map { BehandlingssammendragStatus.valueOf(it) },
                 identer = filters.identer,
+                tilbakekrevingMinBeløp = if (filters.tilbakekrevingKunOverMinstebeløp) {
+                    TilbakekrevingBehandling.MINSTEBELØP_FOR_TILBAKEKREVING
+                } else {
+                    0
+                },
             ),
             sortering = benkSortering,
             saksbehandler = saksbehandler,
@@ -74,6 +80,7 @@ private data class HentBenkOversiktBody(
         val behandlingstype: List<String>?,
         val status: List<String>?,
         val identer: List<String>?,
+        val tilbakekrevingKunOverMinstebeløp: Boolean = false,
     )
 }
 

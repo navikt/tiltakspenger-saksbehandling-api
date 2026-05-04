@@ -32,6 +32,7 @@ data class TilbakekrevingBehandling(
     val saksbehandler: String?,
     val beslutter: String?,
 ) {
+
     val statusIntern: TilbakekrevingBehandlingsstatusIntern by lazy {
         when (status) {
             TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusIntern.OPPRETTET
@@ -107,5 +108,12 @@ data class TilbakekrevingBehandling(
                 "Saksbehandler og beslutter kan ikke være samme person. tilbakekrevingId: $id, sakId: $sakId"
             }
         }
+    }
+
+    companion object {
+
+        private const val RETTSGEBYR_2026: Long = 1345
+
+        const val MINSTEBELØP_FOR_TILBAKEKREVING: Long = RETTSGEBYR_2026 * 4
     }
 }

@@ -72,6 +72,7 @@ class BenkOversiktPostgresRepoTest {
         behandlingstype: List<BehandlingssammendragType>? = null,
         status: List<BehandlingssammendragStatus>? = null,
         saksbehandlere: List<String>? = null,
+        tilbakekrevingMinstebeløp: Long = 0,
         sortering: BenkSortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.ASC),
     ): HentÅpneBehandlingerCommand {
         return HentÅpneBehandlingerCommand(
@@ -80,6 +81,7 @@ class BenkOversiktPostgresRepoTest {
                 behandlingstype = behandlingstype,
                 status = status,
                 identer = saksbehandlere,
+                tilbakekrevingMinBeløp = tilbakekrevingMinstebeløp,
             ),
             sortering = sortering,
             saksbehandler = ObjectMother.saksbehandler(),
@@ -806,6 +808,84 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    fun `kan filtrere tilbakekrevinger på minstebeløp`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val (sakUnderMinstebeløp, meldekortvedtakUnderMinstebeløp) = testDataHelper.persisterIverksattMeldekortbehandling()
+            val (sakOverMinstebeløp, meldekortvedtakOverMinstebeløp) = testDataHelper.persisterIverksattMeldekortbehandling()
+            val opprettet = nå(testDataHelper.clock)
+
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(
+                TilbakekrevingBehandling(
+                    id = TilbakekrevingId.random(),
+                    sakId = sakUnderMinstebeløp.id,
+                    utbetalingId = meldekortvedtakUnderMinstebeløp.utbetaling.id,
+                    tilbakeBehandlingId = "tilbake-under-minstebeløp",
+                    opprettet = opprettet,
+                    sistEndret = opprettet,
+                    status = TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
+                    url = "https://tilbakekreving.nav.no/under-minstebeløp",
+                    kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                    totaltFeilutbetaltBeløp = BigDecimal(TilbakekrevingBehandling.MINSTEBELØP_FOR_TILBAKEKREVING - 1),
+                    varselSendt = null,
+                    saksbehandler = null,
+                    beslutter = null,
+                ),
+            )
+
+            val tilbakekrevingOverMinstebeløp = TilbakekrevingBehandling(
+                id = TilbakekrevingId.random(),
+                sakId = sakOverMinstebeløp.id,
+                utbetalingId = meldekortvedtakOverMinstebeløp.utbetaling.id,
+                tilbakeBehandlingId = "tilbake-over-minstebeløp",
+                opprettet = opprettet.plusSeconds(1),
+                sistEndret = opprettet.plusSeconds(1),
+                status = TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
+                url = "https://tilbakekreving.nav.no/over-minstebeløp",
+                kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                totaltFeilutbetaltBeløp = BigDecimal(TilbakekrevingBehandling.MINSTEBELØP_FOR_TILBAKEKREVING),
+                varselSendt = null,
+                saksbehandler = null,
+                beslutter = null,
+            )
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilbakekrevingOverMinstebeløp)
+
+            val (actualUtenFilter, totalAntallUtenFilter, totalAntallUfiltrertUtenFilter) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
+
+            totalAntallUtenFilter shouldBe 2
+            totalAntallUfiltrertUtenFilter shouldBe 2
+            actualUtenFilter.size shouldBe 2
+
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(tilbakekrevingMinstebeløp = TilbakekrevingBehandling.MINSTEBELØP_FOR_TILBAKEKREVING),
+            )
+
+            totalAntall shouldBe 1
+            totalAntallUfiltrert shouldBe 1
+            actual shouldBe listOf(
+                Behandlingssammendrag(
+                    sakId = sakOverMinstebeløp.id,
+                    fnr = sakOverMinstebeløp.fnr,
+                    saksnummer = sakOverMinstebeløp.saksnummer,
+                    startet = tilbakekrevingOverMinstebeløp.opprettet,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.TILBAKEKREVING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                    sistEndret = tilbakekrevingOverMinstebeløp.sistEndret,
+                    erSattPåVent = false,
+                    sattPåVentBegrunnelse = null,
+                    sattPåVentFrist = null,
+                    resultat = null,
+                    erUnderkjent = false,
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `henter mix av behandlingene`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterSakOgSøknad()
@@ -988,7 +1068,7 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val kommando = `SettRammebehandlingPåVentKommando`(
+            val kommando = SettRammebehandlingPåVentKommando(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",
@@ -1014,7 +1094,7 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val kommando = `SettRammebehandlingPåVentKommando`(
+            val kommando = SettRammebehandlingPåVentKommando(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",
@@ -1041,7 +1121,7 @@ class BenkOversiktPostgresRepoTest {
 
             testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
             val (_, behandling) = testDataHelper.persisterUnderBeslutningSøknadsbehandling(beslutter = beslutter)
-            val kommando = `SettRammebehandlingPåVentKommando`(
+            val kommando = SettRammebehandlingPåVentKommando(
                 sakId = behandling.sakId,
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",

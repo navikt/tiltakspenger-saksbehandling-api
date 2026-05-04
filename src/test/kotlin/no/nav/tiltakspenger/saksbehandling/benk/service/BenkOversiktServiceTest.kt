@@ -94,7 +94,7 @@ class BenkOversiktServiceTest {
 
             val actual = service.hentBenkOversikt(
                 command = HentÅpneBehandlingerCommand(
-                    åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(null, null, null, null),
+                    åpneBehandlingerFiltrering = ÅpneBehandlingerFiltrering(null, null, null, null, 0),
                     sortering = BenkSortering(BenkSorteringKolonne.STARTET, SorteringRetning.ASC),
                     saksbehandler = saksbehandler,
                     correlationId = CorrelationId.generate(),

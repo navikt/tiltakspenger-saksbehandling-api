@@ -1,11 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
-import kotliquery.queryOf
+import kotliquery.Row
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
@@ -19,18 +20,15 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo.Companion.IKKE_TILDELT
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
-
-data class BehandlingssamendragMedCount(
-    val behandlingssammendrag: Behandlingssammendrag,
-    val totalAntall: Int,
-    val totalAntallUfiltrert: Int,
-)
+import org.intellij.lang.annotations.Language
 
 class BenkOversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : BenkOversiktRepo {
 
     private object BenkSpørringer {
+
+        @Language("PostgreSQL")
         const val ÅPNE_SØKNADER_UTEN_BEHANDLING = """
             select 
                 sa.id                 as sakId,
@@ -56,6 +54,7 @@ class BenkOversiktPostgresRepo(
                 and sø.avbrutt is null
         """
 
+        @Language("PostgreSQL")
         const val ÅPNE_SØKNADSBEHANDLINGER = """
             select sa.id               as sakId,
                 sa.fnr              as fnr,
@@ -80,6 +79,7 @@ class BenkOversiktPostgresRepo(
                                'UNDER_BESLUTNING', 'UNDER_AUTOMATISK_BEHANDLING')
         """
 
+        @Language("PostgreSQL")
         const val ÅPNE_REVURDERINGER = """
             select sa.id           as sakId,
                 sa.fnr          as fnr,
@@ -103,6 +103,7 @@ class BenkOversiktPostgresRepo(
                                'UNDER_BESLUTNING')
         """
 
+        @Language("PostgreSQL")
         const val ÅPNE_MELDEKORTBEHANDLINGER = """
             select s.id                  as sakId,
                 s.fnr                 as fnr,
@@ -125,6 +126,7 @@ class BenkOversiktPostgresRepo(
                                'UNDER_BESLUTNING')
         """
 
+        @Language("PostgreSQL")
         const val ÅPNE_MELDEKORT_TIL_BEHANDLING = """
             with sisteMeldekortPerKjede as (
                 select distinct on (sak_id, meldeperiode_kjede_id)
@@ -169,6 +171,7 @@ class BenkOversiktPostgresRepo(
             )
         """
 
+        @Language("PostgreSQL")
         const val ÅPNE_TILBAKEKREVINGER = """
             select tb.sak_id              as sakId,
                 s.fnr                     as fnr,
@@ -191,9 +194,10 @@ class BenkOversiktPostgresRepo(
                 null::jsonb               as attesteringer
             from tilbakekreving_behandling tb
                 join sak s on tb.sak_id = s.id
-            where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING')
+            where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING') and tb.totalt_feilutbetalt_beløp >= :tb_minste_belop
         """
 
+        @Language("PostgreSQL")
         const val ÅPNE_KLAGER = """
             select k.sak_id             as sakId,
                 s.fnr                   as fnr,
@@ -219,25 +223,6 @@ class BenkOversiktPostgresRepo(
         """
     }
 
-    private fun mapQueryParams(command: HentÅpneBehandlingerCommand, limit: Int): Map<String, Any?> {
-        return mapOf(
-            "limit" to limit,
-            "behandlingstype" to (
-                command.åpneBehandlingerFiltrering.behandlingstype?.map { it.toString() }
-                    ?: BehandlingssammendragType.entries.map { it.toString() }
-                ).toTypedArray(),
-            "status" to (
-                command.åpneBehandlingerFiltrering.status?.map { it.toString() }
-                    ?: BehandlingssammendragStatus.entries.map { it.toString() }
-                ).toTypedArray(),
-            "benktype" to (
-                command.åpneBehandlingerFiltrering.benktype?.map { it.toString() }
-                    ?: BehandlingssammendragBenktype.entries.map { it.toString() }
-                ).toTypedArray(),
-            "identer" to command.åpneBehandlingerFiltrering.identer?.toTypedArray(),
-        )
-    }
-
     override fun hentÅpneBehandlinger(
         command: HentÅpneBehandlingerCommand,
         sessionContext: SessionContext?,
@@ -245,8 +230,7 @@ class BenkOversiktPostgresRepo(
     ): BenkOversikt {
         return sessionFactory.withSession(sessionContext) { session ->
             val rows = session.run(
-                queryOf(
-                    //language="sql"
+                sqlQuery(
                     """
                     with 
                         åpneSøknaderUtenBehandling as (${BenkSpørringer.ÅPNE_SØKNADER_UTEN_BEHANDLING}),
@@ -297,49 +281,8 @@ class BenkOversiktPostgresRepo(
                     order by ${command.sortering.kolonne.toDbString()} ${command.sortering.retning.toDbString()} nulls last
                     limit :limit;
                     """.trimIndent(),
-                    mapQueryParams(command, limit),
-                ).map { row ->
-                    val sakId = SakId.fromString(row.string("sakId"))
-                    val fnr = Fnr.fromString(row.string("fnr"))
-                    val saksnummer = Saksnummer(row.string("saksnummer"))
-                    val startet = row.localDateTime("startet")
-                    val behandlingstype = row.string("behandlingstype")
-                        .let { BehandlingssammendragTypeDb.valueOf(it) }.toDomain()
-                    val status = row.stringOrNull("status")?.toBehandlingssammendragStatus()
-                    val saksbehandler = row.stringOrNull("saksbehandler")
-                    val beslutter = row.stringOrNull("beslutter")
-                    val sistEndret = row.localDateTimeOrNull("sist_endret")
-                    val count = row.int("total_count")
-                    val unfilteredCount = row.int("total_unfiltered_count")
-                    val erSattPåVent = row.booleanOrNull("erSattPåVent") ?: false
-                    val sattPåVentBegrunnelse = row.stringOrNull("sattPåVentBegrunnelse")
-                    val sattPåVentFrist = row.localDateOrNull("sattPåVentFrist")
-                    val resultat = row.stringOrNull("resultat")?.let { RammebehandlingResultatTypeDTO.valueOf(it) }
-                    val erUnderkjent =
-                        row.stringOrNull("attesteringer")?.toAttesteringer()?.lastOrNull()?.isUnderkjent() ?: false
-
-                    BehandlingssamendragMedCount(
-                        Behandlingssammendrag(
-                            sakId = sakId,
-                            fnr = fnr,
-                            saksnummer = saksnummer,
-                            startet = startet,
-                            kravtidspunkt = if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) startet else null,
-                            behandlingstype = behandlingstype,
-                            status = status,
-                            saksbehandler = saksbehandler,
-                            beslutter = beslutter,
-                            sistEndret = sistEndret,
-                            erSattPåVent = erSattPåVent,
-                            sattPåVentBegrunnelse = sattPåVentBegrunnelse,
-                            sattPåVentFrist = sattPåVentFrist,
-                            erUnderkjent = erUnderkjent,
-                            resultat = resultat,
-                        ),
-                        totalAntall = count,
-                        totalAntallUfiltrert = unfilteredCount,
-                    )
-                }.asList,
+                    *mapQueryParams(command, limit),
+                ).map { it.tilSammendrag() }.asList,
             )
 
             val behandlingssammendrag = rows.map { it.behandlingssammendrag }
@@ -349,7 +292,76 @@ class BenkOversiktPostgresRepo(
             BenkOversikt(behandlingssammendrag, totalAntall, totalAntallUfiltrert)
         }
     }
+
+    private fun Row.tilSammendrag(): BehandlingssamendragMedCount {
+        val sakId = SakId.fromString(string("sakId"))
+        val fnr = Fnr.fromString(string("fnr"))
+        val saksnummer = Saksnummer(string("saksnummer"))
+        val startet = localDateTime("startet")
+        val behandlingstype = string("behandlingstype")
+            .let { BehandlingssammendragTypeDb.valueOf(it) }.toDomain()
+        val status = stringOrNull("status")?.toBehandlingssammendragStatus()
+        val saksbehandler = stringOrNull("saksbehandler")
+        val beslutter = stringOrNull("beslutter")
+        val sistEndret = localDateTimeOrNull("sist_endret")
+        val count = int("total_count")
+        val unfilteredCount = int("total_unfiltered_count")
+        val erSattPåVent = booleanOrNull("erSattPåVent") ?: false
+        val sattPåVentBegrunnelse = stringOrNull("sattPåVentBegrunnelse")
+        val sattPåVentFrist = localDateOrNull("sattPåVentFrist")
+        val resultat = stringOrNull("resultat")?.let { RammebehandlingResultatTypeDTO.valueOf(it) }
+        val erUnderkjent =
+            stringOrNull("attesteringer")?.toAttesteringer()?.lastOrNull()?.isUnderkjent() ?: false
+
+        return BehandlingssamendragMedCount(
+            Behandlingssammendrag(
+                sakId = sakId,
+                fnr = fnr,
+                saksnummer = saksnummer,
+                startet = startet,
+                kravtidspunkt = if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) startet else null,
+                behandlingstype = behandlingstype,
+                status = status,
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+                sistEndret = sistEndret,
+                erSattPåVent = erSattPåVent,
+                sattPåVentBegrunnelse = sattPåVentBegrunnelse,
+                sattPåVentFrist = sattPåVentFrist,
+                erUnderkjent = erUnderkjent,
+                resultat = resultat,
+            ),
+            totalAntall = count,
+            totalAntallUfiltrert = unfilteredCount,
+        )
+    }
 }
+
+private fun mapQueryParams(command: HentÅpneBehandlingerCommand, limit: Int): Array<Pair<String, Any?>> {
+    return arrayOf(
+        "limit" to limit,
+        "tb_minste_belop" to command.åpneBehandlingerFiltrering.tilbakekrevingMinBeløp,
+        "behandlingstype" to (
+            command.åpneBehandlingerFiltrering.behandlingstype?.map { it.toString() }
+                ?: BehandlingssammendragType.entries.map { it.toString() }
+            ).toTypedArray(),
+        "status" to (
+            command.åpneBehandlingerFiltrering.status?.map { it.toString() }
+                ?: BehandlingssammendragStatus.entries.map { it.toString() }
+            ).toTypedArray(),
+        "benktype" to (
+            command.åpneBehandlingerFiltrering.benktype?.map { it.toString() }
+                ?: BehandlingssammendragBenktype.entries.map { it.toString() }
+            ).toTypedArray(),
+        "identer" to command.åpneBehandlingerFiltrering.identer?.toTypedArray(),
+    )
+}
+
+private data class BehandlingssamendragMedCount(
+    val behandlingssammendrag: Behandlingssammendrag,
+    val totalAntall: Int,
+    val totalAntallUfiltrert: Int,
+)
 
 private enum class BehandlingssammendragTypeDb {
     SØKNADSBEHANDLING,
