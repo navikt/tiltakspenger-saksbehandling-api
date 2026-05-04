@@ -4,9 +4,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ *  [beløp] Benyttes kun for tilbakekreving
+ * */
 data class Behandlingssammendrag(
     val sakId: SakId,
     val fnr: Fnr,
@@ -28,6 +32,7 @@ data class Behandlingssammendrag(
     val sattPåVentFrist: LocalDate?,
     val erUnderkjent: Boolean,
     val resultat: RammebehandlingResultatTypeDTO?,
+    val beløp: BigDecimal?,
 ) {
     init {
         if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) {

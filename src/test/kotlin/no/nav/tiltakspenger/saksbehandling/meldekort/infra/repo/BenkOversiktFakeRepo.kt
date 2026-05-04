@@ -128,6 +128,7 @@ class BenkOversiktFakeRepo(
                 sistEndret = behandling.sistEndret,
                 resultat = null,
                 erUnderkjent = behandling.erUnderkjent,
+                beløp = null,
             )
         }
     }
@@ -149,6 +150,7 @@ class BenkOversiktFakeRepo(
             sistEndret = null,
             resultat = null,
             erUnderkjent = false,
+            beløp = null,
         )
     }
 
@@ -184,6 +186,7 @@ class BenkOversiktFakeRepo(
                 sistEndret = it.sistEndret,
                 resultat = null,
                 erUnderkjent = it.erUnderkjent,
+                beløp = null,
             )
         }
     }
@@ -239,6 +242,7 @@ class BenkOversiktFakeRepo(
                 sistEndret = it.sistEndret,
                 resultat = null,
                 erUnderkjent = false,
+                beløp = null,
             )
         }
     }

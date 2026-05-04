@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes
 
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import java.math.BigDecimal
 
 data class BehandlingssammendragDTO(
     val sakId: String,
@@ -18,6 +19,7 @@ data class BehandlingssammendragDTO(
     val sattPåVentFrist: String?,
     val resultat: RammebehandlingResultatTypeDTO?,
     val erUnderkjent: Boolean,
+    val beløp: BigDecimal?,
 )
 
 enum class BehandlingssammendragTypeDTO {

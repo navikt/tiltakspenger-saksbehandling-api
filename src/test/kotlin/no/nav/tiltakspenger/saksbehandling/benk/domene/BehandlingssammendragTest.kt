@@ -32,6 +32,7 @@ class BehandlingssammendragTest {
                 sistEndret = null,
                 erUnderkjent = false,
                 resultat = null,
+                beløp = null,
             )
         }
 
@@ -52,6 +53,7 @@ class BehandlingssammendragTest {
                 sistEndret = null,
                 erUnderkjent = false,
                 resultat = null,
+                beløp = null,
             )
         }
     }
@@ -75,6 +77,7 @@ class BehandlingssammendragTest {
                 sistEndret = null,
                 erUnderkjent = false,
                 resultat = null,
+                beløp = null,
             )
         }
 
@@ -95,6 +98,7 @@ class BehandlingssammendragTest {
                 sistEndret = null,
                 erUnderkjent = false,
                 resultat = null,
+                beløp = null,
             )
         }
     }

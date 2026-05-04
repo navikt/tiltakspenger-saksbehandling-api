@@ -114,6 +114,7 @@ class BenkOversiktPostgresRepoTest {
                 sistEndret = null,
                 resultat = null,
                 erUnderkjent = false,
+                beløp = null,
             )
         }
     }
@@ -170,6 +171,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     erUnderkjent = opprettetBehandling.erUnderkjent,
+                    beløp = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakKlarTilBeslutning.id,
@@ -187,6 +189,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     erUnderkjent = opprettetBehandling.erUnderkjent,
+                    beløp = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakUnderBeslutning.id,
@@ -204,6 +207,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                     erUnderkjent = opprettetBehandling.erUnderkjent,
+                    beløp = null,
                 )
             }
         }
@@ -243,6 +247,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = RammebehandlingResultatTypeDTO.STANS,
                     erUnderkjent = opprettetRevurdering.erUnderkjent,
+                    beløp = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakRevurderingTilBeslutning.id,
@@ -260,6 +265,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = RammebehandlingResultatTypeDTO.STANS,
                     erUnderkjent = opprettetRevurdering.erUnderkjent,
+                    beløp = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedRevurderingUnderBeslutning.id,
@@ -277,6 +283,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = RammebehandlingResultatTypeDTO.STANS,
                     erUnderkjent = opprettetRevurdering.erUnderkjent,
+                    beløp = null,
                 )
             }
         }
@@ -319,6 +326,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = null,
                     erUnderkjent = false,
+                    beløp = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sak1MedMeldekortForEnAnnenPeriode.id,
@@ -336,6 +344,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = null,
                     erUnderkjent = false,
+                    beløp = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sak2.id,
@@ -353,6 +362,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = null,
                     erUnderkjent = false,
+                    beløp = null,
                 )
             }
         }
@@ -390,6 +400,7 @@ class BenkOversiktPostgresRepoTest {
                     sistEndret = null,
                     resultat = null,
                     erUnderkjent = false,
+                    beløp = null,
                 )
                 it[1] shouldBe Behandlingssammendrag(
                     sakId = sakMedOpprettetMeldekortbehandling.id,
@@ -407,6 +418,7 @@ class BenkOversiktPostgresRepoTest {
                     sistEndret = opprettetMeldekortbehandling.sistEndret,
                     resultat = null,
                     erUnderkjent = opprettetMeldekortbehandling.erUnderkjent,
+                    beløp = null,
                 )
                 it.last() shouldBe Behandlingssammendrag(
                     sakId = sakMedMeldekortbehandlingTilBeslutning.id,
@@ -424,6 +436,7 @@ class BenkOversiktPostgresRepoTest {
                     sistEndret = meldekortbehandlingTilBeslutning.sistEndret,
                     resultat = null,
                     erUnderkjent = meldekortbehandlingTilBeslutning.erUnderkjent,
+                    beløp = null,
                 )
             }
         }
@@ -467,6 +480,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = null,
                     erUnderkjent = false,
+                    beløp = null,
                 ),
             )
 
@@ -514,6 +528,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = null,
                     erUnderkjent = false,
+                    beløp = null,
                 ),
             )
 
@@ -545,6 +560,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = null,
                     erUnderkjent = behandling.erUnderkjent,
+                    beløp = null,
                 ),
             )
 
@@ -651,6 +667,7 @@ class BenkOversiktPostgresRepoTest {
                 sistEndret = klagebehandling.sistEndret,
                 resultat = null,
                 erUnderkjent = false,
+                beløp = null,
             )
             actual[1] shouldBe Behandlingssammendrag(
                 sakId = klagebehandlingPåVent.sakId,
@@ -668,6 +685,7 @@ class BenkOversiktPostgresRepoTest {
                 sistEndret = klagebehandlingPåVent.sistEndret,
                 resultat = null,
                 erUnderkjent = false,
+                beløp = null,
             )
             actual.last() shouldBe Behandlingssammendrag(
                 sakId = oversendtKlagebehandlingMedSvarFraKA.sakId,
@@ -685,6 +703,7 @@ class BenkOversiktPostgresRepoTest {
                 sistEndret = oversendtKlagebehandlingMedSvarFraKA.sistEndret,
                 resultat = null,
                 erUnderkjent = false,
+                beløp = null,
             )
         }
     }
@@ -786,6 +805,7 @@ class BenkOversiktPostgresRepoTest {
                 sattPåVentFrist = null,
                 resultat = null,
                 erUnderkjent = false,
+                beløp = tilBehandling.totaltFeilutbetaltBeløp,
             )
             actual.last() shouldBe Behandlingssammendrag(
                 sakId = sak.id,
@@ -803,6 +823,7 @@ class BenkOversiktPostgresRepoTest {
                 sattPåVentFrist = null,
                 resultat = null,
                 erUnderkjent = false,
+                beløp = tilGodkjenning.totaltFeilutbetaltBeløp,
             )
         }
     }
@@ -880,6 +901,7 @@ class BenkOversiktPostgresRepoTest {
                     sattPåVentFrist = null,
                     resultat = null,
                     erUnderkjent = false,
+                    beløp = tilbakekrevingOverMinstebeløp.totaltFeilutbetaltBeløp,
                 ),
             )
         }
