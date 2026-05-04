@@ -171,12 +171,13 @@ class BenkOversiktPostgresRepo(
             )
         """
 
+        // Vi bruker utbetalingens opprettet tidspunkt her, ettersom tilbake-behandlingene har mange nesten-identiske tidspunkt pga batching
         @Language("PostgreSQL")
         const val ÅPNE_TILBAKEKREVINGER = """
             select tb.sak_id              as sakId,
                 s.fnr                     as fnr,
                 s.saksnummer              as saksnummer,
-                tb.opprettet              as startet,
+                u.opprettet               as startet, 
                 'TILBAKEKREVING'          as behandlingstype,
                 case
                     when tb.status = 'TIL_BEHANDLING' and tb.saksbehandler_ident is not null then 'UNDER_BEHANDLING'
@@ -193,7 +194,7 @@ class BenkOversiktPostgresRepo(
                 tb.sist_endret            as sist_endret,
                 null::jsonb               as attesteringer
             from tilbakekreving_behandling tb
-                join sak s on tb.sak_id = s.id
+                join sak s on tb.sak_id = s.id join utbetaling u on tb.utbetaling_id = u.id
             where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING') and tb.totalt_feilutbetalt_beløp >= :tb_minste_belop
         """
 
@@ -293,7 +294,7 @@ class BenkOversiktPostgresRepo(
         }
     }
 
-    private fun Row.tilSammendrag(): BehandlingssamendragMedCount {
+    private fun Row.tilSammendrag(): BehandlingssammendragMedCount {
         val sakId = SakId.fromString(string("sakId"))
         val fnr = Fnr.fromString(string("fnr"))
         val saksnummer = Saksnummer(string("saksnummer"))
@@ -313,7 +314,7 @@ class BenkOversiktPostgresRepo(
         val erUnderkjent =
             stringOrNull("attesteringer")?.toAttesteringer()?.lastOrNull()?.isUnderkjent() ?: false
 
-        return BehandlingssamendragMedCount(
+        return BehandlingssammendragMedCount(
             Behandlingssammendrag(
                 sakId = sakId,
                 fnr = fnr,
@@ -357,7 +358,7 @@ private fun mapQueryParams(command: HentÅpneBehandlingerCommand, limit: Int): A
     )
 }
 
-private data class BehandlingssamendragMedCount(
+private data class BehandlingssammendragMedCount(
     val behandlingssammendrag: Behandlingssammendrag,
     val totalAntall: Int,
     val totalAntallUfiltrert: Int,
