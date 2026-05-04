@@ -47,7 +47,6 @@ private data class ForhåndsvisBrevMeldekortbehandlingBody(
 private data class LegacyForhåndsvisBrevMeldekortbehandlingBody(
     val tekstTilVedtaksbrev: String?,
     val dager: List<LegacyOppdaterMeldekortdagDTO>,
-    val versjon: Int = 1,
 ) {
     data class LegacyOppdaterMeldekortdagDTO(
         val dato: LocalDate,
