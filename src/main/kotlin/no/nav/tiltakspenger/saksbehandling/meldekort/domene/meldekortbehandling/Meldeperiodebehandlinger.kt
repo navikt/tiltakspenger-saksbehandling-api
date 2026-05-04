@@ -69,10 +69,23 @@ data class Meldeperiodebehandlinger(
     }
 
     init {
+        // TODO: denne sjekken må kanskje justeres litt på sikt, for å støtte saker med hull i vedtakene (uten meldeperioder)
         require(
             meldeperioder.size == 1 || meldeperioder.zipWithNext().all { (a, b) ->
                 a.periode.tilOgMed.plusDays(1) == b.periode.fraOgMed
             },
         ) { "Meldeperiodene for en behandling må være sammenhengende og sortert" }
+
+        if (beregning != null) {
+            val beregnedeKjedeIder = beregning.beregninger
+                // Beregningen kan inkludere flere påfølgende perioder ved korrigering av sykedager
+                // Det er ok, vi sjekker kun de n periodene som omfattes av behandlingen
+                .take(this.size)
+                .map { it.kjedeId }
+
+            require(kjedeIder == beregnedeKjedeIder) {
+                "Beregningen må omfatte alle kjedene i behandlingen - Forventet $kjedeIder, fant $beregnedeKjedeIder"
+            }
+        }
     }
 }
