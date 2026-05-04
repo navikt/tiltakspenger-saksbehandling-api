@@ -45,8 +45,7 @@ data class Meldekortvedtak(
 
     override val beregning: Beregning = meldekortbehandling.beregning
 
-    /** TODO: skal støtte flere meldeperioder */
-    val meldeperiode: Meldeperiode = meldekortbehandling.meldeperioder.single().meldeperiode
+    val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiode
 
     val meldekortId: MeldekortId = meldekortbehandling.id
     val automatiskBehandlet: Boolean = meldekortbehandling is MeldekortBehandletAutomatisk
