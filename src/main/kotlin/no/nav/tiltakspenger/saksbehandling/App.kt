@@ -15,9 +15,10 @@ import no.nav.tiltakspenger.libs.jobber.LeaderPodLookup
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupClient
 import no.nav.tiltakspenger.libs.jobber.LeaderPodLookupFeil
 import no.nav.tiltakspenger.libs.jobber.RunCheckFactory
+import no.nav.tiltakspenger.libs.jobber.TaskExecutor
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.infra.jobber.TaskExecutor
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.setup.CALL_ID_MDC_KEY
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration.httpPort
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
@@ -83,6 +84,7 @@ internal fun start(
     val jobber: TaskExecutor = TaskExecutor.startJob(
         initialDelay = if (isNais) 1.minutes else 1.seconds,
         runCheckFactory = runCheckFactory,
+        mdcCallIdKey = CALL_ID_MDC_KEY,
         tasks = listOfNotNull<suspend () -> Any>(
             { applicationContext.delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader() },
             { applicationContext.delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk() },
