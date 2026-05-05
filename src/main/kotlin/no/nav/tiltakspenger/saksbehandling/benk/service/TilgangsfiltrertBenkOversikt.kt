@@ -12,10 +12,10 @@ data class TilgangsfiltrertBenkOversikt(
     val limit = BenkOversiktRepo.DEFAULT_LIMIT
 
     companion object {
-        fun empty() = TilgangsfiltrertBenkOversikt(
+        fun empty(totalAntallUfiltrert: Int) = TilgangsfiltrertBenkOversikt(
             behandlingssammendrag = emptyList(),
             totalAntall = 0,
-            totalAntallUfiltrert = 0,
+            totalAntallUfiltrert = totalAntallUfiltrert,
             antallFiltrertPgaTilgang = 0,
         )
     }

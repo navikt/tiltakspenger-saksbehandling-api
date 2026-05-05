@@ -201,7 +201,7 @@ class BenkOversiktPostgresRepo(
                 tb.totalt_feilutbetalt_beløp as beløp
             from tilbakekreving_behandling tb
                 join sak s on tb.sak_id = s.id join utbetaling u on tb.utbetaling_id = u.id
-            where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING') and tb.totalt_feilutbetalt_beløp >= :tb_minste_belop
+            where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING')
         """
 
         @Language("PostgreSQL")
@@ -271,6 +271,7 @@ class BenkOversiktPostgresRepo(
                     ) med_ufiltrert_count
                     where behandlingstype = any (:behandlingstype)
                       and status = any (:status)
+                      and (behandlingstype <> 'TILBAKEKREVING' or beløp >= :tb_minste_belop)
                       and (
                         case
                           when :identer::text[] is null then true
@@ -295,10 +296,38 @@ class BenkOversiktPostgresRepo(
 
             val behandlingssammendrag = rows.map { it.behandlingssammendrag }
             val totalAntall = rows.firstOrNull()?.totalAntall ?: 0
-            val totalAntallUfiltrert = rows.firstOrNull()?.totalAntallUfiltrert ?: 0
+            // Når filtreringen ikke matcher noen rader, mister vi totalAntallUfiltrert (window-funksjonen
+            // gir bare verdier på rader som passerer WHERE). Da kjører vi en billig fallback-spørring.
+            val totalAntallUfiltrert = rows.firstOrNull()?.totalAntallUfiltrert
+                ?: hentTotalAntallUfiltrert(session)
 
             BenkOversikt(behandlingssammendrag, totalAntall, totalAntallUfiltrert)
         }
+    }
+
+    private fun hentTotalAntallUfiltrert(session: kotliquery.Session): Int {
+        return session.run(
+            sqlQuery(
+                """
+                with 
+                    åpneSøknaderUtenBehandling as (${BenkSpørringer.ÅPNE_SØKNADER_UTEN_BEHANDLING}),
+                    åpneSøknadsbehandlinger as (${BenkSpørringer.ÅPNE_SØKNADSBEHANDLINGER}),
+                    åpneRevurderinger as (${BenkSpørringer.ÅPNE_REVURDERINGER}),
+                    åpneMeldekortbehandlinger as (${BenkSpørringer.ÅPNE_MELDEKORTBEHANDLINGER}),
+                    åpneMeldekortTilBehandling as (${BenkSpørringer.ÅPNE_MELDEKORT_TIL_BEHANDLING}),
+                    åpneKlager as (${BenkSpørringer.ÅPNE_KLAGER}),
+                    åpneTilbakekrevinger as (${BenkSpørringer.ÅPNE_TILBAKEKREVINGER})
+                select
+                    (select count(*) from åpneSøknaderUtenBehandling)
+                  + (select count(*) from åpneSøknadsbehandlinger)
+                  + (select count(*) from åpneRevurderinger)
+                  + (select count(*) from åpneMeldekortbehandlinger)
+                  + (select count(*) from åpneMeldekortTilBehandling)
+                  + (select count(*) from åpneKlager)
+                  + (select count(*) from åpneTilbakekrevinger) as total_unfiltered_count
+                """.trimIndent(),
+            ).map { it.int("total_unfiltered_count") }.asSingle,
+        ) ?: 0
     }
 
     private fun Row.tilSammendrag(): BehandlingssammendragMedCount {

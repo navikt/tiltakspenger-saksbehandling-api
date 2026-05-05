@@ -24,7 +24,7 @@ class BenkOversiktService(
         val benkOversikt = benkOversiktRepo.hentÅpneBehandlinger(command)
 
         if (benkOversikt.isEmpty()) {
-            return TilgangsfiltrertBenkOversikt.empty()
+            return TilgangsfiltrertBenkOversikt.empty(benkOversikt.totalAntallUfiltrert)
         }
 
         val tilganger = tilgangskontrollService.harTilgangTilPersoner(
