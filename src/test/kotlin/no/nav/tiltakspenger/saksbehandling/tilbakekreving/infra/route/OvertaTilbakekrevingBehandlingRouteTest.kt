@@ -9,10 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaT
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-@Disabled
 class OvertaTilbakekrevingBehandlingRouteTest {
 
     @Test

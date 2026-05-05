@@ -29,8 +29,7 @@ class TilbakekrevingHendelsePostgresRepo(
     /**
      * Lagrer en ny tilbakekrevingshendelse
      *
-     * Lagrer ikke duplikate info_behov-hendelser for samme kravgrunnlag_referanse
-     * Team tilbake har retry på denne hvis vi ikke svarer i løpet av 3 timer, vi ønsker ikke å svare for samme kravgrunnlag flere ganger
+     * Hendelser fra tilbakeløsningen har ingen unik id, men opprettet-tidspunktet for hendelsen skal normalt være unikt
      */
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,

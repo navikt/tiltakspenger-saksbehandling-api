@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
-import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger { }
 
@@ -71,11 +70,6 @@ class TilbakekrevingConsumer(
                 return
             }
 
-            if (hendelse.opprettet.isBefore(ikkeBehandleFør)) {
-                logger.debug { "Behandler ikke utdatert hendelse fra ${hendelse.opprettet}" }
-                return
-            }
-
             val eksternFagsakId = hendelse.eksternFagsakId
 
             val sakId: SakId? = Either.catch {
@@ -107,8 +101,5 @@ class TilbakekrevingConsumer(
         private val erDev: Boolean = Configuration.isDev()
 
         private const val FAKE_SAK_PREFIX = "BF"
-
-        // Midlertidig fiks for å behandle nye hendelser på nytt
-        private val ikkeBehandleFør: LocalDateTime = LocalDateTime.of(2026, 5, 4, 0, 0)
     }
 }
