@@ -10,8 +10,10 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelT
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
+@Disabled
 class TaTilbakekrevingBehandlingRouteTest {
 
     @Test

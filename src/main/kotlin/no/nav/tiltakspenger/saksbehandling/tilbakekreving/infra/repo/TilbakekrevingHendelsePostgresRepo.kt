@@ -66,7 +66,7 @@ class TilbakekrevingHendelsePostgresRepo(
                         :key,
                         to_jsonb(:value::jsonb)
                     )
-                    ON CONFLICT (kravgrunnlag_referanse) DO NOTHING
+                    ON CONFLICT (ekstern_fagsak_id, hendelse_type, opprettet) DO NOTHING
                     """.trimIndent(),
                     "id" to hendelse.id.toString(),
                     "sak_id" to sakId?.toString(),

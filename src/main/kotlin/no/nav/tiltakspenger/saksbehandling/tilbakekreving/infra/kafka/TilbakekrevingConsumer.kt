@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
+import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger { }
 
@@ -24,7 +25,7 @@ class TilbakekrevingConsumer(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
     private val sakRepo: SakRepo,
     topic: String,
-    groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v3",
+    groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v4",
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
     log: KLogger? = logger,
 ) : Consumer<String, String?> {
@@ -70,6 +71,11 @@ class TilbakekrevingConsumer(
                 return
             }
 
+            if (hendelse.opprettet.isBefore(ikkeBehandleFør)) {
+                logger.debug { "Behandler ikke utdatert hendelse fra ${hendelse.opprettet}" }
+                return
+            }
+
             val eksternFagsakId = hendelse.eksternFagsakId
 
             val sakId: SakId? = Either.catch {
@@ -87,9 +93,9 @@ class TilbakekrevingConsumer(
             val bleLagret = tilbakekrevingHendelseRepo.lagreNy(hendelse, sakId, key, value)
 
             if (!bleLagret) {
-                logger.debug { "Tilbakekrevingshendelse type ${hendelse.hendelsestype}. sakId $sakId" }
+                logger.error { "Tilbakekrevingshendelse ble ikke lagret - ${hendelse.hendelsestype} / ${hendelse.eksternFagsakId} / ${hendelse.opprettet}" }
             } else {
-                logger.info { "Lagret ny tilbakekrevingshendelse type ${hendelse.hendelsestype}. sakId $sakId" }
+                logger.info { "Lagret ny tilbakekrevingshendelse - type ${hendelse.hendelsestype}. sakId $sakId" }
             }
         }
 
@@ -101,5 +107,8 @@ class TilbakekrevingConsumer(
         private val erDev: Boolean = Configuration.isDev()
 
         private const val FAKE_SAK_PREFIX = "BF"
+
+        // Midlertidig fiks for å behandle nye hendelser på nytt
+        private val ikkeBehandleFør: LocalDateTime = LocalDateTime.of(2026, 5, 4, 0, 0)
     }
 }
