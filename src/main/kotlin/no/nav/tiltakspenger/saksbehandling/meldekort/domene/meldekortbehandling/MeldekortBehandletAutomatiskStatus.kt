@@ -10,8 +10,8 @@ enum class MeldekortBehandletAutomatiskStatus(val loggesSomError: Boolean) {
     HAR_ÅPEN_BEHANDLING(false),
     MÅ_BEHANDLE_FØRSTE_KJEDE(false),
     MÅ_BEHANDLE_NESTE_KJEDE(false),
+    INGEN_DAGER_GIR_RETT(false),
 
-    INGEN_DAGER_GIR_RETT(true),
     UKJENT_FEIL(true),
     HENTE_NAVKONTOR_FEILET(true),
     BEHANDLING_FEILET_PÅ_SAK(true),
