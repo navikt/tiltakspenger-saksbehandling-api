@@ -106,13 +106,13 @@ data class Sak(
 
     fun hentTilbakekrevingForRammebehandling(id: RammebehandlingId): TilbakekrevingBehandling? {
         return utbetalinger.hentUtbetalingForRammebehandling(id)?.let { utbetaling ->
-            tilbakekrevinger.singleOrNull { it.utbetalingId == utbetaling.id }
+            tilbakekrevinger.singleOrNull { utbetaling.id in it.utbetalingIder }
         }
     }
 
     fun hentTilbakekrevingForMeldekortbehandling(id: MeldekortId): TilbakekrevingBehandling? {
         return utbetalinger.hentUtbetalingForMeldekort(id)?.let { utbetaling ->
-            tilbakekrevinger.singleOrNull { it.utbetalingId == utbetaling.id }
+            tilbakekrevinger.singleOrNull { utbetaling.id in it.utbetalingIder }
         }
     }
 

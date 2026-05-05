@@ -98,6 +98,6 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         utbetalingId: UtbetalingId,
         sessionContext: SessionContext?,
     ): List<TilbakekrevingBehandling> {
-        return data.get().values.filter { it.utbetalingId == utbetalingId }
+        return data.get().values.filter { utbetalingId in it.utbetalingIder }
     }
 }

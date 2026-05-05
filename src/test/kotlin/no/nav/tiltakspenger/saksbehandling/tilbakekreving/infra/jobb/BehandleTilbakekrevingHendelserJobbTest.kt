@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -387,7 +388,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             val tilbakekrevingBehandling = tilbakekrevingBehandlinger.first()
             tilbakekrevingBehandling.sakId shouldBe sakMedOpphør.id
-            tilbakekrevingBehandling.utbetalingId shouldBe forventetUtbetaling.id
+            tilbakekrevingBehandling.utbetalingIder shouldBe nonEmptyListOf(forventetUtbetaling.id)
         }
     }
 
@@ -435,7 +436,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             val tilbakekrevingBehandling = tilbakekrevingBehandlinger.first()
             tilbakekrevingBehandling.sakId shouldBe sakMedKorrigering.id
-            tilbakekrevingBehandling.utbetalingId shouldBe forventetUtbetaling.id
+            tilbakekrevingBehandling.utbetalingIder shouldBe nonEmptyListOf(forventetUtbetaling.id)
         }
     }
 

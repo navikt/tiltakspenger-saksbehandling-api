@@ -198,7 +198,14 @@ class BenkOversiktPostgresRepo(
                 null::jsonb               as attesteringer,
                 tb.totalt_feilutbetalt_beløp as beløp
             from tilbakekreving_behandling tb
-                join sak s on tb.sak_id = s.id join utbetaling u on tb.utbetaling_id = u.id
+                join sak s on tb.sak_id = s.id
+                join lateral (
+                    select opprettet
+                    from utbetaling
+                    where id = any(tb.utbetaling_ider)
+                    order by opprettet asc
+                    limit 1
+                ) u on true
             where tb.status in ('TIL_BEHANDLING', 'TIL_GODKJENNING')
         """
 

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 
+import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.SakId
@@ -25,7 +26,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     INSERT INTO tilbakekreving_behandling (
                         id,
                         sak_id,
-                        utbetaling_id,
+                        utbetaling_ider,
                         tilbake_behandling_id,
                         opprettet,
                         sist_endret,
@@ -39,7 +40,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     ) VALUES (
                         :id,
                         :sak_id,
-                        :utbetaling_id,
+                        :utbetaling_ider,
                         :tilbake_behandling_id,
                         :opprettet,
                         :sist_endret,
@@ -52,6 +53,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         :beslutter_ident
                     )
                     ON CONFLICT (id) DO UPDATE SET
+                        utbetaling_ider = :utbetaling_ider,
                         status = :status,
                         url = :url,
                         kravgrunnlag_periode = :kravgrunnlag_periode::periode,
@@ -63,7 +65,9 @@ class TilbakekrevingBehandlingPostgresRepo(
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "sak_id" to tilbakekrevingBehandling.sakId.toString(),
-                    "utbetaling_id" to tilbakekrevingBehandling.utbetalingId.toString(),
+                    "utbetaling_ider" to tilbakekrevingBehandling.utbetalingIder
+                        .map { it.toString() }
+                        .toTypedArray(),
                     "tilbake_behandling_id" to tilbakekrevingBehandling.tilbakeBehandlingId,
                     "opprettet" to tilbakekrevingBehandling.opprettet,
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
@@ -267,7 +271,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                     """
                     SELECT *
                     FROM tilbakekreving_behandling
-                    WHERE utbetaling_id = :utbetaling_id
+                    WHERE :utbetaling_id = ANY(utbetaling_ider)
                     """.trimIndent(),
                     "utbetaling_id" to utbetalingId.toString(),
                 ).map { row -> row.tilTilbakekrevingBehandling() }.asList,
@@ -290,10 +294,15 @@ class TilbakekrevingBehandlingPostgresRepo(
         }
 
         private fun Row.tilTilbakekrevingBehandling(): TilbakekrevingBehandling {
+            val utbetalingIderRaw = array<String>("utbetaling_ider").toList()
+            val utbetalingIder = utbetalingIderRaw
+                .map { UtbetalingId.fromString(it) }
+                .toNonEmptyListOrNull()
+                ?: throw IllegalStateException("tilbakekreving_behandling ${string("id")} har tom utbetaling_ider")
             return TilbakekrevingBehandling(
                 id = TilbakekrevingId.fromString(string("id")),
                 sakId = SakId.fromString(string("sak_id")),
-                utbetalingId = UtbetalingId.fromString(string("utbetaling_id")),
+                utbetalingIder = utbetalingIder,
                 tilbakeBehandlingId = string("tilbake_behandling_id"),
                 opprettet = localDateTime("opprettet"),
                 sistEndret = localDateTime("sist_endret"),
