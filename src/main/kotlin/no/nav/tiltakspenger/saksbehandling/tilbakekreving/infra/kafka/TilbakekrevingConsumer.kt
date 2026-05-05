@@ -38,6 +38,7 @@ class TilbakekrevingConsumer(
         ),
         log = log,
         consume = ::consume,
+        kanLoggeKey = false,
     )
 
     override suspend fun consume(key: String, value: String?) {
