@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerComm
 import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterAvbruttRevurdering
@@ -644,6 +645,49 @@ class BenkOversiktPostgresRepoTest {
             totalAntallMedOppdatertBehandling shouldBe 1
             totalAntallUfiltrertMedOppdatertBehandling shouldBe 1
             actualMedOppdatertBehandling.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
+        }
+    }
+
+    @Test
+    fun `første meldekort i en kjede er 'INNSENDT_MELDEKORT', deretter er det 'KORRIGERT_MELDEKORT'`() {
+        val clock = TikkendeKlokke(fixedClockAt(18.august(2025)))
+        withMigratedDb(runIsolated = true, clock = clock) { testDataHelper ->
+            val periode = Periode(4.august(2025), 17.august(2025))
+
+            // Bruker sender første meldekort i kjeden.
+            val (sak, førsteMeldekort) = testDataHelper.persisterBrukersMeldekort(periode = periode)
+
+            val (actualEtterFørsteInnsending, antallEtterFørsteInnsending) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
+
+            antallEtterFørsteInnsending shouldBe 1
+            actualEtterFørsteInnsending.single().behandlingstype shouldBe BehandlingssammendragType.INNSENDT_MELDEKORT
+
+            // Første meldekort blir behandlet automatisk og skal ikke lenger ligge på benken.
+            testDataHelper.meldekortBrukerRepo.markerSomAutomatiskBehandlet(
+                meldekortId = førsteMeldekort.id,
+                metadata = Forsøkshistorikk.opprett(clock = testDataHelper.clock),
+            )
+
+            val (actualEtterAutomatiskBehandling, antallEtterAutomatiskBehandling) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
+
+            antallEtterAutomatiskBehandling shouldBe 0
+            actualEtterAutomatiskBehandling shouldBe emptyList()
+
+            // Bruker sender korrigering i samme kjede
+            val (sakEtterKorrigering, _) = testDataHelper.persisterBrukersMeldekort(sak = sak, periode = periode)
+
+            val (actualEtterKorrigering, antallEtterKorrigering) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(),
+            )
+
+            // Korrigeringen skal ligge på benken selv om det forrige meldekortet i kjeden
+            // hadde behandlet_automatisk_status = BEHANDLET
+            antallEtterKorrigering shouldBe 1
+            actualEtterKorrigering.single().behandlingstype shouldBe BehandlingssammendragType.KORRIGERT_MELDEKORT
         }
     }
 

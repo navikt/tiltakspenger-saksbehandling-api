@@ -132,7 +132,7 @@ class BenkOversiktPostgresRepo(
 
         @Language("PostgreSQL")
         const val ÅPNE_MELDEKORT_TIL_BEHANDLING = """
-            with sisteMeldekortPerKjede as (
+            with sisteUbehandledeManuelleMeldekortPerKjede as (
                 select distinct on (sak_id, meldeperiode_kjede_id)
                     id, sak_id, meldeperiode_kjede_id, mottatt
                 from meldekort_bruker
@@ -148,9 +148,7 @@ class BenkOversiktPostgresRepo(
                     select 1 from meldekort_bruker tidligere
                     where tidligere.sak_id = siste.sak_id
                       and tidligere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
-                      and tidligere.id <> siste.id
-                      and tidligere.behandlet_automatisk_status != 'BEHANDLET'
-                      and tidligere.behandles_automatisk = false
+                      and tidligere.id != siste.id
                 ) then 'KORRIGERT_MELDEKORT' else 'INNSENDT_MELDEKORT' end as behandlingstype,
                 'KLAR_TIL_BEHANDLING'          as status,
                 null                           as saksbehandler,
@@ -162,7 +160,7 @@ class BenkOversiktPostgresRepo(
                 null::timestamp with time zone as sist_endret,
                 null::jsonb                    as attesteringer,
                 null::numeric                  as beløp
-            from sisteMeldekortPerKjede siste
+            from sisteUbehandledeManuelleMeldekortPerKjede siste
             join sak s on s.id = siste.sak_id
             /*
              * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere
