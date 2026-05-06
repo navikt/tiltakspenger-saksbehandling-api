@@ -31,7 +31,12 @@ private data class MeldeperiodebehandlingDbJson(
     data class MeldekortDagDbJson(
         val dato: LocalDate,
         val status: MeldekortDagStatusDb,
-    )
+    ) {
+
+        fun tilDomene(): MeldekortDag {
+            return MeldekortDag(dato = dato, status = status.toMeldekortDagStatus())
+        }
+    }
 }
 
 fun Meldeperiodebehandlinger.tilDbJson(): String {
@@ -69,16 +74,12 @@ private fun MeldeperiodebehandlingDbJson.tilDomene(
     val brukersMeldekort = this.brukersMeldekortId?.let {
         hentBrukersMeldekort(MeldekortId.fromString(it))
     }
-    val dager = serialize(this.dager).tilMeldekortDager(meldeperiode)
+
     return Meldeperiodebehandling(
-        dager = dager,
+        dager = UtfyltMeldeperiode(
+            dager = this.dager.map { it.tilDomene() },
+            meldeperiode = meldeperiode,
+        ),
         brukersMeldekort = brukersMeldekort,
     )
-}
-
-private fun String.tilMeldekortDager(meldeperiode: Meldeperiode): UtfyltMeldeperiode {
-    val dager = deserializeList<MeldekortDagDbJson>(this).map {
-        MeldekortDag(dato = it.dato, status = it.status.toMeldekortDagStatus())
-    }
-    return UtfyltMeldeperiode(dager, meldeperiode)
 }
