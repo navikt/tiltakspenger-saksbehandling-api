@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import kotliquery.Row
 import kotliquery.Session
@@ -10,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -31,12 +29,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDb
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortDager
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortDagerDbJson
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDbJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortbehandlingType
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toMeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
@@ -60,13 +56,11 @@ class MeldekortbehandlingPostgresRepo(
                     """
                     insert into meldekortbehandling (
                         id,
-                        meldeperiode_kjede_id,
-                        meldeperiode_id,
                         sak_id,
                         opprettet,
                         fra_og_med,
                         til_og_med,
-                        meldekortdager,
+                        meldeperioder,
                         beregninger,
                         simulering,
                         simulering_metadata,
@@ -80,19 +74,16 @@ class MeldekortbehandlingPostgresRepo(
                         type,
                         begrunnelse,
                         attesteringer,
-                        brukers_meldekort_id,
                         avbrutt,
                         sist_endret,
                         skal_sende_vedtaksbrev
                     ) values (
                         :id,
-                        :meldeperiode_kjede_id,
-                        :meldeperiode_id,
                         :sak_id,
                         :opprettet,
                         :fra_og_med,
                         :til_og_med,
-                        to_jsonb(:meldekortdager::jsonb),
+                        to_jsonb(:meldeperioder::jsonb),
                         to_jsonb(:beregninger::jsonb),
                         to_jsonb(:simulering::jsonb),
                         :simulering_metadata,
@@ -106,20 +97,17 @@ class MeldekortbehandlingPostgresRepo(
                         :type,
                         :begrunnelse,
                         to_jsonb(:attesteringer::jsonb),
-                        :brukers_meldekort_id,
                         to_jsonb(:avbrutt::jsonb),
                         :sist_endret,
                         :skal_sende_vedtaksbrev
                     )
                     """,
                     "id" to meldekortbehandling.id.toString(),
-                    "meldeperiode_kjede_id" to meldekortbehandling.kjedeId.toString(),
-                    "meldeperiode_id" to meldekortbehandling.meldeperiode.id.toString(),
                     "sak_id" to meldekortbehandling.sakId.toString(),
                     "opprettet" to meldekortbehandling.opprettet,
                     "fra_og_med" to meldekortbehandling.fraOgMed,
                     "til_og_med" to meldekortbehandling.tilOgMed,
-                    "meldekortdager" to meldekortbehandling.dager.tilMeldekortDagerDbJson(),
+                    "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
                     "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     // den er ferdig serialisert
@@ -134,7 +122,6 @@ class MeldekortbehandlingPostgresRepo(
                     "type" to meldekortbehandling.type.tilDb(),
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
-                    "brukers_meldekort_id" to meldekortbehandling.brukersMeldekort?.id?.toString(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
@@ -152,7 +139,7 @@ class MeldekortbehandlingPostgresRepo(
                 sqlQuery(
                     """
                     update meldekortbehandling set
-                        meldekortdager = to_jsonb(:meldekortdager::jsonb),
+                        meldeperioder = to_jsonb(:meldeperioder::jsonb),
                         beregninger = to_jsonb(:beregninger::jsonb),
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
@@ -160,7 +147,6 @@ class MeldekortbehandlingPostgresRepo(
                         navkontor = :navkontor,
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         sendt_til_beslutning = :sendt_til_beslutning,
-                        meldeperiode_id = :meldeperiode_id,
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
@@ -168,7 +154,7 @@ class MeldekortbehandlingPostgresRepo(
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
-                    "meldekortdager" to meldekortbehandling.dager.tilMeldekortDagerDbJson(),
+                    "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
                     "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
                     "saksbehandler" to meldekortbehandling.saksbehandler,
                     "beslutter" to meldekortbehandling.beslutter,
@@ -176,7 +162,6 @@ class MeldekortbehandlingPostgresRepo(
                     "navkontor" to meldekortbehandling.navkontor.kontornummer,
                     "iverksatt_tidspunkt" to meldekortbehandling.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
-                    "meldeperiode_id" to meldekortbehandling.meldeperiode.id.toString(),
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
@@ -196,7 +181,7 @@ class MeldekortbehandlingPostgresRepo(
                 sqlQuery(
                     """
                     update meldekortbehandling set
-                        meldekortdager = to_jsonb(:meldekortdager::jsonb),
+                        meldeperioder = to_jsonb(:meldeperioder::jsonb),
                         beregninger = to_jsonb(:beregninger::jsonb),
                         simulering = to_jsonb(:simulering::jsonb),
                         simulering_metadata = :simulering_metadata,
@@ -207,7 +192,6 @@ class MeldekortbehandlingPostgresRepo(
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         sendt_til_beslutning = :sendt_til_beslutning,
                         ikke_rett_til_tiltakspenger_tidspunkt = :ikke_rett_til_tiltakspenger_tidspunkt,
-                        meldeperiode_id = :meldeperiode_id,
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
@@ -217,7 +201,7 @@ class MeldekortbehandlingPostgresRepo(
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
-                    "meldekortdager" to meldekortbehandling.dager.tilMeldekortDagerDbJson(),
+                    "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
                     "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     "simulering_metadata" to simuleringMedMetadata?.originalResponseBody,
@@ -228,7 +212,6 @@ class MeldekortbehandlingPostgresRepo(
                     "iverksatt_tidspunkt" to meldekortbehandling.iverksattTidspunkt,
                     "ikke_rett_til_tiltakspenger_tidspunkt" to meldekortbehandling.ikkeRettTilTiltakspengerTidspunkt,
                     "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
-                    "meldeperiode_id" to meldekortbehandling.meldeperiode.id.toString(),
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
@@ -482,9 +465,6 @@ class MeldekortbehandlingPostgresRepo(
             row: Row,
             session: Session,
         ): Meldekortbehandling {
-            val meldeperiodeId = MeldeperiodeId.fromString(row.string("meldeperiode_id"))
-            val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)!!
-
             val id = MeldekortId.fromString(row.string("id"))
             val sakId = SakId.fromString(row.string("sak_id"))
             val saksnummer =
@@ -502,22 +482,19 @@ class MeldekortbehandlingPostgresRepo(
 
             val saksbehandler = row.stringOrNull("saksbehandler")
 
-            val dager = row.string("meldekortdager").tilMeldekortDager(meldeperiode)
             val simulering = row.stringOrNull("simulering")
                 ?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
-
-            val brukersMeldekort = row.stringOrNull("brukers_meldekort_id")?.let {
-                BrukersMeldekortPostgresRepo.hentForMeldekortId(
-                    MeldekortId.fromString(it),
-                    session,
-                )
-            }
 
             val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = row.localDateTime("sist_endret")
 
             val beregning = row.stringOrNull("beregninger")
                 ?.tilBeregningFraMeldekortbehandling(id)
+
+            val meldeperioder = row.string("meldeperioder").tilMeldeperiodebehandlinger(
+                beregning = beregning,
+                session = session,
+            )
 
             val fritekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.let {
                 FritekstTilVedtaksbrev.create(it)
@@ -527,7 +504,7 @@ class MeldekortbehandlingPostgresRepo(
 
             return when (val status = row.string("status").toMeldekortbehandlingStatus()) {
                 MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> {
-                    requireNotNull(brukersMeldekort) {
+                    requireNotNull(meldeperioder.single().brukersMeldekort) {
                         "Fant ikke brukers meldekort for automatisk meldekortbehandling $id"
                     }
 
@@ -542,15 +519,7 @@ class MeldekortbehandlingPostgresRepo(
                         type = type,
                         status = status,
                         sistEndret = sistEndret,
-                        meldeperioder = Meldeperiodebehandlinger(
-                            meldeperioder = nonEmptyListOf(
-                                Meldeperiodebehandling(
-                                    dager = dager,
-                                    brukersMeldekort = brukersMeldekort,
-                                ),
-                            ),
-                            beregning = beregning,
-                        ),
+                        meldeperioder = meldeperioder,
                     )
                 }
 
@@ -574,15 +543,7 @@ class MeldekortbehandlingPostgresRepo(
                         simulering = simulering,
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                        meldeperioder = Meldeperiodebehandlinger(
-                            meldeperioder = nonEmptyListOf(
-                                Meldeperiodebehandling(
-                                    dager = dager,
-                                    brukersMeldekort = brukersMeldekort,
-                                ),
-                            ),
-                            beregning = beregning,
-                        ),
+                        meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
@@ -605,15 +566,7 @@ class MeldekortbehandlingPostgresRepo(
                         status = status,
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                        meldeperioder = Meldeperiodebehandlinger(
-                            meldeperioder = nonEmptyListOf(
-                                Meldeperiodebehandling(
-                                    dager = dager,
-                                    brukersMeldekort = brukersMeldekort,
-                                ),
-                            ),
-                            beregning = beregning,
-                        ),
+                        meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
@@ -635,15 +588,7 @@ class MeldekortbehandlingPostgresRepo(
                         avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-                        meldeperioder = Meldeperiodebehandlinger(
-                            meldeperioder = nonEmptyListOf(
-                                Meldeperiodebehandling(
-                                    dager = dager,
-                                    brukersMeldekort = brukersMeldekort,
-                                ),
-                            ),
-                            beregning = beregning,
-                        ),
+                        meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                     )
                 }
