@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 
-import arrow.core.toNonEmptyListOrNull
+import arrow.core.toNonEmptySetOrNull
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.SakId
@@ -294,11 +294,11 @@ class TilbakekrevingBehandlingPostgresRepo(
         }
 
         private fun Row.tilTilbakekrevingBehandling(): TilbakekrevingBehandling {
-            val utbetalingIderRaw = array<String>("utbetaling_ider").toList()
-            val utbetalingIder = utbetalingIderRaw
+            val utbetalingIder = array<String>("utbetaling_ider").toList()
                 .map { UtbetalingId.fromString(it) }
-                .toNonEmptyListOrNull()
+                .toNonEmptySetOrNull()
                 ?: throw IllegalStateException("tilbakekreving_behandling ${string("id")} har tom utbetaling_ider")
+
             return TilbakekrevingBehandling(
                 id = TilbakekrevingId.fromString(string("id")),
                 sakId = SakId.fromString(string("sak_id")),

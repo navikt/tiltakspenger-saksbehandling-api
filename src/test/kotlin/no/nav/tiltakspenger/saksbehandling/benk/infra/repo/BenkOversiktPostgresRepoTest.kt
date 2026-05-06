@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
-import arrow.core.nonEmptyListOf
+import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -777,7 +777,7 @@ class BenkOversiktPostgresRepoTest {
             val tilBehandling = TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = sak.id,
-                utbetalingIder = nonEmptyListOf(utbetalingId),
+                utbetalingIder = nonEmptySetOf(utbetalingId),
                 tilbakeBehandlingId = "tilbake-1",
                 opprettet = opprettet,
                 sistEndret = opprettet,
@@ -794,7 +794,7 @@ class BenkOversiktPostgresRepoTest {
             val tilGodkjenning = TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = sak.id,
-                utbetalingIder = nonEmptyListOf(utbetalingId),
+                utbetalingIder = nonEmptySetOf(utbetalingId),
                 tilbakeBehandlingId = "tilbake-2",
                 opprettet = nå(testDataHelper.clock),
                 sistEndret = nå(testDataHelper.clock),
@@ -812,7 +812,7 @@ class BenkOversiktPostgresRepoTest {
             val opprettetTilbakekreving = TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = sak.id,
-                utbetalingIder = nonEmptyListOf(utbetalingId),
+                utbetalingIder = nonEmptySetOf(utbetalingId),
                 tilbakeBehandlingId = "tilbake-3",
                 opprettet = nå(testDataHelper.clock),
                 sistEndret = nå(testDataHelper.clock),
@@ -829,7 +829,7 @@ class BenkOversiktPostgresRepoTest {
             val avsluttetTilbakekreving = TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = sak.id,
-                utbetalingIder = nonEmptyListOf(utbetalingId),
+                utbetalingIder = nonEmptySetOf(utbetalingId),
                 tilbakeBehandlingId = "tilbake-4",
                 opprettet = nå(testDataHelper.clock),
                 sistEndret = nå(testDataHelper.clock),
@@ -907,7 +907,7 @@ class BenkOversiktPostgresRepoTest {
                 TilbakekrevingBehandling(
                     id = TilbakekrevingId.random(),
                     sakId = sakUnderMinstebeløp.id,
-                    utbetalingIder = nonEmptyListOf(meldekortvedtakUnderMinstebeløp.utbetaling.id),
+                    utbetalingIder = nonEmptySetOf(meldekortvedtakUnderMinstebeløp.utbetaling.id),
                     tilbakeBehandlingId = "tilbake-under-minstebeløp",
                     opprettet = opprettet,
                     sistEndret = opprettet,
@@ -924,7 +924,7 @@ class BenkOversiktPostgresRepoTest {
             val tilbakekrevingOverMinstebeløp = TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = sakOverMinstebeløp.id,
-                utbetalingIder = nonEmptyListOf(meldekortvedtakOverMinstebeløp.utbetaling.id),
+                utbetalingIder = nonEmptySetOf(meldekortvedtakOverMinstebeløp.utbetaling.id),
                 tilbakeBehandlingId = "tilbake-over-minstebeløp",
                 opprettet = opprettet.plusSeconds(1),
                 sistEndret = opprettet.plusSeconds(1),
@@ -988,7 +988,7 @@ class BenkOversiktPostgresRepoTest {
             val tilbakekreving = TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = sakMedMeldekortvedtak.id,
-                utbetalingIder = nonEmptyListOf(meldekortvedtak.utbetaling.id),
+                utbetalingIder = nonEmptySetOf(meldekortvedtak.utbetaling.id),
                 tilbakeBehandlingId = "tilbake-mix",
                 opprettet = nå(testDataHelper.clock),
                 sistEndret = nå(testDataHelper.clock),

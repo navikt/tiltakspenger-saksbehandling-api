@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
+import arrow.core.nonEmptySetOf
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -153,7 +153,7 @@ class BehandleTilbakekrevingHendelserJobb(
             TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = this.id,
-                utbetalingIder = nonEmptyListOf(utbetaling.id),
+                utbetalingIder = nonEmptySetOf(utbetaling.id),
                 opprettet = hendelse.sakOpprettet,
                 sistEndret = hendelse.opprettet,
                 tilbakeBehandlingId = hendelse.tilbakeBehandlingId,

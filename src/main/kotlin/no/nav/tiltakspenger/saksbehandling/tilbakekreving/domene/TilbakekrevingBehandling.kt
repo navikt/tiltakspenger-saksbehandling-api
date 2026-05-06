@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene
 
-import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 data class TilbakekrevingBehandling(
     val id: TilbakekrevingId,
     val sakId: SakId,
-    val utbetalingIder: NonEmptyList<UtbetalingId>,
+    val utbetalingIder: NonEmptySet<UtbetalingId>,
     val tilbakeBehandlingId: String,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
