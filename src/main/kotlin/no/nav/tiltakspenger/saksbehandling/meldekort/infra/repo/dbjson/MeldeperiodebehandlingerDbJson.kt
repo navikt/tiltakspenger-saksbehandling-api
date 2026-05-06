@@ -28,6 +28,24 @@ private data class MeldeperiodebehandlingDbJson(
     val dager: List<MeldekortDagDbJson>,
 ) {
 
+    fun tilDomene(
+        hentMeldeperiode: (MeldeperiodeId) -> Meldeperiode,
+        hentBrukersMeldekort: (MeldekortId) -> BrukersMeldekort?,
+    ): Meldeperiodebehandling {
+        val meldeperiode = hentMeldeperiode(MeldeperiodeId.fromString(this.meldeperiodeId))
+        val brukersMeldekort = this.brukersMeldekortId?.let {
+            hentBrukersMeldekort(MeldekortId.fromString(it))
+        }
+
+        return Meldeperiodebehandling(
+            dager = UtfyltMeldeperiode(
+                dager = this.dager.map { it.tilDomene() },
+                meldeperiode = meldeperiode,
+            ),
+            brukersMeldekort = brukersMeldekort,
+        )
+    }
+
     data class MeldekortDagDbJson(
         val dato: LocalDate,
         val status: MeldekortDagStatusDb,
@@ -63,23 +81,5 @@ private fun Meldeperiodebehandling.tilDbJson(): MeldeperiodebehandlingDbJson {
         kjedeId = meldeperiode.kjedeId.toString(),
         brukersMeldekortId = brukersMeldekort?.id?.toString(),
         dager = dager.map { MeldekortDagDbJson(dato = it.dato, status = it.status.toDb()) },
-    )
-}
-
-private fun MeldeperiodebehandlingDbJson.tilDomene(
-    hentMeldeperiode: (MeldeperiodeId) -> Meldeperiode,
-    hentBrukersMeldekort: (MeldekortId) -> BrukersMeldekort?,
-): Meldeperiodebehandling {
-    val meldeperiode = hentMeldeperiode(MeldeperiodeId.fromString(this.meldeperiodeId))
-    val brukersMeldekort = this.brukersMeldekortId?.let {
-        hentBrukersMeldekort(MeldekortId.fromString(it))
-    }
-
-    return Meldeperiodebehandling(
-        dager = UtfyltMeldeperiode(
-            dager = this.dager.map { it.tilDomene() },
-            meldeperiode = meldeperiode,
-        ),
-        brukersMeldekort = brukersMeldekort,
     )
 }
