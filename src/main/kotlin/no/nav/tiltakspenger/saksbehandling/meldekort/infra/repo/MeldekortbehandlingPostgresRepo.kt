@@ -493,7 +493,13 @@ class MeldekortbehandlingPostgresRepo(
 
             val meldeperioder = row.string("meldeperioder").tilMeldeperiodebehandlinger(
                 beregning = beregning,
-                session = session,
+                hentMeldeperiode = { meldeperiodeId ->
+                    MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
+                        ?: throw IllegalStateException("Fant ikke meldeperiode $meldeperiodeId for meldekortbehandling $id")
+                },
+                hentBrukersMeldekort = { meldekortId ->
+                    BrukersMeldekortPostgresRepo.hentForMeldekortId(meldekortId, session)
+                },
             )
 
             val fritekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.let {

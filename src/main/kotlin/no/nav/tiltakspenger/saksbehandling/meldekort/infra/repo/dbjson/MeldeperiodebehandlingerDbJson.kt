@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson
 
 import arrow.core.toNonEmptyListOrThrow
-import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
@@ -9,11 +8,10 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.MeldeperiodebehandlingDbJson.MeldekortDagDbJson
 import java.time.LocalDate
 
@@ -42,9 +40,12 @@ fun Meldeperiodebehandlinger.tilDbJson(): String {
 
 fun String.tilMeldeperiodebehandlinger(
     beregning: Beregning?,
-    session: Session,
+    hentMeldeperiode: (MeldeperiodeId) -> Meldeperiode,
+    hentBrukersMeldekort: (MeldekortId) -> BrukersMeldekort?,
 ): Meldeperiodebehandlinger {
-    val meldeperioder = deserializeList<MeldeperiodebehandlingDbJson>(this).map { it.tilDomene(session) }
+    val meldeperioder = deserializeList<MeldeperiodebehandlingDbJson>(this).map {
+        it.tilDomene(hentMeldeperiode = hentMeldeperiode, hentBrukersMeldekort = hentBrukersMeldekort)
+    }
     return Meldeperiodebehandlinger(
         meldeperioder = meldeperioder.toNonEmptyListOrThrow(),
         beregning = beregning,
@@ -60,13 +61,13 @@ private fun Meldeperiodebehandling.tilDbJson(): MeldeperiodebehandlingDbJson {
     )
 }
 
-private fun MeldeperiodebehandlingDbJson.tilDomene(session: Session): Meldeperiodebehandling {
-    val meldeperiode = MeldeperiodePostgresRepo.hentForMeldeperiodeId(
-        MeldeperiodeId.fromString(this.meldeperiodeId),
-        session,
-    )!!
+private fun MeldeperiodebehandlingDbJson.tilDomene(
+    hentMeldeperiode: (MeldeperiodeId) -> Meldeperiode,
+    hentBrukersMeldekort: (MeldekortId) -> BrukersMeldekort?,
+): Meldeperiodebehandling {
+    val meldeperiode = hentMeldeperiode(MeldeperiodeId.fromString(this.meldeperiodeId))
     val brukersMeldekort = this.brukersMeldekortId?.let {
-        BrukersMeldekortPostgresRepo.hentForMeldekortId(MeldekortId.fromString(it), session)
+        hentBrukersMeldekort(MeldekortId.fromString(it))
     }
     val dager = serialize(this.dager).tilMeldekortDager(meldeperiode)
     return Meldeperiodebehandling(
