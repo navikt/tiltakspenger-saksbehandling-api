@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 data class TilbakekrevingBehandlingDTO(
     val id: String,
     val sakId: String,
-    val utbetalingId: String,
+    val utbetalingIder: List<String>,
     val beregningKilde: BeregningKildeDTO,
     val tilbakeBehandlingId: String,
     val opprettet: LocalDateTime,
@@ -52,16 +52,20 @@ private fun TilbakekrevingBehandlingsstatusIntern.tilDTO() = when (this) {
 }
 
 fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(
-    utbetaling: VedtattUtbetaling,
+    utbetalinger: List<VedtattUtbetaling>,
     saksbehandler: Saksbehandler,
 ): TilbakekrevingBehandlingDTO {
-    require(utbetaling.id == utbetalingId)
+    require(utbetalinger.map { it.id }.toSet() == utbetalingIder.toSet()) {
+        "Utbetalingene matcher ikke utbetalingIder for tilbakekrevingsbehandling $id"
+    }
+    // Bruker siste utbetaling for å vise beregningKilde - de øvrige er historikk.
+    val sisteUtbetaling = utbetalinger.maxBy { it.opprettet }
 
     return TilbakekrevingBehandlingDTO(
         id = id.toString(),
         sakId = sakId.toString(),
-        utbetalingId = utbetalingId.toString(),
-        beregningKilde = utbetaling.beregningKilde.tilBeregningKildeDTO(),
+        utbetalingIder = utbetalingIder.map { it.toString() },
+        beregningKilde = sisteUtbetaling.beregningKilde.tilBeregningKildeDTO(),
         tilbakeBehandlingId = tilbakeBehandlingId,
         opprettet = opprettet,
         sistEndret = sistEndret,

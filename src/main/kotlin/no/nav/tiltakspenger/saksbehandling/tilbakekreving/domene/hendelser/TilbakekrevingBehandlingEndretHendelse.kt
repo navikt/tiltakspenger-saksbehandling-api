@@ -5,9 +5,12 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+
+private val logger = KotlinLogging.logger {}
 
 data class TilbakekrevingBehandlingEndretHendelse(
     override val id: TilbakekrevinghendelseId,
@@ -28,9 +31,10 @@ data class TilbakekrevingBehandlingEndretHendelse(
 ) : Tilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevinghendelseType.BehandlingEndret
 
-    private val logger = KotlinLogging.logger {}
-
-    fun oppdaterBehandlingHvisEndret(behandling: TilbakekrevingBehandling): TilbakekrevingBehandling? {
+    fun oppdaterBehandlingHvisEndret(
+        behandling: TilbakekrevingBehandling,
+        nyUtbetalingId: UtbetalingId,
+    ): TilbakekrevingBehandling? {
         require(behandling.tilbakeBehandlingId == tilbakeBehandlingId) {
             "Forsøkte å oppdatere tilbakekreving-behandling ${behandling.tilbakeBehandlingId} med hendelse for behandling $tilbakeBehandlingId"
         }
@@ -49,7 +53,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
          *  Tilbakeløsningen sender daglige oppdateringer for hver åpne behandling, selv om det ikke er noen faktiske endringer
          *  Vi ønsker ikke å oppdatere behandlingen vår når det ikke er noen endringer
          * */
-        if (!harEndringer(behandling)) {
+        if (!harEndringer(behandling, nyUtbetalingId)) {
             logger.info { "BehandlingEndret hendelse $id har ingen endringer - hopper over oppdatering" }
             return null
         }
@@ -61,14 +65,16 @@ data class TilbakekrevingBehandlingEndretHendelse(
             varselSendt = varselSendt,
             totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,
             sistEndret = opprettet,
+            utbetalingIder = behandling.utbetalingIder.plus(nyUtbetalingId),
         )
     }
 
-    private fun harEndringer(behandling: TilbakekrevingBehandling): Boolean {
+    private fun harEndringer(behandling: TilbakekrevingBehandling, nyUtbetalingId: UtbetalingId): Boolean {
         return behandling.status != behandlingsstatus ||
             behandling.kravgrunnlagTotalPeriode != fullstendigPeriode ||
             behandling.url !== url ||
             behandling.varselSendt != varselSendt ||
-            behandling.totaltFeilutbetaltBeløp != totaltFeilutbetaltBeløp
+            behandling.totaltFeilutbetaltBeløp != totaltFeilutbetaltBeløp ||
+            !behandling.utbetalingIder.contains(nyUtbetalingId)
     }
 }

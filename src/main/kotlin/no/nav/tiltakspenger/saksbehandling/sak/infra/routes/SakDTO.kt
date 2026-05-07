@@ -67,8 +67,11 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     alleKlagevedtak = klagevedtaksliste.map { it.tilKlagevedtakDTO() },
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
     søknader = this.søknader.map { it.toSøknadDTO() },
-    tilbakekrevinger = this.tilbakekrevinger.map {
-        it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!, saksbehandler)
+    tilbakekrevinger = this.tilbakekrevinger.map { tilbakekreving ->
+        val utbetalingerForBehandling = tilbakekreving.utbetalingIder.map { utbetalingId ->
+            utbetalinger.hentUtbetaling(utbetalingId)!!
+        }
+        tilbakekreving.tilTilbakekrevingBehandlingDTO(utbetalingerForBehandling, saksbehandler)
     },
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
     meldekortvedtak = this.vedtaksliste.meldekortvedtaksliste.toDto(),
