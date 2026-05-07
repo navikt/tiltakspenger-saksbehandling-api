@@ -88,7 +88,6 @@ private suspend fun ApplicationCall.handleIverksettFeil(feil: KanIkkeIverksetteB
         )
 
         is KanIkkeIverksetteBehandling.OpprettVedtakFeil -> {
-            logger.error { "Kunne ikke opprette rammevedtak ved iverksetting: ${feil.feil}" }
             respondJson(feil.feil.tilErrorJson())
         }
     }
