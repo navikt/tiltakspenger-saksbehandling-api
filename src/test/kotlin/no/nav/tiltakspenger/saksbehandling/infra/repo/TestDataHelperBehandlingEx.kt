@@ -553,7 +553,9 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
         .taBehandling(beslutter, clock).first
         .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock).first
     behandlingRepo.lagre(oppdatertRammebehandling)
-    val vedtak = sak.opprettRammevedtak(oppdatertRammebehandling, clock).second
+    val vedtak = sak.opprettRammevedtak(oppdatertRammebehandling, clock)
+        .getOrFail()
+        .second
     vedtakRepo.lagre(vedtak)
     sakRepo.oppdaterSkalSendeMeldeperioderTilDatadelingOgSkalSendesTilMeldekortApi(
         sakId = vedtak.sakId,
@@ -623,6 +625,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
             .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock).first
     behandlingRepo.lagre(oppdatertSøknadsbehandling)
     val (sakMedVedtak, vedtak) = sak.opprettRammevedtak(oppdatertSøknadsbehandling, clock)
+        .getOrFail()
     vedtakRepo.lagre(vedtak)
     return Triple(sakMedVedtak, vedtak, oppdatertSøknadsbehandling)
 }

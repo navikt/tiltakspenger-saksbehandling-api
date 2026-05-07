@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periode.overlapper
@@ -21,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
@@ -29,25 +27,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperioder
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
-import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
-import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -272,68 +261,4 @@ data class Rammevedtak(
             }
         }
     }
-}
-
-fun Sak.opprettRammevedtak(
-    rammebehandling: Rammebehandling,
-    clock: Clock,
-): Triple<Sak, Rammevedtak, Statistikkhendelser> {
-    val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
-    require(rammebehandling.status == Rammebehandlingsstatus.VEDTATT) { "Krever behandlingsstatus VEDTATT når vi skal opprette et vedtak." }
-    if (klagebehandling != null) {
-        require(klagebehandling.status == Klagebehandlingsstatus.VEDTATT || klagebehandling.status == Klagebehandlingsstatus.FERDIGSTILT) { "Krever at klagebehandling har status VEDTATT/FERDIGSTILT når vi skal opprette et vedtak. Feilen skjedde for sak ${this.id}, rammebehandling: ${rammebehandling.id}, tilknyttet klagebehandling: ${klagebehandling.id}" }
-    }
-
-    val vedtakId = VedtakId.random()
-    val opprettet = nå(clock)
-
-    val utbetaling: VedtattUtbetaling? = rammebehandling.utbetaling?.let {
-        VedtattUtbetaling(
-            id = UtbetalingId.random(),
-            vedtakId = vedtakId,
-            sakId = this.id,
-            saksnummer = this.saksnummer,
-            fnr = this.fnr,
-            brukerNavkontor = it.navkontor,
-            opprettet = opprettet,
-            saksbehandler = rammebehandling.saksbehandler!!,
-            beslutter = rammebehandling.beslutter!!,
-            beregning = it.beregning,
-            forrigeUtbetalingId = this.utbetalinger.lastOrNull()?.id,
-            statusMetadata = Forsøkshistorikk.opprett(clock = clock),
-            satstype = Satstype.DAGLIG,
-            sendtTilUtbetaling = null,
-            status = null,
-        )
-    }
-
-    val vedtak = Rammevedtak(
-        id = vedtakId,
-        opprettet = opprettet,
-        sakId = this.id,
-        rammebehandling = rammebehandling,
-        periode = rammebehandling.vedtaksperiode!!,
-        omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
-        utbetaling = utbetaling,
-        vedtaksdato = null,
-        journalpostId = null,
-        journalføringstidspunkt = null,
-        distribusjonId = null,
-        distribusjonstidspunkt = null,
-        sendtTilDatadeling = null,
-        brevJson = null,
-    )
-
-    val oppdatertSak = this.leggTilRammevedtak(vedtak).oppdaterRammebehandling(rammebehandling)
-    val statistikkhendelser = Statistikkhendelser(
-        listOfNotNull(
-            vedtak.genererSaksstatistikk(),
-            if (vedtak.rammebehandlingsresultat is Søknadsbehandlingsresultat.Avslag) {
-                null
-            } else {
-                genererStønadsstatistikkForRammevedtak(vedtak)
-            },
-        ),
-    )
-    return Triple(oppdatertSak, vedtak, statistikkhendelser)
 }

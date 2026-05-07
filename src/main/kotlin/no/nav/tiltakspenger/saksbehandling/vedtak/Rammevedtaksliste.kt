@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.periode.overlappendePerioder
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
@@ -20,10 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
-import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
@@ -159,15 +155,7 @@ data class Rammevedtaksliste(
      * Legger til et rammevedtak i vedtaklisten og oppdaterer omgjortAvRammevedtak per vedtak
      */
     fun leggTil(vedtak: Rammevedtak): Rammevedtaksliste {
-        if (vedtak.rammebehandlingsresultat is Søknadsbehandlingsresultat.Avslag) {
-            // Avslag omgjør aldri noe
-            return copy(verdi = this.verdi.plus(vedtak))
-        }
-        val vedtaksliste = this.verdi
-        val oppdatertVedtaksliste = vedtaksliste.map {
-            it.oppdaterOmgjortAvRammevedtak(vedtak)
-        }
-        return copy(verdi = oppdatertVedtaksliste.plus(vedtak))
+        return copy(verdi = this.verdi.leggTil(vedtak))
     }
 
     fun hentRammevedtakForId(rammevedtakId: VedtakId): Rammevedtak {
@@ -209,51 +197,14 @@ data class Rammevedtaksliste(
             require(tidslinjeFraGjeldendeVedtak() == this.tidslinje) {
                 "Ugyldig gjeldende tidslinje. For vedtaksliste med vedtak ${this.map { it.id }}, forventet gjeldende tidslinje: ${this.tidslinje},"
             }
-            validerOmgjøringer()
+            vedtakUtenAvslag.validerOmgjøringer().onLeft {
+                throw IllegalArgumentException("$it (sakId=$sakId, saksnummer=$saksnummer)")
+            }
         }
     }
 
     companion object {
         fun empty() = Rammevedtaksliste(emptyList())
-    }
-
-    private fun validerOmgjøringer() {
-        vedtakUtenAvslag.forEachIndexed { index, vedtak ->
-            val tidslinjeFørDetteVedtaket = vedtakUtenAvslag.take(index).toTidslinje()
-            val overlapp = tidslinjeFørDetteVedtaket.overlappendePeriode(vedtak.periode)
-            val omgjør = OmgjørRammevedtak(
-                overlapp.perioderMedVerdi.map {
-                    Omgjøringsperiode(
-                        rammevedtakId = it.verdi.id,
-                        periode = it.periode,
-                        omgjøringsgrad = if (it.verdi.periode == it.periode) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
-                    )
-                },
-            )
-            require(vedtak.omgjørRammevedtak == omgjør) {
-                "Ugyldig [omgjørRammevedtak] på vedtak ${vedtak.id}. Forventet omgjøringsdata: $omgjør, men fant: ${vedtak.omgjørRammevedtak}"
-            }
-
-            val alleSenereVedtak = vedtakUtenAvslag.drop(index + 1)
-
-            val omgjortAvRammevedtak = alleSenereVedtak.fold(OmgjortAvRammevedtak.empty) { acc, senereVedtak ->
-                val perioderSomOmgjøres = senereVedtak.periode
-                    .trekkFra(acc.perioder)
-                    .overlappendePerioder(listOf(vedtak.periode))
-
-                perioderSomOmgjøres.map {
-                    Omgjøringsperiode(
-                        rammevedtakId = senereVedtak.id,
-                        periode = it,
-                        omgjøringsgrad = if (vedtak.periode == it) Omgjøringsgrad.HELT else Omgjøringsgrad.DELVIS,
-                    )
-                }.let { acc.leggTil(it) }
-            }
-
-            require(vedtak.omgjortAvRammevedtak == omgjortAvRammevedtak) {
-                "Ugyldig [omgjortAvRammevedtak] på vedtak ${vedtak.id}. Forventet: $omgjortAvRammevedtak, men fant: ${vedtak.omgjortAvRammevedtak}"
-            }
-        }
     }
 
     private fun tidslinjeFraGjeldendeVedtak(): Periodisering<Rammevedtak> {

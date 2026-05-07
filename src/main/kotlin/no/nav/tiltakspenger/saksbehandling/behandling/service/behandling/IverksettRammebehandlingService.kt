@@ -100,6 +100,10 @@ class IverksettRammebehandlingService(
             clock = clock,
         )
         val (oppdatertSak, vedtak, rammevedtakstatistikk) = sak.opprettRammevedtak(iverksattRammebehandling, clock)
+            .getOrElse {
+                logger.error { "Kunne ikke opprette rammevedtak for behandling $rammebehandlingId: $it" }
+                return KanIkkeIverksetteBehandling.OpprettVedtakFeil(it).left()
+            }
 
         val doubleOppdatertSak = when (iverksattRammebehandling) {
             is Revurdering -> oppdatertSak.iverksettRammebehandling(
