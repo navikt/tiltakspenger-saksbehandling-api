@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
 import io.kotest.matchers.shouldBe
-import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -58,6 +58,7 @@ class RammevedtakPostgresRepoTest {
             )
 
             val (sakMedNyttVedtak, vedtak) = oppdatertSak.opprettRammevedtak(revurdering, clock)
+                .getOrFail()
 
             testDataHelper.sessionFactory.withTransactionContext { tx ->
                 testDataHelper.behandlingRepo.lagre(vedtak.rammebehandling, tx)

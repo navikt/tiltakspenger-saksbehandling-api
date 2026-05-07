@@ -192,7 +192,12 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     val (sakMedRevurderingTilBeslutning, revurderingTilBeslutning) = genererSak(sak)
 
     val iverksattRevurdering =
-        revurderingTilBeslutning.iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock).first
+        revurderingTilBeslutning.iverksett(
+            beslutter,
+            ObjectMother.godkjentAttestering(beslutter),
+            correlationId,
+            clock,
+        ).first
 
     val stansVedtak = sessionFactory.withTransactionContext { tx ->
         behandlingRepo.lagre(iverksattRevurdering, tx)
@@ -200,7 +205,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
         val (sakMedNyttVedtak, stansVedtak) = sakMedRevurderingTilBeslutning.opprettRammevedtak(
             iverksattRevurdering,
             clock,
-        )
+        ).getOrFail()
         vedtakRepo.lagre(stansVedtak, tx)
         sakMedNyttVedtak.rammevedtaksliste.dropLast(1).forEach {
             vedtakRepo.oppdaterOmgjortAv(it.id, it.omgjortAvRammevedtak, tx)

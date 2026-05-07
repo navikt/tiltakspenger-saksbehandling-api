@@ -313,6 +313,7 @@ interface SakMother {
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
         val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock)
+            .getOrFail()
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
     }
@@ -360,7 +361,7 @@ interface SakMother {
             ).first
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
-        val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock)
+        val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock).getOrFail()
 
         return Triple(sakMedVedtak.first, sakMedVedtak.second, iverksattBehandling)
     }
