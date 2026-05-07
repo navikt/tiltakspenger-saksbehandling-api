@@ -169,7 +169,7 @@ class BenkOversiktPostgresRepo(
             where not exists (
                 select 1 from meldekortbehandling mb
                 where mb.sak_id = siste.sak_id
-                  and mb.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
+                  and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', siste.meldeperiode_kjede_id))
                   and mb.sist_endret >= siste.mottatt
             )
         """
