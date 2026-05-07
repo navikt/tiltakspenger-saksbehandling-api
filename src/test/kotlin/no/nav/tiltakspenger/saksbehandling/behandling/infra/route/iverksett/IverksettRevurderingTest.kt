@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_INTERN_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
@@ -31,6 +32,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOinnvilgelse
@@ -413,6 +415,54 @@ internal class IverksettRevurderingTest {
                       "type": "OPPHØR"
                     }
                 """.trimIndent(),
+            )
+        }
+    }
+
+    @Test
+    fun `revurdering sendt til beslutning skal ikke iverksettes dersom en annen behandling har blitt iverksett`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, rammevedtakSøknadsbehandling, revurderingA) = iverksettSøknadsbehandlingOgStartRevurderingStans(
+                tac,
+            )
+            val stansFraOgMed = rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode!!.fraOgMed
+
+            oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurderingA.id,
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(HjemmelForStans.Alder),
+                stansFraOgMed = stansFraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
+            )
+            sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurderingA.id)
+            taBehandling(tac, sak.id, revurderingA.id, saksbehandler = ObjectMother.beslutter())
+
+            // Starter revurdering før første er iverksatt; den vil dermed være basert på en
+            // sak-tilstand som ikke inkluderer revurderingA sin omgjøring av søknadsbehandlingen.
+            val (_, revurderingB) = startRevurderingInnvilgelse(tac, sak.id)!!
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurderingB.id,
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+            )
+            sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurderingB.id)
+            taBehandling(tac, sak.id, revurderingB.id, saksbehandler = ObjectMother.beslutter())
+
+            // Iverksetting av A skal lykkes
+            iverksettForBehandlingId(tac, sak.id, revurderingA.id)
+
+            // Iverksetting av B skal nå feile fordi omgjøringsdataene er utdatert ift. den oppdaterte saken.
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurderingB.id,
+                forventetStatus = HttpStatusCode.Conflict,
+                medJsonBody = { it.harKode("ugyldig_omgjøring") },
             )
         }
     }
