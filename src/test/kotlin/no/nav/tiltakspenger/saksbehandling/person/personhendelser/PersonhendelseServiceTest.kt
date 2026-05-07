@@ -111,7 +111,7 @@ class PersonhendelseServiceTest {
     }
 
     @Test
-    fun `behandlePersonhendelse - forelderbarnrelasjon, bruker er forelder, finnes sak - lagrer`() {
+    fun `behandlePersonhendelse - forelderbarnrelasjon, skal ikke behandles`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -140,52 +140,7 @@ class PersonhendelseServiceTest {
                 personhendelseService.behandlePersonhendelse(personhendelse)
 
                 val personhendelser = personhendelseRepository.hent(fnr)
-                personhendelser.size shouldBe 1
-                val personhendelseDb = personhendelser.first()
-                personhendelseDb.fnr shouldBe fnr
-                personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
-                personhendelseDb.opplysningstype shouldBe Opplysningstype.FORELDERBARNRELASJON_V1
-                personhendelseDb.personhendelseType shouldBe PersonhendelseType.ForelderBarnRelasjon(
-                    "12345678910",
-                    "FAR",
-                )
-                personhendelseDb.sakId shouldBe sak.id
-                personhendelseDb.oppgaveId shouldBe null
-                personhendelseDb.oppgaveSistSjekket shouldBe null
-            }
-        }
-    }
-
-    @Test
-    fun `behandlePersonhendelse - forelderbarnrelasjon, bruker er barn, finnes sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelse = getPersonhendelse(
-                    fnr = fnr,
-                    forelderBarnRelasjon = ForelderBarnRelasjon("12345678910", "FAR", "BARN"),
-                    clock = clock,
-                )
-
-                personhendelseService.behandlePersonhendelse(personhendelse)
-
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                personhendelser.size shouldBe 0
             }
         }
     }

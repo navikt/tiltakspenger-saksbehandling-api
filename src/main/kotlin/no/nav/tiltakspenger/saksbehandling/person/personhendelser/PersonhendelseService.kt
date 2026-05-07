@@ -25,13 +25,11 @@ class PersonhendelseService(
 
     suspend fun behandlePersonhendelse(personhendelse: Personhendelse) {
         try {
-            if (personhendelse.forelderBarnRelasjon == null && personhendelse.doedsfall == null && personhendelse.adressebeskyttelse == null) {
+            if (personhendelse.doedsfall == null && personhendelse.adressebeskyttelse == null) {
                 log.info { "Kan ikke behandle hendelse med id ${personhendelse.hendelseId} og opplysningstype ${personhendelse.opplysningstype} fordi alle felter mangler. Type: ${personhendelse.endringstype}" }
                 return
             }
-            if (personhendelse.forelderBarnRelasjon != null && personhendelse.forelderBarnRelasjon.minRolleForPerson == "BARN") {
-                return
-            }
+
             if (personhendelse.adressebeskyttelse != null &&
                 !(
                     personhendelse.adressebeskyttelse.gradering == Gradering.STRENGT_FORTROLIG ||
@@ -40,6 +38,7 @@ class PersonhendelseService(
             ) {
                 return
             }
+
             personhendelse.personidenter.forEach { ident ->
                 val fnr = Fnr.tryFromString(ident) ?: return@forEach
                 try {
@@ -104,11 +103,6 @@ class PersonhendelseService(
         return if (doedsfall != null) {
             PersonhendelseType.Doedsfall(
                 doedsdato = doedsfall.doedsdato,
-            )
-        } else if (forelderBarnRelasjon != null) {
-            PersonhendelseType.ForelderBarnRelasjon(
-                relatertPersonsIdent = forelderBarnRelasjon.relatertPersonsIdent,
-                minRolleForPerson = forelderBarnRelasjon.minRolleForPerson,
             )
         } else if (adressebeskyttelse != null) {
             PersonhendelseType.Adressebeskyttelse(

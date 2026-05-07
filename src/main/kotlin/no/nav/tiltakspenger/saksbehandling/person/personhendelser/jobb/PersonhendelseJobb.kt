@@ -30,10 +30,12 @@ class PersonhendelseJobb(
                 if ((!personhendelse.gjelderAdressebeskyttelse() && mottarTiltakspengerNaEllerIFremtiden(sak)) ||
                     (personhendelse.gjelderAdressebeskyttelse() && sak.behandlinger.harEnEllerFlereÅpneBehandlinger)
                 ) {
+                    val oppgavebehov = personhendelse.finnOppgavebehov() ?: return@forEach
+
                     log.info { "Oppretter oppgave for hendelse med id ${personhendelse.hendelseId}" }
                     val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                         fnr = sak.fnr,
-                        oppgavebehov = personhendelse.finnOppgavebehov(),
+                        oppgavebehov = oppgavebehov,
                     )
                     personhendelseRepository.lagreOppgaveId(personhendelse.id, oppgaveId)
                     log.info { "Lagret oppgaveId $oppgaveId for personhendelse med hendelsesId ${personhendelse.hendelseId}" }
@@ -75,10 +77,10 @@ class PersonhendelseJobb(
         dato: LocalDate = LocalDate.now(clock),
     ): Boolean = sak.harInnvilgetTiltakspengerPåDato(dato) || sak.harInnvilgetTiltakspengerEtterDato(dato)
 
-    private fun PersonhendelseDb.finnOppgavebehov() =
+    private fun PersonhendelseDb.finnOppgavebehov(): Oppgavebehov? =
         when (opplysningstype) {
-            Opplysningstype.FORELDERBARNRELASJON_V1 -> Oppgavebehov.FATT_BARN
             Opplysningstype.DOEDSFALL_V1 -> Oppgavebehov.DOED
             Opplysningstype.ADRESSEBESKYTTELSE_V1 -> Oppgavebehov.ADRESSEBESKYTTELSE
+            Opplysningstype.FORELDERBARNRELASJON_V1 -> null
         }
 }

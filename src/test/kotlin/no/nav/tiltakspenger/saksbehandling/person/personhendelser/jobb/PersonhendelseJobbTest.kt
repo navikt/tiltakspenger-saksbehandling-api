@@ -216,8 +216,8 @@ class PersonhendelseJobbTest {
                 val personhendelseDb = getPersonhendelseDb(
                     id = id,
                     fnr = fnr,
-                    opplysningstype = Opplysningstype.FORELDERBARNRELASJON_V1,
-                    personhendelseType = PersonhendelseType.ForelderBarnRelasjon("12345678910", "MOR"),
+                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
                     sakId = sak.id,
                 )
                 personhendelseRepository.lagre(personhendelseDb)
@@ -229,7 +229,7 @@ class PersonhendelseJobbTest {
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
 
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.FATT_BARN) }
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.DOED) }
             }
         }
     }
@@ -372,8 +372,8 @@ class PersonhendelseJobbTest {
                 val personhendelseDb = getPersonhendelseDb(
                     id = id,
                     fnr = fnr,
-                    opplysningstype = Opplysningstype.FORELDERBARNRELASJON_V1,
-                    personhendelseType = PersonhendelseType.ForelderBarnRelasjon("12345678910", "MOR"),
+                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
                     sakId = sak.id,
                     oppgaveId = oppgaveId,
                 )
@@ -425,8 +425,8 @@ class PersonhendelseJobbTest {
                 val personhendelseDb = getPersonhendelseDb(
                     id = id,
                     fnr = fnr,
-                    opplysningstype = Opplysningstype.FORELDERBARNRELASJON_V1,
-                    personhendelseType = PersonhendelseType.ForelderBarnRelasjon("12345678910", "MOR"),
+                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
                     sakId = sak.id,
                     oppgaveId = oppgaveId,
                 )
