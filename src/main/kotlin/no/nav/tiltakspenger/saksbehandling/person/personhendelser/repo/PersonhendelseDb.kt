@@ -28,6 +28,11 @@ sealed interface PersonhendelseType {
         val doedsdato: LocalDate,
     ) : PersonhendelseType
 
+    data class ForelderBarnRelasjon(
+        val relatertPersonsIdent: String,
+        val minRolleForPerson: String,
+    ) : PersonhendelseType
+
     data class Adressebeskyttelse(
         val gradering: String,
     ) : PersonhendelseType
