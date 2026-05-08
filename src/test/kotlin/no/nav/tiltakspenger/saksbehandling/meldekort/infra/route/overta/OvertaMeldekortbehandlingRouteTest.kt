@@ -27,7 +27,7 @@ class OvertaMeldekortbehandlingRouteTest {
                       "kanIkkeIverksetteUtbetaling": null,
                       "tilbakekrevingId": null,
                       "type": "FØRSTE_BEHANDLING",
-                      "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
+                      "meldeperiodeId": "${meldekortbehandling.meldeperiodeLegacy.id}",
                       "beregning": null,
                       "beslutter": null,
                       "simulertBeregning": null,
@@ -103,7 +103,8 @@ class OvertaMeldekortbehandlingRouteTest {
                       "utbetalingsstatus": "IKKE_GODKJENT",
                       "tekstTilVedtaksbrev": null,
                       "status": "UNDER_BEHANDLING",
-                      "skalSendeVedtaksbrev": true
+                      "skalSendeVedtaksbrev": true,
+                      "harFlereMeldeperioder": false
                     }
                 """.trimIndent(),
             )

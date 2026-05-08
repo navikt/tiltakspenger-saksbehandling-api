@@ -53,7 +53,7 @@ data class StatistikkMeldekortDTO(
 fun Meldekortbehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): GenererMeldekortstatistikk {
     return GenererMeldekortstatistikk {
         StatistikkMeldekortDTO(
-            meldeperiodeKjedeId = kjedeId.toString(),
+            meldeperiodeKjedeId = kjedeIdLegacy.toString(),
             sakId = sakId.toString(),
             meldekortbehandlingId = id.toString(),
             brukerId = fnr.verdi,
@@ -62,7 +62,7 @@ fun Meldekortbehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): Gener
             behandletAutomatisk = this is MeldekortBehandletAutomatisk,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
-            meldekortdager = dager.dager.map { it.tilStatistikkMeldekortDag() },
+            meldekortdager = dagerLegacy.dager.map { it.tilStatistikkMeldekortDag() },
             opprettet = opprettet,
             sistEndret = nå(clock),
         )

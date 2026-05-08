@@ -50,7 +50,7 @@ class IverksettMeldekortbehandlingService(
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
 
-        val meldeperiode = meldekortbehandling.meldeperiode
+        val meldeperiode = meldekortbehandling.meldeperiodeLegacy
         check(sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
             "Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId"
         }

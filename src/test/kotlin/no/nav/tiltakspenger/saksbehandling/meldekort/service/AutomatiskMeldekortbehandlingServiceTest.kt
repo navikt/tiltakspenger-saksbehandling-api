@@ -53,7 +53,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 val sisteMeldekortbehandling = meldekortbehandlinger.sisteGodkjenteMeldekort!!
 
                 sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                sisteMeldekortbehandling.brukersMeldekort!!.id shouldBe brukersMeldekort.id
+                sisteMeldekortbehandling.brukersMeldekortLegacy!!.id shouldBe brukersMeldekort.id
             }
         }
     }
@@ -163,7 +163,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
 
                 meldekortbehandlinger.godkjenteMeldekort.size shouldBe 1
                 meldekortbehandlinger.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                meldekortbehandlinger.sisteGodkjenteMeldekort!!.brukersMeldekort!!.id shouldBe brukersMeldekort1.id
+                meldekortbehandlinger.sisteGodkjenteMeldekort!!.brukersMeldekortLegacy!!.id shouldBe brukersMeldekort1.id
 
                 automatiskMeldekortbehandlingService.behandleBrukersMeldekort(
                     clock.plus(
@@ -176,7 +176,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
 
                 meldekortbehandlingerNeste.godkjenteMeldekort.size shouldBe 2
                 meldekortbehandlingerNeste.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                meldekortbehandlingerNeste.sisteGodkjenteMeldekort!!.brukersMeldekort!!.id shouldBe brukersMeldekort2.id
+                meldekortbehandlingerNeste.sisteGodkjenteMeldekort!!.brukersMeldekortLegacy!!.id shouldBe brukersMeldekort2.id
             }
         }
     }

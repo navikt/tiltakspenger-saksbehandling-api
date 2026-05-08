@@ -62,7 +62,7 @@ class OpprettMeldekortbehandlingTest {
                             "2025-04-08": true,
                             "2025-04-09": true
                           },
-                          "id": "${meldekortbehandling.meldeperiode.id}",
+                          "id": "${meldekortbehandling.meldeperiodeLegacy.id}",
                           "ingenDagerGirRett": false,
                           "versjon": 1,
                           "periode": {
@@ -82,7 +82,7 @@ class OpprettMeldekortbehandlingTest {
                           "kanIkkeIverksetteUtbetaling": null,
                           "tilbakekrevingId": null,
                           "type": "FØRSTE_BEHANDLING",
-                          "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
+                          "meldeperiodeId": "${meldekortbehandling.meldeperiodeLegacy.id}",
                           "beregning": null,
                           "beslutter": null,
                           "simulertBeregning": null,
@@ -152,6 +152,105 @@ class OpprettMeldekortbehandlingTest {
                               "status": "IKKE_RETT_TIL_TILTAKSPENGER"
                             }
                           ],
+                          "sakId": "${meldekortbehandling.sakId}",
+                          "id": "${meldekortbehandling.id}",
+                          "godkjentTidspunkt": null,
+                          "utbetalingsstatus": "IKKE_GODKJENT",
+                          "tekstTilVedtaksbrev": null,
+                          "status": "UNDER_BEHANDLING",
+                          "skalSendeVedtaksbrev": true,
+                          "harFlereMeldeperioder": false
+                        }
+                      ],
+                      "meldekortbehandlingerV2": [
+                        {
+                          "begrunnelse": null,
+                          "avbrutt": null,
+                          "attesteringer": [],
+                          "saksbehandler": "Z12345",
+                          "opprettet": "TIMESTAMP",
+                          "kanIkkeIverksetteUtbetaling": null,
+                          "tilbakekrevingId": null,
+                          "meldeperioder": [
+                            {
+                              "kjedeId": "2025-03-31/2025-04-13",
+                              "dager": [
+                                {
+                                  "dato": "2025-03-31",
+                                  "status": "IKKE_RETT_TIL_TILTAKSPENGER"
+                                },
+                                {
+                                  "dato": "2025-04-01",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-02",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-03",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-04",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-05",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-06",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-07",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-08",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-09",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-10",
+                                  "status": "IKKE_BESVART"
+                                },
+                                {
+                                  "dato": "2025-04-11",
+                                  "status": "IKKE_RETT_TIL_TILTAKSPENGER"
+                                },
+                                {
+                                  "dato": "2025-04-12",
+                                  "status": "IKKE_RETT_TIL_TILTAKSPENGER"
+                                },
+                                {
+                                  "dato": "2025-04-13",
+                                  "status": "IKKE_RETT_TIL_TILTAKSPENGER"
+                                }
+                              ],
+                              "meldeperiodeId": "${meldekortbehandling.meldeperiodeLegacy.id}",
+                              "brukersMeldekortId": null,
+                              "periode": {
+                                "fraOgMed": "2025-03-31",
+                                "tilOgMed": "2025-04-13"
+                              }
+                            }
+                          ],
+                          "type": "FØRSTE_BEHANDLING",
+                          "beregning": null,
+                          "beslutter": null,
+                          "simulertBeregning": null,
+                          "navkontor": "0220",
+                          "periode": {
+                            "fraOgMed": "2025-03-31",
+                            "tilOgMed": "2025-04-13"
+                          },
+                          "erAvsluttet": false,
+                          "navkontorNavn": "Nav Asker",
                           "sakId": "${meldekortbehandling.sakId}",
                           "id": "${meldekortbehandling.id}",
                           "godkjentTidspunkt": null,

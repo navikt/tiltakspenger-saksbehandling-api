@@ -27,7 +27,7 @@ class OppdaterMeldekortbehandlingService(
         sakId: no.nav.tiltakspenger.libs.common.SakId,
         meldekortId: no.nav.tiltakspenger.libs.common.MeldekortId,
     ): MeldeperiodeKjedeId {
-        return sakService.hentForSakId(sakId).hentMeldekortbehandling(meldekortId)!!.kjedeId
+        return sakService.hentForSakId(sakId).hentMeldekortbehandling(meldekortId)!!.kjedeIdLegacy
     }
 
     suspend fun oppdaterMeldekort(

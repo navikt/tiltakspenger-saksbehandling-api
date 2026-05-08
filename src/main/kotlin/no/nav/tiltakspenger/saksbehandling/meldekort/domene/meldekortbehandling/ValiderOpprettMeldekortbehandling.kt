@@ -20,7 +20,7 @@ fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): 
 
           Vi tillater ikke å faktisk opprette en ny behandling dersom det finnes en åpen behandling.
          */
-        if (åpenBehandling.kjedeId != kjedeId || åpenBehandling.status != MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING) {
+        if (åpenBehandling.kjedeIdLegacy != kjedeId || åpenBehandling.status != MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING) {
             return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
         }
     }

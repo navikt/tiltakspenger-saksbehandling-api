@@ -60,7 +60,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                   "kanIkkeIverksetteUtbetaling": null,
                   "tilbakekrevingId": null,
                   "type": "FØRSTE_BEHANDLING",
-                  "meldeperiodeId": "${meldekortbehandling.meldeperiode.id}",
+                  "meldeperiodeId": "${meldekortbehandling.meldeperiodeLegacy.id}",
                   "beregning": {
                     "beregningstidspunkt": "TIMESTAMP",
                     "beregningForMeldekortetsPeriode": {
@@ -817,7 +817,8 @@ class OppdaterMeldekortbehandlingRouteTest {
                   "utbetalingsstatus": "IKKE_GODKJENT",
                   "tekstTilVedtaksbrev": null,
                   "status": "UNDER_BEHANDLING",
-                  "skalSendeVedtaksbrev": true
+                  "skalSendeVedtaksbrev": true,
+                  "harFlereMeldeperioder": false
                 }
                 """.trimIndent(),
             )
@@ -836,7 +837,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            val dagerJson = meldekortbehandling.dager.map { dag ->
+            val dagerJson = meldekortbehandling.dagerLegacy.map { dag ->
                 val status = when {
                     dag.status == MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
                     dag.status == MeldekortDagStatus.IKKE_BESVART && dag.dato.erHelg() -> MeldekortDagStatus.IKKE_TILTAKSDAG

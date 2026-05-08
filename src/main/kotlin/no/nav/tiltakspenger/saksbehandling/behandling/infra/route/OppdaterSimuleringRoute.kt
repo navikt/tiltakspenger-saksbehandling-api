@@ -69,7 +69,7 @@ fun Route.oppdaterSimuleringRoute(
                                 contextMessage = "Saksbehandler har oppdatert simuleringen på en meldekortbehandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respondJson(value = sak.toMeldeperiodeKjedeDTO(it.kjedeId, clock))
+                            call.respondJson(value = sak.toMeldeperiodeKjedeDTO(it.kjedeIdLegacy, clock))
                         },
                     )
                 },

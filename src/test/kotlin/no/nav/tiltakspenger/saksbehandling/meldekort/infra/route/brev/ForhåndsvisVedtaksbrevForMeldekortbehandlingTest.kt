@@ -40,7 +40,7 @@ class ForhåndsvisVedtaksbrevForMeldekortbehandlingTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            val dagerJson = opprettetMeldekortbehandling.dager.map { dag ->
+            val dagerJson = opprettetMeldekortbehandling.dagerLegacy.map { dag ->
                 val status = when {
                     dag.status == MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
                     dag.status == MeldekortDagStatus.IKKE_BESVART && dag.dato.erHelg() -> MeldekortDagStatus.IKKE_TILTAKSDAG

@@ -64,11 +64,12 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
-    /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder samtidig er på plass */
-    val meldeperiode: Meldeperiode get() = meldeperioder.single().meldeperiode
-    val kjedeId: MeldeperiodeKjedeId get() = meldeperiode.kjedeId
-    val brukersMeldekort: BrukersMeldekort? get() = meldeperioder.single().brukersMeldekort
-    val dager: UtfyltMeldeperiode get() = meldeperioder.single().dager
+    /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder i en behandling er på plass */
+    private val førsteMeldeperiodebehandling: Meldeperiodebehandling get() = meldeperioder.first()
+    val meldeperiodeLegacy: Meldeperiode get() = førsteMeldeperiodebehandling.meldeperiode
+    val kjedeIdLegacy: MeldeperiodeKjedeId get() = førsteMeldeperiodebehandling.kjedeId
+    val brukersMeldekortLegacy: BrukersMeldekort? get() = førsteMeldeperiodebehandling.brukersMeldekort
+    val dagerLegacy: UtfyltMeldeperiode get() = førsteMeldeperiodebehandling.dager
 
     /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     override val erAvsluttet

@@ -136,7 +136,7 @@ internal fun TestDataHelper.persisterAvsluttetMeldekortbehandling(
     val generertSak = genererSak(sak)
     val meldekortbehandling = generertSak.meldekortbehandlinger
         .filterIsInstance<MeldekortUnderBehandling>()
-        .last { it.meldeperiode.periode == periode }
+        .last { it.meldeperiodeLegacy.periode == periode }
 
     val avbruttMeldekortbehandling = meldekortbehandling.avbryt(
         avbruttAv = saksbehandler,
@@ -166,7 +166,7 @@ internal fun TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning(
     },
 ): Pair<Sak, Meldekortbehandling> {
     val (sakMedOpprettetMeldekortbehandling, opprettetMeldekortbehandling) = genererSak(sak)
-    val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortbehandling.meldeperiode)
+    val dager = saksbehandlerFyllerUtMeldeperiodeDager(opprettetMeldekortbehandling.meldeperiodeLegacy)
     val begrunnelse = Begrunnelse.create("TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning")
 
     return runBlocking {
@@ -255,7 +255,7 @@ internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
                 sakId = sakId,
                 meldekortId = behandling.id,
                 saksbehandler = saksbehandler(navIdent = behandling.saksbehandler!!),
-                meldeperioder = nonEmptyListOf(dager ?: saksbehandlerFyllerUtMeldeperiodeDager(behandling.meldeperiode)),
+                meldeperioder = nonEmptyListOf(dager ?: saksbehandlerFyllerUtMeldeperiodeDager(behandling.meldeperiodeLegacy)),
                 begrunnelse = begrunnelse,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 correlationId = CorrelationId.generate(),

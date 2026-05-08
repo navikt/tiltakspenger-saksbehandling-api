@@ -39,7 +39,7 @@ internal class OppdaterMeldekortServiceTest {
                             status = IKKE_RETT_TIL_TILTAKSPENGER,
                         ),
                     ),
-                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
+                    kjedeId = ikkeUtfyltMeldekort.kjedeIdLegacy,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -88,7 +88,7 @@ internal class OppdaterMeldekortServiceTest {
                         DELTATT_UTEN_LØNN_I_TILTAKET,
                         IKKE_TILTAKSDAG,
                     ),
-                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
+                    kjedeId = ikkeUtfyltMeldekort.kjedeIdLegacy,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -138,7 +138,7 @@ internal class OppdaterMeldekortServiceTest {
                         IKKE_TILTAKSDAG,
                         IKKE_RETT_TIL_TILTAKSPENGER,
                     ),
-                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
+                    kjedeId = ikkeUtfyltMeldekort.kjedeIdLegacy,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -187,7 +187,7 @@ internal class OppdaterMeldekortServiceTest {
                         IKKE_RETT_TIL_TILTAKSPENGER,
                         IKKE_RETT_TIL_TILTAKSPENGER,
                     ),
-                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
+                    kjedeId = ikkeUtfyltMeldekort.kjedeIdLegacy,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -237,7 +237,7 @@ internal class OppdaterMeldekortServiceTest {
                         IKKE_TILTAKSDAG,
                         IKKE_TILTAKSDAG,
                     ),
-                    kjedeId = ikkeUtfyltMeldekort.kjedeId,
+                    kjedeId = ikkeUtfyltMeldekort.kjedeIdLegacy,
                 )
                 shouldThrow<IllegalArgumentException> {
                     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
@@ -293,7 +293,7 @@ internal class OppdaterMeldekortServiceTest {
                                     IKKE_TILTAKSDAG,
                                     IKKE_TILTAKSDAG,
                                 ),
-                                kjedeId = ikkeUtfyltMeldekort.kjedeId,
+                                kjedeId = ikkeUtfyltMeldekort.kjedeIdLegacy,
                             ),
                         ),
                         begrunnelse = null,

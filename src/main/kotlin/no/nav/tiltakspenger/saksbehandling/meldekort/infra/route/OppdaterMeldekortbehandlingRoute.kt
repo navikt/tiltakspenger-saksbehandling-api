@@ -85,7 +85,7 @@ fun Route.oppdaterMeldekortbehandlingRoute(
                             correlationId = correlationId,
                         )
                         call.respondJson(
-                            value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock),
+                            value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeIdLegacy, clock),
                         )
                     },
                 )

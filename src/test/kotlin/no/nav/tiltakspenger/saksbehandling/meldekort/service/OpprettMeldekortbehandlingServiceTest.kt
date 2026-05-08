@@ -205,8 +205,8 @@ class OpprettMeldekortbehandlingServiceTest {
                 saksbehandler = saksbehandler(),
             ).getOrFail()
 
-            meldekortbehandling.kjedeId shouldBe sak.meldeperiodeKjeder.first().kjedeId
-            meldekortbehandling.meldeperiode.ingenDagerGirRett shouldBe true
+            meldekortbehandling.kjedeIdLegacy shouldBe sak.meldeperiodeKjeder.first().kjedeId
+            meldekortbehandling.meldeperiodeLegacy.ingenDagerGirRett shouldBe true
         }
     }
 

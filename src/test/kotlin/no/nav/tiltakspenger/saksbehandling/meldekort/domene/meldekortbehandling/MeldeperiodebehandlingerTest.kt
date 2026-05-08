@@ -16,7 +16,7 @@ class MeldeperiodebehandlingerTest {
         val beregning = ObjectMother.meldekortBeregning(
             meldekortId = meldekort.id,
             startDato = meldekort.fraOgMed,
-            kjedeId = meldekort.kjedeId,
+            kjedeId = meldekort.kjedeIdLegacy,
         )
 
         assertDoesNotThrow {

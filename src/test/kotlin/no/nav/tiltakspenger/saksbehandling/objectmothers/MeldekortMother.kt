@@ -664,8 +664,8 @@ interface MeldekortMother : MotherOfAllMothers {
                 ObjectMother.simuleringMedMetadata(
                     simulering = ObjectMother.simulering(
                         periode = it.periode,
-                        meldeperiodeKjedeId = it.kjedeId,
-                        meldeperiode = it.meldeperiode,
+                        meldeperiodeKjedeId = it.kjedeIdLegacy,
+                        meldeperiode = it.meldeperiodeLegacy,
                         clock = clock,
                     ),
                     originalJson = "{}",
@@ -782,8 +782,8 @@ interface MeldekortMother : MotherOfAllMothers {
                 ObjectMother.simuleringMedMetadata(
                     simulering = ObjectMother.simulering(
                         periode = it.periode,
-                        meldeperiodeKjedeId = it.kjedeId,
-                        meldeperiode = it.meldeperiode,
+                        meldeperiodeKjedeId = it.kjedeIdLegacy,
+                        meldeperiode = it.meldeperiodeLegacy,
                         clock = clock,
                     ),
                     originalJson = "{}",
@@ -960,7 +960,7 @@ interface MeldekortMother : MotherOfAllMothers {
 fun Meldekortbehandling.tilOppdaterMeldekortKommando(
     saksbehandler: Saksbehandler,
 ): OppdaterMeldekortbehandlingKommando {
-    val dager = dager.map { dag ->
+    val dager = dagerLegacy.map { dag ->
         OppdatertMeldeperiode.OppdatertDag(
             dag = dag.dato,
             status = when (dag.status) {
@@ -995,14 +995,14 @@ fun Meldekortbehandling.tilOppdaterMeldekortKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,
-        dager = OppdatertMeldeperiode(dager, kjedeId),
+        dager = OppdatertMeldeperiode(dager, kjedeIdLegacy),
     )
 }
 
 fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
     saksbehandler: Saksbehandler,
 ): SendMeldekortbehandlingTilBeslutterKommando {
-    val dager = dager.map { dag ->
+    val dager = dagerLegacy.map { dag ->
         OppdatertMeldeperiode.OppdatertDag(
             dag = dag.dato,
             status = when (dag.status) {
@@ -1037,7 +1037,7 @@ fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,
-        dager = OppdatertMeldeperiode(dager, kjedeId),
+        dager = OppdatertMeldeperiode(dager, kjedeIdLegacy),
     )
 }
 

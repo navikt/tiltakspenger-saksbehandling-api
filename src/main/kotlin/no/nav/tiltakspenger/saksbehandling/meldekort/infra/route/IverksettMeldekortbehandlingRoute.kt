@@ -77,7 +77,7 @@ fun Route.iverksettMeldekortRoute(
                             contextMessage = "Iverksetter meldekort",
                             correlationId = correlationId,
                         )
-                        call.respondJson(value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeId, clock))
+                        call.respondJson(value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeIdLegacy, clock))
                     },
                 )
             }

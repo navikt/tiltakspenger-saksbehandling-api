@@ -1,25 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import java.time.Clock
 
 /**
@@ -55,7 +46,7 @@ data class Meldekortbehandlinger(
     val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<Meldekortbehandling.Behandlet>> by lazy {
         behandledeMeldekort
             .sortedBy { it.opprettet }
-            .groupBy { it.kjedeId }
+            .groupBy { it.kjedeIdLegacy }
     }
 
     val sisteBehandledeMeldekortPerKjede: List<Meldekortbehandling.Behandlet> by lazy {
@@ -97,15 +88,15 @@ data class Meldekortbehandlinger(
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
     fun hentMeldekortbehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
-        return ikkeAvbrutteMeldekortbehandlinger.filter { it.kjedeId == kjedeId }
+        return ikkeAvbrutteMeldekortbehandlinger.filter { it.kjedeIdLegacy == kjedeId }
     }
 
     fun hentAvbrutteMeldekortbehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
-        return avbrutteMeldekortbehandlinger.filter { it.kjedeId == kjedeId }
+        return avbrutteMeldekortbehandlinger.filter { it.kjedeIdLegacy == kjedeId }
     }
 
     fun hentSisteMeldekortbehandlingForKjede(kjedeId: MeldeperiodeKjedeId): Meldekortbehandling? {
-        return verdi.filter { it.kjedeId == kjedeId }.maxByOrNull { it.opprettet }
+        return verdi.filter { it.kjedeIdLegacy == kjedeId }.maxByOrNull { it.opprettet }
     }
 
     /**

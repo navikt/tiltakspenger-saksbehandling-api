@@ -29,7 +29,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
     val clock: Clock,
 ) {
     fun hentKjedeIdForMeldekortbehandling(meldekortbehandlingId: MeldekortId): String {
-        return meldekortbehandlingRepo.hent(meldekortbehandlingId)!!.kjedeId.verdi
+        return meldekortbehandlingRepo.hent(meldekortbehandlingId)!!.kjedeIdLegacy.verdi
     }
 
     suspend fun forhåndsvisBrev(command: ForhåndsvisBrevMeldekortbehandlingCommand): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, PdfOgJson> {

@@ -399,11 +399,11 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val (sakMedKorrigering, korrigeringVedtak) = opprettOgIverksettMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
-                kjedeId = meldekortbehandling.kjedeId,
+                kjedeId = meldekortbehandling.kjedeIdLegacy,
                 meldeperioder = listOf(
                     OppdatertMeldeperiodeDTO(
-                        kjedeId = meldekortbehandling.kjedeId.verdi,
-                        dager = meldekortbehandling.dager.map {
+                        kjedeId = meldekortbehandling.kjedeIdLegacy.verdi,
+                        dager = meldekortbehandling.dagerLegacy.map {
                             OppdaterMeldekortdagDTO(
                                 dato = it.dato,
                                 status = if (it.status === MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER) {

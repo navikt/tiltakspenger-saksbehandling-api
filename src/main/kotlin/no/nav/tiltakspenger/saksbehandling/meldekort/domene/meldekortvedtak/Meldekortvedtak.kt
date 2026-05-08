@@ -45,7 +45,7 @@ data class Meldekortvedtak(
 
     override val beregning: Beregning = meldekortbehandling.beregning
 
-    val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiode
+    val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiodeLegacy
 
     val meldekortId: MeldekortId = meldekortbehandling.id
     val automatiskBehandlet: Boolean = meldekortbehandling is MeldekortBehandletAutomatisk
@@ -54,8 +54,8 @@ data class Meldekortvedtak(
     val rammevedtak: List<VedtakId> = meldekortbehandling.rammevedtakIder
     val beregningsperiode: Periode = meldekortbehandling.beregning.periode
     val antallDagerPerMeldeperiode: Int = meldeperiode.maksAntallDagerForMeldeperiode
-    val dager: List<MeldekortDag> = meldekortbehandling.dager
-    val kjedeId: MeldeperiodeKjedeId = meldekortbehandling.kjedeId
+    val dager: List<MeldekortDag> = meldekortbehandling.dagerLegacy
+    val kjedeId: MeldeperiodeKjedeId = meldekortbehandling.kjedeIdLegacy
     val skalSendeVedtaksbrev: Boolean = meldekortbehandling.skalSendeVedtaksbrev
 
     override val periode: Periode = meldeperiode.periode

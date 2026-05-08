@@ -227,7 +227,7 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<MeldeperiodeKjedeSo
 
         val åpenMeldekortbehandling = meldekortbehandlinger.åpenMeldekortbehandling
 
-        if (åpenMeldekortbehandling?.kjedeId == kjedeId) {
+        if (åpenMeldekortbehandling?.kjedeIdLegacy == kjedeId) {
             return@mapNotNull MeldeperiodeKjedeSomMåBehandlesDTO(
                 id = kjedeId.toString(),
                 sakId = sakId,
@@ -266,7 +266,7 @@ private fun Sak.tilMeldeperiodeKjederSomMåBehandles(): List<MeldeperiodeKjedeSo
         }
 
         val harAvbruttBehandlingAvMeldekortet = meldekortbehandlinger.avbrutteMeldekortbehandlinger
-            .filter { it.kjedeId == kjedeId }
+            .filter { it.kjedeIdLegacy == kjedeId }
             .any { it.avbrutt != null && it.avbrutt.tidspunkt > sisteBrukersMeldekort.mottatt }
 
         // Stygg workaround for at saksbehandler skal kunne bli kvitt korrigeringer som ikke skal behandles i vår løsning
