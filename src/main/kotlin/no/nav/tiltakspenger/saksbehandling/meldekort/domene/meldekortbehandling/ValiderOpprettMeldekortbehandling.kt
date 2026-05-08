@@ -40,7 +40,7 @@ fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): 
             if (forrigeKjede == null ||
                 (
                     !kjedeHarUbehandletBrukersMeldekort(forrigeKjede.kjedeId) &&
-                        kjedeHarGodkjentMeldekortbehandling(forrigeKjede.kjedeId)
+                        kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(forrigeKjede.kjedeId)
                     )
             ) {
                 return Unit.right()
@@ -118,7 +118,7 @@ private fun Sak.validerOpprettBehandlingPåKjede(kjedeId: MeldeperiodeKjedeId): 
     }
 
     this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjedeMedRett(kjedeId)?.also { foregåendeMeldeperiodekjede ->
-        if (!kjedeHarGodkjentMeldekortbehandling(foregåendeMeldeperiodekjede.kjedeId)) {
+        if (!kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(foregåendeMeldeperiodekjede.kjedeId)) {
             return ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE.left()
         }
     }
@@ -134,10 +134,10 @@ private fun Sak.kjedeHarUbehandletBrukersMeldekort(kjedeId: MeldeperiodeKjedeId)
     return sisteBrukersMeldekort != null && (sisteBehandling == null || sisteBehandling.sistEndret < sisteBrukersMeldekort.mottatt)
 }
 
-private fun Sak.kjedeHarGodkjentMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Boolean {
+private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Boolean {
     return this.meldekortbehandlinger.hentMeldekortbehandlingerForKjede(kjedeId)
         .let { behandling ->
-            behandling.any { it.status == MeldekortbehandlingStatus.GODKJENT || it.status == MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET }
+            behandling.any { it.erGodkjentEllerIkkeRett }
         }
 }
 
