@@ -67,7 +67,7 @@ class JournalførMeldekortvedtakService(
                     }
 
                     val hentSaksbehandlersNavn: suspend (String) -> String =
-                        if (meldekortvedtak.automatiskBehandlet) {
+                        if (meldekortvedtak.erAutomatiskBehandlet) {
                             { "Automatisk behandlet" }
                         } else {
                             navIdentClient::hentNavnForNavIdent

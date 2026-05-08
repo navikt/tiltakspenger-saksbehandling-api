@@ -102,6 +102,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val rammevedtakIder: NonEmptyList<VedtakId> get() = meldeperioder.rammevedtakIder
 
     val erKorrigering: Boolean get() = type == MeldekortbehandlingType.KORRIGERING
+    val erAutomatiskBehandling: Boolean get() = this is MeldekortBehandletAutomatisk
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
     /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */

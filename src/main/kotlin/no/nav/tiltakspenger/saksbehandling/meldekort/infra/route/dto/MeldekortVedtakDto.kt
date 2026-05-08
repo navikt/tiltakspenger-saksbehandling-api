@@ -31,18 +31,22 @@ fun Meldekortvedtak.toDto(): MeldekortVedtakDto = MeldekortVedtakDto(
     sakId = sakId.toString(),
     saksnummer = saksnummer.verdi,
     meldekortId = meldekortId.toString(),
-    kjedeId = kjedeId.toString(),
     opprettet = opprettet,
     saksbehandler = saksbehandler,
     beslutter = beslutter,
     periode = periode.toDTO(),
     beregningsperiode = beregningsperiode.toDTO(),
-    dager = UtfyltMeldeperiode(dager, meldeperiode).tilMeldekortDagerDTO(),
     beregning = beregning.tilMeldekortBeregningDTO(),
-    automatiskBehandlet = automatiskBehandlet,
+    automatiskBehandlet = erAutomatiskBehandlet,
     erKorrigering = erKorrigering,
     begrunnelse = begrunnelse,
     journalpostId = journalpostId?.toString(),
+    // Disse to feltene skal fjernes på sikt
+    kjedeId = meldekortbehandling.kjedeIdLegacy.toString(),
+    dager = UtfyltMeldeperiode(
+        meldekortbehandling.dagerLegacy.dager,
+        meldekortbehandling.meldeperiodeLegacy,
+    ).tilMeldekortDagerDTO(),
 )
 
 fun Meldekortvedtaksliste.toDto(): List<MeldekortVedtakDto> = map { it.toDto() }

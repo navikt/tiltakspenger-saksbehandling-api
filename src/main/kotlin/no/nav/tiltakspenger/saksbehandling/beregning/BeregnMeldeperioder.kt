@@ -89,15 +89,15 @@ private data class BeregnMeldeperioder(
             .partition { it.fraOgMed < beregningsperiode.fraOgMed }
             .let { (meldekortFørBeregningsperioden, meldekortUnderOgEtterBeregningsperioden) ->
                 // Kjør gjennom tidligere beregninger for å sette riktig state for sykedager før vi gjør nye beregninger
-                meldekortFørBeregningsperioden.forEach {
-                    beregnMeldeperiode(it.tilSkalBeregnes())
-                }
+                meldekortFørBeregningsperioden
+                    .flatMap { it.tilSkalBeregnes() }
+                    .forEach { beregnMeldeperiode(it) }
 
                 val beregningerForBeregningsperioden = meldeperioderSomBeregnes.map { beregnMeldeperiode(it) }
 
                 val beregningerEtterBeregningsperioden = meldekortUnderOgEtterBeregningsperioden
                     .dropWhile { it.tilOgMed <= beregningsperiode.tilOgMed }
-                    .map { it.tilSkalBeregnes() }
+                    .flatMap { it.tilSkalBeregnes() }
 
                 val beregningerEtterBeregningsperiodenOmberegnet = beregningerEtterBeregningsperioden
                     .map { beregning ->
@@ -295,12 +295,14 @@ private fun UtfyltMeldeperiode.tilSkalBeregnes(meldekortId: MeldekortId): Meldep
 }
 
 /** Et tidligere beregnet meldekort som skal beregnes på nytt */
-private fun Meldekortvedtak.tilSkalBeregnes(): MeldeperiodeSomSkalBeregnes {
-    return MeldeperiodeSomSkalBeregnes(
-        kjedeId = this.meldeperiode.kjedeId,
-        meldekortId = this.meldekortId,
-        dager = this.dager.toNonEmptyListOrThrow(),
-    )
+private fun Meldekortvedtak.tilSkalBeregnes(): List<MeldeperiodeSomSkalBeregnes> {
+    return meldeperiodebehandlinger.map {
+        MeldeperiodeSomSkalBeregnes(
+            meldekortId = this.meldekortId,
+            kjedeId = it.kjedeId,
+            dager = it.dager.toNonEmptyListOrThrow(),
+        )
+    }
 }
 
 fun Sak.beregnRevurderingStans(
@@ -383,7 +385,7 @@ private fun Sak.beregnRammebehandling(
 
     val meldeperioderSomBeregnesPåNytt = meldekortvedtaksliste.tidslinje
         .overlappendePeriode(vedtaksperiode)
-        .verdier.map { it.tilSkalBeregnes() }
+        .verdier.flatMap { it.tilSkalBeregnes() }
         .toNonEmptyListOrNull()
 
     if (meldeperioderSomBeregnesPåNytt == null) {

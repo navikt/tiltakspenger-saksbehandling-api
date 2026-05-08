@@ -6,17 +6,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingType
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.felles.Satstype
@@ -43,22 +39,20 @@ data class Meldekortvedtak(
     override val saksbehandler: String = meldekortbehandling.saksbehandler!!
     override val beslutter: String = meldekortbehandling.beslutter!!
 
+    override val periode: Periode = meldekortbehandling.periode
     override val beregning: Beregning = meldekortbehandling.beregning
 
-    val meldeperiode: Meldeperiode = meldekortbehandling.meldeperiodeLegacy
-
     val meldekortId: MeldekortId = meldekortbehandling.id
-    val automatiskBehandlet: Boolean = meldekortbehandling is MeldekortBehandletAutomatisk
-    val erKorrigering: Boolean = meldekortbehandling.type == MeldekortbehandlingType.KORRIGERING
-    val begrunnelse: String? = meldekortbehandling.begrunnelse?.verdi
-    val rammevedtak: List<VedtakId> = meldekortbehandling.rammevedtakIder
-    val beregningsperiode: Periode = meldekortbehandling.beregning.periode
-    val antallDagerPerMeldeperiode: Int = meldeperiode.maksAntallDagerForMeldeperiode
-    val dager: List<MeldekortDag> = meldekortbehandling.dagerLegacy
-    val kjedeId: MeldeperiodeKjedeId = meldekortbehandling.kjedeIdLegacy
-    val skalSendeVedtaksbrev: Boolean = meldekortbehandling.skalSendeVedtaksbrev
+    val meldeperiodebehandlinger: Meldeperiodebehandlinger = meldekortbehandling.meldeperioder
 
-    override val periode: Periode = meldeperiode.periode
+    val rammevedtak: List<VedtakId> = meldekortbehandling.rammevedtakIder
+    val begrunnelse: String? = meldekortbehandling.begrunnelse?.verdi
+
+    val beregningsperiode: Periode = meldekortbehandling.beregning.periode
+
+    val skalSendeVedtaksbrev: Boolean = meldekortbehandling.skalSendeVedtaksbrev
+    val erAutomatiskBehandlet: Boolean = meldekortbehandling.erAutomatiskBehandling
+    val erKorrigering: Boolean = meldekortbehandling.erKorrigering
 
     init {
         require(id == utbetaling.vedtakId)
