@@ -48,7 +48,7 @@ fun Route.gjenopptaMeldekortbehandlingRoute(
                         meldekortId = meldekortId,
                         navIdent = saksbehandler.navIdent,
                         action = AuditLogEvent.Action.UPDATE,
-                        contextMessage = "Meldekortbehandling er blitt gjenoptatt",
+                        contextMessage = "Meldekortbehandling er blitt gjenopptatt",
                         correlationId = correlationId,
                     )
 

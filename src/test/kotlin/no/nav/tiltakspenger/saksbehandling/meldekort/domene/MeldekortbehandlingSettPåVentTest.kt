@@ -336,11 +336,10 @@ class MeldekortbehandlingSettPåVentTest {
         status: String,
         clock: TikkendeKlokke,
     ) = Ventestatus().settPåVent(
-        tidspunkt = nå(clock),
+        tidspunktSattPåVent = nå(clock),
         endretAv = endretAv,
         begrunnelse = "Venter på dokumentasjon",
         status = status,
         frist = null,
-        clock = clock,
     )
 }

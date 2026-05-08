@@ -56,12 +56,11 @@ fun Rammebehandling.settPåVent(
             }
             val nå = nå(clock)
             val oppdatertVentestatus = ventestatus.settPåVent(
-                tidspunkt = nå,
+                tidspunktSattPåVent = nå,
                 endretAv = endretAv.navIdent,
                 begrunnelse = kommando.begrunnelse,
                 status = status.toString(),
                 frist = kommando.frist,
-                clock = clock,
             )
             val (oppdatertKlagebehandling, klagestatistikk) = oppdaterKlagebehandling(kommando, clock)
             val oppdatertRammebehandling = when (this) {

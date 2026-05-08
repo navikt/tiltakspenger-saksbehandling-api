@@ -31,12 +31,11 @@ fun Meldekortbehandling.settPåVent(
             val tidspunktSattPåVent = nå(clock)
             this.copy(
                 ventestatus = ventestatus.settPåVent(
-                    tidspunkt = tidspunktSattPåVent,
+                    tidspunktSattPåVent = tidspunktSattPåVent,
                     endretAv = endretAv.navIdent,
                     begrunnelse = kommando.begrunnelse,
                     status = status.toString(),
                     frist = kommando.frist,
-                    clock = clock,
                 ),
                 saksbehandler = null,
                 status = KLAR_TIL_BEHANDLING,
@@ -52,12 +51,11 @@ fun Meldekortbehandling.settPåVent(
             val tidspunktSattPåVent = nå(clock)
             this.copy(
                 ventestatus = ventestatus.settPåVent(
-                    tidspunkt = tidspunktSattPåVent,
+                    tidspunktSattPåVent = tidspunktSattPåVent,
                     endretAv = endretAv.navIdent,
                     begrunnelse = kommando.begrunnelse,
                     status = status.toString(),
                     frist = kommando.frist,
-                    clock = clock,
                 ),
                 beslutter = null,
                 status = KLAR_TIL_BESLUTNING,

@@ -23,12 +23,11 @@ class VentestatusTest {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
             .settPåVent(
-                tidspunkt = nå(clock),
+                tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
                 frist = LocalDate.now(clock).plusWeeks(1),
-                clock = clock,
             )
 
         ventestatus.erSattPåVent shouldBe true
@@ -41,12 +40,11 @@ class VentestatusTest {
         val ventestatus = Ventestatus()
         assertThrows<IllegalArgumentException> {
             ventestatus.settPåVent(
-                tidspunkt = nå(clock),
+                tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
                 frist = LocalDate.now(clock).minusDays(1),
-                clock = clock,
             )
         }
     }
@@ -56,12 +54,11 @@ class VentestatusTest {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
             .settPåVent(
-                tidspunkt = nå(clock),
+                tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
                 frist = LocalDate.now(clock).plusWeeks(1),
-                clock = clock,
             )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
 
@@ -74,21 +71,19 @@ class VentestatusTest {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
             .settPåVent(
-                tidspunkt = nå(clock = clock),
+                tidspunktSattPåVent = nå(clock = clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
                 frist = null,
-                clock = clock,
             )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
             .settPåVent(
-                tidspunkt = nå(clock),
+                tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på mer info",
                 status = "UNDER_BEHANDLING",
                 frist = LocalDate.now(clock).plusWeeks(1),
-                clock = clock,
             )
 
         ventestatus.erSattPåVent shouldBe true
