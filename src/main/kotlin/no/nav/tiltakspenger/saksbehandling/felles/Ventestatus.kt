@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
+import no.nav.tiltakspenger.libs.common.nå
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -27,7 +29,12 @@ data class Ventestatus(
         begrunnelse: String,
         status: String,
         frist: LocalDate?,
+        clock: Clock,
     ): Ventestatus {
+        if (frist != null) {
+            require(frist >= nå(clock).toLocalDate()) { "Frist for å være på vent kan ikke være i fortiden" }
+        }
+
         return copy(
             ventestatusHendelser = ventestatusHendelser + VentestatusHendelse(
                 tidspunkt = tidspunkt,

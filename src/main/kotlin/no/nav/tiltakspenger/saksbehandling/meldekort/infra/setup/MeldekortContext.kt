@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingService
@@ -27,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbeh
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortbehandlingTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendTilMeldekortApiService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SettMeldekortbehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -173,6 +175,22 @@ open class MeldekortContext(
 
     val avbrytMeldekortbehandlingService by lazy {
         AvbrytMeldekortbehandlingService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
+            sakService = sakService,
+            clock = clock,
+        )
+    }
+
+    val settMeldekortbehandlingPåVentService by lazy {
+        SettMeldekortbehandlingPåVentService(
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
+            sakService = sakService,
+            clock = clock,
+        )
+    }
+
+    val gjenopptaMeldekortbehandlingService by lazy {
+        GjenopptaMeldekortbehandlingService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
             clock = clock,

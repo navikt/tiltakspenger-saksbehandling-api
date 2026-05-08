@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
@@ -46,6 +47,7 @@ data class MeldekortBehandletAutomatisk(
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
     override val meldeperioder: Meldeperiodebehandlinger,
+    override val ventestatus: Ventestatus,
 ) : Meldekortbehandling.Behandlet {
     // Automatiske behandlinger iverksettes umiddelbart
     override val iverksattTidspunkt = opprettet
@@ -138,6 +140,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
             meldeperioder = nonEmptyListOf(brukersMeldekort.tilMeldeperiodebehandling()),
             beregning = beregning,
         ),
+        ventestatus = Ventestatus(),
     )
 
     return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {

@@ -100,7 +100,8 @@ class LeggTilbakeMeldekortbehandlingRouteTest {
                       "tekstTilVedtaksbrev": null,
                       "status": "KLAR_TIL_BEHANDLING",
                       "skalSendeVedtaksbrev": true,
-                      "harFlereMeldeperioder": false
+                      "harFlereMeldeperioder": false,
+                      "ventestatus": []
                     }
                 """.trimIndent(),
             )

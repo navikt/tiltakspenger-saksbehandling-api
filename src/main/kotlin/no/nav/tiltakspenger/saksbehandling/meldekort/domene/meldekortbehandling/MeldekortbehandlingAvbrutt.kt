@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -40,6 +41,7 @@ data class MeldekortbehandlingAvbrutt(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val skalSendeVedtaksbrev: Boolean,
+    override val ventestatus: Ventestatus,
 ) : Meldekortbehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null

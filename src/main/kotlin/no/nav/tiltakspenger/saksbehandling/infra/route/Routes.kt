@@ -96,6 +96,8 @@ fun Route.routes(
             leggTilbakeMeldekortbehandlingService = applicationContext.meldekortContext.leggTilbakeMeldekortbehandlingService,
             sendMeldekortbehandlingTilBeslutterService = applicationContext.meldekortContext.sendMeldekortbehandlingTilBeslutterService,
             avbrytMeldekortbehandlingService = applicationContext.meldekortContext.avbrytMeldekortbehandlingService,
+            settMeldekortbehandlingPåVentService = applicationContext.meldekortContext.settMeldekortbehandlingPåVentService,
+            gjenopptaMeldekortbehandlingService = applicationContext.meldekortContext.gjenopptaMeldekortbehandlingService,
             clock = applicationContext.clock,
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             forhåndsvisBrevMeldekortbehandlingService = applicationContext.meldekortContext.forhåndsvisBrevMeldekortbehandlingService,

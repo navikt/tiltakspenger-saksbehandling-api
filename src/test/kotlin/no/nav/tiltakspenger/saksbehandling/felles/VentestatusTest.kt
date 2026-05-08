@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 class VentestatusTest {
@@ -27,10 +28,27 @@ class VentestatusTest {
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
                 frist = LocalDate.now(clock).plusWeeks(1),
+                clock = clock,
             )
 
         ventestatus.erSattPåVent shouldBe true
         ventestatus.ventestatusHendelser.size shouldBe 1
+    }
+
+    @Test
+    fun `kaster exception dersom frist er i fortid`() {
+        val clock = TikkendeKlokke()
+        val ventestatus = Ventestatus()
+        assertThrows<IllegalArgumentException> {
+            ventestatus.settPåVent(
+                tidspunkt = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).minusDays(1),
+                clock = clock,
+            )
+        }
     }
 
     @Test
@@ -43,6 +61,7 @@ class VentestatusTest {
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
                 frist = LocalDate.now(clock).plusWeeks(1),
+                clock = clock,
             )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
 
@@ -60,6 +79,7 @@ class VentestatusTest {
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
                 frist = null,
+                clock = clock,
             )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
             .settPåVent(
@@ -68,6 +88,7 @@ class VentestatusTest {
                 begrunnelse = "Venter på mer info",
                 status = "UNDER_BEHANDLING",
                 frist = LocalDate.now(clock).plusWeeks(1),
+                clock = clock,
             )
 
         ventestatus.erSattPåVent shouldBe true

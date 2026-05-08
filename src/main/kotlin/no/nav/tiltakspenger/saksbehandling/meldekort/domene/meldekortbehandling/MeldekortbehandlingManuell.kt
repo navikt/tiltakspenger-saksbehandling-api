@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
@@ -54,6 +55,7 @@ data class MeldekortbehandlingManuell(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val skalSendeVedtaksbrev: Boolean,
     override val meldeperioder: Meldeperiodebehandlinger,
+    override val ventestatus: Ventestatus,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
     override val beregning: Beregning get() = meldeperioder.beregning!!
@@ -172,6 +174,7 @@ data class MeldekortbehandlingManuell(
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             meldeperioder = this.meldeperioder,
+            ventestatus = ventestatus,
         ).right()
     }
 
@@ -302,6 +305,7 @@ data class MeldekortbehandlingManuell(
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             meldeperioder = nyeMeldeperioder,
             skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+            ventestatus = ventestatus,
         )
     }
 }

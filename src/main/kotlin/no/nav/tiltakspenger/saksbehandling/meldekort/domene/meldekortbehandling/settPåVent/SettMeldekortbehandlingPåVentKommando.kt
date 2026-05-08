@@ -1,0 +1,17 @@
+package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent
+
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
+import java.time.LocalDate
+
+data class SettMeldekortbehandlingPåVentKommando(
+    val sakId: SakId,
+    val meldekortId: MeldekortId,
+    val begrunnelse: String,
+    val frist: LocalDate?,
+    override val saksbehandler: Saksbehandler,
+    override val correlationId: CorrelationId,
+) : ServiceCommand

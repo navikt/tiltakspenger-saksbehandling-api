@@ -112,7 +112,8 @@ class AvbrytMeldekortbehandlingRouteTest {
                       "tekstTilVedtaksbrev": null,
                       "status": "AVBRUTT",
                       "skalSendeVedtaksbrev": true,
-                      "harFlereMeldeperioder": false
+                      "harFlereMeldeperioder": false,
+                      "ventestatus": []
                     }
                 """.trimIndent(),
             )

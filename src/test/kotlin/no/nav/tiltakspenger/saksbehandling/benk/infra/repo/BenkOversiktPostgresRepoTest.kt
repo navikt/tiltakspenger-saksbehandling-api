@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
@@ -64,7 +63,6 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.Clock
 import java.time.LocalDate
 
 class BenkOversiktPostgresRepoTest {
@@ -1219,9 +1217,9 @@ class BenkOversiktPostgresRepoTest {
                 rammebehandlingId = behandling.id,
                 begrunnelse = "Venter på AAP søknad",
                 saksbehandler = beslutter,
-                frist = LocalDate.now(fixedClock).plusWeeks(1),
+                frist = LocalDate.now(testDataHelper.clock).plusWeeks(1),
             )
-            val oppdatertBehandling = behandling.settPåVent(kommando, Clock.system(zoneIdOslo)).first
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
@@ -1298,9 +1296,9 @@ class BenkOversiktPostgresRepoTest {
     fun `kan sortere på frist`() {
         withTestApplicationContext { tac ->
             val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
-            val dagensDato = nå(fixedClock).toLocalDate()
-            val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = dagensDato)!!
-            val (sak2, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = dagensDato.minusDays(1))!!
+            val dagensDato = nå(tac.clock).toLocalDate()
+            val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = dagensDato.plusDays(2))!!
+            val (sak2, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = dagensDato.plusDays(1))!!
 
             val (actualAsc, _) = benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(

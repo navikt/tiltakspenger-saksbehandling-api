@@ -61,6 +61,7 @@ fun Rammebehandling.settPåVent(
                 begrunnelse = kommando.begrunnelse,
                 status = status.toString(),
                 frist = kommando.frist,
+                clock = clock,
             )
             val (oppdatertKlagebehandling, klagestatistikk) = oppdaterKlagebehandling(kommando, clock)
             val oppdatertRammebehandling = when (this) {

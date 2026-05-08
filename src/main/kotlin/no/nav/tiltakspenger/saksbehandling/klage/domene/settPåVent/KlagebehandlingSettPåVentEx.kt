@@ -40,6 +40,7 @@ fun Klagebehandling.settPåVent(
             begrunnelse = kommando.begrunnelse,
             status = status.toString(),
             frist = kommando.frist,
+            clock = clock,
         ),
         sistEndret = nå,
         status = KLAR_TIL_BEHANDLING,
