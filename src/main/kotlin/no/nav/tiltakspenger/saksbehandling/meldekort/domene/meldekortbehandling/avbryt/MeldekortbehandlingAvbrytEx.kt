@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -15,20 +14,22 @@ import java.time.LocalDateTime
 
 /** Saksbehandler avbryter en meldekortbehandling */
 fun Meldekortbehandling.avbryt(
-    avbruttAv: Saksbehandler,
-    avbruttBegrunnelse: NonBlankString,
+    kommando: AvbrytMeldekortbehandlingKommando,
     tidspunkt: LocalDateTime,
 ): Either<KanIkkeAvbryteMeldekortbehandling, Meldekortbehandling> {
     if (this.status != MeldekortbehandlingStatus.UNDER_BEHANDLING) {
         return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
     }
-    if (this.saksbehandler != avbruttAv.navIdent) {
+
+    val avbruttAv = kommando.saksbehandler.navIdent
+
+    if (this.saksbehandler != avbruttAv) {
         return KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
     }
 
     return this.avbryt(
-        saksbehandlerIdent = avbruttAv.navIdent,
-        avbruttBegrunnelse = avbruttBegrunnelse,
+        saksbehandlerIdent = avbruttAv,
+        avbruttBegrunnelse = kommando.begrunnelse,
         tidspunkt = tidspunkt,
     ).right()
 }
@@ -68,7 +69,7 @@ private fun Meldekortbehandling.avbryt(
         saksnummer = saksnummer,
         fnr = fnr,
         opprettet = opprettet,
-        simulering = null,
+        simulering = simulering,
         saksbehandler = saksbehandler,
         navkontor = navkontor,
         type = type,

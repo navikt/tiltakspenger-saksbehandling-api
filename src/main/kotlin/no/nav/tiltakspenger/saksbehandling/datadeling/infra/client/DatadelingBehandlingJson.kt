@@ -114,10 +114,17 @@ private fun Rammebehandlingsstatus.toDatadelingStatus(): Behandlingsstatus =
 private fun Meldekortbehandling.toDatadelingStatus(): Behandlingsstatus =
     when (this.status) {
         MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> Behandlingsstatus.KLAR_TIL_BEHANDLING
+
         MeldekortbehandlingStatus.UNDER_BEHANDLING -> Behandlingsstatus.UNDER_BEHANDLING
+
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> Behandlingsstatus.KLAR_TIL_BESLUTNING
+
         MeldekortbehandlingStatus.UNDER_BESLUTNING -> Behandlingsstatus.UNDER_BESLUTNING
+
         MeldekortbehandlingStatus.GODKJENT -> Behandlingsstatus.GODKJENT
+
         MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> Behandlingsstatus.AUTOMATISK_BEHANDLET
+
+        // TODO abn: trenger datadeling denne distinksjonen
         MeldekortbehandlingStatus.AVBRUTT -> if (this.ingenDagerGirRett) Behandlingsstatus.IKKE_RETT_TIL_TILTAKSPENGER else Behandlingsstatus.AVBRUTT
     }

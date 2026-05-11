@@ -18,15 +18,15 @@ class AvbrytMeldekortbehandlingService(
     private val sakService: SakService,
     private val clock: Clock,
 ) {
-    fun avbryt(command: AvbrytMeldekortbehandlingKommando): Either<KanIkkeAvbryteMeldekortbehandling, Pair<Sak, Meldekortbehandling>> {
-        val sak: Sak = sakService.hentForSakId(command.sakId)
-        val meldekortbehandling = sak.hentMeldekortbehandling(command.meldekortId)
+    fun avbryt(kommando: AvbrytMeldekortbehandlingKommando): Either<KanIkkeAvbryteMeldekortbehandling, Pair<Sak, Meldekortbehandling>> {
+        val sak: Sak = sakService.hentForSakId(kommando.sakId)
+        val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)
 
         if (meldekortbehandling !is MeldekortUnderBehandling) {
             return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
         }
 
-        return meldekortbehandling.avbryt(command.saksbehandler, command.begrunnelse, nå(clock)).map {
+        return meldekortbehandling.avbryt(kommando, nå(clock)).map {
             meldekortbehandlingRepo.oppdater(it)
             Pair(sak.oppdaterMeldekortbehandling(it), it)
         }

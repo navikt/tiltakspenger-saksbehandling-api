@@ -85,6 +85,7 @@ data class MeldekortbehandlingManuell(
             }
 
             MeldekortbehandlingStatus.GODKJENT -> {
+                require(!ingenDagerGirRett)
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(beslutter)
                 requireNotNull(sendtTilBeslutning)

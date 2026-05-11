@@ -70,6 +70,7 @@ data class MeldekortBehandletAutomatisk(
         require(status === MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
             "Ugyldig status for automatisk behandling: $status"
         }
+        require(!ingenDagerGirRett)
     }
 
     override fun overta(
