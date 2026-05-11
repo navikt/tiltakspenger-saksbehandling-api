@@ -100,10 +100,10 @@ data class MeldekortbehandlingManuell(
         if (saksbehandler == beslutter.navIdent) {
             return KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
         }
-        require(status == MeldekortbehandlingStatus.UNDER_BESLUTNING) {
+        if (status != MeldekortbehandlingStatus.UNDER_BESLUTNING) {
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
-        require(this.beslutter == beslutter.navIdent) {
+        if (this.beslutter != beslutter.navIdent) {
             return KanIkkeIverksetteMeldekortbehandling.MåVæreBeslutterForMeldekortet.left()
         }
 
@@ -140,7 +140,7 @@ data class MeldekortbehandlingManuell(
         if (this.iverksattTidspunkt != null) {
             return KanIkkeUnderkjenneMeldekortbehandling.BehandlingenErAlleredeBesluttet.left()
         }
-        require(this.beslutter == beslutter.navIdent) {
+        if (this.beslutter != beslutter.navIdent) {
             return KanIkkeUnderkjenneMeldekortbehandling.MåVæreBeslutterForMeldekortet.left()
         }
 
