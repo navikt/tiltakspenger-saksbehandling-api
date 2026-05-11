@@ -27,7 +27,10 @@ class AvbrytMeldekortbehandlingService(
         }
         return meldekortbehandling.avbryt(command.saksbehandler, command.begrunnelse, nå(clock)).map {
             when (it.status) {
-                MeldekortbehandlingStatus.AVBRUTT -> meldekortbehandlingRepo.oppdater(it)
+                MeldekortbehandlingStatus.AVBRUTT,
+                MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+                -> meldekortbehandlingRepo.oppdater(it)
+
                 else -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne avbryte")
             }
             Pair(sak.oppdaterMeldekortbehandling(it), it)

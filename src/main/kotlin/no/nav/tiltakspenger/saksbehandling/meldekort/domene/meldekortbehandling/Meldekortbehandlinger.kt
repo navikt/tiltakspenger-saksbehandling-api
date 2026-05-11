@@ -87,11 +87,11 @@ data class Meldekortbehandlinger(
     }
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
-    fun hentMeldekortbehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
+    fun hentIkkeAvbrutteBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
         return ikkeAvbrutteMeldekortbehandlinger.filter { it.kjedeIdLegacy == kjedeId }
     }
 
-    fun hentAvbrutteMeldekortbehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
+    fun hentAvbrutteBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
         return avbrutteMeldekortbehandlinger.filter { it.kjedeIdLegacy == kjedeId }
     }
 

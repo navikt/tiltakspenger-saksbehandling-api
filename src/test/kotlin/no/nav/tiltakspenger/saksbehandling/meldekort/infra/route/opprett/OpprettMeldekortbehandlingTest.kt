@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.tiltakspenger.libs.dato.april
@@ -7,11 +8,15 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import org.junit.jupiter.api.Test
 
 class OpprettMeldekortbehandlingTest {
@@ -294,14 +299,233 @@ class OpprettMeldekortbehandlingTest {
             oppdatertSak.meldeperiodeKjeder[0].last().antallDagerSomGirRett shouldBe 1
             oppdatertSak.meldeperiodeKjeder[1].last().antallDagerSomGirRett shouldBe 0
             oppdatertSak.meldeperiodeKjeder[2].last().antallDagerSomGirRett shouldBe 0
+
             val andreMeldeperiode = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede[1]
+
             opprettMeldekortbehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = andreMeldeperiode.kjedeId,
                 forventetStatus = BadRequest,
-                forventetJsonBody = """{"melding":"Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: INGEN_DAGER_GIR_RETT","kode":"INGEN_DAGER_GIR_RETT"}""",
+                medJsonBody = {
+                    it harKode "INGEN_DAGER_GIR_RETT"
+                },
             )
+        }
+    }
+
+    @Test
+    fun `kan ikke opprette meldekortbehandling dersom det allerede finnes en åpen behandling på kjeden`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
+            )
+            val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
+
+            opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+            )!!
+
+            opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjedeId,
+                forventetStatus = BadRequest,
+                medJsonBody = { it harKode "HAR_ÅPEN_BEHANDLING" },
+            )
+
+            val sakEtter = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            sakEtter.meldekortbehandlinger.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `kan ikke opprette meldekortbehandling på senere kjede før første kjede er behandlet`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1 til 31.januar(2025)),
+            )
+            sak.meldeperiodeKjeder.size shouldBe 3
+            val andreKjedeId = sak.meldeperiodeKjeder[1].kjedeId
+
+            opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = andreKjedeId,
+                forventetStatus = BadRequest,
+                medJsonBody = { it harKode "MÅ_BEHANDLE_FØRSTE_KJEDE" },
+            )
+
+            val sakEtter = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            sakEtter.meldekortbehandlinger.shouldBeEmpty()
+        }
+    }
+
+    @Test
+    fun `kan opprette behandling for meldeperiode uten rett dersom det finnes et ubehandlet brukers-meldekort`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode: Periode = 1 til 31.januar(2025)
+            val (sak, _, rammevedtak, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+            val førsteKjede = sak.meldeperiodeKjeder.first()
+            val førsteMeldeperiode = førsteKjede.hentSisteMeldeperiode()
+
+            // Send brukers meldekort på første kjede mens den fortsatt gir rett
+            mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = førsteMeldeperiode.id,
+                sakId = sak.id,
+                dager = førsteMeldeperiode.tilUtfyltFraBruker(),
+            )
+
+            // Omgjør slik at kun andre kjede beholder rett (første kjede mister all rett)
+            val andreKjedePeriode = sak.meldeperiodeKjeder[1].periode
+            this.iverksettOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = rammevedtak.id,
+                innvilgelsesperioder = innvilgelsesperioder(andreKjedePeriode),
+            )
+
+            val (oppdatertSak, meldekortbehandling, _) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = førsteKjede.kjedeId,
+            )!!
+
+            meldekortbehandling.kjedeIdLegacy shouldBe førsteKjede.kjedeId
+            meldekortbehandling.meldeperiodeLegacy.ingenDagerGirRett shouldBe true
+            oppdatertSak.meldekortbehandlinger.single() shouldBe meldekortbehandling
+        }
+    }
+
+    @Test
+    fun `kan ikke opprette behandling på kjede uten rett dersom forrige kjede har ubehandlet brukers-meldekort`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode: Periode = 1 til 31.januar(2025)
+            val (sak, _, rammevedtak, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+            sak.meldeperiodeKjeder.size shouldBe 3
+            val førsteKjede = sak.meldeperiodeKjeder[0]
+            val andreKjede = sak.meldeperiodeKjeder[1]
+            val førsteMeldeperiode = førsteKjede.hentSisteMeldeperiode()
+            val andreMeldeperiode = andreKjede.hentSisteMeldeperiode()
+
+            // Send brukers meldekort på de to første kjedene mens de fortsatt gir rett
+            mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = førsteMeldeperiode.id,
+                sakId = sak.id,
+                dager = førsteMeldeperiode.tilUtfyltFraBruker(),
+            )
+            mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = andreMeldeperiode.id,
+                sakId = sak.id,
+                dager = andreMeldeperiode.tilUtfyltFraBruker(),
+            )
+
+            // Omgjør slik at kun tredje kjede beholder rett (første og andre kjede mister rett)
+            this.iverksettOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = rammevedtak.id,
+                innvilgelsesperioder = innvilgelsesperioder(27 til 31.januar(2025)),
+            )
+
+            // Andre kjede kan ikke behandles før første kjede er behandlet, selv om begge har et ubehandlet meldekort
+            opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = andreKjede.kjedeId,
+                forventetStatus = BadRequest,
+                medJsonBody = { it harKode "INGEN_DAGER_GIR_RETT" },
+            )
+
+            // Første kjede kan derimot behandles
+            val (_, førsteBehandling, _) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = førsteKjede.kjedeId,
+            )!!
+            førsteBehandling.kjedeIdLegacy shouldBe førsteKjede.kjedeId
+            førsteBehandling.meldeperiodeLegacy.ingenDagerGirRett shouldBe true
+        }
+    }
+
+    @Test
+    fun `kan avbryte to påfølgende kjeder uten rett`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode: Periode = 1 til 31.januar(2025)
+            val (sak, _, rammevedtak, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+            sak.meldeperiodeKjeder.size shouldBe 3
+            val førsteKjede = sak.meldeperiodeKjeder[0]
+            val andreKjede = sak.meldeperiodeKjeder[1]
+            val førsteMeldeperiode = førsteKjede.hentSisteMeldeperiode()
+            val andreMeldeperiode = andreKjede.hentSisteMeldeperiode()
+
+            // 1. Brukers meldekort på begge kjeder mens de fortsatt gir rett, og omgjøring fjerner all rett fra de to første kjedene
+            mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = førsteMeldeperiode.id,
+                sakId = sak.id,
+                dager = førsteMeldeperiode.tilUtfyltFraBruker(),
+            )
+            mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = andreMeldeperiode.id,
+                sakId = sak.id,
+                dager = andreMeldeperiode.tilUtfyltFraBruker(),
+            )
+            this.iverksettOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = rammevedtak.id,
+                innvilgelsesperioder = innvilgelsesperioder(27 til 31.januar(2025)),
+            )
+
+            // 2. Andre kjede kan ikke behandles enda - første kjede har ubehandlet meldekort foran
+            opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = andreKjede.kjedeId,
+                forventetStatus = BadRequest,
+                medJsonBody = { it harKode "INGEN_DAGER_GIR_RETT" },
+            )
+
+            // 3. Opprett behandling på første kjede og avbryt den
+            val (_, førsteBehandling, _) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = førsteKjede.kjedeId,
+            )!!
+            val (sakEtterAvbryt, avbruttBehandling, _) = avbrytMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = førsteBehandling.id,
+            )!!
+            avbruttBehandling.erAvbrutt shouldBe true
+            sakEtterAvbryt.meldekortbehandlinger.single() shouldBe avbruttBehandling
+
+            // 4. Nå skal det være mulig å opprette behandling på andre kjede
+            val (_, andreBehandling, _) = opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = andreKjede.kjedeId,
+            )!!
+            andreBehandling.kjedeIdLegacy shouldBe andreKjede.kjedeId
+            andreBehandling.meldeperiodeLegacy.ingenDagerGirRett shouldBe true
         }
     }
 }

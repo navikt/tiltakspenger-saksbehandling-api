@@ -62,7 +62,7 @@ fun Sak.validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMel
         return MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
     }
 
-    val behandlingerKnyttetTilKjede = this.meldekortbehandlinger.hentMeldekortbehandlingerForKjede(kjedeId)
+    val behandlingerKnyttetTilKjede = this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
 
     if (behandlingerKnyttetTilKjede.isNotEmpty()) {
         logger.error { "Meldeperiodekjeden $kjedeId har allerede minst en behandling. Vi støtter ikke automatisk korrigering fra bruker (meldekort id $meldekortId)" }
@@ -135,10 +135,22 @@ private fun Sak.kjedeHarUbehandletBrukersMeldekort(kjedeId: MeldeperiodeKjedeId)
 }
 
 private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Boolean {
-    return this.meldekortbehandlinger.hentMeldekortbehandlingerForKjede(kjedeId)
-        .let { behandling ->
-            behandling.any { it.erGodkjentEllerIkkeRett }
-        }
+    val harGodkjentBehandling by lazy {
+        this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
+            .let { behandling ->
+                behandling.any { it.erGodkjent }
+            }
+    }
+
+    val harBehandlingAvbruttUtenRett by lazy {
+        this.meldekortbehandlinger.hentAvbrutteBehandlingerForKjede(kjedeId)
+            .let { behandling -> behandling.any { it.status == MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER } }
+    }
+
+    harGodkjentBehandling
+    harBehandlingAvbruttUtenRett
+
+    return harGodkjentBehandling || harBehandlingAvbruttUtenRett
 }
 
 enum class ValiderOpprettMeldekortbehandlingFeil {

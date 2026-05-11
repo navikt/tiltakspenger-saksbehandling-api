@@ -56,7 +56,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         .sortedBy { it.mottatt }
 
     val meldekortbehandlinger = this.meldekortbehandlinger
-        .hentMeldekortbehandlingerForKjede(meldeperiodeKjede.kjedeId)
+        .hentIkkeAvbrutteBehandlingerForKjede(meldeperiodeKjede.kjedeId)
 
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
@@ -84,7 +84,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
         korrigeringFraTidligerePeriode = korrigering,
         avbrutteMeldekortbehandlinger = this.meldekortbehandlinger
-            .hentAvbrutteMeldekortbehandlingerForKjede(meldeperiodeKjede.kjedeId)
+            .hentAvbrutteBehandlingerForKjede(meldeperiodeKjede.kjedeId)
             .map { it.tilMeldekortbehandlingDTO(beregninger = this.meldeperiodeBeregninger) },
         sisteBeregning = meldeperiodeBeregninger.gjeldendeBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
     )

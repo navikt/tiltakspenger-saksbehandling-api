@@ -377,7 +377,7 @@ fun Sak.opprettManuellMeldekortbehandling(
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
-    val behandlingerForKjede = this.meldekortbehandlinger.hentMeldekortbehandlingerForKjede(kjedeId)
+    val behandlingerForKjede = this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
     val type =
         if (behandlingerForKjede.isEmpty()) MeldekortbehandlingType.FØRSTE_BEHANDLING else MeldekortbehandlingType.KORRIGERING
 
