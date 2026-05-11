@@ -125,6 +125,6 @@ private fun Meldekortbehandling.toDatadelingStatus(): Behandlingsstatus =
 
         MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> Behandlingsstatus.AUTOMATISK_BEHANDLET
 
-        // TODO abn: trenger datadeling denne distinksjonen
+        // TODO abn: trenger datadeling denne distinksjonen?
         MeldekortbehandlingStatus.AVBRUTT -> if (this.ingenDagerGirRett) Behandlingsstatus.IKKE_RETT_TIL_TILTAKSPENGER else Behandlingsstatus.AVBRUTT
     }
