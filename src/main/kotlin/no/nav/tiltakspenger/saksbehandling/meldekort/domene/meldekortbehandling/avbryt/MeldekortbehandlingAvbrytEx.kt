@@ -19,10 +19,10 @@ fun Meldekortbehandling.avbryt(
     avbruttBegrunnelse: NonBlankString,
     tidspunkt: LocalDateTime,
 ): Either<KanIkkeAvbryteMeldekortbehandling, Meldekortbehandling> {
-    require(this.status == MeldekortbehandlingStatus.UNDER_BEHANDLING) {
+    if (this.status != MeldekortbehandlingStatus.UNDER_BEHANDLING) {
         return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
     }
-    require(this.saksbehandler == avbruttAv.navIdent) {
+    if (this.saksbehandler != avbruttAv.navIdent) {
         return KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
     }
 
