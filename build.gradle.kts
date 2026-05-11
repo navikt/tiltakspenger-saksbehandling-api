@@ -121,8 +121,11 @@ plugins {
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
     kotlin("jvm") version "2.3.21"
     id("com.diffplug.spotless") version "8.4.0"
+    // Kover-konfig er trukket ut til en convention-plugin under buildSrc/.
+    id("kover-conventions")
     application
 }
+
 application {
     mainClass.set("no.nav.tiltakspenger.saksbehandling.AppKt")
 }

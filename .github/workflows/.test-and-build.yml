@@ -22,6 +22,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      # `pull-requests: write` lar `gh pr comment` / `gh api` poste og oppdatere
+      # kover-coverage-kommentaren på tilhørende åpen PR.
+      pull-requests: write
     outputs:
       IMAGE: ${{ steps.docker-push.outputs.image }}
     steps:
@@ -39,6 +42,54 @@ jobs:
 
       - name: Test and build application
         run: ./gradlew build --info installDist
+
+      # Kover-rapportene blir alltid generert som del av `check`/`build` (se
+      # buildSrc/src/main/kotlin/kover-conventions.gradle.kts):
+      #   - HTML-rapporten lastes opp som artifact for drilldown.
+      #   - Markdown-oppsummeringen skrives både til GitHub Job Summary og som
+      #     en sticky PR-kommentar (uten tredjepartsaction). `koverMarkdownReport`
+      #     produserer build/reports/kover/coverage-summary.md.
+      - name: Upload Kover HTML coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kover-html-report
+          path: build/reports/kover/html/
+          retention-days: 14
+
+      - name: Append coverage summary to job summary
+        if: always() && hashFiles('build/reports/kover/coverage-summary.md') != ''
+        run: cat build/reports/kover/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post sticky coverage comment on PR
+        if: always() && hashFiles('build/reports/kover/coverage-summary.md') != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # `head_ref` er kun satt for pull_request-events; for push-bygg bruker vi
+          # `ref_name` (selve branch-navnet) til å slå opp tilhørende åpen PR.
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          PR_NUM=$(gh pr list --repo "$REPO" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$PR_NUM" ]; then
+            echo "Ingen åpen PR for branch '$BRANCH' – hopper over kommentar."
+            exit 0
+          fi
+          # Sticky-tag matcher på første linje i markdown-en fra koverMarkdownReport.
+          TAG="<!-- kover-coverage-comment -->"
+          BODY_FILE=build/reports/kover/coverage-summary.md
+          EXISTING_ID=$(gh api --paginate "repos/$REPO/issues/$PR_NUM/comments" \
+            --jq ".[] | select(.body | startswith(\"$TAG\")) | .id" | head -n1)
+          if [ -n "$EXISTING_ID" ]; then
+            # Bygg JSON-payload med jq for å håndtere spesialtegn / linjeskift trygt.
+            jq -n --rawfile body "$BODY_FILE" '{body: $body}' \
+              | gh api --method PATCH "repos/$REPO/issues/comments/$EXISTING_ID" --input - >/dev/null
+            echo "Oppdaterte eksisterende kommentar ($EXISTING_ID) på PR #$PR_NUM."
+          else
+            gh pr comment "$PR_NUM" --repo "$REPO" --body-file "$BODY_FILE"
+            echo "Postet ny kommentar på PR #$PR_NUM."
+          fi
 
       - name: Build and push docker image
         uses: nais/docker-build-push@v0
