@@ -88,7 +88,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-core-jackson:2.2.2.1")
 
     // Caffeine
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.3.21")
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
