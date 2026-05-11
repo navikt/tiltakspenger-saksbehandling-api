@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class Rammevedtaksliste(
     val verdi: List<Rammevedtak>,
@@ -150,6 +151,12 @@ data class Rammevedtaksliste(
     val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy {
         valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi.typeKode }
     }
+
+    /**
+     * Tidspunktet for det sist opprettede rammevedtaket på saken, eller `null` om lista er tom.
+     * Init-blokken garanterer at lista er sortert stigende på `opprettet`.
+     */
+    val sisteVedtakOpprettet: LocalDateTime? = verdi.lastOrNull()?.opprettet
 
     /**
      * Legger til et rammevedtak i vedtaklisten og oppdaterer omgjortAvRammevedtak per vedtak

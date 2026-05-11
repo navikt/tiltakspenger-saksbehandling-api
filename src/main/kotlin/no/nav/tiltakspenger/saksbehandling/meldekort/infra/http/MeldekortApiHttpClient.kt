@@ -7,8 +7,6 @@ import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.libs.meldekort.SakTilMeldekortApiDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -69,28 +67,4 @@ class MeldekortApiHttpClient(
             .POST(HttpRequest.BodyPublishers.ofString(payload))
             .build()
     }
-}
-
-private fun Meldeperiode.tilMeldekortApiDTO(): SakTilMeldekortApiDTO.Meldeperiode {
-    return SakTilMeldekortApiDTO.Meldeperiode(
-        id = this.id.toString(),
-        kjedeId = this.kjedeId.toString(),
-        versjon = this.versjon.value,
-        opprettet = this.opprettet,
-        fraOgMed = this.periode.fraOgMed,
-        tilOgMed = this.periode.tilOgMed,
-        antallDagerForPeriode = this.maksAntallDagerForMeldeperiode,
-        girRett = this.girRett,
-    )
-}
-
-private fun Sak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO {
-    return SakTilMeldekortApiDTO(
-        fnr = this.fnr.verdi,
-        sakId = this.id.toString(),
-        saksnummer = this.saksnummer.toString(),
-        meldeperioder = this.meldeperiodeKjeder.sisteMeldeperiodePerKjede.map { it.tilMeldekortApiDTO() },
-        harSoknadUnderBehandling = this.harSoknadUnderBehandling(),
-        kanSendeInnHelgForMeldekort = this.kanSendeInnHelgForMeldekort,
-    )
 }

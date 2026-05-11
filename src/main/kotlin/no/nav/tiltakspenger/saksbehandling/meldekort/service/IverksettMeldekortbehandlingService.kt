@@ -68,6 +68,7 @@ class IverksettMeldekortbehandlingService(
                 meldekortbehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
                 meldekortvedtakRepo.lagre(meldekortvedtak, tx)
                 statistikkService.lagre(statistikkDTO, tx)
+                sakService.markerSkalSendesTilMeldekortApi(sakId = sakId, sessionContext = tx)
 
                 runBlocking {
                     tx.onSuccess {

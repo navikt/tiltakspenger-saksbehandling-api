@@ -9,9 +9,11 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -63,6 +65,21 @@ data class Meldekortvedtak(
         require(beslutter == utbetaling.beslutter)
         require(meldekortbehandling.id == utbetaling.beregningKilde.id)
         require(meldekortbehandling.beregning == utbetaling.beregning)
+        require(meldeperiodebehandlinger.all { mpb -> beregning.count { it.kjedeId == mpb.kjedeId } == 1 }) {
+            "Hver meldeperiodebehandling må ha nøyaktig én tilhørende MeldeperiodeBeregning med samme kjedeId. " +
+                "kjedeIder i behandlinger: ${meldeperiodebehandlinger.map { it.kjedeId }}, " +
+                "kjedeIder i beregning: ${beregning.map { it.kjedeId }}"
+        }
+    }
+
+    /**
+     * Meldeperiodebehandlingene paret med tilhørende [MeldeperiodeBeregning] (matchet på `kjedeId`).
+     * Init-blokken garanterer at parringen er entydig.
+     *
+     * @throws NoSuchElementException dersom det ikke er beregnet enda
+     */
+    val meldeperiodeberegninger: List<Pair<Meldeperiodebehandling, MeldeperiodeBeregning>> by lazy {
+        meldeperiodebehandlinger.meldeperiodeberegninger
     }
 }
 

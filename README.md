@@ -37,6 +37,18 @@ cloud_sql_proxy -instances=tpts-dev-6211:europe-north1:tiltakspenger-saksbehandl
 Eventuelt med [Cloud SQL Studio](https://console.cloud.google.com/sql/instances/tiltakspenger-saksbehandling-api/studio) web UI.
 
 ---
+# Konvensjoner
+
+## Synlighet
+
+Dette er et enmodulrepo, så vi bruker ikke `internal` på Kotlin-deklarasjoner. Standardvalgene er:
+
+- `private` for hjelpere som kun brukes innenfor en fil/klasse
+- `public` (default) for deklarasjoner som er ment å brukes fra resten av modulen
+
+Tester skal gå mot det offentlige inngangspunktet, ikke mot `private`-hjelpere – da unngår vi å låse oss til implementasjonsdetaljer.
+
+---
 # Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub.

@@ -24,8 +24,7 @@ class SendTilMeldekortApiService(
                 val id = sak.id
                 meldekortApiHttpClient.sendSak(sak).onRight {
                     logger.info { "Sendte sak til meldekort-api med id $id" }
-                    val sistevedtak = sak.rammevedtaksliste.lastOrNull()
-                    val erMarkertSendt = sakRepo.markerErSendtTilMeldekortApi(id, sistevedtak?.opprettet)
+                    val erMarkertSendt = sakRepo.markerErSendtTilMeldekortApi(id, sak.nyesteRammeEllerMeldekortvedtakOpprettet)
                     if (!erMarkertSendt) {
                         logger.warn { "Sak $id ble sendt til meldekort-api, men det er nye vedtak på saken - sendes igjen ved neste kjøring" }
                     }
