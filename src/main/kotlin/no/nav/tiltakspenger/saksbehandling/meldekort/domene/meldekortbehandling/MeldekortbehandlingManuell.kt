@@ -6,7 +6,6 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
-import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -20,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.underkjenn.KanIkkeUnderkjenneMeldekortbehandling
@@ -48,7 +46,6 @@ data class MeldekortbehandlingManuell(
     override val status: MeldekortbehandlingStatus,
     override val iverksattTidspunkt: LocalDateTime?,
     override val navkontor: Navkontor,
-    override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
     override val type: MeldekortbehandlingType,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
@@ -69,13 +66,14 @@ data class MeldekortbehandlingManuell(
             "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
         }
         when (status) {
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status KLAR_TIL_BEHANDLING")
-
-            MeldekortbehandlingStatus.UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
+            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
+            MeldekortbehandlingStatus.UNDER_BEHANDLING,
+            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
+            MeldekortbehandlingStatus.AVBRUTT,
+            -> throw IllegalStateException("Manuelt behandlede meldekort kan ikke ha status $status")
 
             MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
                 require(iverksattTidspunkt == null)
-                // Kommentar jah: Når vi legger til underkjenn, bør vi også legge til et atteserings objekt som for Behandling. beslutter vil da flyttes dit.
                 requireNotNull(sendtTilBeslutning)
                 require(beslutter == null)
             }
@@ -87,7 +85,6 @@ data class MeldekortbehandlingManuell(
             }
 
             MeldekortbehandlingStatus.GODKJENT -> {
-                require(ikkeRettTilTiltakspengerTidspunkt == null)
                 requireNotNull(iverksattTidspunkt)
                 requireNotNull(beslutter)
                 requireNotNull(sendtTilBeslutning)
@@ -96,10 +93,6 @@ data class MeldekortbehandlingManuell(
             MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
                 throw IllegalStateException("I førsteomgang støtter vi kun stans av ikke-utfylte meldekort.")
             }
-
-            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AUTOMATISK_BEHANDLET")
-
-            MeldekortbehandlingStatus.AVBRUTT -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AVBRUTT")
         }
     }
 
@@ -171,7 +164,6 @@ data class MeldekortbehandlingManuell(
             fnr = fnr,
             opprettet = opprettet,
             navkontor = navkontor,
-            ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
             saksbehandler = saksbehandler,
             type = type,
             attesteringer = attesteringer,
@@ -283,8 +275,7 @@ data class MeldekortbehandlingManuell(
 
     fun tilUnderBehandling(
         nyeMeldeperioder: Meldeperiodebehandlinger,
-        ikkeRettTilTiltakspengerTidspunkt: LocalDateTime? = null,
-        clock: Clock,
+        tidspunkt: LocalDateTime,
     ): MeldekortUnderBehandling {
         when (this.status) {
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
@@ -308,44 +299,15 @@ data class MeldekortbehandlingManuell(
             opprettet = this.opprettet,
             saksbehandler = saksbehandler,
             navkontor = this.navkontor,
-            ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
             type = type,
             begrunnelse = this.begrunnelse,
             attesteringer = attesteringer,
             sendtTilBeslutning = iverksattTidspunkt,
             simulering = null,
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
-            sistEndret = nå(clock),
+            sistEndret = tidspunkt,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             meldeperioder = nyeMeldeperioder,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
-        )
-    }
-
-    fun avbrytIkkeRettTilTiltakspenger(
-        ikkeRettTilTiltakspengerTidspunkt: LocalDateTime,
-    ): MeldekortbehandlingAvbrutt {
-        return MeldekortbehandlingAvbrutt(
-            id = id,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            opprettet = opprettet,
-            simulering = null,
-            saksbehandler = saksbehandler,
-            navkontor = navkontor,
-            ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-            type = type,
-            begrunnelse = begrunnelse,
-            attesteringer = attesteringer,
-            avbrutt = Avbrutt(
-                tidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                saksbehandler = AUTOMATISK_SAKSBEHANDLER_ID,
-                begrunnelse = "Ikke rett til tiltakspenger".toNonBlankString(),
-            ),
-            sistEndret = ikkeRettTilTiltakspengerTidspunkt,
-            fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
-            meldeperioder = this.meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         )
     }

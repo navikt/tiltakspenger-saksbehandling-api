@@ -33,7 +33,6 @@ data class MeldekortbehandlingAvbrutt(
     override val navkontor: Navkontor,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
-    override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
     override val avbrutt: Avbrutt?,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,

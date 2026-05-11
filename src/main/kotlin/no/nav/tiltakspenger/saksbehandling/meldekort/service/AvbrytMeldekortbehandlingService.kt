@@ -6,9 +6,9 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.AvbrytMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.KanIkkeAvbryteMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.avbryt
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -25,14 +25,9 @@ class AvbrytMeldekortbehandlingService(
         if (meldekortbehandling !is MeldekortUnderBehandling) {
             return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
         }
-        return meldekortbehandling.avbryt(command.saksbehandler, command.begrunnelse, nå(clock)).map {
-            when (it.status) {
-                MeldekortbehandlingStatus.AVBRUTT,
-                MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
-                -> meldekortbehandlingRepo.oppdater(it)
 
-                else -> throw IllegalStateException("Meldekortbehandlingen er i en ugyldig status for å kunne avbryte")
-            }
+        return meldekortbehandling.avbryt(command.saksbehandler, command.begrunnelse, nå(clock)).map {
+            meldekortbehandlingRepo.oppdater(it)
             Pair(sak.oppdaterMeldekortbehandling(it), it)
         }
     }

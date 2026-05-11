@@ -56,7 +56,6 @@ data class MeldekortBehandletAutomatisk(
 
     override val begrunnelse = null
     override val fritekstTilVedtaksbrev = null
-    override val ikkeRettTilTiltakspengerTidspunkt = null
 
     override val attesteringer = Attesteringer.empty()
     override val avbrutt: Avbrutt? = null

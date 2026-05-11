@@ -191,7 +191,6 @@ class MeldekortbehandlingPostgresRepo(
                         navkontor = :navkontor,
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         sendt_til_beslutning = :sendt_til_beslutning,
-                        ikke_rett_til_tiltakspenger_tidspunkt = :ikke_rett_til_tiltakspenger_tidspunkt,
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
@@ -210,7 +209,6 @@ class MeldekortbehandlingPostgresRepo(
                     "status" to meldekortbehandling.status.toDb(),
                     "navkontor" to meldekortbehandling.navkontor.kontornummer,
                     "iverksatt_tidspunkt" to meldekortbehandling.iverksattTidspunkt,
-                    "ikke_rett_til_tiltakspenger_tidspunkt" to meldekortbehandling.ikkeRettTilTiltakspengerTidspunkt,
                     "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
@@ -473,7 +471,6 @@ class MeldekortbehandlingPostgresRepo(
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val fnr = Fnr.fromString(row.string("fnr"))
             val opprettet = row.localDateTime("opprettet")
-            val ikkeRettTilTiltakspengerTidspunkt = row.localDateTimeOrNull("ikke_rett_til_tiltakspenger_tidspunkt")
             val type = row.string("type").tilMeldekortbehandlingType()
             val begrunnelse = row.stringOrNull("begrunnelse")?.let { Begrunnelse.create(it) }
 
@@ -537,7 +534,6 @@ class MeldekortbehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         navkontor = navkontor,
-                        ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         saksbehandler = saksbehandler!!,
                         type = type,
                         begrunnelse = begrunnelse,
@@ -562,7 +558,6 @@ class MeldekortbehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         navkontor = navkontor,
-                        ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         saksbehandler = saksbehandler,
                         type = type,
                         begrunnelse = begrunnelse,
@@ -585,7 +580,6 @@ class MeldekortbehandlingPostgresRepo(
                         fnr = fnr,
                         opprettet = opprettet,
                         navkontor = navkontor,
-                        ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
                         saksbehandler = saksbehandler,
                         type = type,
                         begrunnelse = begrunnelse,
