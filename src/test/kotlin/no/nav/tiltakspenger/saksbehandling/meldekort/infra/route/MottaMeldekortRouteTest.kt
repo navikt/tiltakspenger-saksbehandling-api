@@ -2,62 +2,19 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpMethod
+import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
-import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
-import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import org.junit.jupiter.api.Test
-import java.time.Clock
 
 internal class MottaMeldekortRouteTest {
-    private fun utfyltMeldekortDTO(meldeperiode: Meldeperiode, clock: Clock) = BrukerutfyltMeldekortDTO(
-        id = MeldekortId.random().toString(),
-        meldeperiodeId = meldeperiode.id.toString(),
-        sakId = meldeperiode.sakId.toString(),
-        periode = meldeperiode.periode.toDTO(),
-        mottatt = nå(clock),
-        journalpostId = "1234",
-        dager = meldeperiode.girRett.entries.associate {
-            it.key to (if (it.value) BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET else BrukerutfyltMeldekortDTO.Status.IKKE_BESVART)
-        },
-    )
-
-    // TODO jah: Flytt til egen Builder, slik at den kan gjenbrukes i andre tester og builders.
-    private suspend fun ApplicationTestBuilder.mottaMeldekortRequest(
-        dto: BrukerutfyltMeldekortDTO,
-        tac: TestApplicationContext,
-    ): HttpResponse {
-        val jwt = tac.jwtGenerator.createJwtForSystembruker(
-            roles = listOf("lagre_meldekort"),
-        )
-        tac.leggTilBruker(jwt, ObjectMother.systembrukerLagreMeldekort())
-        return defaultRequest(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/meldekort/motta")
-            },
-            jwt = jwt,
-        ) {
-            setBody(serialize(dto))
-        }
-    }
 
     @Test
     fun `Kan lagre meldekort fra bruker`() {
@@ -69,46 +26,44 @@ internal class MottaMeldekortRouteTest {
                 val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
                 tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)
 
-                val dto = utfyltMeldekortDTO(meldeperiode, tac.clock)
-                mottaMeldekortRequest(dto, tac).apply {
-                    status shouldBe HttpStatusCode.OK
-                    tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id))
-                        .shouldNotBeNull()
-                }
+                val (_, brukersMeldekort) = mottaMeldekortRequest(
+                    tac = tac,
+                    meldeperiodeId = meldeperiode.id,
+                    sakId = meldeperiode.sakId,
+                    dager = meldeperiode.tilUtfyltFraBruker(),
+                )
+                brukersMeldekort.shouldNotBeNull()
             }
         }
     }
 
     @Test
     fun `Skal lagre meldekort fra bruker og ignorere påfølgende requests med samme data, med ok-response`() {
-        runTest {
-            withTestApplicationContext { tac ->
-                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+        withTestApplicationContext { tac ->
+            val (sak) = nySakMedVedtak()
+            tac.sakContext.sakRepo.opprettSak(sak)
 
-                val sakRepo = tac.sakContext.sakRepo
-                val (sak) = nySakMedVedtak()
-                sakRepo.opprettSak(sak)
+            val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
+            tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)
 
-                val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
-                meldeperiodeRepo.lagre(meldeperiode)
+            val meldekortId = MeldekortId.random()
+            val mottatt = nå(tac.clock)
 
-                val dto = utfyltMeldekortDTO(meldeperiode, tac.clock)
-
-                mottaMeldekortRequest(dto, tac).apply {
-                    status shouldBe HttpStatusCode.OK
-                    brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
+            repeat(3) { requestNum ->
+                val (_, brukersMeldekort) = mottaMeldekortRequest(
+                    tac = tac,
+                    meldeperiodeId = meldeperiode.id,
+                    sakId = meldeperiode.sakId,
+                    id = meldekortId,
+                    dager = meldeperiode.tilUtfyltFraBruker(),
+                    mottatt = mottatt,
+                ) {
+                    if (requestNum > 1) {
+                        it shouldContain "allerede lagret med samme data"
+                    }
                 }
 
-                mottaMeldekortRequest(dto, tac).apply {
-                    status shouldBe HttpStatusCode.OK
-                    brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
-                }
-
-                mottaMeldekortRequest(dto, tac).apply {
-                    status shouldBe HttpStatusCode.OK
-                    brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id)).shouldNotBeNull()
-                }
+                brukersMeldekort.shouldNotBeNull()
             }
         }
     }
@@ -117,27 +72,37 @@ internal class MottaMeldekortRouteTest {
     fun `Skal gi 409 ved forsøk på lagring av eksisterende meldekort med nye data, og ikke overskrive første lagring`() {
         runTest {
             withTestApplicationContext { tac ->
-                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-
-                val sakRepo = tac.sakContext.sakRepo
                 val (sak) = nySakMedVedtak()
-                sakRepo.opprettSak(sak)
+                tac.sakContext.sakRepo.opprettSak(sak)
 
                 val meldeperiode = ObjectMother.meldeperiode(sakId = sak.id)
-                meldeperiodeRepo.lagre(meldeperiode)
+                tac.meldekortContext.meldeperiodeRepo.lagre(meldeperiode)
 
-                val dto = utfyltMeldekortDTO(meldeperiode, tac.clock)
-                val dtoMedDiff = dto.copy(mottatt = dto.mottatt.minusDays(1))
+                val meldekortId = MeldekortId.random()
+                val mottatt = nå(tac.clock)
 
-                mottaMeldekortRequest(dto, tac).apply {
-                    status shouldBe HttpStatusCode.OK
+                mottaMeldekortRequest(
+                    tac = tac,
+                    meldeperiodeId = meldeperiode.id,
+                    sakId = meldeperiode.sakId,
+                    id = meldekortId,
+                    dager = meldeperiode.tilUtfyltFraBruker(),
+                    mottatt = mottatt,
+                )
+
+                val (_, brukersMeldekort) = mottaMeldekortRequest(
+                    tac = tac,
+                    meldeperiodeId = meldeperiode.id,
+                    sakId = meldeperiode.sakId,
+                    id = meldekortId,
+                    dager = meldeperiode.tilUtfyltFraBruker(),
+                    mottatt = mottatt.minusDays(1),
+                    forventetStatus = HttpStatusCode.Conflict,
+                ) {
+                    it shouldContain "allerede lagret med andre data"
                 }
 
-                mottaMeldekortRequest(dtoMedDiff, tac).apply {
-                    status shouldBe HttpStatusCode.Conflict
-                    brukersMeldekortRepo.hentForMeldekortId(MeldekortId.fromString(dto.id))!!.mottatt shouldBe dto.mottatt
-                }
+                brukersMeldekort!!.mottatt shouldBe mottatt
             }
         }
     }

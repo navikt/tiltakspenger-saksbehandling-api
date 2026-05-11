@@ -37,7 +37,7 @@ fun Route.meldekortRoutes(
     oppdaterMeldekortbehandlingRoute(oppdaterMeldekortbehandlingService, auditService, clock, tilgangskontrollService)
     opprettMeldekortbehandlingRoute(opprettMeldekortbehandlingService, auditService, clock, tilgangskontrollService)
     overtaMeldekortbehandlingRoute(overtaMeldekortbehandlingService, auditService, tilgangskontrollService)
-    mottaMeldekortRoutes(mottaBrukerutfyltMeldekortService)
+    mottaMeldekortRoute(mottaBrukerutfyltMeldekortService)
     taMeldekortbehandlingRoute(auditService, taMeldekortbehandlingService, tilgangskontrollService)
     underkjennMeldekortbehandlingRoute(underkjennMeldekortbehandlingService, auditService, tilgangskontrollService)
     leggTilbakeMeldekortbehandlingRoute(auditService, leggTilbakeMeldekortbehandlingService, tilgangskontrollService)

@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMe
 
 private const val PATH = "/meldekort/motta"
 
-internal fun Route.mottaMeldekortRoutes(
+fun Route.mottaMeldekortRoute(
     mottaBrukerutfyltMeldekortService: MottaBrukerutfyltMeldekortService,
 ) {
     val logger = KotlinLogging.logger { }

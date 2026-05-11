@@ -44,6 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbryt.AvbrytMe
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.brev.ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.iverksett.IverksettMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.leggTilbake.LeggTilbakeMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.motta.MottaMeldekortBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater.OppdaterMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett.OpprettMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta.OvertaMeldekortbehandlingBuilder
@@ -109,4 +110,5 @@ object RouteBehandlingBuilder :
     FerdigstillKlagebehandlingBuilder,
     VisInnstillingsbrevKlagebehandlingBuilder,
     TilbakekrevingBehandlingBuilder,
-    MottattFraKaKlagebehandlingBuilder
+    MottattFraKaKlagebehandlingBuilder,
+    MottaMeldekortBuilder
