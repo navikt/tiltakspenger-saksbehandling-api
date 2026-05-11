@@ -54,7 +54,6 @@ private fun Meldekortbehandling.avbryt(
         MeldekortbehandlingStatus.UNDER_BEHANDLING,
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
         MeldekortbehandlingStatus.UNDER_BESLUTNING,
-        MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
         -> Unit
 
         MeldekortbehandlingStatus.GODKJENT,

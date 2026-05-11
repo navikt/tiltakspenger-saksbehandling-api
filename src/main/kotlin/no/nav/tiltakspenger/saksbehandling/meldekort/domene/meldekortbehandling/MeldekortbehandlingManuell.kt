@@ -89,10 +89,6 @@ data class MeldekortbehandlingManuell(
                 requireNotNull(beslutter)
                 requireNotNull(sendtTilBeslutning)
             }
-
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
-                throw IllegalStateException("I førsteomgang støtter vi kun stans av ikke-utfylte meldekort.")
-            }
         }
     }
 
@@ -206,7 +202,6 @@ data class MeldekortbehandlingManuell(
             }
 
             MeldekortbehandlingStatus.GODKJENT,
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
             -> KunneIkkeOvertaMeldekortbehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
         }
@@ -231,7 +226,6 @@ data class MeldekortbehandlingManuell(
             MeldekortbehandlingStatus.UNDER_BESLUTNING,
             MeldekortbehandlingStatus.GODKJENT,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             MeldekortbehandlingStatus.AVBRUTT,
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
             -> {
@@ -258,7 +252,6 @@ data class MeldekortbehandlingManuell(
             MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
             MeldekortbehandlingStatus.GODKJENT,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             MeldekortbehandlingStatus.AVBRUTT,
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
             -> {
@@ -286,7 +279,6 @@ data class MeldekortbehandlingManuell(
 
             MeldekortbehandlingStatus.GODKJENT,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             MeldekortbehandlingStatus.AVBRUTT,
             -> throw IllegalStateException("Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET, AVBRUTT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING")
         }

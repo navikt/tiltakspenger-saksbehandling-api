@@ -186,7 +186,6 @@ data class MeldekortUnderBehandling(
             MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
             MeldekortbehandlingStatus.UNDER_BESLUTNING,
             MeldekortbehandlingStatus.GODKJENT,
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
             MeldekortbehandlingStatus.AVBRUTT,
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
@@ -211,7 +210,6 @@ data class MeldekortUnderBehandling(
             MeldekortbehandlingStatus.UNDER_BESLUTNING,
             MeldekortbehandlingStatus.GODKJENT,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             MeldekortbehandlingStatus.AVBRUTT,
             -> {
                 throw IllegalArgumentException(
@@ -238,7 +236,6 @@ data class MeldekortUnderBehandling(
             MeldekortbehandlingStatus.UNDER_BESLUTNING,
             MeldekortbehandlingStatus.GODKJENT,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER,
             MeldekortbehandlingStatus.AVBRUTT,
             -> {
                 throw IllegalArgumentException(

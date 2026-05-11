@@ -208,7 +208,6 @@ class BenkOversiktFakeRepo(
         MeldekortbehandlingStatus.AVBRUTT -> throw IllegalStateException("Avbrutte meldekortbehandlinger skal ikke være åpne")
         MeldekortbehandlingStatus.GODKJENT -> throw IllegalStateException("Godkjente meldekortbehandlinger skal ikke være åpne")
         MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> throw IllegalStateException("Automatisk behandlede meldekortbehandlinger skal ikke være åpne")
-        MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> throw IllegalStateException("Ikke rett til tiltakspenger meldekortbehandlinger skal ikke være åpne")
     }
 
     private fun hentÅpneKlagebehandlinger(command: HentÅpneBehandlingerCommand): List<Behandlingssammendrag> {

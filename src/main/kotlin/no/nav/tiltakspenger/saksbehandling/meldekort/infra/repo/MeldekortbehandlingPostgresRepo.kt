@@ -572,7 +572,7 @@ class MeldekortbehandlingPostgresRepo(
                     )
                 }
 
-                MeldekortbehandlingStatus.AVBRUTT, MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> {
+                MeldekortbehandlingStatus.AVBRUTT -> {
                     MeldekortbehandlingAvbrutt(
                         id = id,
                         sakId = sakId,

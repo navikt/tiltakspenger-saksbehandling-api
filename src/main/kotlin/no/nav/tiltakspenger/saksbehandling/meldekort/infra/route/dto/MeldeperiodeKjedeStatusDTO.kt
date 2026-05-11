@@ -77,21 +77,11 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
 fun MeldekortbehandlingStatus.tilMeldeperiodeKjedeStatusDTO(): MeldeperiodeKjedeStatusDTO {
     return when (this) {
         MeldekortbehandlingStatus.UNDER_BEHANDLING -> MeldeperiodeKjedeStatusDTO.UNDER_BEHANDLING
-
         MeldekortbehandlingStatus.UNDER_BESLUTNING -> MeldeperiodeKjedeStatusDTO.UNDER_BESLUTNING
-
         MeldekortbehandlingStatus.GODKJENT -> MeldeperiodeKjedeStatusDTO.GODKJENT
-
         MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> MeldeperiodeKjedeStatusDTO.AUTOMATISK_BEHANDLET
-
         MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BEHANDLING
-
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> MeldeperiodeKjedeStatusDTO.KLAR_TIL_BESLUTNING
-
         MeldekortbehandlingStatus.AVBRUTT -> MeldeperiodeKjedeStatusDTO.AVBRUTT
-
-        // Vi skal ikke utlede status på meldeperiodekjeden ut fra om det ikke var rett ved forrige behandling
-        // Dette skal kun bestemmes av nyeste meldeperiode
-        MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldeperiodeKjedeStatusDTO.AVBRUTT
     }
 }

@@ -63,6 +63,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
+    val ingenDagerGirRett: Boolean get() = meldeperioder.ingenDagerGirRett
+
     /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder i en behandling er på plass */
     private val førsteMeldeperiodebehandling: Meldeperiodebehandling get() = meldeperioder.first()
     val meldeperiodeLegacy: Meldeperiode get() = førsteMeldeperiodebehandling.meldeperiode
@@ -70,22 +72,21 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val brukersMeldekortLegacy: BrukersMeldekort? get() = førsteMeldeperiodebehandling.brukersMeldekort
     val dagerLegacy: UtfyltMeldeperiode get() = førsteMeldeperiodebehandling.dager
 
-    /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     override val erAvsluttet
         get() = when (status) {
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING -> false
-            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET, MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER, MeldekortbehandlingStatus.AVBRUTT -> true
+            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET, MeldekortbehandlingStatus.AVBRUTT -> true
         }
 
     val erGodkjentEllerIkkeRett
         get() = when (status) {
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING, MeldekortbehandlingStatus.AVBRUTT -> false
-            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET, MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> true
+            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> true
         }
 
     val erGodkjent
         get() = when (status) {
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING, MeldekortbehandlingStatus.AVBRUTT, MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> false
+            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING, MeldekortbehandlingStatus.AVBRUTT -> false
             MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> true
         }
 
@@ -104,7 +105,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val erAutomatiskBehandling: Boolean get() = this is MeldekortBehandletAutomatisk
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
-    /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     fun erÅpen(): Boolean = !erAvsluttet
 
     /**

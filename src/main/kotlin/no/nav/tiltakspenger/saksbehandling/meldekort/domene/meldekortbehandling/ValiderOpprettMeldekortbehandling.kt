@@ -144,7 +144,7 @@ private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: Meldep
 
     val harBehandlingAvbruttUtenRett by lazy {
         this.meldekortbehandlinger.hentAvbrutteBehandlingerForKjede(kjedeId)
-            .let { behandling -> behandling.any { it.status == MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER } }
+            .let { behandling -> behandling.any { it.ingenDagerGirRett } }
     }
 
     harGodkjentBehandling

@@ -12,7 +12,6 @@ private enum class MeldekortbehandlingStatusDb {
     KLAR_TIL_BESLUTNING,
     UNDER_BESLUTNING,
     GODKJENT,
-    IKKE_RETT_TIL_TILTAKSPENGER,
     AUTOMATISK_BEHANDLET,
     AVBRUTT,
 }
@@ -24,7 +23,6 @@ fun String.toMeldekortbehandlingStatus(): MeldekortbehandlingStatus =
         MeldekortbehandlingStatusDb.KLAR_TIL_BESLUTNING -> MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
         MeldekortbehandlingStatusDb.UNDER_BESLUTNING -> MeldekortbehandlingStatus.UNDER_BESLUTNING
         MeldekortbehandlingStatusDb.GODKJENT -> MeldekortbehandlingStatus.GODKJENT
-        MeldekortbehandlingStatusDb.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER
         MeldekortbehandlingStatusDb.AUTOMATISK_BEHANDLET -> MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET
         MeldekortbehandlingStatusDb.AVBRUTT -> MeldekortbehandlingStatus.AVBRUTT
     }
@@ -36,7 +34,6 @@ fun MeldekortbehandlingStatus.toDb(): String =
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> MeldekortbehandlingStatusDb.KLAR_TIL_BESLUTNING
         MeldekortbehandlingStatus.UNDER_BESLUTNING -> MeldekortbehandlingStatusDb.UNDER_BESLUTNING
         MeldekortbehandlingStatus.GODKJENT -> MeldekortbehandlingStatusDb.GODKJENT
-        MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortbehandlingStatusDb.IKKE_RETT_TIL_TILTAKSPENGER
         MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> MeldekortbehandlingStatusDb.AUTOMATISK_BEHANDLET
         MeldekortbehandlingStatus.AVBRUTT -> MeldekortbehandlingStatusDb.AVBRUTT
     }.toString()

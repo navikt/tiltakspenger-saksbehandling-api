@@ -42,8 +42,7 @@ data class MeldekortbehandlingAvbrutt(
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null
 
-    override val status =
-        if (meldeperioder.ingenDagerGirRett) MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER else MeldekortbehandlingStatus.AVBRUTT
+    override val status = MeldekortbehandlingStatus.AVBRUTT
 
     override val beslutter = null
 
