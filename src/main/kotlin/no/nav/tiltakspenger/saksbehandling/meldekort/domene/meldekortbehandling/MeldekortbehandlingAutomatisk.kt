@@ -56,7 +56,6 @@ data class MeldekortBehandletAutomatisk(
 
     override val begrunnelse = null
     override val fritekstTilVedtaksbrev = null
-    override val ikkeRettTilTiltakspengerTidspunkt = null
 
     override val attesteringer = Attesteringer.empty()
     override val avbrutt: Avbrutt? = null
@@ -71,6 +70,7 @@ data class MeldekortBehandletAutomatisk(
         require(status === MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
             "Ugyldig status for automatisk behandling: $status"
         }
+        require(!ingenDagerGirRett)
     }
 
     override fun overta(

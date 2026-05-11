@@ -19,6 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.AvbrytMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.avbryt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
@@ -139,8 +141,13 @@ internal fun TestDataHelper.persisterAvsluttetMeldekortbehandling(
         .last { it.meldeperiodeLegacy.periode == periode }
 
     val avbruttMeldekortbehandling = meldekortbehandling.avbryt(
-        avbruttAv = saksbehandler,
-        begrunnelse = begrunnelse.toNonBlankString(),
+        kommando = AvbrytMeldekortbehandlingKommando(
+            sakId = generertSak.id,
+            meldekortId = meldekortbehandling.id,
+            begrunnelse = begrunnelse.toNonBlankString(),
+            saksbehandler = saksbehandler,
+            correlationId = CorrelationId.generate(),
+        ),
         tidspunkt = LocalDateTime.now(clock),
     ).getOrFail()
 

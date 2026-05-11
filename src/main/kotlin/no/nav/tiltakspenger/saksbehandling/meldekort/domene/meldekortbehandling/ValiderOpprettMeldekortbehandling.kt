@@ -135,20 +135,16 @@ private fun Sak.kjedeHarUbehandletBrukersMeldekort(kjedeId: MeldeperiodeKjedeId)
 }
 
 private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Boolean {
-    val harGodkjentBehandling by lazy {
-        this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
-            .let { behandling ->
-                behandling.any { it.erGodkjent }
-            }
-    }
+    val harGodkjentBehandling = this.meldekortbehandlinger
+        .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
+        .let { behandling ->
+            behandling.any { it.erGodkjent }
+        }
 
     val harBehandlingAvbruttUtenRett by lazy {
         this.meldekortbehandlinger.hentAvbrutteBehandlingerForKjede(kjedeId)
-            .let { behandling -> behandling.any { it.status == MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER } }
+            .let { behandling -> behandling.any { it.ingenDagerGirRett } }
     }
-
-    harGodkjentBehandling
-    harBehandlingAvbruttUtenRett
 
     return harGodkjentBehandling || harBehandlingAvbruttUtenRett
 }

@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.avbrytIkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
@@ -48,8 +49,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
 
-    /** Denne styres kun av vedtakene. Dersom vi har en åpen meldekortbehandling (inkl. til beslutning) kan et nytt vedtak overstyre hele meldeperioden til [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] */
-    val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?
     val type: MeldekortbehandlingType
 
     val meldeperioder: Meldeperiodebehandlinger
@@ -64,6 +63,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
+    val ingenDagerGirRett: Boolean get() = meldeperioder.ingenDagerGirRett
+
     /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder i en behandling er på plass */
     private val førsteMeldeperiodebehandling: Meldeperiodebehandling get() = meldeperioder.first()
     val meldeperiodeLegacy: Meldeperiode get() = førsteMeldeperiodebehandling.meldeperiode
@@ -71,22 +72,21 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val brukersMeldekortLegacy: BrukersMeldekort? get() = førsteMeldeperiodebehandling.brukersMeldekort
     val dagerLegacy: UtfyltMeldeperiode get() = førsteMeldeperiodebehandling.dager
 
-    /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     override val erAvsluttet
         get() = when (status) {
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING -> false
-            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET, MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER, MeldekortbehandlingStatus.AVBRUTT -> true
+            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET, MeldekortbehandlingStatus.AVBRUTT -> true
         }
 
     val erGodkjentEllerIkkeRett
         get() = when (status) {
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING, MeldekortbehandlingStatus.AVBRUTT -> false
-            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET, MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> true
+            MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> true
         }
 
     val erGodkjent
         get() = when (status) {
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING, MeldekortbehandlingStatus.AVBRUTT, MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER -> false
+            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING, MeldekortbehandlingStatus.AVBRUTT -> false
             MeldekortbehandlingStatus.GODKJENT, MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> true
         }
 
@@ -105,7 +105,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val erAutomatiskBehandling: Boolean get() = this is MeldekortBehandletAutomatisk
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
-    /** Merk at statusen [MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER] anses som avsluttet. Den brukes ifm stans. */
     fun erÅpen(): Boolean = !erAvsluttet
 
     /**
@@ -121,40 +120,33 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
         val oppdaterteMeldeperioder = meldeperioder.oppdaterMedNyeKjeder(oppdaterteKjeder) ?: return null
 
-        val ikkeRettTilTiltakspengerTidspunkt = if (oppdaterteMeldeperioder.ingenDagerGirRett) {
-            nå(clock)
-        } else {
-            null
+        val oppdatertTidspunkt = nå(clock)
+
+        if (oppdaterteMeldeperioder.ingenDagerGirRett) {
+            return this.avbrytIkkeRettTilTiltakspenger(
+                tidspunkt = oppdatertTidspunkt,
+            )
         }
 
         return when (this) {
-            is MeldekortbehandlingManuell -> if (ikkeRettTilTiltakspengerTidspunkt != null) {
-                this.avbrytIkkeRettTilTiltakspenger(
-                    ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                )
-            } else {
+            is MeldekortbehandlingManuell -> {
                 this.tilUnderBehandling(
                     nyeMeldeperioder = oppdaterteMeldeperioder,
-                    ikkeRettTilTiltakspengerTidspunkt = null,
-                    clock = clock,
+                    tidspunkt = oppdatertTidspunkt,
                 )
             }
 
-            is MeldekortUnderBehandling -> if (ikkeRettTilTiltakspengerTidspunkt != null) {
-                this.avbrytIkkeRettTilTiltakspenger(
-                    ikkeRettTilTiltakspengerTidspunkt = ikkeRettTilTiltakspengerTidspunkt,
-                )
-            } else {
+            is MeldekortUnderBehandling -> {
                 this.copy(
                     meldeperioder = oppdaterteMeldeperioder,
-                    ikkeRettTilTiltakspengerTidspunkt = null,
                     simulering = null,
+                    sistEndret = oppdatertTidspunkt,
                 )
             }
 
-            is MeldekortBehandletAutomatisk,
-            is MeldekortbehandlingAvbrutt,
-            -> null
+            is MeldekortBehandletAutomatisk -> throw IllegalStateException("Automatisk meldekortbehandling skal alltid ansees som avsluttet")
+
+            is MeldekortbehandlingAvbrutt -> throw IllegalStateException("Avbrutt meldekortbehandling skal alltid ansees som avsluttet")
         }
     }
 

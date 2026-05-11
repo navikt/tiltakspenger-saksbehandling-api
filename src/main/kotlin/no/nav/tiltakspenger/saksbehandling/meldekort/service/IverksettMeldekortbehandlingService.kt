@@ -46,7 +46,7 @@ class IverksettMeldekortbehandlingService(
         require(meldekortbehandling is MeldekortbehandlingManuell) {
             "Meldekortet må være behandlet for å iverksettes"
         }
-        require(meldekortbehandling.beslutter != null && meldekortbehandling.status == MeldekortbehandlingStatus.UNDER_BESLUTNING) {
+        if (meldekortbehandling.beslutter == null || meldekortbehandling.status != MeldekortbehandlingStatus.UNDER_BESLUTNING) {
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
 

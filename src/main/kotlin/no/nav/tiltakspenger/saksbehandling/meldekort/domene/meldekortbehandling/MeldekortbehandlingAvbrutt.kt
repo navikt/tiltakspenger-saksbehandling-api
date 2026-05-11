@@ -17,9 +17,11 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * Gjelder tilstandene: AVBRUTT og IKKE_RETT_TIL_TILTAKSPENGER.
- * AVBRUTT brukes når en saksbehandler manuelt avbryter en meldekortbehandling.
- * IKKE_RETT_TIL_TILTAKSPENGER brukes når systemet automatisk avbryter en meldekortbehandling fordi perioden ikke lenger gir rett til tiltakspenger.
+ * En meldekortbehandling som er avbrutt av saksbehandler,
+ * eller automatisk som følge av at meldeperiodene som behandles ikke lengre gir rett til tiltakspenger.
+ *
+ * En avbrutt meldekortbehandling fører til at meldekort fra bruker på det tidspunktet ansees som "behandlet".
+ * (TODO: bedre/mer eksplisitt måte å behandle meldekort fra bruker)
  */
 data class MeldekortbehandlingAvbrutt(
     override val id: MeldekortId,
@@ -33,7 +35,6 @@ data class MeldekortbehandlingAvbrutt(
     override val navkontor: Navkontor,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
-    override val ikkeRettTilTiltakspengerTidspunkt: LocalDateTime?,
     override val avbrutt: Avbrutt?,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
@@ -43,8 +44,7 @@ data class MeldekortbehandlingAvbrutt(
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null
 
-    override val status =
-        if (meldeperioder.ingenDagerGirRett) MeldekortbehandlingStatus.IKKE_RETT_TIL_TILTAKSPENGER else MeldekortbehandlingStatus.AVBRUTT
+    override val status = MeldekortbehandlingStatus.AVBRUTT
 
     override val beslutter = null
 
