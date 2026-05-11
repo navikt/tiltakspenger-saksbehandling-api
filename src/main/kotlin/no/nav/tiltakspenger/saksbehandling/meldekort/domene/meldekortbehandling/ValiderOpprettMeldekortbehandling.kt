@@ -147,9 +147,6 @@ private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: Meldep
             .let { behandling -> behandling.any { it.ingenDagerGirRett } }
     }
 
-    harGodkjentBehandling
-    harBehandlingAvbruttUtenRett
-
     return harGodkjentBehandling || harBehandlingAvbruttUtenRett
 }
 
