@@ -34,7 +34,7 @@ fun Meldekortbehandling.avbryt(
     ).right()
 }
 
-/** Avbryter en meldekortbehandling fordi det ikke lengre er rett til tiltakspenger i perioden. Dette er en automatisk handling. */
+/** Avbryter en meldekortbehandling fordi det ikke lenger er rett til tiltakspenger i perioden. Dette er en automatisk handling. */
 fun Meldekortbehandling.avbrytIkkeRettTilTiltakspenger(
     tidspunkt: LocalDateTime,
 ): MeldekortbehandlingAvbrutt {

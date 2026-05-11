@@ -281,7 +281,7 @@ data class MeldekortbehandlingManuell(
             MeldekortbehandlingStatus.GODKJENT,
             MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
             MeldekortbehandlingStatus.AVBRUTT,
-            -> throw IllegalStateException("Kan ikke gå fra GODKJENT, AUTOMATISK_BEHANDLET, AVBRUTT eller IKKE_RETT_TIL_TILTAKSPENGER til UNDER_BEHANDLING")
+            -> throw IllegalStateException("Kan ikke gå fra $status til UNDER_BEHANDLING")
         }
 
         return MeldekortUnderBehandling(
@@ -292,16 +292,16 @@ data class MeldekortbehandlingManuell(
             opprettet = this.opprettet,
             saksbehandler = saksbehandler,
             navkontor = this.navkontor,
-            type = type,
+            type = this.type,
             begrunnelse = this.begrunnelse,
-            attesteringer = attesteringer,
-            sendtTilBeslutning = iverksattTidspunkt,
+            attesteringer = this.attesteringer,
+            sendtTilBeslutning = this.sendtTilBeslutning,
             simulering = null,
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
             sistEndret = tidspunkt,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             meldeperioder = nyeMeldeperioder,
-            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
         )
     }
 }
