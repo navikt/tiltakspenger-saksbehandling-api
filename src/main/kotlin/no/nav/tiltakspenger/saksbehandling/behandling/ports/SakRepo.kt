@@ -42,9 +42,9 @@ interface SakRepo {
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 
-    fun hentForSendingTilMeldekortApi(): List<Sak>
+    fun hentForSendingTilMeldekortApi(limit: Int = 100): List<Sak>
 
-    fun hentForSendingAvMeldeperioderTilDatadeling(): List<Sak>
+    fun hentForSendingAvMeldeperioderTilDatadeling(limit: Int = 100): List<Sak>
 
     fun markerSkalSendesTilMeldekortApi(
         sakId: SakId,

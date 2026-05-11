@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meld
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * En kombinasjon av [Meldekortvedtak], [Rammevedtak] og [Klagevedtak].
@@ -55,6 +56,17 @@ data class Vedtaksliste(
     val harFørstegangsvedtak: Boolean by lazy {
         rammevedtaksliste.harFørstegangsvedtak
     }
+
+    /**
+     * Tidspunktet for det sist opprettede vedtaket på saken (ramme- eller meldekortvedtak),
+     * eller `null` dersom det ikke finnes noen slike vedtak. Klagevedtak er ikke inkludert,
+     * ettersom de ikke skal flagge saken for ny sending til meldekort-api.
+     */
+    val nyesteRammeEllerMeldekortvedtakOpprettet: LocalDateTime? =
+        listOfNotNull(
+            rammevedtaksliste.sisteVedtakOpprettet,
+            meldekortvedtaksliste.sisteVedtakOpprettet,
+        ).maxOrNull()
 
     fun harInnvilgetTiltakspengerPåDato(dato: LocalDate): Boolean {
         return rammevedtaksliste.harInnvilgetTiltakspengerPåDato(dato)

@@ -206,13 +206,13 @@ class SakPostgresRepo(
         }
     }
 
-    override fun hentForSendingTilMeldekortApi(): List<Sak> {
+    override fun hentForSendingTilMeldekortApi(limit: Int): List<Sak> {
         return sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
                 session.run(
                     sqlQuery(
                         """
-                            select * from sak where skal_sendes_til_meldekort_api = true
+                            select * from sak where skal_sendes_til_meldekort_api = true limit $limit
                         """,
                     ).map { row ->
                         row.toSak(sessionContext)
@@ -222,7 +222,7 @@ class SakPostgresRepo(
         }
     }
 
-    override fun hentForSendingAvMeldeperioderTilDatadeling(): List<Sak> {
+    override fun hentForSendingAvMeldeperioderTilDatadeling(limit: Int): List<Sak> {
         return sessionFactory.withSessionContext { sessionContext ->
             sessionContext.withSession { session ->
                 session.run(
@@ -231,6 +231,7 @@ class SakPostgresRepo(
                             select * 
                             from sak
                             where skal_sende_meldeperioder_til_datadeling = true and sendt_til_datadeling is not null
+                            limit $limit
                         """,
                     ).map { row ->
                         row.toSak(sessionContext)
@@ -261,7 +262,7 @@ class SakPostgresRepo(
     }
 
     /**
-     *  [nyesteVedtakOpprettet] Forventer at dette skal være tidspunkt for nyeste rammevedtak på saken
+     *  [nyesteVedtakOpprettet] Forventer at dette skal være tidspunkt for nyeste vedtak (rammevedtak eller meldekortvedtak) på saken
      *  Dersom det finnes nyere vedtak må saken fortsatt være markert for sending
      *  ettersom det kan ha kommet inn nye vedtak når jobben for sending kjørte
      * */
@@ -279,11 +280,11 @@ class SakPostgresRepo(
                             set skal_sendes_til_meldekort_api = false
                             where id = :id
                               and (
-                                select opprettet
-                                from rammevedtak
-                                where sak_id = :id
-                                order by opprettet desc
-                                limit 1
+                                select max(opprettet) from (
+                                    select opprettet from rammevedtak where sak_id = :id
+                                    union all
+                                    select opprettet from meldekortvedtak where sak_id = :id
+                                ) as alle_vedtak
                               ) is not distinct from :nyeste_vedtak_tidspunkt
                         """,
                         "nyeste_vedtak_tidspunkt" to nyesteVedtakOpprettet,

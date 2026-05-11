@@ -225,6 +225,7 @@ class AutomatiskMeldekortbehandlingService(
                 tx,
             )
             statistikkService.lagre(statistikkDTO, tx)
+            sakService.markerSkalSendesTilMeldekortApi(sakId = sak.id, sessionContext = tx)
         }
 
         return meldekortbehandling.right()

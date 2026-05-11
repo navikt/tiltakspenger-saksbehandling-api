@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import java.time.LocalDateTime
 
 data class Meldekortvedtaksliste(
     private val verdi: List<Meldekortvedtak>,
@@ -23,6 +24,12 @@ data class Meldekortvedtaksliste(
     val tidslinje: Periodisering<Meldekortvedtak> by lazy {
         verdi.toTidslinje()
     }
+
+    /**
+     * Tidspunktet for det sist opprettede meldekortvedtaket på saken, eller `null` om lista er tom.
+     * Init-blokken garanterer at lista er sortert stigende på `opprettet`.
+     */
+    val sisteVedtakOpprettet: LocalDateTime? = verdi.lastOrNull()?.opprettet
 
     init {
         if (verdi.isNotEmpty()) {

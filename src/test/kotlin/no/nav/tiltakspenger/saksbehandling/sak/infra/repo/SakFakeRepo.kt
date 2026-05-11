@@ -1,4 +1,3 @@
-@file:Suppress("UnusedImport")
 
 package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
@@ -123,11 +122,11 @@ class SakFakeRepo(
         }
     }
 
-    override fun hentForSendingTilMeldekortApi(): List<Sak> {
-        return skalSendesTilMeldekortApi.get().mapNotNull { hentSak(it) }
+    override fun hentForSendingTilMeldekortApi(limit: Int): List<Sak> {
+        return skalSendesTilMeldekortApi.get().mapNotNull { hentSak(it) }.take(limit)
     }
 
-    override fun hentForSendingAvMeldeperioderTilDatadeling(): List<Sak> {
+    override fun hentForSendingAvMeldeperioderTilDatadeling(limit: Int): List<Sak> {
         return emptyList()
     }
 
