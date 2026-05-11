@@ -17,9 +17,11 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * Gjelder tilstandene: AVBRUTT og IKKE_RETT_TIL_TILTAKSPENGER.
- * AVBRUTT brukes når en saksbehandler manuelt avbryter en meldekortbehandling.
- * IKKE_RETT_TIL_TILTAKSPENGER brukes når systemet automatisk avbryter en meldekortbehandling fordi perioden ikke lenger gir rett til tiltakspenger.
+ * En meldekortbehandling som er avbrutt av saksbehandler,
+ * eller automatisk som følge av at meldeperiodene som behandles ikke lengre gir rett til tiltakspenger.
+ *
+ * En avbrutt meldekortbehandling fører til at meldekort fra bruker på det tidspunktet ansees som "behandlet".
+ * (TODO: bedre/mer eksplisitt måte å behandle meldekort fra bruker)
  */
 data class MeldekortbehandlingAvbrutt(
     override val id: MeldekortId,
