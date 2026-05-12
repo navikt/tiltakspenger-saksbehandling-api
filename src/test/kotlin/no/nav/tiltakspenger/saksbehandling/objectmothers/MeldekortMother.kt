@@ -76,6 +76,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ta.taMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
@@ -746,7 +747,7 @@ interface MeldekortMother : MotherOfAllMothers {
             clock = clock,
         )
             .map { (meldekortbehandlinger, meldekort) ->
-                val tildeltMeldekort = meldekort.taMeldekortbehandling(beslutter, clock) as MeldekortbehandlingManuell
+                val tildeltMeldekort = meldekort.taMeldekortbehandling(beslutter, clock).getOrFail() as MeldekortbehandlingManuell
                 val iverksattMeldekort = tildeltMeldekort.iverksettMeldekort(beslutter, clock).getOrFail()
                 val oppdaterteBehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
                 Pair(oppdaterteBehandlinger, iverksattMeldekort)
@@ -863,7 +864,7 @@ interface MeldekortMother : MotherOfAllMothers {
             kommando = kommando.tilSendMeldekortTilBeslutterKommando(),
             clock,
         ).map { (meldekortbehandlinger, meldekort) ->
-            val tildeltMeldekort = meldekort.taMeldekortbehandling(beslutter, clock) as MeldekortbehandlingManuell
+            val tildeltMeldekort = meldekort.taMeldekortbehandling(beslutter, clock).getOrFail() as MeldekortbehandlingManuell
             val iverksattMeldekort = tildeltMeldekort.iverksettMeldekort(beslutter, clock).getOrFail()
             val oppdaterteBehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
             Pair(oppdaterteBehandlinger, iverksattMeldekort)

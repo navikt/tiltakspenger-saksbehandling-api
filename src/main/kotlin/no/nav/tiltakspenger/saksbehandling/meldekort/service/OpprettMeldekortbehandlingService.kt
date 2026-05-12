@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.SkalLagreEllerOppdatere
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
@@ -20,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
-// Brukes både for å opprette en ny meldekortbehandling, og for å ta opp en meldekortbehandling som har blitt lagt tilbake
 class OpprettMeldekortbehandlingService(
     val sakService: SakService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
@@ -47,7 +45,7 @@ class OpprettMeldekortbehandlingService(
             return KanIkkeOppretteMeldekortbehandling.HenteNavKontorFeilet.left()
         }
 
-        val (oppdatertSak, meldekortbehandling, skalLagreEllerOppdatere) = sak.opprettManuellMeldekortbehandling(
+        val (oppdatertSak, meldekortbehandling) = sak.opprettManuellMeldekortbehandling(
             kjedeId = kjedeId,
             navkontor = navkontor,
             saksbehandler = saksbehandler,
@@ -56,14 +54,8 @@ class OpprettMeldekortbehandlingService(
             return it.left()
         }
 
-        when (skalLagreEllerOppdatere) {
-            SkalLagreEllerOppdatere.Lagre -> sessionFactory.withTransactionContext { tx ->
-                meldekortbehandlingRepo.lagre(meldekortbehandling, null, tx)
-            }
-
-            SkalLagreEllerOppdatere.Oppdatere -> sessionFactory.withTransactionContext { tx ->
-                meldekortbehandlingRepo.oppdater(meldekortbehandling, null, tx)
-            }
+        sessionFactory.withTransactionContext { tx ->
+            meldekortbehandlingRepo.lagre(meldekortbehandling, null, tx)
         }
 
         logger.info { "Opprettet behandling ${meldekortbehandling.id} på meldeperiode kjede $kjedeId for sak $sakId" }

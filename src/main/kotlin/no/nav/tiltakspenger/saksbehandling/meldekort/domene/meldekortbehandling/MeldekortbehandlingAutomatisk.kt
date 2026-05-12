@@ -83,10 +83,6 @@ data class MeldekortBehandletAutomatisk(
         return KunneIkkeOvertaMeldekortbehandling.KanIkkeOvertaAutomatiskBehandling.left()
     }
 
-    override fun taMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        throw IllegalStateException("Kan ikke tildele automatisk behandlet meldekort")
-    }
-
     override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
         throw IllegalStateException("Kan ikke legge tilbake automatisk behandlet meldekort")
     }

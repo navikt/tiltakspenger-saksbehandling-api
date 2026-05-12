@@ -196,32 +196,6 @@ data class MeldekortUnderBehandling(
         }
     }
 
-    override fun taMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        return when (this.status) {
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> {
-                krevSaksbehandlerRolle(saksbehandler)
-                require(this.saksbehandler == null) { "Meldekortbehandlingen har en eksisterende saksbehandler. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
-                this.copy(
-                    saksbehandler = saksbehandler.navIdent,
-                    status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
-                    sistEndret = nå(clock),
-                )
-            }
-
-            MeldekortbehandlingStatus.UNDER_BEHANDLING,
-            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
-            MeldekortbehandlingStatus.UNDER_BESLUTNING,
-            MeldekortbehandlingStatus.GODKJENT,
-            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.AVBRUTT,
-            -> {
-                throw IllegalArgumentException(
-                    "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-                )
-            }
-        }
-    }
-
     override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
         return when (this.status) {
             MeldekortbehandlingStatus.UNDER_BEHANDLING -> {
@@ -262,42 +236,14 @@ data class MeldekortUnderBehandling(
     }
 }
 
-sealed interface SkalLagreEllerOppdatere {
-    object Lagre : SkalLagreEllerOppdatere
-    object Oppdatere : SkalLagreEllerOppdatere
-}
-
-/**
- *  Brukes både for å opprette en ny meldekortbehandling, og for å ta opp en meldekortbehandling som har blitt lagt tilbake
- *
- *  SkalLagreEllerOppdatere er en workaround for å vite hvilket database kall vi skal bruke.
- *
- * */
 fun Sak.opprettManuellMeldekortbehandling(
     kjedeId: MeldeperiodeKjedeId,
     navkontor: Navkontor,
     saksbehandler: Saksbehandler,
     clock: Clock,
-): Either<KanIkkeOppretteMeldekortbehandling, Triple<Sak, MeldekortUnderBehandling, SkalLagreEllerOppdatere>> {
+): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, MeldekortUnderBehandling>> {
     validerOpprettManuellMeldekortbehandling(kjedeId).onLeft {
         return KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil(it).left()
-    }
-
-    val åpenMeldekortbehandling = this.meldekortbehandlinger.åpenMeldekortbehandling
-
-    // [Sak.validerOpprettManuellMeldekortbehandling] sjekker om en evt åpen behandling kan gjenopprettes
-    if (åpenMeldekortbehandling != null) {
-        val oppdatertBehandling = (åpenMeldekortbehandling as MeldekortUnderBehandling).copy(
-            saksbehandler = saksbehandler.navIdent,
-            status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
-            sistEndret = nå(clock),
-        )
-
-        return Triple(
-            this.oppdaterMeldekortbehandling(oppdatertBehandling),
-            oppdatertBehandling,
-            SkalLagreEllerOppdatere.Oppdatere,
-        ).right()
     }
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
@@ -329,10 +275,9 @@ fun Sak.opprettManuellMeldekortbehandling(
         skalSendeVedtaksbrev = true,
         ventestatus = Ventestatus(),
     ).let {
-        Triple(
+        Pair(
             this.leggTilMeldekortbehandling(it),
             it,
-            SkalLagreEllerOppdatere.Lagre,
         ).right()
     }
 }

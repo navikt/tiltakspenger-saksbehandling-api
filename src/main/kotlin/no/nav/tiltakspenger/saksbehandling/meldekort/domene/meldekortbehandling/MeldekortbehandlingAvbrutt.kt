@@ -61,10 +61,6 @@ data class MeldekortbehandlingAvbrutt(
         throw IllegalStateException("Kan ikke overta avbrutt meldekortbehandling")
     }
 
-    override fun taMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        throw IllegalStateException("Kan ikke tildele avbrutt meldekortbehandling")
-    }
-
     override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
         throw IllegalStateException("Kan ikke legge tilbake avbrutt meldekortbehandling")
     }
