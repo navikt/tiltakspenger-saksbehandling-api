@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -32,10 +33,8 @@ class TaMeldekortbehandlingService(
             sak.hentMeldekortbehandling(meldekortId)
                 ?: return KanIkkeTaMeldekortbehandling.MeldekortbehandlingFinnesIkke.left()
 
-        val oppdatert = meldekortbehandling.taMeldekortbehandling(saksbehandler, clock).fold(
-            { return it.left() },
-            { it },
-        )
+        val oppdatert = meldekortbehandling.taMeldekortbehandling(saksbehandler, clock)
+            .getOrElse { return it.left() }
 
         val harOvertatt = when (oppdatert.status) {
             MeldekortbehandlingStatus.UNDER_BEHANDLING -> meldekortbehandlingRepo.taBehandlingSaksbehandler(
