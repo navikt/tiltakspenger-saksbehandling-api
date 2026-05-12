@@ -117,9 +117,9 @@ class BenkOversiktPostgresRepo(
                 m.saksbehandler       as saksbehandler,
                 m.beslutter           as beslutter,
                 null                  as resultat,
-                null::boolean         as erSattPåVent,
-                null                  as sattPåVentBegrunnelse,
-                null::date            as sattPåVentFrist,
+                (m.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean as erSattPåVent,
+                m.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse' as sattPåVentBegrunnelse,
+                (m.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
                 m.sist_endret         as sist_endret,
                 m.attesteringer       as attesteringer,
                 null::numeric         as beløp

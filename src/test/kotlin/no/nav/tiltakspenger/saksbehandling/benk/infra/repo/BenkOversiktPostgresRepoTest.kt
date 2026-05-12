@@ -56,6 +56,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingStansU
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.SettMeldekortbehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgSettPåVent
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
@@ -448,6 +450,59 @@ class BenkOversiktPostgresRepoTest {
                     beløp = null,
                 )
             }
+        }
+    }
+
+    @Test
+    fun `henter meldekortbehandling som er satt på vent`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val frist = LocalDate.now(testDataHelper.clock).plusWeeks(1)
+            val (sak, meldekortbehandling) = testDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling(
+                saksbehandler = saksbehandler,
+            )
+            val meldekortbehandlingPåVent = meldekortbehandling.settPåVent(
+                kommando = SettMeldekortbehandlingPåVentKommando(
+                    sakId = sak.id,
+                    meldekortId = meldekortbehandling.id,
+                    begrunnelse = "Venter på dokumentasjon",
+                    frist = frist,
+                    saksbehandler = saksbehandler,
+                    correlationId = CorrelationId.generate(),
+                ),
+                clock = testDataHelper.clock,
+            )
+            testDataHelper.meldekortRepo.oppdater(meldekortbehandlingPåVent)
+
+            val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
+                newCommand(
+                    benktype = listOf(BehandlingssammendragBenktype.VENTER),
+                    behandlingstype = listOf(BehandlingssammendragType.MELDEKORTBEHANDLING),
+                ),
+            )
+
+            totalAntall shouldBe 1
+            totalAntallUfiltrert shouldBe 1
+            actual shouldBe listOf(
+                Behandlingssammendrag(
+                    sakId = sak.id,
+                    fnr = sak.fnr,
+                    saksnummer = sak.saksnummer,
+                    startet = meldekortbehandling.opprettet,
+                    kravtidspunkt = null,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
+                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                    saksbehandler = null,
+                    beslutter = null,
+                    erSattPåVent = true,
+                    sattPåVentBegrunnelse = "Venter på dokumentasjon",
+                    sattPåVentFrist = frist,
+                    sistEndret = meldekortbehandlingPåVent.sistEndret,
+                    resultat = null,
+                    erUnderkjent = meldekortbehandlingPåVent.erUnderkjent,
+                    beløp = null,
+                ),
+            )
         }
     }
 
