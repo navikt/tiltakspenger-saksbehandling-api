@@ -263,7 +263,8 @@ class OpprettMeldekortbehandlingTest {
                           "utbetalingsstatus": "IKKE_GODKJENT",
                           "tekstTilVedtaksbrev": null,
                           "status": "UNDER_BEHANDLING",
-                          "skalSendeVedtaksbrev": true
+                          "skalSendeVedtaksbrev": true,
+                           "ventestatus": []
                         }
                       ],
                       "korrigeringFraTidligerePeriode": null,
