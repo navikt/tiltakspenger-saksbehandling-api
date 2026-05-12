@@ -537,7 +537,6 @@ class MeldekortbehandlingPostgresRepo(
                         status = status,
                         sistEndret = sistEndret,
                         meldeperioder = meldeperioder,
-                        ventestatus = ventestatus,
                     )
                 }
 

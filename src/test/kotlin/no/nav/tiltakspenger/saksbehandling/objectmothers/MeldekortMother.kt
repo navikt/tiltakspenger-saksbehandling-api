@@ -331,7 +331,6 @@ interface MeldekortMother : MotherOfAllMothers {
                 beregning = beregning,
                 brukersMeldekort = brukersMeldekort,
             ),
-            ventestatus = Ventestatus(),
         )
     }
 

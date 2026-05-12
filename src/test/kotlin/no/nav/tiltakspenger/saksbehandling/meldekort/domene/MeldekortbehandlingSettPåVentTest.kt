@@ -281,15 +281,9 @@ class MeldekortbehandlingSettPåVentTest {
     fun `kan ikke gjenoppta automatisk behandlet meldekortbehandling`() {
         val clock = TikkendeKlokke(fixedClock)
         val saksbehandler = ObjectMother.saksbehandler()
-        val meldekortbehandling = ObjectMother.meldekortBehandletAutomatisk().copy(
-            ventestatus = ventestatusSattPåVent(
-                endretAv = saksbehandler.navIdent,
-                status = MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET.toString(),
-                clock = clock,
-            ),
-        )
+        val meldekortbehandling = ObjectMother.meldekortBehandletAutomatisk()
 
-        val exception = shouldThrow<IllegalStateException> {
+        val exception = shouldThrow<IllegalArgumentException> {
             meldekortbehandling.gjenoppta(
                 kommando = gjenopptaMeldekortbehandlingKommando(
                     sakId = meldekortbehandling.sakId,
@@ -300,7 +294,7 @@ class MeldekortbehandlingSettPåVentTest {
             )
         }
 
-        exception.message shouldBe "Kan ikke gjenoppta meldekortbehandling som har status AUTOMATISK_BEHANDLET"
+        exception.message shouldBe "Meldekortbehandling med id ${meldekortbehandling.id} er ikke satt på vent"
     }
 
     private fun settPåVentKommando(
