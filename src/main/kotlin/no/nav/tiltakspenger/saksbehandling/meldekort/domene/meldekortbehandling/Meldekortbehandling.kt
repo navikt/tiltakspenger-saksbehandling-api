@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedt
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.avbrytIkkeRettTilTiltakspenger
@@ -46,6 +47,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val status: MeldekortbehandlingStatus
     val navkontor: Navkontor
     val begrunnelse: Begrunnelse?
+    val ventestatus: Ventestatus
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
 

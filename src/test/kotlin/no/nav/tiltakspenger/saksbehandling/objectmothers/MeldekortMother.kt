@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -47,8 +48,10 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedt
 import no.nav.tiltakspenger.saksbehandling.beregning.ReduksjonAvYtelsePåGrunnAvFravær
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
@@ -64,6 +67,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingType
@@ -120,6 +124,7 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: UtfyltMeldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
         skalSendeVedtaksbrev: Boolean = false,
+        ventestatus: Ventestatus = Ventestatus(),
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
             id = id,
@@ -143,6 +148,67 @@ interface MeldekortMother : MotherOfAllMothers {
                 beregning = null,
                 brukersMeldekort = null,
             ),
+            ventestatus = ventestatus,
+        )
+    }
+
+    fun meldekortbehandlingAvbrutt(
+        id: MeldekortId = MeldekortId.random(),
+        sakId: SakId = SakId.random(),
+        clock: Clock = fixedClock,
+        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        fnr: Fnr = Fnr.random(),
+        periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
+        kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
+        opprettet: LocalDateTime = nå(clock),
+        avbruttTidspunkt: LocalDateTime = nå(clock),
+        saksbehandler: String? = ObjectMother.saksbehandler().navIdent,
+        avbruttAv: String = saksbehandler ?: ObjectMother.saksbehandler().navIdent,
+        avbruttBegrunnelse: String = "Avbryter behandlingen",
+        navkontor: Navkontor = ObjectMother.navkontor(),
+        meldeperiode: Meldeperiode = meldeperiode(
+            periode = periode,
+            kjedeId = kjedeId,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            antallDagerForPeriode = 10,
+        ),
+        type: MeldekortbehandlingType = MeldekortbehandlingType.FØRSTE_BEHANDLING,
+        attesteringer: Attesteringer = Attesteringer.empty(),
+        begrunnelse: Begrunnelse? = null,
+        simulering: Simulering? = null,
+        fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
+        skalSendeVedtaksbrev: Boolean = true,
+        ventestatus: Ventestatus = Ventestatus(),
+    ): MeldekortbehandlingAvbrutt {
+        return MeldekortbehandlingAvbrutt(
+            id = id,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            opprettet = opprettet,
+            simulering = simulering,
+            saksbehandler = saksbehandler,
+            navkontor = navkontor,
+            type = type,
+            begrunnelse = begrunnelse,
+            attesteringer = attesteringer,
+            avbrutt = Avbrutt(
+                tidspunkt = avbruttTidspunkt,
+                saksbehandler = avbruttAv,
+                begrunnelse = avbruttBegrunnelse.toNonBlankString(),
+            ),
+            sistEndret = avbruttTidspunkt,
+            fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            meldeperioder = Meldeperiodebehandlinger(
+                meldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
+                beregning = null,
+                brukersMeldekort = null,
+            ),
+            ventestatus = ventestatus,
         )
     }
 
@@ -213,6 +279,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 beregning = meldekortperiodeBeregning,
                 brukersMeldekort = null,
             ),
+            ventestatus = Ventestatus(),
         )
     }
 
@@ -625,6 +692,7 @@ interface MeldekortMother : MotherOfAllMothers {
                         beregning = null,
                         brukersMeldekort = null,
                     ),
+                    ventestatus = Ventestatus(),
                 ),
             ),
         )
@@ -743,6 +811,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     beregning = null,
                     brukersMeldekort = null,
                 ),
+                ventestatus = Ventestatus(),
             ),
         )
 

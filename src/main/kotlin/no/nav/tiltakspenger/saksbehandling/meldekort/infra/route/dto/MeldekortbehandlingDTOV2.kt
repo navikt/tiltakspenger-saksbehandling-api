@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
@@ -59,6 +61,7 @@ data class MeldekortbehandlingDTOV2(
     val tekstTilVedtaksbrev: String?,
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
+    val ventestatus: List<VentestatusHendelseDTO>,
 )
 
 data class MeldeperiodebehandlingDTO(
@@ -104,6 +107,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         tilbakekrevingId = tilbakekreving?.id?.toString(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+        ventestatus = this.ventestatus.ventestatusHendelser.tilDto(),
     )
 }
 

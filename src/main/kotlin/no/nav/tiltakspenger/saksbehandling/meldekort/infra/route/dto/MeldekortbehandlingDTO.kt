@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
@@ -35,6 +37,7 @@ data class MeldekortbehandlingDTO(
     val godkjentTidspunkt: LocalDateTime?,
     val status: MeldekortbehandlingStatusDTO,
     val erAvsluttet: Boolean,
+    val ventestatus: List<VentestatusHendelseDTO>,
     val navkontor: String,
     val navkontorNavn: String?,
     val begrunnelse: String?,
@@ -73,6 +76,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         godkjentTidspunkt = vedtak?.opprettet ?: iverksattTidspunkt,
         status = this.status.toStatusDTO(),
         erAvsluttet = erAvsluttet,
+        ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
         begrunnelse = begrunnelse?.verdi,

@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 class VentestatusTest {
@@ -22,7 +23,7 @@ class VentestatusTest {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
             .settPåVent(
-                tidspunkt = nå(clock),
+                tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
@@ -34,11 +35,26 @@ class VentestatusTest {
     }
 
     @Test
+    fun `kaster exception dersom frist er i fortid`() {
+        val clock = TikkendeKlokke()
+        val ventestatus = Ventestatus()
+        assertThrows<IllegalArgumentException> {
+            ventestatus.settPåVent(
+                tidspunktSattPåVent = nå(clock),
+                endretAv = "saksbehandler",
+                begrunnelse = "Venter på dokumentasjon",
+                status = "UNDER_BEHANDLING",
+                frist = LocalDate.now(clock).minusDays(1),
+            )
+        }
+    }
+
+    @Test
     fun `kan sette på vent og gjenoppta`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
             .settPåVent(
-                tidspunkt = nå(clock),
+                tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
@@ -55,7 +71,7 @@ class VentestatusTest {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
             .settPåVent(
-                tidspunkt = nå(clock = clock),
+                tidspunktSattPåVent = nå(clock = clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på dokumentasjon",
                 status = "UNDER_BEHANDLING",
@@ -63,7 +79,7 @@ class VentestatusTest {
             )
             .gjenoppta(nå(clock), "saksbehandler", "UNDER_BEHANDLING")
             .settPåVent(
-                tidspunkt = nå(clock),
+                tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",
                 begrunnelse = "Venter på mer info",
                 status = "UNDER_BEHANDLING",

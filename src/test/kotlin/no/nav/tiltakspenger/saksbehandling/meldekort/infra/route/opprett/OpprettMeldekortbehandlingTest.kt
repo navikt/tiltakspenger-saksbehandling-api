@@ -164,7 +164,8 @@ class OpprettMeldekortbehandlingTest {
                           "tekstTilVedtaksbrev": null,
                           "status": "UNDER_BEHANDLING",
                           "skalSendeVedtaksbrev": true,
-                          "harFlereMeldeperioder": false
+                          "harFlereMeldeperioder": false,
+                          "ventestatus": []
                         }
                       ],
                       "meldekortbehandlingerV2": [
@@ -262,7 +263,8 @@ class OpprettMeldekortbehandlingTest {
                           "utbetalingsstatus": "IKKE_GODKJENT",
                           "tekstTilVedtaksbrev": null,
                           "status": "UNDER_BEHANDLING",
-                          "skalSendeVedtaksbrev": true
+                          "skalSendeVedtaksbrev": true,
+                           "ventestatus": []
                         }
                       ],
                       "korrigeringFraTidligerePeriode": null,

@@ -19,9 +19,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJsonString
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -75,6 +77,7 @@ class MeldekortbehandlingPostgresRepo(
                         begrunnelse,
                         attesteringer,
                         avbrutt,
+                        ventestatus,
                         sist_endret,
                         skal_sende_vedtaksbrev
                     ) values (
@@ -98,6 +101,7 @@ class MeldekortbehandlingPostgresRepo(
                         :begrunnelse,
                         to_jsonb(:attesteringer::jsonb),
                         to_jsonb(:avbrutt::jsonb),
+                        to_jsonb(:ventestatus::jsonb),
                         :sist_endret,
                         :skal_sende_vedtaksbrev
                     )
@@ -123,6 +127,7 @@ class MeldekortbehandlingPostgresRepo(
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
+                    "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                 ).asUpdate,
@@ -150,6 +155,7 @@ class MeldekortbehandlingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
+                        ventestatus = to_jsonb(:ventestatus::jsonb),
                         sist_endret = :sist_endret
                     where id = :id
                     """,
@@ -165,6 +171,7 @@ class MeldekortbehandlingPostgresRepo(
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
+                    "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                 ).asUpdate,
             )
@@ -194,6 +201,7 @@ class MeldekortbehandlingPostgresRepo(
                         begrunnelse = :begrunnelse,
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
+                        ventestatus = to_jsonb(:ventestatus::jsonb),
                         sist_endret = :sist_endret,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
@@ -213,6 +221,7 @@ class MeldekortbehandlingPostgresRepo(
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
+                    "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
@@ -320,14 +329,18 @@ class MeldekortbehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withSession(sessionContext) { sx ->
             sx.run(
-                queryOf(
-                    """update meldekortbehandling set beslutter = :beslutter, status = :status, sist_endret = :sist_endret where id = :id and beslutter is null""",
-                    mapOf(
-                        "id" to meldekortId.toString(),
-                        "beslutter" to beslutter.navIdent,
-                        "status" to meldekortbehandlingStatus.toDb(),
-                        "sist_endret" to sistEndret,
-                    ),
+                sqlQuery(
+                    """
+                    update meldekortbehandling set
+                        beslutter = :beslutter,
+                        status = :status,
+                        sist_endret = :sist_endret
+                    where id = :id and beslutter is null
+                    """,
+                    "id" to meldekortId.toString(),
+                    "beslutter" to beslutter.navIdent,
+                    "status" to meldekortbehandlingStatus.toDb(),
+                    "sist_endret" to sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -473,6 +486,7 @@ class MeldekortbehandlingPostgresRepo(
             val opprettet = row.localDateTime("opprettet")
             val type = row.string("type").tilMeldekortbehandlingType()
             val begrunnelse = row.stringOrNull("begrunnelse")?.let { Begrunnelse.create(it) }
+            val ventestatus = row.stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus()
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
             val attesteringer = row.string("attesteringer").toAttesteringer().toAttesteringer()
@@ -547,6 +561,7 @@ class MeldekortbehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        ventestatus = ventestatus,
                     )
                 }
 
@@ -569,6 +584,7 @@ class MeldekortbehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        ventestatus = ventestatus,
                     )
                 }
 
@@ -590,6 +606,7 @@ class MeldekortbehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        ventestatus = ventestatus,
                     )
                 }
             }

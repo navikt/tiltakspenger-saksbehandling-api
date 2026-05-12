@@ -35,7 +35,7 @@ fun Klagebehandling.settPåVent(
     val oppdatertKlagebehandling = this.copy(
         saksbehandler = null,
         ventestatus = ventestatus.settPåVent(
-            tidspunkt = nå,
+            tidspunktSattPåVent = nå,
             endretAv = kommando.saksbehandler.navIdent,
             begrunnelse = kommando.begrunnelse,
             status = status.toString(),

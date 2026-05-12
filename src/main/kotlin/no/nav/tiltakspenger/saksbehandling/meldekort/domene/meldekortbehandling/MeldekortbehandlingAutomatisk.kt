@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
@@ -60,6 +61,8 @@ data class MeldekortBehandletAutomatisk(
     override val attesteringer = Attesteringer.empty()
     override val avbrutt: Avbrutt? = null
     override val skalSendeVedtaksbrev: Boolean = true
+
+    override val ventestatus: Ventestatus = Ventestatus()
 
     override val beregning: Beregning get() = meldeperioder.beregning!!
 

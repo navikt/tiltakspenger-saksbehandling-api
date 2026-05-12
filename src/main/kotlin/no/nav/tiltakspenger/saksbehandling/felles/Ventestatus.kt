@@ -22,15 +22,19 @@ data class Ventestatus(
     }
 
     fun settPåVent(
-        tidspunkt: LocalDateTime,
+        tidspunktSattPåVent: LocalDateTime,
         endretAv: String,
         begrunnelse: String,
         status: String,
         frist: LocalDate?,
     ): Ventestatus {
+        if (frist != null) {
+            require(frist >= tidspunktSattPåVent.toLocalDate()) { "Frist for å være på vent kan ikke være i fortiden" }
+        }
+
         return copy(
             ventestatusHendelser = ventestatusHendelser + VentestatusHendelse(
-                tidspunkt = tidspunkt,
+                tidspunkt = tidspunktSattPåVent,
                 endretAv = endretAv,
                 begrunnelse = begrunnelse,
                 erSattPåVent = true,

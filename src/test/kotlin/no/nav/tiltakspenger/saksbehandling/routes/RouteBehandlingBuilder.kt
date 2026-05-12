@@ -42,6 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.TaKlagebehandlin
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.VurderKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbryt.AvbrytMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.brev.ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.gjenoppta.GjenopptaMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.iverksett.IverksettMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.leggTilbake.LeggTilbakeMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.motta.MottaMeldekortBuilder
@@ -49,6 +50,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater.Oppdat
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett.OpprettMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta.OvertaMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendTilBeslutning.SendMeldekortbehandlingTilBeslutningBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.settPåVent.SettMeldekortbehandlingPåVentBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.ta.TaMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.underkjenn.UnderkjennMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentSakRouteBuilder
@@ -106,6 +108,8 @@ object RouteBehandlingBuilder :
     OvertaMeldekortbehandlingBuilder,
     IverksettMeldekortbehandlingBuilder,
     UnderkjennMeldekortbehandlingBuilder,
+    SettMeldekortbehandlingPåVentBuilder,
+    GjenopptaMeldekortbehandlingBuilder,
     ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder,
     FerdigstillKlagebehandlingBuilder,
     VisInnstillingsbrevKlagebehandlingBuilder,
