@@ -157,8 +157,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
         clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling>
 
-    fun taMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling
-
     fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling
     fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling
 

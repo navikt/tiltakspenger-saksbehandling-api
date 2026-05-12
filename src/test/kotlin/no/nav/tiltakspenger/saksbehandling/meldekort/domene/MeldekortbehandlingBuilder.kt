@@ -80,7 +80,7 @@ suspend fun TestApplicationContext.meldekortbehandlingUnderBeslutning(
         sakId = sakId,
         meldekortId = meldekortbehandling.id,
         saksbehandler = beslutter,
-    )
+    ).getOrFail()
 }
 
 suspend fun TestApplicationContext.meldekortbehandlingIverksatt(

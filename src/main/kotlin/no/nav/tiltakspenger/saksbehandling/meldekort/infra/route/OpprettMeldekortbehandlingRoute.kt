@@ -24,10 +24,6 @@ import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
 
-/** Brukes både for å opprette en ny meldekortbehandling, og for å ta opp en meldekortbehandling som har blitt lagt tilbake
- *
- *  TODO abn: burde splitte denne og tilhørende service-funksjon for å separere de to bruksområdene bedre
- * */
 fun Route.opprettMeldekortbehandlingRoute(
     opprettMeldekortbehandlingService: OpprettMeldekortbehandlingService,
     auditService: AuditService,
@@ -41,7 +37,6 @@ fun Route.opprettMeldekortbehandlingRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
-            val ki = call.parameters["kjedeId"]
             call.withMeldeperiodeKjedeId { kjedeId ->
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)

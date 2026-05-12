@@ -11,18 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 private val logger = KotlinLogging.logger { }
 
 fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
-    val åpenBehandling = this.meldekortbehandlinger.åpenMeldekortbehandling
-
-    if (åpenBehandling != null) {
-        /*
-          Det er et gyldig valg å gjenopprette en behandling som har blitt lagt tilbake på samme kjede.
-          Denne vil ha status KLAR_TIL_BEHANDLING
-
-          Vi tillater ikke å faktisk opprette en ny behandling dersom det finnes en åpen behandling.
-         */
-        if (åpenBehandling.kjedeIdLegacy != kjedeId || åpenBehandling.status != MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING) {
-            return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
-        }
+    if (this.meldekortbehandlinger.åpenMeldekortbehandling != null) {
+        return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
     }
 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)

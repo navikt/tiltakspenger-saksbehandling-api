@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE
@@ -234,7 +233,7 @@ class OpprettMeldekortbehandlingServiceTest {
     }
 
     @Test
-    fun `Skal gjenopprette behandling som er lagt tilbake`() {
+    fun `Skal ikke kunne opprette behandling når det finnes en åpen behandling som kan tas`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
@@ -246,23 +245,17 @@ class OpprettMeldekortbehandlingServiceTest {
                 sakId = sak.id,
             )
 
-            val (sakMedLagtTilbake, behandlingLagtTilbake) = tac.meldekortContext.leggTilbakeMeldekortbehandlingService.leggTilbakeMeldekortbehandling(
+            tac.meldekortContext.leggTilbakeMeldekortbehandlingService.leggTilbakeMeldekortbehandling(
                 sakId = sak.id,
                 meldekortId = nyBehandling.id,
                 saksbehandler = saksbehandler(navIdent = nyBehandling.saksbehandler!!),
             )
 
-            sakMedLagtTilbake.meldekortbehandlinger.single() shouldBe behandlingLagtTilbake
-            behandlingLagtTilbake.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
-
-            val (sakMedGjenopprettet, gjenopprettetBehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
+            tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
                 kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                 sakId = sak.id,
                 saksbehandler = saksbehandler(),
-            ).getOrFail()
-
-            sakMedGjenopprettet.meldekortbehandlinger.single() shouldBe gjenopprettetBehandling
-            gjenopprettetBehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+            ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
         }
     }
 }

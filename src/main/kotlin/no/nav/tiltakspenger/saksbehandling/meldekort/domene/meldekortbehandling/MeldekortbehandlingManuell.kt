@@ -211,35 +211,6 @@ data class MeldekortbehandlingManuell(
         }
     }
 
-    override fun taMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        return when (this.status) {
-            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
-                check(saksbehandler.navIdent != this.saksbehandler) {
-                    "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
-                }
-                krevBeslutterRolle(saksbehandler)
-                require(this.beslutter == null) { "Meldekortbehandlingen har en eksisterende beslutter. For å overta meldekortbehandlingen, bruk overta() - meldekortId: ${this.id}" }
-                this.copy(
-                    beslutter = saksbehandler.navIdent,
-                    status = MeldekortbehandlingStatus.UNDER_BESLUTNING,
-                    sistEndret = nå(clock),
-                )
-            }
-
-            MeldekortbehandlingStatus.UNDER_BEHANDLING,
-            MeldekortbehandlingStatus.UNDER_BESLUTNING,
-            MeldekortbehandlingStatus.GODKJENT,
-            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.AVBRUTT,
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
-            -> {
-                throw IllegalArgumentException(
-                    "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-                )
-            }
-        }
-    }
-
     override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
         return when (this.status) {
             MeldekortbehandlingStatus.UNDER_BESLUTNING -> {

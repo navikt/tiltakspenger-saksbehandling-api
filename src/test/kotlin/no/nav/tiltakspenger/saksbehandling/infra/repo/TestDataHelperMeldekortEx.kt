@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.oppdaterMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ta.taMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.opprettVedtak
@@ -227,7 +228,7 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
     val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = genererSak(sak)
 
     val iverksattMeldekortbehandling =
-        (meldekortbehandlingTilBeslutning.taMeldekortbehandling(beslutter, clock) as MeldekortbehandlingManuell)
+        (meldekortbehandlingTilBeslutning.taMeldekortbehandling(beslutter, clock).getOrFail() as MeldekortbehandlingManuell)
             .iverksettMeldekort(beslutter, clock).getOrFail()
 
     val meldekortvedtak = iverksattMeldekortbehandling.opprettVedtak(
