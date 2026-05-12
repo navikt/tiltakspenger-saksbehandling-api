@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater
 
 import arrow.core.Tuple5
-import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
@@ -78,7 +77,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        medJsonBody: ((String) -> Unit)? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, meldekortUnderBehandling, _) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
             tac = tac,
@@ -98,8 +97,9 @@ interface OppdaterMeldekortbehandlingBuilder {
             meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            medJsonBody = medJsonBody,
         ) ?: return null
+
         return Tuple5(
             oppdatertSak,
             søknad,
@@ -123,7 +123,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        medJsonBody: ((String) -> Unit)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
         val (_, opprettetMeldekortbehandling, _) = opprettMeldekortbehandlingForSakId(
             tac = tac,
@@ -131,6 +131,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             kjedeId = kjedeId,
             saksbehandler = saksbehandler,
         ) ?: return null
+
         return oppdaterMeldekortbehandling(
             tac = tac,
             sakId = sakId,
@@ -141,7 +142,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            medJsonBody = medJsonBody,
         )
     }
 
@@ -159,7 +160,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        medJsonBody: ((String) -> Unit)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
@@ -173,7 +174,12 @@ interface OppdaterMeldekortbehandlingBuilder {
             },
             jwt = jwt,
         ) {
-            val meldeperioderIBody = buildMeldeperioderBody(tac = tac, sakId = sakId, meldekortId = meldekortId, meldeperioder = meldeperioder)
+            val meldeperioderIBody = buildMeldeperioderBody(
+                tac = tac,
+                sakId = sakId,
+                meldekortId = meldekortId,
+                meldeperioder = meldeperioder,
+            )
             this.setBody(
                 """
                     {
@@ -190,12 +196,18 @@ interface OppdaterMeldekortbehandlingBuilder {
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {
                 status shouldBe forventetStatus
-                if (forventetJsonBody != null) bodyAsText.shouldEqualJson(forventetJsonBody)
+                if (medJsonBody != null) {
+                    medJsonBody(bodyAsText)
+                }
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
-            if (status != HttpStatusCode.OK) return null
+            if (status != HttpStatusCode.OK) {
+                return null
+            }
+
             val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+
             return Triple(
                 oppdatertSak,
                 oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling,
@@ -232,7 +244,7 @@ interface OppdaterMeldekortbehandlingBuilder {
     /**
      * Bygger standard [OppdatertMeldeperiodeDTO]-er for hele meldekortbehandlingen.
      */
-    fun defaultMeldeperioderBasertPåMeldekort(
+    private fun defaultMeldeperioderBasertPåMeldekort(
         tac: TestApplicationContext,
         sakId: SakId,
         meldekortId: MeldekortId,
