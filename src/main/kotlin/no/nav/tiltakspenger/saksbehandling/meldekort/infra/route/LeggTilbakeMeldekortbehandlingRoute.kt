@@ -15,8 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val LEGG_TILBAKE_MELDEKORTBEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/legg-tilbake"
 
@@ -24,6 +25,7 @@ fun Route.leggTilbakeMeldekortbehandlingRoute(
     auditService: AuditService,
     leggTilbakeMeldekortbehandlingService: LeggTilbakeMeldekortbehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post(LEGG_TILBAKE_MELDEKORTBEHANDLING_PATH) {
@@ -39,7 +41,7 @@ fun Route.leggTilbakeMeldekortbehandlingRoute(
                     sakId = sakId,
                     meldekortId = meldekortId,
                     saksbehandler = saksbehandler,
-                ).also { (sak, behandling) ->
+                ).also { (sak) ->
                     auditService.logMedMeldekortId(
                         meldekortId = meldekortId,
                         navIdent = saksbehandler.navIdent,
@@ -49,7 +51,7 @@ fun Route.leggTilbakeMeldekortbehandlingRoute(
                     )
 
                     call.respondJson(
-                        value = behandling.tilMeldekortbehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
+                        value = sak.toSakDTO(saksbehandler = saksbehandler, clock = clock),
                     )
                 }
             }
