@@ -19,8 +19,14 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-// swagger: https://oppgave.dev.intern.nav.no/
-
+/**
+ *  Sender oppgaver til oppgavesystemet (vises i Gosys)
+ *
+ *  Swagger: https://oppgave.intern.dev.nav.no
+ *  Github: https://github.com/navikt/oppgave
+ *  Slack: #team-oppgavehåndtering
+ *
+ * */
 class OppgaveHttpClient(
     baseUrl: String,
     private val getToken: suspend () -> AccessToken,
