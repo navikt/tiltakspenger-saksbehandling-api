@@ -65,7 +65,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
      *  eller dette er første meldeperiode
      */
     val kanBehandles =
-        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeKjede.siste.ingenDagerGirRett || forrigeBehandling?.erGodkjentEllerIkkeRett == true)
+        meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeKjede.siste.ingenDagerGirRett || forrigeBehandling?.erGodkjent == true)
 
     if (kanBehandles) {
         return MeldeperiodeKjedeStatusDTO.AVVENTER_MELDEKORT

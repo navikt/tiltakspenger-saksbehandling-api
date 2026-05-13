@@ -2,15 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.oppgave.infra
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.oppgave.infra.finnFristForFerdigstillingAvOppgave
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
 
 const val TEMA_TILTAKSPENGER: String = "IND"
-
-const val BEHANDLES_AV_APPLIKASJON = "TILTAKSPENGER"
-
 const val ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen"
 
 /**

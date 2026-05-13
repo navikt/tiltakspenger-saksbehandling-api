@@ -8,10 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
-    if (this.meldekortbehandlinger.åpenMeldekortbehandling != null) {
-        return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
-    }
-
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
     if (meldeperiode.ingenDagerGirRett) {
@@ -41,15 +37,14 @@ fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): 
 }
 
 fun Sak.validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+    validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
+    validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
+    return Unit.right()
+}
+
+/** Validering som gir permanente feil - skal ikke prøves på nytt */
+private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     val kjedeId = brukersMeldekort.kjedeId
-
-    if (brukersMeldekort.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
-        return MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
-    }
-
-    if (brukersMeldekort.harForMangeDagerSammenhengendeGodkjentFravær()) {
-        return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR.left()
-    }
 
     if (!brukersMeldekort.behandlesAutomatisk) {
         return MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
@@ -59,6 +54,14 @@ fun Sak.validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMel
 
     if (behandlingerKnyttetTilKjede.isNotEmpty()) {
         return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
+    }
+
+    if (brukersMeldekort.harRegistrertHelg() && !this.kanSendeInnHelgForMeldekort) {
+        return MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG.left()
+    }
+
+    if (brukersMeldekort.harForMangeDagerSammenhengendeGodkjentFravær()) {
+        return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR.left()
     }
 
     val sisteMeldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
@@ -75,9 +78,12 @@ fun Sak.validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMel
         return MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT.left()
     }
 
-    if (meldekortbehandlinger.åpenMeldekortbehandling != null) {
-        return MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING.left()
-    }
+    return Unit.right()
+}
+
+/** Validering som kan gi midlertidige feil - kan prøves på nytt */
+private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+    val kjedeId = brukersMeldekort.kjedeId
 
     if (revurderinger.harÅpenRevurdering()) {
         return MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING.left()
@@ -96,6 +102,10 @@ fun Sak.validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMel
 }
 
 private fun Sak.validerOpprettBehandlingPåKjede(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
+    if (this.meldekortbehandlinger.harÅpenBehandling) {
+        return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
+    }
+
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
     val erFørsteBehandlingPåSaken = this.meldekortbehandlinger.isEmpty()

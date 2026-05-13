@@ -251,30 +251,7 @@ class AutomatiskMeldekortbehandlingService(
             return false
         }
 
-        return when (nyStatus) {
-            MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            MeldekortBehandletAutomatiskStatus.BEHANDLET,
-            MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
-            MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR,
-            MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT,
-            MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING,
-            MeldekortBehandletAutomatiskStatus.HAR_JUSTERING,
-            MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG,
-            MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_REGISTRERT,
-            MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE,
-            MeldekortBehandletAutomatiskStatus.BEHANDLING_FEILET_PÅ_SAK,
-            MeldekortBehandletAutomatiskStatus.UTBETALING_FEILET_PÅ_SAK,
-            MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET,
-            -> false
-
-            MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING,
-            MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING,
-            MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE,
-            MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE,
-            MeldekortBehandletAutomatiskStatus.HENTE_NAVKONTOR_FEILET,
-            MeldekortBehandletAutomatiskStatus.UKJENT_FEIL,
-            -> true
-        }
+        return nyStatus.kanPrøvesPåNytt
     }
 
     companion object {
