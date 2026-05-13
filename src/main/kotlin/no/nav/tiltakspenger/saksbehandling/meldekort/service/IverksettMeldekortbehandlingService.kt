@@ -31,6 +31,7 @@ class IverksettMeldekortbehandlingService(
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val clock: Clock,
     private val statistikkService: StatistikkService,
+    private val kanIverksetteFlereMeldeperioder: Boolean,
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -53,6 +54,10 @@ class IverksettMeldekortbehandlingService(
         val meldeperiode = meldekortbehandling.meldeperiodeLegacy
         check(sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
             "Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId"
+        }
+
+        if (meldekortbehandling.meldeperioder.size > 1 && !kanIverksetteFlereMeldeperioder) {
+            throw IllegalStateException("Tillater ikke iverksetting av flere meldeperioder ennå")
         }
 
         return meldekortbehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->

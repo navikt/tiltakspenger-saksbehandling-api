@@ -88,6 +88,7 @@ open class MeldekortContext(
             utbetalingRepo = utbetalingRepo,
             clock = clock,
             statistikkService = statistikkService,
+            kanIverksetteFlereMeldeperioder = !Configuration.isProd(),
         )
     }
     val oppdaterMeldekortbehandlingService by lazy {
