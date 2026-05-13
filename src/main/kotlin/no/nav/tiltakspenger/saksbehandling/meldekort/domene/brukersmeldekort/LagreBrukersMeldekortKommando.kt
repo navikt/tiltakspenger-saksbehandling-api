@@ -4,7 +4,6 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
-import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
@@ -28,12 +27,10 @@ data class LagreBrukersMeldekortKommando(
     val dager: List<BrukersMeldekort.BrukersMeldekortDag>,
     val journalpostId: JournalpostId,
 ) {
-    val antallDagerRegistrert: Int = dager.antallDagerRegistrert()
 
-    fun tilBrukersMeldekort(
+    /** Oppretter et nytt meldekort som skal forsøkes å behandles automatisk */
+    fun tilNyttBrukersMeldekort(
         meldeperiode: Meldeperiode,
-        behandlesAutomatisk: Boolean,
-        behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
         clock: Clock,
     ): BrukersMeldekort {
         require(meldeperiode.id == meldeperiodeId) {
@@ -48,9 +45,9 @@ data class LagreBrukersMeldekortKommando(
             dager = dager,
             journalpostId = journalpostId,
             oppgaveId = null,
-            behandlesAutomatisk = behandlesAutomatisk,
-            behandletAutomatiskStatus = behandletAutomatiskStatus,
-            behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.Companion.opprett(clock = clock),
+            behandlesAutomatisk = true,
+            behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
+            behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),
         )
     }
 
@@ -61,9 +58,5 @@ data class LagreBrukersMeldekortKommando(
             this.sakId == brukersMeldekort.sakId &&
             this.dager == brukersMeldekort.dager &&
             this.journalpostId == brukersMeldekort.journalpostId
-    }
-
-    fun harRegistrertHelg(): Boolean {
-        return dager.any { it.dato.erHelg() && it.harRegistrert() }
     }
 }

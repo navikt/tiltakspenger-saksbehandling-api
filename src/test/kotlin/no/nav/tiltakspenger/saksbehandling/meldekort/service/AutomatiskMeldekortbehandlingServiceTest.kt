@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
@@ -515,6 +516,253 @@ class AutomatiskMeldekortbehandlingServiceTest {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
                     it.behandlesAutomatisk shouldBe false
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk ved registrert helg når saken ikke tillater helg`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Saken har kanSendeInnHelgForMeldekort = false som default
+                val eksisterendeMeldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+                // Erstatt meldeperioden med en som gir rett i helg (men saken tillater ikke helg)
+                val meldeperiodeMedHelg = eksisterendeMeldeperiode.copy(
+                    id = eksisterendeMeldeperiode.id,
+                    girRett = eksisterendeMeldeperiode.periode.tilDager().associateWith { true },
+                    maksAntallDagerForMeldeperiode = 14,
+                )
+                meldeperiodeRepo.lagre(meldeperiodeMedHelg)
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiodeMedHelg,
+                    dager = meldeperiodeMedHelg.girRett.entries.mapIndexed { index, entry ->
+                        BrukersMeldekort.BrukersMeldekortDag(
+                            // Registrer dager inkludert helg
+                            status = if (index < 7) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                            dato = entry.key,
+                        )
+                    },
+                )
+
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                val lagretMeldekort = brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!
+                lagretMeldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG
+                lagretMeldekort.behandlesAutomatisk shouldBe false
+            }
+        }
+    }
+
+    @Test
+    fun `skal behandle automatisk ved registrert helg når saken tillater helg`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val sakRepo = tac.sakContext.sakRepo
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Aktiver helg for saken
+                sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak.id, true)
+
+                val eksisterendeMeldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+                // Erstatt meldeperioden med en som gir rett i helg
+                val meldeperiodeMedHelg = eksisterendeMeldeperiode.copy(
+                    id = eksisterendeMeldeperiode.id,
+                    girRett = eksisterendeMeldeperiode.periode.tilDager().associateWith { true },
+                    maksAntallDagerForMeldeperiode = 14,
+                )
+                meldeperiodeRepo.lagre(meldeperiodeMedHelg)
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiodeMedHelg,
+                    dager = meldeperiodeMedHelg.girRett.entries.mapIndexed { index, entry ->
+                        BrukersMeldekort.BrukersMeldekortDag(
+                            status = if (index < 7) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                            dato = entry.key,
+                        )
+                    },
+                )
+
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!
+                meldekortbehandlinger.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk ved for mange sammenhengende dager godkjent fravær`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val sakRepo = tac.sakContext.sakRepo
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Aktiver helg slik at alle dager gir rett - da kan vi teste fravær uten å utløse helg-sjekken
+                sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak.id, true)
+
+                val eksisterendeMeldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+                val meldeperiodeMedHelg = eksisterendeMeldeperiode.copy(
+                    id = eksisterendeMeldeperiode.id,
+                    girRett = eksisterendeMeldeperiode.periode.tilDager().associateWith { true },
+                    maksAntallDagerForMeldeperiode = 14,
+                )
+                meldeperiodeRepo.lagre(meldeperiodeMedHelg)
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiodeMedHelg,
+                    dager = meldeperiodeMedHelg.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
+                        .flatMapIndexed { index, dager ->
+                            dager.map {
+                                BrukersMeldekort.BrukersMeldekortDag(
+                                    status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU else InnmeldtStatus.IKKE_BESVART,
+                                    dato = it.key,
+                                )
+                            }
+                        },
+                )
+
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                val lagretMeldekort = brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!
+                lagretMeldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
+                lagretMeldekort.behandlesAutomatisk shouldBe false
+            }
+        }
+    }
+
+    @Test
+    fun `skal behandle automatisk ved akseptabelt antall sammenhengende dager godkjent fravær`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val sakRepo = tac.sakContext.sakRepo
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Aktiver helg slik at alle dager gir rett
+                sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak.id, true)
+
+                val eksisterendeMeldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+                val meldeperiodeMedHelg = eksisterendeMeldeperiode.copy(
+                    id = eksisterendeMeldeperiode.id,
+                    girRett = eksisterendeMeldeperiode.periode.tilDager().associateWith { true },
+                    maksAntallDagerForMeldeperiode = 14,
+                )
+                meldeperiodeRepo.lagre(meldeperiodeMedHelg)
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiodeMedHelg,
+                    dager = meldeperiodeMedHelg.girRett.entries.chunked(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER)
+                        .flatMapIndexed { index, dager ->
+                            dager.map {
+                                BrukersMeldekort.BrukersMeldekortDag(
+                                    status = if (index % 2 == 0) InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU else InnmeldtStatus.IKKE_BESVART,
+                                    dato = it.key,
+                                )
+                            }
+                        },
+                )
+
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!
+                meldekortbehandlinger.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle korrigert meldekort automatisk`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+                // Første meldekort behandles automatisk
+                val førsteMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                )
+                brukersMeldekortRepo.lagre(førsteMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
+
+                // Korrigert meldekort (andre innsending på samme kjede)
+                val korrigertMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                )
+                brukersMeldekortRepo.lagre(korrigertMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                // Skal fortsatt bare ha 1 behandling
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
+
+                val lagretKorrigert = brukersMeldekortRepo.hentForMeldekortId(korrigertMeldekort.id)!!
+                lagretKorrigert.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET
+                lagretKorrigert.behandlesAutomatisk shouldBe false
             }
         }
     }

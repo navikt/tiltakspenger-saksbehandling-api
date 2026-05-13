@@ -1,4 +1,3 @@
-
 package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.atomic.Atomic
@@ -164,6 +163,9 @@ class SakFakeRepo(
         kanSendeInnHelgForMeldekort: Boolean,
         sessionContext: SessionContext?,
     ) {
+        data.get()[sakId] = data.get()[sakId]!!.copy(
+            kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
+        )
     }
 
     override fun hentSakerTilDatadeling(limit: Int): List<SakDb> {

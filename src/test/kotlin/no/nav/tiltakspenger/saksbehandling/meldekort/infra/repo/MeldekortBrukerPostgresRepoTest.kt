@@ -17,17 +17,13 @@ import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
 class MeldekortBrukerPostgresRepoTest {
-    private fun lagBrukersMeldekort(
-        meldeperiode: Meldeperiode,
-        behandlesAutomatisk: Boolean,
-        behandlesAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
-    ): BrukersMeldekort {
+    private fun lagBrukersMeldekort(meldeperiode: Meldeperiode): BrukersMeldekort {
         return ObjectMother.lagreBrukersMeldekortKommando(
             meldeperiodeId = meldeperiode.id,
             mottatt = meldeperiode.opprettet.plus(1, ChronoUnit.MILLIS),
             sakId = meldeperiode.sakId,
             periode = meldeperiode.periode,
-        ).tilBrukersMeldekort(meldeperiode, behandlesAutomatisk, behandlesAutomatiskStatus, fixedClock)
+        ).tilNyttBrukersMeldekort(meldeperiode, fixedClock)
     }
 
     @Test
@@ -40,11 +36,7 @@ class MeldekortBrukerPostgresRepoTest {
             val meldeperiode = sak.meldeperiodeKjeder.first().first()
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
-            val nyttBrukersMeldekort = lagBrukersMeldekort(
-                meldeperiode,
-                false,
-                MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
-            )
+            val nyttBrukersMeldekort = lagBrukersMeldekort(meldeperiode)
 
             meldekortBrukerRepo.lagre(nyttBrukersMeldekort)
 
@@ -57,8 +49,8 @@ class MeldekortBrukerPostgresRepoTest {
                     dager = nyttBrukersMeldekort.dager,
                     journalpostId = nyttBrukersMeldekort.journalpostId,
                     oppgaveId = nyttBrukersMeldekort.oppgaveId,
-                    behandlesAutomatisk = false,
-                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK,
+                    behandlesAutomatisk = true,
+                    behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
                     behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = fixedClock),
                 ),
             )
@@ -81,27 +73,15 @@ class MeldekortBrukerPostgresRepoTest {
             )
 
             val sak1meldeperiode1 = sak1.meldeperiodeKjeder[0].first()
-            val sak1brukersMeldekort1 = lagBrukersMeldekort(
-                sak1meldeperiode1,
-                true,
-                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            )
+            val sak1brukersMeldekort1 = lagBrukersMeldekort(sak1meldeperiode1)
             meldekortBrukerRepo.lagre(sak1brukersMeldekort1)
 
             val sak1meldeperiode2 = sak1.meldeperiodeKjeder[1].first()
-            val sak1brukersMeldekort2 = lagBrukersMeldekort(
-                sak1meldeperiode2,
-                true,
-                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            )
+            val sak1brukersMeldekort2 = lagBrukersMeldekort(sak1meldeperiode2)
             meldekortBrukerRepo.lagre(sak1brukersMeldekort2)
 
             val sak2meldeperiode1 = sak2.meldeperiodeKjeder[0].first()
-            val sak2brukersMeldekort1 = lagBrukersMeldekort(
-                sak2meldeperiode1,
-                true,
-                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            )
+            val sak2brukersMeldekort1 = lagBrukersMeldekort(sak2meldeperiode1)
             meldekortBrukerRepo.lagre(sak2brukersMeldekort1)
 
             meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk() shouldBe listOf(
@@ -121,22 +101,14 @@ class MeldekortBrukerPostgresRepoTest {
                 deltakelseTom = 31.mars(2024),
             )
 
-            val meldekort1 = lagBrukersMeldekort(
-                sak.meldeperiodeKjeder[0].first(),
-                true,
-                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            )
+            val meldekort1 = lagBrukersMeldekort(sak.meldeperiodeKjeder[0].first())
             meldekortBrukerRepo.lagre(meldekort1)
             meldekortBrukerRepo.markerSomAutomatiskBehandlet(
                 meldekort1.id,
                 Forsøkshistorikk.opprett(clock = testDataHelper.clock),
             )
 
-            val meldekort2 = lagBrukersMeldekort(
-                sak.meldeperiodeKjeder[1].first(),
-                true,
-                MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
-            )
+            val meldekort2 = lagBrukersMeldekort(sak.meldeperiodeKjeder[1].first())
             meldekortBrukerRepo.lagre(meldekort2)
 
             meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk() shouldBe listOf(meldekort2)

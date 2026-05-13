@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
@@ -86,6 +87,20 @@ data class BrukersMeldekort(
          *  Dersom antallet er høyere, skal meldekortet sendes til manuell behandling for kontroll.
          *  */
         const val MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER = 2
+    }
+
+    fun harRegistrertHelg(): Boolean {
+        return dager.any { it.dato.erHelg() && it.harRegistrert() }
+    }
+
+    fun harForMangeDagerSammenhengendeGodkjentFravær(): Boolean {
+        return dager
+            .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
+            .any { forMangeDager ->
+                forMangeDager.all {
+                    it.status.erGodkjentFravær()
+                }
+            }
     }
 
     fun tilUtfyltMeldeperiode(): UtfyltMeldeperiode {
