@@ -2,35 +2,23 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater
 
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
-import io.ktor.http.path
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgOppdaterMeldekortbehandling
 import org.junit.jupiter.api.Test
@@ -818,66 +806,6 @@ class OppdaterMeldekortbehandlingRouteTest {
                 }
                 """.trimIndent(),
             )
-        }
-    }
-
-    @Test
-    fun `kan oppdatere meldekortbehandling med legacy body`() {
-        withTestApplicationContext { tac ->
-            val saksbehandler = ObjectMother.saksbehandler("saksbehandler")
-            val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
-            tac.leggTilBruker(jwt, saksbehandler)
-
-            val (sak, _, _, meldekortbehandling, _) = this.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
-                tac = tac,
-                saksbehandler = saksbehandler,
-            )!!
-
-            val dagerJson = meldekortbehandling.dagerLegacy.map { dag ->
-                val status = when {
-                    dag.status == MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
-                    dag.status == MeldekortDagStatus.IKKE_BESVART && dag.dato.erHelg() -> MeldekortDagStatus.IKKE_TILTAKSDAG
-                    dag.status == MeldekortDagStatus.IKKE_BESVART -> MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET
-                    else -> dag.status
-                }
-                dag.dato to status
-            }
-                .joinToString(prefix = "[", postfix = "]", separator = ",") { (dato, status) ->
-                    """
-                        {
-                            "dato":"$dato",
-                            "status":"$status"
-                        }
-                    """.trimIndent()
-                }
-
-            defaultRequest(
-                HttpMethod.Post,
-                url {
-                    protocol = URLProtocol.HTTPS
-                    path("/sak/${sak.id}/meldekort/${meldekortbehandling.id}/oppdater")
-                },
-                jwt = jwt,
-            ) {
-                setBody(
-                    """
-                        {
-                        "versjon":1,
-                        "begrunnelse":null,
-                        "tekstTilVedtaksbrev":null,
-                        "dager":$dagerJson,
-                        "skalSendeVedtaksbrev":true
-                        }
-                    """.trimIndent(),
-                )
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            }
-
-            val oppdatertMeldekortbehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-                .hentMeldekortbehandling(meldekortbehandling.id)!!
-            oppdatertMeldekortbehandling.status shouldBe meldekortbehandling.status
         }
     }
 

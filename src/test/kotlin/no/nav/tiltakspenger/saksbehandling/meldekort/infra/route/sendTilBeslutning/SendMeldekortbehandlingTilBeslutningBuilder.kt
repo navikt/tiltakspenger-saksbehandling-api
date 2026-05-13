@@ -39,7 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendMeldekortTilBeslutterRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendMeldekortTilBeslutningRoute]
  */
 interface SendMeldekortbehandlingTilBeslutningBuilder {
 
@@ -139,7 +139,7 @@ interface SendMeldekortbehandlingTilBeslutningBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/meldekort/$meldekortId")
+                path("/sak/$sakId/meldekort/$meldekortId/sendtilbeslutning")
             },
             jwt = jwt,
         ).apply {

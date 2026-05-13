@@ -23,14 +23,14 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortbehand
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 import java.time.Clock
 
-fun Route.sendMeldekortTilBeslutterRoute(
+fun Route.sendMeldekortTilBeslutningRoute(
     sendMeldekortbehandlingTilBeslutterService: SendMeldekortbehandlingTilBeslutterService,
     auditService: AuditService,
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger { }
-    post("/sak/{sakId}/meldekort/{meldekortId}") {
+    post("/sak/{sakId}/meldekort/{meldekortId}/sendtilbeslutning") {
         logger.debug { "Mottatt post-request på /sak/{sakId}/meldekort/{meldekortId} - saksbehandler har fylt ut meldekortet og sendt til beslutter" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
