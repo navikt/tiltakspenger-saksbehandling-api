@@ -52,7 +52,8 @@ class UtbetalingHttpKlient(
     private val baseUrl: String,
     private val getToken: suspend () -> AccessToken,
     connectTimeout: Duration = 5.seconds,
-    private val timeout: Duration = 15.seconds,
+    private val statusTimeout: Duration = 15.seconds,
+    private val iverksettTimeout: Duration = 30.seconds,
     private val clock: Clock,
 ) : Utbetalingsklient {
     private val simuleringTimeout: Duration = 45.seconds
@@ -111,7 +112,7 @@ class UtbetalingHttpKlient(
         return HttpRequest
             .newBuilder()
             .uri(iverksettUri)
-            .timeout(timeout.toJavaDuration())
+            .timeout(iverksettTimeout.toJavaDuration())
             .header("Authorization", "Bearer $token")
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
@@ -137,7 +138,7 @@ class UtbetalingHttpKlient(
                 val request = HttpRequest
                     .newBuilder()
                     .uri(URI.create(path))
-                    .timeout(timeout.toJavaDuration())
+                    .timeout(statusTimeout.toJavaDuration())
                     .header("Authorization", "Bearer $token")
                     .header("Accept", "application/json")
                     .GET()
