@@ -31,11 +31,18 @@ data class TilbakekrevingBehandling(
     val varselSendt: LocalDate?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val venter: TilbakekrevingVenter?,
 ) {
 
     val statusIntern: TilbakekrevingBehandlingsstatusIntern by lazy {
         when (status) {
             TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusIntern.OPPRETTET
+
+            TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL -> if (saksbehandler != null) {
+                TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING
+            } else {
+                TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL
+            }
 
             TilbakekrevingBehandlingsstatus.TIL_BEHANDLING ->
                 if (saksbehandler != null) {
@@ -65,13 +72,17 @@ data class TilbakekrevingBehandling(
 
         return buildList {
             when (statusIntern) {
-                TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING -> {
+                TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
+                TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
+                -> {
                     if (erSaksbehandler) {
                         add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
                     }
                 }
 
-                TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> {
+                TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+                TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+                -> {
                     if (tildeltSaksbehandler == navIdent) {
                         add(SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler)
                     } else if (erSaksbehandler) {

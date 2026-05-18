@@ -13,7 +13,9 @@ fun TilbakekrevingBehandling.overta(saksbehandler: Saksbehandler, clock: Clock):
     val sistEndret = nå(clock)
 
     return when (statusIntern) {
-        TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> {
+        TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+        TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+        -> {
             requireNotNull(this.saksbehandler) {
                 "Saksbehandler må være satt på behandlingen for å kunne overta. tilbakekrevingId: $id"
             }
@@ -50,6 +52,7 @@ fun TilbakekrevingBehandling.overta(saksbehandler: Saksbehandler, clock: Clock):
         }
 
         TilbakekrevingBehandlingsstatusIntern.OPPRETTET,
+        TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
         TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
         TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING,
         TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,

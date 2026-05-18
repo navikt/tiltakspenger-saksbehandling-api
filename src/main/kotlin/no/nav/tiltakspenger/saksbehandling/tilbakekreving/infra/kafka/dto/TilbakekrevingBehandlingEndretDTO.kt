@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter.TilbakekrevingVentegrunn
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import java.math.BigDecimal
@@ -32,6 +34,7 @@ data class TilbakekrevingBehandlingEndretDTO(
             totaltFeilutbetaltBeløp = tilbakekreving.totaltFeilutbetaltBeløp,
             url = tilbakekreving.saksbehandlingURL,
             fullstendigPeriode = tilbakekreving.fullstendigPeriode.tilPeriode(),
+            venter = tilbakekreving.venter?.tilDomene(),
             feil = null,
         )
     }
@@ -45,7 +48,26 @@ data class TilbakekrevingBehandlingEndretDTO(
         val totaltFeilutbetaltBeløp: BigDecimal,
         val saksbehandlingURL: String,
         val fullstendigPeriode: TilbakekrevingPeriodeDTO,
+        val venter: VenterDTO?,
     )
+
+    data class VenterDTO(
+        val grunn: VentegrunnDTO,
+        val gjenopptas: LocalDate,
+    ) {
+        enum class VentegrunnDTO {
+            AVVENTER_BRUKERUTTALELSE,
+        }
+
+        fun tilDomene(): TilbakekrevingVenter {
+            return TilbakekrevingVenter(
+                grunn = when (grunn) {
+                    VentegrunnDTO.AVVENTER_BRUKERUTTALELSE -> TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
+                },
+                gjenopptas = gjenopptas,
+            )
+        }
+    }
 
     enum class TilbakekrevingHendelseStatusDTO {
         OPPRETTET,

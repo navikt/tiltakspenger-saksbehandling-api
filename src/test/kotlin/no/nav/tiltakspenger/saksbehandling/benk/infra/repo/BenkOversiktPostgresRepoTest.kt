@@ -840,6 +840,7 @@ class BenkOversiktPostgresRepoTest {
                 varselSendt = null,
                 saksbehandler = null,
                 beslutter = null,
+                venter = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilBehandling)
 
@@ -857,6 +858,7 @@ class BenkOversiktPostgresRepoTest {
                 varselSendt = null,
                 saksbehandler = null,
                 beslutter = null,
+                venter = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilGodkjenning)
 
@@ -875,6 +877,7 @@ class BenkOversiktPostgresRepoTest {
                 varselSendt = null,
                 saksbehandler = null,
                 beslutter = null,
+                venter = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(opprettetTilbakekreving)
 
@@ -892,6 +895,7 @@ class BenkOversiktPostgresRepoTest {
                 varselSendt = null,
                 saksbehandler = null,
                 beslutter = null,
+                venter = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(avsluttetTilbakekreving)
 
@@ -970,6 +974,7 @@ class BenkOversiktPostgresRepoTest {
                     varselSendt = null,
                     saksbehandler = null,
                     beslutter = null,
+                    venter = null,
                 ),
             )
 
@@ -987,6 +992,7 @@ class BenkOversiktPostgresRepoTest {
                 varselSendt = null,
                 saksbehandler = null,
                 beslutter = null,
+                venter = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilbakekrevingOverMinstebeløp)
 
@@ -1051,6 +1057,7 @@ class BenkOversiktPostgresRepoTest {
                 varselSendt = null,
                 saksbehandler = null,
                 beslutter = null,
+                venter = null,
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilbakekreving)
 

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter.TilbakekrevingVentegrunn
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
@@ -483,6 +484,241 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val tilbakekrevingBehandling = tilbakekrevingBehandlinger.first()
             tilbakekrevingBehandling.sakId shouldBe sakMedOpphør.id
             tilbakekrevingBehandling.status shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
+        }
+    }
+
+    @Test
+    fun `behandlingendret med venter - persisterer venter på hendelse og behandling`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
+
+            // Opprett først en TilbakekrevingBehandling via InfoBehov-flyten
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            val opprettetBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            opprettetBehandling.venter shouldBe null
+
+            // Send en behandling_endret-hendelse med venter satt
+            val tilbakeBehandlingId = opprettetBehandling.tilbakeBehandlingId
+            val eksternBehandlingId = opphørVedtak.behandlingId
+            val gjenopptas = LocalDate.now(tac.clock).plusWeeks(2)
+
+            @Language("JSON")
+            val hendelseMedVenterJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sakMedOpphør.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": "${LocalDate.now(tac.clock)}",
+                        "behandlingsstatus": "TIL_BEHANDLING",
+                        "forrigeBehandlingsstatus": "OPPRETTET",
+                        "totaltFeilutbetaltBeløp": 1500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/venter",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        },
+                        "venter": {
+                            "grunn": "AVVENTER_BRUKERUTTALELSE",
+                            "gjenopptas": "$gjenopptas"
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, hendelseMedVenterJson)
+
+            // Verifiser at venter er persistert på hendelsen i db (i jsonb-kolonnen `behandling`)
+            val hendelseMedVenter = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single()
+            hendelseMedVenter.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
+            hendelseMedVenter.venter.shouldNotBeNull()
+            hendelseMedVenter.venter.grunn shouldBe TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
+            hendelseMedVenter.venter.gjenopptas shouldBe gjenopptas
+
+            // Kjør jobben slik at hendelsen materialiseres på TilbakekrevingBehandling
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            // Verifiser at behandlingen i db nå har venter satt
+            val oppdatertBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            oppdatertBehandling.id shouldBe opprettetBehandling.id
+            oppdatertBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
+            oppdatertBehandling.venter.shouldNotBeNull()
+            oppdatertBehandling.venter.grunn shouldBe TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
+            oppdatertBehandling.venter.gjenopptas shouldBe gjenopptas
+        }
+    }
+
+    @Test
+    fun `behandlingendret - venter fjernes når ikke lenger satt i hendelse`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
+
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            val opprettetBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            val tilbakeBehandlingId = opprettetBehandling.tilbakeBehandlingId
+            val eksternBehandlingId = opphørVedtak.behandlingId
+            val gjenopptas = LocalDate.now(tac.clock).plusWeeks(2)
+
+            // Først: sett venter
+            @Language("JSON")
+            val medVenter = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sakMedOpphør.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "TIL_BEHANDLING",
+                        "forrigeBehandlingsstatus": "OPPRETTET",
+                        "totaltFeilutbetaltBeløp": 1500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/v",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        },
+                        "venter": {
+                            "grunn": "AVVENTER_BRUKERUTTALELSE",
+                            "gjenopptas": "$gjenopptas"
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, medVenter)
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single().venter.shouldNotBeNull()
+
+            // Så: send oppdatering uten venter (null)
+            @Language("JSON")
+            val utenVenter = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sakMedOpphør.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock).plusSeconds(1)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "TIL_BEHANDLING",
+                        "forrigeBehandlingsstatus": "TIL_BEHANDLING",
+                        "totaltFeilutbetaltBeløp": 1500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/v",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        },
+                        "venter": null
+                    }
+                }
+            """.trimIndent()
+
+            tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, utenVenter)
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            val etterFjerning = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            etterFjerning.venter shouldBe null
+        }
+    }
+
+    @Test
+    fun `postgres - behandlingendret med venter persisterer venter i db`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
+
+            // Etabler behandling via InfoBehov-flyten
+            tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            val opprettetBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            opprettetBehandling.venter shouldBe null
+
+            val tilbakeBehandlingId = opprettetBehandling.tilbakeBehandlingId
+            val eksternBehandlingId = opphørVedtak.behandlingId
+            val gjenopptas = LocalDate.now(tac.clock).plusWeeks(3)
+
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sakMedOpphør.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": "${LocalDate.now(tac.clock)}",
+                        "behandlingsstatus": "TIL_BEHANDLING",
+                        "forrigeBehandlingsstatus": "OPPRETTET",
+                        "totaltFeilutbetaltBeløp": 1500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/postgres-venter",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        },
+                        "venter": {
+                            "grunn": "AVVENTER_BRUKERUTTALELSE",
+                            "gjenopptas": "$gjenopptas"
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, hendelseJson)
+
+            // Verifiser at hendelsen ble persistert med venter (lest tilbake fra Postgres)
+            val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+                .filterIsInstance<TilbakekrevingBehandlingEndretHendelse>()
+                .single()
+            hendelse.venter.shouldNotBeNull()
+            hendelse.venter.grunn shouldBe TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
+            hendelse.venter.gjenopptas shouldBe gjenopptas
+
+            // Kjør jobben og verifiser at behandlingen i Postgres nå har venter satt
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            val oppdatertBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            oppdatertBehandling.venter.shouldNotBeNull()
+            oppdatertBehandling.venter.grunn shouldBe TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
+            oppdatertBehandling.venter.gjenopptas shouldBe gjenopptas
         }
     }
 }

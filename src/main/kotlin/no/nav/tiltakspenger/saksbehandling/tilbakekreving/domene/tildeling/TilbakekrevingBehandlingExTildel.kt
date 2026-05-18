@@ -13,7 +13,9 @@ fun TilbakekrevingBehandling.tildel(saksbehandler: Saksbehandler, clock: Clock):
     val sistEndret = nå(clock)
 
     return when (statusIntern) {
-        TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING -> {
+        TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
+        TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
+        -> {
             require(this.saksbehandler == null) {
                 "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er TIL_BEHANDLING"
             }
@@ -43,6 +45,7 @@ fun TilbakekrevingBehandling.tildel(saksbehandler: Saksbehandler, clock: Clock):
             )
         }
 
+        TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
         TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
         TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING,
         -> throw IllegalStateException(

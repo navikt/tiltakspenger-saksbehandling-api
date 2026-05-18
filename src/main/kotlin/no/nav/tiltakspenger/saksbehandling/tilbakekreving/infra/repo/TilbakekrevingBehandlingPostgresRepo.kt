@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 
@@ -35,7 +34,8 @@ class TilbakekrevingBehandlingPostgresRepo(
                         totalt_feilutbetalt_beløp,
                         varsel_sendt,
                         saksbehandler_ident,
-                        beslutter_ident
+                        beslutter_ident,
+                        venter
                     ) VALUES (
                         :id,
                         :sak_id,
@@ -49,7 +49,8 @@ class TilbakekrevingBehandlingPostgresRepo(
                         :totalt_feilutbetalt_belop,
                         :varsel_sendt,
                         :saksbehandler_ident,
-                        :beslutter_ident
+                        :beslutter_ident,
+                        :venter::jsonb
                     )
                     ON CONFLICT (id) DO UPDATE SET
                         status = :status,
@@ -59,7 +60,8 @@ class TilbakekrevingBehandlingPostgresRepo(
                         varsel_sendt = :varsel_sendt,
                         sist_endret = :sist_endret,
                         saksbehandler_ident = :saksbehandler_ident,
-                        beslutter_ident = :beslutter_ident
+                        beslutter_ident = :beslutter_ident,
+                        venter = :venter::jsonb
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "sak_id" to tilbakekrevingBehandling.sakId.toString(),
@@ -67,13 +69,14 @@ class TilbakekrevingBehandlingPostgresRepo(
                     "tilbake_behandling_id" to tilbakekrevingBehandling.tilbakeBehandlingId,
                     "opprettet" to tilbakekrevingBehandling.opprettet,
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
-                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "status" to tilbakekrevingBehandling.status.tilDbString(),
                     "url" to tilbakekrevingBehandling.url,
                     "kravgrunnlag_periode" to tilbakekrevingBehandling.kravgrunnlagTotalPeriode.tilDbPeriode(),
                     "totalt_feilutbetalt_belop" to tilbakekrevingBehandling.totaltFeilutbetaltBeløp,
                     "varsel_sendt" to tilbakekrevingBehandling.varselSendt,
                     "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandler,
                     "beslutter_ident" to tilbakekrevingBehandling.beslutter,
+                    "venter" to tilbakekrevingBehandling.venter?.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -82,8 +85,8 @@ class TilbakekrevingBehandlingPostgresRepo(
     override fun taBehandlingSaksbehandler(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
+    ): Boolean =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -96,18 +99,17 @@ class TilbakekrevingBehandlingPostgresRepo(
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandler,
-                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "status" to tilbakekrevingBehandling.status.tilDbString(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
-    }
 
     override fun taBehandlingBeslutter(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
+    ): Boolean =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -119,19 +121,18 @@ class TilbakekrevingBehandlingPostgresRepo(
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "beslutter_ident" to tilbakekrevingBehandling.beslutter,
-                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "status" to tilbakekrevingBehandling.status.tilDbString(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
-    }
 
     override fun overtaSaksbehandler(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         nåværendeSaksbehandler: String,
         sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
+    ): Boolean =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -148,14 +149,13 @@ class TilbakekrevingBehandlingPostgresRepo(
                 ).asUpdate,
             ) > 0
         }
-    }
 
     override fun overtaBeslutter(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         nåværendeBeslutter: String,
         sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
+    ): Boolean =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -171,14 +171,13 @@ class TilbakekrevingBehandlingPostgresRepo(
                 ).asUpdate,
             ) > 0
         }
-    }
 
     override fun leggTilbakeSaksbehandler(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         nåværendeSaksbehandler: String,
         sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
+    ): Boolean =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -190,19 +189,18 @@ class TilbakekrevingBehandlingPostgresRepo(
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "naverende_saksbehandler" to nåværendeSaksbehandler,
-                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "status" to tilbakekrevingBehandling.status.tilDbString(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
-    }
 
     override fun leggTilbakeBeslutter(
         tilbakekrevingBehandling: TilbakekrevingBehandling,
         nåværendeBeslutter: String,
         sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
+    ): Boolean =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -214,15 +212,14 @@ class TilbakekrevingBehandlingPostgresRepo(
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "naverende_beslutter" to nåværendeBeslutter,
-                    "status" to tilbakekrevingBehandling.status.tilDb(),
+                    "status" to tilbakekrevingBehandling.status.tilDbString(),
                     "sist_endret" to tilbakekrevingBehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
-    }
 
-    override fun hent(id: TilbakekrevingId, sessionContext: SessionContext?): TilbakekrevingBehandling? {
-        return sessionFactory.withSession(sessionContext) { session ->
+    override fun hent(id: TilbakekrevingId, sessionContext: SessionContext?): TilbakekrevingBehandling? =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -234,10 +231,9 @@ class TilbakekrevingBehandlingPostgresRepo(
                 ).map { row -> row.tilTilbakekrevingBehandling() }.asSingle,
             )
         }
-    }
 
-    override fun hentForTilbakeBehandlingId(id: String, sessionContext: SessionContext?): TilbakekrevingBehandling? {
-        return sessionFactory.withSession(sessionContext) { session ->
+    override fun hentForTilbakeBehandlingId(id: String, sessionContext: SessionContext?): TilbakekrevingBehandling? =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -249,19 +245,15 @@ class TilbakekrevingBehandlingPostgresRepo(
                 ).map { row -> row.tilTilbakekrevingBehandling() }.asSingle,
             )
         }
-    }
 
-    override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
-        return sessionFactory.withSession(sessionContext) { session ->
-            hentForSakId(sakId, session)
-        }
-    }
+    override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> =
+        sessionFactory.withSession(sessionContext) { session -> hentForSakId(sakId, session) }
 
     override fun hentForUtbetalingId(
         utbetalingId: UtbetalingId,
         sessionContext: SessionContext?,
-    ): List<TilbakekrevingBehandling> {
-        return sessionFactory.withSession(sessionContext) { session ->
+    ): List<TilbakekrevingBehandling> =
+        sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
@@ -273,11 +265,10 @@ class TilbakekrevingBehandlingPostgresRepo(
                 ).map { row -> row.tilTilbakekrevingBehandling() }.asList,
             )
         }
-    }
 
     companion object {
-        fun hentForSakId(sakId: SakId, session: Session): List<TilbakekrevingBehandling> {
-            return session.run(
+        fun hentForSakId(sakId: SakId, session: Session): List<TilbakekrevingBehandling> =
+            session.run(
                 sqlQuery(
                     """
                     SELECT *
@@ -287,48 +278,23 @@ class TilbakekrevingBehandlingPostgresRepo(
                     "sak_id" to sakId.toString(),
                 ).map { row -> row.tilTilbakekrevingBehandling() }.asList,
             )
-        }
-
-        private fun Row.tilTilbakekrevingBehandling(): TilbakekrevingBehandling {
-            return TilbakekrevingBehandling(
-                id = TilbakekrevingId.fromString(string("id")),
-                sakId = SakId.fromString(string("sak_id")),
-                utbetalingId = UtbetalingId.fromString(string("utbetaling_id")),
-                tilbakeBehandlingId = string("tilbake_behandling_id"),
-                opprettet = localDateTime("opprettet"),
-                sistEndret = localDateTime("sist_endret"),
-                status = TilbakekrevingBehandlingsstatusDb.valueOf(string("status")).tilDomene(),
-                url = string("url"),
-                kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
-                totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
-                varselSendt = localDateOrNull("varsel_sendt"),
-                saksbehandler = stringOrNull("saksbehandler_ident"),
-                beslutter = stringOrNull("beslutter_ident"),
-            )
-        }
     }
 }
 
-private enum class TilbakekrevingBehandlingsstatusDb {
-    OPPRETTET,
-    TIL_BEHANDLING,
-    TIL_GODKJENNING,
-    AVSLUTTET,
-    ;
-
-    fun tilDomene() = when (this) {
-        OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
-        TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-        TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
-        AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
-    }
-}
-
-private fun TilbakekrevingBehandlingsstatus.tilDb(): String {
-    return when (this) {
-        TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusDb.OPPRETTET
-        TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> TilbakekrevingBehandlingsstatusDb.TIL_BEHANDLING
-        TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingsstatusDb.TIL_GODKJENNING
-        TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingsstatusDb.AVSLUTTET
-    }.name
-}
+fun Row.tilTilbakekrevingBehandling(): TilbakekrevingBehandling =
+    TilbakekrevingBehandling(
+        id = TilbakekrevingId.fromString(string("id")),
+        sakId = SakId.fromString(string("sak_id")),
+        utbetalingId = UtbetalingId.fromString(string("utbetaling_id")),
+        tilbakeBehandlingId = string("tilbake_behandling_id"),
+        opprettet = localDateTime("opprettet"),
+        sistEndret = localDateTime("sist_endret"),
+        status = TilbakekrevingBehandlingsstatusDb.valueOf(string("status")).tilDomene(),
+        url = string("url"),
+        kravgrunnlagTotalPeriode = periode("kravgrunnlag_periode"),
+        totaltFeilutbetaltBeløp = bigDecimal("totalt_feilutbetalt_beløp"),
+        varselSendt = localDateOrNull("varsel_sendt"),
+        saksbehandler = stringOrNull("saksbehandler_ident"),
+        beslutter = stringOrNull("beslutter_ident"),
+        venter = stringOrNull("venter")?.tilTilbakekrevingVenter(),
+    )

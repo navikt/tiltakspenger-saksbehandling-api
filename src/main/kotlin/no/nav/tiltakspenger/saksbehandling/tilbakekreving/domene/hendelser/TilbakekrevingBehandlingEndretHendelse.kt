@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -25,6 +26,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
     val totaltFeilutbetaltBeløp: BigDecimal,
     val url: String,
     val fullstendigPeriode: Periode,
+    val venter: TilbakekrevingVenter?,
 ) : Tilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevinghendelseType.BehandlingEndret
 
@@ -61,6 +63,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
             varselSendt = varselSendt,
             totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,
             sistEndret = opprettet,
+            venter = venter,
         )
     }
 
@@ -69,6 +72,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
             behandling.kravgrunnlagTotalPeriode != fullstendigPeriode ||
             behandling.url !== url ||
             behandling.varselSendt != varselSendt ||
-            behandling.totaltFeilutbetaltBeløp != totaltFeilutbetaltBeløp
+            behandling.totaltFeilutbetaltBeløp != totaltFeilutbetaltBeløp ||
+            behandling.venter != venter
     }
 }

@@ -163,6 +163,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 varselSendt = hendelse.varselSendt,
                 saksbehandler = null,
                 beslutter = null,
+                venter = hendelse.venter,
             )
         }
 

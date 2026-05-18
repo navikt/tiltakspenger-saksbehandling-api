@@ -4,22 +4,15 @@ import kotliquery.Row
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
-import java.math.BigDecimal
 import java.time.Clock
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class TilbakekrevingHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -82,7 +75,7 @@ class TilbakekrevingHendelsePostgresRepo(
                         is TilbakekrevingBehandlingEndretHendelse -> arrayOf(
                             "hendelse_type" to HendelsetypeDb.BehandlingEndret.toString(),
                             "ekstern_behandling_id" to hendelse.eksternBehandlingId,
-                            "behandling" to hendelse.tilDbBehandling(),
+                            "behandling" to hendelse.tilDbBehandlingJson(),
                         )
                     },
                 ).asUpdate,
@@ -91,8 +84,8 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    override fun hentUbehandledeHendelser(): List<Tilbakekrevingshendelse> {
-        return sessionFactory.withSession { session ->
+    override fun hentUbehandledeHendelser(): List<Tilbakekrevingshendelse> =
+        sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
                     """
@@ -104,7 +97,6 @@ class TilbakekrevingHendelsePostgresRepo(
                 ).map { row -> row.tilTilbakekrevingshendelse() }.asList,
             )
         }
-    }
 
     override fun markerInfoBehovSomBehandlet(
         hendelseId: TilbakekrevinghendelseId,
@@ -173,8 +165,8 @@ class TilbakekrevingHendelsePostgresRepo(
     }
 
     // Benyttes kun for tester, da vi normalt ikke trenger å hente en spesifikk hendelse
-    override fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse? {
-        return sessionFactory.withSession { session ->
+    override fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse? =
+        sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
                     """
@@ -186,55 +178,6 @@ class TilbakekrevingHendelsePostgresRepo(
                 ).map { row -> row.tilTilbakekrevingshendelse() }.asSingle,
             )
         }
-    }
-
-    private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
-        val hendelsestype = HendelsetypeDb.valueOf(string("hendelse_type"))
-        val id = TilbakekrevinghendelseId.fromString(string("id"))
-        val opprettet = localDateTime("opprettet")
-        val eksternFagsakId = string("ekstern_fagsak_id")
-
-        val sakId = stringOrNull("sak_id")?.let { SakId.fromString(it) }
-        val behandlet = localDateTimeOrNull("behandlet")
-        val feil = stringOrNull("behandlet_feil")?.let { TilbakekrevinghendelseFeilDb.valueOf(it).tilDomene() }
-
-        return when (hendelsestype) {
-            HendelsetypeDb.InfoBehov -> {
-                TilbakekrevingInfoBehovHendelse(
-                    id = id,
-                    opprettet = opprettet,
-                    behandlet = behandlet,
-                    sakId = sakId,
-                    svar = stringOrNull("svar")?.let { deserialize(it) },
-                    eksternFagsakId = eksternFagsakId,
-                    kravgrunnlagReferanse = string("kravgrunnlag_referanse"),
-                    feil = feil,
-                )
-            }
-
-            HendelsetypeDb.BehandlingEndret -> {
-                val behandling = deserialize<TilbakekrevingBehandlingDb>(string("behandling"))
-
-                TilbakekrevingBehandlingEndretHendelse(
-                    id = id,
-                    opprettet = opprettet,
-                    behandlet = behandlet,
-                    sakId = sakId,
-                    eksternFagsakId = eksternFagsakId,
-                    eksternBehandlingId = string("ekstern_behandling_id"),
-                    tilbakeBehandlingId = behandling.behandlingId,
-                    sakOpprettet = behandling.sakOpprettet,
-                    varselSendt = behandling.varselSendt,
-                    behandlingsstatus = behandling.behandlingsstatus.tilDomene(),
-                    forrigeBehandlingsstatus = behandling.forrigeBehandlingsstatus?.tilDomene(),
-                    totaltFeilutbetaltBeløp = behandling.totaltFeilutbetaltBeløp,
-                    url = behandling.saksbehandlingURL,
-                    fullstendigPeriode = behandling.fullstendigPeriode.toDomain(),
-                    feil = feil,
-                )
-            }
-        }
-    }
 }
 
 private enum class HendelsetypeDb {
@@ -242,76 +185,47 @@ private enum class HendelsetypeDb {
     BehandlingEndret,
 }
 
-private data class TilbakekrevingBehandlingDb(
-    val behandlingId: String,
-    val sakOpprettet: LocalDateTime,
-    val varselSendt: LocalDate?,
-    val behandlingsstatus: BehandlingsstatusDb,
-    val forrigeBehandlingsstatus: BehandlingsstatusDb?,
-    val totaltFeilutbetaltBeløp: BigDecimal,
-    val saksbehandlingURL: String,
-    val fullstendigPeriode: PeriodeDbJson,
-) {
+private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
+    val hendelsestype = HendelsetypeDb.valueOf(string("hendelse_type"))
+    val id = TilbakekrevinghendelseId.fromString(string("id"))
+    val opprettet = localDateTime("opprettet")
+    val eksternFagsakId = string("ekstern_fagsak_id")
+    val sakId = stringOrNull("sak_id")?.let { SakId.fromString(it) }
+    val behandlet = localDateTimeOrNull("behandlet")
+    val feil = stringOrNull("behandlet_feil")?.let { TilbakekrevinghendelseFeilDb.valueOf(it).tilDomene() }
 
-    enum class BehandlingsstatusDb {
-        OPPRETTET,
-        TIL_BEHANDLING,
-        TIL_GODKJENNING,
-        AVSLUTTET,
-        ;
+    return when (hendelsestype) {
+        HendelsetypeDb.InfoBehov -> TilbakekrevingInfoBehovHendelse(
+            id = id,
+            opprettet = opprettet,
+            behandlet = behandlet,
+            sakId = sakId,
+            svar = stringOrNull("svar")?.let { deserialize(it) },
+            eksternFagsakId = eksternFagsakId,
+            kravgrunnlagReferanse = string("kravgrunnlag_referanse"),
+            feil = feil,
+        )
 
-        fun tilDomene(): TilbakekrevingBehandlingsstatus {
-            return when (this) {
-                OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
-                TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
-                TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
-                AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
-            }
+        HendelsetypeDb.BehandlingEndret -> {
+            val behandling = deserialize<TilbakekrevingHendelseBehandlingDb>(string("behandling"))
+            TilbakekrevingBehandlingEndretHendelse(
+                id = id,
+                opprettet = opprettet,
+                behandlet = behandlet,
+                sakId = sakId,
+                eksternFagsakId = eksternFagsakId,
+                eksternBehandlingId = string("ekstern_behandling_id"),
+                tilbakeBehandlingId = behandling.behandlingId,
+                sakOpprettet = behandling.sakOpprettet,
+                varselSendt = behandling.varselSendt,
+                behandlingsstatus = behandling.behandlingsstatus.tilDomene(),
+                forrigeBehandlingsstatus = behandling.forrigeBehandlingsstatus?.tilDomene(),
+                totaltFeilutbetaltBeløp = behandling.totaltFeilutbetaltBeløp,
+                url = behandling.saksbehandlingURL,
+                fullstendigPeriode = behandling.fullstendigPeriode.toDomain(),
+                feil = feil,
+                venter = behandling.venter?.tilDomene(),
+            )
         }
     }
-}
-
-private fun TilbakekrevingBehandlingEndretHendelse.tilDbBehandling(): String {
-    return TilbakekrevingBehandlingDb(
-        behandlingId = tilbakeBehandlingId,
-        sakOpprettet = sakOpprettet,
-        varselSendt = varselSendt,
-        behandlingsstatus = behandlingsstatus.tilDb(),
-        forrigeBehandlingsstatus = forrigeBehandlingsstatus?.tilDb(),
-        totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,
-        saksbehandlingURL = url,
-        fullstendigPeriode = fullstendigPeriode.toDbJson(),
-    ).let { serialize(it) }
-}
-
-private fun TilbakekrevingBehandlingsstatus.tilDb(): TilbakekrevingBehandlingDb.BehandlingsstatusDb {
-    return when (this) {
-        TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.OPPRETTET
-        TilbakekrevingBehandlingsstatus.TIL_BEHANDLING -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.TIL_BEHANDLING
-        TilbakekrevingBehandlingsstatus.TIL_GODKJENNING -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.TIL_GODKJENNING
-        TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingDb.BehandlingsstatusDb.AVSLUTTET
-    }
-}
-
-enum class TilbakekrevinghendelseFeilDb {
-    FantIkkeSak,
-    FantIkkeBehandling,
-    FantIkkeUtbetaling,
-    ;
-
-    fun tilDomene(): TilbakekrevinghendelseFeil {
-        return when (this) {
-            FantIkkeSak -> TilbakekrevinghendelseFeil.FantIkkeSak
-            FantIkkeBehandling -> TilbakekrevinghendelseFeil.FantIkkeBehandling
-            FantIkkeUtbetaling -> TilbakekrevinghendelseFeil.FantIkkeUtbetaling
-        }
-    }
-}
-
-private fun TilbakekrevinghendelseFeil.tilDb(): String {
-    return when (this) {
-        TilbakekrevinghendelseFeil.FantIkkeSak -> TilbakekrevinghendelseFeilDb.FantIkkeSak
-        TilbakekrevinghendelseFeil.FantIkkeBehandling -> TilbakekrevinghendelseFeilDb.FantIkkeBehandling
-        TilbakekrevinghendelseFeil.FantIkkeUtbetaling -> TilbakekrevinghendelseFeilDb.FantIkkeUtbetaling
-    }.toString()
 }
