@@ -38,6 +38,12 @@ data class TilbakekrevingBehandling(
         when (status) {
             TilbakekrevingBehandlingsstatus.OPPRETTET -> TilbakekrevingBehandlingsstatusIntern.OPPRETTET
 
+            TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL -> if (saksbehandler != null) {
+                TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING
+            } else {
+                TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL
+            }
+
             TilbakekrevingBehandlingsstatus.TIL_BEHANDLING ->
                 if (saksbehandler != null) {
                     TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING
@@ -53,8 +59,6 @@ data class TilbakekrevingBehandling(
                 }
 
             TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingsstatusIntern.AVSLUTTET
-
-            TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL -> TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL
         }
     }
 
@@ -68,13 +72,17 @@ data class TilbakekrevingBehandling(
 
         return buildList {
             when (statusIntern) {
-                TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING -> {
+                TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
+                TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
+                -> {
                     if (erSaksbehandler) {
                         add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
                     }
                 }
 
-                TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> {
+                TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+                TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+                -> {
                     if (tildeltSaksbehandler == navIdent) {
                         add(SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler)
                     } else if (erSaksbehandler) {
@@ -98,7 +106,6 @@ data class TilbakekrevingBehandling(
 
                 TilbakekrevingBehandlingsstatusIntern.OPPRETTET,
                 TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,
-                TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
                 -> {
                     /* Ingen gyldige kommandoer */
                 }

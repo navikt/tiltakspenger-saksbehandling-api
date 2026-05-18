@@ -36,6 +36,7 @@ data class TilbakekrevingBehandlingDTO(
     enum class TilbakekrevingBehandlingsstatusDTO {
         OPPRETTET,
         TIL_FORHÅNDSVARSEL,
+        UNDER_FORHÅNDSVARSLING,
         TIL_BEHANDLING,
         UNDER_BEHANDLING,
         TIL_GODKJENNING,
@@ -46,6 +47,7 @@ data class TilbakekrevingBehandlingDTO(
 
 private fun TilbakekrevingBehandlingsstatusIntern.tilDTO() = when (this) {
     TilbakekrevingBehandlingsstatusIntern.OPPRETTET -> TilbakekrevingBehandlingsstatusDTO.OPPRETTET
+    TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING -> TilbakekrevingBehandlingsstatusDTO.UNDER_FORHÅNDSVARSLING
     TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL -> TilbakekrevingBehandlingsstatusDTO.TIL_FORHÅNDSVARSEL
     TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING -> TilbakekrevingBehandlingsstatusDTO.TIL_BEHANDLING
     TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> TilbakekrevingBehandlingsstatusDTO.UNDER_BEHANDLING

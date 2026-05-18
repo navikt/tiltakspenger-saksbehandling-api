@@ -11,6 +11,7 @@ enum class TilbakekrevingBehandlingsstatus {
 enum class TilbakekrevingBehandlingsstatusIntern {
     OPPRETTET,
     TIL_FORHÅNDSVARSEL,
+    UNDER_FORHÅNDSVARSLING,
     TIL_BEHANDLING,
     UNDER_BEHANDLING,
     TIL_GODKJENNING,

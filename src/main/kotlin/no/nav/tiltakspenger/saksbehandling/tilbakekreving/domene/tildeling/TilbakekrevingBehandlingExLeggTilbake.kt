@@ -11,7 +11,9 @@ fun TilbakekrevingBehandling.leggTilbake(saksbehandler: Saksbehandler, clock: Cl
     val sistEndret = nå(clock)
 
     return when (statusIntern) {
-        TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> {
+        TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+        TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+        -> {
             require(this.saksbehandler == saksbehandler.navIdent) {
                 "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen. tilbakekrevingId: $id"
             }
@@ -34,10 +36,10 @@ fun TilbakekrevingBehandling.leggTilbake(saksbehandler: Saksbehandler, clock: Cl
         }
 
         TilbakekrevingBehandlingsstatusIntern.OPPRETTET,
+        TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
         TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
         TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING,
         TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,
-        TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
         -> throw IllegalArgumentException(
             "Kan ikke legge tilbake behandling med status $status. tilbakekrevingId: $id",
         )
