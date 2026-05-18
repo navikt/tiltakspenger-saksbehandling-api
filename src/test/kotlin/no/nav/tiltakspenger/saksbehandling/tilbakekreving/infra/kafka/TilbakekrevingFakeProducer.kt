@@ -103,6 +103,7 @@ class TilbakekrevingFakeProducer(
                     fom = periode.fraOgMed,
                     tom = periode.tilOgMed,
                 ),
+                venter = null,
             ),
         )
 

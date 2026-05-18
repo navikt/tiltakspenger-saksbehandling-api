@@ -37,6 +37,7 @@ fun TilbakekrevingBehandling.leggTilbake(saksbehandler: Saksbehandler, clock: Cl
         TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
         TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING,
         TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,
+        TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
         -> throw IllegalArgumentException(
             "Kan ikke legge tilbake behandling med status $status. tilbakekrevingId: $id",
         )

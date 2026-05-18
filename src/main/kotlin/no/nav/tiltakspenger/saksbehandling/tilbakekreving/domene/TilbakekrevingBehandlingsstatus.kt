@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene
 
 enum class TilbakekrevingBehandlingsstatus {
     OPPRETTET,
+    TIL_FORHÅNDSVARSEL,
     TIL_BEHANDLING,
     TIL_GODKJENNING,
     AVSLUTTET,
@@ -9,6 +10,7 @@ enum class TilbakekrevingBehandlingsstatus {
 
 enum class TilbakekrevingBehandlingsstatusIntern {
     OPPRETTET,
+    TIL_FORHÅNDSVARSEL,
     TIL_BEHANDLING,
     UNDER_BEHANDLING,
     TIL_GODKJENNING,

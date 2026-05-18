@@ -50,6 +50,7 @@ fun TilbakekrevingBehandling.tildel(saksbehandler: Saksbehandler, clock: Clock):
         )
 
         TilbakekrevingBehandlingsstatusIntern.OPPRETTET,
+        TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
         TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,
         -> throw IllegalArgumentException(
             "Kan ikke ta behandling når behandlingen har status $status. tilbakekrevingId: $id",

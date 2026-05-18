@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.dto.TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -34,6 +35,7 @@ data class TilbakekrevingBehandlingDTO(
 
     enum class TilbakekrevingBehandlingsstatusDTO {
         OPPRETTET,
+        TIL_FORHÅNDSVARSEL,
         TIL_BEHANDLING,
         UNDER_BEHANDLING,
         TIL_GODKJENNING,
@@ -43,12 +45,13 @@ data class TilbakekrevingBehandlingDTO(
 }
 
 private fun TilbakekrevingBehandlingsstatusIntern.tilDTO() = when (this) {
-    TilbakekrevingBehandlingsstatusIntern.OPPRETTET -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.OPPRETTET
-    TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.TIL_BEHANDLING
-    TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.UNDER_BEHANDLING
-    TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.TIL_GODKJENNING
-    TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.UNDER_GODKJENNING
-    TilbakekrevingBehandlingsstatusIntern.AVSLUTTET -> TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO.AVSLUTTET
+    TilbakekrevingBehandlingsstatusIntern.OPPRETTET -> TilbakekrevingBehandlingsstatusDTO.OPPRETTET
+    TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL -> TilbakekrevingBehandlingsstatusDTO.TIL_FORHÅNDSVARSEL
+    TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING -> TilbakekrevingBehandlingsstatusDTO.TIL_BEHANDLING
+    TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING -> TilbakekrevingBehandlingsstatusDTO.UNDER_BEHANDLING
+    TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING -> TilbakekrevingBehandlingsstatusDTO.TIL_GODKJENNING
+    TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING -> TilbakekrevingBehandlingsstatusDTO.UNDER_GODKJENNING
+    TilbakekrevingBehandlingsstatusIntern.AVSLUTTET -> TilbakekrevingBehandlingsstatusDTO.AVSLUTTET
 }
 
 fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(

@@ -53,6 +53,7 @@ fun TilbakekrevingBehandling.overta(saksbehandler: Saksbehandler, clock: Clock):
         TilbakekrevingBehandlingsstatusIntern.TIL_BEHANDLING,
         TilbakekrevingBehandlingsstatusIntern.TIL_GODKJENNING,
         TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,
+        TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
         -> throw IllegalArgumentException(
             "Kan ikke overta behandling med status $status. Bruk ta() for å ta en ledig behandling. tilbakekrevingId: $id",
         )

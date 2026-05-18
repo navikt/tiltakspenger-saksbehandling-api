@@ -31,6 +31,7 @@ data class TilbakekrevingBehandling(
     val varselSendt: LocalDate?,
     val saksbehandler: String?,
     val beslutter: String?,
+    val venter: TilbakekrevingVenter?,
 ) {
 
     val statusIntern: TilbakekrevingBehandlingsstatusIntern by lazy {
@@ -52,6 +53,8 @@ data class TilbakekrevingBehandling(
                 }
 
             TilbakekrevingBehandlingsstatus.AVSLUTTET -> TilbakekrevingBehandlingsstatusIntern.AVSLUTTET
+
+            TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL -> TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL
         }
     }
 
@@ -95,6 +98,7 @@ data class TilbakekrevingBehandling(
 
                 TilbakekrevingBehandlingsstatusIntern.OPPRETTET,
                 TilbakekrevingBehandlingsstatusIntern.AVSLUTTET,
+                TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL,
                 -> {
                     /* Ingen gyldige kommandoer */
                 }
