@@ -50,7 +50,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         :varsel_sendt,
                         :saksbehandler_ident,
                         :beslutter_ident,
-                        to_jsonb(:venter::jsonb)
+                        :venter::jsonb
                     )
                     ON CONFLICT (id) DO UPDATE SET
                         status = :status,
@@ -61,7 +61,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         sist_endret = :sist_endret,
                         saksbehandler_ident = :saksbehandler_ident,
                         beslutter_ident = :beslutter_ident,
-                        venter = to_jsonb(:venter::jsonb)
+                        venter = :venter::jsonb
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "sak_id" to tilbakekrevingBehandling.sakId.toString(),
