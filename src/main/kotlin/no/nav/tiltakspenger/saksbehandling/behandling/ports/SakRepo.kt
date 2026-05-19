@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.ports
 
+import arrow.core.Nel
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -39,6 +40,17 @@ interface SakRepo {
         saksnummer: Saksnummer,
         sessionContext: SessionContext? = null,
     ): SakId?
+
+    /**
+     * Laget i utgangspunktet for PDL sin personhendelse topic, der vi kan få en liste av identer (fnr/d-nummer/aktørId, både historiske og aktive) som alle refererer til samme person.
+     *
+     * @return null dersom ingen av [personidenter] har en sak.
+     * @throws IllegalStateException dersom vi får treff på flere enn 1 sak.
+     */
+    fun hentSakIdForPersonidenter(
+        personidenter: Nel<String>,
+        sessionContext: SessionContext? = null,
+    ): Pair<Fnr, SakId>?
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 
