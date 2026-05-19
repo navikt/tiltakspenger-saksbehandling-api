@@ -18,6 +18,7 @@ data class MeldeperiodeBeregningDTO(
     val periode: PeriodeDTO,
     val beløp: BeløpDTO,
     val dager: List<MeldeperiodeBeregningDagDTO>,
+    val beregningKilde: BeregningKildeDTO,
 )
 
 data class BeløpDTO(
@@ -36,5 +37,6 @@ fun MeldeperiodeBeregning.tilMeldeperiodeBeregningDTO(): MeldeperiodeBeregningDT
             barnetillegg = barnetilleggBeløp,
         ),
         dager = this.tilMeldeperiodeBeregningDagerDTO(),
+        beregningKilde = this.beregningKilde.tilBeregningKildeDTO(),
     )
 }
