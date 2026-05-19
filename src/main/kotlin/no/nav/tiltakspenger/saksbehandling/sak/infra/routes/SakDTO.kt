@@ -11,6 +11,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortVe
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.MeldekortbehandlingDTOV2
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.MeldeperiodeKjedeDTOV2
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldeperiodeKjederDTOV2
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
@@ -36,6 +40,7 @@ data class SakDTO(
     val fnr: String,
     val åpneBehandlinger: List<ÅpenBehandlingDTO>,
     val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
+    val meldeperiodeKjederV2: List<MeldeperiodeKjedeDTOV2>,
     val førsteDagSomGirRett: LocalDate?,
     val sisteDagSomGirRett: LocalDate?,
     val behandlinger: List<RammebehandlingDTO>,
@@ -45,6 +50,7 @@ data class SakDTO(
     val alleRammevedtak: List<RammevedtakDTO>,
     val alleKlagevedtak: List<KlagevedtakDTO>,
     val meldekortvedtak: List<MeldekortVedtakDto>,
+    val meldekortbehandlinger: List<MeldekortbehandlingDTOV2>,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
     val søknader: List<SøknadDTO>,
     val tilbakekrevinger: List<TilbakekrevingBehandlingDTO>,
@@ -56,7 +62,8 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     åpneBehandlinger = tilÅpneBehandlingerDTO(),
-    meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock = clock),
+    meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock),
+    meldeperiodeKjederV2 = tilMeldeperiodeKjederDTOV2(clock),
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
     behandlinger = this.tilBehandlingerDTO(),
@@ -72,4 +79,11 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     },
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
     meldekortvedtak = this.vedtaksliste.meldekortvedtaksliste.toDto(),
+    meldekortbehandlinger = meldekortbehandlinger.map {
+        it.tilMeldekortbehandlingDTOV2(
+            beregninger = this.meldeperiodeBeregninger,
+            hentVedtak = this.meldekortvedtaksliste::hentForMeldekortbehandling,
+            hentTilbakekreving = this::hentTilbakekrevingForMeldekortbehandling,
+        )
+    },
 )

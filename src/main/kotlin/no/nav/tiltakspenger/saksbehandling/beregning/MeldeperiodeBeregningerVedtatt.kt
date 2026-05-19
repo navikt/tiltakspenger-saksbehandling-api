@@ -9,7 +9,6 @@ import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
-import java.time.LocalDate
 
 /**
  *  Denne skal kun omfatte beregninger som er en del av et vedtak
@@ -33,12 +32,8 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
         gjeldendeBeregningPerKjede.values.toList()
     }
 
-    fun hentSisteForKjedeId(kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning {
-        return gjeldendeBeregningPerKjede[kjedeId]!!
-    }
-
-    fun hentSisteForKjedeIdOgDag(kjedeId: MeldeperiodeKjedeId, dag: LocalDate): MeldeperiodeBeregningDag {
-        return hentSisteForKjedeId(kjedeId).dager.single { it.dato == dag }
+    fun hentSisteForKjedeId(kjedeId: MeldeperiodeKjedeId): MeldeperiodeBeregning? {
+        return gjeldendeBeregningPerKjede[kjedeId]
     }
 
     /**

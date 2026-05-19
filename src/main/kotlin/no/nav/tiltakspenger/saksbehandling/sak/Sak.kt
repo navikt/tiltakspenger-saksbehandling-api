@@ -68,7 +68,7 @@ data class Sak(
         vedtaksliste.meldeperiodeBeregninger
     }
 
-    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */
     val førsteDagSomGirRett = rammevedtaksliste.førsteDagSomGirRett
 
     /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */

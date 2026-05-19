@@ -1,5 +1,6 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
+package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2
 
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -17,6 +18,14 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortBeregningDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingStatusDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingTypeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortBeregningDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagerDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.KanIkkeIverksetteUtbetalingDTO
@@ -28,7 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBer
 import java.time.LocalDateTime
 
 /**
- * V2 av [MeldekortbehandlingDTO]. Forskjellen fra V1 er at vi her støtter at en behandling kan
+ * V2 av [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingDTO]. Forskjellen fra V1 er at vi her støtter at en behandling kan
  * inneholde flere meldeperioder. De per-meldeperiode-spesifikke feltene er flyttet inn i
  * [MeldeperiodebehandlingDTO]. Felter som [beregning] og [simulertBeregning] forblir på toppnivå
  * fordi de gjelder hele meldekortbehandlingen samlet.
@@ -65,6 +74,7 @@ data class MeldekortbehandlingDTOV2(
 )
 
 data class MeldeperiodebehandlingDTO(
+    val meldekortbehandlingId: String,
     val meldeperiodeId: String,
     val kjedeId: String,
     /** Foreløpig satt kun for automatiske behandlinger som er knyttet til et brukers meldekort. */
@@ -75,11 +85,13 @@ data class MeldeperiodebehandlingDTO(
 
 fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
     beregninger: MeldeperiodeBeregningerVedtatt,
-    vedtak: Meldekortvedtak? = null,
-    tilbakekreving: TilbakekrevingBehandling? = null,
+    hentVedtak: (id: MeldekortId) -> Meldekortvedtak?,
+    hentTilbakekreving: (id: MeldekortId) -> TilbakekrevingBehandling?,
 ): MeldekortbehandlingDTOV2 {
+    val vedtak: Meldekortvedtak? = hentVedtak(id)
+
     require(status != MeldekortbehandlingStatus.GODKJENT || vedtak != null) {
-        "Meldekortvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
+        "Meldekortvedtak må finnes for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
     }
 
     return MeldekortbehandlingDTOV2(
@@ -89,7 +101,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         beslutter = beslutter,
         opprettet = opprettet,
         godkjentTidspunkt = vedtak?.opprettet ?: iverksattTidspunkt,
-        status = this.status.toStatusDTO(),
+        status = status.toStatusDTO(),
         erAvsluttet = erAvsluttet,
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
@@ -98,21 +110,22 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         attesteringer = attesteringer.toAttesteringDTO(),
         utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDtoV2(),
         periode = meldeperioder.totalPeriode.toDTO(),
-        meldeperioder = meldeperioder.map { it.tilMeldeperiodebehandlingDTO() },
+        meldeperioder = meldeperioder.map { it.tilMeldeperiodebehandlingDTO(this.id) },
         beregning = beregning?.tilMeldekortBeregningDTO(),
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
         kanIkkeIverksetteUtbetaling = this.validerKanIverksetteUtbetaling().leftOrNull()
             ?.tilKanIkkeIverksetteUtbetalingDTO(),
-        tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
-        tilbakekrevingId = tilbakekreving?.id?.toString(),
-        skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
-        ventestatus = this.ventestatus.ventestatusHendelser.tilDto(),
+        tekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+        tilbakekrevingId = hentTilbakekreving(id)?.id?.toString(),
+        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+        ventestatus = ventestatus.ventestatusHendelser.tilDto(),
     )
 }
 
-private fun Meldeperiodebehandling.tilMeldeperiodebehandlingDTO(): MeldeperiodebehandlingDTO {
+fun Meldeperiodebehandling.tilMeldeperiodebehandlingDTO(meldekortbehandlingId: MeldekortId): MeldeperiodebehandlingDTO {
     return MeldeperiodebehandlingDTO(
+        meldekortbehandlingId = meldekortbehandlingId.toString(),
         meldeperiodeId = meldeperiodeId.toString(),
         kjedeId = kjedeId.toString(),
         brukersMeldekortId = brukersMeldekort?.id?.toString(),

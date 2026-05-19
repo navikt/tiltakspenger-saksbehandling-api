@@ -23,7 +23,6 @@ data class MeldeperiodeKjedeDTO(
     val tiltaksnavn: List<String>,
     val meldeperioder: List<MeldeperiodeDTO>,
     val meldekortbehandlinger: List<MeldekortbehandlingDTO>,
-    val meldekortbehandlingerV2: List<MeldekortbehandlingDTOV2>,
     val brukersMeldekort: List<BrukersMeldekortDTO>,
     val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
     val avbrutteMeldekortbehandlinger: List<MeldekortbehandlingDTO>,
@@ -69,13 +68,6 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
         meldeperioder = meldeperiodeKjede.map { it.toMeldeperiodeDTO() },
         meldekortbehandlinger = meldekortbehandlinger.map {
             it.tilMeldekortbehandlingDTO(
-                beregninger = this.meldeperiodeBeregninger,
-                vedtak = this.meldekortvedtaksliste.hentForMeldekortbehandling(it.id),
-                tilbakekreving = this.hentTilbakekrevingForMeldekortbehandling(it.id),
-            )
-        },
-        meldekortbehandlingerV2 = meldekortbehandlinger.map {
-            it.tilMeldekortbehandlingDTOV2(
                 beregninger = this.meldeperiodeBeregninger,
                 vedtak = this.meldekortvedtaksliste.hentForMeldekortbehandling(it.id),
                 tilbakekreving = this.hentTilbakekrevingForMeldekortbehandling(it.id),
