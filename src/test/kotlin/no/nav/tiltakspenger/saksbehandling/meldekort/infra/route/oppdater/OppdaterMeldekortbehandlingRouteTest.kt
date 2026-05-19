@@ -179,6 +179,10 @@ class OppdaterMeldekortbehandlingRouteTest {
                           "status": "IKKE_RETT_TIL_TILTAKSPENGER"
                         }
                       ],
+                      "beregningKilde": {
+                        "id": "${meldekortbehandling.id}",
+                        "type": "MELDEKORT"
+                      },
                       "periode": {
                         "fraOgMed": "2025-03-31",
                         "tilOgMed": "2025-04-13"
