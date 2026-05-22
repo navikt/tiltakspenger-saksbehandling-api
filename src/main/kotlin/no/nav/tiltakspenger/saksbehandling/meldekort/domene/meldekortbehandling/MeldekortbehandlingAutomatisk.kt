@@ -19,8 +19,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -63,6 +65,7 @@ data class MeldekortBehandletAutomatisk(
     override val skalSendeVedtaksbrev: Boolean = true
 
     override val ventestatus: Ventestatus = Ventestatus()
+    override val klagebehandling: Klagebehandling? = null
 
     override val beregning: Beregning get() = meldeperioder.beregning!!
 
@@ -77,7 +80,7 @@ data class MeldekortBehandletAutomatisk(
     }
 
     override fun overta(
-        saksbehandler: Saksbehandler,
+        kommando: OvertaMeldekortbehandlingKommando,
         clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling> {
         return KunneIkkeOvertaMeldekortbehandling.KanIkkeOvertaAutomatiskBehandling.left()
@@ -89,6 +92,9 @@ data class MeldekortBehandletAutomatisk(
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {
         throw IllegalStateException("Kan ikke oppdatere simulering på automatisk behandlet meldekort")
+    }
+    override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {
+        throw IllegalStateException("Automatisk behandlet meldekort kan ikke ha klagebehandling")
     }
 }
 

@@ -75,9 +75,13 @@ fun Route.opprettMeldekortbehandlingRoute(
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 opprettMeldekortbehandlingService.opprettBehandling(
-                    kjedeId = kjedeId,
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
+                    no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                        sakId = sakId,
+                        kjedeId = kjedeId,
+                        saksbehandler = saksbehandler,
+                        klagebehandlingId = null,
+                        correlationId = correlationId,
+                    ),
                 ).fold(
                     {
                         when (it) {
@@ -89,6 +93,16 @@ fun Route.opprettMeldekortbehandlingRoute(
                             is KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil -> call.respond400BadRequest(
                                 melding = "Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: ${it.feil}",
                                 kode = it.feil.toString(),
+                            )
+
+                            is KanIkkeOppretteMeldekortbehandling.SaksbehandlerMismatch -> call.respond400BadRequest(
+                                melding = "Saksbehandler mismatch: forventet ${it.forventetSaksbehandler}",
+                                kode = "saksbehandler_mismatch",
+                            )
+
+                            is KanIkkeOppretteMeldekortbehandling.FinnesÅpenBehandling -> call.respond400BadRequest(
+                                melding = "Det finnes allerede en åpen behandling for klagen: ${it.behandlingId}",
+                                kode = "finnes_apen_behandling",
                             )
                         }
                     },

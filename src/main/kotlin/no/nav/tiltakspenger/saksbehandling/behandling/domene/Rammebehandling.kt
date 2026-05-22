@@ -48,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehand
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.overta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.ta
+import no.nav.tiltakspenger.saksbehandling.klage.domene.tilTilknyttetBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
@@ -157,7 +158,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         klagebehandlingId = klagebehandling!!.id,
                         saksbehandler = saksbehandler,
                     ),
-                    rammebehandlingsstatus = this.status,
+                    tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
                     clock = clock,
                 )?.getOrElse {
                     throw IllegalStateException("Kunne ikke legge tilbake klagebehandling når rammebehandling legges tilbake: $it")
@@ -239,7 +240,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
                 val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.ta(
                     kommando = TaKlagebehandlingKommando(sakId, klagebehandling!!.id, saksbehandler),
-                    rammebehandlingsstatus = this.status,
+                    tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
                     sistEndret = nå,
                 )?.getOrElse {
                     throw IllegalStateException("Kunne ikke ta klagebehandling når rammebehandling tas: $it")
@@ -335,7 +336,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
                     ),
-                    rammebehandlingsstatus = this.status,
+                    tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
                     clock = clock,
                 )?.getOrElse {
                     return KunneIkkeOvertaBehandling.KanIkkeOvertaKlagebehandling(it).left()
@@ -468,7 +469,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     if (klagebehandling?.erFerdigstilt == true) {
                         // man har mulighet til å opprette rammebehandling på en ferdigstilt klagebehandling.
                         // oppdaterer resultatets rammebehandling knyttninger
-                        klagebehandling!!.nullstillÅpenRammebehandlingId() to Statistikkhendelser.empty()
+                        klagebehandling!!.nullstillÅpenBehandlingId() to Statistikkhendelser.empty()
                     } else {
                         when (klagebehandling?.resultat) {
                             is Klagebehandlingsresultat.Avvist -> throw IllegalStateException("Klagebehandling med avvist resultat skal ikke være knyttet til en rammebehandling. Dette skjedde for sakId: $sakId, saksnummer: $saksnummer, behandling: ${this.id}, klagebehandlingId: ${klagebehandling!!.id}")
@@ -754,7 +755,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
             AVBRUTT -> {
                 requireNotNull(avbrutt)
-                require(klagebehandling?.rammebehandlingId == null || klagebehandling?.rammebehandlingId?.contains(id) == false) {
+                require(klagebehandling?.behandlingId?.contains(id) != true) {
                     // Merk at vi beholder koblingen til klagebehandlingen ved avbrutt rammebehandling for historikkens skyld (men ikke omvendt). Hvis dette biter oss senere, kan vi fjerne koblingen.
                     "En klagebehandling skal ikke peke på en avbrutt rammebehandling. I de tilfellene ønsker vi nok et annet resultat på klagebehandlingen, eller å knytte den til en ny rammebehandling. sakId: ${this.sakId}, saksnummer: ${this.saksnummer}, rammebehandlingId: ${this.id}, klagebehandlingId: ${this.klagebehandling?.id}"
                 }
@@ -771,8 +772,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 "Klagebehandlingens saksnummer må være lik behandlingens saksnummer. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }
             if (!this.erAvbrutt) {
-                require(klagebehandling!!.rammebehandlingId.contains(this.id)) {
-                    "Klagebehandlingens rammebehandlingId må inneholde behandlingens id. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                require(klagebehandling!!.behandlingId.contains(this.id)) {
+                    "Klagebehandlingens behandlingId må inneholde behandlingens id. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                 }
             }
         }

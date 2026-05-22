@@ -105,11 +105,11 @@ fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatus
             ),
         )
 
-        KunneIkkeFerdigstilleKlagebehandling.BehandlingErKnyttetTilEnRammebehandling -> Pair(
+        KunneIkkeFerdigstilleKlagebehandling.KlageErKnyttetTilEnBehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                kode = "klagebehandling_er_knyttet_til_rammebehandling",
-                melding = "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas",
+                kode = "klagebehandling_er_knyttet_til_behandling",
+                melding = "Klagebehandlingen er knyttet til en behandling og kan derfor ikke ferdigstilles. Behandlingen må enten avbrytes, eller vedtas",
             ),
         )
     }

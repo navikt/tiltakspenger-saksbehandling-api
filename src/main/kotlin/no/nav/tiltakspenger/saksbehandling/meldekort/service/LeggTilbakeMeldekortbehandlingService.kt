@@ -28,10 +28,8 @@ class LeggTilbakeMeldekortbehandlingService(
         return meldekortbehandling.leggTilbakeMeldekortbehandling(saksbehandler, clock).let {
             when (it.status) {
                 MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> meldekortbehandlingRepo.leggTilbakeBehandlingSaksbehandler(
-                    it.id,
+                    it,
                     saksbehandler,
-                    it.status,
-                    it.sistEndret,
                 )
 
                 MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> meldekortbehandlingRepo.leggTilbakeBehandlingBeslutter(

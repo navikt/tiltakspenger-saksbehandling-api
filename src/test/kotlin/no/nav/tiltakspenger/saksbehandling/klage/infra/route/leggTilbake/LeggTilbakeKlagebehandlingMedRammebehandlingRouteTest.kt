@@ -38,8 +38,8 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                behandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenBehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
             )
         }
     }
@@ -95,8 +95,8 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 klagebehandlingId = rammebehandling.klagebehandling!!.id,
                 resultat = rammebehandling.klagebehandling!!.resultat as Klagebehandlingsresultat.Opprettholdt,
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
-                rammebehandlingId = listOf(rammebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandling.id.toString(),
+                behandlingId = listOf(rammebehandling.id.toString()),
+                åpenBehandlingId = rammebehandling.id.toString(),
                 vedtakDetKlagesPå = rammebehandling.klagebehandling!!.formkrav.vedtakDetKlagesPå!!.toString(),
             )
         }

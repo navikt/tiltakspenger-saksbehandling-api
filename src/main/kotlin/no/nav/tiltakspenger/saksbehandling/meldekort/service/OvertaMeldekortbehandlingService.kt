@@ -21,13 +21,11 @@ class OvertaMeldekortbehandlingService(
         val sak: Sak = sakService.hentForSakId(command.sakId)
         val meldekortbehandling: Meldekortbehandling = sak.hentMeldekortbehandling(command.meldekortId)!!
 
-        return meldekortbehandling.overta(command.saksbehandler, clock).map {
+        return meldekortbehandling.overta(command, clock).map {
             when (it.status) {
                 MeldekortbehandlingStatus.UNDER_BEHANDLING -> meldekortbehandlingRepo.overtaSaksbehandler(
-                    meldekortId = it.id,
-                    nySaksbehandler = command.saksbehandler,
+                    meldekortbehandling = it,
                     nåværendeSaksbehandler = command.overtarFra,
-                    it.sistEndret,
                 )
 
                 MeldekortbehandlingStatus.UNDER_BESLUTNING -> meldekortbehandlingRepo.overtaBeslutter(

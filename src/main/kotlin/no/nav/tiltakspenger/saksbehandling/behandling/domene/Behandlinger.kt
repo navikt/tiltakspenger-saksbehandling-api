@@ -74,7 +74,14 @@ data class Behandlinger(
     }
 
     fun oppdaterMeldekortbehandling(behandling: Meldekortbehandling): Behandlinger {
-        return copy(meldekortbehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(behandling))
+        return copy(
+            klagebehandlinger = if (behandling.klagebehandling != null) {
+                klagebehandlinger.oppdaterKlagebehandling(behandling.klagebehandling!!)
+            } else {
+                klagebehandlinger
+            },
+            meldekortbehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(behandling),
+        )
     }
 
     fun leggTilKlagebehandling(klagebehandling: Klagebehandling): Behandlinger {
@@ -85,6 +92,7 @@ data class Behandlinger(
         return copy(
             klagebehandlinger = klagebehandlinger.oppdaterKlagebehandling(klagebehandling),
             rammebehandlinger = rammebehandlinger.oppdaterKlagebehandling(klagebehandling),
+            meldekortbehandlinger = meldekortbehandlinger.oppdaterKlagebehandling(klagebehandling),
         )
     }
 
@@ -107,9 +115,9 @@ data class Behandlinger(
         require(slåttSammen.distinctBy { it.id }.size == slåttSammen.size) {
             "Behandlingene må ha unike IDer."
         }
-        klagebehandlinger.filter { it.rammebehandlingId.isNotEmpty() }.forEach { klagebehandling ->
-            val rammebehandlinger = klagebehandling.rammebehandlingId.let { klagensRammebehandlingId ->
-                rammebehandlinger.filter { klagensRammebehandlingId.contains(it.id) }
+        klagebehandlinger.filter { it.behandlingId.isNotEmpty() }.forEach { klagebehandling ->
+            val rammebehandlinger = klagebehandling.behandlingId.let { klagensBehandlingId ->
+                rammebehandlinger.filter { klagensBehandlingId.contains(it.id) }
             }
 
             // Det skal kun være én rammebehandling som er under behandling for en gitt klagebehandling

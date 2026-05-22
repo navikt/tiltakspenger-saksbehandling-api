@@ -54,6 +54,7 @@ data class MeldekortbehandlingDTO(
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
     val harFlereMeldeperioder: Boolean,
+    val klagebehandlingId: String?,
 )
 
 fun Meldekortbehandling.tilMeldekortbehandlingDTO(
@@ -94,6 +95,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         tilbakekrevingId = tilbakekreving?.id?.toString(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
         harFlereMeldeperioder = this.meldeperioder.size > 1,
+        klagebehandlingId = this.klagebehandling?.id?.toString(),
     )
 }
 

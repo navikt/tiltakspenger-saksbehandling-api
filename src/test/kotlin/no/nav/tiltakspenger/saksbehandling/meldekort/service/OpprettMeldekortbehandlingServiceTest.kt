@@ -42,9 +42,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ).getOrFail()
 
             oppdatertSak.meldekortbehandlinger.single() shouldBe meldekortbehandling
@@ -66,9 +69,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ).getOrFail()
 
             oppdatertSak.meldekortbehandlinger.size shouldBe 2
@@ -91,9 +97,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                sakId = sak.id,
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ).getOrFail()
 
             meldekortbehandling.erKorrigering shouldBe true
@@ -111,9 +120,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ) shouldBe ValiderOpprettFeil(MÅ_BEHANDLE_FØRSTE_KJEDE).left()
         }
     }
@@ -133,9 +145,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder[2].kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder[2].kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ) shouldBe ValiderOpprettFeil(MÅ_BEHANDLE_NESTE_KJEDE).left()
         }
     }
@@ -150,9 +165,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )!!
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ).getOrFail()
 
             oppdatertSak.meldekortbehandlinger.single() shouldBe meldekortbehandling
@@ -169,9 +187,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )!!
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ) shouldBe ValiderOpprettFeil(INGEN_DAGER_GIR_RETT).left()
         }
     }
@@ -199,9 +220,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ).getOrFail()
 
             meldekortbehandling.kjedeIdLegacy shouldBe sak.meldeperiodeKjeder.first().kjedeId
@@ -224,9 +248,12 @@ class OpprettMeldekortbehandlingServiceTest {
 
             sak.meldeperiodeKjeder.forEach {
                 tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                    kjedeId = it.kjedeId,
-                    sakId = sak.id,
-                    saksbehandler = saksbehandler(),
+                    no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                        sakId = sak.id,
+                        kjedeId = it.kjedeId,
+                        saksbehandler = saksbehandler(),
+                        klagebehandlingId = null,
+                    ),
                 ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
             }
         }
@@ -252,9 +279,12 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-                sakId = sak.id,
-                saksbehandler = saksbehandler(),
+                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
             ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
         }
     }

@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.json.serialize
@@ -47,7 +47,7 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
         }
     }
 
-    override fun hentForRammebehandlingId(rammebehandlingId: RammebehandlingId): Klagebehandling? {
+    override fun hentForBehandlingId(behandlingId: BehandlingId): Klagebehandling? {
         return sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -58,9 +58,9 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                       s.saksnummer
                     from klagebehandling k
                     join sak s on s.id = k.sak_id
-                    where k.resultat->>'rammebehandlingId' = :rammebehandlingId
+                    where k.resultat->'behandlingId' ? :behandlingId
                     """,
-                    "rammebehandlingId" to rammebehandlingId.toString(),
+                    "behandlingId" to behandlingId.toString(),
                 ).map { fromRow(it) }.asSingle,
             )
         }

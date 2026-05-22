@@ -46,11 +46,9 @@ interface MeldekortbehandlingRepo {
     ): Meldekortbehandling?
 
     fun overtaSaksbehandler(
-        meldekortId: MeldekortId,
-        nySaksbehandler: Saksbehandler,
+        meldekortbehandling: Meldekortbehandling,
         nåværendeSaksbehandler: String,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext? = null,
+        transactionContext: TransactionContext? = null,
     ): Boolean
 
     fun overtaBeslutter(
@@ -62,11 +60,8 @@ interface MeldekortbehandlingRepo {
     ): Boolean
 
     fun taBehandlingSaksbehandler(
-        meldekortId: MeldekortId,
-        saksbehandler: Saksbehandler,
-        meldekortbehandlingStatus: MeldekortbehandlingStatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext? = null,
+        meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext? = null,
     ): Boolean
 
     fun taBehandlingBeslutter(
@@ -78,11 +73,9 @@ interface MeldekortbehandlingRepo {
     ): Boolean
 
     fun leggTilbakeBehandlingSaksbehandler(
-        meldekortId: MeldekortId,
+        meldekortbehandling: Meldekortbehandling,
         nåværendeSaksbehandler: Saksbehandler,
-        meldekortbehandlingStatus: MeldekortbehandlingStatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext? = null,
+        transactionContext: TransactionContext? = null,
     ): Boolean
 
     fun leggTilbakeBehandlingBeslutter(

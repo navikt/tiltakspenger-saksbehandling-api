@@ -105,7 +105,8 @@ class OvertaMeldekortbehandlingRouteTest {
                       "status": "UNDER_BEHANDLING",
                       "skalSendeVedtaksbrev": true,
                       "harFlereMeldeperioder": false,
-                      "ventestatus": []
+                      "ventestatus": [],
+                      "klagebehandlingId": null
                     }
                 """.trimIndent(),
             )

@@ -2,14 +2,16 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
-import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
+import no.nav.tiltakspenger.saksbehandling.klage.domene.AktivTilknyttetBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hentAktivTilknyttetBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.GjenopptaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import java.time.Clock
@@ -17,27 +19,31 @@ import java.time.Clock
 suspend fun Sak.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     clock: Clock,
-    gjenopptaRammebehandling: suspend (GjenopptaRammebehandlingKommando) -> Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>>,
+    gjenopptaRammebehandling: suspend (GjenopptaRammebehandlingKommando) -> Pair<Sak, Rammebehandling>,
+    gjenopptaMeldekortbehandling: (GjenopptaMeldekortbehandlingKommando) -> Pair<Sak, Meldekortbehandling>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
-): Either<KanIkkeGjenopptaKlagebehandling, Triple<Sak, Klagebehandling, Rammebehandling?>> {
+): Either<KanIkkeGjenopptaKlagebehandling, Triple<Sak, Klagebehandling, AttesterbarBehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
-        val tilknyttetRammebehandling = klagebehandling.rammebehandlingId.let { rammebehandlingId ->
-            rammebehandlingId.map { this.hentRammebehandling(it) }.singleOrNullOrThrow { it?.erUnderAktivBehandling == true }
-        }
-        if (tilknyttetRammebehandling != null) {
-            // Denne gjenopptar også klagebehandlingen hvis aktuelt.
-            gjenopptaRammebehandling(gjenopptaRammebehandling, kommando, tilknyttetRammebehandling)
-        } else {
-            gjenopptaKlagebehandling(klagebehandling, kommando, clock, lagre)
+        when (val tilknyttetBehandling = this.hentAktivTilknyttetBehandling(klagebehandling)) {
+            is AktivTilknyttetBehandling.Ramme -> {
+                // Denne gjenopptar også klagebehandlingen hvis aktuelt.
+                gjenopptaRammebehandling(gjenopptaRammebehandling, kommando, tilknyttetBehandling.rammebehandling).right()
+            }
+
+            is AktivTilknyttetBehandling.Meldekort -> {
+                gjenopptaMeldekortbehandling(gjenopptaMeldekortbehandling, kommando, tilknyttetBehandling.meldekortbehandling).right()
+            }
+
+            null -> gjenopptaKlagebehandling(klagebehandling, kommando, clock, lagre)
         }
     }
 }
 
 private suspend fun gjenopptaRammebehandling(
-    gjenopptaRammebehandling: suspend (GjenopptaRammebehandlingKommando) -> Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>>,
+    gjenopptaRammebehandling: suspend (GjenopptaRammebehandlingKommando) -> Pair<Sak, Rammebehandling>,
     kommando: GjenopptaKlagebehandlingKommando,
     tilknyttetRammebehandling: Rammebehandling,
-): Either<Nothing, Triple<Sak, Klagebehandling, Rammebehandling>> {
+): Triple<Sak, Klagebehandling, Rammebehandling> {
     return gjenopptaRammebehandling(
         GjenopptaRammebehandlingKommando(
             sakId = kommando.sakId,
@@ -45,9 +51,22 @@ private suspend fun gjenopptaRammebehandling(
             saksbehandler = kommando.saksbehandler,
             correlationId = kommando.correlationId,
         ),
-    ).getOrThrow().let {
-        Triple(it.first, it.second.klagebehandling!!, it.second)
-    }.right()
+    ).let { Triple(it.first, it.second.klagebehandling!!, it.second) }
+}
+
+private fun gjenopptaMeldekortbehandling(
+    gjenopptaMeldekortbehandling: (GjenopptaMeldekortbehandlingKommando) -> Pair<Sak, Meldekortbehandling>,
+    kommando: GjenopptaKlagebehandlingKommando,
+    tilknyttetMeldekortbehandling: Meldekortbehandling,
+): Triple<Sak, Klagebehandling, Meldekortbehandling> {
+    return gjenopptaMeldekortbehandling(
+        GjenopptaMeldekortbehandlingKommando(
+            sakId = kommando.sakId,
+            meldekortId = tilknyttetMeldekortbehandling.id,
+            saksbehandler = kommando.saksbehandler,
+            correlationId = kommando.correlationId,
+        ),
+    ).let { Triple(it.first, it.second.klagebehandling!!, it.second) }
 }
 
 private suspend fun Sak.gjenopptaKlagebehandling(

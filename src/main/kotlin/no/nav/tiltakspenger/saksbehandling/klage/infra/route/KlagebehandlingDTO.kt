@@ -40,8 +40,8 @@ data class KlagebehandlingDTO(
     /** Vil være null mens den ikke er på vent. */
     val ventestatus: List<VentestatusHendelseDTO>,
     val formkrav: KlageFormkravDTO,
-    val tilknyttedeRammebehandlingIder: List<String>,
-    val åpenRammebehandlingId: String?,
+    val tilknyttedeBehandlingIder: List<String>,
+    val åpenBehandlingId: String?,
 )
 
 data class KlageFormkravDTO(
@@ -135,8 +135,8 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     ventestatus = ventestatus.ventestatusHendelser.tilDto(),
     resultat = resultat?.tilKlagebehandlingsresultatDTO(),
     formkrav = formkrav.toDTO(),
-    tilknyttedeRammebehandlingIder = rammebehandlingId.map { it.toString() },
-    åpenRammebehandlingId = åpenRammebehandlingId?.toString(),
+    tilknyttedeBehandlingIder = behandlingId.map { it.toString() },
+    åpenBehandlingId = åpenBehandlingId?.toString(),
 )
 
 fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): KlagebehandlingsresultatDTO {

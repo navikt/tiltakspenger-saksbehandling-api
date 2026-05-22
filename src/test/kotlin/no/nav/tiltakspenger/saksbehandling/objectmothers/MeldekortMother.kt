@@ -153,6 +153,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 brukersMeldekort = null,
             ),
             ventestatus = ventestatus,
+            klagebehandling = null,
         )
     }
 
@@ -213,6 +214,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 brukersMeldekort = null,
             ),
             ventestatus = ventestatus,
+            klagebehandling = null,
         )
     }
 
@@ -284,6 +286,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 brukersMeldekort = null,
             ),
             ventestatus = Ventestatus(),
+            klagebehandling = null,
         )
     }
 
@@ -698,6 +701,7 @@ interface MeldekortMother : MotherOfAllMothers {
                         brukersMeldekort = null,
                     ),
                     ventestatus = Ventestatus(),
+                    klagebehandling = null,
                 ),
             ),
         )
@@ -753,7 +757,7 @@ interface MeldekortMother : MotherOfAllMothers {
             .map { (meldekortbehandlinger, meldekort) ->
                 val tildeltMeldekort =
                     meldekort.taMeldekortbehandling(beslutter, clock).getOrFail() as MeldekortbehandlingManuell
-                val iverksattMeldekort = tildeltMeldekort.iverksettMeldekort(beslutter, clock).getOrFail()
+                val (iverksattMeldekort) = tildeltMeldekort.iverksettMeldekort(beslutter, clock, CorrelationId.generate()).getOrFail()
                 val oppdaterteBehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
                 Pair(oppdaterteBehandlinger, iverksattMeldekort)
             }
@@ -819,6 +823,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     brukersMeldekort = null,
                 ),
                 ventestatus = Ventestatus(),
+                klagebehandling = null,
             ),
         )
 
@@ -872,7 +877,7 @@ interface MeldekortMother : MotherOfAllMothers {
         ).map { (meldekortbehandlinger, meldekort) ->
             val tildeltMeldekort =
                 meldekort.taMeldekortbehandling(beslutter, clock).getOrFail() as MeldekortbehandlingManuell
-            val iverksattMeldekort = tildeltMeldekort.iverksettMeldekort(beslutter, clock).getOrFail()
+            val (iverksattMeldekort) = tildeltMeldekort.iverksettMeldekort(beslutter, clock, CorrelationId.generate()).getOrFail()
             val oppdaterteBehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(iverksattMeldekort)
             Pair(oppdaterteBehandlinger, iverksattMeldekort)
         }.getOrFail().first

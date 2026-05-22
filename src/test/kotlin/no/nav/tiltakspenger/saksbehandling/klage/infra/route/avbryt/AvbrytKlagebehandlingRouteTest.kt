@@ -189,8 +189,8 @@ class AvbrytKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                      {
-                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: [$rammebehandlingId]",
-                        "kode": "knyttet_til_ikke_avbrutt_rammebehandling"
+                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en behandling som ikke er avbrutt: [$rammebehandlingId]",
+                        "kode": "knyttet_til_ikke_avbrutt_behandling"
                      }
                     """.trimIndent()
                 },
@@ -249,13 +249,13 @@ class AvbrytKlagebehandlingRouteTest {
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterSøknadsbehandlingInnvilgelse`(
+            oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,

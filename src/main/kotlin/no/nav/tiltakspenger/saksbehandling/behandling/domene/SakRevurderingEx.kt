@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterRammebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -24,8 +24,8 @@ suspend fun Sak.startRevurdering(
     val nå = nå(clock)
 
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let {
-        hentKlagebehandling(it).oppdaterRammebehandlingId(
-            rammebehandlingId = kommando.revurderingId,
+        hentKlagebehandling(it).oppdaterBehandlingId(
+            behandlingId = kommando.revurderingId,
             saksbehandler = kommando.saksbehandler!!,
             sistEndret = nå,
         )

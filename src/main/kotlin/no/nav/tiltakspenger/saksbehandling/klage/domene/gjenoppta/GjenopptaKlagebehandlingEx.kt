@@ -22,7 +22,7 @@ fun Klagebehandling.gjenopptaKlagebehandling(
     clock: Clock,
 ): Either<KanIkkeGjenopptaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     kanOppdatereIDenneStatusen(
-        rammebehandlingsstatus = null,
+        tilknyttetBehandlingsstatus = null,
         kanVæreUnderBehandling = true,
         kanVæreKlarTilBehandling = true,
         kanVæreOmgjørEtterKA = true,

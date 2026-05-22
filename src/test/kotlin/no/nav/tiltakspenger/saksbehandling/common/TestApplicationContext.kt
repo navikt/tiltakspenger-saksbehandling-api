@@ -353,6 +353,13 @@ sealed class TestApplicationContext(
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
             statistikkService = statistikkContext.statistikkService,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            taMeldekortbehandlingService = meldekortContext.taMeldekortbehandlingService,
+            opprettMeldekortbehandlingService = meldekortContext.opprettMeldekortbehandlingService,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
+            overtaMeldekortbehandlingService = meldekortContext.overtaMeldekortbehandlingService,
+            leggTilbakeMeldekortbehandlingService = meldekortContext.leggTilbakeMeldekortbehandlingService,
+            settMeldekortbehandlingPåVentService = meldekortContext.settMeldekortbehandlingPåVentService,
+            gjenopptaMeldekortbehandlingService = meldekortContext.gjenopptaMeldekortbehandlingService,
             texasClient = texasClient,
         ) {
             override val kabalClient = kabalClientFake

@@ -271,7 +271,7 @@ interface FerdigstillKlagebehandlingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/opprettRammebehandling")
+                path("/sak/$sakId/klage/$klagebehandlingId/opprettBehandling")
             },
             jwt = jwt,
         ) {
@@ -280,7 +280,8 @@ interface FerdigstillKlagebehandlingBuilder {
                 """{
                     "type": "$behandlingstype",
                     "søknadId": ${søknadId?.let { "\"$it\"" }},
-                    "vedtakIdSomSkalOmgjøres": ${vedtakIdSomOmgjøres?.let { "\"$it\"" }}
+                    "vedtakIdSomSkalOmgjøres": ${vedtakIdSomOmgjøres?.let { "\"$it\"" }},
+                    "kjedeId": null
                    }
                 """.trimIndent(),
             )

@@ -91,8 +91,8 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 fnr = "12345678911",
                 vedtakDetKlagesPå = "${rammevedtak.id}",
                 behandlingDetKlagesPå = "${rammevedtak.behandlingId}",
-                rammebehandlingId = emptyList(),
-                åpenRammebehandlingId = null,
+                behandlingId = emptyList(),
+                åpenBehandlingId = null,
                 brevtekst = listOf("""{"tittel":"Avvisning av klage","tekst":"Din klage er dessverre avvist."}"""),
             )
         }

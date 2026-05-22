@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta
 
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.GjenopptaKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.gjenopptaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
@@ -37,6 +40,17 @@ fun Meldekortbehandling.gjenoppta(
                 status = UNDER_BEHANDLING,
                 ventestatus = oppdatertVentestatus,
                 sistEndret = nå,
+                klagebehandling = klagebehandling?.let { klage ->
+                    klage.gjenopptaKlagebehandling(
+                        kommando = GjenopptaKlagebehandlingKommando(
+                            sakId = sakId,
+                            klagebehandlingId = klage.id,
+                            saksbehandler = kommando.saksbehandler,
+                            correlationId = kommando.correlationId,
+                        ),
+                        clock = clock,
+                    ).getOrThrow().first
+                },
             )
         }
 

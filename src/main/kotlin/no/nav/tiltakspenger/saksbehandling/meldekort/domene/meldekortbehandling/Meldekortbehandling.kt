@@ -20,10 +20,12 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.avbrytIkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -51,6 +53,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val ventestatus: Ventestatus
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
+    val klagebehandling: Klagebehandling?
 
     val type: MeldekortbehandlingType
 
@@ -150,13 +153,14 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     }
 
     fun overta(
-        saksbehandler: Saksbehandler,
+        kommando: OvertaMeldekortbehandlingKommando,
         clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling>
 
     fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling
 
     fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling
+    fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling
 
     fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning? {
         return beregning?.let {

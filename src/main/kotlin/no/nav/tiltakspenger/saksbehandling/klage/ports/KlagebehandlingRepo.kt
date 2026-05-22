@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.ports
 
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
@@ -13,7 +13,7 @@ interface KlagebehandlingRepo {
 
     fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling?
 
-    fun hentForRammebehandlingId(rammebehandlingId: RammebehandlingId): Klagebehandling?
+    fun hentForBehandlingId(behandlingId: BehandlingId): Klagebehandling?
 
     /** Egen funksjon for at saksbehandlerne ikke skal gå i beina på hverandre. */
     fun taBehandling(klagebehandling: Klagebehandling, sessionContext: SessionContext?): Boolean

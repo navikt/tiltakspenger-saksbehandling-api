@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.json.JSONObject
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.OpprettRammebehandlingFraKlage]
+ * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettBehandling.opprettBehandlingForKlageRoute]
  */
 interface OpprettRammebehandlingForKlageBuilder {
     /** 1. Oppretter ny sak
@@ -149,7 +149,7 @@ interface OpprettRammebehandlingForKlageBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/opprettRammebehandling")
+                path("/sak/$sakId/klage/$klagebehandlingId/opprettBehandling")
             },
             jwt = jwt,
         ) {
@@ -160,7 +160,8 @@ interface OpprettRammebehandlingForKlageBuilder {
                     "søknadId": "${søknadId?.toString()}",
                     "vedtakIdSomSkalOmgjøres": "$vedtakIdSomOmgjøres",
                     "type": "$type",
-                    "klagebehandlingId": "$klagebehandlingId"
+                    "klagebehandlingId": "$klagebehandlingId",
+                    "kjedeId": null
                 }
                 """.trimIndent(),
             )

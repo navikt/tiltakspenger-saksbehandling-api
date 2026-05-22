@@ -828,9 +828,12 @@ suspend fun TestApplicationContext.meldekortbehandlingOpprettet(
         resultat = SøknadsbehandlingsresultatType.INNVILGELSE,
     )
     tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-        sakId = sak.id,
-        kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-        saksbehandler = saksbehandler,
+        no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+            sakId = sak.id,
+            kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+            saksbehandler = saksbehandler,
+            klagebehandlingId = null,
+        ),
     )
     return this.sakContext.sakService.hentForSakId(
         sak.id,
@@ -948,9 +951,12 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
     )
 
     val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-        sakId = sak.id,
-        kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
-        saksbehandler = saksbehandler,
+        no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+            sakId = sak.id,
+            kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+            saksbehandler = saksbehandler,
+            klagebehandlingId = null,
+        ),
     ).getOrFail()
 
     tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(

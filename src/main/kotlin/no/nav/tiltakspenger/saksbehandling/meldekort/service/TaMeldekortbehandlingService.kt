@@ -39,10 +39,7 @@ class TaMeldekortbehandlingService(
 
         val harOvertatt = when (oppdatert.status) {
             MeldekortbehandlingStatus.UNDER_BEHANDLING -> meldekortbehandlingRepo.taBehandlingSaksbehandler(
-                oppdatert.id,
-                saksbehandler,
-                oppdatert.status,
-                oppdatert.sistEndret,
+                oppdatert,
             )
 
             MeldekortbehandlingStatus.UNDER_BESLUTNING -> meldekortbehandlingRepo.taBehandlingBeslutter(

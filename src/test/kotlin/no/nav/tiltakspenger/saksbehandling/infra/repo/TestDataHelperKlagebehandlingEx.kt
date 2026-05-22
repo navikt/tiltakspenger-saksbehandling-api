@@ -168,7 +168,7 @@ internal fun TestDataHelper.persisterOpprettholdtKlagebehandling(
             correlationId = CorrelationId.generate(),
             hjemler = hjemler,
         ),
-        rammebehandlingsstatus = null,
+        tilknyttetBehandlingsstatus = null,
         clock = clock,
     ).getOrFail()
         .oppdaterBrevtekst(

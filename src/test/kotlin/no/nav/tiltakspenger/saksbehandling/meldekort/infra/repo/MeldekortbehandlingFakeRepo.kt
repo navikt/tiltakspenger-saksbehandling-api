@@ -65,21 +65,16 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
     }
 
     override fun overtaSaksbehandler(
-        meldekortId: MeldekortId,
-        nySaksbehandler: Saksbehandler,
+        meldekortbehandling: Meldekortbehandling,
         nåværendeSaksbehandler: String,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        val meldekortbehandling = data.get()[meldekortId]
-        require(meldekortbehandling != null && meldekortbehandling.saksbehandler == nåværendeSaksbehandler) {
-            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
+        val lagretMeldekortbehandling = data.get()[meldekortbehandling.id]
+        require(lagretMeldekortbehandling != null && lagretMeldekortbehandling.saksbehandler == nåværendeSaksbehandler) {
+            "Meldekortbehandling med id ${meldekortbehandling.id} finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
         }
         if (meldekortbehandling is MeldekortUnderBehandling) {
-            data.get()[meldekortId] = meldekortbehandling.copy(
-                saksbehandler = nySaksbehandler.navIdent,
-                sistEndret = sistEndret,
-            )
+            data.get()[meldekortbehandling.id] = meldekortbehandling
             return true
         } else {
             throw IllegalStateException("Kan ikke endre saksbehandler for meldekort som ikke er under behandling")
@@ -109,22 +104,15 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
     }
 
     override fun taBehandlingSaksbehandler(
-        meldekortId: MeldekortId,
-        saksbehandler: Saksbehandler,
-        meldekortbehandlingStatus: MeldekortbehandlingStatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        val meldekortbehandling = data.get()[meldekortId]
-        require(meldekortbehandling != null && meldekortbehandling.saksbehandler == null && meldekortbehandling.status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING) {
-            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke status KLAR_TIL_BEHANDLING eller har allerede saksbehandler"
+        val lagretMeldekortbehandling = data.get()[meldekortbehandling.id]
+        require(lagretMeldekortbehandling != null && lagretMeldekortbehandling.saksbehandler == null && lagretMeldekortbehandling.status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING) {
+            "Meldekortbehandling med id ${meldekortbehandling.id} finnes ikke eller har ikke status KLAR_TIL_BEHANDLING eller har allerede saksbehandler"
         }
         if (meldekortbehandling is MeldekortUnderBehandling) {
-            data.get()[meldekortId] = meldekortbehandling.copy(
-                saksbehandler = saksbehandler.navIdent,
-                status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
-                sistEndret = sistEndret,
-            )
+            data.get()[meldekortbehandling.id] = meldekortbehandling
             return true
         } else {
             throw IllegalStateException("Kan ikke endre saksbehandler for meldekort som ikke er under behandling")
@@ -155,22 +143,16 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
     }
 
     override fun leggTilbakeBehandlingSaksbehandler(
-        meldekortId: MeldekortId,
+        meldekortbehandling: Meldekortbehandling,
         nåværendeSaksbehandler: Saksbehandler,
-        meldekortbehandlingStatus: MeldekortbehandlingStatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        val meldekortbehandling = data.get()[meldekortId]
-        require(meldekortbehandling != null && meldekortbehandling.saksbehandler == nåværendeSaksbehandler.navIdent && meldekortbehandling.status == MeldekortbehandlingStatus.UNDER_BEHANDLING) {
-            "Meldekortbehandling med id $meldekortId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
+        val lagretMeldekortbehandling = data.get()[meldekortbehandling.id]
+        require(lagretMeldekortbehandling != null && lagretMeldekortbehandling.saksbehandler == nåværendeSaksbehandler.navIdent && lagretMeldekortbehandling.status == MeldekortbehandlingStatus.UNDER_BEHANDLING) {
+            "Meldekortbehandling med id ${meldekortbehandling.id} finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
         }
         if (meldekortbehandling is MeldekortUnderBehandling) {
-            data.get()[meldekortId] = meldekortbehandling.copy(
-                saksbehandler = null,
-                status = MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
-                sistEndret = sistEndret,
-            )
+            data.get()[meldekortbehandling.id] = meldekortbehandling
             return true
         } else {
             throw IllegalStateException("Kan ikke fjerne saksbehandler for meldekort som ikke er under behandling")

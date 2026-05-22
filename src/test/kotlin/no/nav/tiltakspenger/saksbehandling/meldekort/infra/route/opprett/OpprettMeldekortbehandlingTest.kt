@@ -163,7 +163,8 @@ class OpprettMeldekortbehandlingTest {
                           "status": "UNDER_BEHANDLING",
                           "skalSendeVedtaksbrev": true,
                           "harFlereMeldeperioder": false,
-                          "ventestatus": []
+                          "ventestatus": [],
+                          "klagebehandlingId": null
                         }
                       ],
                       "korrigeringFraTidligerePeriode": null,

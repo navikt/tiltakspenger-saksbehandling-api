@@ -30,8 +30,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernRammebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterRammebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernBehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -197,8 +197,8 @@ data class Søknadsbehandling(
                 begrunnelse = begrunnelse,
             ),
             sistEndret = tidspunkt,
-            klagebehandling = klagebehandling?.fjernRammebehandlingId(
-                rammebehandlingId = id,
+            klagebehandling = klagebehandling?.fjernBehandlingId(
+                behandlingId = id,
                 saksbehandler = avbruttAv,
                 sistEndret = tidspunkt,
             ),
@@ -307,8 +307,8 @@ data class Søknadsbehandling(
                 manueltBehandlesGrunner = emptyList(),
                 utbetaling = null,
                 utbetalingskontroll = null,
-                klagebehandling = klagebehandling?.oppdaterRammebehandlingId(
-                    rammebehandlingId = søknadsbehandlingId,
+                klagebehandling = klagebehandling?.oppdaterBehandlingId(
+                    behandlingId = søknadsbehandlingId,
                     saksbehandler = saksbehandler,
                     sistEndret = opprettet,
                 ),

@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRe
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
@@ -60,13 +61,14 @@ class IverksettMeldekortbehandlingService(
             throw IllegalStateException("Tillater ikke iverksetting av flere meldeperioder ennå")
         }
 
-        return meldekortbehandling.iverksettMeldekort(kommando.beslutter, clock).map { iverksattMeldekortbehandling ->
+        return meldekortbehandling.iverksettMeldekort(kommando.beslutter, clock, kommando.correlationId).map { (iverksattMeldekortbehandling, klagestatistikk) ->
             val meldekortvedtak = iverksattMeldekortbehandling.opprettVedtak(
                 forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
                 clock = clock,
             )
 
-            val statistikkDTO = statistikkService.generer(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock))
+            val meldekortstatistikk = Statistikkhendelser(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock))
+            val statistikkDTO = statistikkService.generer(meldekortstatistikk + klagestatistikk)
             val oppdatertSak = sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortvedtak(meldekortvedtak)
             sessionFactory.withTransactionContext { tx ->

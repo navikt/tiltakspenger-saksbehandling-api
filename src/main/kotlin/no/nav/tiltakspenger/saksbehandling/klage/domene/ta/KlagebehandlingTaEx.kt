@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.ta
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.TilknyttetBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
@@ -16,7 +16,7 @@ import java.time.LocalDateTime
  */
 fun Klagebehandling.ta(
     kommando: TaKlagebehandlingKommando,
-    rammebehandlingsstatus: Rammebehandlingsstatus?,
+    tilknyttetBehandlingsstatus: TilknyttetBehandlingsstatus?,
     sistEndret: LocalDateTime,
 ): Either<KanIkkeTaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     if (this.erFerdigstilt) {
@@ -24,7 +24,7 @@ fun Klagebehandling.ta(
     }
 
     kanOppdatereIDenneStatusen(
-        rammebehandlingsstatus = rammebehandlingsstatus,
+        tilknyttetBehandlingsstatus = tilknyttetBehandlingsstatus,
         kanVæreUnderBehandling = false,
         kanVæreKlarTilBehandling = true,
         kanVæreOmgjørEtterKA = false,

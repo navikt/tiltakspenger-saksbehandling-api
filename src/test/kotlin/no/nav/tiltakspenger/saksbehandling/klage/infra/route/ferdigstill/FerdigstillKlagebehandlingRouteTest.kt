@@ -38,7 +38,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 behandlingDetKlagesPå = sak.rammevedtaksliste.first().behandlingId.toString(),
                 status = "FERDIGSTILT",
                 kanIverksetteVedtak = null,
-                rammebehandlingId = null,
+                behandlingId = null,
                 brevtekst = listOf(
                     """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
                     """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
@@ -143,7 +143,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
                 behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "FERDIGSTILT",
-                rammebehandlingId = null,
+                behandlingId = null,
                 ferdigstiltTidspunkt = true,
                 iverksattTidspunkt = null,
             )
@@ -176,8 +176,8 @@ class FerdigstillKlagebehandlingRouteTest {
                     //language=json
                     """
                         {
-                          "kode": "klagebehandling_er_knyttet_til_rammebehandling",
-                          "melding": "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas"
+                          "kode": "klagebehandling_er_knyttet_til_behandling",
+                          "melding": "Klagebehandlingen er knyttet til en behandling og kan derfor ikke ferdigstilles. Behandlingen må enten avbrytes, eller vedtas"
                         }
                     """.trimIndent()
                 },
@@ -202,8 +202,8 @@ class FerdigstillKlagebehandlingRouteTest {
                     //language=json
                     """
                         {
-                          "kode": "klagebehandling_er_knyttet_til_rammebehandling",
-                          "melding": "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas"
+                          "kode": "klagebehandling_er_knyttet_til_behandling",
+                          "melding": "Klagebehandlingen er knyttet til en behandling og kan derfor ikke ferdigstilles. Behandlingen må enten avbrytes, eller vedtas"
                         }
                     """.trimIndent()
                 },
@@ -237,7 +237,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
                 behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "FERDIGSTILT",
-                rammebehandlingId = null,
+                behandlingId = null,
                 ferdigstiltTidspunkt = true,
                 iverksattTidspunkt = null,
                 begrunnelseFerdigstilling = "Dette er en veltenkt begrunnelse for ferdigstilling",

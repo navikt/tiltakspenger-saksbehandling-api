@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.åpneRammebehandlingerMedKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-suspend fun Sak.opprettRammebehandlingFraKlage(
+suspend fun Sak.opprettBehandlingFraKlage(
     kommando: OpprettRammebehandlingFraKlageKommando,
     opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak) -> Pair<Sak, Søknadsbehandling>,
     opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Pair<Sak, Revurdering>,
@@ -22,7 +22,7 @@ suspend fun Sak.opprettRammebehandlingFraKlage(
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
     this.åpneRammebehandlingerMedKlagebehandlingId(klagebehandling.id).also {
         if (it.isNotEmpty()) {
-            return KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenRammebehandling(it.first().id).left()
+            return KanIkkeOppretteRammebehandlingFraKlage.FinnesÅpenBehandling(it.first().id).left()
         }
     }
     return when (kommando) {

@@ -107,6 +107,7 @@ internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling
         kjedeId = kjedeId ?: generertSak.meldeperiodeKjeder.first().kjedeId,
         navkontor = navkontor,
         saksbehandler = saksbehandler,
+        klagebehandlingId = null,
         clock = clock,
     ).getOrFail()
 
@@ -227,9 +228,9 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
 ): Pair<Sak, Meldekortvedtak> {
     val (sakMedMeldekortbehandlingTilBeslutning, meldekortbehandlingTilBeslutning) = genererSak(sak)
 
-    val iverksattMeldekortbehandling =
+    val (iverksattMeldekortbehandling) =
         (meldekortbehandlingTilBeslutning.taMeldekortbehandling(beslutter, clock).getOrFail() as MeldekortbehandlingManuell)
-            .iverksettMeldekort(beslutter, clock).getOrFail()
+            .iverksettMeldekort(beslutter, clock, CorrelationId.generate()).getOrFail()
 
     val meldekortvedtak = iverksattMeldekortbehandling.opprettVedtak(
         forrigeUtbetaling = sakMedMeldekortbehandlingTilBeslutning.utbetalinger.lastOrNull(),

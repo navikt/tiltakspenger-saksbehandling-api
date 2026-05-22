@@ -22,9 +22,12 @@ suspend fun TestApplicationContext.nyOpprettetMeldekortbehandling(
     saksbehandler: Saksbehandler = saksbehandler(),
 ): Pair<Sak, Meldekortbehandling> {
     return meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-        kjedeId = kjedeId,
-        sakId = sakId,
-        saksbehandler = saksbehandler,
+        no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+            sakId = sakId,
+            kjedeId = kjedeId,
+            saksbehandler = saksbehandler,
+            klagebehandlingId = null,
+        ),
     ).getOrFail()
 }
 

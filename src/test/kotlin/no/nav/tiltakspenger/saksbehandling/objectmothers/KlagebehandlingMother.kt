@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -122,7 +123,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
                 correlationId = correlationId,
                 hjemler = Klagehjemler(nonEmptySetOf(Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_3)),
             ),
-            rammebehandlingsstatus = null,
+            tilknyttetBehandlingsstatus = null,
             clock = clock,
         ).getOrFail()
 
@@ -165,16 +166,16 @@ interface KlagebehandlingMother : MotherOfAllMothers {
     fun klagebehandlingresultatOmgjør(
         årsak: KlageOmgjøringsårsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
         begrunnelse: Begrunnelse = Begrunnelse.create("klagebehandlingresultatOmgjørt")!!,
-        rammebehandlingId: List<RammebehandlingId> = emptyList(),
-        åpenRammebehandlingId: RammebehandlingId? = null,
+        behandlingId: List<BehandlingId> = emptyList(),
+        åpenBehandlingId: BehandlingId? = null,
     ): Klagebehandlingsresultat.Omgjør {
         return Klagebehandlingsresultat.Omgjør(
             årsak = KlageOmgjøringsårsak.FEIL_LOVANVENDELSE,
             begrunnelse = begrunnelse,
-            rammebehandlingId = rammebehandlingId,
+            behandlingId = behandlingId,
             ferdigstiltTidspunkt = null,
             begrunnelseFerdigstilling = null,
-            åpenRammebehandlingId = åpenRammebehandlingId,
+            åpenBehandlingId = åpenBehandlingId,
         )
     }
 
@@ -192,8 +193,8 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         klageinstanshendelser: Klageinstanshendelser = Klageinstanshendelser(listOf(klageinstanshendelseAvsluttet())),
         ferdigstiltTidspunkt: LocalDateTime? = null,
         begrunnelseFerdigstilling: Begrunnelse? = null,
-        rammebehandlingId: List<RammebehandlingId> = emptyList(),
-        åpenRammebehandlingId: RammebehandlingId? = null,
+        behandlingId: List<BehandlingId> = emptyList(),
+        åpenBehandlingId: BehandlingId? = null,
     ): Klagebehandlingsresultat.Opprettholdt {
         return Klagebehandlingsresultat.Opprettholdt(
             hjemler = hjemler,
@@ -208,9 +209,9 @@ interface KlagebehandlingMother : MotherOfAllMothers {
             oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,
             klageinstanshendelser = klageinstanshendelser,
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
-            rammebehandlingId = rammebehandlingId,
+            behandlingId = behandlingId,
             begrunnelseFerdigstilling = begrunnelseFerdigstilling,
-            åpenRammebehandlingId = åpenRammebehandlingId,
+            åpenBehandlingId = åpenBehandlingId,
         )
     }
 

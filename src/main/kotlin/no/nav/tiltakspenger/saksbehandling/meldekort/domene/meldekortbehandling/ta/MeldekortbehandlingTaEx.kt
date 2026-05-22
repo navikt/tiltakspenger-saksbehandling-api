@@ -5,8 +5,12 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.ta
+import no.nav.tiltakspenger.saksbehandling.klage.domene.tilTilknyttetBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
@@ -22,6 +26,7 @@ fun Meldekortbehandling.taMeldekortbehandling(
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): Either<KanIkkeTaMeldekortbehandling, Meldekortbehandling> {
+    val nå = nå(clock)
     return when (this.status) {
         MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> {
             require(this is MeldekortUnderBehandling) {
@@ -37,7 +42,18 @@ fun Meldekortbehandling.taMeldekortbehandling(
             this.copy(
                 saksbehandler = saksbehandler.navIdent,
                 status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
-                sistEndret = nå(clock),
+                sistEndret = nå,
+                klagebehandling = klagebehandling?.let { klage ->
+                    klage.ta(
+                        kommando = TaKlagebehandlingKommando(
+                            sakId = sakId,
+                            klagebehandlingId = klage.id,
+                            saksbehandler = saksbehandler,
+                        ),
+                        tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
+                        sistEndret = nå,
+                    ).getOrThrow().first
+                },
             ).right()
         }
 
@@ -59,7 +75,7 @@ fun Meldekortbehandling.taMeldekortbehandling(
             this.copy(
                 beslutter = saksbehandler.navIdent,
                 status = MeldekortbehandlingStatus.UNDER_BESLUTNING,
-                sistEndret = nå(clock),
+                sistEndret = nå,
             ).right()
         }
 

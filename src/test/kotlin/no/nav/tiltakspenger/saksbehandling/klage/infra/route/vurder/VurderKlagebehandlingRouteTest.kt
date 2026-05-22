@@ -104,8 +104,8 @@ class VurderKlagebehandlingRouteTest {
                 kanIverksetteVedtak = null,
                 årsak = "ANNET",
                 begrunnelse = "oppdatert begrunnelse for omgjøring",
-                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                behandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenBehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
             )
         }
     }
@@ -144,8 +144,8 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                         "melding": "Feil rammebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: KLAR_TIL_BESLUTNING",
-                         "kode": "feil_rammebehandlingsstatus"
+                         "melding": "Feil tilknyttet behandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: KLAR_TIL_BESLUTNING",
+                         "kode": "feil_tilknyttet_behandlingsstatus"
                       }
                     """.trimIndent()
                 },
@@ -194,8 +194,8 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                         "melding": "Feil rammebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: UNDER_BESLUTNING",
-                         "kode": "feil_rammebehandlingsstatus"
+                         "melding": "Feil tilknyttet behandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: UNDER_BESLUTNING",
+                         "kode": "feil_tilknyttet_behandlingsstatus"
                       }
                     """.trimIndent()
                 },

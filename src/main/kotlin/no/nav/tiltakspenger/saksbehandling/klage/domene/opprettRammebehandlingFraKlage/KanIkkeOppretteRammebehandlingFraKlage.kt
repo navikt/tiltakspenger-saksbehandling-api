@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage
 
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.libs.common.BehandlingId
 
 sealed interface KanIkkeOppretteRammebehandlingFraKlage {
     data class SaksbehandlerMismatch(
@@ -8,5 +8,5 @@ sealed interface KanIkkeOppretteRammebehandlingFraKlage {
         val faktiskSaksbehandler: String,
     ) : KanIkkeOppretteRammebehandlingFraKlage
 
-    data class FinnesÅpenRammebehandling(val rammebehandlingId: RammebehandlingId) : KanIkkeOppretteRammebehandlingFraKlage
+    data class FinnesÅpenBehandling(val behandlingId: BehandlingId) : KanIkkeOppretteRammebehandlingFraKlage
 }

@@ -19,25 +19,33 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.S
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.AvbrytKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.AvbrytKlagebehandlingMedMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill.FerdigstillKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis.ForhåndsvisBrevKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.GjenopptaKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.GjenopptaKlagebehandlingMedRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.innstillingsbrev.VisInnstillingsbrevKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.IverksettKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.IverksettKlagebehandlingMedMeldekortbehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.LeggKlagebehandlingMedMeldekortbehandlingTilbakeBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.LeggKlagebehandlingMedRammebehandlingTilbakeBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.LeggKlagebehandlingTilbakeBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.mottattFraKa.MottattFraKaKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingBrevtekstBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater.OppdaterKlagebehandlingFormkravBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettMeldekortbehandling.OpprettMeldekortbehandlingForKlageBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling.OpprettRammebehandlingForKlageBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppretthold.OpprettholdKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.OvertaKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.OvertaKlagebehandlingMedMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.OvertaKlagebehandlingMedRammebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.SettKlagebehandlingMedMeldekortbehandlingPåVentBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.SettKlagebehandlingMedRammebehandlingPåVentBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.SettKlagebehandlingPåVentBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.start.OpprettKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.TaKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.TaKlagebehandlingMedMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.TaKlagebehandlingMedRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.VurderKlagebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbryt.AvbrytMeldekortbehandlingBuilder
@@ -66,20 +74,28 @@ object RouteBehandlingBuilder :
     OpprettKlagebehandlingBuilder,
     OvertaKlagebehandlingBuilder,
     OvertaKlagebehandlingMedRammebehandlingBuilder,
+    OvertaKlagebehandlingMedMeldekortbehandlingBuilder,
     SettKlagebehandlingPåVentBuilder,
     SettKlagebehandlingMedRammebehandlingPåVentBuilder,
+    SettKlagebehandlingMedMeldekortbehandlingPåVentBuilder,
     LeggKlagebehandlingTilbakeBuilder,
     LeggKlagebehandlingMedRammebehandlingTilbakeBuilder,
+    LeggKlagebehandlingMedMeldekortbehandlingTilbakeBuilder,
     TaKlagebehandlingBuilder,
     TaKlagebehandlingMedRammebehandlingBuilder,
+    TaKlagebehandlingMedMeldekortbehandlingBuilder,
     GjenopptaKlagebehandlingBuilder,
+    GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder,
     GjenopptaKlagebehandlingMedRammebehandlingBuilder,
     OppdaterKlagebehandlingFormkravBuilder,
     VurderKlagebehandlingBuilder,
     OpprettRammebehandlingForKlageBuilder,
+    OpprettMeldekortbehandlingForKlageBuilder,
     OppdaterKlagebehandlingBrevtekstBuilder,
     AvbrytKlagebehandlingBuilder,
+    AvbrytKlagebehandlingMedMeldekortbehandlingBuilder,
     IverksettKlagebehandlingBuilder,
+    IverksettKlagebehandlingMedMeldekortbehandlingBuilder,
     OpprettholdKlagebehandlingBuilder,
     ForhåndsvisBrevKlagebehandlingBuilder,
     TaRammebehandlingBuilder,

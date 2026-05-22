@@ -53,10 +53,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    behandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -115,10 +115,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    behandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -177,10 +177,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    behandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -236,8 +236,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 forventetJsonBody = {
                     """
                         {
-                          "melding": "Det finnes allerede en åpen rammebehandling ${rammebehandlingMedKlagebehandling.id} for denne klagebehandlingen.",
-                          "kode": "finnes_åpen_rammebehandling"
+                          "melding": "Det finnes allerede en åpen behandling ${rammebehandlingMedKlagebehandling.id} for denne klagebehandlingen.",
+                          "kode": "finnes_åpen_behandling"
                         }
                     """.trimIndent()
                 },
@@ -322,8 +322,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 forventetJsonBody = {
                     """
                         {
-                          "melding": "Det finnes allerede en åpen rammebehandling ${opprettetRammebehandling.id} for denne klagebehandlingen.",
-                          "kode": "finnes_åpen_rammebehandling"
+                          "melding": "Det finnes allerede en åpen behandling ${opprettetRammebehandling.id} for denne klagebehandlingen.",
+                          "kode": "finnes_åpen_behandling"
                         }
                     """.trimIndent()
                 },

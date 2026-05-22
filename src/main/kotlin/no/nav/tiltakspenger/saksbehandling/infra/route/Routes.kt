@@ -54,7 +54,7 @@ fun Route.routes(
             tilgangskontrollService = applicationContext.tilgangskontrollService,
             iverksettAvvistKlagebehandlingService = applicationContext.klagebehandlingContext.iverksettAvvistKlagebehandlingService,
             vurderKlagebehandlingService = applicationContext.klagebehandlingContext.vurderKlagebehandlingService,
-            opprettRammebehandlingFraKlageService = applicationContext.klagebehandlingContext.opprettRammebehandlingFraKlageService,
+            opprettBehandlingForKlageService = applicationContext.klagebehandlingContext.opprettBehandlingForKlageService,
             overtaKlagebehandlingService = applicationContext.klagebehandlingContext.overtaKlagebehandlingService,
             taKlagebehandlingService = applicationContext.klagebehandlingContext.taKlagebehandlingService,
             leggTilbakeKlagebehandlingService = applicationContext.klagebehandlingContext.leggTilbakeKlagebehandlingService,

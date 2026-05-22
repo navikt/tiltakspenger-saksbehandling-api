@@ -39,8 +39,8 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 kanIverksetteVedtak = null,
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                behandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenBehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
             )
             rammebehandlingMedKlagebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
             rammebehandlingMedKlagebehandling.saksbehandler shouldBe "saksbehandlerSomOvertarKlagebehandling"
@@ -81,8 +81,8 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
                 kanIverksetteVedtak = null,
-                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                behandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenBehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
                 status = "OMGJØRING_ETTER_KLAGEINSTANS",
                 brevtekst = listOf(
                     """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
@@ -143,8 +143,8 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 klagebehandlingId = rammebehandling.klagebehandling!!.id,
                 resultat = rammebehandling.klagebehandling!!.resultat as Klagebehandlingsresultat.Opprettholdt,
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
-                rammebehandlingId = listOf(rammebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandling.id.toString(),
+                behandlingId = listOf(rammebehandling.id.toString()),
+                åpenBehandlingId = rammebehandling.id.toString(),
                 vedtakDetKlagesPå = rammebehandling.klagebehandling!!.formkrav.vedtakDetKlagesPå!!.toString(),
             )
         }

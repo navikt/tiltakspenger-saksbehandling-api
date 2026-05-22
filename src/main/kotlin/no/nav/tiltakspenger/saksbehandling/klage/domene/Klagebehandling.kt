@@ -5,13 +5,12 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
+import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
@@ -87,13 +86,13 @@ data class Klagebehandling(
     val erOpprettholdt: Boolean = resultat is Klagebehandlingsresultat.Opprettholdt
 
     /**
-     * Hvis resultatet er [Klagebehandlingsresultat.Omgjør] og [Klagebehandlingsresultat.Omgjør.rammebehandlingId] er satt.
-     * Merk at dersom rammebehandlingen avbrytes vil denne verdien settes til null.
+     * Hvis resultatet er [Klagebehandlingsresultat.Omgjør] og [Klagebehandlingsresultat.Omgjør.behandlingId] er satt.
+     * Merk at dersom den tilknyttede behandlingen avbrytes vil denne verdien settes til null.
      */
-    val erKnyttetTilRammebehandling: Boolean = resultat?.erKnyttetTilRammebehandling == true
-    val rammebehandlingId: List<RammebehandlingId> = resultat?.rammebehandlingId ?: emptyList()
-    val åpenRammebehandlingId: RammebehandlingId? = resultat?.åpenRammebehandlingId
-    val kanVæreKnyttetTilRammebehandling = resultat?.kanVæreKnyttetTilRammebehandling
+    val erKnyttetTilBehandling: Boolean = resultat?.erKnyttetTilBehandling == true
+    val behandlingId: List<BehandlingId> = resultat?.behandlingId ?: emptyList()
+    val åpenBehandlingId: BehandlingId? = resultat?.åpenBehandlingId
+    val kanVæreKnyttetTilBehandling = resultat?.kanVæreKnyttetTilBehandling
     val kanOmgjøresEtterKA = resultat?.kanOmgjøresEtterKA == true
 
     val journalpostIdInnstillingsbrev: JournalpostId? =
@@ -114,10 +113,10 @@ data class Klagebehandling(
     }
 
     /**
-     * Sjekker både [Klagebehandlingsresultat] og [Rammebehandlingsstatus] hvis den er satt.
+     * Sjekker både [Klagebehandlingsstatus] og [TilknyttetBehandlingsstatus] hvis den er satt.
      */
     fun kanOppdatereIDenneStatusen(
-        rammebehandlingsstatus: Rammebehandlingsstatus?,
+        tilknyttetBehandlingsstatus: TilknyttetBehandlingsstatus?,
         kanVæreUnderBehandling: Boolean = true,
         kanVæreKlarTilBehandling: Boolean = false,
         kanVæreMottattFraKA: Boolean = false,
@@ -129,9 +128,9 @@ data class Klagebehandling(
             if (kanVæreMottattFraKA) MOTTATT_FRA_KLAGEINSTANS else null,
             if (kanVæreOmgjørEtterKA) OMGJØRING_ETTER_KLAGEINSTANS else null,
         ).toNonEmptyListOrThrow()
-        val forventetRammebehandlingstatuser = listOfNotNull(
-            if (kanVæreUnderBehandling) Rammebehandlingsstatus.UNDER_BEHANDLING else null,
-            if (kanVæreKlarTilBehandling) Rammebehandlingsstatus.KLAR_TIL_BEHANDLING else null,
+        val forventetTilknyttetBehandlingsstatuser = listOfNotNull(
+            if (kanVæreUnderBehandling) TilknyttetBehandlingsstatus.UNDER_BEHANDLING else null,
+            if (kanVæreKlarTilBehandling) TilknyttetBehandlingsstatus.KLAR_TIL_BEHANDLING else null,
         ).toNonEmptyListOrThrow()
         if (!forventetKlagebehandlingsstatuser.contains(this.status)) {
             return KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus(
@@ -139,10 +138,10 @@ data class Klagebehandling(
                 faktiskStatus = this.status,
             ).left()
         }
-        if (rammebehandlingsstatus != null && !forventetRammebehandlingstatuser.contains(rammebehandlingsstatus)) {
-            return KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus(
-                forventetStatus = forventetRammebehandlingstatuser,
-                faktiskStatus = rammebehandlingsstatus,
+        if (tilknyttetBehandlingsstatus != null && !forventetTilknyttetBehandlingsstatuser.contains(tilknyttetBehandlingsstatus)) {
+            return KanIkkeOppdatereKlagebehandling.FeilTilknyttetBehandlingsstatus(
+                forventetStatus = forventetTilknyttetBehandlingsstatuser,
+                faktiskStatus = tilknyttetBehandlingsstatus,
             ).left()
         }
         return Unit.right()
@@ -183,11 +182,11 @@ data class Klagebehandling(
         )
     }
 
-    fun nullstillÅpenRammebehandlingId(): Klagebehandling {
+    fun nullstillÅpenBehandlingId(): Klagebehandling {
         require(this.resultat != null) {
             "Kan ikke iverksette klagebehandling uten resultat. sakId=$sakId, saksnummer=$saksnummer, klagebehandlingId=$id"
         }
-        return this.copy(resultat = this.resultat.nullstillÅpenRammebehandlingId())
+        return this.copy(resultat = this.resultat.nullstillÅpenBehandlingId())
     }
 
     init {
@@ -229,8 +228,8 @@ data class Klagebehandling(
                 }
                 when (resultat) {
                     is Klagebehandlingsresultat.Omgjør -> {
-                        require(resultat.rammebehandlingId.isNotEmpty()) {
-                            "Klagebehandling som er $status med omgjøring må ha rammebehandlingId satt. $loggkontekst"
+                        require(resultat.behandlingId.isNotEmpty()) {
+                            "Klagebehandling som er $status med omgjøring må ha behandlingId satt. $loggkontekst"
                         }
                     }
 
@@ -253,8 +252,8 @@ data class Klagebehandling(
                         require(resultat.klageinstanshendelser.isNotEmpty()) {
                             "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
                         }
-                        require(resultat.rammebehandlingId.isNotEmpty()) {
-                            "Klagebehandling som er $status må ha rammebehandlingId satt. $loggkontekst"
+                        require(resultat.behandlingId.isNotEmpty()) {
+                            "Klagebehandling som er $status må ha behandlingId satt. $loggkontekst"
                         }
                     }
                 }
@@ -333,8 +332,8 @@ data class Klagebehandling(
                 require(resultat.klageinstanshendelser.isNotEmpty()) {
                     "Klagebehandling som er $status må ha klageinstanshendelser med minst 1 element. $loggkontekst"
                 }
-                require(resultat.rammebehandlingId.isNotEmpty()) {
-                    "Klagebehandling som er $status må ha rammebehandlingId satt. $loggkontekst"
+                require(resultat.behandlingId.isNotEmpty()) {
+                    "Klagebehandling som er $status må ha behandlingId satt. $loggkontekst"
                 }
             }
 
