@@ -11,7 +11,7 @@ sealed interface Tilbakekrevingshendelse {
     val opprettet: LocalDateTime
     val behandlet: LocalDateTime?
     val hendelsestype: TilbakekrevinghendelseType
-    val eksternFagsakId: String
+    val eksternFagsakId: String?
     val sakId: SakId?
     val feil: TilbakekrevinghendelseFeil?
 }
@@ -32,6 +32,7 @@ data class TilbakekrevinghendelseId private constructor(
 enum class TilbakekrevinghendelseType {
     InfoBehov,
     BehandlingEndret,
+    Ukjent,
 }
 
 enum class TilbakekrevinghendelseFeil {

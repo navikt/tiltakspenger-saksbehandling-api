@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -60,17 +61,26 @@ class TilbakekrevingConsumer(
                 return
             }
 
-            val hendelse = value.tilNyTilbakekrevingshendelse(key).getOrElse {
-                logger.error(it) { "Mottatt tilbakekrevingshendelse hvor vi ikke klarte deserialisere. Denne vil prøves på nytt." }
-                throw it
-            }
+            val hendelse = value.tilNyTilbakekrevingshendelse(key)
 
             if (hendelse == null) {
                 logger.debug { "Mottatt tilbakekrevingshendelse som vi tp-sak har produsert, hendelsen forkastes." }
                 return
             }
 
+            if (hendelse is TilbakekrevingUkjentHendelse) {
+                // Vi klarte ikke å deserialisere hendelsen - lagre den som ukjent for senere undersøkelse.
+                val bleLagret = tilbakekrevingHendelseRepo.lagreNy(hendelse, sakId = null, key = key, value = value)
+                if (!bleLagret) {
+                    logger.error { "Ukjent tilbakekrevingshendelse ble ikke lagret - ${hendelse.id}" }
+                } else {
+                    logger.info { "Lagret ukjent tilbakekrevingshendelse - ${hendelse.id}" }
+                }
+                return
+            }
+
             val eksternFagsakId = hendelse.eksternFagsakId
+                ?: error("eksternFagsakId mangler for tilbakekrevingshendelse av type ${hendelse.hendelsestype}")
 
             val sakId: SakId? = Either.catch {
                 sakRepo.hentSakIdForSaksnummer(Saksnummer(eksternFagsakId))

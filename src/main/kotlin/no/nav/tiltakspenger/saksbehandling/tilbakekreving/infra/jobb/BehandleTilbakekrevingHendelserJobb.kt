@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tilBehandlingIdFraTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
@@ -52,6 +53,12 @@ class BehandleTilbakekrevingHendelserJobb(
         }
 
         ubehandledeHendelser.forEach { hendelse ->
+            // TODO abn: retry deserialize for disse og/eller send alert og marker som behandlet med feil
+            if (hendelse is TilbakekrevingUkjentHendelse) {
+                logger.debug { "Hopper over ukjent tilbakekreving-hendelse ${hendelse.id}" }
+                return@forEach
+            }
+
             val sakId = hendelse.sakId
 
             if (sakId == null) {
@@ -69,6 +76,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 when (hendelse) {
                     is TilbakekrevingInfoBehovHendelse -> sak.håndterInfoBehov(hendelse)
                     is TilbakekrevingBehandlingEndretHendelse -> sak.håndterBehandlingEndret(hendelse)
+                    is TilbakekrevingUkjentHendelse -> error("Ukjente hendelser skal være filtrert ut tidligere")
                 }.onLeft {
                     logger.error { "Feil ved behandling av tilbakekreving-hendelse: $it - hendelse: ${hendelse.id} / ${hendelse.hendelsestype} - sak: ${hendelse.sakId}" }
                     tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(
