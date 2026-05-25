@@ -7,8 +7,9 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 
 class TilbakekrevingConsumerTest {
@@ -149,63 +150,6 @@ class TilbakekrevingConsumerTest {
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
                 sakRepo = tac.sakContext.sakRepo,
             )
-
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-            hendelser.size shouldBe 0
-        }
-    }
-
-    @Test
-    fun `ukjent hendelsestype - kaster exception`() {
-        withTestApplicationContext { tac ->
-            val key = "test-key"
-            //language=json
-            val value = """
-                {
-                    "hendelsestype": "ugyldig_hendelsestype",
-                    "versjon": 1,
-                    "eksternFagsakId": "202401011234",
-                    "hendelseOpprettet": "2024-01-15T10:30:00"
-                }
-            """.trimIndent()
-
-            assertThrows<Exception> {
-                TilbakekrevingConsumer.consume(
-                    key = key,
-                    value = value,
-                    tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                    sakRepo = tac.sakContext.sakRepo,
-                )
-            }
-
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-            hendelser.size shouldBe 0
-        }
-    }
-
-    @Test
-    fun `manglende påkrevd felt - kaster exception`() {
-        withTestApplicationContext { tac ->
-            val key = "test-key"
-            // mangler kravgrunnlagReferanse for infobehov
-            //language=json
-            val value = """
-                {
-                    "hendelsestype": "fagsysteminfo_behov",
-                    "versjon": 1,
-                    "eksternFagsakId": "202401011234",
-                    "hendelseOpprettet": "2024-01-15T10:30:00"
-                }
-            """.trimIndent()
-
-            assertThrows<Exception> {
-                TilbakekrevingConsumer.consume(
-                    key = key,
-                    value = value,
-                    tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                    sakRepo = tac.sakContext.sakRepo,
-                )
-            }
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 0
@@ -425,6 +369,74 @@ class TilbakekrevingConsumerTest {
             hendelse.url shouldBe "https://tilbakekreving.nav.no/behandling/postgres-123"
             hendelse.sakId shouldBe sak.id
             hendelse.behandlet shouldBe null
+        }
+    }
+
+    @Test
+    fun `ukjent hendelse - kan ikke deserialiseres - persistes som ukjent`() {
+        withTestApplicationContext { tac ->
+            val key = "test-key-ukjent"
+            // Gyldig JSON, men ikke en kjent hendelsestype/skjema
+            //language=json
+            val value = """
+                {
+                    "hendelsestype": "noe_helt_annet",
+                    "uventetFelt": "uventet-verdi"
+                }
+            """.trimIndent()
+
+            TilbakekrevingConsumer.consume(
+                key = key,
+                value = value,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                sakRepo = tac.sakContext.sakRepo,
+            )
+
+            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            hendelser.size shouldBe 1
+
+            val hendelse = hendelser.first() as TilbakekrevingUkjentHendelse
+            hendelse.hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
+            hendelse.sakId shouldBe null
+            hendelse.eksternFagsakId shouldBe null
+            hendelse.behandlet shouldBe null
+            hendelse.feil shouldBe null
+        }
+    }
+
+    @Test
+    fun `ukjent hendelse - kan ikke deserialiseres - persistes og hentes korrekt fra postgres`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val key = "test-key-ukjent-postgres"
+            //language=json
+            val value = """
+                {
+                    "hendelsestype": "noe_helt_annet",
+                    "uventetFelt": "uventet-verdi"
+                }
+            """.trimIndent()
+
+            TilbakekrevingConsumer.consume(
+                key = key,
+                value = value,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                sakRepo = tac.sakContext.sakRepo,
+            )
+
+            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            hendelser.size shouldBe 1
+
+            val hendelse = hendelser.first() as TilbakekrevingUkjentHendelse
+            hendelse.hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
+            hendelse.sakId shouldBe null
+            hendelse.eksternFagsakId shouldBe null
+            hendelse.behandlet shouldBe null
+            hendelse.feil shouldBe null
+
+            // Verifiser at vi også kan hente den enkeltvis fra db
+            val hentet = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelse.id) as TilbakekrevingUkjentHendelse
+            hentet.id shouldBe hendelse.id
+            hentet.hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
         }
     }
 }

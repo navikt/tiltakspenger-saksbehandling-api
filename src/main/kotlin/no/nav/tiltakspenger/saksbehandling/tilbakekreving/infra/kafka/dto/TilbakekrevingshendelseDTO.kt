@@ -1,16 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
 import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import java.time.LocalDate
 import java.time.LocalDateTime
+
+private val logger = KotlinLogging.logger {}
 
 /**
  *  [eksternFagsakId] Tilsvarer saksnummer [no.nav.tiltakspenger.libs.common.Saksnummer] for brukerens sak
@@ -50,12 +52,25 @@ data class TilbakekrevingPeriodeDTO(
     }
 }
 
-fun String.tilNyTilbakekrevingshendelse(key: String): Either<Throwable, Tilbakekrevingshendelse?> {
+/**
+ * Forsøker å deserialisere en Kafka-melding til en [Tilbakekrevingshendelse].
+ *
+ * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres - en [TilbakekrevingUkjentHendelse] dersom
+ *  deserialiseringen feilet - eller null dersom hendelsen ikke skal lagres.
+ */
+fun String.tilNyTilbakekrevingshendelse(key: String): Tilbakekrevingshendelse? {
     return Either.catch {
-        deserialize<TilbakekrevingshendelseDTO>(this)
-            .tilHendelseForLagring(key)
-            .right()
-    }.getOrElse {
-        return it.left()
-    }
+        deserialize<TilbakekrevingshendelseDTO>(this).tilHendelseForLagring(key)
+    }.fold(
+        ifLeft = { throwable ->
+            logger.error(throwable) {
+                "Mottatt tilbakekrevingshendelse som vi ikke klarte å deserialisere. Lagrer som ukjent hendelse."
+            }
+            TilbakekrevingUkjentHendelse(
+                id = TilbakekrevinghendelseId.random(),
+                opprettet = LocalDateTime.now(),
+            )
+        },
+        ifRight = { it },
+    )
 }

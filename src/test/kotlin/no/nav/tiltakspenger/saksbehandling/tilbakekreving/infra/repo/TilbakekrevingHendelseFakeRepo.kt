@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
@@ -32,13 +33,12 @@ class TilbakekrevingHendelseFakeRepo(
             return false
         }
 
-        // Oppdater hendelsen med sakId, slik som PostgresRepo gjør
-        val hendelseMedSakId = when (hendelse) {
+        data.get()[hendelse.id] = when (hendelse) {
             is TilbakekrevingInfoBehovHendelse -> hendelse.copy(sakId = sakId)
             is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(sakId = sakId)
+            is TilbakekrevingUkjentHendelse -> hendelse
         }
 
-        data.get()[hendelse.id] = hendelseMedSakId
         return true
     }
 
@@ -77,6 +77,7 @@ class TilbakekrevingHendelseFakeRepo(
         data.get()[hendelseId] = when (hendelse) {
             is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
             is TilbakekrevingInfoBehovHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
+            is TilbakekrevingUkjentHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
         }
     }
 

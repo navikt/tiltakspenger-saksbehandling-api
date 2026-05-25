@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
@@ -76,6 +77,10 @@ class TilbakekrevingHendelsePostgresRepo(
                             "hendelse_type" to HendelsetypeDb.BehandlingEndret.toString(),
                             "ekstern_behandling_id" to hendelse.eksternBehandlingId,
                             "behandling" to hendelse.tilDbBehandlingJson(),
+                        )
+
+                        is TilbakekrevingUkjentHendelse -> arrayOf(
+                            "hendelse_type" to HendelsetypeDb.Ukjent.toString(),
                         )
                     },
                 ).asUpdate,
@@ -183,13 +188,14 @@ class TilbakekrevingHendelsePostgresRepo(
 private enum class HendelsetypeDb {
     InfoBehov,
     BehandlingEndret,
+    Ukjent,
 }
 
 private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
     val hendelsestype = HendelsetypeDb.valueOf(string("hendelse_type"))
     val id = TilbakekrevinghendelseId.fromString(string("id"))
     val opprettet = localDateTime("opprettet")
-    val eksternFagsakId = string("ekstern_fagsak_id")
+    val eksternFagsakId = stringOrNull("ekstern_fagsak_id")
     val sakId = stringOrNull("sak_id")?.let { SakId.fromString(it) }
     val behandlet = localDateTimeOrNull("behandlet")
     val feil = stringOrNull("behandlet_feil")?.let { TilbakekrevinghendelseFeilDb.valueOf(it).tilDomene() }
@@ -201,7 +207,7 @@ private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
             behandlet = behandlet,
             sakId = sakId,
             svar = stringOrNull("svar")?.let { deserialize(it) },
-            eksternFagsakId = eksternFagsakId,
+            eksternFagsakId = eksternFagsakId!!,
             kravgrunnlagReferanse = string("kravgrunnlag_referanse"),
             feil = feil,
         )
@@ -213,7 +219,7 @@ private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
                 opprettet = opprettet,
                 behandlet = behandlet,
                 sakId = sakId,
-                eksternFagsakId = eksternFagsakId,
+                eksternFagsakId = eksternFagsakId!!,
                 eksternBehandlingId = string("ekstern_behandling_id"),
                 tilbakeBehandlingId = behandling.behandlingId,
                 sakOpprettet = behandling.sakOpprettet,
@@ -227,5 +233,12 @@ private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
                 venter = behandling.venter?.tilDomene(),
             )
         }
+
+        HendelsetypeDb.Ukjent -> TilbakekrevingUkjentHendelse(
+            id = id,
+            opprettet = opprettet,
+            behandlet = behandlet,
+            feil = feil,
+        )
     }
 }
