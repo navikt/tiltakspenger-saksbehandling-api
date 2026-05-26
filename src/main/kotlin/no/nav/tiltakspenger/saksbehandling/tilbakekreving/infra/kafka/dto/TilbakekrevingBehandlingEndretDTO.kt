@@ -71,6 +71,7 @@ data class TilbakekrevingBehandlingEndretDTO(
 
     enum class TilbakekrevingHendelseStatusDTO {
         OPPRETTET,
+        TIL_FORHÅNDSVARSEL,
         TIL_BEHANDLING,
         TIL_GODKJENNING,
         AVSLUTTET,
@@ -79,6 +80,7 @@ data class TilbakekrevingBehandlingEndretDTO(
         fun tilDomene(): TilbakekrevingBehandlingsstatus {
             return when (this) {
                 OPPRETTET -> TilbakekrevingBehandlingsstatus.OPPRETTET
+                TIL_FORHÅNDSVARSEL -> TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL
                 TIL_BEHANDLING -> TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
                 TIL_GODKJENNING -> TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
                 AVSLUTTET -> TilbakekrevingBehandlingsstatus.AVSLUTTET
