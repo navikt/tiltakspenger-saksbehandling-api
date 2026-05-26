@@ -28,7 +28,9 @@ class TilbakekrevingBehandlingTildelingService(
         val oppdatert = behandling.tildel(saksbehandler, clock)
 
         val harOppdatert = when (oppdatert.statusIntern) {
-            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
+            TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+            ->
                 tilbakekrevingBehandlingRepo.taBehandlingSaksbehandler(oppdatert)
 
             TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
@@ -52,7 +54,9 @@ class TilbakekrevingBehandlingTildelingService(
         val oppdatert = behandling.overta(saksbehandler, clock)
 
         val harOppdatert = when (behandling.statusIntern) {
-            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
+            TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+            ->
                 tilbakekrevingBehandlingRepo.overtaSaksbehandler(oppdatert, behandling.saksbehandler!!)
 
             TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
@@ -76,7 +80,9 @@ class TilbakekrevingBehandlingTildelingService(
         val oppdatert = behandling.leggTilbake(saksbehandler, clock)
 
         val harOppdatert = when (behandling.statusIntern) {
-            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING ->
+            TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+            ->
                 tilbakekrevingBehandlingRepo.leggTilbakeSaksbehandler(oppdatert, behandling.saksbehandler!!)
 
             TilbakekrevingBehandlingsstatusIntern.UNDER_GODKJENNING ->
