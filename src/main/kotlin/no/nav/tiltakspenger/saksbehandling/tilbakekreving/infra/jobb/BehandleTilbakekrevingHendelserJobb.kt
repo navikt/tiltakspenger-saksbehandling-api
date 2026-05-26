@@ -77,7 +77,7 @@ class BehandleTilbakekrevingHendelserJobb(
     /**
      * Slår opp [Sak] for en hendelse basert på dens eksternFagsakId.
      */
-    private fun hentSakForHendelse(hendelse: Tilbakekrevingshendelse): Either<TilbakekrevinghendelseFeil, Pair<SakId, Sak>> {
+    private fun hentSakForHendelse(hendelse: Tilbakekrevingshendelse): Either<TilbakekrevinghendelseFeil, Sak> {
         val eksternFagsakId = hendelse.eksternFagsakId
 
         val sakId = eksternFagsakId?.let {
@@ -87,7 +87,7 @@ class BehandleTilbakekrevingHendelserJobb(
             }
         } ?: return TilbakekrevinghendelseFeil.FantIkkeSak.left()
 
-        return (sakId to sakRepo.hentForSakId(sakId)!!).right()
+        return sakRepo.hentForSakId(sakId)!!.right()
     }
 
     /**
@@ -116,7 +116,8 @@ class BehandleTilbakekrevingHendelserJobb(
     }
 
     private fun håndterInfoBehov(hendelse: TilbakekrevingInfoBehovHendelse): Either<Pair<SakId?, TilbakekrevinghendelseFeil>, Unit> {
-        val (sakId, sak) = hentSakForHendelse(hendelse).getOrElse { return (null to it).left() }
+        val sak = hentSakForHendelse(hendelse).getOrElse { return (null to it).left() }
+        val sakId = sak.id
 
         val utbetaling = sak.utbetalinger.hentUtbetalingForUuid(hendelse.kravgrunnlagReferanse)
             ?: return (sakId to TilbakekrevinghendelseFeil.FantIkkeUtbetaling).left()
@@ -141,7 +142,8 @@ class BehandleTilbakekrevingHendelserJobb(
     }
 
     private fun håndterBehandlingEndret(hendelse: TilbakekrevingBehandlingEndretHendelse): Either<Pair<SakId?, TilbakekrevinghendelseFeil>, Unit> {
-        val (sakId, sak) = hentSakForHendelse(hendelse).getOrElse { return (null to it).left() }
+        val sak = hentSakForHendelse(hendelse).getOrElse { return (null to it).left() }
+        val sakId = sak.id
 
         // Dette burde ikke kunne skje
         if (hendelse.eksternBehandlingId == null) {
