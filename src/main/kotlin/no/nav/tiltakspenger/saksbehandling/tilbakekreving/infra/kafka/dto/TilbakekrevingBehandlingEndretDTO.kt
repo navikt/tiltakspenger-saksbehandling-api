@@ -18,7 +18,7 @@ data class TilbakekrevingBehandlingEndretDTO(
     override val versjon: Int = 1
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.behandling_endret
 
-    override fun tilHendelseForLagring(key: String): TilbakekrevingBehandlingEndretHendelse {
+    override fun tilHendelseForLagring(): TilbakekrevingBehandlingEndretHendelse {
         return TilbakekrevingBehandlingEndretHendelse(
             id = TilbakekrevinghendelseId.random(),
             opprettet = hendelseOpprettet.tilLocalDateTime(),

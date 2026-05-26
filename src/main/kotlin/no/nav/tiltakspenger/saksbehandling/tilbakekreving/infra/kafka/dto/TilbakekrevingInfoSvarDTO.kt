@@ -15,7 +15,7 @@ data class TilbakekrevingInfoSvarDTO(
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.fagsysteminfo_svar
 
     // Vi ønsker aldri å lagre vårt eget svar som egen hendelse i databasen
-    override fun tilHendelseForLagring(key: String): Tilbakekrevingshendelse? {
+    override fun tilHendelseForLagring(): Tilbakekrevingshendelse? {
         return null
     }
 

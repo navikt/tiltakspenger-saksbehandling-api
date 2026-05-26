@@ -362,7 +362,6 @@ class TestApplicationContextMedInMemoryDb(
         TilbakekrevingConsumer(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
-            sakRepo = sakContext.sakRepo,
             log = null,
         )
     }

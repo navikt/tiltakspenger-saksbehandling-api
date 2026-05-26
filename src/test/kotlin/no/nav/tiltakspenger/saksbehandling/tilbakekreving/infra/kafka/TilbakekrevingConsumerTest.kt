@@ -36,7 +36,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -45,7 +45,7 @@ class TilbakekrevingConsumerTest {
             val hendelse = hendelser.first() as TilbakekrevingInfoBehovHendelse
             hendelse.eksternFagsakId shouldBe sak.saksnummer.verdi
             hendelse.kravgrunnlagReferanse shouldBe "ref-12345"
-            hendelse.sakId shouldBe sak.id
+            hendelse.sakId shouldBe null
         }
     }
 
@@ -83,7 +83,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -96,7 +96,7 @@ class TilbakekrevingConsumerTest {
             hendelse.behandlingsstatus shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
             hendelse.totaltFeilutbetaltBeløp shouldBe BigDecimal("1500.50")
             hendelse.url shouldBe "https://tilbakekreving.nav.no/behandling/123"
-            hendelse.sakId shouldBe sak.id
+            hendelse.sakId shouldBe null
         }
     }
 
@@ -136,7 +136,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -148,7 +148,7 @@ class TilbakekrevingConsumerTest {
             hendelse.sakOpprettet shouldBe LocalDateTime.parse("2024-01-10T08:00:00.598446")
             hendelse.eksternBehandlingId shouldBe "ekstern-behandling-offset-123"
             hendelse.tilbakeBehandlingId shouldBe "tilbake-behandling-offset-456"
-            hendelse.sakId shouldBe sak.id
+            hendelse.sakId shouldBe null
         }
     }
 
@@ -184,7 +184,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             // infosvar skal ikke persistes
@@ -201,7 +201,7 @@ class TilbakekrevingConsumerTest {
                 key = "test-key",
                 value = null,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -230,7 +230,7 @@ class TilbakekrevingConsumerTest {
                 key = "key-1",
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             // Andre kall med samme kravgrunnlagReferanse - skal ikke persiste
@@ -238,7 +238,7 @@ class TilbakekrevingConsumerTest {
                 key = "key-2",
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -267,7 +267,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -320,7 +320,7 @@ class TilbakekrevingConsumerTest {
                     key = key,
                     value = value,
                     tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                    sakRepo = tac.sakContext.sakRepo,
+
                 )
 
                 val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -356,7 +356,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -365,7 +365,7 @@ class TilbakekrevingConsumerTest {
             val hendelse = hendelser.first() as TilbakekrevingInfoBehovHendelse
             hendelse.eksternFagsakId shouldBe sak.saksnummer.verdi
             hendelse.kravgrunnlagReferanse shouldBe "ref-postgres-12345"
-            hendelse.sakId shouldBe sak.id
+            hendelse.sakId shouldBe null
             hendelse.behandlet shouldBe null
         }
     }
@@ -406,7 +406,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -420,7 +420,7 @@ class TilbakekrevingConsumerTest {
             hendelse.forrigeBehandlingsstatus shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
             hendelse.totaltFeilutbetaltBeløp shouldBe BigDecimal("2500.75")
             hendelse.url shouldBe "https://tilbakekreving.nav.no/behandling/postgres-123"
-            hendelse.sakId shouldBe sak.id
+            hendelse.sakId shouldBe null
             hendelse.behandlet shouldBe null
         }
     }
@@ -442,7 +442,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -473,7 +473,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-                sakRepo = tac.sakContext.sakRepo,
+
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()

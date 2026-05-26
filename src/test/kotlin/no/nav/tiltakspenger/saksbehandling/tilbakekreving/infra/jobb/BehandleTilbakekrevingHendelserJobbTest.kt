@@ -17,7 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter.TilbakekrevingVentegrunn
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -719,6 +721,103 @@ class BehandleTilbakekrevingHendelserJobbTest {
             oppdatertBehandling.venter.shouldNotBeNull()
             oppdatertBehandling.venter.grunn shouldBe TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
             oppdatertBehandling.venter.gjenopptas shouldBe gjenopptas
+        }
+    }
+
+    @Test
+    fun `ukjent - deserialiserer gyldig payload og behandler hendelsen`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
+
+            val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = vedtak.id,
+                vedtaksperiode = vedtak.periode,
+            )
+
+            // Gyldig behandling_endret JSON som referer en faktisk utbetaling på saken
+            @Language("JSON")
+            val gyldigJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sakMedOpphør.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "eksternBehandlingId": "${opphørVedtak.behandlingId}",
+                    "tilbakekreving": {
+                        "behandlingId": "tilbake-fra-ukjent",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 500.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/fra-ukjent",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            // Persister en ukjent hendelse direkte - simulerer en tidligere ikke-deserialiserbar melding
+            val ukjentId = TilbakekrevinghendelseId.random()
+            val ukjent = TilbakekrevingUkjentHendelse(
+                id = ukjentId,
+                opprettet = nå(tac.clock),
+                value = gyldigJson,
+            )
+            tac.tilbakekrevingHendelseRepo.lagreNy(ukjent, key = "", value = gyldigJson) shouldBe true
+
+            // Første kjøring: raden konverteres fra Ukjent til BehandlingEndret, men er fortsatt ubehandlet
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            val etterFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId)
+            etterFørsteKjøring.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
+            etterFørsteKjøring.behandlet shouldBe null
+            tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).size shouldBe 0
+
+            // Andre kjøring: hendelsen behandles normalt og resulterer i en TilbakekrevingBehandling
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            val etterAndreKjøring = tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId)
+            etterAndreKjøring.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
+            etterAndreKjøring.behandlet.shouldNotBeNull()
+            etterAndreKjøring.feil shouldBe null
+
+            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+
+            val tilbakekrevingBehandling =
+                tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
+            tilbakekrevingBehandling.sakId shouldBe sakMedOpphør.id
+            tilbakekrevingBehandling.tilbakeBehandlingId shouldBe "tilbake-fra-ukjent"
+        }
+    }
+
+    @Test
+    fun `ukjent - hopper over hendelse som fortsatt ikke kan deserialiseres`() {
+        withTestApplicationContext { tac ->
+            val ugyldigJson = """{ "lol": "what" }"""
+
+            val ukjentId = TilbakekrevinghendelseId.random()
+            val ukjent = TilbakekrevingUkjentHendelse(
+                id = ukjentId,
+                opprettet = nå(tac.clock),
+                value = ugyldigJson,
+            )
+            tac.tilbakekrevingHendelseRepo.lagreNy(ukjent, key = "asdf", value = ugyldigJson) shouldBe true
+
+            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+            // Ukjent-raden forblir ubehandlet (uten feil) slik at vi kan undersøke / retry senere
+            val ukjentEtter = tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId)
+            ukjentEtter.shouldBeInstanceOf<TilbakekrevingUkjentHendelse>()
+            ukjentEtter.behandlet shouldBe null
+            ukjentEtter.feil shouldBe null
+
+            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+                .single().hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
         }
     }
 }
