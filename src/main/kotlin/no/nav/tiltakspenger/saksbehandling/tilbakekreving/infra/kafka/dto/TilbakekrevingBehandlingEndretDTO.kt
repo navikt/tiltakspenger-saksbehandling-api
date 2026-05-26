@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
+import no.nav.tiltakspenger.saksbehandling.felles.tilLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter.TilbakekrevingVentegrunn
@@ -7,11 +8,10 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 data class TilbakekrevingBehandlingEndretDTO(
     override val eksternFagsakId: String,
-    override val hendelseOpprettet: LocalDateTime,
+    override val hendelseOpprettet: String,
     val eksternBehandlingId: String?,
     val tilbakekreving: TilbakekrevingDTO,
 ) : TilbakekrevingshendelseDTO {
@@ -21,13 +21,13 @@ data class TilbakekrevingBehandlingEndretDTO(
     override fun tilHendelseForLagring(key: String): TilbakekrevingBehandlingEndretHendelse {
         return TilbakekrevingBehandlingEndretHendelse(
             id = TilbakekrevinghendelseId.random(),
-            opprettet = hendelseOpprettet,
+            opprettet = hendelseOpprettet.tilLocalDateTime(),
             behandlet = null,
             sakId = null,
             eksternFagsakId = eksternFagsakId,
             eksternBehandlingId = eksternBehandlingId,
             tilbakeBehandlingId = tilbakekreving.behandlingId,
-            sakOpprettet = tilbakekreving.sakOpprettet,
+            sakOpprettet = tilbakekreving.sakOpprettet.tilLocalDateTime(),
             varselSendt = tilbakekreving.varselSendt,
             behandlingsstatus = tilbakekreving.behandlingsstatus.tilDomene(),
             forrigeBehandlingsstatus = tilbakekreving.forrigeBehandlingsstatus?.tilDomene(),
@@ -41,7 +41,7 @@ data class TilbakekrevingBehandlingEndretDTO(
 
     data class TilbakekrevingDTO(
         val behandlingId: String,
-        val sakOpprettet: LocalDateTime,
+        val sakOpprettet: String,
         val varselSendt: LocalDate?,
         val behandlingsstatus: TilbakekrevingHendelseStatusDTO,
         val forrigeBehandlingsstatus: TilbakekrevingHendelseStatusDTO?,

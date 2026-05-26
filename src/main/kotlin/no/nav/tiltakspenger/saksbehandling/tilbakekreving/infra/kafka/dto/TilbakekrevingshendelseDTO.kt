@@ -28,7 +28,7 @@ sealed interface TilbakekrevingshendelseDTO {
     val hendelsestype: TilbakekrevingHendelsestypeDTO
     val versjon: Int
     val eksternFagsakId: String
-    val hendelseOpprettet: LocalDateTime
+    val hendelseOpprettet: String
 
     /**
      * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres i databasen, eller null dersom den ikke skal lagres

@@ -2,11 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 data class TilbakekrevingInfoSvarDTO(
     override val eksternFagsakId: String,
-    override val hendelseOpprettet: LocalDateTime,
+    override val hendelseOpprettet: String,
     val mottaker: TilbakekrevingMottaker,
     val revurdering: TilbakekrevingRevurdering,
     val utvidPerioder: List<TilbakekrevingUtvidPeriode>?,

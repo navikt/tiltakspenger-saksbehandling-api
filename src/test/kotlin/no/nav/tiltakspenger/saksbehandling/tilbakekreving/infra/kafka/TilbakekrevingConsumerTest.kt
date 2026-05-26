@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 class TilbakekrevingConsumerTest {
 
@@ -95,6 +96,58 @@ class TilbakekrevingConsumerTest {
             hendelse.behandlingsstatus shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
             hendelse.totaltFeilutbetaltBeløp shouldBe BigDecimal("1500.50")
             hendelse.url shouldBe "https://tilbakekreving.nav.no/behandling/123"
+            hendelse.sakId shouldBe sak.id
+        }
+    }
+
+    @Test
+    fun `behandling_endret - deserialiseres med OffsetDateTime-tidsstempler`() {
+        withTestApplicationContext { tac ->
+            val (sak) = opprettSakOgSøknad(tac = tac)
+
+            val key = "test-key-behandling-endret-offset"
+            // Tilbakekreving-løsningen kan sende tidsstempler enten som LocalDateTime eller OffsetDateTime.
+            // Her bruker vi OffsetDateTime-formatet for både hendelseOpprettet og sakOpprettet.
+            //language=json
+            val value = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "2024-01-15T10:30:00+02:00",
+                    "eksternBehandlingId": "ekstern-behandling-offset-123",
+                    "tilbakekreving": {
+                        "behandlingId": "tilbake-behandling-offset-456",
+                        "sakOpprettet": "2024-01-10T08:00:00.598446+02:00",
+                        "varselSendt": "2024-01-12",
+                        "behandlingsstatus": "OPPRETTET",
+                        "forrigeBehandlingsstatus": null,
+                        "totaltFeilutbetaltBeløp": 1500.50,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/offset",
+                        "fullstendigPeriode": {
+                            "fom": "2024-01-01",
+                            "tom": "2024-01-31"
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            TilbakekrevingConsumer.consume(
+                key = key,
+                value = value,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                sakRepo = tac.sakContext.sakRepo,
+            )
+
+            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            hendelser.size shouldBe 1
+
+            val hendelse = hendelser.first() as TilbakekrevingBehandlingEndretHendelse
+            // Offset droppes - vi beholder den lokale tiden slik den ble sendt
+            hendelse.opprettet shouldBe LocalDateTime.parse("2024-01-15T10:30:00")
+            hendelse.sakOpprettet shouldBe LocalDateTime.parse("2024-01-10T08:00:00.598446")
+            hendelse.eksternBehandlingId shouldBe "ekstern-behandling-offset-123"
+            hendelse.tilbakeBehandlingId shouldBe "tilbake-behandling-offset-456"
             hendelse.sakId shouldBe sak.id
         }
     }

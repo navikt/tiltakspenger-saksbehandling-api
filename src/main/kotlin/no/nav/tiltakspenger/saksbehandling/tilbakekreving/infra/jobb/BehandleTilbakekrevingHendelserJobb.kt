@@ -196,7 +196,7 @@ class BehandleTilbakekrevingHendelserJobb(
 
         return TilbakekrevingInfoSvarDTO(
             eksternFagsakId = behov.eksternFagsakId,
-            hendelseOpprettet = nå(clock),
+            hendelseOpprettet = nå(clock).toString(),
             mottaker = TilbakekrevingMottaker(
                 ident = this.fnr.verdi,
             ),
@@ -229,7 +229,7 @@ class BehandleTilbakekrevingHendelserJobb(
 
         return TilbakekrevingInfoSvarDTO(
             eksternFagsakId = behov.eksternFagsakId,
-            hendelseOpprettet = nå(clock),
+            hendelseOpprettet = nå(clock).toString(),
             mottaker = TilbakekrevingMottaker(
                 ident = this.fnr.verdi,
             ),

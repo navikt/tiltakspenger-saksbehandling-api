@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
+import no.nav.tiltakspenger.saksbehandling.felles.tilLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
-import java.time.LocalDateTime
 
 data class TilbakekrevingInfoBehovDTO(
     override val eksternFagsakId: String,
-    override val hendelseOpprettet: LocalDateTime,
+    override val hendelseOpprettet: String,
     val kravgrunnlagReferanse: String,
 ) : TilbakekrevingshendelseDTO {
     override val versjon: Int = 1
@@ -15,7 +15,7 @@ data class TilbakekrevingInfoBehovDTO(
     override fun tilHendelseForLagring(key: String): TilbakekrevingInfoBehovHendelse {
         return TilbakekrevingInfoBehovHendelse(
             id = TilbakekrevinghendelseId.random(),
-            opprettet = hendelseOpprettet,
+            opprettet = hendelseOpprettet.tilLocalDateTime(),
             eksternFagsakId = eksternFagsakId,
             kravgrunnlagReferanse = kravgrunnlagReferanse,
             sakId = null,

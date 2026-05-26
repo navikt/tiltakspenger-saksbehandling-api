@@ -55,7 +55,7 @@ class TilbakekrevingFakeProducer(
                 value = serialize(
                     TilbakekrevingInfoBehovDTO(
                         eksternFagsakId = utbetaling.saksnummer.verdi,
-                        hendelseOpprettet = nå(clock),
+                        hendelseOpprettet = nå(clock).toString(),
                         kravgrunnlagReferanse = utbetaling.id.uuidPart(),
                     ),
                 ),
@@ -86,11 +86,11 @@ class TilbakekrevingFakeProducer(
 
         val behandlingEndretDTO = TilbakekrevingBehandlingEndretDTO(
             eksternFagsakId = infoSvar.eksternFagsakId,
-            hendelseOpprettet = nå(clock),
+            hendelseOpprettet = nå(clock).toString(),
             eksternBehandlingId = infoSvar.revurdering.behandlingId,
             tilbakekreving = TilbakekrevingBehandlingEndretDTO.TilbakekrevingDTO(
                 behandlingId = tilbakeBehandlingId,
-                sakOpprettet = nå(clock),
+                sakOpprettet = nå(clock).toString(),
                 varselSendt = null,
                 behandlingsstatus = TilbakekrevingHendelseStatusDTO.OPPRETTET,
                 forrigeBehandlingsstatus = null,
