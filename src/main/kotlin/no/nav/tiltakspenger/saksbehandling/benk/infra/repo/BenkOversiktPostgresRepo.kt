@@ -183,8 +183,8 @@ class BenkOversiktPostgresRepo(
                 u.opprettet               as startet, 
                 'TILBAKEKREVING'          as behandlingstype,
                 case
-                    when tb.status = 'TIL_BEHANDLING' and tb.saksbehandler_ident is not null then 'UNDER_BEHANDLING'
-                    when tb.status = 'TIL_BEHANDLING' and tb.saksbehandler_ident is null then 'KLAR_TIL_BEHANDLING'
+                    when tb.status in ('TIL_FORHÅNDSVARSEL', 'TIL_BEHANDLING') and tb.saksbehandler_ident is not null then 'UNDER_BEHANDLING'
+                    when tb.status in ('TIL_FORHÅNDSVARSEL', 'TIL_BEHANDLING') and tb.saksbehandler_ident is null then 'KLAR_TIL_BEHANDLING'
                     when tb.status = 'TIL_GODKJENNING' and tb.beslutter_ident is not null then 'UNDER_BESLUTNING'
                     when tb.status = 'TIL_GODKJENNING' and tb.beslutter_ident is null then 'KLAR_TIL_BESLUTNING'
                 end                       as status,
