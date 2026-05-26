@@ -10,7 +10,6 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
-import org.intellij.lang.annotations.Language
 import tools.jackson.module.kotlin.readValue
 import java.time.Clock
 import java.time.LocalDateTime
@@ -20,46 +19,77 @@ class PersonhendelseRepository(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
 ) {
-    fun hent(fnr: Fnr): List<PersonhendelseDb> = sessionFactory.withSession {
-        it.run(
-            queryOf(sqlHentForFnr, fnr.verdi)
-                .map { row -> row.toPersonhendelseDb() }
-                .asList,
-        )
+    fun hent(sakId: SakId): List<PersonhendelseDb> {
+        return sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """select * from personhendelse where sak_id = :sak_id""",
+                    mapOf("sak_id" to sakId.toString()),
+                ).map { row -> row.toPersonhendelseDb() }.asList,
+            )
+        }
     }
 
-    fun hentAlleUtenOppgave(): List<PersonhendelseDb> = sessionFactory.withSession {
-        it.run(
-            queryOf(sqlHentAlleUtenOppgave)
-                .map { row -> row.toPersonhendelseDb() }
-                .asList,
-        )
+    fun hentAlleUtenOppgave(): List<PersonhendelseDb> {
+        return sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """select * from personhendelse where oppgave_id is null""",
+                ).map { row -> row.toPersonhendelseDb() }.asList,
+            )
+        }
     }
 
+    /**
+     * Henter kun de hvor oppgave_sist_sjekket er null eller oppgave_sist_sjekket < [oppgaveSistSjekket]
+     */
     fun hentAlleMedOppgave(
         oppgaveSistSjekket: LocalDateTime = nå(clock).minusHours(1),
-    ): List<PersonhendelseDb> = sessionFactory.withSession {
-        it.run(
-            queryOf(
-                """
-                    select *
-                    from personhendelse
-                    where oppgave_id is not null
-                      and (oppgave_sist_sjekket is null or oppgave_sist_sjekket < :oppgave_sist_sjekket)
-                """.trimIndent(),
-                mapOf(
-                    "oppgave_sist_sjekket" to oppgaveSistSjekket,
-                ),
-            ).map { row -> row.toPersonhendelseDb() }
-                .asList,
-        )
+    ): List<PersonhendelseDb> {
+        return sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        select *
+                        from personhendelse
+                        where oppgave_id is not null
+                          and (oppgave_sist_sjekket is null or oppgave_sist_sjekket < :oppgave_sist_sjekket)
+                    """.trimIndent(),
+                    mapOf(
+                        "oppgave_sist_sjekket" to oppgaveSistSjekket,
+                    ),
+                ).map { row -> row.toPersonhendelseDb() }.asList,
+            )
+        }
     }
 
     fun lagre(personhendelseDb: PersonhendelseDb) {
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
-                    lagrePersonhendelse,
+                    """
+                        INSERT INTO personhendelse (
+                            id,
+                            fnr,
+                            hendelse_id,
+                            opplysningstype,
+                            personhendelse_type,
+                            sak_id,
+                            oppgave_id,
+                            sist_oppdatert,
+                            oppgave_sist_sjekket
+                        ) VALUES (
+                            :id,
+                            :fnr,
+                            :hendelse_id,
+                            :opplysningstype,
+                            :personhendelse_type,
+                            :sak_id,
+                            :oppgave_id,
+                            :sist_oppdatert,
+                            :oppgave_sist_sjekket
+                        )
+                    """.trimIndent(),
                     mapOf(
                         "id" to personhendelseDb.id,
                         "fnr" to personhendelseDb.fnr.verdi,
@@ -79,7 +109,10 @@ class PersonhendelseRepository(
     fun slett(id: UUID) {
         sessionFactory.withSession {
             it.run(
-                queryOf(sqlSlettForId, id).asUpdate,
+                queryOf(
+                    """delete from personhendelse where id = :id""",
+                    mapOf("id" to id),
+                ).asUpdate,
             )
         }
     }
@@ -88,13 +121,8 @@ class PersonhendelseRepository(
         sessionFactory.withSession {
             it.run(
                 queryOf(
-                    """
-                        update personhendelse set oppgave_id = :oppgave_id where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "oppgave_id" to oppgaveId.toString(),
-                        "id" to id,
-                    ),
+                    """update personhendelse set oppgave_id = :oppgave_id where id = :id""",
+                    mapOf("oppgave_id" to oppgaveId.toString(), "id" to id),
                 ).asUpdate,
             )
         }
@@ -104,20 +132,15 @@ class PersonhendelseRepository(
         sessionFactory.withSession {
             it.run(
                 queryOf(
-                    """
-                        update personhendelse set oppgave_sist_sjekket = :oppgave_sist_sjekket where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "oppgave_sist_sjekket" to nå(clock),
-                        "id" to id,
-                    ),
+                    """update personhendelse set oppgave_sist_sjekket = :oppgave_sist_sjekket where id = :id""",
+                    mapOf("oppgave_sist_sjekket" to nå(clock), "id" to id),
                 ).asUpdate,
             )
         }
     }
 
-    private fun Row.toPersonhendelseDb() =
-        PersonhendelseDb(
+    private fun Row.toPersonhendelseDb(): PersonhendelseDb {
+        return PersonhendelseDb(
             id = uuid("id"),
             fnr = Fnr.fromString(string("fnr")),
             hendelseId = string("hendelse_id"),
@@ -127,39 +150,5 @@ class PersonhendelseRepository(
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
         )
-
-    @Language("SQL")
-    private val lagrePersonhendelse =
-        """
-        insert into personhendelse (
-            id,
-            fnr,
-            hendelse_id,
-            opplysningstype,
-            personhendelse_type,
-            sak_id,
-            oppgave_id,
-            sist_oppdatert,
-            oppgave_sist_sjekket
-        ) values (
-            :id,
-            :fnr,
-            :hendelse_id,
-            :opplysningstype,
-            :personhendelse_type,
-            :sak_id,
-            :oppgave_id,
-            :sist_oppdatert,
-            :oppgave_sist_sjekket
-        )
-        """.trimIndent()
-
-    @Language("SQL")
-    private val sqlHentForFnr = "select * from personhendelse where fnr = ?"
-
-    @Language("SQL")
-    private val sqlHentAlleUtenOppgave = "select * from personhendelse where oppgave_id is null"
-
-    @Language("SQL")
-    private val sqlSlettForId = "delete from personhendelse where id = ?"
+    }
 }

@@ -77,7 +77,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprettOppgaveForPersonhendelser()
 
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
 
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
@@ -125,7 +125,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprettOppgaveForPersonhendelser()
 
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
 
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
@@ -173,7 +173,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprettOppgaveForPersonhendelser()
 
-                val personhendelser = personhendelseRepository.hent(fnr)
+                val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
@@ -224,7 +224,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprettOppgaveForPersonhendelser()
 
-                val personhendelser = personhendelseRepository.hent(fnr)
+                val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
@@ -275,7 +275,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprettOppgaveForPersonhendelser()
 
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
 
                 coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
             }
@@ -323,7 +323,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprettOppgaveForPersonhendelser()
 
-                val personhendelser = personhendelseRepository.hent(fnr)
+                val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
                 val personhendelseFraDb = personhendelser.first()
                 personhendelseFraDb.oppgaveId shouldBe oppgaveId
@@ -381,7 +381,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprydning()
 
-                val oppdatertPersonhendelseDb = personhendelseRepository.hent(fnr).first()
+                val oppdatertPersonhendelseDb = personhendelseRepository.hent(sak.id).first()
                 oppdatertPersonhendelseDb shouldNotBe null
                 oppdatertPersonhendelseDb.oppgaveId shouldBe oppgaveId
                 oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(testDataHelper.clock)
@@ -434,7 +434,7 @@ class PersonhendelseJobbTest {
 
                 personhendelseJobb.opprydning()
 
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
                 coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
             }
         }

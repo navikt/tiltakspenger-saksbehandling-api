@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser
 
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -58,9 +60,9 @@ class PersonhendelseServiceTest {
                         doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
                         clock = clock,
                     ),
-                )
+                ) shouldBe KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
 
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                personhendelseRepository.hentAlleUtenOppgave() shouldBe emptyList()
             }
         }
     }
@@ -92,9 +94,9 @@ class PersonhendelseServiceTest {
                     clock = clock,
                 )
 
-                personhendelseService.behandlePersonhendelse(personhendelse)
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe Unit.right()
 
-                val personhendelser = personhendelseRepository.hent(fnr)
+                val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
                 val personhendelseDb = personhendelser.first()
                 personhendelseDb.fnr shouldBe fnr
@@ -137,9 +139,10 @@ class PersonhendelseServiceTest {
                     clock = clock,
                 )
 
-                personhendelseService.behandlePersonhendelse(personhendelse)
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                    KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
 
-                val personhendelser = personhendelseRepository.hent(fnr)
+                val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 0
             }
         }
@@ -193,9 +196,9 @@ class PersonhendelseServiceTest {
                     dødsdato = null,
                 )
 
-                personhendelseService.behandlePersonhendelse(personhendelse)
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe Unit.right()
 
-                val personhendelser = personhendelseRepository.hent(fnr)
+                val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
                 val personhendelseDb = personhendelser.first()
                 personhendelseDb.fnr shouldBe fnr
@@ -267,9 +270,10 @@ class PersonhendelseServiceTest {
                     dødsdato = null,
                 )
 
-                personhendelseService.behandlePersonhendelse(personhendelse)
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                    KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
 
-                personhendelseRepository.hent(fnr) shouldBe emptyList()
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
                 val statistikkSakDTO = statistikkSakRepo.hent(sak.id).first()
                 statistikkSakDTO.fnr shouldBe fnr.verdi
                 statistikkSakDTO.opprettetAv shouldNotBe "-5"
@@ -279,21 +283,200 @@ class PersonhendelseServiceTest {
         }
     }
 
+    @Test
+    fun `behandlePersonhendelse - ukjent opplysningstype, finnes sak - ignorerer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val clock = testDataHelper.clock
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakPostgresRepo = testDataHelper.sakRepo
+                val statistikkService = testDataHelper.statistikkService
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = fnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val personhendelse = getPersonhendelse(
+                    fnr = fnr,
+                    opplysningstype = "NAVN_V1",
+                    clock = clock,
+                )
+
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                    KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
+
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            }
+        }
+    }
+
+    @Test
+    fun `behandlePersonhendelse - DOEDSFALL_V1 men doedsfall-felt er null - ignorerer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val clock = testDataHelper.clock
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakPostgresRepo = testDataHelper.sakRepo
+                val statistikkService = testDataHelper.statistikkService
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = fnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                // DOEDSFALL_V1 uten doedsfall-payload — fanget av defensiv guard i servicen.
+                val personhendelse = getPersonhendelse(
+                    fnr = fnr,
+                    opplysningstype = Opplysningstype.DOEDSFALL_V1.name,
+                    clock = clock,
+                )
+
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                    KunneIkkeBehandlePersonhendelse.PayloadMangler.left()
+
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            }
+        }
+    }
+
+    @Test
+    fun `behandlePersonhendelse - adressebeskyttelse med gradering FORTROLIG - ignorerer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val clock = testDataHelper.clock
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakPostgresRepo = testDataHelper.sakRepo
+                val statistikkService = testDataHelper.statistikkService
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = fnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                // Vi bryr oss kun om STRENGT_FORTROLIG[_UTLAND] (kode 6). FORTROLIG (kode 7) skal ignoreres.
+                val personhendelse = getPersonhendelse(
+                    fnr = fnr,
+                    adressebeskyttelse = Adressebeskyttelse(Gradering.FORTROLIG),
+                    clock = clock,
+                )
+
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                    KunneIkkeBehandlePersonhendelse.AdressebeskyttelseErIkkeKode6.left()
+
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            }
+        }
+    }
+
+    @Test
+    fun `behandlePersonhendelse - ingen av personidentene matcher en sak - ignorerer`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val clock = testDataHelper.clock
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakPostgresRepo = testDataHelper.sakRepo
+                val statistikkService = testDataHelper.statistikkService
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
+                // Sak finnes, men ikke for fnr-et i hendelsen.
+                val sakFnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = sakFnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = sakFnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = sakFnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val ukjentFnr = Fnr.random()
+                val personhendelse = getPersonhendelse(
+                    fnr = ukjentFnr,
+                    doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
+                    clock = clock,
+                )
+
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                    KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
+
+                personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            }
+        }
+    }
+
+    @Test
+    fun `behandlePersonhendelse - samme hendelse mottatt to ganger - lagrer kun første`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val clock = testDataHelper.clock
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakPostgresRepo = testDataHelper.sakRepo
+                val statistikkService = testDataHelper.statistikkService
+                val personhendelseService =
+                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = fnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val personhendelse = getPersonhendelse(
+                    fnr = fnr,
+                    doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
+                    clock = clock,
+                )
+
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe Unit.right()
+                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                    KunneIkkeBehandlePersonhendelse.HendelseAlleredeLagret.left()
+
+                personhendelseRepository.hent(sak.id).size shouldBe 1
+            }
+        }
+    }
+
     private fun getPersonhendelse(
         fnr: Fnr,
         doedsfall: Doedsfall? = null,
         forelderBarnRelasjon: ForelderBarnRelasjon? = null,
         adressebeskyttelse: Adressebeskyttelse? = null,
+        opplysningstype: String? = null,
         clock: Clock,
     ): Personhendelse {
         val personidenter = listOf("12345", fnr.verdi)
 
-        val opplysningstype = if (doedsfall != null) {
-            Opplysningstype.DOEDSFALL_V1.name
-        } else if (forelderBarnRelasjon != null) {
-            Opplysningstype.FORELDERBARNRELASJON_V1.name
-        } else {
-            Opplysningstype.ADRESSEBESKYTTELSE_V1.name
+        val resolvedOpplysningstype = opplysningstype ?: when {
+            doedsfall != null -> Opplysningstype.DOEDSFALL_V1.name
+            forelderBarnRelasjon != null -> "FORELDERBARNRELASJON_V1"
+            else -> Opplysningstype.ADRESSEBESKYTTELSE_V1.name
         }
 
         return Personhendelse(
@@ -301,7 +484,7 @@ class PersonhendelseServiceTest {
             personidenter,
             "FREG",
             Instant.now(clock),
-            opplysningstype,
+            resolvedOpplysningstype,
             Endringstype.OPPRETTET,
             null,
             doedsfall,

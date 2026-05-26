@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.atomic.Atomic
+import arrow.core.Nel
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -110,6 +111,19 @@ class SakFakeRepo(
         sessionContext: SessionContext?,
     ): SakId? {
         return data.get().values.singleOrNull { it.saksnummer == saksnummer }?.id
+    }
+
+    override fun hentSakIdForPersonidenter(
+        personidenter: Nel<String>,
+        sessionContext: SessionContext?,
+    ): Pair<Fnr, SakId>? {
+        val identSet = personidenter.toSet()
+        val treff = data.get().values.filter { it.fnr.verdi in identSet }
+        return when (treff.size) {
+            0 -> null
+            1 -> treff.single().let { it.fnr to it.id }
+            else -> throw IllegalStateException("Forventet maks én sak for personidenter, fant ${treff.size}")
+        }
     }
 
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {

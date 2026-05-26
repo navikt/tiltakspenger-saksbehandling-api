@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
+import arrow.core.Nel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
@@ -130,6 +131,25 @@ class SakPostgresRepo(
                 }.asSingle,
             )
         }
+
+    override fun hentSakIdForPersonidenter(
+        personidenter: Nel<String>,
+        sessionContext: SessionContext?,
+    ): Pair<Fnr, SakId>? {
+        return sessionFactory.withSession(sessionContext) { session ->
+            val treff = session.run(
+                queryOf(
+                    """select id, fnr from sak where fnr = any (:personidenter)""",
+                    mapOf("personidenter" to personidenter.toTypedArray()),
+                ).map { row -> Fnr.fromString(row.string("fnr")) to SakId.fromString(row.string("id")) }.asList,
+            )
+            when (treff.size) {
+                0 -> null
+                1 -> treff.single()
+                else -> throw IllegalStateException("Forventet maks én sak for personidenter, fant ${treff.size}. sakIder: ${treff.joinToString { it.second.toString() }}")
+            }
+        }
+    }
 
     override fun opprettSak(sak: Sak) {
         logger.info { "Oppretter sak ${sak.id}" }

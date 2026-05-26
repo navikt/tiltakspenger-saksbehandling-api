@@ -81,6 +81,5 @@ class PersonhendelseJobb(
         when (opplysningstype) {
             Opplysningstype.DOEDSFALL_V1 -> Oppgavebehov.DOED
             Opplysningstype.ADRESSEBESKYTTELSE_V1 -> Oppgavebehov.ADRESSEBESKYTTELSE
-            Opplysningstype.FORELDERBARNRELASJON_V1 -> null
         }
 }

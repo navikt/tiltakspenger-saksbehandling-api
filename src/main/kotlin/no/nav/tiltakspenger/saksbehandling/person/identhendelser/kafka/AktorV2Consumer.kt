@@ -14,6 +14,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
 import org.apache.kafka.common.serialization.StringDeserializer
 
+/**
+ * Konsument for pdl.aktor-v2 (PDL identhendelser).
+ * Dokumentasjon: https://pdl-docs.ansatt.nav.no/ekstern/index.html#identitetshendelser_pa_kafka
+ * Skjema master: https://github.com/navikt/pdl/blob/master/libs/contract-pdl-avro/src/main/avro/no/nav/person/pdl/aktor/AktorV2.avdl
+ * Skjema kopi internt: src/main/avro/AktorV2.avdl
+ * Se [no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer] for andre PDLhendelser.
+ */
 class AktorV2Consumer(
     private val identhendelseService: IdenthendelseService,
     topic: String,
