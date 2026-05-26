@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter.TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.dto.TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.dto.TilbakekrevingBehandlingDTO.TilbakekrevingVentegrunnDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -31,6 +33,7 @@ data class TilbakekrevingBehandlingDTO(
     val saksbehandler: String?,
     val beslutter: String?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
+    val venter: TilbakekrevingVenterDTO?,
 ) {
 
     enum class TilbakekrevingBehandlingsstatusDTO {
@@ -42,6 +45,15 @@ data class TilbakekrevingBehandlingDTO(
         TIL_GODKJENNING,
         UNDER_GODKJENNING,
         AVSLUTTET,
+    }
+
+    data class TilbakekrevingVenterDTO(
+        val grunn: TilbakekrevingVentegrunnDTO,
+        val gjenopptas: LocalDate,
+    )
+
+    enum class TilbakekrevingVentegrunnDTO {
+        AVVENTER_BRUKERUTTALELSE,
     }
 }
 
@@ -78,5 +90,13 @@ fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(
         saksbehandler = this.saksbehandler,
         beslutter = beslutter,
         gyldigeKommandoer = this.gyldigeKommandoer(saksbehandler).tilDTO(),
+        venter = this.venter?.let {
+            TilbakekrevingBehandlingDTO.TilbakekrevingVenterDTO(
+                grunn = when (it.grunn) {
+                    AVVENTER_BRUKERUTTALELSE -> TilbakekrevingVentegrunnDTO.AVVENTER_BRUKERUTTALELSE
+                },
+                gjenopptas = it.gjenopptas,
+            )
+        },
     )
 }
