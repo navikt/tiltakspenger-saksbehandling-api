@@ -93,7 +93,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     SELECT *
                     FROM tilbakekreving_hendelse
                     WHERE behandlet IS NULL
-                    ORDER BY opprettet
+                    ORDER BY opprettet LIMIT 100
                     """.trimIndent(),
                 ).map { row -> row.tilTilbakekrevingshendelse() }.asList,
             )
