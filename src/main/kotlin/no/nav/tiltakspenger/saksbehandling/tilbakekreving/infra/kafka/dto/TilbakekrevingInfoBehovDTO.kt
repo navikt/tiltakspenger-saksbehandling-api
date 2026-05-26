@@ -12,7 +12,7 @@ data class TilbakekrevingInfoBehovDTO(
     override val versjon: Int = 1
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.fagsysteminfo_behov
 
-    override fun tilHendelseForLagring(key: String): TilbakekrevingInfoBehovHendelse {
+    override fun tilHendelseForLagring(): TilbakekrevingInfoBehovHendelse {
         return TilbakekrevingInfoBehovHendelse(
             id = TilbakekrevinghendelseId.random(),
             opprettet = hendelseOpprettet.tilLocalDateTime(),

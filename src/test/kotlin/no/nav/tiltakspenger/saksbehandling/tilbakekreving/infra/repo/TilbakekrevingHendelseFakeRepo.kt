@@ -20,7 +20,6 @@ class TilbakekrevingHendelseFakeRepo(
 
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
-        sakId: SakId?,
         key: String,
         value: String,
         sessionContext: SessionContext?,
@@ -33,11 +32,7 @@ class TilbakekrevingHendelseFakeRepo(
             return false
         }
 
-        data.get()[hendelse.id] = when (hendelse) {
-            is TilbakekrevingInfoBehovHendelse -> hendelse.copy(sakId = sakId)
-            is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(sakId = sakId)
-            is TilbakekrevingUkjentHendelse -> hendelse
-        }
+        data.get()[hendelse.id] = hendelse
 
         return true
     }
@@ -48,6 +43,7 @@ class TilbakekrevingHendelseFakeRepo(
 
     override fun markerInfoBehovSomBehandlet(
         hendelseId: TilbakekrevinghendelseId,
+        sakId: SakId,
         svarJson: String,
         sessionContext: SessionContext?,
     ) {
@@ -56,32 +52,58 @@ class TilbakekrevingHendelseFakeRepo(
 
         data.get()[hendelseId] = hendelse.copy(
             behandlet = nå(clock),
+            sakId = sakId,
             svar = deserialize<TilbakekrevingInfoSvarDTO>(svarJson),
         )
     }
 
-    override fun markerEndringSomBehandlet(hendelseId: TilbakekrevinghendelseId, sessionContext: SessionContext?) {
+    override fun markerEndringSomBehandlet(
+        hendelseId: TilbakekrevinghendelseId,
+        sakId: SakId,
+        sessionContext: SessionContext?,
+    ) {
         val hendelse = data.get()[hendelseId] as? TilbakekrevingBehandlingEndretHendelse
             ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
 
-        data.get()[hendelseId] = hendelse.copy(behandlet = nå(clock))
+        data.get()[hendelseId] = hendelse.copy(behandlet = nå(clock), sakId = sakId)
     }
 
     override fun markerSomBehandletMedFeil(
         hendelseId: TilbakekrevinghendelseId,
+        sakId: SakId?,
         feil: TilbakekrevinghendelseFeil,
         sessionContext: SessionContext?,
     ) {
         val hendelse = data.get()[hendelseId] ?: throw IllegalArgumentException("Fant ikke hendelse med id $hendelseId")
 
         data.get()[hendelseId] = when (hendelse) {
-            is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
-            is TilbakekrevingInfoBehovHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
+            is TilbakekrevingBehandlingEndretHendelse -> hendelse.copy(
+                behandlet = nå(clock),
+                feil = feil,
+                sakId = sakId,
+            )
+
+            is TilbakekrevingInfoBehovHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil, sakId = sakId)
+
             is TilbakekrevingUkjentHendelse -> hendelse.copy(behandlet = nå(clock), feil = feil)
         }
     }
 
     override fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse? {
         return data.get()[hendelseId]
+    }
+
+    override fun oppdaterUkjent(
+        oppdatertHendelse: Tilbakekrevingshendelse,
+        sessionContext: SessionContext?,
+    ) {
+        require(oppdatertHendelse !is TilbakekrevingUkjentHendelse) {
+            "Kan ikke oppdatere ukjent-rad til ukjent type"
+        }
+
+        data.get()[oppdatertHendelse.id] as? TilbakekrevingUkjentHendelse
+            ?: throw IllegalArgumentException("Fant ikke ukjent hendelse med id ${oppdatertHendelse.id}")
+
+        data.get()[oppdatertHendelse.id] = oppdatertHendelse
     }
 }

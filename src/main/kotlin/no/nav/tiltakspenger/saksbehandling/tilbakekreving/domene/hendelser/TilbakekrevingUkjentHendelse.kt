@@ -14,6 +14,7 @@ data class TilbakekrevingUkjentHendelse(
     override val opprettet: LocalDateTime,
     override val behandlet: LocalDateTime? = null,
     override val feil: TilbakekrevinghendelseFeil? = null,
+    val value: String,
 ) : Tilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevinghendelseType.Ukjent
     override val sakId = null

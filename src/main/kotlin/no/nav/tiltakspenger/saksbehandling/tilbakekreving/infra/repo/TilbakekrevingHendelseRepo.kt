@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 interface TilbakekrevingHendelseRepo {
     fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
-        sakId: SakId?,
         key: String,
         value: String,
         sessionContext: SessionContext? = null,
@@ -19,7 +18,14 @@ interface TilbakekrevingHendelseRepo {
 
     fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse?
 
-    fun markerInfoBehovSomBehandlet(hendelseId: TilbakekrevinghendelseId, svarJson: String, sessionContext: SessionContext? = null)
-    fun markerEndringSomBehandlet(hendelseId: TilbakekrevinghendelseId, sessionContext: SessionContext? = null)
-    fun markerSomBehandletMedFeil(hendelseId: TilbakekrevinghendelseId, feil: TilbakekrevinghendelseFeil, sessionContext: SessionContext? = null)
+    fun markerInfoBehovSomBehandlet(hendelseId: TilbakekrevinghendelseId, sakId: SakId, svarJson: String, sessionContext: SessionContext? = null)
+    fun markerEndringSomBehandlet(hendelseId: TilbakekrevinghendelseId, sakId: SakId, sessionContext: SessionContext? = null)
+    fun markerSomBehandletMedFeil(hendelseId: TilbakekrevinghendelseId, sakId: SakId?, feil: TilbakekrevinghendelseFeil, sessionContext: SessionContext? = null)
+
+    /**
+     * Oppdaterer en eksisterende [no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse]
+     * rad med innholdet fra en ny hendelse av kjent type, slik at den kan behandles normalt ved neste jobbkjøring.
+     * [oppdatertHendelse] må ha samme id som den eksisterende ukjent-raden.
+     */
+    fun oppdaterUkjent(oppdatertHendelse: Tilbakekrevingshendelse, sessionContext: SessionContext? = null)
 }

@@ -27,7 +27,6 @@ class TilbakekrevingHendelsePostgresRepo(
      */
     override fun lagreNy(
         hendelse: Tilbakekrevingshendelse,
-        sakId: SakId?,
         key: String,
         value: String,
         sessionContext: SessionContext?,
@@ -38,7 +37,6 @@ class TilbakekrevingHendelsePostgresRepo(
                     """
                     INSERT INTO tilbakekreving_hendelse (
                         id,
-                        sak_id,
                         opprettet,
                         hendelse_type,
                         ekstern_fagsak_id,
@@ -49,7 +47,6 @@ class TilbakekrevingHendelsePostgresRepo(
                         value
                     ) VALUES (
                         :id,
-                        :sak_id,
                         :opprettet,
                         :hendelse_type,
                         :ekstern_fagsak_id,
@@ -62,7 +59,6 @@ class TilbakekrevingHendelsePostgresRepo(
                     ON CONFLICT (ekstern_fagsak_id, hendelse_type, opprettet) DO NOTHING
                     """.trimIndent(),
                     "id" to hendelse.id.toString(),
-                    "sak_id" to sakId?.toString(),
                     "opprettet" to hendelse.opprettet,
                     "ekstern_fagsak_id" to hendelse.eksternFagsakId,
                     "key" to key,
@@ -105,6 +101,7 @@ class TilbakekrevingHendelsePostgresRepo(
 
     override fun markerInfoBehovSomBehandlet(
         hendelseId: TilbakekrevinghendelseId,
+        sakId: SakId,
         svarJson: String,
         sessionContext: SessionContext?,
     ) {
@@ -115,11 +112,13 @@ class TilbakekrevingHendelsePostgresRepo(
                     UPDATE tilbakekreving_hendelse
                     SET
                         behandlet = :behandlet,
+                        sak_id = :sak_id,
                         svar = to_jsonb(:svar::jsonb)
                     WHERE id = :id AND hendelse_type = 'InfoBehov'
                     """.trimIndent(),
                     "id" to hendelseId.toString(),
                     "behandlet" to nå(clock),
+                    "sak_id" to sakId.toString(),
                     "svar" to svarJson,
                 ).asUpdate,
             )
@@ -128,6 +127,7 @@ class TilbakekrevingHendelsePostgresRepo(
 
     override fun markerEndringSomBehandlet(
         hendelseId: TilbakekrevinghendelseId,
+        sakId: SakId,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSession(sessionContext) { session ->
@@ -136,11 +136,13 @@ class TilbakekrevingHendelsePostgresRepo(
                     """
                     UPDATE tilbakekreving_hendelse
                     SET
-                        behandlet = :behandlet
+                        behandlet = :behandlet,
+                        sak_id = :sak_id
                     WHERE id = :id AND hendelse_type = 'BehandlingEndret'
                     """.trimIndent(),
                     "id" to hendelseId.toString(),
                     "behandlet" to nå(clock),
+                    "sak_id" to sakId.toString(),
                 ).asUpdate,
             )
         }
@@ -148,6 +150,7 @@ class TilbakekrevingHendelsePostgresRepo(
 
     override fun markerSomBehandletMedFeil(
         hendelseId: TilbakekrevinghendelseId,
+        sakId: SakId?,
         feil: TilbakekrevinghendelseFeil,
         sessionContext: SessionContext?,
     ) {
@@ -158,12 +161,14 @@ class TilbakekrevingHendelsePostgresRepo(
                     UPDATE tilbakekreving_hendelse
                     SET
                         behandlet = :behandlet,
-                        behandlet_feil = :behandlet_feil
+                        behandlet_feil = :behandlet_feil,
+                        sak_id = :sak_id
                     WHERE id = :id
                     """.trimIndent(),
                     "id" to hendelseId.toString(),
                     "behandlet" to nå(clock),
                     "behandlet_feil" to feil.tilDb(),
+                    "sak_id" to sakId?.toString(),
                 ).asUpdate,
             )
         }
@@ -183,6 +188,52 @@ class TilbakekrevingHendelsePostgresRepo(
                 ).map { row -> row.tilTilbakekrevingshendelse() }.asSingle,
             )
         }
+
+    override fun oppdaterUkjent(
+        oppdatertHendelse: Tilbakekrevingshendelse,
+        sessionContext: SessionContext?,
+    ) {
+        require(oppdatertHendelse !is TilbakekrevingUkjentHendelse) {
+            "Kan ikke oppdatere ukjent-rad til ukjent type"
+        }
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE tilbakekreving_hendelse
+                    SET
+                        opprettet = :opprettet,
+                        hendelse_type = :hendelse_type,
+                        ekstern_fagsak_id = :ekstern_fagsak_id,
+                        kravgrunnlag_referanse = :kravgrunnlag_referanse,
+                        ekstern_behandling_id = :ekstern_behandling_id,
+                        behandling = to_jsonb(:behandling::jsonb)
+                    WHERE id = :id AND hendelse_type = 'Ukjent'
+                    """.trimIndent(),
+                    "id" to oppdatertHendelse.id.toString(),
+                    "opprettet" to oppdatertHendelse.opprettet,
+                    "ekstern_fagsak_id" to oppdatertHendelse.eksternFagsakId,
+                    *when (oppdatertHendelse) {
+                        is TilbakekrevingInfoBehovHendelse -> arrayOf(
+                            "hendelse_type" to HendelsetypeDb.InfoBehov.toString(),
+                            "kravgrunnlag_referanse" to oppdatertHendelse.kravgrunnlagReferanse,
+                            "ekstern_behandling_id" to null,
+                            "behandling" to null,
+                        )
+
+                        is TilbakekrevingBehandlingEndretHendelse -> arrayOf(
+                            "hendelse_type" to HendelsetypeDb.BehandlingEndret.toString(),
+                            "kravgrunnlag_referanse" to null,
+                            "ekstern_behandling_id" to oppdatertHendelse.eksternBehandlingId,
+                            "behandling" to oppdatertHendelse.tilDbBehandlingJson(),
+                        )
+
+                        is TilbakekrevingUkjentHendelse -> error("Kan ikke oppdatere ukjent til ukjent")
+                    },
+                ).asUpdate,
+            )
+        }
+    }
 }
 
 private enum class HendelsetypeDb {
@@ -239,6 +290,7 @@ private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
             opprettet = opprettet,
             behandlet = behandlet,
             feil = feil,
+            value = string("value"),
         )
     }
 }
