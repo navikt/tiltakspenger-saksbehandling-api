@@ -33,7 +33,7 @@ sealed interface TilbakekrevingshendelseDTO {
     /**
      * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres i databasen, eller null dersom den ikke skal lagres
      * */
-    fun tilHendelseForLagring(): Tilbakekrevingshendelse?
+    fun tilHendelseForLagring(id: TilbakekrevinghendelseId): Tilbakekrevingshendelse?
 }
 
 @Suppress("ktlint:standard:enum-entry-name-case")
@@ -58,16 +58,16 @@ data class TilbakekrevingPeriodeDTO(
  * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres - en [TilbakekrevingUkjentHendelse] dersom
  *  deserialiseringen feilet - eller null dersom hendelsen ikke skal lagres.
  */
-fun String.tilNyTilbakekrevingshendelse(): Tilbakekrevingshendelse? {
+fun String.tilNyTilbakekrevingshendelse(id: TilbakekrevinghendelseId = TilbakekrevinghendelseId.random()): Tilbakekrevingshendelse? {
     return Either.catch {
-        deserialize<TilbakekrevingshendelseDTO>(this).tilHendelseForLagring()
+        deserialize<TilbakekrevingshendelseDTO>(this).tilHendelseForLagring(id)
     }.fold(
         ifLeft = { throwable ->
             logger.error(throwable) {
-                "Mottatt tilbakekrevingshendelse som vi ikke klarte å deserialisere. Lagrer som ukjent hendelse."
+                "Mottatt tilbakekrevingshendelse som vi ikke klarte å deserialisere - Lagrer som ukjent hendelse $id"
             }
             TilbakekrevingUkjentHendelse(
-                id = TilbakekrevinghendelseId.random(),
+                id = id,
                 opprettet = LocalDateTime.now(),
                 value = this,
             )

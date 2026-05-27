@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto
 
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import java.time.LocalDate
 
@@ -15,7 +16,7 @@ data class TilbakekrevingInfoSvarDTO(
     override val hendelsestype = TilbakekrevingHendelsestypeDTO.fagsysteminfo_svar
 
     // Vi ønsker aldri å lagre vårt eget svar som egen hendelse i databasen
-    override fun tilHendelseForLagring(): Tilbakekrevingshendelse? {
+    override fun tilHendelseForLagring(id: TilbakekrevinghendelseId): Tilbakekrevingshendelse? {
         return null
     }
 

@@ -58,11 +58,7 @@ class BehandleTilbakekrevingHendelserJobb(
 
         ubehandledeHendelser.forEach { hendelse ->
             Either.catch {
-                when (hendelse) {
-                    is TilbakekrevingInfoBehovHendelse -> håndterInfoBehov(hendelse)
-                    is TilbakekrevingBehandlingEndretHendelse -> håndterBehandlingEndret(hendelse)
-                    is TilbakekrevingUkjentHendelse -> håndterUkjent(hendelse)
-                }.onLeft { (sakId, feil) ->
+                hendelse.håndter().onLeft { (feil, sakId) ->
                     logger.error { "Feil ved behandling av tilbakekreving-hendelse: $feil - hendelse: ${hendelse.id} / ${hendelse.hendelsestype} - sak: $sakId" }
                     tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(hendelse.id, sakId, feil)
                 }
@@ -74,20 +70,23 @@ class BehandleTilbakekrevingHendelserJobb(
         }
     }
 
-    /**
-     * Slår opp [Sak] for en hendelse basert på dens eksternFagsakId.
-     */
-    private fun hentSakForHendelse(hendelse: Tilbakekrevingshendelse): Either<TilbakekrevinghendelseFeil, Sak> {
-        val eksternFagsakId = hendelse.eksternFagsakId
+    private fun Tilbakekrevingshendelse.håndter(): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
+        if (this is TilbakekrevingUkjentHendelse) {
+            return this.håndter()
+        }
 
-        val sakId = eksternFagsakId?.let {
-            Either.catch { sakRepo.hentSakIdForSaksnummer(Saksnummer(it)) }.getOrElse { e ->
-                logger.error(e) { "Feil ved oppslag av sak for eksternFagsakId $it - hendelse ${hendelse.id}" }
-                null
+        val sak = this.eksternFagsakId?.let {
+            val saksnummer = Either.catch { Saksnummer(it) }.getOrElse {
+                return Pair(TilbakekrevinghendelseFeil.UgyldigSaksnummer, null).left()
             }
-        } ?: return TilbakekrevinghendelseFeil.FantIkkeSak.left()
 
-        return sakRepo.hentForSakId(sakId)!!.right()
+            sakRepo.hentForSaksnummer(saksnummer)
+        } ?: return Pair(TilbakekrevinghendelseFeil.FantIkkeSak, null).left()
+
+        return when (this) {
+            is TilbakekrevingBehandlingEndretHendelse -> this.håndter(sak)
+            is TilbakekrevingInfoBehovHendelse -> this.håndter(sak)
+        }
     }
 
     /**
@@ -95,63 +94,59 @@ class BehandleTilbakekrevingHendelserJobb(
      * oppdaterer vi raden i databasen til den korrekte hendelse-typen, slik at den blir behandlet
      * normalt ved neste jobbkjøring.
      */
-    private fun håndterUkjent(hendelse: TilbakekrevingUkjentHendelse): Either<Pair<SakId?, TilbakekrevinghendelseFeil>, Unit> {
-        val oppdatertHendelse = hendelse.value.tilNyTilbakekrevingshendelse()
+    private fun TilbakekrevingUkjentHendelse.håndter(): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
+        val hendelseId = this.id
+        val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(hendelseId)
 
         if (oppdatertHendelse == null || oppdatertHendelse is TilbakekrevingUkjentHendelse) {
-            logger.warn { "Ukjent tilbakekreving-hendelse ${hendelse.id} kunne fortsatt ikke deserialiseres - hopper over" }
+            logger.warn { "Ukjent tilbakekreving-hendelse $hendelseId kunne fortsatt ikke deserialiseres - hopper over" }
             return Unit.right()
         }
 
-        logger.info { "Deserialiserte tidligere ukjent tilbakekreving-hendelse ${hendelse.id} til ${oppdatertHendelse.hendelsestype} - oppdaterer raden" }
+        logger.info { "Deserialiserte tidligere ukjent tilbakekreving-hendelse $hendelseId til ${oppdatertHendelse.hendelsestype} - oppdaterer raden" }
 
-        val medEksisterendeId: Tilbakekrevingshendelse = when (oppdatertHendelse) {
-            is TilbakekrevingBehandlingEndretHendelse -> oppdatertHendelse.copy(id = hendelse.id)
-            is TilbakekrevingInfoBehovHendelse -> oppdatertHendelse.copy(id = hendelse.id)
-        }
-
-        tilbakekrevingHendelseRepo.oppdaterUkjent(medEksisterendeId)
+        tilbakekrevingHendelseRepo.oppdaterUkjent(oppdatertHendelse)
 
         return Unit.right()
     }
 
-    private fun håndterInfoBehov(hendelse: TilbakekrevingInfoBehovHendelse): Either<Pair<SakId?, TilbakekrevinghendelseFeil>, Unit> {
-        val sak = hentSakForHendelse(hendelse).getOrElse { return (null to it).left() }
+    private fun TilbakekrevingInfoBehovHendelse.håndter(sak: Sak): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
+        val hendelseId = this.id
         val sakId = sak.id
 
-        val utbetaling = sak.utbetalinger.hentUtbetalingForUuid(hendelse.kravgrunnlagReferanse)
-            ?: return (sakId to TilbakekrevinghendelseFeil.FantIkkeUtbetaling).left()
+        val utbetaling = sak.utbetalinger.hentUtbetalingForUuid(this.kravgrunnlagReferanse)
+            ?: return Pair(TilbakekrevinghendelseFeil.FantIkkeUtbetaling, sakId).left()
 
         val infoSvarDTO = when (utbetaling.beregningKilde) {
             is BeregningKilde.BeregningKildeMeldekort ->
                 sak.meldekortbehandlinger.hentMeldekortbehandling(utbetaling.beregningKilde.id)
-                    ?.tilSvarDTO(hendelse)
+                    ?.tilSvarDTO(this)
 
             is BeregningKilde.BeregningKildeRammebehandling ->
                 sak.rammebehandlinger.hentRammebehandling(utbetaling.beregningKilde.id)
-                    ?.tilSvarDTO(hendelse)
-        } ?: return (sakId to TilbakekrevinghendelseFeil.FantIkkeBehandling).left()
+                    ?.tilSvarDTO(this)
+        } ?: return Pair(TilbakekrevinghendelseFeil.FantIkkeBehandling, sakId).left()
 
-        logger.info { "Produserer svar på tilbakekreving info-behov ${hendelse.id} for sak $sakId med kravgrunnlagReferanse ${hendelse.kravgrunnlagReferanse}" }
+        logger.info { "Produserer svar på tilbakekreving info-behov $hendelseId for sak $sakId med kravgrunnlagReferanse ${this.kravgrunnlagReferanse}" }
 
-        tilbakekrevingProducer.produserInfoSvar(hendelse.id, infoSvarDTO).also {
-            tilbakekrevingHendelseRepo.markerInfoBehovSomBehandlet(hendelse.id, sakId, it)
+        tilbakekrevingProducer.produserInfoSvar(hendelseId, infoSvarDTO).also {
+            tilbakekrevingHendelseRepo.markerInfoBehovSomBehandlet(hendelseId, sakId, it)
         }
 
         return Unit.right()
     }
 
-    private fun håndterBehandlingEndret(hendelse: TilbakekrevingBehandlingEndretHendelse): Either<Pair<SakId?, TilbakekrevinghendelseFeil>, Unit> {
-        val sak = hentSakForHendelse(hendelse).getOrElse { return (null to it).left() }
+    private fun TilbakekrevingBehandlingEndretHendelse.håndter(sak: Sak): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
+        val hendelseId = this.id
         val sakId = sak.id
 
         // Dette burde ikke kunne skje
-        if (hendelse.eksternBehandlingId == null) {
-            logger.error { "Hendelse ${hendelse.id} mangler eksternBehandlingId!" }
-            return (sakId to TilbakekrevinghendelseFeil.FantIkkeUtbetaling).left()
+        if (eksternBehandlingId == null) {
+            logger.error { "Hendelse $hendelseId mangler eksternBehandlingId!" }
+            return Pair(TilbakekrevinghendelseFeil.FantIkkeUtbetaling, sakId).left()
         }
 
-        val utbetaling: VedtattUtbetaling? = hendelse.eksternBehandlingId
+        val utbetaling: VedtattUtbetaling? = eksternBehandlingId
             .tilBehandlingIdFraTilbakekreving()
             .fold(
                 ifLeft = {
@@ -167,17 +162,17 @@ class BehandleTilbakekrevingHendelserJobb(
             )
 
         if (utbetaling == null) {
-            return (sakId to TilbakekrevinghendelseFeil.FantIkkeUtbetaling).left()
+            return Pair(TilbakekrevinghendelseFeil.FantIkkeUtbetaling, sakId).left()
         }
 
         val eksisterendeBehandling =
-            tilbakekrevingBehandlingRepo.hentForTilbakeBehandlingId(hendelse.tilbakeBehandlingId)
+            tilbakekrevingBehandlingRepo.hentForTilbakeBehandlingId(tilbakeBehandlingId)
 
         val oppdatertEllerNyBehandling = if (eksisterendeBehandling != null) {
-            val oppdatertBehandling = hendelse.oppdaterBehandlingHvisEndret(eksisterendeBehandling)
+            val oppdatertBehandling = oppdaterBehandlingHvisEndret(eksisterendeBehandling)
 
             if (oppdatertBehandling == null) {
-                tilbakekrevingHendelseRepo.markerEndringSomBehandlet(hendelse.id, sakId)
+                tilbakekrevingHendelseRepo.markerEndringSomBehandlet(id, sakId)
                 return Unit.right()
             }
 
@@ -187,25 +182,25 @@ class BehandleTilbakekrevingHendelserJobb(
                 id = TilbakekrevingId.random(),
                 sakId = sak.id,
                 utbetalingId = utbetaling.id,
-                opprettet = hendelse.sakOpprettet,
-                sistEndret = hendelse.opprettet,
-                tilbakeBehandlingId = hendelse.tilbakeBehandlingId,
-                status = hendelse.behandlingsstatus,
-                url = hendelse.url,
-                kravgrunnlagTotalPeriode = hendelse.fullstendigPeriode,
-                totaltFeilutbetaltBeløp = hendelse.totaltFeilutbetaltBeløp,
-                varselSendt = hendelse.varselSendt,
+                opprettet = this.sakOpprettet,
+                sistEndret = this.opprettet,
+                tilbakeBehandlingId = this.tilbakeBehandlingId,
+                status = this.behandlingsstatus,
+                url = this.url,
+                kravgrunnlagTotalPeriode = this.fullstendigPeriode,
+                totaltFeilutbetaltBeløp = this.totaltFeilutbetaltBeløp,
+                varselSendt = this.varselSendt,
                 saksbehandler = null,
                 beslutter = null,
-                venter = hendelse.venter,
+                venter = this.venter,
             )
         }
 
-        logger.info { "Lagrer tilbakekrevingbehandling ${oppdatertEllerNyBehandling.id} for sak $sakId basert på hendelse ${hendelse.id}" }
+        logger.info { "Lagrer tilbakekrevingbehandling ${oppdatertEllerNyBehandling.id} for sak $sakId basert på hendelse $hendelseId" }
 
         sessionFactory.withTransactionContext { tx ->
             tilbakekrevingBehandlingRepo.lagre(oppdatertEllerNyBehandling, tx)
-            tilbakekrevingHendelseRepo.markerEndringSomBehandlet(hendelse.id, sakId, tx)
+            tilbakekrevingHendelseRepo.markerEndringSomBehandlet(hendelseId, sakId, tx)
         }
 
         return Unit.right()

@@ -36,6 +36,7 @@ enum class TilbakekrevinghendelseType {
 }
 
 enum class TilbakekrevinghendelseFeil {
+    UgyldigSaksnummer,
     FantIkkeSak,
     FantIkkeBehandling,
     FantIkkeUtbetaling,
