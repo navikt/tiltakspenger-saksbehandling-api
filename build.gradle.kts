@@ -145,6 +145,9 @@ spotless {
                     "ktlint_standard_max-line-length" to "off",
                     "ktlint_standard_function-signature" to "disabled",
                     "ktlint_standard_function-expression-body" to "disabled",
+                    // Krev blank linje før topp-deklarasjoner (bl.a. etter siste import).
+                    // Eksplisitt aktivert fordi default code style (intellij_idea) deaktiverer den.
+                    "ktlint_standard_blank-line-before-declaration" to "enabled",
                 ),
             )
     }

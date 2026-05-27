@@ -6,5 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilga
 
 interface TilgangsmaskinClient {
     suspend fun harTilgangTilPerson(fnr: Fnr, saksbehandlerToken: String): Tilgangsvurdering
+
     suspend fun harTilgangTilPersoner(fnrs: List<Fnr>, saksbehandlerToken: String): TilgangBulkResponse
 }

@@ -8,9 +8,13 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 
 interface TilbakekrevingBehandlingRepo {
     fun lagre(tilbakekrevingBehandling: TilbakekrevingBehandling, sessionContext: SessionContext? = null)
+
     fun hent(id: TilbakekrevingId, sessionContext: SessionContext? = null): TilbakekrevingBehandling?
+
     fun hentForTilbakeBehandlingId(id: String, sessionContext: SessionContext? = null): TilbakekrevingBehandling?
+
     fun hentForSakId(sakId: SakId, sessionContext: SessionContext? = null): List<TilbakekrevingBehandling>
+
     fun hentForUtbetalingId(utbetalingId: UtbetalingId, sessionContext: SessionContext? = null): List<TilbakekrevingBehandling>
 
     /** Ta behandling som saksbehandler. Oppdaterer kun dersom saksbehandler_ident er null og status er TIL_BEHANDLING. */

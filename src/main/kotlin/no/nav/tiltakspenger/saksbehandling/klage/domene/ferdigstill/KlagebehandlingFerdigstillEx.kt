@@ -110,6 +110,8 @@ sealed interface KunneIkkeFerdigstilleKlagebehandling {
     data class SaksbehandlerMismatch(val forventetSaksbehandler: String?, val faktiskSaksbehandler: String) : KunneIkkeFerdigstilleKlagebehandling
 
     data object ResultatMåVæreOpprettholdEllerOmgjør : KunneIkkeFerdigstilleKlagebehandling
+
     data object KreverUtfallFraKlageinstans : KunneIkkeFerdigstilleKlagebehandling
+
     data object BehandlingErKnyttetTilEnRammebehandling : KunneIkkeFerdigstilleKlagebehandling
 }

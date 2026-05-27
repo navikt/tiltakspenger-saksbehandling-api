@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 
 interface KlagevedtakRepo {
     fun lagreVedtak(klagevedtak: Klagevedtak, sessionContext: SessionContext? = null)
+
     fun markerJournalført(
         id: VedtakId,
         vedtaksdato: LocalDate,
@@ -21,7 +22,10 @@ interface KlagevedtakRepo {
     )
 
     fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime)
+
     fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime)
+
     fun hentKlagevedtakSomSkalJournalføres(limit: Int = 10): List<Klagevedtak>
+
     fun hentKlagevedtakSomSkalDistribueres(limit: Int = 10): List<VedtakSomSkalDistribueres>
 }

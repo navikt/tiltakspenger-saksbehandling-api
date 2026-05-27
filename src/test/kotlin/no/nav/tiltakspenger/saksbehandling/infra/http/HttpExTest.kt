@@ -25,11 +25,17 @@ class HttpExTest {
 
             // er ikke viktig for testen, men må overrides
             override fun request(): HttpRequest? = null
+
             override fun previousResponse(): Optional<HttpResponse<String?>?>? = null
+
             override fun headers(): HttpHeaders? = null
+
             override fun body(): String? = null
+
             override fun sslSession(): Optional<SSLSession?>? = null
+
             override fun uri(): URI? = null
+
             override fun version(): HttpClient.Version? = null
         }
     }

@@ -226,14 +226,19 @@ interface SøknadMother {
     )
 
     fun ikkeBesvart() = Søknad.JaNeiSpm.IkkeBesvart
+
     fun fraOgMedDatoIkkeBesvart() = Søknad.FraOgMedDatoSpm.IkkeBesvart
+
     fun periodeIkkeBesvart() = Søknad.PeriodeSpm.IkkeBesvart
 
     fun nei() = Søknad.JaNeiSpm.Nei
+
     fun fraOgMedDatoNei() = Søknad.FraOgMedDatoSpm.Nei
+
     fun periodeNei() = Søknad.PeriodeSpm.Nei
 
     fun ja() = Søknad.JaNeiSpm.Ja
+
     fun fraOgMedDatoJa(fom: LocalDate? = 1.januar(2022)) =
         Søknad.FraOgMedDatoSpm.Ja(
             fra = fom,

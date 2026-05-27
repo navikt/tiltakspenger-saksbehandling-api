@@ -16,6 +16,7 @@ private val logger = KotlinLogging.logger {}
  */
 sealed interface Simulering {
     val simuleringstidspunkt: LocalDateTime
+
     fun hentDag(dato: LocalDate): Simuleringsdag?
 
     val harJustering: Boolean get() = this is Endring && harJustering
@@ -68,9 +69,7 @@ sealed interface Simulering {
         }
     }
 
-    data class IngenEndring(
-        override val simuleringstidspunkt: LocalDateTime,
-    ) : Simulering {
+    data class IngenEndring(override val simuleringstidspunkt: LocalDateTime) : Simulering {
         override fun hentDag(dato: LocalDate) = null
     }
 }

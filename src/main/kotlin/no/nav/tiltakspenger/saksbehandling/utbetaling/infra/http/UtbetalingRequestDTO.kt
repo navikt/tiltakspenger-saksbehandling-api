@@ -194,13 +194,10 @@ private fun UtbetalingV2Dto.kanSlåSammen(neste: UtbetalingV2Dto): Boolean {
 
 private sealed interface Resultat {
     data object SkalIkkeUtbetales : Resultat
-    data class KanIkkeSlåSammen(
-        val utbetalingsperiode: UtbetalingV2Dto,
-    ) : Resultat
 
-    data class KanSlåSammen(
-        val utbetalingsperiode: UtbetalingV2Dto,
-    ) : Resultat
+    data class KanIkkeSlåSammen(val utbetalingsperiode: UtbetalingV2Dto) : Resultat
+
+    data class KanSlåSammen(val utbetalingsperiode: UtbetalingV2Dto) : Resultat
 }
 
 private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
@@ -229,9 +226,7 @@ private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
         TiltakstypeSomGirRett.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> StønadTypeTiltakspenger.FORSØK_OPPLÆRING_LENGRE_VARIGHET
     }
 
-private data class MeldeperiodeTilOppdrag(
-    private val meldeperiodeBeregning: MeldeperiodeBeregning,
-) {
+private data class MeldeperiodeTilOppdrag(private val meldeperiodeBeregning: MeldeperiodeBeregning) {
     val kjedeId = meldeperiodeBeregning.kjedeId
 
     val dager = meldeperiodeBeregning.dager.map {

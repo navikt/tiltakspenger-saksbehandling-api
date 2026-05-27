@@ -19,7 +19,9 @@ interface TilbakekrevingHendelseRepo {
     fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse?
 
     fun markerInfoBehovSomBehandlet(hendelseId: TilbakekrevinghendelseId, sakId: SakId, svarJson: String, sessionContext: SessionContext? = null)
+
     fun markerEndringSomBehandlet(hendelseId: TilbakekrevinghendelseId, sakId: SakId, sessionContext: SessionContext? = null)
+
     fun markerSomBehandletMedFeil(hendelseId: TilbakekrevinghendelseId, sakId: SakId?, feil: TilbakekrevinghendelseFeil, sessionContext: SessionContext? = null)
 
     /**

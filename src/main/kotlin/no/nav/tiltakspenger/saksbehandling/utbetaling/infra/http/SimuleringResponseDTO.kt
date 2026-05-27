@@ -64,6 +64,7 @@ private data class SimuleringResponseDTO(
                 val klassekode: String,
             ) {
                 val periode: Periode by lazy { Periode(fom, tom) }
+
                 fun typeToDomain(): Posteringstype {
                     return when (type) {
                         "YTELSE" -> Posteringstype.YTELSE

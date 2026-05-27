@@ -31,5 +31,6 @@ sealed interface KunneIkkeBehandlePersonhendelse {
 
     /** Adressebeskyttelse-hendelse, men oppslag i PDL viser at personen ikke har kode 6. */
     data object IkkeKode6IPdl : KunneIkkeBehandlePersonhendelse
+
     data object PersonidenterMangler : KunneIkkeBehandlePersonhendelse
 }

@@ -12,8 +12,12 @@ import no.nav.tiltakspenger.libs.common.SøknadId
  */
 interface PersonRepo {
     fun hentFnrForSakId(sakId: SakId): Fnr?
+
     fun hentFnrForRammebehandlingId(behandlingId: RammebehandlingId): Fnr
+
     fun hentFnrForSaksnummer(saksnummer: Saksnummer): Fnr?
+
     fun hentFnrForMeldekortId(meldekortId: MeldekortId): Fnr?
+
     fun hentFnrForSøknadId(søknadId: SøknadId): Fnr?
 }

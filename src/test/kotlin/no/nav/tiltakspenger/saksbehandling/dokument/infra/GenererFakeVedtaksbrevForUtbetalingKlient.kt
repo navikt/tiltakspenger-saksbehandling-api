@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevFor
 
 class GenererFakeVedtaksbrevForUtbetalingKlient : GenererVedtaksbrevForUtbetalingKlient {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json") }
+
     override suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
         tiltaksdeltakelser: Tiltaksdeltakelser,

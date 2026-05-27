@@ -293,15 +293,14 @@ object Configuration {
     fun isNais() = applicationProfile() != Profile.LOCAL
 
     fun isProd() = applicationProfile() == Profile.PROD
+
     fun isDev() = applicationProfile() == Profile.DEV
 
     fun electorPath(): String = config()[Key("ELECTOR_PATH", stringType)]
 
     fun gitHash(): String = config()[Key("NAIS_APP_IMAGE", stringType)].substringAfterLast(":")
 
-    data class DataBaseConf(
-        val url: String,
-    )
+    data class DataBaseConf(val url: String)
 
     fun database() = DataBaseConf(
         url = config()[Key("DB_JDBC_URL", stringType)],

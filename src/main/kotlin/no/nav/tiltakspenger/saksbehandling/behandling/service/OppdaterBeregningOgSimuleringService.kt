@@ -201,6 +201,7 @@ class OppdaterBeregningOgSimuleringService(
         beregningstidspunkt: LocalDateTime,
     ): Beregning? {
         val behandlingId = behandling.id
+
         fun feilmelding(felt: String): String =
             "$felt kan ikke være null ved beregning." +
                 " sakId: ${behandling.sakId}, saksnummer: ${behandling.saksnummer}, behandlingId: $behandlingId," +
@@ -240,6 +241,7 @@ class OppdaterBeregningOgSimuleringService(
 }
 
 private fun Ulid.toRammebehandlingId(): RammebehandlingId = RammebehandlingId.fromString(this.toString())
+
 private fun Ulid.toMeldekortId(): MeldekortId = MeldekortId.fromString(this.toString())
 
 private fun Ulid.erRammebehandlingId(): Boolean = Either.catch { RammebehandlingId.fromString(this.toString()) }.fold(

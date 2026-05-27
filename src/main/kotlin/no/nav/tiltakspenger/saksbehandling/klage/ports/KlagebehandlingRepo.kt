@@ -12,6 +12,7 @@ interface KlagebehandlingRepo {
     fun lagreKlagebehandling(klagebehandling: Klagebehandling, sessionContext: SessionContext? = null)
 
     fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling?
+
     fun hentForRammebehandlingId(rammebehandlingId: RammebehandlingId): Klagebehandling?
 
     /** Egen funksjon for at saksbehandlerne ikke skal gå i beina på hverandre. */
@@ -25,7 +26,9 @@ interface KlagebehandlingRepo {
     ): Boolean
 
     fun hentInnstillingsbrevSomSkalJournalføres(limit: Int = 10): List<Klagebehandling>
+
     fun markerInnstillingsbrevJournalført(klagebehandling: Klagebehandling, metadata: JournalførBrevMetadata)
+
     fun hentInnstillingsbrevSomSkalDistribueres(limit: Int = 10): List<Klagebehandling>
 
     fun hentSakerSomSkalOversendesKlageinstansen(limit: Int = 10): List<SakId>

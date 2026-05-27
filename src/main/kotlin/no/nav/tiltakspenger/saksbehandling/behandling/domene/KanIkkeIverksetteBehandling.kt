@@ -7,7 +7,10 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.OpprettRammevedtakFeil
 
 sealed interface KanIkkeIverksetteBehandling {
     data class BehandlingenEiesAvAnnenBeslutter(val eiesAvBeslutter: String?) : KanIkkeIverksetteBehandling
+
     data class SimuleringFeil(val feil: KunneIkkeSimulere) : KanIkkeIverksetteBehandling
+
     data class UtbetalingFeil(val feil: KanIkkeIverksetteUtbetaling, val sak: Sak, val behandling: Rammebehandling) : KanIkkeIverksetteBehandling
+
     data class OpprettVedtakFeil(val feil: OpprettRammevedtakFeil) : KanIkkeIverksetteBehandling
 }

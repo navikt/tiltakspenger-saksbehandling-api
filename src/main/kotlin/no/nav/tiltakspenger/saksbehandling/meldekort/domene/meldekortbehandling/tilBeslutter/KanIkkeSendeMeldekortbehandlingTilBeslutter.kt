@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUt
 
 sealed interface KanIkkeSendeMeldekortbehandlingTilBeslutter {
     data class KanIkkeOppdatere(val underliggende: KanIkkeOppdatereMeldekortbehandling) : KanIkkeSendeMeldekortbehandlingTilBeslutter
+
     data object MeldekortperiodenKanIkkeVæreFremITid : KanIkkeSendeMeldekortbehandlingTilBeslutter
+
     data class UtbetalingStøttesIkke(val feil: KanIkkeIverksetteUtbetaling) : KanIkkeSendeMeldekortbehandlingTilBeslutter
 }

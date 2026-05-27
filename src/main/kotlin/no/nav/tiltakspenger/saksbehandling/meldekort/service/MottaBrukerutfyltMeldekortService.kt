@@ -64,6 +64,8 @@ class MottaBrukerutfyltMeldekortService(
 
 sealed interface KanIkkeLagreBrukersMeldekort {
     data object AlleredeLagretUtenDiff : KanIkkeLagreBrukersMeldekort
+
     data object AlleredeLagretMedDiff : KanIkkeLagreBrukersMeldekort
+
     data object UkjentFeil : KanIkkeLagreBrukersMeldekort
 }

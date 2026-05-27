@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.JournalpostId
 
 object ExceptionHandler {
     private val logger = KotlinLogging.logger {}
+
     suspend fun handle(
         call: ApplicationCall,
         cause: Throwable,

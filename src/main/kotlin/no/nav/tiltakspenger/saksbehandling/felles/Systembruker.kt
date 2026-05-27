@@ -16,9 +16,8 @@ enum class Systembrukerrolle : GenerellSystembrukerrolle {
     LAGRE_MELDEKORT,
 }
 
-data class Systembrukerroller(
-    override val value: Set<Systembrukerrolle>,
-) : GenerellSystembrukerroller<Systembrukerrolle>,
+data class Systembrukerroller(override val value: Set<Systembrukerrolle>) :
+    GenerellSystembrukerroller<Systembrukerrolle>,
     Set<Systembrukerrolle> by value {
 
     constructor(vararg roller: Systembrukerrolle) : this(roller.toSet())
@@ -27,6 +26,8 @@ data class Systembrukerroller(
     override fun harRolle(rolle: Systembrukerrolle): Boolean = contains(rolle)
 
     fun harHentEllerOpprettSak(): Boolean = value.contains(Systembrukerrolle.HENT_ELLER_OPPRETT_SAK)
+
     fun harLagreSoknad(): Boolean = value.contains(Systembrukerrolle.LAGRE_SOKNAD)
+
     fun harLagreMeldekort(): Boolean = value.contains(Systembrukerrolle.LAGRE_MELDEKORT)
 }

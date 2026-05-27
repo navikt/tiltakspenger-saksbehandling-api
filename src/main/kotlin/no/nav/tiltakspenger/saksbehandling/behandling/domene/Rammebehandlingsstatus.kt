@@ -25,5 +25,6 @@ enum class Rammebehandlingsstatus {
     ;
 
     fun erAvsluttet(): Boolean = this == VEDTATT || this == AVBRUTT
+
     fun erÅpen(): Boolean = !erAvsluttet()
 }

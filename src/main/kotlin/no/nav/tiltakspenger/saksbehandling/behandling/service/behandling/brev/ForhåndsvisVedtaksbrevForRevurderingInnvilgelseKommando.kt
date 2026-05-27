@@ -26,6 +26,7 @@ data class ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando(
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode> = innvilgelsesperioder.map {
         it.verdi.antallDagerPerMeldeperiode
     }.slåSammenTilstøtendePerioder()
+
     init {
         if (barnetillegg != null) {
             require(barnetillegg.perioder.trekkFra(innvilgelsesperioder.perioder).isEmpty()) {

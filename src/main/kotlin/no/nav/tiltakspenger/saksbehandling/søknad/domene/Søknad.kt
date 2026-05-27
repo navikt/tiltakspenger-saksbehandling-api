@@ -60,6 +60,7 @@ sealed interface Søknad {
 
     companion object {
         fun randomId() = SøknadId.random()
+
         fun opprett(
             sak: Sak,
             journalpostId: String,
@@ -158,9 +159,11 @@ sealed interface Søknad {
      * Man kan bare søke om tiltakspenger for en tiltaksdeltakelse per søknad (aug 2025).
      */
     fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode?
+
     fun erManueltRegistrertSøknad() = manueltRegistrert
 
     fun erDigitalSøknad() = !manueltRegistrert
+
     fun kanInnvilges() =
         (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
@@ -189,6 +192,7 @@ sealed interface Søknad {
 
     sealed interface PeriodeSpm {
         data object IkkeBesvart : PeriodeSpm
+
         data object Nei : PeriodeSpm
 
         data class Ja(
@@ -224,9 +228,7 @@ sealed interface Søknad {
 
         data object IkkeBesvart : FraOgMedDatoSpm
 
-        data class Ja(
-            val fra: LocalDate?,
-        ) : FraOgMedDatoSpm
+        data class Ja(val fra: LocalDate?) : FraOgMedDatoSpm
 
         fun erJa(): Boolean =
             when (this) {

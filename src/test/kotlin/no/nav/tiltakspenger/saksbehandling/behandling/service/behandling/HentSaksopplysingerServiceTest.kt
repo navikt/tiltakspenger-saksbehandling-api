@@ -93,21 +93,26 @@ internal class HentSaksopplysingerServiceTest {
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
                 }
+
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakType,
                     sessionContext: SessionContext?,
                 ) {}
+
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
+
                 override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
+
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
                     return null
                 }
+
                 override fun oppdaterEksternIdForTiltaksdeltaker(
                     tiltaksdeltaker: Tiltaksdeltaker,
                     sessionContext: SessionContext?,
@@ -203,21 +208,26 @@ internal class HentSaksopplysingerServiceTest {
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
                 }
+
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakType,
                     sessionContext: SessionContext?,
                 ) {}
+
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
+
                 override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
+
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
                     return null
                 }
+
                 override fun oppdaterEksternIdForTiltaksdeltaker(
                     tiltaksdeltaker: Tiltaksdeltaker,
                     sessionContext: SessionContext?,
@@ -313,21 +323,26 @@ internal class HentSaksopplysingerServiceTest {
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
                 }
+
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakType,
                     sessionContext: SessionContext?,
                 ) {}
+
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
+
                 override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return tiltaksdeltakelser.first.eksternDeltakelseId
                 }
+
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
                     return null
                 }
+
                 override fun oppdaterEksternIdForTiltaksdeltaker(
                     tiltaksdeltaker: Tiltaksdeltaker,
                     sessionContext: SessionContext?,
@@ -449,15 +464,18 @@ internal class HentSaksopplysingerServiceTest {
                         }
                     }
                 }
+
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakType,
                     sessionContext: SessionContext?,
                 ) {}
+
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
+
                 override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return when (id) {
                         tiltak1.first.internDeltakelseId -> {
@@ -473,9 +491,11 @@ internal class HentSaksopplysingerServiceTest {
                         }
                     }
                 }
+
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
                     return null
                 }
+
                 override fun oppdaterEksternIdForTiltaksdeltaker(
                     tiltaksdeltaker: Tiltaksdeltaker,
                     sessionContext: SessionContext?,
@@ -591,15 +611,18 @@ internal class HentSaksopplysingerServiceTest {
                         }
                     }
                 }
+
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakType,
                     sessionContext: SessionContext?,
                 ) {}
+
                 override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
                     return null
                 }
+
                 override fun hentEksternId(id: TiltaksdeltakerId, sessionContext: SessionContext?): String {
                     return when (id) {
                         tiltak1.first.internDeltakelseId -> {
@@ -615,9 +638,11 @@ internal class HentSaksopplysingerServiceTest {
                         }
                     }
                 }
+
                 override fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker? {
                     return null
                 }
+
                 override fun oppdaterEksternIdForTiltaksdeltaker(
                     tiltaksdeltaker: Tiltaksdeltaker,
                     sessionContext: SessionContext?,

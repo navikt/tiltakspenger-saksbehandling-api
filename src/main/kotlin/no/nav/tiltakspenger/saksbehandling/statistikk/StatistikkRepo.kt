@@ -8,6 +8,7 @@ import java.time.Clock
 
 interface StatistikkRepo {
     fun lagre(statistikk: StatistikkDTO, context: TransactionContext? = null)
+
     fun oppdaterFnr(
         gammeltFnr: Fnr,
         nyttFnr: Fnr,

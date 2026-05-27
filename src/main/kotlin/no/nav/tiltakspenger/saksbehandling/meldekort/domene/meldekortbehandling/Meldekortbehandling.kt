@@ -152,6 +152,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling>
 
     fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling
+
     fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling
 
     fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning? {

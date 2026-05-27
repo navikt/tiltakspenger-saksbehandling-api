@@ -35,9 +35,13 @@ object ObjectMother :
     OppdaterBehandlingKommandoMother,
     InnvilgelsesperioderMother {
     fun gyldigFnr() = Fnr.fromString("12345678911")
+
     fun navn() = Navn("Fornavn", "Mellomnavn", "Etternavn")
+
     fun navkontor() = Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
+
     fun oppgaveId(oppgaveId: OppgaveId = OppgaveId("100")) = oppgaveId
+
     fun accessToken(
         token: String = "token",
         expiresAt: Instant = Instant.MAX,

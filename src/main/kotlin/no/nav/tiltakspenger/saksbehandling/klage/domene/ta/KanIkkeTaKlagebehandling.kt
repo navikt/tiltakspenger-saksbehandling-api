@@ -4,5 +4,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebeh
 
 sealed interface KanIkkeTaKlagebehandling {
     data class KanIkkeOppdateres(val underliggende: KanIkkeOppdatereKlagebehandling) : KanIkkeTaKlagebehandling
+
     data object BrukOvertaIsteden : KanIkkeTaKlagebehandling
 }

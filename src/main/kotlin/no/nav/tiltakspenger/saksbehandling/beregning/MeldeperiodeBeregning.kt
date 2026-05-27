@@ -35,6 +35,7 @@ data class MeldeperiodeBeregning(
     val ordinærBeløp: Int get() = dager.sumOf { it.beregningsdag?.beløp ?: 0 }
     val barnetilleggBeløp: Int get() = dager.sumOf { it.beregningsdag?.beløpBarnetillegg ?: 0 }
     val totalBeløp: Int get() = ordinærBeløp + barnetilleggBeløp
+
     fun hentDag(dato: LocalDate): MeldeperiodeBeregningDag? {
         return dager.singleOrNullOrThrow {
             it.dato == dato
@@ -54,5 +55,7 @@ data class MeldeperiodeBeregning(
 }
 
 fun List<MeldeperiodeBeregning>.beregnOrdinærBeløp(): Int = this.sumOf { it.ordinærBeløp }
+
 fun List<MeldeperiodeBeregning>.beregnBarnetilleggBeløp(): Int = this.sumOf { it.barnetilleggBeløp }
+
 fun List<MeldeperiodeBeregning>.beregnTotalBeløp(): Int = this.sumOf { it.totalBeløp }

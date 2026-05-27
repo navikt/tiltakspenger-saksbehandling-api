@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak
 
 sealed interface Tilgangsvurdering {
     data object Godkjent : Tilgangsvurdering
+
     data class Avvist(
         val type: String,
         val årsak: TilgangsvurderingAvvistÅrsak,

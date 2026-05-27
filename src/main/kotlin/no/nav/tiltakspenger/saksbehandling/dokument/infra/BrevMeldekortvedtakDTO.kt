@@ -37,6 +37,7 @@ data class BrevMeldekortvedtakDTO(
     )
     sealed interface SaksbehandlerDTO {
         data object Automatisk : SaksbehandlerDTO
+
         data class Manuell(val navn: String) : SaksbehandlerDTO
     }
 

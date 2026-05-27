@@ -22,6 +22,7 @@ class PdfA(private val content: ByteArray) {
     }
 
     override fun hashCode(): Int = content.contentHashCode()
+
     fun getContent(): ByteArray = content.clone()
 
     fun toBase64(): String = Base64.getEncoder().encodeToString(getContent())

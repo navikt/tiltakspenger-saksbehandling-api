@@ -26,9 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostg
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo.Companion.taBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 
-class KlagebehandlingPostgresRepo(
-    private val sessionFactory: PostgresSessionFactory,
-) : KlagebehandlingRepo {
+class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFactory) : KlagebehandlingRepo {
     /**
      * Oppretter eller oppdaterer en klagebehandling i databasen.
      *
@@ -48,6 +46,7 @@ class KlagebehandlingPostgresRepo(
             hentOrNull(klagebehandlingId, session)
         }
     }
+
     override fun hentForRammebehandlingId(rammebehandlingId: RammebehandlingId): Klagebehandling? {
         return sessionFactory.withSession { session ->
             session.run(

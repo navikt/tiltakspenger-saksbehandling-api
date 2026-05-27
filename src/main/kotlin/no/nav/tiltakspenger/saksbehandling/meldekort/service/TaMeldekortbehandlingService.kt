@@ -23,6 +23,7 @@ class TaMeldekortbehandlingService(
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger { }
+
     fun taMeldekortbehandling(
         sakId: SakId,
         meldekortId: MeldekortId,

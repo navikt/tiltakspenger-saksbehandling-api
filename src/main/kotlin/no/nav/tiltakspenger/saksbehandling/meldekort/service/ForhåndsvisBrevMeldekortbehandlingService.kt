@@ -102,6 +102,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
 
 sealed interface KunneIkkeForhåndsviseBrevMeldekortbehandling {
     object FantIkkeMeldekortbehandling : KunneIkkeForhåndsviseBrevMeldekortbehandling
+
     data class FeilVedGenereringAvPdf(val feil: KunneIkkeGenererePdf) : KunneIkkeForhåndsviseBrevMeldekortbehandling
 }
 

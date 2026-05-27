@@ -37,11 +37,16 @@ sealed interface Klagebehandlingsresultat {
     val kanOversendeKlageinstans: Boolean
     val harJournalførtInnstillingsbrev: Boolean
     val harDistribuertInnstillingsbrev: Boolean
+
     fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean?
+
     fun kanIverksetteOpprettholdelse(status: Klagebehandlingsstatus): Boolean
+
     val erKnyttetTilRammebehandling: Boolean
     val åpenRammebehandlingId: RammebehandlingId?
+
     fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean
+
     val kanOmgjøresEtterKA: Boolean
 
     /**
@@ -53,15 +58,14 @@ sealed interface Klagebehandlingsresultat {
     ): Klagebehandlingsresultat
 
     fun ferdigstill(ferdigstiltTidspunkt: LocalDateTime, begrunnelse: Begrunnelse?): Klagebehandlingsresultat?
+
     fun nullstillÅpenRammebehandlingId(): Klagebehandlingsresultat?
 
     /**
      * Merk at en avvisning ikke er det samme som et avslag.
      * Det er et vedtak som kan klages på.
      */
-    data class Avvist(
-        override val brevtekst: Brevtekster?,
-    ) : Klagebehandlingsresultat {
+    data class Avvist(override val brevtekst: Brevtekster?) : Klagebehandlingsresultat {
 
         override val erKnyttetTilRammebehandling = false
         override val kanVæreKnyttetTilRammebehandling: Boolean = false
@@ -277,6 +281,7 @@ sealed interface Klagebehandlingsresultat {
         }
 
         fun oppdaterBrevtekst(brevtekst: Brevtekster): Opprettholdt = this.copy(brevtekst = brevtekst)
+
         fun oppdaterHjemler(hjemler: Klagehjemler) = this.copy(hjemler = hjemler)
 
         fun oppdaterOversendtKlageinstansenTidspunkt(tidspunkt: LocalDateTime): Opprettholdt {

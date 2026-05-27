@@ -4,8 +4,12 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 
 sealed interface KanIkkeTaMeldekortbehandling {
     data object MeldekortbehandlingFinnesIkke : KanIkkeTaMeldekortbehandling
+
     data object HarAlleredeSaksbehandler : KanIkkeTaMeldekortbehandling
+
     data object HarAlleredeBeslutter : KanIkkeTaMeldekortbehandling
+
     data object BeslutterKanIkkeVæreSammeSomSaksbehandler : KanIkkeTaMeldekortbehandling
+
     data class UgyldigStatus(val status: MeldekortbehandlingStatus) : KanIkkeTaMeldekortbehandling
 }

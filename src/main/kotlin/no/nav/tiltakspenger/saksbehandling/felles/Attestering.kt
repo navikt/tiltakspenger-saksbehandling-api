@@ -20,10 +20,10 @@ enum class Attesteringsstatus {
     SENDT_TILBAKE,
 }
 
-data class Attesteringer(
-    private val attesteringer: List<Attestering>,
-) : List<Attestering> by attesteringer {
+data class Attesteringer(private val attesteringer: List<Attestering>) : List<Attestering> by attesteringer {
+
     fun erGodkjent(): Boolean = this.lastOrNull()?.isGodkjent() ?: false
+
     fun erUnderkjent(): Boolean = this.lastOrNull()?.isUnderkjent() ?: false
 
     fun leggTil(attestering: Attestering): Attesteringer {
