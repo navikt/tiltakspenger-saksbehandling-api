@@ -51,6 +51,7 @@ data class SakDTO(
     val alleKlagevedtak: List<KlagevedtakDTO>,
     val meldekortvedtak: List<MeldekortVedtakDto>,
     val meldekortbehandlinger: Map<String, MeldekortbehandlingDTOV2>,
+    val åpenMeldekortbehandlingId: String?,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
     val søknader: List<SøknadDTO>,
     val tilbakekrevinger: List<TilbakekrevingBehandlingDTO>,
@@ -86,4 +87,5 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
             hentTilbakekreving = this::hentTilbakekrevingForMeldekortbehandling,
         )
     },
+    åpenMeldekortbehandlingId = meldekortbehandlinger.åpenMeldekortbehandling?.id?.toString(),
 )
