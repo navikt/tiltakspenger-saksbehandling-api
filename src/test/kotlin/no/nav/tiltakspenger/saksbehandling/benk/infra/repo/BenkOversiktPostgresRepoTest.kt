@@ -63,6 +63,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -844,6 +845,27 @@ class BenkOversiktPostgresRepoTest {
             )
             testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilBehandling)
 
+            val tilBehandlingVenter = TilbakekrevingBehandling(
+                id = TilbakekrevingId.random(),
+                sakId = sak.id,
+                utbetalingId = utbetalingId,
+                tilbakeBehandlingId = "tilbake-15",
+                opprettet = opprettet,
+                sistEndret = opprettet,
+                status = TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
+                url = "https://tilbakekreving.nav.no/1",
+                kravgrunnlagTotalPeriode = Periode(2.januar(2023), 15.januar(2023)),
+                totaltFeilutbetaltBeløp = BigDecimal("1000.00"),
+                varselSendt = null,
+                saksbehandler = null,
+                beslutter = null,
+                venter = TilbakekrevingVenter(
+                    grunn = TilbakekrevingVenter.TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE,
+                    gjenopptas = LocalDate.of(2023, 2, 28),
+                ),
+            )
+            testDataHelper.tilbakekrevingBehandlingRepo.lagre(tilBehandlingVenter)
+
             val tilGodkjenning = TilbakekrevingBehandling(
                 id = TilbakekrevingId.random(),
                 sakId = sak.id,
@@ -908,11 +930,11 @@ class BenkOversiktPostgresRepoTest {
                 ),
             )
 
-            totalAntall shouldBe 2
-            totalAntallUfiltrert shouldBe 2
-            actual.size shouldBe 2
+            totalAntall shouldBe 3
+            totalAntallUfiltrert shouldBe 3
+            actual.size shouldBe 3
 
-            actual.first() shouldBe Behandlingssammendrag(
+            actual[0] shouldBe Behandlingssammendrag(
                 sakId = sak.id,
                 fnr = sak.fnr,
                 saksnummer = sak.saksnummer,
@@ -931,7 +953,26 @@ class BenkOversiktPostgresRepoTest {
                 beløp = tilBehandling.totaltFeilutbetaltBeløp,
             )
 
-            actual.last() shouldBe Behandlingssammendrag(
+            actual[1] shouldBe Behandlingssammendrag(
+                sakId = sak.id,
+                fnr = sak.fnr,
+                saksnummer = sak.saksnummer,
+                startet = meldekortvedtak.opprettet,
+                kravtidspunkt = null,
+                behandlingstype = BehandlingssammendragType.TILBAKEKREVING,
+                status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                saksbehandler = null,
+                beslutter = null,
+                sistEndret = tilBehandling.sistEndret,
+                erSattPåVent = true,
+                sattPåVentBegrunnelse = "AVVENTER_BRUKERUTTALELSE",
+                sattPåVentFrist = LocalDate.of(2023, 2, 28),
+                resultat = null,
+                erUnderkjent = false,
+                beløp = tilBehandling.totaltFeilutbetaltBeløp,
+            )
+
+            actual[2] shouldBe Behandlingssammendrag(
                 sakId = sak.id,
                 fnr = sak.fnr,
                 saksnummer = sak.saksnummer,

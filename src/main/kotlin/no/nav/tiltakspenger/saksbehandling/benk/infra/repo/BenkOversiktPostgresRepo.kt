@@ -191,9 +191,9 @@ class BenkOversiktPostgresRepo(
                 tb.saksbehandler_ident    as saksbehandler,
                 tb.beslutter_ident        as beslutter,
                 null                      as resultat,
-                null::boolean             as erSattPåVent,
-                null                      as sattPåVentBegrunnelse,
-                null::date                as sattPåVentFrist,
+                (tb.venter is not null)               as erSattPåVent,
+                tb.venter->>'grunn'                   as sattPåVentBegrunnelse,
+                (tb.venter->>'gjenopptas')::date      as sattPåVentFrist,
                 tb.sist_endret            as sist_endret,
                 null::jsonb               as attesteringer,
                 tb.totalt_feilutbetalt_beløp as beløp
