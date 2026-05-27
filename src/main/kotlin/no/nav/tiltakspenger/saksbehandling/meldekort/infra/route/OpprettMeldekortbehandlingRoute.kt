@@ -2,8 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
+import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
@@ -17,12 +19,19 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeKjedeId
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
+
+private data class OpprettMeldekortbehandlingBody(
+    val type: MeldekortbehandlingTypeDTO? = null,
+    val v2: Boolean = false,
+)
 
 fun Route.opprettMeldekortbehandlingRoute(
     opprettMeldekortbehandlingService: OpprettMeldekortbehandlingService,
@@ -38,6 +47,30 @@ fun Route.opprettMeldekortbehandlingRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withMeldeperiodeKjedeId { kjedeId ->
+                val rawBody = call.receiveText()
+                val body = if (rawBody.isBlank()) {
+                    OpprettMeldekortbehandlingBody()
+                } else {
+                    try {
+                        deserialize<OpprettMeldekortbehandlingBody>(rawBody)
+                    } catch (e: Exception) {
+                        logger.debug(e) { "Kunne ikke deserialisere request-body" }
+                        call.respond400BadRequest(
+                            melding = "Kunne ikke deserialisere request",
+                            kode = "ugyldig_request",
+                        )
+                        return@withMeldeperiodeKjedeId
+                    }
+                }
+
+                if (body.v2 && body.type == null) {
+                    call.respond400BadRequest(
+                        melding = "type må være satt når v2=true",
+                        kode = "type_mangler",
+                    )
+                    return@withMeldeperiodeKjedeId
+                }
+
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
@@ -69,7 +102,11 @@ fun Route.opprettMeldekortbehandlingRoute(
                             behandlingId = behandling.id,
                         )
 
-                        call.respondJson(value = sak.toMeldeperiodeKjedeDTO(kjedeId, clock))
+                        if (body.v2) {
+                            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
+                        } else {
+                            call.respondJson(value = sak.toMeldeperiodeKjedeDTO(kjedeId, clock))
+                        }
                     },
                 )
             }
