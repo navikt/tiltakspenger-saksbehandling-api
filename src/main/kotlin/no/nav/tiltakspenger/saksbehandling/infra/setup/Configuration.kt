@@ -70,6 +70,8 @@ object Configuration {
                 "DATADELING_URL" to "http://host.docker.internal:8082",
                 "MELDEKORT_API_SCOPE" to "tiltakspenger-meldekort-api",
                 "MELDEKORT_API_URL" to "http://localhost:8083",
+                "AO_KONTOR_SCOPE" to "localhost",
+                "AO_KONTOR_URL" to "http://host.docker.internal:8091",
                 "VEILARBOPPFOLGING_SCOPE" to "localhost",
                 "VEILARBOPPFOLGING_URL" to "http://host.docker.internal:8091",
                 "OPPGAVE_SCOPE" to "localhost",
@@ -121,6 +123,8 @@ object Configuration {
                 "DATADELING_URL" to "http://tiltakspenger-datadeling",
                 "MELDEKORT_API_SCOPE" to "dev-gcp:tpts:tiltakspenger-meldekort-api",
                 "MELDEKORT_API_URL" to "http://tiltakspenger-meldekort-api",
+                "AO_KONTOR_SCOPE" to "api://dev-gcp.dab.ao-oppfolgingskontor/.default",
+                "AO_KONTOR_URL" to "http://ao-oppfolgingskontor.dab",
                 "VEILARBOPPFOLGING_SCOPE" to "dev-gcp:poao:veilarboppfolging",
                 "VEILARBOPPFOLGING_URL" to "http://veilarboppfolging.poao",
                 "OPPGAVE_SCOPE" to "dev-fss:oppgavehandtering:oppgave",
@@ -168,6 +172,8 @@ object Configuration {
                 "DATADELING_URL" to "http://tiltakspenger-datadeling",
                 "MELDEKORT_API_SCOPE" to "prod-gcp:tpts:tiltakspenger-meldekort-api",
                 "MELDEKORT_API_URL" to "http://tiltakspenger-meldekort-api",
+                "AO_KONTOR_SCOPE" to "api://prod-gcp.dab.ao-oppfolgingskontor/.default",
+                "AO_KONTOR_URL" to "http://ao-oppfolgingskontor.dab",
                 "VEILARBOPPFOLGING_SCOPE" to "prod-gcp:poao:veilarboppfolging",
                 "VEILARBOPPFOLGING_URL" to "http://veilarboppfolging.poao",
                 "OPPGAVE_SCOPE" to "prod-fss:oppgavehandtering:oppgave",
@@ -241,6 +247,7 @@ object Configuration {
     val microsoftScope: String by lazy { config()[Key("MICROSOFT_SCOPE", stringType)] }
     val datadelingScope: String by lazy { config()[Key("DATADELING_SCOPE", stringType)] }
     val meldekortApiScope: String by lazy { config()[Key("MELDEKORT_API_SCOPE", stringType)] }
+    val aoKontorScope: String by lazy { config()[Key("AO_KONTOR_SCOPE", stringType)] }
     val veilarboppfolgingScope: String by lazy { config()[Key("VEILARBOPPFOLGING_SCOPE", stringType)] }
     val oppgaveScope: String by lazy { config()[Key("OPPGAVE_SCOPE", stringType)] }
     val sokosUtbetaldataScope: String by lazy { config()[Key("SOKOS_UTBETALDATA_SCOPE", stringType)] }
@@ -258,6 +265,7 @@ object Configuration {
     val microsoftUrl: String by lazy { config()[Key("MICROSOFT_URL", stringType)] }
     val datadelingUrl: String by lazy { config()[Key("DATADELING_URL", stringType)] }
     val meldekortApiUrl: String by lazy { config()[Key("MELDEKORT_API_URL", stringType)] }
+    val aoKontorUrl: String by lazy { config()[Key("AO_KONTOR_URL", stringType)] }
     val veilarboppfolgingUrl: String by lazy { config()[Key("VEILARBOPPFOLGING_URL", stringType)] }
     val oppgaveUrl: String by lazy { config()[Key("OPPGAVE_URL", stringType)] }
     val sokosUtbetaldataUrl: String by lazy { config()[Key("SOKOS_UTBETALDATA_URL", stringType)] }

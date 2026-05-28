@@ -6,7 +6,13 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
 
 class VeilarboppfolgingFakeKlient : VeilarboppfolgingKlient {
-    override suspend fun hentOppfolgingsenhet(fnr: Fnr): Navkontor {
+    override suspend fun hentOppfolgingsenhet(
+        fnr: Fnr,
+        sakId: String?,
+        saksnummer: String?,
+        rammebehandlingId: String?,
+        meldekortbehandlingId: String?,
+    ): Navkontor {
         return ObjectMother.navkontor()
     }
 }

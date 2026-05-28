@@ -32,7 +32,13 @@ class VeilarboppfolgingHttpClient(
 
     private val uri = URI.create("$baseUrl/veilarboppfolging/api/v2/person/system/hent-oppfolgingsstatus")
 
-    override suspend fun hentOppfolgingsenhet(fnr: Fnr): Navkontor {
+    override suspend fun hentOppfolgingsenhet(
+        fnr: Fnr,
+        sakId: String?,
+        saksnummer: String?,
+        rammebehandlingId: String?,
+        meldekortbehandlingId: String?,
+    ): Navkontor {
         return withContext(Dispatchers.IO) {
             val jsonPayload = objectMapper.writeValueAsString(Request(fnr.verdi))
             val request = createRequest(jsonPayload, getToken().token)

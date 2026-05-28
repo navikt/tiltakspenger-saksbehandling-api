@@ -128,7 +128,12 @@ class OppdaterRammebehandlingService(
         }
 
         return beregning?.let {
-            val navkontor = navkontorService.hentOppfolgingsenhet(this.fnr)
+            val navkontor = navkontorService.hentOppfolgingsenhet(
+                fnr = this.fnr,
+                sakId = behandling.sakId.toString(),
+                saksnummer = this.saksnummer.verdi,
+                rammebehandlingId = behandling.id.toString(),
+            )
             val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
                 // Merk at behandlingen vi sender inn her er som den kom fra basen. Kanskje vi heller bare skal sende inn od, sakId, fnr og saksnummer?
                 behandling = behandling,
