@@ -274,6 +274,6 @@ class AutomatiskMeldekortbehandlingService(
         private val venteIntervallerMap: Map<Long, Duration> =
             venteIntervaller.withIndex().associate { (index, duration) -> index.toLong() + 1 to duration }
 
-        val MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING = 1.days.toJavaDuration()
+        val MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING = 2.days.toJavaDuration()
     }
 }

@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrThrow
+import arrow.core.toNonEmptySetOrThrow
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -35,8 +37,8 @@ data class Meldeperiodebehandlinger(
 
     val totalPeriode: Periode = Periode(fraOgMed, tilOgMed)
 
-    val kjedeIder: NonEmptyList<MeldeperiodeKjedeId> by lazy {
-        this.map { it.kjedeId }.toNonEmptyListOrThrow()
+    val kjedeIder: NonEmptySet<MeldeperiodeKjedeId> by lazy {
+        this.map { it.kjedeId }.toNonEmptySetOrThrow()
     }
 
     val rammevedtakIder: NonEmptyList<VedtakId> by lazy {
@@ -99,8 +101,9 @@ data class Meldeperiodebehandlinger(
                 .take(this.size)
                 .map { it.kjedeId }
 
-            require(kjedeIder == beregnedeKjedeIder) {
-                "Beregningen må omfatte alle kjedene i behandlingen - Forventet $kjedeIder, fant $beregnedeKjedeIder"
+            val behandlingsKjedeIder = meldeperioder.map { it.kjedeId }
+            require(behandlingsKjedeIder == beregnedeKjedeIder) {
+                "Beregningen må omfatte alle kjedene i behandlingen - Forventet $behandlingsKjedeIder, fant $beregnedeKjedeIder"
             }
         }
     }

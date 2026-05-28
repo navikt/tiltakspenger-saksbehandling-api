@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -66,6 +67,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
     val ingenDagerGirRett: Boolean get() = meldeperioder.ingenDagerGirRett
+
+    val kjedeIder: NonEmptySet<MeldeperiodeKjedeId> get() = meldeperioder.kjedeIder
 
     /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder i en behandling er på plass */
     private val førsteMeldeperiodebehandling: Meldeperiodebehandling get() = meldeperioder.first()

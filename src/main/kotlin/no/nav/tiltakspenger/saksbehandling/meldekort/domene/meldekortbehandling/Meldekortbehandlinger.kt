@@ -46,7 +46,8 @@ data class Meldekortbehandlinger(
     val behandledeMeldekortPerKjede: Map<MeldeperiodeKjedeId, List<Meldekortbehandling.Behandlet>> by lazy {
         behandledeMeldekort
             .sortedBy { it.opprettet }
-            .groupBy { it.kjedeIdLegacy }
+            .flatMap { behandling -> behandling.kjedeIder.map { kjedeId -> kjedeId to behandling } }
+            .groupBy({ it.first }, { it.second })
     }
 
     val sisteBehandledeMeldekortPerKjede: List<Meldekortbehandling.Behandlet> by lazy {
@@ -88,15 +89,15 @@ data class Meldekortbehandlinger(
 
     /** Flere behandlinger kan være knyttet til samme versjon av meldeperioden. */
     fun hentIkkeAvbrutteBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
-        return ikkeAvbrutteMeldekortbehandlinger.filter { it.kjedeIdLegacy == kjedeId }
+        return ikkeAvbrutteMeldekortbehandlinger.filter { it.kjedeIder.contains(kjedeId) }
     }
 
     fun hentAvbrutteBehandlingerForKjede(kjedeId: MeldeperiodeKjedeId): List<Meldekortbehandling> {
-        return avbrutteMeldekortbehandlinger.filter { it.kjedeIdLegacy == kjedeId }
+        return avbrutteMeldekortbehandlinger.filter { it.kjedeIder.contains(kjedeId) }
     }
 
     fun hentSisteMeldekortbehandlingForKjede(kjedeId: MeldeperiodeKjedeId): Meldekortbehandling? {
-        return verdi.filter { it.kjedeIdLegacy == kjedeId }.maxByOrNull { it.opprettet }
+        return verdi.filter { it.kjedeIder.contains(kjedeId) }.maxByOrNull { it.opprettet }
     }
 
     /**
