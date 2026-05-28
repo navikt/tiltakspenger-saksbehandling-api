@@ -1,12 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http
 
-import arrow.core.left
 import arrow.core.right
 import com.marcinziolo.kotlin.wiremock.contains
 import com.marcinziolo.kotlin.wiremock.post
 import com.marcinziolo.kotlin.wiremock.returns
 import io.kotest.assertions.withClue
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
@@ -65,7 +66,7 @@ internal class KontorhistorikkHttpklientTest {
                     saksnummer = "2024-1",
                     rammebehandlingId = "ram-1",
                     meldekortbehandlingId = "mel-1",
-                ) shouldBe Kontorhistorikk(
+                ).map { it.kontorhistorikk } shouldBe Kontorhistorikk(
                     listOf(
                         Kontorhistorikkinnslag(
                             kontorId = "0123",
@@ -98,7 +99,7 @@ internal class KontorhistorikkHttpklientTest {
 
         medWiremock(body) { klient ->
             runTest {
-                klient.hentKontorhistorikk(fnr) shouldBe Kontorhistorikk(emptyList()).right()
+                klient.hentKontorhistorikk(fnr).map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
             }
         }
     }
@@ -114,8 +115,9 @@ internal class KontorhistorikkHttpklientTest {
 
         medWiremock(body) { klient ->
             runTest {
-                klient.hentKontorhistorikk(forespurt) shouldBe
-                    KanIkkeHenteKontorhistorikk.IdentMismatch.left()
+                klient.hentKontorhistorikk(forespurt).leftOrNull()
+                    .shouldNotBeNull()
+                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.IdentMismatch>()
             }
         }
     }
@@ -125,8 +127,10 @@ internal class KontorhistorikkHttpklientTest {
         val fnr = Fnr.random()
         medWiremock(body = """{"message": "noe gikk galt"}""", statusCode = 503) { klient ->
             runTest {
-                klient.hentKontorhistorikk(fnr) shouldBe
-                    KanIkkeHenteKontorhistorikk.UventetHttpStatus(503).left()
+                klient.hentKontorhistorikk(fnr).leftOrNull()
+                    .shouldNotBeNull()
+                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.UventetHttpStatus>()
+                    .status shouldBe 503
             }
         }
     }
@@ -143,8 +147,9 @@ internal class KontorhistorikkHttpklientTest {
 
         medWiremock(body) { klient ->
             runTest {
-                klient.hentKontorhistorikk(fnr) shouldBe
-                    KanIkkeHenteKontorhistorikk.GraphQlFeil.left()
+                klient.hentKontorhistorikk(fnr).leftOrNull()
+                    .shouldNotBeNull()
+                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.GraphQlFeil>()
             }
         }
     }
@@ -164,8 +169,9 @@ internal class KontorhistorikkHttpklientTest {
 
         medWiremock(body) { klient ->
             runTest {
-                klient.hentKontorhistorikk(fnr) shouldBe
-                    KanIkkeHenteKontorhistorikk.KallFeilet.left()
+                klient.hentKontorhistorikk(fnr).leftOrNull()
+                    .shouldNotBeNull()
+                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             }
         }
     }
@@ -186,7 +192,7 @@ internal class KontorhistorikkHttpklientTest {
             runTest {
                 val resultat = klient.hentKontorhistorikk(fnr)
                 resultat.isRight() shouldBe true
-                resultat.getOrNull()!!.innslag.map { it.kontorType } shouldBe listOf(
+                resultat.getOrNull()!!.kontorhistorikk.innslag.map { it.kontorType } shouldBe listOf(
                     KontorType.ARBEIDSOPPFOLGING,
                     KontorType.ARENA,
                     KontorType.GEOGRAFISK_TILKNYTNING,
@@ -219,7 +225,7 @@ internal class KontorhistorikkHttpklientTest {
 
         medWiremock(body) { klient ->
             runTest {
-                val innslag = klient.hentKontorhistorikk(fnr).getOrNull()!!.innslag
+                val innslag = klient.hentKontorhistorikk(fnr).getOrNull()!!.kontorhistorikk.innslag
                 innslag.single { it.kontorId == "sommer" }.endretTidspunkt shouldBe
                     LocalDateTime.parse("2024-07-01T10:00:00")
                 innslag.single { it.kontorId == "vinter" }.endretTidspunkt shouldBe
@@ -243,8 +249,9 @@ internal class KontorhistorikkHttpklientTest {
 
         medWiremock(body) { klient ->
             runTest {
-                klient.hentKontorhistorikk(fnr) shouldBe
-                    KanIkkeHenteKontorhistorikk.KallFeilet.left()
+                klient.hentKontorhistorikk(fnr).leftOrNull()
+                    .shouldNotBeNull()
+                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             }
         }
     }
@@ -284,6 +291,7 @@ internal class KontorhistorikkHttpklientTest {
             medWiremock(body) { klient ->
                 runTest {
                     val faktisk = klient.hentKontorhistorikk(fnr).getOrNull()!!
+                        .kontorhistorikk
                         .innslag
                         .single()
                         .endretTidspunkt
@@ -316,8 +324,9 @@ internal class KontorhistorikkHttpklientTest {
 
         medWiremock(body) { klient ->
             runTest {
-                klient.hentKontorhistorikk(fnr) shouldBe
-                    KanIkkeHenteKontorhistorikk.KallFeilet.left()
+                klient.hentKontorhistorikk(fnr).leftOrNull()
+                    .shouldNotBeNull()
+                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             }
         }
     }

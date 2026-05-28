@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
@@ -10,10 +9,15 @@ import no.nav.tiltakspenger.libs.common.Fnr
 
 /**
  * Dekoratør som kjører [KontorhistorikkKlient] i parallell med eksisterende [VeilarboppfolgingKlient]
- * og logger eventuelle forskjeller. Resultatet som returneres er alltid det fra den eksisterende klienten -
- * vi endrer ikke faktisk oppførsel i denne iterasjonen.
+ * og logger eventuelle forskjeller. Resultatet som returneres er fortsatt det fra den eksisterende
+ * klienten - vi endrer ikke faktisk oppførsel i denne iterasjonen.
  *
- * Sammenligningen kjøres kun dersom [kjørSammenligning] er sann (typisk dev/local/test).
+ * Begge klientene kalles alltid - også i prod - slik at vi kan:
+ * 1. Lagre rå request/response fra begge tjenestene (via [NavkontorMedMetadata]/[KanIkkeHenteOppfølgingsenhet]).
+ * 2. Senere falle tilbake på den nye klienten dersom den gamle ikke gir svar.
+ *
+ * Utfallet av sammenligningen logges alltid - både ved suksess og feil - slik at vi får
+ * sporbarhet på om gammel og ny tjeneste gir samme svar.
  *
  * [KontorhistorikkKlient] gjør sin egen detaljerte logging (inkludert sikkerlogg). Vi nøyer oss derfor
  * her med å logge utfallet av selve sammenligningen.
@@ -21,7 +25,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 class SammenligningVeilarboppfolgingKlient(
     private val eksisterende: VeilarboppfolgingKlient,
     private val kontorhistorikkKlient: KontorhistorikkKlient,
-    private val kjørSammenligning: Boolean,
 ) : VeilarboppfolgingKlient {
     private val logger = KotlinLogging.logger {}
 
@@ -31,28 +34,17 @@ class SammenligningVeilarboppfolgingKlient(
         saksnummer: String?,
         rammebehandlingId: String?,
         meldekortbehandlingId: String?,
-    ): Navkontor {
+    ): Either<KanIkkeHenteOppfølgingsenhet, NavkontorMedMetadata> {
         val loggkontekst = lagLoggkontekst(sakId, saksnummer, rammebehandlingId, meldekortbehandlingId)
-        if (!kjørSammenligning) {
-            return eksisterende.hentOppfolgingsenhet(
-                fnr = fnr,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                rammebehandlingId = rammebehandlingId,
-                meldekortbehandlingId = meldekortbehandlingId,
-            )
-        }
         return coroutineScope {
             val eksisterendeDeferred = async {
-                Either.catch {
-                    eksisterende.hentOppfolgingsenhet(
-                        fnr = fnr,
-                        sakId = sakId,
-                        saksnummer = saksnummer,
-                        rammebehandlingId = rammebehandlingId,
-                        meldekortbehandlingId = meldekortbehandlingId,
-                    )
-                }
+                eksisterende.hentOppfolgingsenhet(
+                    fnr = fnr,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    rammebehandlingId = rammebehandlingId,
+                    meldekortbehandlingId = meldekortbehandlingId,
+                )
             }
             val nyDeferred = async {
                 Either.catch {
@@ -66,30 +58,43 @@ class SammenligningVeilarboppfolgingKlient(
                 }.fold(
                     ifLeft = {
                         logger.warn { "Sammenligning navkontor: ny klient kastet exception. Gammel flyt fortsetter. $loggkontekst" }
-                        KanIkkeHenteKontorhistorikk.KallFeilet.left()
+                        KanIkkeHenteKontorhistorikk.KallFeilet().left()
                     },
                     ifRight = { it },
                 )
             }
 
             val eksisterendeResultat = eksisterendeDeferred.await()
-            val nyResultat = nyDeferred.await()
+            val nyttResultat = nyDeferred.await()
 
-            loggSammenligning(eksisterendeResultat, nyResultat, loggkontekst)
+            // Hent ut Klientkall fra både gammel og ny - uavhengig av om svaret var Left eller Right -
+            // slik at konsumenten kan lagre rådata fra begge tjenestene.
+            val nyttKall: Klientkall? = nyttResultat.fold(
+                ifLeft = { it.kall },
+                ifRight = { it.kall },
+            )
 
-            eksisterendeResultat.getOrElse { throw it }
+            loggSammenligning(eksisterendeResultat, nyttResultat, loggkontekst)
+
+            // Forberedelse: hvis den gamle klienten ikke returnerer noe vil vi senere ønske å falle tilbake
+            // på data fra den nye. I dag returnerer vi fortsatt det eksisterende svaret, men beriker det
+            // (og evt. feil) med metadata fra begge kall slik at konsumenten har alt som trengs for å
+            // lagre rådata og hvilken klient som ble brukt.
+            eksisterendeResultat
+                .map { it.copy(kontorhistorikkKall = nyttKall) }
+                .mapLeft { it.medKontorhistorikkKall(nyttKall) }
         }
     }
 
     private fun loggSammenligning(
-        eksisterendeResultat: Either<Throwable, Navkontor>,
-        nyResultat: Either<KanIkkeHenteKontorhistorikk, Kontorhistorikk>,
+        eksisterendeResultat: Either<KanIkkeHenteOppfølgingsenhet, NavkontorMedMetadata>,
+        nyttResultat: Either<KanIkkeHenteKontorhistorikk, KontorhistorikkMedMetadata>,
         loggkontekst: String,
     ) {
-        val eksisterende = eksisterendeResultat.getOrNull()
+        val eksisterende = eksisterendeResultat.getOrNull()?.navkontor
         val eksisterendeFeil = eksisterendeResultat.leftOrNull()
-        val historikk = nyResultat.getOrNull()
-        val nyFeil = nyResultat.leftOrNull()
+        val historikk = nyttResultat.getOrNull()?.kontorhistorikk
+        val nyFeil = nyttResultat.leftOrNull()
 
         // Eksisterende tjeneste gir Arena med fallback til geografisk tilknytning. Vi tar med
         // ARBEIDSOPPFOLGING som førstevalg slik at sammenligningen fortsatt er meningsfull når nytt API
@@ -102,9 +107,9 @@ class SammenligningVeilarboppfolgingKlient(
 
         when {
             eksisterendeFeil != null && nyFeil != null ->
-                logger.warn(eksisterendeFeil) {
+                logger.warn {
                     "Sammenligning navkontor: begge klientene feilet. " +
-                        "Eksisterende: ${eksisterendeFeil.message}, Ny: $nyFeil. $loggkontekst"
+                        "Eksisterende: $eksisterendeFeil, Ny: $nyFeil. $loggkontekst"
                 }
 
             nyFeil != null ->
@@ -114,8 +119,8 @@ class SammenligningVeilarboppfolgingKlient(
                 }
 
             eksisterendeFeil != null ->
-                logger.warn(eksisterendeFeil) {
-                    "Sammenligning navkontor: eksisterende klient feilet, ny klient OK " +
+                logger.warn {
+                    "Sammenligning navkontor: eksisterende klient feilet ($eksisterendeFeil), ny klient OK " +
                         "(nyeste sammenlignbar kontorId=${nyesteSammenlignbar?.kontorId}). $loggkontekst"
                 }
 

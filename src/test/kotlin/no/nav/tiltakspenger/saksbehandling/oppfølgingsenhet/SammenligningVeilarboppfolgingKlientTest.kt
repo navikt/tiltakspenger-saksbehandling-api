@@ -2,7 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
@@ -20,49 +22,49 @@ internal class SammenligningVeilarboppfolgingKlientTest {
         val klient = SammenligningVeilarboppfolgingKlient(
             eksisterende = VeilarboppfolgingFakeKlient(),
             kontorhistorikkKlient = KontorhistorikkFakeKlient(),
-            kjørSammenligning = true,
         )
 
         runTest {
-            klient.hentOppfolgingsenhet(Fnr.random()) shouldBe Navkontor(
-                kontornummer = "0220",
-                kontornavn = "Nav Asker",
-            )
+            val resultat = klient.hentOppfolgingsenhet(Fnr.random()).getOrNull()!!
+            resultat.navkontor shouldBe Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
+            resultat.brukteKlient shouldBe BruktNavkontorKlient.VEILARBOPPFOLGING
+            resultat.veilarboppfolgingKall.shouldNotBeNull()
+            resultat.kontorhistorikkKall.shouldNotBeNull()
         }
     }
 
     @Test
-    fun `kaller ikke ny klient når sammenligning er av`() {
+    fun `kaller alltid ny klient`() {
         var nyKlientKalt = false
         val klient = SammenligningVeilarboppfolgingKlient(
             eksisterende = VeilarboppfolgingFakeKlient(),
-            kontorhistorikkKlient = KontorhistorikkFakeKlient {
+            kontorhistorikkKlient = KontorhistorikkFakeKlient { fnr ->
                 nyKlientKalt = true
-                KontorhistorikkFakeKlient.defaultHistorikk().right()
+                KontorhistorikkMedMetadata(
+                    kontorhistorikk = KontorhistorikkFakeKlient.defaultHistorikk(),
+                    kall = KontorhistorikkFakeKlient.defaultKall(fnr),
+                ).right()
             },
-            kjørSammenligning = false,
         )
 
         runTest {
             klient.hentOppfolgingsenhet(Fnr.random())
         }
 
-        nyKlientKalt shouldBe false
+        nyKlientKalt shouldBe true
     }
 
     @Test
     fun `Left fra ny klient påvirker ikke eksisterende svar`() {
         val klient = SammenligningVeilarboppfolgingKlient(
             eksisterende = VeilarboppfolgingFakeKlient(),
-            kontorhistorikkKlient = KontorhistorikkFakeKlient { KanIkkeHenteKontorhistorikk.KallFeilet.left() },
-            kjørSammenligning = true,
+            kontorhistorikkKlient = KontorhistorikkFakeKlient { KanIkkeHenteKontorhistorikk.KallFeilet().left() },
         )
 
         runTest {
-            klient.hentOppfolgingsenhet(Fnr.random()) shouldBe Navkontor(
-                kontornummer = "0220",
-                kontornavn = "Nav Asker",
-            )
+            val resultat = klient.hentOppfolgingsenhet(Fnr.random()).getOrNull()!!
+            resultat.navkontor shouldBe Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
+            resultat.brukteKlient shouldBe BruktNavkontorKlient.VEILARBOPPFOLGING
         }
     }
 
@@ -71,14 +73,30 @@ internal class SammenligningVeilarboppfolgingKlientTest {
         val klient = SammenligningVeilarboppfolgingKlient(
             eksisterende = VeilarboppfolgingFakeKlient(),
             kontorhistorikkKlient = KontorhistorikkFakeKlient { error("uventet feil i ny klient") },
-            kjørSammenligning = true,
         )
 
         runTest {
-            klient.hentOppfolgingsenhet(Fnr.random()) shouldBe Navkontor(
-                kontornummer = "0220",
-                kontornavn = "Nav Asker",
-            )
+            val resultat = klient.hentOppfolgingsenhet(Fnr.random()).getOrNull()!!
+            resultat.navkontor shouldBe Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
+        }
+    }
+
+    @Test
+    fun `Left fra eksisterende klient propageres med kontorhistorikkKall vedlagt`() {
+        val klient = SammenligningVeilarboppfolgingKlient(
+            eksisterende = VeilarboppfolgingFakeKlient {
+                KanIkkeHenteOppfølgingsenhet.KallFeilet(
+                    veilarboppfolgingKall = Klientkall(request = "{}", response = null, httpStatus = null),
+                ).left()
+            },
+            kontorhistorikkKlient = KontorhistorikkFakeKlient(),
+        )
+
+        runTest {
+            val feil = klient.hentOppfolgingsenhet(Fnr.random()).leftOrNull()!!
+            feil.shouldBeInstanceOf<KanIkkeHenteOppfølgingsenhet.KallFeilet>()
+            feil.veilarboppfolgingKall.shouldNotBeNull()
+            feil.kontorhistorikkKall.shouldNotBeNull()
         }
     }
 
@@ -87,32 +105,32 @@ internal class SammenligningVeilarboppfolgingKlientTest {
         // Sanity-sjekk: dekoratøren skal håndtere flere innslag uten å påvirke svaret.
         val klient = SammenligningVeilarboppfolgingKlient(
             eksisterende = VeilarboppfolgingFakeKlient(),
-            kontorhistorikkKlient = KontorhistorikkFakeKlient {
-                Kontorhistorikk(
-                    listOf(
-                        Kontorhistorikkinnslag(
-                            kontorId = "0220",
-                            kontorNavn = "Nav Asker",
-                            kontorType = KontorType.ARENA,
-                            endretTidspunkt = LocalDateTime.parse("2024-05-01T10:00:00"),
-                        ),
-                        Kontorhistorikkinnslag(
-                            kontorId = "9999",
-                            kontorNavn = "Annet kontor",
-                            kontorType = KontorType.GEOGRAFISK_TILKNYTNING,
-                            endretTidspunkt = LocalDateTime.parse("2023-01-01T10:00:00"),
+            kontorhistorikkKlient = KontorhistorikkFakeKlient { fnr ->
+                KontorhistorikkMedMetadata(
+                    kontorhistorikk = Kontorhistorikk(
+                        listOf(
+                            Kontorhistorikkinnslag(
+                                kontorId = "0220",
+                                kontorNavn = "Nav Asker",
+                                kontorType = KontorType.ARENA,
+                                endretTidspunkt = LocalDateTime.parse("2024-05-01T10:00:00"),
+                            ),
+                            Kontorhistorikkinnslag(
+                                kontorId = "9999",
+                                kontorNavn = "Annet kontor",
+                                kontorType = KontorType.GEOGRAFISK_TILKNYTNING,
+                                endretTidspunkt = LocalDateTime.parse("2023-01-01T10:00:00"),
+                            ),
                         ),
                     ),
+                    kall = KontorhistorikkFakeKlient.defaultKall(fnr),
                 ).right()
             },
-            kjørSammenligning = true,
         )
 
         runTest {
-            klient.hentOppfolgingsenhet(Fnr.random()) shouldBe Navkontor(
-                kontornummer = "0220",
-                kontornavn = "Nav Asker",
-            )
+            val resultat = klient.hentOppfolgingsenhet(Fnr.random()).getOrNull()!!
+            resultat.navkontor shouldBe Navkontor(kontornummer = "0220", kontornavn = "Nav Asker")
         }
     }
 }

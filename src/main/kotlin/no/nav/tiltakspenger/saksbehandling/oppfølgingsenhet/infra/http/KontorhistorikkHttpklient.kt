@@ -12,10 +12,12 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorhistorikk
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Klientkall
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.KontorType
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.Kontorhistorikkinnslag
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkMedMetadata
 import tools.jackson.module.kotlin.readValue
 import java.net.URI
 import java.net.http.HttpRequest
@@ -62,7 +64,7 @@ class KontorhistorikkHttpklient(
         saksnummer: String?,
         rammebehandlingId: String?,
         meldekortbehandlingId: String?,
-    ): Either<KanIkkeHenteKontorhistorikk, Kontorhistorikk> {
+    ): Either<KanIkkeHenteKontorhistorikk, KontorhistorikkMedMetadata> {
         val kontekst = lagKontekst(sakId, saksnummer, rammebehandlingId, meldekortbehandlingId)
         return withContext(Dispatchers.IO) {
             val payload = lagGraphQlPayload(fnr.verdi)
@@ -71,13 +73,14 @@ class KontorhistorikkHttpklient(
                 val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
                 val status = httpResponse.statusCode()
                 val jsonResponse = httpResponse.body()
+                val kall = Klientkall(request = payload, response = jsonResponse, httpStatus = status)
 
                 if (status != 200) {
                     logger.error(RuntimeException("Trigger stacktrace for enklere debug")) {
                         "Feil ved kall til kontorhistorikk-API (status ulik 200). $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer."
                     }
                     Sikkerlogg.error { "Feil ved kall til kontorhistorikk-API. $kontekst. Status: $status. uri: $uri. Request: $payload. Response: $jsonResponse." }
-                    return@withContext KanIkkeHenteKontorhistorikk.UventetHttpStatus(status).left()
+                    return@withContext KanIkkeHenteKontorhistorikk.UventetHttpStatus(status, kall).left()
                 }
 
                 val parsed = objectMapper.readValue<GraphQlResponse>(jsonResponse!!)
@@ -86,7 +89,7 @@ class KontorhistorikkHttpklient(
                         "GraphQL-feil ved henting av kontorhistorikk. $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer."
                     }
                     Sikkerlogg.error { "GraphQL-feil ved henting av kontorhistorikk. $kontekst. Status: $status. uri: $uri. Request: $payload. Response: $jsonResponse. Errors: $errors." }
-                    return@withContext KanIkkeHenteKontorhistorikk.GraphQlFeil.left()
+                    return@withContext KanIkkeHenteKontorhistorikk.GraphQlFeil(kall).left()
                 }
 
                 val dtos = parsed.data?.kontorHistorikk ?: emptyList()
@@ -95,13 +98,13 @@ class KontorhistorikkHttpklient(
                         "Kontorhistorikk-API returnerte innslag for annen ident enn forespurt. $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer."
                     }
                     Sikkerlogg.error { "Kontorhistorikk-API returnerte innslag for annen ident enn forespurt. $kontekst. Status: $status. uri: $uri. Request: $payload. Response: $jsonResponse." }
-                    return@withContext KanIkkeHenteKontorhistorikk.IdentMismatch.left()
+                    return@withContext KanIkkeHenteKontorhistorikk.IdentMismatch(kall).left()
                 }
 
                 val kontorhistorikk = Kontorhistorikk(dtos.map { it.toDomene() })
                 logger.debug { "Kall til kontorhistorikk-API OK. $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
                 Sikkerlogg.debug { "Kall til kontorhistorikk-API OK. $kontekst. Status: $status. uri: $uri. Request: $payload. Response: $jsonResponse." }
-                kontorhistorikk
+                KontorhistorikkMedMetadata(kontorhistorikk = kontorhistorikk, kall = kall)
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
                 // Vi logger throwable kun til sikkerlogg fordi den f.eks. fra Jackson kan inneholde
@@ -110,7 +113,9 @@ class KontorhistorikkHttpklient(
                     "Ukjent feil ved kall til kontorhistorikk-API. $kontekst. uri: $uri. Se sikkerlogg for detaljer."
                 }
                 Sikkerlogg.error(it) { "Feil ved kall til kontorhistorikk-API. $kontekst. uri: $uri. Request: $payload." }
-                KanIkkeHenteKontorhistorikk.KallFeilet
+                KanIkkeHenteKontorhistorikk.KallFeilet(
+                    kall = Klientkall(request = payload, response = null, httpStatus = null),
+                )
             }
         }
     }

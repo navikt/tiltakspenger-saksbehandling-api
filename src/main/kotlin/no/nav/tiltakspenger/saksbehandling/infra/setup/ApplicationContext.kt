@@ -127,7 +127,7 @@ open class ApplicationContext(
         SammenligningVeilarboppfolgingKlient(
             eksisterende = eksisterende,
             kontorhistorikkKlient = kontorhistorikkKlient,
-            kjørSammenligning = true,
+
         )
     }
     open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
