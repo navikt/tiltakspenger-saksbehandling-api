@@ -98,7 +98,16 @@ class SimulerService(
             fnr = fnr,
             saksbehandler = saksbehandler,
             beregning = beregning,
-            brukersNavkontor = if (brukersNavkontor != null) brukersNavkontor() else navkontorService.hentOppfolgingsenhet(fnr),
+            brukersNavkontor = if (brukersNavkontor != null) {
+                brukersNavkontor()
+            } else {
+                navkontorService.hentOppfolgingsenhet(
+                    fnr = fnr,
+                    sakId = sakId.toString(),
+                    saksnummer = saksnummer.verdi,
+                    rammebehandlingId = behandlingId.toString(),
+                )
+            },
             forrigeUtbetalingJson = forrigeUtbetaling?.let {
                 utbetalingRepo.hentUtbetalingJson(it.id)
             },

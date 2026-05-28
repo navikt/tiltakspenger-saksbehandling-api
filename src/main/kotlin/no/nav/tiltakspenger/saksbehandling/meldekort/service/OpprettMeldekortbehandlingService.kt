@@ -36,7 +36,11 @@ class OpprettMeldekortbehandlingService(
         val sak = sakService.hentForSakId(sakId)
 
         val navkontor = Either.catch {
-            navkontorService.hentOppfolgingsenhet(sak.fnr)
+            navkontorService.hentOppfolgingsenhet(
+                fnr = sak.fnr,
+                sakId = sakId.toString(),
+                saksnummer = sak.saksnummer.verdi,
+            )
         }.getOrElse {
             with("Kunne ikke hente navkontor for sak $sakId") {
                 logger.error(it) { this }

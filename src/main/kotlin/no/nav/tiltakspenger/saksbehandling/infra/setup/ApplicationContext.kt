@@ -30,8 +30,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.KlageinstansKlagehe
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.SammenligningVeilarboppfolgingKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
@@ -109,11 +112,27 @@ open class ApplicationContext(
         )
     }
 
+    open val kontorhistorikkKlient: KontorhistorikkKlient by lazy {
+        KontorhistorikkHttpklient(
+            baseUrl = Configuration.aoKontorUrl,
+            getToken = { texasClient.getSystemToken(Configuration.aoKontorScope, IdentityProvider.AZUREAD) },
+        )
+    }
+
     open val veilarboppfolgingKlient: VeilarboppfolgingKlient by lazy {
-        VeilarboppfolgingHttpClient(
+        val eksisterende = VeilarboppfolgingHttpClient(
             baseUrl = Configuration.veilarboppfolgingUrl,
             getToken = { texasClient.getSystemToken(Configuration.veilarboppfolgingScope, IdentityProvider.AZUREAD) },
         )
+        if (Configuration.isProd()) {
+            eksisterende
+        } else {
+            SammenligningVeilarboppfolgingKlient(
+                eksisterende = eksisterende,
+                kontorhistorikkKlient = kontorhistorikkKlient,
+                kjørSammenligning = true,
+            )
+        }
     }
     open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
     open val oppgaveKlient: OppgaveKlient by lazy {

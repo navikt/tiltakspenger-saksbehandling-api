@@ -155,7 +155,13 @@ class AutomatiskMeldekortbehandlingService(
 
         val (meldekortbehandling, simulering) = sak.opprettAutomatiskMeldekortbehandling(
             brukersMeldekort = meldekort,
-            hentNavkontor = navkontorService::hentOppfolgingsenhet,
+            hentNavkontor = { fnr ->
+                navkontorService.hentOppfolgingsenhet(
+                    fnr = fnr,
+                    sakId = sak.id.toString(),
+                    saksnummer = sak.saksnummer.verdi,
+                )
+            },
             clock = clock,
             simuler = { behandling, navkontor ->
                 simulerService.simulerMeldekort(
