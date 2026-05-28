@@ -36,6 +36,9 @@ import kotlin.time.toJavaDuration
  * - Sikkerlogg: i tillegg request- og responsbody (som inneholder fnr/kontorhistorikk).
  *
  * Vi logger debug ved suksess og error ved feil. Bearer-token logges aldri.
+ *
+ * API github: https://github.com/navikt/ao-oppfolgingskontor
+ * API skjema: https://ao-oppfolgingskontor.intern.dev.nav.no/sdl
  */
 class KontorhistorikkHttpklient(
     baseUrl: String,
