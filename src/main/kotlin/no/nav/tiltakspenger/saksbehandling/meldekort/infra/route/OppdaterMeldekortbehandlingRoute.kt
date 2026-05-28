@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
 private const val PATH = "/sak/{sakId}/meldekort/{meldekortId}/oppdater"
@@ -66,7 +67,14 @@ fun Route.oppdaterMeldekortbehandlingRoute(
                                 correlationId = correlationId,
                             )
                             call.respondJson(
-                                value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeIdLegacy, clock),
+                                value = if (body.v2) {
+                                    it.first.toSakDTO(
+                                        saksbehandler,
+                                        clock,
+                                    )
+                                } else {
+                                    it.first.toMeldeperiodeKjedeDTO(it.second.kjedeIdLegacy, clock)
+                                },
                             )
                         },
                     )

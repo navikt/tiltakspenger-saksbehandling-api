@@ -19,6 +19,7 @@ data class OppdaterMeldekortbehandlingDTO(
     val begrunnelse: String?,
     val tekstTilVedtaksbrev: String?,
     val skalSendeVedtaksbrev: Boolean,
+    val v2: Boolean = false,
 ) {
 
     data class OppdatertMeldeperiodeDTO(
