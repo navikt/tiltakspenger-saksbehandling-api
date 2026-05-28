@@ -7,6 +7,7 @@ import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.VeilarboppfolgingKlient
 import tools.jackson.module.kotlin.readValue
@@ -46,6 +47,7 @@ class VeilarboppfolgingHttpClient(
             val oppfolgingsenhet = objectMapper.readValue<Response>(jsonResponse).oppfolgingsenhet
             if (oppfolgingsenhet == null) {
                 logger.error { "Fant ikke oppfølgingsenhet" }
+                Sikkerlogg.error { "Fant ikke oppfølgingsenhet for fnr ${fnr.verdi} - response: $jsonResponse" }
             }
             oppfolgingsenhet?.toNavkontor() ?: error("Fant ikke oppfølgingsenhet")
         }
@@ -73,6 +75,10 @@ private data class Request(
 
 private data class Response(
     val oppfolgingsenhet: Oppfolgingsenhet?,
+    val veilederId: String?,
+    val formidlingsgruppe: String?,
+    val servicegruppe: String?,
+    val hovedmaalkode: String?,
 )
 
 private data class Oppfolgingsenhet(
