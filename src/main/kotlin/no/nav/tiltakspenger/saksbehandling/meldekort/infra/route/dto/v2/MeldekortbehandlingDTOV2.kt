@@ -38,14 +38,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBereg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
 import java.time.LocalDateTime
 
-/**
- * V2 av [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingDTO]. Forskjellen fra V1 er at vi her støtter at en behandling kan
- * inneholde flere meldeperioder. De per-meldeperiode-spesifikke feltene er flyttet inn i
- * [MeldeperiodebehandlingDTO]. Felter som [beregning] og [simulertBeregning] forblir på toppnivå
- * fordi de gjelder hele meldekortbehandlingen samlet.
- *
- * V1 vil leve videre i en overgangsperiode for klienter som ennå ikke har migrert.
- */
 data class MeldekortbehandlingDTOV2(
     val id: String,
     val sakId: String,
@@ -111,7 +103,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         attesteringer = attesteringer.toAttesteringDTO(),
         utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDtoV2(),
         periode = meldeperioder.totalPeriode.toDTO(),
-        meldeperioder = meldeperioder.meldeperioderMedBeregninger.map { it.tilMeldeperiodebehandlingDTO(this.id) },
+        meldeperioder = meldeperioder.meldeperioderMedBeregninger.map { it.tilMeldeperiodebehandlingDTO() },
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
         kanIkkeIverksetteUtbetaling = this.validerKanIverksetteUtbetaling().leftOrNull()
@@ -123,7 +115,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
     )
 }
 
-fun MeldeperiodebehandlingMedBeregning.tilMeldeperiodebehandlingDTO(meldekortbehandlingId: MeldekortId): MeldeperiodebehandlingDTO {
+fun MeldeperiodebehandlingMedBeregning.tilMeldeperiodebehandlingDTO(): MeldeperiodebehandlingDTO {
     return MeldeperiodebehandlingDTO(
         meldeperiodeId = meldeperiodebehandling.meldeperiodeId.toString(),
         kjedeId = meldeperiodebehandling.kjedeId.toString(),

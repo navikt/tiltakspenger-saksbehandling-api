@@ -63,8 +63,8 @@ data class Rammevedtaksliste(
     }
 
     /**
-     * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling ([Rammebehandlingsresultat.Innvilgelse] og [Revurderingsresultat.Stans]) og skal aldri inkludere [Søknadsbehandlingsresultat.Avslag].
-     * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke stans, aldri [Søknadsbehandlingsresultat.Avslag].
+     * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling (innvilgelse/opphør/stans) og skal aldri inkludere [Søknadsbehandlingsresultat.Avslag].
+     * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke opphør eller stans, aldri avslag.
      *
      * Et tenkt eksempel: Bruker søker på 2 tiltak, som har lik periode. Det første gir rett til tiltakspenger, det andre ikke.
      * Dersom man innvilger tiltak 1 og avslår tiltak 2 i den rekkefølgen, hvis man inkluderte avslag i tidslinjen, ville avslaget opphørt innvilgelsen; som den absolutt ikke må gjøre i dette tilfellet.

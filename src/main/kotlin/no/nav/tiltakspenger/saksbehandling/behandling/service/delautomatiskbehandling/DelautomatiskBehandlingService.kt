@@ -17,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
@@ -79,11 +78,11 @@ class DelautomatiskBehandlingService(
             behandling to Statistikkhendelser.empty()
         }
 
-        val manueltBehandlesGrunner = kanBehandleAutomatisk(oppdatertBehandling)
+        val sak = sakService.hentForSakId(behandling.sakId)
+        val manueltBehandlesGrunner = sak.kanBehandleAutomatisk(oppdatertBehandling)
 
         if (manueltBehandlesGrunner.isEmpty()) {
             log.info { "Kan behandle behandling med id ${behandling.id} automatisk, sender til beslutning, correlationId $correlationId" }
-            val sak = sakService.hentForSakId(behandling.sakId)
             sak.sendTilBeslutning(oppdatertBehandling, statistikkhendelser, correlationId)
             SOKNAD_BEHANDLET_DELVIS_AUTOMATISK.inc()
         } else {
@@ -258,7 +257,7 @@ class DelautomatiskBehandlingService(
         log.info { "Behandling med id ${behandling.id} er gjort klar til manuell behandling, correlationId $correlationId" }
     }
 
-    private fun kanBehandleAutomatisk(behandling: Søknadsbehandling): List<ManueltBehandlesGrunn> {
+    private fun Sak.kanBehandleAutomatisk(behandling: Søknadsbehandling): List<ManueltBehandlesGrunn> {
         val manueltBehandlesGrunner = mutableListOf<ManueltBehandlesGrunn>()
         require(
             behandling.søknad is InnvilgbarSøknad &&
@@ -345,15 +344,18 @@ class DelautomatiskBehandlingService(
         if (behandling.saksopplysninger.harTiltakspengevedtakFraArena()) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_VEDTAK_I_ARENA)
         }
+
         if (behandling.søknad.erUnder18ISoknadsperioden(behandling.saksopplysninger.fødselsdato)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_ER_UNDER_18_I_SOKNADSPERIODEN)
         }
 
-        val behandlinger = rammebehandlingRepo.hentAlleForFnr(behandling.fnr)
-        if (behandlinger.any { !it.erAvsluttet && it.id != behandling.id }) {
+        if (rammebehandlinger.åpneBehandlinger.any { it.id != behandling.id }) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_APEN_BEHANDLING)
         }
-        if (behandlingOverlapperMedAnnetVedtak(behandling, behandlinger)) {
+
+        if (behandling.saksopplysningsperiode == null) {
+            manueltBehandlesGrunner.add(ManueltBehandlesGrunn.SAKSOPPLYSNING_MANGLER_FULLSTENDIG_PERIODE)
+        } else if (rammevedtaksliste.tidslinje.overlapper(behandling.saksopplysningsperiode!!)) {
             manueltBehandlesGrunner.add(ManueltBehandlesGrunn.ANNET_VEDTAK_FOR_SAMME_PERIODE)
         }
 
@@ -384,15 +386,6 @@ class DelautomatiskBehandlingService(
     ): Boolean =
         tiltakFraSaksopplysning.deltakelseFraOgMed != tiltakFraSoknad.deltakelseFom ||
             tiltakFraSaksopplysning.deltakelseTilOgMed != tiltakFraSoknad.deltakelseTom
-
-    private fun behandlingOverlapperMedAnnetVedtak(
-        behandling: Søknadsbehandling,
-        behandlinger: List<Rammebehandling>,
-    ): Boolean {
-        val vedtatteBehandlinger = behandlinger.filter { it.erVedtatt }
-        // TODO jah: Denne kan smelle dersom tiltaksdeltakelsen det er søkt på mangler fom eller tom. I så fall legg det til som en [ManueltBehandlesGrunn]
-        return vedtatteBehandlinger.any { it.vedtaksperiode!!.overlapperMed(behandling.saksopplysningsperiode!!) }
-    }
 
     private fun utledBarnetillegg(behandling: Søknadsbehandling): Barnetillegg {
         require(behandling.søknad is InnvilgbarSøknad && behandling.søknad.erDigitalSøknad()) { "Forventet at søknaden var en innvilgbar digital søknad" }
