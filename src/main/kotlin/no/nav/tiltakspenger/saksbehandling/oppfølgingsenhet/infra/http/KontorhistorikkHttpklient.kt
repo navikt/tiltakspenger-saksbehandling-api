@@ -71,7 +71,7 @@ class KontorhistorikkHttpklient(
 
                 if (status != 200) {
                     logger.error(RuntimeException("Trigger stacktrace for enklere debug")) {
-                        "Feil ved kall til kontorhistorikk-API. $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer."
+                        "Feil ved kall til kontorhistorikk-API (status ulik 200). $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer."
                     }
                     Sikkerlogg.error { "Feil ved kall til kontorhistorikk-API. $kontekst. Status: $status. uri: $uri. Request: $payload. Response: $jsonResponse." }
                     return@withContext KanIkkeHenteKontorhistorikk.UventetHttpStatus(status).left()
@@ -104,7 +104,7 @@ class KontorhistorikkHttpklient(
                 // Vi logger throwable kun til sikkerlogg fordi den f.eks. fra Jackson kan inneholde
                 // utdrag av responsbody (med persondata). I vanlig logg legger vi på en egen exception for å få stacktrace uten å lekke innhold.
                 logger.error(RuntimeException("Trigger stacktrace for enklere debug")) {
-                    "Feil ved kall til kontorhistorikk-API. $kontekst. uri: $uri. Se sikkerlogg for detaljer."
+                    "Ukjent feil ved kall til kontorhistorikk-API. $kontekst. uri: $uri. Se sikkerlogg for detaljer."
                 }
                 Sikkerlogg.error(it) { "Feil ved kall til kontorhistorikk-API. $kontekst. uri: $uri. Request: $payload." }
                 KanIkkeHenteKontorhistorikk.KallFeilet
