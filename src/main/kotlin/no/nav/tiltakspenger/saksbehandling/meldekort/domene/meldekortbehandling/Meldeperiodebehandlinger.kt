@@ -51,11 +51,14 @@ data class Meldeperiodebehandlinger(
      * Meldeperiodebehandlingene paret med tilhørende [MeldeperiodeBeregning] (matchet på `kjedeId`).
      * Init-blokken garanterer at parringen er entydig.
      *
-     * @throws NoSuchElementException dersom det ikke er beregnet enda
+     * Dersom det ikke er beregnet enda, vil [MeldeperiodebehandlingMedBeregning.meldeperiodeberegning] være `null`.
      */
-    val meldeperiodeberegninger: List<Pair<Meldeperiodebehandling, MeldeperiodeBeregning>> by lazy {
+    val meldeperioderMedBeregninger: List<MeldeperiodebehandlingMedBeregning> by lazy {
         meldeperioder.map { meldeperiodebehandling ->
-            meldeperiodebehandling to beregning!!.single { it.kjedeId == meldeperiodebehandling.kjedeId }
+            MeldeperiodebehandlingMedBeregning(
+                meldeperiodebehandling = meldeperiodebehandling,
+                meldeperiodeberegning = beregning?.singleOrNull { it.kjedeId == meldeperiodebehandling.kjedeId },
+            )
         }
     }
 

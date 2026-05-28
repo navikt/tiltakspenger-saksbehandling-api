@@ -50,13 +50,13 @@ private fun Meldekortvedtak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO.Meldekor
         opprettet = this.opprettet,
         erKorrigering = this.erKorrigering,
         erAutomatiskBehandlet = this.erAutomatiskBehandlet,
-        meldeperiodebehandlinger = meldeperiodeberegninger.map { (behandling, beregning) ->
+        meldeperiodebehandlinger = meldeperioderMedBeregninger.map {
             SakTilMeldekortApiDTO.MeldekortvedtakDTO.MeldeperiodebehandlingDTO(
-                meldeperiodeId = behandling.meldeperiodeId.toString(),
-                meldeperiodeKjedeId = behandling.kjedeId.toString(),
-                brukersMeldekortId = behandling.brukersMeldekort?.id?.toString(),
-                periodeDTO = behandling.periode.toDTO(),
-                dager = beregning.dager.map { it.tilMeldekortApiDTO() },
+                meldeperiodeId = it.meldeperiodebehandling.meldeperiodeId.toString(),
+                meldeperiodeKjedeId = it.meldeperiodebehandling.kjedeId.toString(),
+                brukersMeldekortId = it.meldeperiodebehandling.brukersMeldekort?.id?.toString(),
+                periodeDTO = it.meldeperiodebehandling.periode.toDTO(),
+                dager = it.meldeperiodeberegning!!.dager.map { dag -> dag.tilMeldekortApiDTO() },
             )
         },
     )
