@@ -234,6 +234,20 @@ class TilbakekrevingHendelsePostgresRepo(
             )
         }
     }
+
+    override fun slett(hendelseId: TilbakekrevinghendelseId, sessionContext: SessionContext?) {
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    DELETE FROM tilbakekreving_hendelse
+                    WHERE id = :id
+                    """.trimIndent(),
+                    "id" to hendelseId.toString(),
+                ).asUpdate,
+            )
+        }
+    }
 }
 
 private enum class HendelsetypeDb {

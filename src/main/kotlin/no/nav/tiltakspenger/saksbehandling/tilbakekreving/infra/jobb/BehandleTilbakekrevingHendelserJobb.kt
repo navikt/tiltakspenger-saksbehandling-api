@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
+import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -75,8 +76,14 @@ class BehandleTilbakekrevingHendelserJobb(
             return this.håndter()
         }
 
-        val sak = this.eksternFagsakId?.let {
-            val saksnummer = Either.catch { Saksnummer(it) }.getOrElse {
+        val sak = this.eksternFagsakId?.let { saksnummerStr ->
+            val saksnummer = Either.catch { Saksnummer(saksnummerStr) }.getOrElse {
+                if (erFakeSak(saksnummerStr)) {
+                    logger.info { "Sletter tilbakekreving-hendelse ${this.id} med fake-saksnummer $saksnummerStr" }
+                    tilbakekrevingHendelseRepo.slett(this.id)
+                    return Unit.right()
+                }
+
                 return Pair(TilbakekrevinghendelseFeil.UgyldigSaksnummer, null).left()
             }
 
@@ -278,5 +285,13 @@ class BehandleTilbakekrevingHendelserJobb(
 
     companion object {
         private const val NAV_TILTAK_OSLO_ENHET = "0387"
+
+        private const val FAKE_SAK_PREFIX = "BF"
+        private val erDev: Boolean = Configuration.isDev()
+
+        // Team tilbake sender noen ganger saker de har generert selv for å teste i dev
+        private fun erFakeSak(eksternSakId: String): Boolean {
+            return erDev && eksternSakId.startsWith(FAKE_SAK_PREFIX)
+        }
     }
 }

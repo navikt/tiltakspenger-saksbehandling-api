@@ -106,4 +106,8 @@ class TilbakekrevingHendelseFakeRepo(
 
         data.get()[oppdatertHendelse.id] = oppdatertHendelse
     }
+
+    override fun slett(hendelseId: TilbakekrevinghendelseId, sessionContext: SessionContext?) {
+        data.get().remove(hendelseId)
+    }
 }

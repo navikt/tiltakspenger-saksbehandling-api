@@ -30,4 +30,6 @@ interface TilbakekrevingHendelseRepo {
      * [oppdatertHendelse] må ha samme id som den eksisterende ukjent-raden.
      */
     fun oppdaterUkjent(oppdatertHendelse: Tilbakekrevingshendelse, sessionContext: SessionContext? = null)
+
+    fun slett(hendelseId: TilbakekrevinghendelseId, sessionContext: SessionContext? = null)
 }
