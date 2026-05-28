@@ -124,15 +124,11 @@ open class ApplicationContext(
             baseUrl = Configuration.veilarboppfolgingUrl,
             getToken = { texasClient.getSystemToken(Configuration.veilarboppfolgingScope, IdentityProvider.AZUREAD) },
         )
-        if (Configuration.isProd()) {
-            eksisterende
-        } else {
-            SammenligningVeilarboppfolgingKlient(
-                eksisterende = eksisterende,
-                kontorhistorikkKlient = kontorhistorikkKlient,
-                kjørSammenligning = true,
-            )
-        }
+        SammenligningVeilarboppfolgingKlient(
+            eksisterende = eksisterende,
+            kontorhistorikkKlient = kontorhistorikkKlient,
+            kjørSammenligning = true,
+        )
     }
     open val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
     open val oppgaveKlient: OppgaveKlient by lazy {
