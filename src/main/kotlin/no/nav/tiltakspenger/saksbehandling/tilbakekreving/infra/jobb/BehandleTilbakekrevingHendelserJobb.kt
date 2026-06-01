@@ -87,7 +87,15 @@ class BehandleTilbakekrevingHendelserJobb(
                 return Pair(TilbakekrevinghendelseFeil.UgyldigSaksnummer, null).left()
             }
 
-            sakRepo.hentForSaksnummer(saksnummer)
+            val sak = sakRepo.hentForSaksnummer(saksnummer)
+
+            if (sak == null && erDev) {
+                logger.info { "Sletter tilbakekreving-hendelse ${this.id} med ukjent saksnummer $saksnummerStr" }
+                tilbakekrevingHendelseRepo.slett(this.id)
+                return Unit.right()
+            }
+
+            sak
         } ?: return Pair(TilbakekrevinghendelseFeil.FantIkkeSak, null).left()
 
         return when (this) {
