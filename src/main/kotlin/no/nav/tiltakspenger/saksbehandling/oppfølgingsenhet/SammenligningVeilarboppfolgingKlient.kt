@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 
 /**
  * Dekoratør som kjører [KontorhistorikkKlient] i parallell med eksisterende [VeilarboppfolgingKlient]
@@ -103,9 +104,13 @@ class SammenligningVeilarboppfolgingKlient(
         loggkontekst: String,
     ): Either<KanIkkeHenteOppfølgingsenhet, NavkontorMedMetadata> {
         eksisterendeResultat.onRight {
+            // Navkontor er stedslokaliserende persondata og skal kun til sikkerlogg, ikke vanlig logg.
             logger.info {
+                "Navkontor: bruker svar fra GAMMEL klient (veilarboppfølging). Se sikkerlogg for kontornummer. $loggkontekst"
+            }
+            Sikkerlogg.info {
                 "Navkontor: bruker svar fra GAMMEL klient (veilarboppfølging). " +
-                    "kontornummer=${it.navkontor.kontornummer}. $loggkontekst"
+                    "navkontor=${it.navkontor.toStringForSikkerlogg()}. $loggkontekst"
             }
             return it.copy(kontorhistorikkKall = nyttKall).right()
         }
@@ -116,6 +121,10 @@ class SammenligningVeilarboppfolgingKlient(
 
         if (nyttKontor != null) {
             logger.info {
+                "Navkontor: bruker svar fra NY klient (kontorhistorikk). " +
+                    "Gammel klient fant ingen oppfølgingsenhet. Se sikkerlogg for kontorId. $loggkontekst"
+            }
+            Sikkerlogg.info {
                 "Navkontor: bruker svar fra NY klient (kontorhistorikk). " +
                     "Gammel klient fant ingen oppfølgingsenhet, ny klient ga " +
                     "kontorId=${nyttKontor.kontorId} (type=${nyttKontor.kontorType}). $loggkontekst"
@@ -133,7 +142,7 @@ class SammenligningVeilarboppfolgingKlient(
 
         logger.info {
             "Navkontor: bruker svar fra GAMMEL klient (feil propageres). " +
-                "Feil=$gammelFeil. $loggkontekst"
+                "Feil=${gammelFeil.beskrivelse()}. $loggkontekst"
         }
         return gammelFeil.medKontorhistorikkKall(nyttKall).left()
     }
@@ -161,33 +170,72 @@ class SammenligningVeilarboppfolgingKlient(
             eksisterendeFeil != null && nyFeil != null ->
                 logger.warn {
                     "Sammenligning navkontor: begge klientene feilet. " +
-                        "Eksisterende: $eksisterendeFeil, Ny: $nyFeil. $loggkontekst"
+                        "Eksisterende: ${eksisterendeFeil.beskrivelse()}, Ny: ${nyFeil.beskrivelse()}. $loggkontekst"
                 }
 
-            nyFeil != null ->
+            nyFeil != null -> {
+                // kontornummer er stedslokaliserende og logges kun til sikkerlogg.
                 logger.warn {
-                    "Sammenligning navkontor: ny klient feilet ($nyFeil), eksisterende OK " +
-                        "(kontornummer=${eksisterende?.kontornummer}). $loggkontekst"
+                    "Sammenligning navkontor: ny klient feilet (${nyFeil.beskrivelse()}), eksisterende OK. " +
+                        "Se sikkerlogg for kontornummer. $loggkontekst"
                 }
+                Sikkerlogg.warn {
+                    "Sammenligning navkontor: ny klient feilet (${nyFeil.beskrivelse()}), eksisterende OK " +
+                        "(navkontor=${eksisterende?.toStringForSikkerlogg()}). $loggkontekst"
+                }
+            }
 
-            eksisterendeFeil != null ->
+            eksisterendeFeil != null -> {
                 logger.warn {
-                    "Sammenligning navkontor: eksisterende klient feilet ($eksisterendeFeil), ny klient OK " +
+                    "Sammenligning navkontor: eksisterende klient feilet (${eksisterendeFeil.beskrivelse()}), ny klient OK. " +
+                        "Se sikkerlogg for kontorId. $loggkontekst"
+                }
+                Sikkerlogg.warn {
+                    "Sammenligning navkontor: eksisterende klient feilet (${eksisterendeFeil.beskrivelse()}), ny klient OK " +
                         "(nyeste sammenlignbar kontorId=${nyesteSammenlignbar?.kontorId}). $loggkontekst"
                 }
+            }
 
-            sammeKontornummer ->
-                logger.info { "Sammenligning navkontor: likt kontornummer ${eksisterende.kontornummer}. $loggkontekst" }
+            sammeKontornummer -> {
+                logger.info { "Sammenligning navkontor: likt kontornummer. Se sikkerlogg for kontornummer. $loggkontekst" }
+                Sikkerlogg.info { "Sammenligning navkontor: likt navkontor ${eksisterende.toStringForSikkerlogg()}. $loggkontekst" }
+            }
 
-            else ->
+            else -> {
                 logger.warn {
                     "Sammenligning navkontor: ulikt resultat. " +
-                        "Eksisterende kontornummer=${eksisterende?.kontornummer}, " +
+                        "Se sikkerlogg for kontornummer/kontorId. " +
+                        "antall historikkinnslag=${historikk?.innslag?.size}. $loggkontekst"
+                }
+                Sikkerlogg.warn {
+                    "Sammenligning navkontor: ulikt resultat. " +
+                        "Eksisterende navkontor=${eksisterende?.toStringForSikkerlogg()}, " +
                         "nyeste sammenlignbar kontorId=${nyesteSammenlignbar?.kontorId} (type=${nyesteSammenlignbar?.kontorType}), " +
                         "antall historikkinnslag=${historikk?.innslag?.size}. $loggkontekst"
                 }
+            }
         }
     }
+}
+
+/**
+ * Nøytral, ikke-sensitiv beskrivelse av en feil for bruk i vanlig logg.
+ *
+ * Feiltypene bærer med seg [Klientkall] med rå request/response, og en default `toString()` ville
+ * derfor lekke stedslokaliserende persondata (f.eks. navkontor) til vanlig logg. Vi logger derfor
+ * kun feiltypen (og ev. HTTP-status, som ikke er sensitivt) her - rådata hører hjemme i sikkerlogg.
+ */
+private fun KanIkkeHenteKontorhistorikk.beskrivelse(): String = when (this) {
+    is KanIkkeHenteKontorhistorikk.KallFeilet -> "KallFeilet"
+    is KanIkkeHenteKontorhistorikk.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
+    is KanIkkeHenteKontorhistorikk.GraphQlFeil -> "GraphQlFeil"
+    is KanIkkeHenteKontorhistorikk.IdentMismatch -> "IdentMismatch"
+}
+
+private fun KanIkkeHenteOppfølgingsenhet.beskrivelse(): String = when (this) {
+    is KanIkkeHenteOppfølgingsenhet.KallFeilet -> "KallFeilet"
+    is KanIkkeHenteOppfølgingsenhet.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
+    is KanIkkeHenteOppfølgingsenhet.ManglerOppfolgingsenhet -> "ManglerOppfolgingsenhet"
 }
 
 private fun lagLoggkontekst(
