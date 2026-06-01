@@ -19,7 +19,7 @@ data class MeldeperiodeKjedeDTOV2(
     val id: String,
     val periode: PeriodeDTO,
     val tiltaksnavn: List<String>,
-    val meldeperioder: List<MeldeperiodeDTO>,
+    val sisteMeldeperiode: MeldeperiodeDTO,
     val meldekortbehandlingIder: List<String>,
     val meldekortbehandlingStatus: MeldekortbehandlingStatusDTO?,
     val brukersMeldekort: List<BrukersMeldekortDTO>,
@@ -27,7 +27,7 @@ data class MeldeperiodeKjedeDTOV2(
     val gjeldendeBeregning: MeldeperiodeBeregningDTO?,
 )
 
-fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTOV2 {
+fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjedeDTOV2 {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
 
     val brukersMeldekort = this.brukersMeldekort
@@ -43,7 +43,7 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId, clock: Clock): M
         tiltaksnavn = this.rammevedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
             .perioderMedVerdi.toList().map { it.verdi.typeNavn },
-        meldeperioder = meldeperiodeKjede.map { it.toMeldeperiodeDTO() },
+        sisteMeldeperiode = meldeperiodeKjede.siste.toMeldeperiodeDTO(),
         meldekortbehandlingIder = meldekortbehandlinger.map { it.id.toString() },
         meldekortbehandlingStatus = meldekortbehandlinger.lastOrNull()?.status?.toStatusDTO(),
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
@@ -65,6 +65,6 @@ fun Sak.tilMeldeperiodeKjederDTOV2(clock: Clock): List<MeldeperiodeKjedeDTOV2> {
             return@mapNotNull null
         }
 
-        this.tilMeldeperiodeKjedeDTOV2(it.kjedeId, clock)
+        this.tilMeldeperiodeKjedeDTOV2(it.kjedeId)
     }
 }

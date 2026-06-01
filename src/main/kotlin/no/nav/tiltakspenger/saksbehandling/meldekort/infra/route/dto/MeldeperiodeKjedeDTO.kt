@@ -21,7 +21,9 @@ data class MeldeperiodeKjedeDTO(
     val status: MeldeperiodeKjedeStatusDTO,
     val periodeMedÅpenBehandling: PeriodeDTO?,
     val tiltaksnavn: List<String>,
+    // TODO: fjern når frontend er oppdatert
     val meldeperioder: List<MeldeperiodeDTO>,
+    val sisteMeldeperiode: MeldeperiodeDTO,
     val meldekortbehandlinger: List<MeldekortbehandlingDTO>,
     val brukersMeldekort: List<BrukersMeldekortDTO>,
     val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
@@ -66,6 +68,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
             .perioderMedVerdi.toList().map { it.verdi.typeNavn },
         meldeperioder = meldeperiodeKjede.map { it.toMeldeperiodeDTO() },
+        sisteMeldeperiode = meldeperiodeKjede.siste.toMeldeperiodeDTO(),
         meldekortbehandlinger = meldekortbehandlinger.map {
             it.tilMeldekortbehandlingDTO(
                 beregninger = this.meldeperiodeBeregninger,
