@@ -30,24 +30,20 @@ internal class KontorhistorikkHttpklientTest {
     fun `parser kontorHistorikk-respons og mapper alle innslag uten filtrering`() {
         val fnr = Fnr.random()
         val body = lagKontorhistorikkResponseBody(
-            ident = fnr.verdi,
             innslag = listOf(
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     kontorId = "0123",
                     kontorNavn = "NAV Oslo",
                     kontorType = "ARBEIDSOPPFOLGING",
                     endretTidspunkt = "2024-05-01T10:15:30+02:00[Europe/Oslo]",
                 ),
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     kontorId = "0456",
                     kontorNavn = null,
                     kontorType = "ARENA",
                     endretTidspunkt = "2024-03-01T08:00:00+01:00[Europe/Oslo]",
                 ),
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     kontorId = "9999",
                     kontorNavn = "Skal IKKE filtreres ut",
                     kontorType = "GEOGRAFISK_TILKNYTNING",
@@ -95,29 +91,11 @@ internal class KontorhistorikkHttpklientTest {
     @Test
     fun `tom historikk gir tom liste`() {
         val fnr = Fnr.random()
-        val body = lagKontorhistorikkResponseBody(ident = fnr.verdi, innslag = emptyList())
+        val body = lagKontorhistorikkResponseBody(innslag = emptyList())
 
         medWiremock(body) { klient ->
             runTest {
                 klient.hentKontorhistorikk(fnr).map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
-            }
-        }
-    }
-
-    @Test
-    fun `ident-mismatch i respons gir Left IdentMismatch`() {
-        val forespurt = Fnr.random()
-        val annenIdent = Fnr.random().verdi
-        val body = lagKontorhistorikkResponseBody(
-            ident = annenIdent,
-            innslag = listOf(kontorhistorikkInnslagJson(ident = annenIdent)),
-        )
-
-        medWiremock(body) { klient ->
-            runTest {
-                klient.hentKontorhistorikk(forespurt).leftOrNull()
-                    .shouldNotBeNull()
-                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.IdentMismatch>()
             }
         }
     }
@@ -158,10 +136,8 @@ internal class KontorhistorikkHttpklientTest {
     fun `ukjent kontorType i respons gir Left KallFeilet`() {
         val fnr = Fnr.random()
         val body = lagKontorhistorikkResponseBody(
-            ident = fnr.verdi,
             innslag = listOf(
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     kontorType = "EN_HELT_NY_TYPE",
                 ),
             ),
@@ -180,11 +156,10 @@ internal class KontorhistorikkHttpklientTest {
     fun `mapper alle kjente kontorType-verdier til domene-enum`() {
         val fnr = Fnr.random()
         val body = lagKontorhistorikkResponseBody(
-            ident = fnr.verdi,
             innslag = listOf(
-                kontorhistorikkInnslagJson(ident = fnr.verdi, kontorType = "ARBEIDSOPPFOLGING"),
-                kontorhistorikkInnslagJson(ident = fnr.verdi, kontorType = "ARENA"),
-                kontorhistorikkInnslagJson(ident = fnr.verdi, kontorType = "GEOGRAFISK_TILKNYTNING"),
+                kontorhistorikkInnslagJson(kontorType = "ARBEIDSOPPFOLGING"),
+                kontorhistorikkInnslagJson(kontorType = "ARENA"),
+                kontorhistorikkInnslagJson(kontorType = "GEOGRAFISK_TILKNYTNING"),
             ),
         )
 
@@ -206,16 +181,13 @@ internal class KontorhistorikkHttpklientTest {
         val fnr = Fnr.random()
         // Sommertid: 08-00 UTC = 10-00 Oslo. Vintertid: 08-00 UTC = 09-00 Oslo.
         val body = lagKontorhistorikkResponseBody(
-            ident = fnr.verdi,
             innslag = listOf(
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     kontorId = "sommer",
                     kontorType = "ARBEIDSOPPFOLGING",
                     endretTidspunkt = "2024-07-01T08:00:00Z[UTC]",
                 ),
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     kontorId = "vinter",
                     kontorType = "ARBEIDSOPPFOLGING",
                     endretTidspunkt = "2024-01-15T08:00:00Z[UTC]",
@@ -238,10 +210,8 @@ internal class KontorhistorikkHttpklientTest {
     fun `ugyldig endretTidspunkt-format gir Left KallFeilet`() {
         val fnr = Fnr.random()
         val body = lagKontorhistorikkResponseBody(
-            ident = fnr.verdi,
             innslag = listOf(
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     endretTidspunkt = "ikke-en-dato",
                 ),
             ),
@@ -284,8 +254,7 @@ internal class KontorhistorikkHttpklientTest {
         varianter.forEach { input ->
             val fnr = Fnr.random()
             val body = lagKontorhistorikkResponseBody(
-                ident = fnr.verdi,
-                innslag = listOf(kontorhistorikkInnslagJson(ident = fnr.verdi, endretTidspunkt = input)),
+                innslag = listOf(kontorhistorikkInnslagJson(endretTidspunkt = input)),
             )
 
             medWiremock(body) { klient ->
@@ -313,10 +282,8 @@ internal class KontorhistorikkHttpklientTest {
     fun `tidsstempel uten sone gir Left KallFeilet`() {
         val fnr = Fnr.random()
         val body = lagKontorhistorikkResponseBody(
-            ident = fnr.verdi,
             innslag = listOf(
                 kontorhistorikkInnslagJson(
-                    ident = fnr.verdi,
                     endretTidspunkt = "2024-07-01T10:00:00",
                 ),
             ),
@@ -354,8 +321,7 @@ internal class KontorhistorikkHttpklientTest {
     }
 
     private fun lagKontorhistorikkResponseBody(
-        ident: String,
-        innslag: List<String> = listOf(kontorhistorikkInnslagJson(ident = ident)),
+        innslag: List<String> = listOf(kontorhistorikkInnslagJson()),
     ): String =
         """
         {
@@ -370,7 +336,6 @@ internal class KontorhistorikkHttpklientTest {
      * en JSON-streng.
      */
     private fun kontorhistorikkInnslagJson(
-        ident: String,
         kontorId: String = "0123",
         kontorNavn: String? = "NAV Oslo",
         kontorType: String = "ARBEIDSOPPFOLGING",
@@ -379,7 +344,6 @@ internal class KontorhistorikkHttpklientTest {
         val kontorNavnJson = kontorNavn?.let { "\"$it\"" } ?: "null"
         return """
         {
-          "ident": "$ident",
           "kontorId": "$kontorId",
           "kontorNavn": $kontorNavnJson,
           "kontorType": "$kontorType",

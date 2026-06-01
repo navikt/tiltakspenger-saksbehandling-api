@@ -1,4 +1,4 @@
 # AGENTS.md — tiltakspenger-saksbehandling-api
 
-Se monorepo-forelderen: [`../AGENTS.md`](../AGENTS.md) og [`../AGENTS-backend.md`](../AGENTS-backend.md).
+Dette repoet følger monorepo-konvensjonene i [`../AGENTS.md`](../AGENTS.md) og Kotlin/JVM-backendkonvensjonene i [`../AGENTS-backend.md`](../AGENTS-backend.md). Les disse først.
 

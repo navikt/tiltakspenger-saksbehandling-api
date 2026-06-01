@@ -54,7 +54,4 @@ sealed interface KanIkkeHenteKontorhistorikk {
 
     /** Responsen inneholdt et `errors`-felt fra GraphQL-tjenesten. */
     data class GraphQlFeil(override val kall: Klientkall) : KanIkkeHenteKontorhistorikk
-
-    /** Responsen inneholdt minst ett innslag som gjaldt en annen ident enn det vi spurte om. */
-    data class IdentMismatch(override val kall: Klientkall) : KanIkkeHenteKontorhistorikk
 }

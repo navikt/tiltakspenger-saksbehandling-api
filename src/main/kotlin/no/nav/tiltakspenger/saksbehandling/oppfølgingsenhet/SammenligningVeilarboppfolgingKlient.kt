@@ -229,7 +229,6 @@ private fun KanIkkeHenteKontorhistorikk.beskrivelse(): String = when (this) {
     is KanIkkeHenteKontorhistorikk.KallFeilet -> "KallFeilet"
     is KanIkkeHenteKontorhistorikk.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
     is KanIkkeHenteKontorhistorikk.GraphQlFeil -> "GraphQlFeil"
-    is KanIkkeHenteKontorhistorikk.IdentMismatch -> "IdentMismatch"
 }
 
 private fun KanIkkeHenteOppfølgingsenhet.beskrivelse(): String = when (this) {

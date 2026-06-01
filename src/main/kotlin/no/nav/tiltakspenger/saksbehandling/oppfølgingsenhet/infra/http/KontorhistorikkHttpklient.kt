@@ -41,6 +41,7 @@ import kotlin.time.toJavaDuration
  *
  * API github: https://github.com/navikt/ao-oppfolgingskontor
  * API skjema: https://ao-oppfolgingskontor.intern.dev.nav.no/sdl
+ * Merk at dette APIet returnerer historikk også for historiske fødselsnumre/d-numre, som er forventet. Dersom man slår på ident i responsen, vil man få identen kontornummeret ble registrert på, selvom det er historisk.
  */
 class KontorhistorikkHttpklient(
     baseUrl: String,
@@ -93,13 +94,6 @@ class KontorhistorikkHttpklient(
                 }
 
                 val dtos = parsed.data?.kontorHistorikk ?: emptyList()
-                if (dtos.any { it.ident != fnr.verdi }) {
-                    logger.error(RuntimeException("Trigger stacktrace for enklere debug")) {
-                        "Kontorhistorikk-API returnerte innslag for annen ident enn forespurt. $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer."
-                    }
-                    Sikkerlogg.error { "Kontorhistorikk-API returnerte innslag for annen ident enn forespurt. $kontekst. Status: $status. uri: $uri. Request: $payload. Response: $jsonResponse." }
-                    return@withContext KanIkkeHenteKontorhistorikk.IdentMismatch(kall).left()
-                }
 
                 val kontorhistorikk = Kontorhistorikk(dtos.map { it.toDomene() })
                 logger.debug { "Kall til kontorhistorikk-API OK. $kontekst. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
@@ -153,7 +147,6 @@ private fun lagGraphQlPayload(ident: String): String {
         """
         query Kontorhistorikk(${'$'}ident: String!) {
           kontorHistorikk(ident: ${'$'}ident) {
-            ident
             kontorId
             kontorNavn
             kontorType
@@ -179,7 +172,6 @@ private data class GraphQlData(
 )
 
 private data class KontorhistorikkDto(
-    val ident: String,
     val kontorId: String,
     val kontorNavn: String?,
     val kontorType: KontorTypeDto,
