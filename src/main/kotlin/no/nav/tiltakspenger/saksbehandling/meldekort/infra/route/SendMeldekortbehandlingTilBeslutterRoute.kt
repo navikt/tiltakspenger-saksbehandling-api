@@ -57,6 +57,13 @@ fun Route.sendMeldekortTilBeslutningRoute(
                                 )
                             }
 
+                            is KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeSisteVersjon -> {
+                                call.respond400BadRequest(
+                                    melding = "Meldeperiodene må være siste versjon for å kunne sende meldekortet til beslutter.",
+                                    kode = "meldeperiodene_er_ikke_siste_versjon",
+                                )
+                            }
+
                             is KanIkkeSendeMeldekortbehandlingTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
 
                             is KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(

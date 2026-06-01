@@ -141,6 +141,12 @@ data class Sak(
         return meldeperiodeKjeder.erSisteVersjonAvMeldeperiode(meldeperiode)
     }
 
+    fun harSisteMeldeperiodeVersjoner(meldekortbehandlingId: MeldekortId): Boolean {
+        return hentMeldekortbehandling(meldekortbehandlingId)!!.meldeperioder.all {
+            erSisteVersjonAvMeldeperiode(it.meldeperiode)
+        }
+    }
+
     fun avbrytSøknadOgBehandling(
         command: AvbrytRammebehandlingKommando,
         avbruttTidspunkt: LocalDateTime,

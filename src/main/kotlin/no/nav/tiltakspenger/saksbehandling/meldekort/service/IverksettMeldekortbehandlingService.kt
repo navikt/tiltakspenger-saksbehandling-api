@@ -51,9 +51,9 @@ class IverksettMeldekortbehandlingService(
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
 
-        val meldeperiode = meldekortbehandling.meldeperiodeLegacy
-        check(sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
-            "Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId"
+        if (!sak.harSisteMeldeperiodeVersjoner(meldekortId)) {
+            logger.warn { "Kan ikke iverksette meldekortbehandling hvor meldeperiodene ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId" }
+            return KanIkkeIverksetteMeldekortbehandling.MeldeperiodeneErIkkeSisteVersjon.left()
         }
 
         if (meldekortbehandling.meldeperioder.size > 1 && !kanIverksetteFlereMeldeperioder) {

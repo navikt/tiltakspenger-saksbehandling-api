@@ -25,7 +25,12 @@ class SendMeldekortbehandlingTilBeslutterService(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortbehandlingTilBeslutter, Pair<Sak, MeldekortbehandlingManuell>> {
-        val sak = hentSak(kommando)
+        val sak = sakService.hentForSakId(kommando.sakId)
+
+        if (!sak.harSisteMeldeperiodeVersjoner(kommando.meldekortId)) {
+            logger.warn { "Meldeperiodene må være siste versjon ved send til beslutning - sakId: ${sak.id}, meldekortId: ${kommando.meldekortId}" }
+            return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeSisteVersjon.left()
+        }
 
         return sak.meldekortbehandlinger.sendTilBeslutter(
             kommando = kommando,
@@ -41,19 +46,5 @@ class SendMeldekortbehandlingTilBeslutterService(
             logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             Pair(oppdatertSak, meldekort)
         }
-    }
-
-    // TODO jah: Kopiert fra [OppdaterMeldekortService] - lage noe felles?
-    private fun hentSak(
-        kommando: SendMeldekortbehandlingTilBeslutterKommando,
-    ): Sak {
-        val sak = sakService.hentForSakId(kommando.sakId)
-
-        val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)!!
-        val meldeperiode = meldekortbehandling.meldeperiodeLegacy
-        if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
-            throw IllegalStateException("Kan ikke iverksette meldekortbehandling hvor meldeperioden (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
-        }
-        return sak
     }
 }

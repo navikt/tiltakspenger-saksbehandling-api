@@ -8,5 +8,7 @@ sealed interface KanIkkeSendeMeldekortbehandlingTilBeslutter {
 
     data object MeldekortperiodenKanIkkeVæreFremITid : KanIkkeSendeMeldekortbehandlingTilBeslutter
 
+    data object MeldeperiodeneErIkkeSisteVersjon : KanIkkeSendeMeldekortbehandlingTilBeslutter
+
     data class UtbetalingStøttesIkke(val feil: KanIkkeIverksetteUtbetaling) : KanIkkeSendeMeldekortbehandlingTilBeslutter
 }

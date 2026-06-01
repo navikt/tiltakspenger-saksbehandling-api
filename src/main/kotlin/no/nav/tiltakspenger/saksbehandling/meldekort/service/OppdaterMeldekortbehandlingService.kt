@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
@@ -23,18 +22,12 @@ class OppdaterMeldekortbehandlingService(
 ) {
     private val logger = KotlinLogging.logger {}
 
-    fun hentKjedeIdForMeldekort(
-        sakId: no.nav.tiltakspenger.libs.common.SakId,
-        meldekortId: no.nav.tiltakspenger.libs.common.MeldekortId,
-    ): MeldeperiodeKjedeId {
-        return sakService.hentForSakId(sakId).hentMeldekortbehandling(meldekortId)!!.kjedeIdLegacy
-    }
-
     suspend fun oppdaterMeldekort(
         kommando: OppdaterMeldekortbehandlingKommando,
         clock: Clock,
     ): Either<KanIkkeOppdatereMeldekortbehandling, Pair<Sak, MeldekortUnderBehandling>> {
-        val sak = hentSak(kommando)
+        val sak = sakService.hentForSakId(kommando.sakId)
+
         return sak.oppdaterMeldekort(
             kommando = kommando,
             simuler = { behandling ->
@@ -52,21 +45,5 @@ class OppdaterMeldekortbehandlingService(
             logger.info { "Meldekort under behandling med id ${meldekort.id} oppdatert. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             Pair(sak, meldekort)
         }
-    }
-
-    private fun hentSak(kommando: OppdaterMeldekortbehandlingKommando): Sak {
-        val sak = sakService.hentForSakId(kommando.sakId)
-
-        val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)!!
-
-        meldekortbehandling.meldeperioder.forEach {
-            val meldeperiode = it.meldeperiode
-
-            if (!sak.erSisteVersjonAvMeldeperiode(meldeperiode)) {
-                throw IllegalStateException("Kan ikke behandle utdaterte meldeperioder (${meldeperiode.versjon}) ikke er siste versjon av meldeperioden i saken. sakId: ${sak.id}, meldekortId: ${meldekortbehandling.id}")
-            }
-        }
-
-        return sak
     }
 }

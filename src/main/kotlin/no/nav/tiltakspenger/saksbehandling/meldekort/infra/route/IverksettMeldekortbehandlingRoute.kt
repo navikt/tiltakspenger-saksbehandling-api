@@ -67,6 +67,11 @@ fun Route.iverksettMeldekortRoute(
                                 melding = "Du kan ikke godkjenne meldekortet da du ikke er beslutter for denne meldekortbehandlingen",
                                 kode = "må_være_beslutter_for_meldekortet",
                             )
+
+                            KanIkkeIverksetteMeldekortbehandling.MeldeperiodeneErIkkeSisteVersjon -> call.respond400BadRequest(
+                                melding = "Meldeperiodene må være siste versjon for å kunne iverksette meldekortet",
+                                kode = "meldeperiodene_er_ikke_siste_versjon",
+                            )
                         }
                     },
                     {
