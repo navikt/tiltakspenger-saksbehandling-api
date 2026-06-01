@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
@@ -78,7 +78,7 @@ interface OpprettMeldekortbehandlingForKlageBuilder {
         kjedeId: MeldeperiodeKjedeId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
-    ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
+    ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequest(
@@ -110,10 +110,8 @@ interface OpprettMeldekortbehandlingForKlageBuilder {
                 return null
             }
 
-            val jsonObject: MeldeperiodeKjedeDTOJson = JSONObject(bodyAsText)
-            val meldekortbehandlingerJson = jsonObject.getJSONArray("meldekortbehandlinger")
-            val meldekortbehandlingJson = meldekortbehandlingerJson.getJSONObject(meldekortbehandlingerJson.length() - 1)
-            val meldekortbehandlingId = MeldekortId.fromString(meldekortbehandlingJson.getString("id"))
+            val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
+            val meldekortbehandlingId = MeldekortId.fromString(jsonObject.getString("id"))
 
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val meldekortbehandling = tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandlingId) as MeldekortUnderBehandling

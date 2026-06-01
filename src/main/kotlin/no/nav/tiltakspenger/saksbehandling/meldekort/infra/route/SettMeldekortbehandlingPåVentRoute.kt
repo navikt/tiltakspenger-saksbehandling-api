@@ -21,8 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.SettMeldekortbehandlingPåVentKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SettMeldekortbehandlingPåVentService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 import java.time.LocalDate
 
 private const val SETT_MELDEKORTBEHANDLING_PÅ_VENT_PATH = "/sak/{sakId}/meldekort/{meldekortId}/vent"
@@ -50,6 +51,7 @@ fun Route.settMeldekortbehandlingPåVentRoute(
     auditService: AuditService,
     settMeldekortbehandlingPåVentService: SettMeldekortbehandlingPåVentService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     patch(SETT_MELDEKORTBEHANDLING_PÅ_VENT_PATH) {
@@ -78,9 +80,7 @@ fun Route.settMeldekortbehandlingPåVentRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(
-                            value = behandling.tilMeldekortbehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
-                        )
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                     }
                 }
             }

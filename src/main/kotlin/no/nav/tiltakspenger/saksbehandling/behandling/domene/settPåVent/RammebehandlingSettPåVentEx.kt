@@ -118,5 +118,6 @@ private fun Rammebehandling.oppdaterKlagebehandling(
             frist = kommando.frist,
         ),
         clock = clock,
+        sjekkSaksbehandler = this.status != UNDER_BESLUTNING,
     ).getOrThrow()
 }

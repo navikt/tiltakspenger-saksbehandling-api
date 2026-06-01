@@ -46,7 +46,7 @@ fun Route.meldekortRoutes(
     underkjennMeldekortbehandlingRoute(underkjennMeldekortbehandlingService, auditService, tilgangskontrollService)
     leggTilbakeMeldekortbehandlingRoute(auditService, leggTilbakeMeldekortbehandlingService, tilgangskontrollService, clock)
     avbrytMeldekortbehandlingRoute(auditService, avbrytMeldekortbehandlingService, tilgangskontrollService)
-    settMeldekortbehandlingPåVentRoute(auditService, settMeldekortbehandlingPåVentService, tilgangskontrollService)
+    settMeldekortbehandlingPåVentRoute(auditService, settMeldekortbehandlingPåVentService, tilgangskontrollService, clock)
     gjenopptaMeldekortbehandlingRoute(auditService, gjenopptaMeldekortbehandlingService, tilgangskontrollService)
     forhåndsvisBrevMeldekortbehandlingRoute(forhåndsvisBrevMeldekortbehandlingService, auditService, tilgangskontrollService)
 }

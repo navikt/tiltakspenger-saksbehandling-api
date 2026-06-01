@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnnta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingFormkravForSakId
@@ -124,6 +125,40 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 erUnntakForKlagefrist = null,
                 erKlagenSignert = true,
                 forventetStatus = HttpStatusCode.BadRequest,
+            )
+        }
+    }
+
+    @Test
+    fun `kan oppdatere klagebehandling formkrav med meldekortvedtak`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, meldekortvedtak, klagebehandling, _) = iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning(
+                tac = tac,
+            )!!
+
+            val (oppdatertSak, _, json) = oppdaterKlagebehandlingFormkravForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                vedtakDetKlagesPå = meldekortvedtak.id,
+                erKlagerPartISaken = true,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erKlagefristenOverholdt = true,
+                erKlagenSignert = true,
+            )!!
+
+            json.toString().shouldBeKlagebehandlingDTO(
+                sakId = oppdatertSak.id,
+                saksnummer = oppdatertSak.saksnummer,
+                klagebehandlingId = klagebehandling.id,
+                fnr = oppdatertSak.fnr.verdi,
+                vedtakDetKlagesPå = "${meldekortvedtak.id}",
+                behandlingDetKlagesPå = "${meldekortvedtak.meldekortId}",
+                erKlagerPartISaken = true,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erKlagefristenOverholdt = true,
+                resultat = null,
             )
         }
     }

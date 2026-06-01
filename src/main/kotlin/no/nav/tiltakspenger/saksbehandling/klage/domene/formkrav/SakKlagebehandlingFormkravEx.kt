@@ -14,7 +14,7 @@ fun Sak.oppdaterKlagebehandlingFormkrav(
     clock: Clock,
 ): Either<KanIkkeOppdatereFormkravPåKlagebehandling, Pair<Sak, Klagebehandling>> {
     val behandlingDetKlagesPå = kommando.vedtakDetKlagesPå?.let {
-        this.vedtaksliste.hentRammebehandlingForVedtakId(it).id
+        this.vedtaksliste.hentBehandlingForVedtakId(it).id
     }
     return this.hentKlagebehandling(kommando.klagebehandlingId)
         .oppdaterFormkrav(kommando, journalpostOpprettet, clock, behandlingDetKlagesPå)

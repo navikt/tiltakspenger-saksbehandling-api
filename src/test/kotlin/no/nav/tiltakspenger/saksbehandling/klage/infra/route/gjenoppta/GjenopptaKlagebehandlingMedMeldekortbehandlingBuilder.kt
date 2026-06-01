@@ -8,10 +8,13 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedMeldekortbehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBeslutning
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
@@ -73,5 +76,58 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
         return Triple(oppdatertSak, oppdatertMeldekortbehandling as MeldekortUnderBehandling, json)
+    }
+
+    /** 1. Oppretter ny sak, søknad og iverksetter søknadsbehandling.
+     *  2. Starter klagebehandling med godkjente formkrav
+     *  3. Oppdaterer klagebehandlingen til medhold/omgjøring; oppretter meldekortbehandling og knytter den til klagebehandlingen.
+     *  4. Setter meldekortbehandlingen på vent via meldekort-ruten (setter også klagebehandlingen på vent)
+     *  5. Gjenopptar via meldekortbehandling-endepunktet (gjenopptar også klagebehandlingen)
+     */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBehandling(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+    ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
+        val (sak, meldekortbehandling, _) = iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBehandling(
+            tac = tac,
+            saksbehandler = saksbehandler,
+        ) ?: return null
+        val (oppdatertSak, oppdatertMeldekortbehandling, json) = gjenopptaMeldekortbehandling(
+            tac = tac,
+            sakId = sak.id,
+            meldekortId = meldekortbehandling.id,
+            saksbehandlerEllerBeslutter = saksbehandler,
+            forventetStatus = forventetStatus,
+        ) ?: return null
+        return Triple(oppdatertSak, oppdatertMeldekortbehandling as MeldekortUnderBehandling, json)
+    }
+
+    /** 1. Oppretter ny sak, søknad og iverksetter søknadsbehandling.
+     *  2. Starter klagebehandling med godkjente formkrav
+     *  3. Oppdaterer klagebehandlingen til medhold/omgjøring; oppretter meldekortbehandling og knytter den til klagebehandlingen.
+     *  4. Oppdaterer og sender meldekortbehandlingen til beslutning; beslutter tar behandlingen (UNDER_BESLUTNING)
+     *  5. Setter meldekortbehandlingen på vent via meldekort-ruten (setter IKKE klagebehandlingen på vent)
+     *  6. Gjenopptar via meldekortbehandling-endepunktet (gjenopptar IKKE klagebehandlingen)
+     */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutning(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+    ): Triple<Sak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
+        val (sak, meldekortbehandling, _) = iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBeslutning(
+            tac = tac,
+            saksbehandler = saksbehandler,
+            beslutter = beslutter,
+        ) ?: return null
+        val (oppdatertSak, oppdatertMeldekortbehandling, json) = gjenopptaMeldekortbehandling(
+            tac = tac,
+            sakId = sak.id,
+            meldekortId = meldekortbehandling.id,
+            saksbehandlerEllerBeslutter = beslutter,
+            forventetStatus = forventetStatus,
+        ) ?: return null
+        return Triple(oppdatertSak, oppdatertMeldekortbehandling as MeldekortbehandlingManuell, json)
     }
 }

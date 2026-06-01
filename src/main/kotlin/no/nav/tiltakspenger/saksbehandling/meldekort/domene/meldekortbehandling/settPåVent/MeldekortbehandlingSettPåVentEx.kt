@@ -53,6 +53,7 @@ fun Meldekortbehandling.settPåVent(
                             frist = kommando.frist,
                         ),
                         clock = clock,
+                        sjekkSaksbehandler = true,
                     ).getOrThrow().first
                 },
             )
@@ -75,6 +76,19 @@ fun Meldekortbehandling.settPåVent(
                 beslutter = null,
                 status = KLAR_TIL_BESLUTNING,
                 sistEndret = tidspunktSattPåVent,
+                klagebehandling = klagebehandling?.let { klage ->
+                    klage.settPåVent(
+                        kommando = SettKlagebehandlingPåVentKommando(
+                            sakId = sakId,
+                            klagebehandlingId = klage.id,
+                            saksbehandler = kommando.saksbehandler,
+                            begrunnelse = kommando.begrunnelse,
+                            frist = kommando.frist,
+                        ),
+                        clock = clock,
+                        sjekkSaksbehandler = false,
+                    ).getOrThrow().first
+                },
             )
         }
 

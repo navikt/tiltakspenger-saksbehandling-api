@@ -13,10 +13,14 @@ import java.time.Clock
 
 /**
  * Gjelder kun saksbehandler. Dersom en beslutter vil sette en omgjøring til klage på vent, må dette gjøres fra omgjøringsbehandlingen.
+ * @param sjekkSaksbehandler om vi skal validere at saksbehandleren som utfører operasjonen er den samme som står på klagebehandlingen
+ *  Merk - Fordi klagebhenadling ikke har noe forhold til beslutter - vil funksjonen kunne få inn en kommando med beslutter som saksbehandler.
+ *      Beslutter skal få lov til å sette en behandling på vent.  Dette må da gjøres fra behandlings-eieren av klagebehandling.
  */
 fun Klagebehandling.settPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
+    sjekkSaksbehandler: Boolean = true,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Klagebehandling, Statistikkhendelser>> {
     if (this.erFerdigstilt) {
         return Pair(this, Statistikkhendelser(emptyList())).right()
@@ -25,7 +29,7 @@ fun Klagebehandling.settPåVent(
     kanOppdatereIDenneStatusen(null, kanVæreMottattFraKA = true, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
     }
-    if (saksbehandler != kommando.saksbehandler.navIdent) {
+    if (sjekkSaksbehandler && saksbehandler != kommando.saksbehandler.navIdent) {
         return KanIkkeSetteKlagebehandlingPåVent.SaksbehandlerMismatch(
             forventetSaksbehandler = kommando.saksbehandler.navIdent,
             faktiskSaksbehandler = saksbehandler,

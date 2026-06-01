@@ -36,17 +36,17 @@ class SettMeldekortbehandlingPåVentRouteTest {
                 ),
             )
 
-            json.getString("status") shouldBe "KLAR_TIL_BEHANDLING"
-            json.isNull("saksbehandler") shouldBe true
-            json.getJSONArray("ventestatus").also { ventestatus ->
-                ventestatus.length() shouldBe 1
-                ventestatus.getJSONObject(0).also { hendelse ->
-                    hendelse.getString("sattPåVentAv") shouldBe "Z12345"
-                    hendelse.getString("begrunnelse") shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
-                    hendelse.getBoolean("erSattPåVent") shouldBe true
-                    hendelse.getString("status") shouldBe "UNDER_BEHANDLING"
-                    hendelse.getString("frist") shouldBe "2026-01-01"
-                }
+            val meldekortJson = json.get("meldekortbehandlinger").get(meldekortbehandling.id.toString())
+            meldekortJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+            meldekortJson.get("saksbehandler").isNull shouldBe true
+            val ventestatusArray = meldekortJson.get("ventestatus")
+            ventestatusArray.size() shouldBe 1
+            ventestatusArray[0].also { hendelse ->
+                hendelse.get("sattPåVentAv").asString() shouldBe "Z12345"
+                hendelse.get("begrunnelse").asString() shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
+                hendelse.get("erSattPåVent").asBoolean() shouldBe true
+                hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
+                hendelse.get("frist").asString() shouldBe "2026-01-01"
             }
         }
     }
@@ -73,17 +73,17 @@ class SettMeldekortbehandlingPåVentRouteTest {
                 ),
             )
 
-            json.getString("status") shouldBe "KLAR_TIL_BESLUTNING"
-            json.isNull("beslutter") shouldBe true
-            json.getJSONArray("ventestatus").also { ventestatus ->
-                ventestatus.length() shouldBe 1
-                ventestatus.getJSONObject(0).also { hendelse ->
-                    hendelse.getString("sattPåVentAv") shouldBe "beslutter"
-                    hendelse.getString("begrunnelse") shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
-                    hendelse.getBoolean("erSattPåVent") shouldBe true
-                    hendelse.getString("status") shouldBe "UNDER_BESLUTNING"
-                    hendelse.getString("frist") shouldBe "2026-01-01"
-                }
+            val meldekortJson = json.get("meldekortbehandlinger").get(meldekortbehandling.id.toString())
+            meldekortJson.get("status").asString() shouldBe "KLAR_TIL_BESLUTNING"
+            meldekortJson.get("beslutter").isNull shouldBe true
+            val ventestatusArray = meldekortJson.get("ventestatus")
+            ventestatusArray.size() shouldBe 1
+            ventestatusArray[0].also { hendelse ->
+                hendelse.get("sattPåVentAv").asString() shouldBe "beslutter"
+                hendelse.get("begrunnelse").asString() shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
+                hendelse.get("erSattPåVent").asBoolean() shouldBe true
+                hendelse.get("status").asString() shouldBe "UNDER_BESLUTNING"
+                hendelse.get("frist").asString() shouldBe "2026-01-01"
             }
         }
     }

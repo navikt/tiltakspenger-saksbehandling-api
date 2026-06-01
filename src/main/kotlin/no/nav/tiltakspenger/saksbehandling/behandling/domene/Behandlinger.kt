@@ -131,8 +131,11 @@ data class Behandlinger(
                     "Klagebehandling ${klagebehandling.id} er tilknyttet rammebehandling ${rammebehandling.id}, men objektene er ikke identiske."
                 }
                 when (klagebehandling.status) {
-                    Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BEHANDLING) {
-                        "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                    Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(
+                        rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BEHANDLING ||
+                            rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+                    ) {
+                        "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING eller KLAR_TIL_BESLUTNING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
                     }
 
                     Klagebehandlingsstatus.UNDER_BEHANDLING,

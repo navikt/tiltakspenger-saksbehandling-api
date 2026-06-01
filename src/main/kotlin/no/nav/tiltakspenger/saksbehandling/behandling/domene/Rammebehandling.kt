@@ -716,8 +716,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 require(this.resultat != null) { "Behandlingsresultat må være satt for statusen KLAR_TIL_BESLUTNING" }
                 require(erFerdigutfylt())
                 if (klagebehandling != null) {
-                    require(klagebehandling!!.erUnderBehandling || klagebehandling!!.omgjørEtterKA || klagebehandling!!.erFerdigstilt) {
-                        "Klagebehandling knyttet til en rammebehandling som er KLAR_TIL_BESLUTNING må ha status UNDER_BEHANDLING/OMGJØRING_ETTER_KLAGEINSTANS/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
+                    require(klagebehandling!!.erUnderBehandling || klagebehandling!!.omgjørEtterKA || klagebehandling!!.erFerdigstilt || klagebehandling!!.erKlarTilBehandling) {
+                        "Klagebehandling knyttet til en rammebehandling som er KLAR_TIL_BESLUTNING må ha status UNDER_BEHANDLING/KLAR_TIL_BEHANDLING/OMGJØRING_ETTER_KLAGEINSTANS/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
                     }
                 }
             }
@@ -777,7 +777,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 }
             }
         }
-        if (klagebehandling != null && !erAvbrutt && !klagebehandling!!.erFerdigstilt) {
+        if (klagebehandling != null && !erAvbrutt && !klagebehandling!!.erFerdigstilt && !klagebehandling!!.erKlarTilBehandling) {
             require(saksbehandler == klagebehandling!!.saksbehandler) {
                 "Klagebehandlingens saksbehandler må være lik behandlingens saksbehandler. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
             }

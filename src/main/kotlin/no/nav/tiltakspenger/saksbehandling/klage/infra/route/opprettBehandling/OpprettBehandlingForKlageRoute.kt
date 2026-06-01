@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKla
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettMeldekortbehandlingForKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRevurderingForKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettSøknadsbehandlingForKlageKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import java.time.Clock
 
@@ -158,7 +158,13 @@ fun Route.opprettBehandlingForKlageRoute(
                                         correlationId = correlationId,
                                         behandlingId = it.meldekortbehandling.id,
                                     )
-                                    call.respondJson(value = it.sak.toMeldeperiodeKjedeDTO(it.kjedeId, clock))
+                                    call.respondJson(
+                                        value = it.meldekortbehandling.tilMeldekortbehandlingDTOV2(
+                                            beregninger = it.sak.meldeperiodeBeregninger,
+                                            hentVedtak = it.sak.meldekortvedtaksliste::hentForMeldekortbehandling,
+                                            hentTilbakekreving = it.sak::hentTilbakekrevingForMeldekortbehandling,
+                                        ),
+                                    )
                                 }
                             }
                         },

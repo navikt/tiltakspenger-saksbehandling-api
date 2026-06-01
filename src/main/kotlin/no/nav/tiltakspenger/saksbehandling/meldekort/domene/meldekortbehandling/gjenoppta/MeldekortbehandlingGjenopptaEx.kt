@@ -63,6 +63,17 @@ fun Meldekortbehandling.gjenoppta(
             this.copy(
                 ventestatus = oppdatertVentestatus,
                 sistEndret = nå,
+                klagebehandling = klagebehandling?.let { klage ->
+                    klage.gjenopptaKlagebehandling(
+                        kommando = GjenopptaKlagebehandlingKommando(
+                            sakId = sakId,
+                            klagebehandlingId = klage.id,
+                            saksbehandler = kommando.saksbehandler,
+                            correlationId = kommando.correlationId,
+                        ),
+                        clock = clock,
+                    ).getOrThrow().first
+                },
             )
         }
 
@@ -77,6 +88,17 @@ fun Meldekortbehandling.gjenoppta(
                 status = UNDER_BESLUTNING,
                 ventestatus = oppdatertVentestatus,
                 sistEndret = nå,
+                klagebehandling = klagebehandling?.let { klage ->
+                    klage.gjenopptaKlagebehandling(
+                        kommando = GjenopptaKlagebehandlingKommando(
+                            sakId = sakId,
+                            klagebehandlingId = klage.id,
+                            saksbehandler = kommando.saksbehandler,
+                            correlationId = kommando.correlationId,
+                        ),
+                        clock = clock,
+                    ).getOrThrow().first
+                },
             )
         }
 
