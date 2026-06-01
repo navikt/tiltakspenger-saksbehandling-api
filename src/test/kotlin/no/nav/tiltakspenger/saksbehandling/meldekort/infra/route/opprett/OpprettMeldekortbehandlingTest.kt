@@ -47,36 +47,6 @@ class OpprettMeldekortbehandlingTest {
                       "sisteBeregning": null,
                       "brukersMeldekort": [],
                       "id": "2025-03-31/2025-04-13",
-                      "meldeperioder": [
-                        {
-                          "opprettet": "2025-05-01T01:02:22.456789",
-                          "kjedeId": "2025-03-31/2025-04-13",
-                          "girRett": {
-                            "2025-03-31": false,
-                            "2025-04-10": true,
-                            "2025-04-11": false,
-                            "2025-04-01": true,
-                            "2025-04-12": false,
-                            "2025-04-02": true,
-                            "2025-04-13": false,
-                            "2025-04-03": true,
-                            "2025-04-04": true,
-                            "2025-04-05": true,
-                            "2025-04-06": true,
-                            "2025-04-07": true,
-                            "2025-04-08": true,
-                            "2025-04-09": true
-                          },
-                          "id": "${meldekortbehandling.meldeperiodeLegacy.id}",
-                          "ingenDagerGirRett": false,
-                          "versjon": 1,
-                          "periode": {
-                            "fraOgMed": "2025-03-31",
-                            "tilOgMed": "2025-04-13"
-                          },
-                          "antallDager": 10
-                        }
-                      ],
                       "sisteMeldeperiode": {
                           "opprettet": "2025-05-01T01:02:22.456789",
                           "kjedeId": "2025-03-31/2025-04-13",
