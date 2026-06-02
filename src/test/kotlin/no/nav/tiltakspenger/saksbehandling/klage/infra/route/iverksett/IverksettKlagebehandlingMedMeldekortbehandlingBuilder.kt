@@ -15,9 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettholdKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -31,8 +31,8 @@ import java.util.UUID
 interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
 
     /**
-     * 1. Oppretter ny sak
-     * 2. Starter klagebehandling til opprettholdelse
+     * 1. Iverksetter søknadsbehandling og en første meldekortbehandling (vedtaket brukes som formkrav i klagebehandlingen)
+     * 2. Starter klagebehandling med vedtakDetKlagesPå = meldekortvedtak
      * 3. Oppdaterer brevtekst
      * 4. Opprettholder (emulerer journalføring, distribuering av vedtaksbrev og oversendelse til klageinstansen)
      * 5. Mottar MEDHOLD fra klageinstansen → klageinstansen omgjør NAVs vedtak → klagebehandling vil gå til OMGJØRING_ETTER_KLAGEINSTANS når ny behandling opprettes
@@ -46,11 +46,10 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
     ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, Klagebehandling>? {
-        // 1-4: Oppretthold klagebehandling (inkl. journalføring, distribuering og oversendelse til KA)
-        val (sak, klagebehandling, _) = opprettSakOgOpprettholdKlagebehandling(
+        val (sak, klagebehandling, _) = iverksettMeldekortvedtakOgOpprettholdKlagebehandling(
             tac = tac,
             fnr = fnr,
-            saksbehandler = saksbehandler,
+            saksbehandlerKlagebehandling = saksbehandler,
         ) ?: return null
 
         // 5: Motta MEDHOLD fra klageinstansen → klagebehandling status blir MOTTATT_FRA_KLAGEINSTANS

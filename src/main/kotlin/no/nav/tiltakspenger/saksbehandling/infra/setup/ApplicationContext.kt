@@ -426,6 +426,7 @@ open class ApplicationContext(
             gjenopptaMeldekortbehandlingService = meldekortContext.gjenopptaMeldekortbehandlingService,
             texasClient = texasClient,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             statistikkService = statistikkContext.statistikkService,
         )
     }

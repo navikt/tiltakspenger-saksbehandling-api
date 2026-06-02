@@ -133,6 +133,54 @@ interface OpprettKlagebehandlingBuilder {
         return Tuple5(oppdatertSak, søknad, vedtakSøknadsbehandling, klagebehandling, klagebehandlingJson)
     }
 
+    suspend fun ApplicationTestBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilOpprettholdelse(
+        tac: TestApplicationContext,
+        saksbehandlerMeldekortbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerMeldekortbehandling"),
+        saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        journalpostId: JournalpostId = JournalpostId("12345"),
+        erKlagerPartISaken: Boolean = true,
+        klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
+        erKlagefristenOverholdt: Boolean = true,
+        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
+        erKlagenSignert: Boolean = true,
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, _, _, meldekortvedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(
+            tac = tac,
+            saksbehandler = saksbehandlerMeldekortbehandling,
+        ) ?: return null
+
+        val (oppdatertSak, klagebehandling, _) = this.opprettKlagebehandlingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            saksbehandler = saksbehandlerKlagebehandling,
+            journalpostId = journalpostId,
+            vedtakDetKlagesPå = meldekortvedtak.id,
+            erKlagerPartISaken = erKlagerPartISaken,
+            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+            erKlagefristenOverholdt = erKlagefristenOverholdt,
+            erUnntakForKlagefrist = erUnntakForKlagefrist,
+            erKlagenSignert = erKlagenSignert,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        ) ?: return null
+
+        val (sakMedVurdertKlage, vurdertKlage, vurdertKlageJson) = this.vurderKlagebehandling(
+            tac = tac,
+            sakId = oppdatertSak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandlerKlagebehandling,
+            vurderingstype = Vurderingstype.OPPRETTHOLD,
+            hjemler = listOf(KlagehjemmelDto.ARBEIDSMARKEDSLOVEN_17),
+            begrunnelse = null,
+            årsak = null,
+        )!!
+
+        return Tuple4(sakMedVurdertKlage, meldekortvedtak, vurdertKlage, vurdertKlageJson)
+    }
+
     suspend fun ApplicationTestBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning(
         tac: TestApplicationContext,
         saksbehandlerMeldekortbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerMeldekortbehandling"),

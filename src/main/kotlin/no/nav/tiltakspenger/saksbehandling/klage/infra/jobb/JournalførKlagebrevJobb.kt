@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlien
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 import java.time.LocalDate
 
@@ -23,6 +24,7 @@ class JournalførKlagebrevJobb(
     private val klagevedtakRepo: KlagevedtakRepo,
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val rammevedtakRepo: RammevedtakRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val genererKlagebrevKlient: GenererKlagebrevKlient,
     private val personService: PersonService,
     private val navIdentClient: NavIdentClient,
@@ -86,7 +88,10 @@ class JournalførKlagebrevJobb(
                 val sakId = klagebehandling.sakId
                 val saksnummer = klagebehandling.saksnummer
                 val id = klagebehandling.id
-                val vedtaksdato = rammevedtakRepo.hentForVedtakId(klagebehandling.formkrav.vedtakDetKlagesPå!!)!!
+                val vedtakIdDetKlagesPå = klagebehandling.formkrav.vedtakDetKlagesPå!!
+                val vedtaksdatoOpprettet = rammevedtakRepo.hentForVedtakId(vedtakIdDetKlagesPå)?.opprettet
+                    ?: meldekortvedtakRepo.hentForVedtakId(vedtakIdDetKlagesPå)?.opprettet
+                    ?: throw IllegalStateException("Fant ikke vedtak med id $vedtakIdDetKlagesPå (verken rammevedtak eller meldekortvedtak). sakId: $sakId, klagebehandlingId: $id")
 
                 val loggkontekst = "sakId: $sakId, saksnummer: $saksnummer, klagebehandlingId: $id"
                 Either.catch {
@@ -99,7 +104,7 @@ class JournalførKlagebrevJobb(
                         tilleggstekst = klagebehandling.brevtekst!!,
                         saksbehandlerNavIdent = klagebehandling.saksbehandler!!,
                         forhåndsvisning = false,
-                        vedtaksdato = vedtaksdato.opprettet.toLocalDate(),
+                        vedtaksdato = vedtaksdatoOpprettet.toLocalDate(),
                         hentBrukersNavn = personService::hentNavn,
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
                         innsendingsdato = klagebehandling.formkrav.innsendingsdato,

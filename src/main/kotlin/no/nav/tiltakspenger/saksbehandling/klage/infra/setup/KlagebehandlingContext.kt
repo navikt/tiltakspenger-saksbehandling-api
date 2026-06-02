@@ -57,6 +57,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.SettMeldekortbehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 
 open class KlagebehandlingContext(
@@ -86,6 +87,7 @@ open class KlagebehandlingContext(
     private val settMeldekortbehandlingPåVentService: SettMeldekortbehandlingPåVentService,
     private val statistikkService: StatistikkService,
     private val rammevedtakRepo: RammevedtakRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val texasClient: TexasClient,
 ) {
 
@@ -175,6 +177,7 @@ open class KlagebehandlingContext(
             klagevedtakRepo = klagevedtakRepo,
             klagebehandlingRepo = klagebehandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
+            meldekortvedtakRepo = meldekortvedtakRepo,
             genererKlagebrevKlient = genererKlagebrevKlient,
             personService = personService,
             navIdentClient = navIdentClient,

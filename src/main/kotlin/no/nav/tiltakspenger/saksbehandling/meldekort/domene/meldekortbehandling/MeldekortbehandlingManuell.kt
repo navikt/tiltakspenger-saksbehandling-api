@@ -104,6 +104,7 @@ data class MeldekortbehandlingManuell(
                 requireNotNull(sendtTilBeslutning)
             }
         }
+        initKlagebehandling()
     }
 
     fun iverksettMeldekort(

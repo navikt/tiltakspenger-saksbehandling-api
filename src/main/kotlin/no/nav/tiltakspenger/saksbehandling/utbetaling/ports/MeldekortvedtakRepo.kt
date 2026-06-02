@@ -9,6 +9,8 @@ import java.time.LocalDateTime
 interface MeldekortvedtakRepo {
     fun lagre(vedtak: Meldekortvedtak, context: TransactionContext? = null)
 
+    fun hentForVedtakId(vedtakId: VedtakId): Meldekortvedtak?
+
     fun markerJournalført(
         vedtakId: VedtakId,
         journalpostId: JournalpostId,

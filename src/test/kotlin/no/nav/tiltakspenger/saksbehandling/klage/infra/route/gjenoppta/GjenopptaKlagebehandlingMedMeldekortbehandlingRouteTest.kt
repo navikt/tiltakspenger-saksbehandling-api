@@ -287,7 +287,6 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
                 )!!
             val oppdatertKlagebehandling = requireNotNull(oppdatertMeldekortbehandling.klagebehandling)
 
-            // Sjekk meldekortbehandling domene
             oppdatertMeldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
             oppdatertMeldekortbehandling.beslutter shouldBe beslutter.navIdent
             oppdatertMeldekortbehandling.ventestatus.erSattPåVent shouldBe false
@@ -314,9 +313,8 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
                 ),
             )
 
-            // Sjekk klagebehandling domene - skal OGSÅ gjenopptas
             oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.UNDER_BEHANDLING
-            oppdatertKlagebehandling.saksbehandler shouldBe beslutter.navIdent
+            oppdatertKlagebehandling.saksbehandler shouldBe saksbehandler.navIdent
             oppdatertKlagebehandling.ventestatus.erSattPåVent shouldBe false
             oppdatertKlagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
                 Ventestatus(
@@ -341,7 +339,6 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
                 ),
             )
 
-            // Sjekk JSON (MeldekortbehandlingDTOJson)
             json.getString("status") shouldBe "UNDER_BESLUTNING"
             json.getString("beslutter") shouldBe beslutter.navIdent
             json.getJSONArray("ventestatus").also { ventestatus ->

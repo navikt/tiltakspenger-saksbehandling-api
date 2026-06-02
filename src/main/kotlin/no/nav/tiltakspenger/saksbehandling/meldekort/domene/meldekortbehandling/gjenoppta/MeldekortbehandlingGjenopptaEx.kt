@@ -88,17 +88,12 @@ fun Meldekortbehandling.gjenoppta(
                 status = UNDER_BESLUTNING,
                 ventestatus = oppdatertVentestatus,
                 sistEndret = nå,
-                klagebehandling = klagebehandling?.let { klage ->
-                    klage.gjenopptaKlagebehandling(
-                        kommando = GjenopptaKlagebehandlingKommando(
-                            sakId = sakId,
-                            klagebehandlingId = klage.id,
-                            saksbehandler = kommando.saksbehandler,
-                            correlationId = kommando.correlationId,
-                        ),
-                        clock = clock,
-                    ).getOrThrow().first
-                },
+                // klage har ikke noe forhold til beslutter, derfor gjenbruker vi klagens saksbehandler ved gjenoppta når meldekortbehandlingen er klar til/under beslutning
+                klagebehandling = klagebehandling?.gjenopptaKlagebehandling(
+                    klagensSaksbehandler = this.saksbehandler,
+                    endretAv = kommando.saksbehandler.navIdent,
+                    clock = clock,
+                )?.getOrThrow()?.first,
             )
         }
 

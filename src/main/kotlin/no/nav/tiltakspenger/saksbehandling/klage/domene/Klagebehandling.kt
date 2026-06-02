@@ -138,7 +138,10 @@ data class Klagebehandling(
                 faktiskStatus = this.status,
             ).left()
         }
-        if (tilknyttetBehandlingsstatus != null && !forventetTilknyttetBehandlingsstatuser.contains(tilknyttetBehandlingsstatus)) {
+        if (tilknyttetBehandlingsstatus != null && !forventetTilknyttetBehandlingsstatuser.contains(
+                tilknyttetBehandlingsstatus,
+            )
+        ) {
             return KanIkkeOppdatereKlagebehandling.FeilTilknyttetBehandlingsstatus(
                 forventetStatus = forventetTilknyttetBehandlingsstatuser,
                 faktiskStatus = tilknyttetBehandlingsstatus,
@@ -199,8 +202,10 @@ data class Klagebehandling(
 
         when (status) {
             KLAR_TIL_BEHANDLING -> {
-                require(saksbehandler == null) {
-                    "Klagebehandling som er $status kan ikke ha saksbehandler satt. $loggkontekst"
+                if (!ventestatus.erSattPåVent) {
+                    require(saksbehandler == null) {
+                        "Klagebehandling som er $status kan ikke ha saksbehandler satt. $loggkontekst"
+                    }
                 }
             }
 

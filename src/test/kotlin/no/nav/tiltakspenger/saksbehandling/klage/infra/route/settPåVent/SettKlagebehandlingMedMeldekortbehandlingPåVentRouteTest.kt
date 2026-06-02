@@ -174,7 +174,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             )
 
             oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
-            oppdatertKlagebehandling.saksbehandler shouldBe null
+            oppdatertKlagebehandling.saksbehandler shouldBe "saksbehandlerKlagebehandling"
             oppdatertKlagebehandling.ventestatus.erSattPåVent shouldBe true
             oppdatertKlagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
                 Ventestatus(
@@ -206,7 +206,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
 
             val klageJson = sakJson.get("klageBehandlinger").first()
             klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
-            klageJson.get("saksbehandler").isNull shouldBe true
+            klageJson.get("saksbehandler").isNull shouldBe false
             val klageVentestatusArray = klageJson.get("ventestatus")
             klageVentestatusArray.size() shouldBe 1
             klageVentestatusArray[0].also { hendelse ->

@@ -17,7 +17,7 @@ import java.time.Clock
  *  Merk - Fordi klagebhenadling ikke har noe forhold til beslutter - vil funksjonen kunne få inn en kommando med beslutter som saksbehandler.
  *      Beslutter skal få lov til å sette en behandling på vent.  Dette må da gjøres fra behandlings-eieren av klagebehandling.
  */
-fun Klagebehandling.settPåVent(
+fun Klagebehandling.settPåVentOgNullstillSaksbehandler(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
     sjekkSaksbehandler: Boolean = true,
@@ -38,6 +38,44 @@ fun Klagebehandling.settPåVent(
     val nå = nå(clock)
     val oppdatertKlagebehandling = this.copy(
         saksbehandler = null,
+        ventestatus = ventestatus.settPåVent(
+            tidspunktSattPåVent = nå,
+            endretAv = kommando.saksbehandler.navIdent,
+            begrunnelse = kommando.begrunnelse,
+            status = status.toString(),
+            frist = kommando.frist,
+        ),
+        sistEndret = nå,
+        status = KLAR_TIL_BEHANDLING,
+    )
+    val statistikkhendelser = Statistikkhendelser(
+        oppdatertKlagebehandling.genererSaksstatistikk(
+            hendelse = StatistikkhendelseType.BEHANDLING_SATT_PA_VENT,
+        ),
+    )
+    return (oppdatertKlagebehandling to statistikkhendelser).right()
+}
+
+fun Klagebehandling.settPåVent(
+    kommando: SettKlagebehandlingPåVentKommando,
+    clock: Clock,
+    sjekkSaksbehandler: Boolean = true,
+): Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (this.erFerdigstilt) {
+        return Pair(this, Statistikkhendelser(emptyList())).right()
+    }
+
+    kanOppdatereIDenneStatusen(null, kanVæreMottattFraKA = true, kanVæreOmgjørEtterKA = true).onLeft {
+        return KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres(it).left()
+    }
+    if (sjekkSaksbehandler && saksbehandler != kommando.saksbehandler.navIdent) {
+        return KanIkkeSetteKlagebehandlingPåVent.SaksbehandlerMismatch(
+            forventetSaksbehandler = kommando.saksbehandler.navIdent,
+            faktiskSaksbehandler = saksbehandler,
+        ).left()
+    }
+    val nå = nå(clock)
+    val oppdatertKlagebehandling = this.copy(
         ventestatus = ventestatus.settPåVent(
             tidspunktSattPåVent = nå,
             endretAv = kommando.saksbehandler.navIdent,

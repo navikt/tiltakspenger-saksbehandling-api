@@ -79,6 +79,24 @@ class MeldekortvedtakPostgresRepo(
         }
     }
 
+    override fun hentForVedtakId(vedtakId: VedtakId): Meldekortvedtak? {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select v.*, s.saksnummer, s.fnr 
+                    from meldekortvedtak v
+                    join sak s on s.id = v.sak_id
+                    where v.id = :id
+                    """,
+                    "id" to vedtakId.toString(),
+                ).map { row ->
+                    row.toVedtak(session)
+                }.asSingle,
+            )
+        }
+    }
+
     override fun hentDeSomSkalJournalføres(limit: Int): List<Meldekortvedtak> {
         return sessionFactory.withSession { session ->
             session.run(

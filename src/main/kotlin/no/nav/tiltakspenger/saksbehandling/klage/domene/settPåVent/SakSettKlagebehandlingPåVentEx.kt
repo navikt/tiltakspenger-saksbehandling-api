@@ -49,7 +49,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
 
             null -> Unit
         }
-        klagebehandling.settPåVent(kommando, clock).map { (oppdatertKlagebehandling, statistikkhendelser) ->
+        klagebehandling.settPåVentOgNullstillSaksbehandler(kommando, clock).map { (oppdatertKlagebehandling, statistikkhendelser) ->
             val oppdatertSak = this.oppdaterKlagebehandling(oppdatertKlagebehandling)
             lagre(oppdatertKlagebehandling, statistikkhendelser)
             Triple(oppdatertSak, oppdatertKlagebehandling, null)

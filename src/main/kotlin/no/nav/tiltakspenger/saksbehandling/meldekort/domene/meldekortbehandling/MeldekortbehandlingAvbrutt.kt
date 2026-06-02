@@ -53,6 +53,10 @@ data class MeldekortbehandlingAvbrutt(
 
     override val beslutter = null
 
+    init {
+        initKlagebehandling()
+    }
+
     override val beløpTotal = beregning?.totalBeløp
     override val ordinærBeløp = beregning?.ordinærBeløp
     override val barnetilleggBeløp = beregning?.barnetilleggBeløp

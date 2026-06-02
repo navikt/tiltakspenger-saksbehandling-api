@@ -275,6 +275,7 @@ data class MeldekortUnderBehandling(
         require(status == MeldekortbehandlingStatus.UNDER_BEHANDLING || status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING) {
             "Status på meldekort under behandling må være UNDER_BEHANDLING eller KLAR_TIL_BEHANDLING"
         }
+        initKlagebehandling()
     }
 }
 

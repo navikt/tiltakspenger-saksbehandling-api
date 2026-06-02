@@ -20,6 +20,8 @@ class MeldekortvedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : Meldekor
         utbetalingRepo.lagre(vedtak.utbetaling, context)
     }
 
+    override fun hentForVedtakId(vedtakId: VedtakId): Meldekortvedtak? = data.get()[vedtakId]
+
     override fun markerJournalført(
         vedtakId: VedtakId,
         journalpostId: JournalpostId,

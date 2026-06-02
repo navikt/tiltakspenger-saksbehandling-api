@@ -361,6 +361,7 @@ sealed class TestApplicationContext(
             settMeldekortbehandlingPåVentService = meldekortContext.settMeldekortbehandlingPåVentService,
             gjenopptaMeldekortbehandlingService = meldekortContext.gjenopptaMeldekortbehandlingService,
             texasClient = texasClient,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
         ) {
             override val kabalClient = kabalClientFake
             override val klagebehandlingRepo: KlagebehandlingRepo
