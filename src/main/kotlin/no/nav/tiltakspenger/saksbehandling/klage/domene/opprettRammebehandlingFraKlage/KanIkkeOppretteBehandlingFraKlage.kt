@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingF
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
 
-sealed interface KanIkkeOppretteRammebehandlingFraKlage {
+sealed interface KanIkkeOppretteBehandlingFraKlage {
     data class SaksbehandlerMismatch(
         val forventetSaksbehandler: String,
         val faktiskSaksbehandler: String,
-    ) : KanIkkeOppretteRammebehandlingFraKlage
+    ) : KanIkkeOppretteBehandlingFraKlage
 
-    data class FinnesÅpenBehandling(val behandlingId: BehandlingId) : KanIkkeOppretteRammebehandlingFraKlage
+    data class FinnesÅpenBehandling(val behandlingId: BehandlingId) : KanIkkeOppretteBehandlingFraKlage
 }

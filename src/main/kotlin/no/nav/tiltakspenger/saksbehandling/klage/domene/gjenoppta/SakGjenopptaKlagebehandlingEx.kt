@@ -26,7 +26,6 @@ suspend fun Sak.gjenopptaKlagebehandling(
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
         when (val tilknyttetBehandling = this.hentAktivTilknyttetBehandling(klagebehandling)) {
             is AktivTilknyttetBehandling.Ramme -> {
-                // Denne gjenopptar også klagebehandlingen hvis aktuelt.
                 gjenopptaRammebehandling(gjenopptaRammebehandling, kommando, tilknyttetBehandling.rammebehandling).right()
             }
 

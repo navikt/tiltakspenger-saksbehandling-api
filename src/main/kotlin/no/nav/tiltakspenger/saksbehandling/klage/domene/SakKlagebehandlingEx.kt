@@ -22,10 +22,16 @@ fun Sak.hentKlagebehandling(klagebehandlingId: KlagebehandlingId): Klagebehandli
     return this.behandlinger.hentKlagebehandling(klagebehandlingId)
 }
 
-fun Sak.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
-    return this.behandlinger.hentÅpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
+fun Sak.åpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<AttesterbarBehandling> {
+    return this.behandlinger.hentÅpneBehandlingerMedKlagebehandlingId(klagebehandlingId)
 }
 
+/**
+ * Behandling er ikke sealed, noe som vil gjøre det vanskelig å holde styr på ulike behandlings-handlinger (vent, gjenoppta, legg tilbake, etc)
+ * hvor det også skal inngå klagen.
+ *
+ * Dette er bare en ekstra wrapper for å få til sealed funksjonaliteten, og gjøre det enklere å finne hvor ting er brukt.
+ */
 sealed interface AktivTilknyttetBehandling {
     val behandling: AttesterbarBehandling
 

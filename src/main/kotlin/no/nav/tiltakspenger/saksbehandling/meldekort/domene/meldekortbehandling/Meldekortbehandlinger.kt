@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
@@ -155,6 +156,10 @@ data class Meldekortbehandlinger(
         return Meldekortbehandlinger(
             verdi = verdi.plus(behandling).sortedBy { it.opprettet },
         )
+    }
+
+    fun åpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Meldekortbehandling> {
+        return this.filter { it.erÅpen() && it.id == klagebehandlingId }
     }
 
     init {

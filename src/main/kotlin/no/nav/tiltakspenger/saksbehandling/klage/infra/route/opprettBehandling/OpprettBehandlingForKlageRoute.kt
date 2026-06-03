@@ -28,13 +28,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingen
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettBehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettMeldekortbehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRevurderingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.KanIkkeOppretteBehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageResultat
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageService
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettMeldekortbehandlingForKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRevurderingForKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettSøknadsbehandlingForKlageKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import java.time.Clock
@@ -57,9 +57,9 @@ private data class OpprettBehandlingForKlageRequest(
         saksbehandler: Saksbehandler,
         correlationId: CorrelationId,
         klagebehandlingId: KlagebehandlingId,
-    ): OpprettBehandlingForKlageKommando {
+    ): OpprettBehandlingFraKlageKommando {
         return when (type) {
-            Type.SØKNADSBEHANDLING_INNVILGELSE -> OpprettSøknadsbehandlingForKlageKommando(
+            Type.SØKNADSBEHANDLING_INNVILGELSE -> OpprettSøknadsbehandlingFraKlageKommando(
                 sakId = sakId,
                 saksbehandler = saksbehandler,
                 klagebehandlingId = klagebehandlingId,
@@ -68,13 +68,13 @@ private data class OpprettBehandlingForKlageRequest(
             )
 
             Type.REVURDERING_INNVILGELSE, Type.REVURDERING_OMGJØRING,
-            -> OpprettRevurderingForKlageKommando(
+            -> OpprettRevurderingFraKlageKommando(
                 sakId = sakId,
                 saksbehandler = saksbehandler,
                 klagebehandlingId = klagebehandlingId,
                 type = when (type) {
-                    Type.REVURDERING_INNVILGELSE -> OpprettRevurderingForKlageKommando.Type.INNVILGELSE
-                    Type.REVURDERING_OMGJØRING -> OpprettRevurderingForKlageKommando.Type.OMGJØRING
+                    Type.REVURDERING_INNVILGELSE -> OpprettRevurderingFraKlageKommando.Type.INNVILGELSE
+                    Type.REVURDERING_OMGJØRING -> OpprettRevurderingFraKlageKommando.Type.OMGJØRING
                 },
                 correlationId = correlationId,
                 vedtakIdSomOmgjøres = when (type) {
@@ -83,7 +83,7 @@ private data class OpprettBehandlingForKlageRequest(
                 },
             )
 
-            Type.MELDEKORTBEHANDLING -> OpprettMeldekortbehandlingForKlageKommando(
+            Type.MELDEKORTBEHANDLING -> OpprettMeldekortbehandlingFraKlageKommando(
                 sakId = sakId,
                 klagebehandlingId = klagebehandlingId,
                 kjedeId = MeldeperiodeKjedeId(kjedeId!!),
