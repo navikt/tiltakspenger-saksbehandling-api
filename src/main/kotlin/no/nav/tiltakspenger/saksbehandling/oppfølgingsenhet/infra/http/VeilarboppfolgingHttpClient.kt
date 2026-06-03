@@ -86,8 +86,9 @@ class VeilarboppfolgingHttpClient(
                         ifRight = { parsed ->
                             val oppfolgingsenhet = parsed.oppfolgingsenhet
                             if (oppfolgingsenhet == null) {
-                                logger.error { "Fant ikke oppfølgingsenhet. $kontekst. Se sikkerlogg for detaljer." }
-                                Sikkerlogg.error { "Fant ikke oppfølgingsenhet for fnr ${fnr.verdi} - $kontekst. Request: $jsonPayload. Response: $body" }
+                                // Forventet å være null når brukeren ikke har et aktivt oppfølgingsnavkontor. Logges derfor som debug.
+                                logger.debug { "Fant ikke oppfølgingsenhet. $kontekst. Se sikkerlogg for detaljer." }
+                                Sikkerlogg.debug { "Fant ikke oppfølgingsenhet for fnr ${fnr.verdi} - $kontekst. Request: $jsonPayload. Response: $body" }
                                 KanIkkeHenteOppfølgingsenhet.ManglerOppfolgingsenhet(veilarboppfolgingKall = kall).left()
                             } else {
                                 NavkontorMedMetadata(
