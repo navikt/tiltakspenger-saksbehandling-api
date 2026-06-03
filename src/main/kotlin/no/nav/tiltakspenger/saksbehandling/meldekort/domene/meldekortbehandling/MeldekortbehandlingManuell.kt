@@ -135,30 +135,34 @@ data class MeldekortbehandlingManuell(
         val iverksattTidspunkt = nå(clock)
 
         val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.let { kl ->
-            when (kl.resultat) {
-                is Klagebehandlingsresultat.Opprettholdt -> kl.iverksettOpprettholdelse(
-                    IverksettOpprettholdelseKommando(
-                        sakId = sakId,
-                        klagebehandlingId = kl.id,
-                        iverksattTidspunkt = iverksattTidspunkt,
-                        correlationId = correlationId,
-                    ),
-                ).getOrElse {
-                    throw IllegalStateException("Feil ved iverksetting av opprettholdelse for meldekortbehandling $id: $it, sakId: $sakId")
-                }
+            if (kl.erFerdigstilt) {
+                kl.nullstillÅpenBehandlingId() to Statistikkhendelser.empty()
+            } else {
+                when (kl.resultat) {
+                    is Klagebehandlingsresultat.Opprettholdt -> kl.iverksettOpprettholdelse(
+                        IverksettOpprettholdelseKommando(
+                            sakId = sakId,
+                            klagebehandlingId = kl.id,
+                            iverksattTidspunkt = iverksattTidspunkt,
+                            correlationId = correlationId,
+                        ),
+                    ).getOrElse {
+                        throw IllegalStateException("Feil ved iverksetting av opprettholdelse for meldekortbehandling $id: $it, sakId: $sakId")
+                    }
 
-                is Klagebehandlingsresultat.Omgjør -> kl.iverksettOmgjøring(
-                    IverksettOmgjøringKommando(
-                        sakId = sakId,
-                        klagebehandlingId = kl.id,
-                        iverksattTidspunkt = iverksattTidspunkt,
-                        correlationId = correlationId,
-                    ),
-                ).getOrElse {
-                    throw IllegalStateException("Feil ved iverksetting av omgjøring for meldekortbehandling $id: $it, sakId: $sakId")
-                }
+                    is Klagebehandlingsresultat.Omgjør -> kl.iverksettOmgjøring(
+                        IverksettOmgjøringKommando(
+                            sakId = sakId,
+                            klagebehandlingId = kl.id,
+                            iverksattTidspunkt = iverksattTidspunkt,
+                            correlationId = correlationId,
+                        ),
+                    ).getOrElse {
+                        throw IllegalStateException("Feil ved iverksetting av omgjøring for meldekortbehandling $id: $it, sakId: $sakId")
+                    }
 
-                else -> null to Statistikkhendelser.empty()
+                    else -> null to Statistikkhendelser.empty()
+                }
             }
         } ?: (null to Statistikkhendelser.empty())
 

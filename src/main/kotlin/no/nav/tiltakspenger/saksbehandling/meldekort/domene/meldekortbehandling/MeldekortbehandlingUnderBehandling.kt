@@ -322,7 +322,12 @@ fun Sak.opprettManuellMeldekortbehandling(
         skalSendeVedtaksbrev = true,
         ventestatus = Ventestatus(),
         klagebehandling = klagebehandlingId?.let {
-            hentKlagebehandling(it).oppdaterBehandlingId(
+            val klagebehandling = hentKlagebehandling(it)
+
+            // verifiserer at vi har et meldekortvedtak vedtak som kan klages på
+            this.vedtaksliste.meldekortvedtaksliste.single { it.id == klagebehandling.formkrav.vedtakDetKlagesPå }
+
+            klagebehandling.oppdaterBehandlingId(
                 behandlingId = meldekortId,
                 saksbehandler = saksbehandler,
                 sistEndret = nå,

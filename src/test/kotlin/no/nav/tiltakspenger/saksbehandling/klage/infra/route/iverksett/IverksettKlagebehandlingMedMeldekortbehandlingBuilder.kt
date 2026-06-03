@@ -16,8 +16,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meld
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettholdKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgFerdigstillOppretholdtKlagebehandlingForSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -117,6 +119,80 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
         return Tuple4(
             oppdatertSak,
             meldekortvedtak,
+            iverksattMeldekort,
+            iverksattKlagebehandling,
+        )
+    }
+
+    /**
+     * Klagebehandling ferdigstilt (via STADFESTELSE fra klageinstansen) + meldekortbehandling iverksett-flyt.
+     *
+     * 1. Iverksetter søknadsbehandling og en første meldekortbehandling (vedtaket brukes som formkrav i klagebehandlingen)
+     * 2. Starter klagebehandling, opprettholder og sender til KA → KA svarer med STADFESTELSE → ferdigstiller (status FERDIGSTILT)
+     * 3. Oppretter meldekortbehandling for den FERDIGSTILTE klagen (KORRIGERING på første kjede) — klagen er altså ferdigstilt FØR meldekortbehandlingen opprettes
+     * 4. Behandler meldekortbehandlingen (oppdater → send til beslutning → ta)
+     * 5. Beslutter iverksetter meldekortbehandlingen → klagebehandling forblir FERDIGSTILT
+     */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgIverksettMeldekortbehandlingForFerdigstiltKlage(
+        tac: TestApplicationContext,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
+    ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, Klagebehandling>? {
+        val (sak, _, _, meldekortvedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(
+            tac = tac,
+            saksbehandler = saksbehandler,
+            beslutter = beslutter,
+        ) ?: return null
+
+        val (sakEtterFerdigstilling, ferdigstiltKlagebehandling, _) = opprettOgFerdigstillOppretholdtKlagebehandlingForSak(
+            tac = tac,
+            sak = sak,
+            vedtakDetKlagesPå = meldekortvedtak.id,
+            saksbehandler = saksbehandler,
+        ) ?: return null
+
+        val førsteMeldeperiode = sakEtterFerdigstilling.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
+        val (_, meldekortUnderBehandling, _) = opprettMeldekortbehandlingForKlage(
+            tac = tac,
+            sakId = sakEtterFerdigstilling.id,
+            klagebehandlingId = ferdigstiltKlagebehandling.id,
+            kjedeId = førsteMeldeperiode.kjedeId,
+            saksbehandler = saksbehandler,
+        ) ?: return null
+
+        oppdaterMeldekortbehandling(
+            tac = tac,
+            sakId = sakEtterFerdigstilling.id,
+            meldekortId = meldekortUnderBehandling.id,
+            saksbehandler = saksbehandler,
+        ) ?: return null
+
+        val (_, meldekortTilBeslutning, _) = sendMeldekortbehandlingTilBeslutning(
+            tac = tac,
+            sakId = sakEtterFerdigstilling.id,
+            meldekortId = meldekortUnderBehandling.id,
+            saksbehandler = saksbehandler,
+        ) ?: return null
+
+        taMeldekortbehanding(
+            tac = tac,
+            sakId = sakEtterFerdigstilling.id,
+            meldekortId = meldekortTilBeslutning.id,
+            saksbehandlerEllerBeslutter = beslutter,
+        ) ?: return null
+
+        val (oppdatertSak, meldekortvedtakKorrigering, iverksattMeldekort, _) = iverksettMeldekortbehandling(
+            tac = tac,
+            sakId = sakEtterFerdigstilling.id,
+            meldekortId = meldekortTilBeslutning.id,
+            beslutter = beslutter,
+        ) ?: return null
+
+        val iverksattKlagebehandling = oppdatertSak.hentKlagebehandling(ferdigstiltKlagebehandling.id)
+
+        return Tuple4(
+            oppdatertSak,
+            meldekortvedtakKorrigering,
             iverksattMeldekort,
             iverksattKlagebehandling,
         )

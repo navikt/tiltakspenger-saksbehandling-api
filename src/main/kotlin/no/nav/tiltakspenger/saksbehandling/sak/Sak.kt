@@ -242,4 +242,14 @@ data class Sak(
             .groupBy { it.second.internDeltakelseId }
             .map { (_, verdi) -> verdi.maxBy { it.first }.second }
             .let { Tiltaksdeltakelser(it) }
+
+    init {
+        val meldekortbehandlingerMedKlagebehandling = this.meldekortbehandlinger.filter { it.klagebehandling != null }
+
+        require(
+            meldekortbehandlingerMedKlagebehandling.all { meldekortbehandling ->
+                this.meldekortvedtaksliste.any { it.id == meldekortbehandling.klagebehandling!!.formkrav.vedtakDetKlagesPå }
+            },
+        )
+    }
 }
