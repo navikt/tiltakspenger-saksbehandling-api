@@ -186,13 +186,27 @@ class SammenligningVeilarboppfolgingKlient(
             }
 
             eksisterendeFeil != null -> {
-                logger.warn {
-                    "Sammenligning navkontor: eksisterende klient feilet (${eksisterendeFeil.beskrivelse()}), ny klient OK. " +
-                        "Se sikkerlogg for kontorId. $loggkontekst"
-                }
-                Sikkerlogg.warn {
-                    "Sammenligning navkontor: eksisterende klient feilet (${eksisterendeFeil.beskrivelse()}), ny klient OK " +
-                        "(nyeste sammenlignbar kontorId=${nyesteSammenlignbar?.kontorId}). $loggkontekst"
+                // ManglerOppfolgingsenhet er forventet (brukeren har ikke aktivt oppfølgingsnavkontor i gammel
+                // tjeneste) og er nettopp tilfellet der vi faller tilbake på ny klient. Da holder det med info.
+                val erForventetFallback = eksisterendeFeil is KanIkkeHenteOppfølgingsenhet.ManglerOppfolgingsenhet
+                if (erForventetFallback) {
+                    logger.info {
+                        "Sammenligning navkontor: eksisterende klient fant ingen oppfølgingsenhet, ny klient OK. " +
+                            "Se sikkerlogg for kontorId. $loggkontekst"
+                    }
+                    Sikkerlogg.info {
+                        "Sammenligning navkontor: eksisterende klient fant ingen oppfølgingsenhet, ny klient OK " +
+                            "(nyeste sammenlignbar kontorId=${nyesteSammenlignbar?.kontorId}). $loggkontekst"
+                    }
+                } else {
+                    logger.warn {
+                        "Sammenligning navkontor: eksisterende klient feilet (${eksisterendeFeil.beskrivelse()}), ny klient OK. " +
+                            "Se sikkerlogg for kontorId. $loggkontekst"
+                    }
+                    Sikkerlogg.warn {
+                        "Sammenligning navkontor: eksisterende klient feilet (${eksisterendeFeil.beskrivelse()}), ny klient OK " +
+                            "(nyeste sammenlignbar kontorId=${nyesteSammenlignbar?.kontorId}). $loggkontekst"
+                    }
                 }
             }
 
