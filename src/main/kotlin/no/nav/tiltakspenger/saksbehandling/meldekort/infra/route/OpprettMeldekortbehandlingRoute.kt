@@ -21,9 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
-import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
@@ -103,7 +103,13 @@ fun Route.opprettMeldekortbehandlingRoute(
                         )
 
                         if (body.v2) {
-                            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
+                            call.respondJson(
+                                value = behandling.tilMeldekortbehandlingDTOV2(
+                                    beregninger = sak.meldeperiodeBeregninger,
+                                    hentVedtak = { null },
+                                    hentTilbakekreving = { null },
+                                ),
+                            )
                         } else {
                             call.respondJson(value = sak.toMeldeperiodeKjedeDTO(kjedeId, clock))
                         }
