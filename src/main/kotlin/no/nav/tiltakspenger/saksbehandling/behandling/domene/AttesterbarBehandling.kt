@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import java.time.LocalDateTime
 
 /**
@@ -25,4 +26,5 @@ interface AttesterbarBehandling : Behandling {
     override val erAvsluttet: Boolean
     override val erAvbrutt: Boolean
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
+    val klagebehandling: Klagebehandling?
 }

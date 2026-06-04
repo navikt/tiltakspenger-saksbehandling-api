@@ -11,11 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedRammebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRammebehandlingMedOpprettholdtKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.rammebehandlingMedFerdigstiltOpprettholdtKlage
 import org.junit.jupiter.api.Test
 
 class OvertaKlagebehandlingMedRammebehandlingRouteTest {
@@ -51,7 +51,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     fun `overtar klagebehandlingen med status omgjøring_etter_klageinstans`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _, _) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandlingMedKlagebehandling, _, _) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
@@ -119,7 +119,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     fun `kan overta rammebehandling som er tilknyttet en ferdigstilt klagebehandling (gjort fra klagebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
             )!!
@@ -154,7 +154,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     fun `kan overta rammebehandling som er tilknyttet en ferdigstilt klagebehandling (gjort fra rammebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
             )!!

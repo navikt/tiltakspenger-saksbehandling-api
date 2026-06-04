@@ -7,12 +7,11 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgAvbrytKlagebehandlingMedMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbruttMeldekortbehandlingMedAvbruttKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandlingForSak
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
 import org.junit.jupiter.api.Test
 
 class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
@@ -23,27 +22,14 @@ class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
 
-            val (oppdatertSak, avbruttMeldekortbehandling, avbruttKlagebehandling) =
-                iverksettSøknadsbehandlingOgAvbrytKlagebehandlingMedMeldekortbehandling(
-                    tac = tac,
-                    saksbehandlerKlagebehandling = saksbehandler,
-                )!!
+            val (_, avbruttMeldekortbehandling, avbruttKlagebehandling) =
+                avbruttMeldekortbehandlingMedAvbruttKlagebehandling(tac = tac, saksbehandlerKlagebehandling = saksbehandler)!!
 
-            // Klagebehandling fra returverdien er avbrutt
-            avbruttKlagebehandling.status shouldBe Klagebehandlingsstatus.AVBRUTT
-            // Etter avbryt er åpenBehandlingId nullstilt (fjernBehandlingId setter den til null)
-            avbruttKlagebehandling.åpenBehandlingId shouldBe null
-
-            // Meldekortbehandlingen er avbrutt
             avbruttMeldekortbehandling.status shouldBe MeldekortbehandlingStatus.AVBRUTT
-
-            // Embedded klagebehandling i meldekortbehandling er AVBRUTT (lest fra DB etter avbryt klagebehandling)
             avbruttMeldekortbehandling.klagebehandling?.status shouldBe Klagebehandlingsstatus.AVBRUTT
 
-            // Klagebehandling på saken er avbrutt
-            val sakKlagebehandling = oppdatertSak.hentKlagebehandling(avbruttKlagebehandling.id)
-            sakKlagebehandling.status shouldBe Klagebehandlingsstatus.AVBRUTT
-            sakKlagebehandling.åpenBehandlingId shouldBe null
+            avbruttKlagebehandling.status shouldBe Klagebehandlingsstatus.AVBRUTT
+            avbruttKlagebehandling.åpenBehandlingId shouldBe null
         }
     }
 
@@ -54,13 +40,9 @@ class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
 
             val (sak, klagebehandling, meldekortbehandling) =
-                iverksettSøknadsbehandlingOgOpprettMeldekortbehandlingForKlage(
-                    tac = tac,
-                    saksbehandlerKlagebehandling = saksbehandler,
-                )
+                opprettMeldekortbehandlingForKlage(tac = tac, saksbehandlerKlagebehandling = saksbehandler)
 
-            // Forsøk å avbryte klagebehandlingen uten å avbryte meldekortbehandlingen først
-            avbrytKlagebehandling(
+            avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,

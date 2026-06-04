@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtattMeldekortbehandlingMedKlageFraKlageRoute
 import org.junit.jupiter.api.Test
 
 class OvertaKlagebehandlingMedMeldekortbehandlingRouteTest {
@@ -18,7 +18,7 @@ class OvertaKlagebehandlingMedMeldekortbehandlingRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val saksbehandlerSomOvertar = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling")
-            val (_, oppdatertMeldekortbehandling, _) = iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedMeldekortbehandling(
+            val (_, oppdatertMeldekortbehandling, _) = overtattMeldekortbehandlingMedKlageFraKlageRoute(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
                 saksbehandlerSomOvertarKlagebehandling = saksbehandlerSomOvertar,

@@ -7,33 +7,27 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettMeldekortbehandling.OpprettMeldekortbehandlingForKlageBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.settPåVent.SettMeldekortbehandlingPåVentBuilder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
 
-interface SettKlagebehandlingMedMeldekortbehandlingPåVentBuilder :
-    OpprettMeldekortbehandlingForKlageBuilder,
-    SettMeldekortbehandlingPåVentBuilder {
+interface SettKlagebehandlingMedMeldekortbehandlingPåVentBuilder {
 
-    /**
-     * Setter klagebehandlingen (og tilknyttet meldekortbehandling) på vent via klage-ruten.
-     * Meldekortbehandlingen er i status UNDER_BEHANDLING.
-     */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedMeldekortbehandlingPåVent(
+    suspend fun ApplicationTestBuilder.meldekortbehandlingMedKlageSattPåVentFraKlageRoute(
         tac: TestApplicationContext,
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
-        val (sak, klagebehandling, meldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandlingForKlage(
+        val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
         )
@@ -45,23 +39,19 @@ interface SettKlagebehandlingMedMeldekortbehandlingPåVentBuilder :
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        val oppdatertMeldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortbehandling.id) as MeldekortUnderBehandling
+        val oppdatertMeldekortbehandling =
+            oppdatertSak.hentMeldekortbehandling(meldekortbehandling.id) as MeldekortUnderBehandling
         return Triple(oppdatertSak, oppdatertMeldekortbehandling, json)
     }
 
-    /**
-     * Setter meldekortbehandling (med tilknyttet klagebehandling) på vent via meldekort-ruten.
-     * Meldekortbehandlingen er i status UNDER_BEHANDLING.
-     * Setter også klagebehandlingen på vent.
-     */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBehandling(
+    suspend fun ApplicationTestBuilder.meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         begrunnelse: String = "begrunnelse for å sette klage på vent",
         frist: LocalDate? = 14.januar(2025),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
-        val (sak, _, meldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandlingForKlage(
+        val (sak, _, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandler,
         )
@@ -77,12 +67,7 @@ interface SettKlagebehandlingMedMeldekortbehandlingPåVentBuilder :
         return Triple(oppdatertSak, oppdatertMeldekortbehandling as MeldekortUnderBehandling, json)
     }
 
-    /**
-     * Setter meldekortbehandling (med tilknyttet klagebehandling) på vent via meldekort-ruten.
-     * Meldekortbehandlingen er i status UNDER_BESLUTNING.
-     * Setter også klagebehandlingen på vent (via beslutteren).
-     */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBeslutning(
+    suspend fun ApplicationTestBuilder.meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
@@ -90,7 +75,7 @@ interface SettKlagebehandlingMedMeldekortbehandlingPåVentBuilder :
         frist: LocalDate? = 14.januar(2025),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Triple<Sak, MeldekortbehandlingManuell, SakDTOJson>? {
-        val (sak, _, meldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandlingForKlage(
+        val (sak, _, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandler,
         )

@@ -54,7 +54,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val ventestatus: Ventestatus
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
-    val klagebehandling: Klagebehandling?
+    override val klagebehandling: Klagebehandling?
 
     val type: MeldekortbehandlingType
 

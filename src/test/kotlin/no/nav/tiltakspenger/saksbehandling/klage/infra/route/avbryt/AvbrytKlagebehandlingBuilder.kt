@@ -36,7 +36,7 @@ interface AvbrytKlagebehandlingBuilder {
      * 2. Starter klagebehandling til avvisning
      * 3. Avbryter
      */
-    suspend fun ApplicationTestBuilder.opprettSakOgAvbrytKlagebehandling(
+    suspend fun ApplicationTestBuilder.avbruttKlagebehandlng(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -48,7 +48,7 @@ interface AvbrytKlagebehandlingBuilder {
             saksbehandler = saksbehandler,
             fnr = fnr,
         ) ?: return null
-        return avbrytKlagebehandling(
+        return avbrytKlagebehandlingForSak(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
@@ -62,7 +62,7 @@ interface AvbrytKlagebehandlingBuilder {
      * Forventer at det allerede finnes en sak og en åpen klagebehandling.
      * Merk at klagen ikke må være tilknyttet en åpen rammebehandling, da må den avbrytes først.
      */
-    suspend fun ApplicationTestBuilder.avbrytKlagebehandling(
+    suspend fun ApplicationTestBuilder.avbrytKlagebehandlingForSak(
         tac: TestApplicationContext,
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,

@@ -12,9 +12,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedMeldekortbehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingMedKlageSattPåVentFraKlageRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
@@ -34,7 +34,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, KlagebehandlingDTOJson>? {
-        val (sak, meldekortbehandling, _) = this.iverksettSøknadsbehandlingOgSettKlagebehandlingMedMeldekortbehandlingPåVent(
+        val (sak, meldekortbehandling, _) = this.meldekortbehandlingMedKlageSattPåVentFraKlageRoute(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
         ) ?: return null
@@ -63,7 +63,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
-        val (sak, meldekortbehandling, _) = this.iverksettSøknadsbehandlingOgSettKlagebehandlingMedMeldekortbehandlingPåVent(
+        val (sak, meldekortbehandling, _) = this.meldekortbehandlingMedKlageSattPåVentFraKlageRoute(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
         ) ?: return null
@@ -89,7 +89,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
-        val (sak, meldekortbehandling, _) = iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBehandling(
+        val (sak, meldekortbehandling, _) = meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute(
             tac = tac,
             saksbehandler = saksbehandler,
         ) ?: return null
@@ -116,7 +116,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Triple<Sak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
-        val (sak, meldekortbehandling, _) = iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBeslutning(
+        val (sak, meldekortbehandling, _) = meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute(
             tac = tac,
             saksbehandler = saksbehandler,
             beslutter = beslutter,

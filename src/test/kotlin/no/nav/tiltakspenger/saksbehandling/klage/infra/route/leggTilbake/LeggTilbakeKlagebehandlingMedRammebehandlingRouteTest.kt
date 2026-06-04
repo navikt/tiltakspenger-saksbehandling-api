@@ -10,11 +10,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgLeggKlagebehandlingMedRammebehandlingTilbake
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggKlagebehandlingTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.rammebehandlingMedFerdigstiltOpprettholdtKlage
 import org.junit.jupiter.api.Test
 
 class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
@@ -49,7 +49,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
@@ -73,7 +73,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
     fun `kan legge rammebehandling med tilknyttet ferdigstilt klage tilbake (fra klagebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
             )!!
@@ -107,7 +107,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerLeggeTilbake")
-            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
                 saksbehandler = saksbehandler,

@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgLeggKlagebehandlingMedMeldekortbehandlingTilbake
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.lagtTilbakeMeldekortbehandlingMedKlageFraKlageRoute
 import org.junit.jupiter.api.Test
 
 class LeggTilbakeKlagebehandlingMedMeldekortbehandlingRouteTest {
@@ -17,7 +17,7 @@ class LeggTilbakeKlagebehandlingMedMeldekortbehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (_, meldekortbehandlingLagtTilbake, _) = iverksettSøknadsbehandlingOgLeggKlagebehandlingMedMeldekortbehandlingTilbake(
+            val (_, meldekortbehandlingLagtTilbake, _) = lagtTilbakeMeldekortbehandlingMedKlageFraKlageRoute(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!

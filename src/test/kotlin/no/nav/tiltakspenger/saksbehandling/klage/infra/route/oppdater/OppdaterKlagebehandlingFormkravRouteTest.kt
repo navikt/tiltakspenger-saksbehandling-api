@@ -14,9 +14,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehand
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingFormkravForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRevurderingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import org.junit.jupiter.api.Test
 
@@ -108,7 +108,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     fun `kan ikke oppdatere formkrav til avvist dersom klage er omgjøring med rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetRevurderingForKlage(
                 tac = tac,
                 type = "REVURDERING_INNVILGELSE",
             )!!

@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgIverksettKlagebehandlingOpprettholdelseMedMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgIverksettMeldekortbehandlingForFerdigstiltKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortvedtakMedFerdigstiltKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortvedtakMedOpprettholdtKlage
 import org.junit.jupiter.api.Test
 
 class IverksettKlagebehandlingMedMeldekortbehandlingRouteTest {
@@ -19,9 +19,7 @@ class IverksettKlagebehandlingMedMeldekortbehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (sak, meldekortvedtak, iverksattMeldekort, iverksattKlagebehandling) =
-                iverksettSøknadsbehandlingOgIverksettKlagebehandlingOpprettholdelseMedMeldekortbehandling(
-                    tac = tac,
-                )!!
+                meldekortvedtakMedOpprettholdtKlage(tac = tac)!!
 
             iverksattKlagebehandling.status shouldBe Klagebehandlingsstatus.VEDTATT
             iverksattKlagebehandling.erVedtatt shouldBe true
@@ -46,7 +44,7 @@ class IverksettKlagebehandlingMedMeldekortbehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (_, meldekortvedtak, iverksattMeldekort, iverksattKlagebehandling) =
-                iverksettSøknadsbehandlingOgIverksettMeldekortbehandlingForFerdigstiltKlage(tac = tac)!!
+                meldekortvedtakMedFerdigstiltKlage(tac = tac)!!
 
             iverksattKlagebehandling.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
             iverksattKlagebehandling.erFerdigstilt shouldBe true

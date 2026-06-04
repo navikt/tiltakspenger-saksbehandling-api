@@ -7,15 +7,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbruttKlagebehandlng
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandlingForSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRammebehandlingMedOpprettholdtKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRevurderingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
@@ -27,7 +28,7 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `oppretter klage og deretter avbryter`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, klagebehandling, json) = opprettSakOgAvbrytKlagebehandling(
+            val (sak, klagebehandling, json) = avbruttKlagebehandlng(
                 tac = tac,
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
@@ -50,7 +51,7 @@ class AvbrytKlagebehandlingRouteTest {
             val (sak, _, rammevedtak, klagebehandling, _) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
-            val (_, _, json) = avbrytKlagebehandling(
+            val (_, _, json) = avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -76,7 +77,7 @@ class AvbrytKlagebehandlingRouteTest {
     fun `kan avbryte rammebehandling vi omgjør etter KA`() {
         val saksbehandler = ObjectMother.saksbehandler()
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _, _) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandlingMedKlagebehandling, _, _) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 saksbehandler = saksbehandler,
             )!!
@@ -96,7 +97,7 @@ class AvbrytKlagebehandlingRouteTest {
     fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling (søknadsbehandling)`() {
         val saksbehandler = ObjectMother.saksbehandler()
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedklagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedklagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
                 saksbehandlerSøknadsbehandling = saksbehandler,
                 saksbehandlerKlagebehandling = saksbehandler,
@@ -109,7 +110,7 @@ class AvbrytKlagebehandlingRouteTest {
                 rammebehandlingId = rammebehandlingMedklagebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
-            val (_, _, json) = avbrytKlagebehandling(
+            val (_, _, json) = avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -136,7 +137,7 @@ class AvbrytKlagebehandlingRouteTest {
     fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling (revurdering)`() {
         val saksbehandler = ObjectMother.saksbehandler()
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedklagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedklagebehandling, _) = opprettetRevurderingForKlage(
                 tac = tac,
                 saksbehandlerSøknadsbehandling = saksbehandler,
                 saksbehandlerKlagebehandling = saksbehandler,
@@ -150,7 +151,7 @@ class AvbrytKlagebehandlingRouteTest {
                 rammebehandlingId = rammebehandlingMedklagebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
-            val (_, _, json) = avbrytKlagebehandling(
+            val (_, _, json) = avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -176,12 +177,12 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan ikke avbryte hvis åpen tilknyttet rammebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val rammebehandlingId = sak.rammebehandlinger[1].id
-            avbrytKlagebehandling(
+            avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -203,7 +204,7 @@ class AvbrytKlagebehandlingRouteTest {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, klagevedtak, _) = opprettSakOgIverksettKlagebehandling(tac = tac)!!
             val klagebehandling = klagevedtak.behandling
-            avbrytKlagebehandling(
+            avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -223,8 +224,8 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan ikke avbryte avbrutt klage`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, klagebehandling, _) = opprettSakOgAvbrytKlagebehandling(tac = tac)!!
-            avbrytKlagebehandling(
+            val (sak, klagebehandling, _) = avbruttKlagebehandlng(tac = tac)!!
+            avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -244,7 +245,7 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan ikke avbryte vedtatt omgjort klage`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
@@ -274,7 +275,7 @@ class AvbrytKlagebehandlingRouteTest {
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 beslutter = beslutter,
             )
-            avbrytKlagebehandling(
+            avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,

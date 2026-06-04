@@ -11,12 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggKlagebehandlingTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.rammebehandlingMedFerdigstiltOpprettholdtKlage
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 /**
@@ -40,24 +39,14 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
-        erKlagerPartISaken: Boolean = true,
-        klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-        erKlagefristenOverholdt: Boolean = true,
-        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
-        erKlagenSignert: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
-        val (sak, rammebehandlingMedKlagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandlingMedKlagebehandling, _) = this.opprettetSøknadsbehandlingForKlage(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
             journalpostId = journalpostId,
-            erKlagerPartISaken = erKlagerPartISaken,
-            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
-            erKlagefristenOverholdt = erKlagefristenOverholdt,
-            erUnntakForKlagefrist = erUnntakForKlagefrist,
-            erKlagenSignert = erKlagenSignert,
         ) ?: return null
         val (oppdatertSak, oppdatertKlagebehandling, json) = leggKlagebehandlingTilbake(
             tac = tac,
@@ -77,7 +66,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple5<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson, KlagebehandlingDTOJson>? {
-        val (sak, rammebehandling, klagebehandling, _, klagebehandlingJson) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandling, klagebehandling, _, klagebehandlingJson) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
             tac = tac,
             type = type,
             saksbehandler = saksbehandler,

@@ -6,14 +6,14 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettMeldekortbehandling.OpprettMeldekortbehandlingForKlageBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytKlagebehandlingForSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder : OpprettMeldekortbehandlingForKlageBuilder {
+interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder {
     /**
      * 1. Iverksetter søknadsbehandling
      * 2. Oppretter klagebehandling vurdert til OMGJØR
@@ -21,7 +21,7 @@ interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder : OpprettMeldekortb
      * 4. Avbryter meldekortbehandlingen
      * 5. Avbryter klagebehandlingen
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgAvbrytKlagebehandlingMedMeldekortbehandling(
+    suspend fun ApplicationTestBuilder.avbruttMeldekortbehandlingMedAvbruttKlagebehandling(
         tac: TestApplicationContext,
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         begrunnelseAvbrytMeldekort: String = "begrunnelse for avbryt meldekortbehandling",
@@ -29,7 +29,7 @@ interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder : OpprettMeldekortb
         forventetStatusAvbrytKlage: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBodyAvbrytKlage: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, MeldekortbehandlingAvbrutt, Klagebehandling>? {
-        val (sak, klagebehandling, meldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandlingForKlage(
+        val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
         )
@@ -42,7 +42,7 @@ interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder : OpprettMeldekortb
             saksbehandler = saksbehandlerKlagebehandling,
         ) ?: return null
 
-        val (oppdatertSak, avbruttKlagebehandling, _) = avbrytKlagebehandling(
+        val (oppdatertSak, avbruttKlagebehandling, _) = avbrytKlagebehandlingForSak(
             tac = tac,
             sakId = sakEtterAvbrytMeldekort.id,
             klagebehandlingId = klagebehandling.id,
@@ -53,7 +53,7 @@ interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder : OpprettMeldekortb
         ) ?: return null
 
         val oppdatertMeldekortbehandling =
-            oppdatertSak.hentMeldekortbehandling(meldekortbehandling.id) as MeldekortbehandlingAvbrutt
+            oppdatertSak.hentMeldekortbehandling(avbruttMeldekortbehandling.id) as MeldekortbehandlingAvbrutt
 
         return Triple(oppdatertSak, oppdatertMeldekortbehandling, avbruttKlagebehandling)
     }

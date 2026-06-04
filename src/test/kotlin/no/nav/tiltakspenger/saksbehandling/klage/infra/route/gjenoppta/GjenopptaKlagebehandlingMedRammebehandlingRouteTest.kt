@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaRammebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptattMeldekortbehandlingMedKlageFraKlageRoute
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -29,7 +29,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
     fun `kan gjenoppta klagebehandling med rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedRammebehandling(
+            val (sak, rammebehandlingMedKlagebehandling, json) = gjenopptattMeldekortbehandlingMedKlageFraKlageRoute(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!

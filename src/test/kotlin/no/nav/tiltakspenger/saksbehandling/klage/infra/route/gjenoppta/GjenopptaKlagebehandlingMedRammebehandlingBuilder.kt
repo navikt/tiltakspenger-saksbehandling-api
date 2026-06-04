@@ -26,7 +26,7 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
      *  4. Setter klagebehandlingen på vent
      *  5. Gjenopptar klagebehandlingen
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedRammebehandling(
+    suspend fun ApplicationTestBuilder.gjenopptattMeldekortbehandlingMedKlageFraKlageRoute(
         tac: TestApplicationContext,
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -41,8 +41,6 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
             journalpostId = journalpostId,
-            erKlagefristenOverholdt = erKlagefristenOverholdt,
-            erUnntakForKlagefrist = erUnntakForKlagefrist,
         ) ?: return null
         val klagebehandling = rammebehandlingMedSøknadsbehandling.klagebehandling!!
         val (oppdatertSak, oppdatertKlagebehandling, sakJson) = gjenopptaKlagebehandling(

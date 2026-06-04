@@ -123,7 +123,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val utbetaling: BehandlingUtbetaling?
     val utbetalingskontroll: Utbetalingskontroll?
 
-    val klagebehandling: Klagebehandling?
+    override val klagebehandling: Klagebehandling?
 
     val skalSendeVedtaksbrev: Boolean
 

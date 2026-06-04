@@ -10,10 +10,9 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
@@ -35,18 +34,14 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
-        erKlagefristenOverholdt: Boolean = true,
-        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
-        val (sak, rammebehandlingMedSøknadsbehandling, _) = this.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandlingMedSøknadsbehandling, _) = this.opprettetSøknadsbehandlingForKlage(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
             journalpostId = journalpostId,
-            erKlagefristenOverholdt = erKlagefristenOverholdt,
-            erUnntakForKlagefrist = erUnntakForKlagefrist,
         ) ?: return null
         val (oppdatertSak, _, json) = settKlagebehandlingPåVent(
             tac = tac,
@@ -74,7 +69,7 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
         frist: LocalDate? = 14.januar(2025),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
     ): Triple<Sak, Rammebehandling, SakDTOJson>? {
-        val (sak, rammebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandling, _) = opprettetSøknadsbehandlingForKlage(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandler,
         ) ?: return null

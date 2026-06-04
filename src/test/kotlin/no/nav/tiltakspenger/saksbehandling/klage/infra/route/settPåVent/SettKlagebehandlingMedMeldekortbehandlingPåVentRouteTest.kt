@@ -11,9 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedMeldekortbehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingMedKlageSattPåVentFraKlageRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -23,7 +23,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (_, oppdatertMeldekortbehandling, sakJson) = iverksettSøknadsbehandlingOgSettKlagebehandlingMedMeldekortbehandlingPåVent(
+            val (_, oppdatertMeldekortbehandling, sakJson) = meldekortbehandlingMedKlageSattPåVentFraKlageRoute(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
@@ -71,7 +71,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling, sakJson) =
-                iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBehandling(
+                meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute(
                     tac = tac,
                     saksbehandler = saksbehandler,
                 )!!
@@ -148,7 +148,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val beslutter = ObjectMother.beslutter("beslutter")
             val (_, oppdatertMeldekortbehandling, sakJson) =
-                iverksettSøknadsbehandlingOgSettMeldekortbehandlingMedKlagebehandlingPåVentFraUnderBeslutning(
+                meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute(
                     tac = tac,
                     saksbehandler = saksbehandler,
                     beslutter = beslutter,

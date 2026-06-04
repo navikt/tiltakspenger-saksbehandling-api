@@ -8,9 +8,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -29,24 +28,14 @@ interface OvertaKlagebehandlingMedRammebehandlingBuilder {
         overtarFra: Saksbehandler = saksbehandlerKlagebehandling,
         saksbehandlerSomOvertaKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
-        erKlagerPartISaken: Boolean = true,
-        klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
-        erKlagefristenOverholdt: Boolean = true,
-        erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
-        erKlagenSignert: Boolean = true,
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Rammebehandling, SakDTOJson>? {
-        val (sak, rammebehandlingMedKlagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+        val (sak, rammebehandlingMedKlagebehandling, _) = this.opprettetSøknadsbehandlingForKlage(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
             journalpostId = journalpostId,
-            erKlagerPartISaken = erKlagerPartISaken,
-            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
-            erKlagefristenOverholdt = erKlagefristenOverholdt,
-            erUnntakForKlagefrist = erUnntakForKlagefrist,
-            erKlagenSignert = erKlagenSignert,
         ) ?: return null
         val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
         tac.clock.spol1timeFrem()

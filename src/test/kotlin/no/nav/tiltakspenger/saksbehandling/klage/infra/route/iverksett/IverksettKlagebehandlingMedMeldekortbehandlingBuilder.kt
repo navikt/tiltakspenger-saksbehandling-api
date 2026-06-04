@@ -14,12 +14,12 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.klageinstanshendels
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOpprettholdtKlagebehandlingForSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettholdKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgFerdigstillOppretholdtKlagebehandlingForSak
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlageForSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -42,7 +42,7 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
      * 7. Behandler meldekortbehandlingen (oppdater → send til beslutning → ta)
      * 8. Beslutter iverksetter meldekortbehandlingen → klagebehandling iverksettes (status VEDTATT)
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgIverksettKlagebehandlingOpprettholdelseMedMeldekortbehandling(
+    suspend fun ApplicationTestBuilder.meldekortvedtakMedOpprettholdtKlage(
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -54,8 +54,6 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
             saksbehandlerKlagebehandling = saksbehandler,
         ) ?: return null
 
-        // 5: Motta MEDHOLD fra klageinstansen → klagebehandling status blir MOTTATT_FRA_KLAGEINSTANS
-        // (og vil gå til OMGJØRING_ETTER_KLAGEINSTANS når opprettMeldekortbehandlingForKlage kalles)
         tac.mottaHendelseFraKlageinstansen(
             GenerererKlageinstanshendelse.avsluttetJson(
                 eventId = UUID.randomUUID().toString(),
@@ -68,13 +66,10 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
         )
         tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser()
 
-        // Status er nå MOTTATT_FRA_KLAGEINSTANS; den transisjonerer til OMGJØRING_ETTER_KLAGEINSTANS
-        // når opprettMeldekortbehandlingForKlage kalles (via oppdaterBehandlingId i domenet)
         val sakEtterKA = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
 
-        // 6: Opprett meldekortbehandling fra klage (dette transisjonerer klagebehandling til OMGJØRING_ETTER_KLAGEINSTANS)
         val førstKjede = sakEtterKA.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
-        val (_, meldekortUnderBehandling, _) = opprettMeldekortbehandlingForKlage(
+        val (_, meldekortUnderBehandling, _) = opprettMeldekortbehandlingForKlageForSak(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
@@ -82,7 +77,6 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
             saksbehandler = saksbehandler,
         ) ?: return null
 
-        // 7a: Oppdater meldekortbehandlingen (allerede UNDER_BEHANDLING etter opprettelse fra klage)
         oppdaterMeldekortbehandling(
             tac = tac,
             sakId = sak.id,
@@ -90,7 +84,6 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
             saksbehandler = saksbehandler,
         ) ?: return null
 
-        // 7b: Send til beslutning
         val (_, meldekortTilBeslutning, _) = sendMeldekortbehandlingTilBeslutning(
             tac = tac,
             sakId = sak.id,
@@ -98,7 +91,6 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
             saksbehandler = saksbehandler,
         ) ?: return null
 
-        // 7c: Beslutter tar behandlingen
         taMeldekortbehanding(
             tac = tac,
             sakId = sak.id,
@@ -106,7 +98,6 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
             saksbehandlerEllerBeslutter = beslutter,
         ) ?: return null
 
-        // 8: Iverksett meldekortbehandlingen (iverksetter også klagebehandlingen)
         val (oppdatertSak, meldekortvedtak, iverksattMeldekort, _) = iverksettMeldekortbehandling(
             tac = tac,
             sakId = sak.id,
@@ -133,7 +124,7 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
      * 4. Behandler meldekortbehandlingen (oppdater → send til beslutning → ta)
      * 5. Beslutter iverksetter meldekortbehandlingen → klagebehandling forblir FERDIGSTILT
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgIverksettMeldekortbehandlingForFerdigstiltKlage(
+    suspend fun ApplicationTestBuilder.meldekortvedtakMedFerdigstiltKlage(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
@@ -144,7 +135,7 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
             beslutter = beslutter,
         ) ?: return null
 
-        val (sakEtterFerdigstilling, ferdigstiltKlagebehandling, _) = opprettOgFerdigstillOppretholdtKlagebehandlingForSak(
+        val (sakEtterFerdigstilling, ferdigstiltKlagebehandling, _) = ferdigstiltOpprettholdtKlagebehandlingForSak(
             tac = tac,
             sak = sak,
             vedtakDetKlagesPå = meldekortvedtak.id,
@@ -152,7 +143,7 @@ interface IverksettKlagebehandlingMedMeldekortbehandlingBuilder {
         ) ?: return null
 
         val førsteMeldeperiode = sakEtterFerdigstilling.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
-        val (_, meldekortUnderBehandling, _) = opprettMeldekortbehandlingForKlage(
+        val (_, meldekortUnderBehandling, _) = opprettMeldekortbehandlingForKlageForSak(
             tac = tac,
             sakId = sakEtterFerdigstilling.id,
             klagebehandlingId = ferdigstiltKlagebehandling.id,

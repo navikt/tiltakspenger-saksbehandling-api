@@ -6,14 +6,14 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettMeldekortbehandling.OpprettMeldekortbehandlingForKlageBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder : OpprettMeldekortbehandlingForKlageBuilder {
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedMeldekortbehandling(
+interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder {
+    suspend fun ApplicationTestBuilder.overtattMeldekortbehandlingMedKlageFraKlageRoute(
         tac: TestApplicationContext,
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         overtarFra: Saksbehandler = saksbehandlerKlagebehandling,
@@ -21,7 +21,7 @@ interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder : OpprettMeldekortb
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
-        val (sak, klagebehandling, meldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandlingForKlage(
+        val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
         )

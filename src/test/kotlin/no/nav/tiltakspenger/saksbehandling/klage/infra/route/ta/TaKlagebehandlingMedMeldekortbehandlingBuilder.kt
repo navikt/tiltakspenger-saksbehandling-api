@@ -13,14 +13,14 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taKlage
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 interface TaKlagebehandlingMedMeldekortbehandlingBuilder : LeggKlagebehandlingMedMeldekortbehandlingTilbakeBuilder {
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedMeldekortbehandling(
+    suspend fun ApplicationTestBuilder.tattMeldekortbehandlingMedKlageFraKlageRoute(
         tac: TestApplicationContext,
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         saksbehandlerSomTarKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTarKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
-        val (sak, meldekortbehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgLeggKlagebehandlingMedMeldekortbehandlingTilbake(
+        val (sak, meldekortbehandlingMedKlagebehandling, _) = lagtTilbakeMeldekortbehandlingMedKlageFraKlageRoute(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
         ) ?: return null
