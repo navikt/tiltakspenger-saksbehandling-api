@@ -1,13 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -75,7 +76,7 @@ fun Route.opprettMeldekortbehandlingRoute(
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 opprettMeldekortbehandlingService.opprettBehandling(
-                    no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                         sakId = sakId,
                         kjedeId = kjedeId,
                         saksbehandler = saksbehandler,
@@ -83,29 +84,7 @@ fun Route.opprettMeldekortbehandlingRoute(
                         correlationId = correlationId,
                     ),
                 ).fold(
-                    {
-                        when (it) {
-                            is KanIkkeOppretteMeldekortbehandling.HenteNavKontorFeilet -> call.respond500InternalServerError(
-                                melding = "Kunne ikke hente Nav-kontor for brukeren",
-                                kode = "kunne_ikke_hente_navkontor",
-                            )
-
-                            is KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil -> call.respond400BadRequest(
-                                melding = "Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: ${it.feil}",
-                                kode = it.feil.toString(),
-                            )
-
-                            is KanIkkeOppretteMeldekortbehandling.SaksbehandlerMismatch -> call.respond400BadRequest(
-                                melding = "Saksbehandler mismatch: forventet ${it.forventetSaksbehandler}",
-                                kode = "saksbehandler_mismatch",
-                            )
-
-                            is KanIkkeOppretteMeldekortbehandling.FinnesÅpenBehandling -> call.respond400BadRequest(
-                                melding = "Det finnes allerede en åpen behandling for klagen: ${it.behandlingId}",
-                                kode = "finnes_apen_behandling",
-                            )
-                        }
-                    },
+                    { call.respondJson(statusAndValue = it.tilStatusOgErrorJson()) },
                     { (sak, behandling) ->
                         auditService.logMedSakId(
                             sakId = sakId,
@@ -132,4 +111,38 @@ fun Route.opprettMeldekortbehandlingRoute(
             }
         }
     }
+}
+
+fun KanIkkeOppretteMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KanIkkeOppretteMeldekortbehandling.HenteNavKontorFeilet -> Pair(
+        HttpStatusCode.InternalServerError,
+        ErrorJson(
+            melding = "Kunne ikke hente Nav-kontor for brukeren",
+            kode = "kunne_ikke_hente_navkontor",
+        ),
+    )
+
+    is KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil -> Pair(
+        HttpStatusCode.BadRequest,
+        ErrorJson(
+            melding = "Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: ${this.feil}",
+            kode = this.feil.toString(),
+        ),
+    )
+
+    is KanIkkeOppretteMeldekortbehandling.SaksbehandlerMismatch -> Pair(
+        HttpStatusCode.InternalServerError,
+        ErrorJson(
+            melding = "Saksbehandler mismatch: forventet ${this.forventetSaksbehandler}",
+            kode = "saksbehandler_mismatch",
+        ),
+    )
+
+    is KanIkkeOppretteMeldekortbehandling.FinnesÅpenBehandling -> Pair(
+        HttpStatusCode.BadRequest,
+        ErrorJson(
+            melding = "Det finnes allerede en åpen behandling for klagen: ${this.behandlingId}",
+            kode = "finnes_apen_behandling",
+        ),
+    )
 }

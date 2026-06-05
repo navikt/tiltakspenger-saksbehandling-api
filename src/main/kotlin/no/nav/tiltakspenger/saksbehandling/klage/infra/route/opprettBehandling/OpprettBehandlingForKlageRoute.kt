@@ -36,7 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.KanIkkeOppretteBehandli
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageResultat
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageService
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.tilStatusOgErrorJson
 import java.time.Clock
 
 private data class OpprettBehandlingForKlageRequest(
@@ -177,30 +177,7 @@ fun Route.opprettBehandlingForKlageRoute(
 
 private fun KanIkkeOppretteBehandlingForKlage.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson>? {
     return when (this) {
-        is KanIkkeOppretteBehandlingForKlage.KanIkkeOppretteMeldekortbehandling -> when (underliggende) {
-            KanIkkeOppretteMeldekortbehandling.HenteNavKontorFeilet -> null
-
-            is KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil -> Pair(
-                HttpStatusCode.BadRequest,
-                ErrorJson(
-                    "Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: ${underliggende.feil}",
-                    underliggende.feil.toString(),
-                ),
-            )
-
-            is KanIkkeOppretteMeldekortbehandling.SaksbehandlerMismatch -> Pair(
-                HttpStatusCode.BadRequest,
-                behandlingenEiesAvAnnenSaksbehandler(underliggende.forventetSaksbehandler),
-            )
-
-            is KanIkkeOppretteMeldekortbehandling.FinnesÅpenBehandling -> Pair(
-                HttpStatusCode.BadRequest,
-                ErrorJson(
-                    "Det finnes allerede en åpen behandling ${underliggende.behandlingId} for denne klagebehandlingen.",
-                    "finnes_åpen_behandling",
-                ),
-            )
-        }
+        is KanIkkeOppretteBehandlingForKlage.KanIkkeOppretteMeldekortbehandling -> this.underliggende.tilStatusOgErrorJson()
 
         is KanIkkeOppretteBehandlingForKlage.SaksbehandlerMismatch -> Pair(
             HttpStatusCode.BadRequest,
