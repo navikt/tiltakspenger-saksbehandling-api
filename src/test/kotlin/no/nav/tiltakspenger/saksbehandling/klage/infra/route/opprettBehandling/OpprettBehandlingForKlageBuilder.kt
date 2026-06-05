@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettBehandling
 
 import arrow.core.Tuple4
 import arrow.core.Tuple5
@@ -210,7 +210,7 @@ interface OpprettBehandlingForKlageBuilder {
         return Tuple4(
             sakEtterOpprettelseAvBehandling,
             rammebehandling as Rammebehandling,
-            klagebehandling,
+            rammebehandling.klagebehandling!!,
             json,
         )
     }

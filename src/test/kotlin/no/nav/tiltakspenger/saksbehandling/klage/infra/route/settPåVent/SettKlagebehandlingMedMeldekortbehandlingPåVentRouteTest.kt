@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 
 class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
     @Test
-    fun `kan sette klagebehandling med meldekortbehandling på vent`() {
+    fun `kan sette klagebehandling med meldekortbehandling på vent fra klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
@@ -43,7 +43,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             val klageVentestatusArray = klageJson.get("ventestatus")
             klageVentestatusArray.size() shouldBe 1
             klageVentestatusArray[0].also { hendelse ->
-                hendelse.get("sattPåVentAv").asString() shouldBe "saksbehandlerKlagebehandling"
+                hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
                 hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
@@ -56,7 +56,54 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             val meldekortVentestatusArray = meldekortJson.get("ventestatus")
             meldekortVentestatusArray.size() shouldBe 1
             meldekortVentestatusArray[0].also { hendelse ->
-                hendelse.get("sattPåVentAv").asString() shouldBe "saksbehandlerKlagebehandling"
+                hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
+                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.get("erSattPåVent").asBoolean() shouldBe true
+                hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
+                hendelse.get("frist").asString() shouldBe "2025-01-14"
+            }
+        }
+    }
+
+    @Test
+    fun `kan sette klagebehandling med meldekortbehandling på vent fra meldekortbehandling`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val (_, oppdatertMeldekortbehandling, sakJson) = meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute(
+                tac = tac,
+                saksbehandler = saksbehandler,
+            )!!
+            val oppdatertKlagebehandling = requireNotNull(oppdatertMeldekortbehandling.klagebehandling)
+
+            oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertKlagebehandling.saksbehandler shouldBe null
+            oppdatertKlagebehandling.ventestatus.erSattPåVent shouldBe true
+
+            oppdatertMeldekortbehandling.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+            oppdatertMeldekortbehandling.saksbehandler shouldBe null
+            oppdatertMeldekortbehandling.ventestatus.erSattPåVent shouldBe true
+
+            val klageJson = sakJson.get("klageBehandlinger").first()
+            klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+            klageJson.get("saksbehandler").isNull shouldBe true
+            val klageVentestatusArray = klageJson.get("ventestatus")
+            klageVentestatusArray.size() shouldBe 1
+            klageVentestatusArray[0].also { hendelse ->
+                hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
+                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.get("erSattPåVent").asBoolean() shouldBe true
+                hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
+                hendelse.get("frist").asString() shouldBe "2025-01-14"
+            }
+
+            val meldekortJson = sakJson.get("meldekortbehandlinger").get(oppdatertMeldekortbehandling.id.toString())
+            meldekortJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+            meldekortJson.get("saksbehandler").isNull shouldBe true
+            val meldekortVentestatusArray = meldekortJson.get("ventestatus")
+            meldekortVentestatusArray.size() shouldBe 1
+            meldekortVentestatusArray[0].also { hendelse ->
+                hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
                 hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
