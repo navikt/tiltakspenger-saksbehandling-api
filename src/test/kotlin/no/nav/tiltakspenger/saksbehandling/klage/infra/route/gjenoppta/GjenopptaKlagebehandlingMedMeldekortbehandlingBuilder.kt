@@ -28,7 +28,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
      *  4. Setter klagebehandlingen på vent (setter også meldekortbehandlingen på vent)
      *  5. Gjenopptar klagebehandlingen via klage-endepunktet (gjenopptar også meldekortbehandlingen)
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedMeldekortbehandling(
+    suspend fun ApplicationTestBuilder.gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlageRoute(
         tac: TestApplicationContext,
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
@@ -57,7 +57,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
      *  4. Setter klagebehandlingen på vent (setter også meldekortbehandlingen på vent)
      *  5. Gjenopptar via meldekortbehandling-endepunktet (gjenopptar også klagebehandlingen)
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingForKlage(
+    suspend fun ApplicationTestBuilder.gjenopptattMeldekortbehandlngMedKlagebehandlingFraMeldekortbehandling(
         tac: TestApplicationContext,
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
@@ -84,7 +84,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
      *  4. Setter meldekortbehandlingen på vent via meldekort-ruten (setter også klagebehandlingen på vent)
      *  5. Gjenopptar via meldekortbehandling-endepunktet (gjenopptar også klagebehandlingen)
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBehandling(
+    suspend fun ApplicationTestBuilder.gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBehanlingFraMeldekortRoute(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
@@ -107,10 +107,10 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
      *  2. Starter klagebehandling med godkjente formkrav
      *  3. Oppdaterer klagebehandlingen til medhold/omgjøring; oppretter meldekortbehandling og knytter den til klagebehandlingen.
      *  4. Oppdaterer og sender meldekortbehandlingen til beslutning; beslutter tar behandlingen (UNDER_BESLUTNING)
-     *  5. Setter meldekortbehandlingen på vent via meldekort-ruten (setter IKKE klagebehandlingen på vent)
-     *  6. Gjenopptar via meldekortbehandling-endepunktet (gjenopptar IKKE klagebehandlingen)
+     *  5. Setter meldekortbehandlingen på vent via meldekort-ruten (setter også klagebehandlingen på vent)
+     *  6. Gjenopptar via meldekortbehandling-endepunktet (gjenopptar også klagebehandlingen)
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutning(
+    suspend fun ApplicationTestBuilder.gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutningFraMeldekortRoute(
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),

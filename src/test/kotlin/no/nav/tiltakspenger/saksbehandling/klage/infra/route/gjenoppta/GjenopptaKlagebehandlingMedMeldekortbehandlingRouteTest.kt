@@ -11,10 +11,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlageRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBehanlingFraMeldekortRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutningFraMeldekortRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptattMeldekortbehandlngMedKlagebehandlingFraMeldekortbehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -25,7 +25,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (_, oppdatertMeldekortbehandling, json) = iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedMeldekortbehandling(
+            val (_, oppdatertMeldekortbehandling, json) = gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlageRoute(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
@@ -118,7 +118,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (_, oppdatertMeldekortbehandling, json) = iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingForKlage(
+            val (_, oppdatertMeldekortbehandling, json) = gjenopptattMeldekortbehandlngMedKlagebehandlingFraMeldekortbehandling(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
@@ -197,7 +197,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling, json) =
-                iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBehandling(
+                gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBehanlingFraMeldekortRoute(
                     tac = tac,
                     saksbehandler = saksbehandler,
                 )!!
@@ -280,7 +280,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val beslutter = ObjectMother.beslutter("beslutter")
             val (_, oppdatertMeldekortbehandling, json) =
-                iverksettSøknadsbehandlingOgGjenopptaMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutning(
+                gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutningFraMeldekortRoute(
                     tac = tac,
                     saksbehandler = saksbehandler,
                     beslutter = beslutter,
