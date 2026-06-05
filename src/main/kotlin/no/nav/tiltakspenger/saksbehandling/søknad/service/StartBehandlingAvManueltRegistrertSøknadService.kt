@@ -60,7 +60,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         val manueltRegistrertSøknad = Søknad.opprett(
             sak = sak,
             journalpostId = kommando.journalpostId.toString(),
-            opprettet = nå(clock),
+            opprettet = journalpostValidering.datoOpprettet,
             tidsstempelHosOss = nå(clock),
             personopplysninger = Søknad.Personopplysninger(
                 fnr = personopplysninger.fnr,
