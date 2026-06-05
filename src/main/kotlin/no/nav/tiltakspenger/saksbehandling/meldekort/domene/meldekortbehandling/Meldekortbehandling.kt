@@ -108,6 +108,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val erAutomatiskBehandling: Boolean get() = this is MeldekortBehandletAutomatisk
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
+    val erUnderAktivBehandling: Boolean get() = this.status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING || this.status == MeldekortbehandlingStatus.UNDER_BEHANDLING || this.status == MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING || this.status == MeldekortbehandlingStatus.UNDER_BESLUTNING || erUnderkjent
+
     fun erÅpen(): Boolean = !erAvsluttet
 
     /**
