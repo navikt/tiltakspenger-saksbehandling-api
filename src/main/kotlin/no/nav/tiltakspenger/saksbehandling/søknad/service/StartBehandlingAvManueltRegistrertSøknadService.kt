@@ -43,17 +43,17 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         val sak = sakService.hentForSaksnummer(saksnummer)
         val journalpostValidering = journalpostService.hentOgValiderJournalpost(sak.fnr, kommando.journalpostId)
 
-//        if (!journalpostValidering.journalpostFinnes) {
-//            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} finnes ikke")
-//        }
+        if (!journalpostValidering.journalpostFinnes) {
+            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} finnes ikke")
+        }
 
-//        if (journalpostValidering.datoOpprettet == null) {
-//            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} mangler datoOpprettet")
-//        }
+        if (journalpostValidering.datoOpprettet == null) {
+            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} mangler datoOpprettet")
+        }
 
-//        if (journalpostValidering.gjelderInnsendtFnr == false) {
-//            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} tilhører en annen bruker")
-//        }
+        if (journalpostValidering.gjelderInnsendtFnr == false) {
+            throw IllegalArgumentException("Journalpost ${kommando.journalpostId} tilhører en annen bruker")
+        }
 
         val personopplysninger = personService.hentPersonopplysninger(sak.fnr)
 
