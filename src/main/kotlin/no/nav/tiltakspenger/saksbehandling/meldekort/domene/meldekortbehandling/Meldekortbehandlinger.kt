@@ -159,7 +159,7 @@ data class Meldekortbehandlinger(
     }
 
     fun åpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Meldekortbehandling> {
-        return this.filter { it.erÅpen() && it.id == klagebehandlingId }
+        return this.filter { it.erÅpen() && it.klagebehandling?.id == klagebehandlingId }
     }
 
     init {

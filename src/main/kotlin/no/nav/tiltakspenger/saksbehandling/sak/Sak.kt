@@ -250,6 +250,8 @@ data class Sak(
             meldekortbehandlingerMedKlagebehandling.all { meldekortbehandling ->
                 this.meldekortvedtaksliste.any { it.id == meldekortbehandling.klagebehandling!!.formkrav.vedtakDetKlagesPå }
             },
-        )
+        ) {
+            "Fant meldekortbehandling med klagebehandling uten tilhørende meldekortvedtak på saken. sakId=$id, saksnummer=$saksnummer"
+        }
     }
 }
