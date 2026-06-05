@@ -20,6 +20,7 @@ data class BehandlingssammendragDTO(
     val resultat: RammebehandlingResultatTypeDTO?,
     val erUnderkjent: Boolean,
     val beløp: BigDecimal?,
+    val tilbakekrevingKilde: TilbakekrevingKildeDTO?,
 )
 
 enum class BehandlingssammendragTypeDTO {
@@ -30,4 +31,9 @@ enum class BehandlingssammendragTypeDTO {
     KORRIGERT_MELDEKORT,
     KLAGEBEHANDLING,
     TILBAKEKREVING,
+}
+
+enum class TilbakekrevingKildeDTO {
+    RAMMEVEDTAK,
+    MELDEKORT,
 }

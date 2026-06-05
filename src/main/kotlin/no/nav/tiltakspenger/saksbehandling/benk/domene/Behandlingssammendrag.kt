@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 
 /**
  *  [beløp] Benyttes kun for tilbakekreving
+ *  [tilbakekrevingKilde] Benyttes kun for tilbakekreving
  * */
 data class Behandlingssammendrag(
     val sakId: SakId,
@@ -33,6 +34,7 @@ data class Behandlingssammendrag(
     val erUnderkjent: Boolean,
     val resultat: RammebehandlingResultatTypeDTO?,
     val beløp: BigDecimal?,
+    val tilbakekrevingKilde: TilbakekrevingKilde? = null,
 ) {
     init {
         if (behandlingstype == BehandlingssammendragType.SØKNADSBEHANDLING) {

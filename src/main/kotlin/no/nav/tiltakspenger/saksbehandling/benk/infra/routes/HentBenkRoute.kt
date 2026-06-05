@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
+import no.nav.tiltakspenger.saksbehandling.benk.domene.TilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkOversiktService
 import no.nav.tiltakspenger.saksbehandling.benk.service.TilgangsfiltrertBenkOversikt
@@ -111,6 +112,7 @@ private fun Behandlingssammendrag.toDTO() = BehandlingssammendragDTO(
     resultat = resultat,
     erUnderkjent = erUnderkjent,
     beløp = beløp,
+    tilbakekrevingKilde = tilbakekrevingKilde?.toDTO(),
 )
 
 private fun BehandlingssammendragStatus.toBehandlingssammendragStatusDto(): BehandlingssammendragStatusDto =
@@ -131,4 +133,9 @@ private fun BehandlingssammendragType.toDTO(): BehandlingssammendragTypeDTO = wh
     BehandlingssammendragType.KORRIGERT_MELDEKORT -> BehandlingssammendragTypeDTO.KORRIGERT_MELDEKORT
     BehandlingssammendragType.KLAGEBEHANDLING -> BehandlingssammendragTypeDTO.KLAGEBEHANDLING
     BehandlingssammendragType.TILBAKEKREVING -> BehandlingssammendragTypeDTO.TILBAKEKREVING
+}
+
+private fun TilbakekrevingKilde.toDTO(): TilbakekrevingKildeDTO = when (this) {
+    TilbakekrevingKilde.RAMMEVEDTAK -> TilbakekrevingKildeDTO.RAMMEVEDTAK
+    TilbakekrevingKilde.MELDEKORT -> TilbakekrevingKildeDTO.MELDEKORT
 }

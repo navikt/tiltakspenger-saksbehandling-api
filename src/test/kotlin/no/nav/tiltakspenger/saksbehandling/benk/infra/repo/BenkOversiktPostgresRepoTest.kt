@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
+import no.nav.tiltakspenger.saksbehandling.benk.domene.TilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
@@ -951,6 +952,7 @@ class BenkOversiktPostgresRepoTest {
                 resultat = null,
                 erUnderkjent = false,
                 beløp = tilBehandling.totaltFeilutbetaltBeløp,
+                tilbakekrevingKilde = TilbakekrevingKilde.MELDEKORT,
             )
 
             actual[1] shouldBe Behandlingssammendrag(
@@ -970,6 +972,7 @@ class BenkOversiktPostgresRepoTest {
                 resultat = null,
                 erUnderkjent = false,
                 beløp = tilBehandling.totaltFeilutbetaltBeløp,
+                tilbakekrevingKilde = TilbakekrevingKilde.MELDEKORT,
             )
 
             actual[2] shouldBe Behandlingssammendrag(
@@ -989,6 +992,7 @@ class BenkOversiktPostgresRepoTest {
                 resultat = null,
                 erUnderkjent = false,
                 beløp = tilGodkjenning.totaltFeilutbetaltBeløp,
+                tilbakekrevingKilde = TilbakekrevingKilde.MELDEKORT,
             )
         }
     }
@@ -1069,6 +1073,7 @@ class BenkOversiktPostgresRepoTest {
                     resultat = null,
                     erUnderkjent = false,
                     beløp = tilbakekrevingOverMinstebeløp.totaltFeilutbetaltBeløp,
+                    tilbakekrevingKilde = TilbakekrevingKilde.MELDEKORT,
                 ),
             )
         }

@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
+import no.nav.tiltakspenger.saksbehandling.benk.domene.TilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo.Companion.IKKE_TILDELT
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
@@ -45,7 +46,8 @@ class BenkOversiktPostgresRepo(
                 null::date            as sattPåVentFrist,
                 null::timestamp with time zone as sist_endret,
                 null::jsonb           as attesteringer,
-                null::numeric         as beløp
+                null::numeric         as beløp,
+                null::text            as tilbakekrevingKilde
             from søknad sø
                 join sak sa on sø.sak_id = sa.id
             where 
@@ -71,7 +73,8 @@ class BenkOversiktPostgresRepo(
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
                 b.sist_endret       as sist_endret,
                 b.attesteringer     as attesteringer,
-                null::numeric       as beløp
+                null::numeric       as beløp,
+                null::text          as tilbakekrevingKilde
             from behandling b
                 join søknad s on s.id = b.soknad_id
                 join sak sa on b.sak_id = sa.id
@@ -97,7 +100,8 @@ class BenkOversiktPostgresRepo(
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
                 b.sist_endret   as sist_endret,
                 b.attesteringer as attesteringer,
-                null::numeric   as beløp
+                null::numeric   as beløp,
+                null::text      as tilbakekrevingKilde
             from behandling b
                 join sak sa on b.sak_id = sa.id
             where b.behandlingstype = 'REVURDERING'
@@ -122,7 +126,8 @@ class BenkOversiktPostgresRepo(
                 (m.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as sattPåVentFrist,
                 m.sist_endret         as sist_endret,
                 m.attesteringer       as attesteringer,
-                null::numeric         as beløp
+                null::numeric         as beløp,
+                null::text            as tilbakekrevingKilde
             from meldekortbehandling m
                 join sak s on m.sak_id = s.id
             where m.avbrutt is null
@@ -159,7 +164,8 @@ class BenkOversiktPostgresRepo(
                 null::date                     as sattPåVentFrist,
                 null::timestamp with time zone as sist_endret,
                 null::jsonb                    as attesteringer,
-                null::numeric                  as beløp
+                null::numeric                  as beløp,
+                null::text                     as tilbakekrevingKilde
             from sisteUbehandledeManuelleMeldekortPerKjede siste
             join sak s on s.id = siste.sak_id
             /*
@@ -196,7 +202,11 @@ class BenkOversiktPostgresRepo(
                 (tb.venter->>'gjenopptas')::date      as sattPåVentFrist,
                 tb.sist_endret            as sist_endret,
                 null::jsonb               as attesteringer,
-                tb.totalt_feilutbetalt_beløp as beløp
+                tb.totalt_feilutbetalt_beløp as beløp,
+                case
+                    when u.rammevedtak_id is not null then 'RAMMEVEDTAK'
+                    when u.meldekortvedtak_id is not null then 'MELDEKORT'
+                end                       as tilbakekrevingKilde
             from tilbakekreving_behandling tb
                 join sak s on tb.sak_id = s.id join utbetaling u on tb.utbetaling_id = u.id
             where tb.status in ('TIL_FORHÅNDSVARSEL', 'TIL_BEHANDLING', 'TIL_GODKJENNING')
@@ -222,7 +232,8 @@ class BenkOversiktPostgresRepo(
                 (k.ventestatus->'ventestatusHendelser'->-1->>'frist')::date             as sattPåVentFrist,
                 k.sist_endret           as sist_endret,
                 null::jsonb             as attesteringer,
-                null::numeric           as beløp
+                null::numeric           as beløp,
+                null::text              as tilbakekrevingKilde
             from klagebehandling k
                 join sak s on k.sak_id = s.id
             where k.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'MOTTATT_FRA_KLAGEINSTANS')
@@ -348,6 +359,7 @@ class BenkOversiktPostgresRepo(
         val erUnderkjent =
             stringOrNull("attesteringer")?.toAttesteringer()?.lastOrNull()?.isUnderkjent() ?: false
         val beløp = bigDecimalOrNull("beløp")
+        val tilbakekrevingKilde = stringOrNull("tilbakekrevingKilde")?.let { TilbakekrevingKilde.valueOf(it) }
 
         return BehandlingssammendragMedCount(
             Behandlingssammendrag(
@@ -367,6 +379,7 @@ class BenkOversiktPostgresRepo(
                 erUnderkjent = erUnderkjent,
                 resultat = resultat,
                 beløp = beløp,
+                tilbakekrevingKilde = tilbakekrevingKilde,
             ),
             totalAntall = count,
             totalAntallUfiltrert = unfilteredCount,
