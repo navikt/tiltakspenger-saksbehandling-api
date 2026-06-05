@@ -30,6 +30,7 @@ class OpprettMeldekortbehandlingService(
     private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
+
     data class OpprettMeldekortbehandlingKommando(
         val sakId: SakId,
         val kjedeId: MeldeperiodeKjedeId,

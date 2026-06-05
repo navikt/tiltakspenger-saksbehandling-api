@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 
 sealed interface KanIkkeAvbryteKlagebehandling {
     data class SaksbehandlerMismatch(val forventetSaksbehandler: String, val faktiskSaksbehandler: String) : KanIkkeAvbryteKlagebehandling
+
     data class KnyttetTilIkkeAvbruttBehandling(val behandlingId: List<BehandlingId>) : KanIkkeAvbryteKlagebehandling
+
     data class AlleredeAvsluttet(val status: Klagebehandlingsstatus) : KanIkkeAvbryteKlagebehandling
 }

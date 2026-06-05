@@ -161,6 +161,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling
 
     fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling
+
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling
 
     fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning? {

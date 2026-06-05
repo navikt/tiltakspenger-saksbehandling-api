@@ -93,6 +93,7 @@ data class MeldekortBehandletAutomatisk(
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {
         throw IllegalStateException("Kan ikke oppdatere simulering på automatisk behandlet meldekort")
     }
+
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {
         throw IllegalStateException("Automatisk behandlet meldekort kan ikke ha klagebehandling")
     }
