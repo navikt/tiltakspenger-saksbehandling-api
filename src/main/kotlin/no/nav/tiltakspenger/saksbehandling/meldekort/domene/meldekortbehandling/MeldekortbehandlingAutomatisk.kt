@@ -69,7 +69,7 @@ data class MeldekortBehandletAutomatisk(
     override val beregning: Beregning get() = meldeperioder.beregning!!
 
     init {
-        require(typeLegacy == MeldeperiodebehandlingType.FØRSTE_BEHANDLING) {
+        require(!harKorrigering) {
             "Vi støtter ikke automatisk behandling av korrigering fra bruker"
         }
         require(status === MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
