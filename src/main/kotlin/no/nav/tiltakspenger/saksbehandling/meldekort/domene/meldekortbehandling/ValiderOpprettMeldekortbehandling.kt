@@ -66,12 +66,12 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
 
     val sisteMeldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
-    if (sisteMeldeperiode.ingenDagerGirRett) {
-        return MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT.left()
-    }
-
     if (brukersMeldekort.meldeperiode != sisteMeldeperiode) {
         return MeldekortBehandletAutomatiskStatus.UTDATERT_MELDEPERIODE.left()
+    }
+
+    if (sisteMeldeperiode.ingenDagerGirRett) {
+        return MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT.left()
     }
 
     if (brukersMeldekort.antallDagerRegistrert > sisteMeldeperiode.maksAntallDagerForMeldeperiode) {
