@@ -45,7 +45,6 @@ data class MeldekortBehandletAutomatisk(
     override val opprettet: LocalDateTime,
     override val simulering: Simulering?,
     override val navkontor: Navkontor,
-    override val type: MeldekortbehandlingType,
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
     override val meldeperioder: Meldeperiodebehandlinger,
@@ -70,7 +69,7 @@ data class MeldekortBehandletAutomatisk(
     override val beregning: Beregning get() = meldeperioder.beregning!!
 
     init {
-        require(type == MeldekortbehandlingType.FØRSTE_BEHANDLING) {
+        require(typeLegacy == MeldeperiodebehandlingType.FØRSTE_BEHANDLING) {
             "Vi støtter ikke automatisk behandling av korrigering fra bruker"
         }
         require(status === MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
@@ -136,12 +135,11 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         fnr = this.fnr,
         opprettet = tidspunkt,
         navkontor = navkontor,
-        type = MeldekortbehandlingType.FØRSTE_BEHANDLING,
         status = MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
         simulering = null,
         sistEndret = tidspunkt,
         meldeperioder = Meldeperiodebehandlinger(
-            meldeperioder = nonEmptyListOf(brukersMeldekort.tilMeldeperiodebehandling()),
+            meldeperioder = nonEmptyListOf(brukersMeldekort.tilMeldeperiodebehandling(MeldeperiodebehandlingType.FØRSTE_BEHANDLING)),
             beregning = beregning,
         ),
     )

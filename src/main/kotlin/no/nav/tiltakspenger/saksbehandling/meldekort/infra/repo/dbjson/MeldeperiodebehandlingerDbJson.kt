@@ -25,6 +25,7 @@ private data class MeldeperiodebehandlingDbJson(
     val meldeperiodeId: String,
     val kjedeId: String,
     val brukersMeldekortId: String?,
+    val type: String,
     val dager: List<MeldekortDagDbJson>,
 ) {
 
@@ -43,6 +44,7 @@ private data class MeldeperiodebehandlingDbJson(
                 meldeperiode = meldeperiode,
             ),
             brukersMeldekort = brukersMeldekort,
+            type = this.type.tilMeldeperiodebehandlingType(),
         )
     }
 
@@ -80,6 +82,7 @@ private fun Meldeperiodebehandling.tilDbJson(): MeldeperiodebehandlingDbJson {
         meldeperiodeId = meldeperiode.id.toString(),
         kjedeId = meldeperiode.kjedeId.toString(),
         brukersMeldekortId = brukersMeldekort?.id?.toString(),
+        type = type.tilDb(),
         dager = dager.map { MeldekortDagDbJson(dato = it.dato, status = it.status.toDb()) },
     )
 }

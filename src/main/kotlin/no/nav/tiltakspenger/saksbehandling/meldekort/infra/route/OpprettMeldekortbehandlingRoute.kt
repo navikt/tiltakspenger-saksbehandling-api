@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
@@ -30,7 +29,6 @@ import java.time.Clock
 private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
 
 private data class OpprettMeldekortbehandlingBody(
-    val type: MeldekortbehandlingTypeDTO? = null,
     val v2: Boolean = false,
 )
 
@@ -62,14 +60,6 @@ fun Route.opprettMeldekortbehandlingRoute(
                         )
                         return@withMeldeperiodeKjedeId
                     }
-                }
-
-                if (body.v2 && body.type == null) {
-                    call.respond400BadRequest(
-                        melding = "type må være satt når v2=true",
-                        kode = "type_mangler",
-                    )
-                    return@withMeldeperiodeKjedeId
                 }
 
                 val correlationId = call.correlationId()

@@ -55,7 +55,6 @@ data class MeldekortUnderBehandling(
     override val opprettet: LocalDateTime,
     override val navkontor: Navkontor,
     override val saksbehandler: String?,
-    override val type: MeldekortbehandlingType,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val sendtTilBeslutning: LocalDateTime?,
@@ -126,7 +125,6 @@ data class MeldekortUnderBehandling(
             status = MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
             iverksattTidspunkt = null,
             navkontor = this.navkontor,
-            type = this.type,
             begrunnelse = this.begrunnelse,
             attesteringer = this.attesteringer,
             sistEndret = nå(clock),
@@ -294,7 +292,7 @@ fun Sak.opprettManuellMeldekortbehandling(
 
     val behandlingerForKjede = this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
     val type =
-        if (behandlingerForKjede.isEmpty()) MeldekortbehandlingType.FØRSTE_BEHANDLING else MeldekortbehandlingType.KORRIGERING
+        if (behandlingerForKjede.isEmpty()) MeldeperiodebehandlingType.FØRSTE_BEHANDLING else MeldeperiodebehandlingType.KORRIGERING
 
     val meldekortId = MeldekortId.random()
     val nå = nå(clock)
@@ -307,7 +305,6 @@ fun Sak.opprettManuellMeldekortbehandling(
         opprettet = nå,
         navkontor = navkontor,
         saksbehandler = saksbehandler.navIdent,
-        type = type,
         begrunnelse = null,
         attesteringer = Attesteringer.empty(),
         sendtTilBeslutning = null,
@@ -316,7 +313,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         sistEndret = nå,
         fritekstTilVedtaksbrev = null,
         meldeperioder = Meldeperiodebehandlinger(
-            meldeperioder = nonEmptyListOf(meldeperiode.tilMeldeperiodebehandling()),
+            meldeperioder = nonEmptyListOf(meldeperiode.tilMeldeperiodebehandling(type)),
             beregning = null,
         ),
         skalSendeVedtaksbrev = true,

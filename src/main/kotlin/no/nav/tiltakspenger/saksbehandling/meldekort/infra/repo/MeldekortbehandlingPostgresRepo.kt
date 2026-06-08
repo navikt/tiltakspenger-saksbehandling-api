@@ -33,9 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDbJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldekortbehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toMeldekortbehandlingStatus
@@ -75,7 +73,6 @@ class MeldekortbehandlingPostgresRepo(
                         iverksatt_tidspunkt,
                         sendt_til_beslutning,
                         navkontor_navn,
-                        type,
                         begrunnelse,
                         attesteringer,
                         avbrutt,
@@ -100,7 +97,6 @@ class MeldekortbehandlingPostgresRepo(
                         :iverksatt_tidspunkt,
                         :sendt_til_beslutning,
                         :navkontor_navn,
-                        :type,
                         :begrunnelse,
                         to_jsonb(:attesteringer::jsonb),
                         to_jsonb(:avbrutt::jsonb),
@@ -127,7 +123,6 @@ class MeldekortbehandlingPostgresRepo(
                     "iverksatt_tidspunkt" to meldekortbehandling.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
                     "navkontor_navn" to meldekortbehandling.navkontor.kontornavn,
-                    "type" to meldekortbehandling.type.tilDb(),
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
@@ -504,7 +499,6 @@ class MeldekortbehandlingPostgresRepo(
             val navkontorNavn = row.stringOrNull("navkontor_navn")
             val fnr = Fnr.fromString(row.string("fnr"))
             val opprettet = row.localDateTime("opprettet")
-            val type = row.string("type").tilMeldekortbehandlingType()
             val begrunnelse = row.stringOrNull("begrunnelse")?.let { Begrunnelse.create(it) }
             val ventestatus = row.stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus()
 
@@ -557,7 +551,6 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         simulering = simulering,
-                        type = type,
                         status = status,
                         sistEndret = sistEndret,
                         meldeperioder = meldeperioder,
@@ -573,7 +566,6 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         saksbehandler = saksbehandler!!,
-                        type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
@@ -599,7 +591,6 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         saksbehandler = saksbehandler,
-                        type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
@@ -623,7 +614,6 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         saksbehandler = saksbehandler,
-                        type = type,
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         simulering = simulering,

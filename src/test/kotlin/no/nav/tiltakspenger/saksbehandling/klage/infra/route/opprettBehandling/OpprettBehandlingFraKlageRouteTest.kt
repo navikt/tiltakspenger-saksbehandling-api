@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingType
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOpprettholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -406,7 +406,7 @@ class OpprettBehandlingFraKlageRouteTest {
             klagebehandling.saksbehandler shouldBe "saksbehandlerKlagebehandling"
 
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
-            meldekortbehandling.type shouldBe MeldekortbehandlingType.KORRIGERING
+            meldekortbehandling.typeLegacy shouldBe MeldeperiodebehandlingType.KORRIGERING
             meldekortbehandling.sakId shouldBe sak.id
             meldekortbehandling.klagebehandling?.id shouldBe klagebehandling.id
             meldekortbehandling.saksbehandler shouldBe klagebehandling.saksbehandler

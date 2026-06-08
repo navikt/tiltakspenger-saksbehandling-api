@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
-enum class MeldekortbehandlingType {
+enum class MeldeperiodebehandlingType {
     FØRSTE_BEHANDLING,
     KORRIGERING,
 }

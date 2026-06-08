@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -33,10 +34,20 @@ suspend fun Sak.oppdaterMeldekort(
     return meldekort.oppdater(
         kommando = kommando,
         oppdatertePerioder = Meldeperiodebehandlinger(
-            meldeperioder = meldeperioder.map {
+            meldeperioder = meldeperioder.map { utfylt ->
+                val kjedeId = utfylt.meldeperiode.kjedeId
+                val tidligereBehandlingerForKjede = this.meldekortbehandlinger
+                    .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
+                    .filter { it.id != meldekort.id }
+
                 Meldeperiodebehandling(
-                    dager = it,
+                    dager = utfylt,
                     brukersMeldekort = null,
+                    type = if (tidligereBehandlingerForKjede.isEmpty()) {
+                        MeldeperiodebehandlingType.FØRSTE_BEHANDLING
+                    } else {
+                        MeldeperiodebehandlingType.KORRIGERING
+                    },
                 )
             },
             beregning = beregning,

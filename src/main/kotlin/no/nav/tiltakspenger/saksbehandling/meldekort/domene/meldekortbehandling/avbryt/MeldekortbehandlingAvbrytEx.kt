@@ -84,7 +84,6 @@ private fun Meldekortbehandling.avbryt(
         simulering = simulering,
         saksbehandler = saksbehandler,
         navkontor = navkontor,
-        type = type,
         begrunnelse = begrunnelse,
         attesteringer = attesteringer,
         avbrutt = Avbrutt(

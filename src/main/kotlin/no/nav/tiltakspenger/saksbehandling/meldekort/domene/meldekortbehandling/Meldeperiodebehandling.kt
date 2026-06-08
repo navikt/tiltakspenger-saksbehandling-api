@@ -13,6 +13,7 @@ data class Meldeperiodebehandling(
     val dager: UtfyltMeldeperiode,
     /** Foreløpig er kun automatiske behandlinger eksplisitt tilknyttet et brukers meldekort */
     val brukersMeldekort: BrukersMeldekort?,
+    val type: MeldeperiodebehandlingType,
 ) {
     val meldeperiode: Meldeperiode = dager.meldeperiode
 
@@ -33,16 +34,18 @@ data class Meldeperiodebehandling(
     }
 }
 
-fun Meldeperiode.tilMeldeperiodebehandling(): Meldeperiodebehandling {
+fun Meldeperiode.tilMeldeperiodebehandling(type: MeldeperiodebehandlingType): Meldeperiodebehandling {
     return Meldeperiodebehandling(
         dager = this.tilUtfyltMeldeperiode(),
         brukersMeldekort = null,
+        type = type,
     )
 }
 
-fun BrukersMeldekort.tilMeldeperiodebehandling(): Meldeperiodebehandling {
+fun BrukersMeldekort.tilMeldeperiodebehandling(type: MeldeperiodebehandlingType): Meldeperiodebehandling {
     return Meldeperiodebehandling(
         dager = this.tilUtfyltMeldeperiode(),
         brukersMeldekort = this,
+        type = type,
     )
 }

@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingStatusDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingTypeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodebehandlingTypeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagerDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toStatusDTO
@@ -50,7 +50,6 @@ data class MeldekortbehandlingDTOV2(
     val navkontor: String,
     val navkontorNavn: String?,
     val begrunnelse: String?,
-    val type: MeldekortbehandlingTypeDTO,
     val attesteringer: List<AttesteringDTO>,
     val utbetalingsstatus: UtbetalingsstatusDTO,
     /** Sammenhengende totalperiode på tvers av alle [meldeperioder]. */
@@ -75,6 +74,7 @@ data class MeldeperiodebehandlingDTO(
     val periode: PeriodeDTO,
     val dager: List<MeldekortDagDTO>,
     val beregning: MeldeperiodeBeregningDTOV2?,
+    val type: MeldeperiodebehandlingTypeDTO,
 )
 
 fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
@@ -100,7 +100,6 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
         begrunnelse = begrunnelse?.verdi,
-        type = type.tilDTO(),
         attesteringer = attesteringer.toAttesteringDTO(),
         utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDtoV2(),
         periode = meldeperioder.totalPeriode.toDTO(),
@@ -125,6 +124,7 @@ fun MeldeperiodebehandlingMedBeregning.tilMeldeperiodebehandlingDTO(): Meldeperi
         periode = meldeperiodebehandling.periode.toDTO(),
         dager = meldeperiodebehandling.dager.tilMeldekortDagerDTO(),
         beregning = meldeperiodeberegning?.tilMeldeperiodeBeregningDTOV2(),
+        type = meldeperiodebehandling.type.tilDTO(),
     )
 }
 
