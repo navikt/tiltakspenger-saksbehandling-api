@@ -58,11 +58,11 @@ data class BrukersMeldekort(
             InnmeldtStatus.FRAVÆR_GODKJENT_AV_NAV,
             InnmeldtStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
             InnmeldtStatus.FRAVÆR_ANNET,
-            InnmeldtStatus.IKKE_TILTAKSDAG,
             -> true
 
             InnmeldtStatus.IKKE_BESVART,
             InnmeldtStatus.IKKE_RETT_TIL_TILTAKSPENGER,
+            InnmeldtStatus.IKKE_TILTAKSDAG,
             -> false
         }
     }
