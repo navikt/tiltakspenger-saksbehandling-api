@@ -29,9 +29,9 @@ fun Klagebehandling.iverksettOmgjøring(
             status.toString(),
         ).left()
     }
-    require(resultat.rammebehandlingId.isNotEmpty()) { "RammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
-    require(resultat.åpenRammebehandlingId != null) {
-        "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
+    require(resultat.behandlingId.isNotEmpty()) { "BehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
+    require(resultat.åpenBehandlingId != null) {
+        "ÅpenBehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
     }
     // Vi aksepterer at den er null, siden denne funksjonen kun skal kalles fra Rammebehandling.
     require(kanIverksetteVedtak != false) { "Dette skal være håndtert over. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
@@ -40,7 +40,7 @@ fun Klagebehandling.iverksettOmgjøring(
         sistEndret = kommando.iverksattTidspunkt,
         iverksattTidspunkt = kommando.iverksattTidspunkt,
         status = VEDTATT,
-        resultat = resultat.nullstillÅpenRammebehandlingId(),
+        resultat = resultat.nullstillÅpenBehandlingId(),
     )
     val statistikkhendelser = Statistikkhendelser(oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING))
     return (oppdatertKlagebehandling to statistikkhendelser).right()
@@ -91,7 +91,7 @@ fun Klagebehandling.iverksettOpprettholdelse(
         ).left()
     }
 
-    if (!(kanOmgjøresEtterKA && erKnyttetTilRammebehandling)) {
+    if (!(kanOmgjøresEtterKA && erKnyttetTilBehandling)) {
         return KanIkkeIverksetteKlagebehandling.SkalIkkeOmgjøresEtterKA.left()
     }
 
@@ -101,9 +101,9 @@ fun Klagebehandling.iverksettOpprettholdelse(
             actualStatus = status.toString(),
         ).left()
     }
-    require(resultat.rammebehandlingId.isNotEmpty()) { "RammebehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
-    require(resultat.åpenRammebehandlingId != null) {
-        "ÅpenRammebehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
+    require(resultat.behandlingId.isNotEmpty()) { "BehandlingId skal ikke være null ved iverksettelse av opprettholdelse. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
+    require(resultat.åpenBehandlingId != null) {
+        "ÅpenBehandlingId skal ikke være null ved iverksettelse av omgjøring. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left."
     }
     // Vi aksepterer at den er null, siden denne funksjonen kun skal kalles fra Rammebehandling.
     require(kanIverksetteVedtak != false) { "Dette skal være håndtert over. Hvis dette skjer er det en bug som må fikses, eller så må det håndteres som en left." }
@@ -111,7 +111,7 @@ fun Klagebehandling.iverksettOpprettholdelse(
         sistEndret = kommando.iverksattTidspunkt,
         iverksattTidspunkt = kommando.iverksattTidspunkt,
         status = VEDTATT,
-        resultat = resultat.nullstillÅpenRammebehandlingId(),
+        resultat = resultat.nullstillÅpenBehandlingId(),
     )
     val statistikkhendelser = Statistikkhendelser(oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.AVSLUTTET_BEHANDLING))
     return (oppdatertKlagebehandling to statistikkhendelser).right()

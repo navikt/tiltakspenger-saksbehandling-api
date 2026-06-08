@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
+import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
@@ -20,12 +22,22 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Compa
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+private fun String.toBehandlingId(): BehandlingId {
+    if (startsWith(RammebehandlingId.PREFIX)) {
+        return RammebehandlingId.fromString(this)
+    }
+    if (startsWith(MeldekortId.PREFIX)) {
+        return MeldekortId.fromString(this)
+    }
+    throw IllegalArgumentException("Ukjent format for behandlingId i klagebehandlingsresultat: $this")
+}
+
 private data class KlagebehandlingsresultatDbJson(
     val type: KlagebehandlingsresultatDbEnum,
     val omgjørBegrunnelse: String?,
     val omgjørÅrsak: KlagebehandlingsOmgjørÅrsakDbEnum?,
-    val rammebehandlingId: List<String>,
-    val åpenRammebehandlingId: String?,
+    val behandlingId: List<String>,
+    val åpenBehandlingId: String?,
     val hjemler: List<KlagehjemmelDb>?,
     val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
     val brevdato: LocalDate?,
@@ -60,8 +72,8 @@ private data class KlagebehandlingsresultatDbJson(
             KlagebehandlingsresultatDbEnum.OMGJØR -> Omgjør(
                 årsak = omgjørÅrsak!!.toDomain(),
                 begrunnelse = Begrunnelse.create(omgjørBegrunnelse!!)!!,
-                rammebehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
-                åpenRammebehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
+                behandlingId = behandlingId.map { it.toBehandlingId() },
+                åpenBehandlingId = åpenBehandlingId?.toBehandlingId(),
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
             )
@@ -79,9 +91,9 @@ private data class KlagebehandlingsresultatDbJson(
                 oversendtKlageinstansenTidspunkt = oversendtKlageinstansenTidspunkt,
                 klageinstanshendelser = Klageinstanshendelser(klageinstanshendelser.map { it.toDomain() }),
                 ferdigstiltTidspunkt = ferdigstiltTidspunkt,
-                rammebehandlingId = rammebehandlingId.map { RammebehandlingId.fromString(it) },
+                behandlingId = behandlingId.map { it.toBehandlingId() },
                 begrunnelseFerdigstilling = begrunnelseFerdigstilling?.toBegrunnelse(),
-                åpenRammebehandlingId = åpenRammebehandlingId?.let { RammebehandlingId.fromString(it) },
+                åpenBehandlingId = åpenBehandlingId?.toBehandlingId(),
             )
         }
     }
@@ -96,7 +108,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         },
         omgjørBegrunnelse = (this as? Omgjør)?.begrunnelse?.verdi,
         omgjørÅrsak = (this as? Omgjør)?.årsak?.toDbEnum(),
-        rammebehandlingId = this.rammebehandlingId.map { it.toString() },
+        behandlingId = this.behandlingId.map { it.toString() },
         hjemler = (this as? Opprettholdt)?.hjemler?.map { it.toDb() },
         iverksattOpprettholdelseTidspunkt = (this as? Opprettholdt)?.iverksattOpprettholdelseTidspunkt,
         brevdato = (this as? Opprettholdt)?.brevdato,
@@ -109,7 +121,7 @@ fun Klagebehandlingsresultat.toDbJson(): String {
         klageinstanshendelser = (this as? Opprettholdt)?.klageinstanshendelser?.toDb() ?: emptyList(),
         ferdigstiltTidspunkt = this.ferdigstiltTidspunkt,
         begrunnelseFerdigstilling = this.begrunnelseFerdigstilling?.verdi,
-        åpenRammebehandlingId = this.åpenRammebehandlingId?.toString(),
+        åpenBehandlingId = this.åpenBehandlingId?.toString(),
     ).let { serialize(it) }
 }
 

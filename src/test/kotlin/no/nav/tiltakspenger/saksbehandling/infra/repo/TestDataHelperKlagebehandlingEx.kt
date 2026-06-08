@@ -31,7 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshen
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppretthold
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVent
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVentOgNullstillSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOpprettholdKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.vurder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -105,7 +105,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
     this.klagebehandlingRepo.lagreKlagebehandling(klagebehandling)
 
     if (settPåVent) {
-        val sattPåVent = klagebehandling.settPåVent(
+        val sattPåVent = klagebehandling.settPåVentOgNullstillSaksbehandler(
             kommando = SettKlagebehandlingPåVentKommando(
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -168,7 +168,7 @@ internal fun TestDataHelper.persisterOpprettholdtKlagebehandling(
             correlationId = CorrelationId.generate(),
             hjemler = hjemler,
         ),
-        rammebehandlingsstatus = null,
+        tilknyttetBehandlingsstatus = null,
         clock = clock,
     ).getOrFail()
         .oppdaterBrevtekst(

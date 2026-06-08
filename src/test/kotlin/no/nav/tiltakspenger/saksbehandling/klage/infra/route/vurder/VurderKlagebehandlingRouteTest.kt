@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -12,9 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
@@ -76,11 +75,10 @@ class VurderKlagebehandlingRouteTest {
     fun `kan endre årsak og begrunnelse ved rammebehandling under behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            rammebehandlingMedKlagebehandling as Søknadsbehandling
             val vedtakDetKlagesPå = sak.rammevedtaksliste.first()
             val (_, _, json) = vurderKlagebehandling(
                 tac = tac,
@@ -104,8 +102,8 @@ class VurderKlagebehandlingRouteTest {
                 kanIverksetteVedtak = null,
                 årsak = "ANNET",
                 begrunnelse = "oppdatert begrunnelse for omgjøring",
-                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                behandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenBehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
             )
         }
     }
@@ -114,18 +112,18 @@ class VurderKlagebehandlingRouteTest {
     fun `kan ikke vurdere klage når rammebehandling er klar til beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterSøknadsbehandlingInnvilgelse`(
+            oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
@@ -144,8 +142,8 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                         "melding": "Feil rammebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: KLAR_TIL_BESLUTNING",
-                         "kode": "feil_rammebehandlingsstatus"
+                         "melding": "Feil tilknyttet behandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: KLAR_TIL_BESLUTNING",
+                         "kode": "feil_tilknyttet_behandlingsstatus"
                       }
                     """.trimIndent()
                 },
@@ -157,18 +155,18 @@ class VurderKlagebehandlingRouteTest {
     fun `kan ikke vurdere klage når rammebehandling er under beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterSøknadsbehandlingInnvilgelse`(
+            oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
@@ -194,8 +192,8 @@ class VurderKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                       {
-                         "melding": "Feil rammebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: UNDER_BESLUTNING",
-                         "kode": "feil_rammebehandlingsstatus"
+                         "melding": "Feil tilknyttet behandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: UNDER_BESLUTNING",
+                         "kode": "feil_tilknyttet_behandlingsstatus"
                       }
                     """.trimIndent()
                 },
@@ -207,18 +205,18 @@ class VurderKlagebehandlingRouteTest {
     fun `kan ikke vurdere klage når rammebehandling er iverksatt`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandlingg, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandlingg, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandlingg.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterSøknadsbehandlingInnvilgelse`(
+            oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandlingg.id,
                 saksbehandler = saksbehandler,
             )
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandlingg.id,

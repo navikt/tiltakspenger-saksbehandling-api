@@ -20,7 +20,7 @@ sealed interface VurderKlagebehandlingKommando {
 }
 
 /**
- * rammebehandlingId genereres av systemet når klagen omgjøres til en rammebehandling.
+ * behandlingId genereres av systemet når klagen omgjøres til en ny behandling.
  */
 data class VurderOmgjørKlagebehandlingKommando(
     override val sakId: SakId,
@@ -33,12 +33,12 @@ data class VurderOmgjørKlagebehandlingKommando(
     /**
      * Brukes bare initielt.
      */
-    fun tilResultatUtenRammebehandlingId(): Klagebehandlingsresultat.Omgjør {
+    fun tilResultatUtenBehandlingId(): Klagebehandlingsresultat.Omgjør {
         return Klagebehandlingsresultat.Omgjør(
             årsak = årsak,
             begrunnelse = begrunnelse,
-            rammebehandlingId = emptyList(),
-            åpenRammebehandlingId = null,
+            behandlingId = emptyList(),
+            åpenBehandlingId = null,
             ferdigstiltTidspunkt = null,
             begrunnelseFerdigstilling = null,
         )

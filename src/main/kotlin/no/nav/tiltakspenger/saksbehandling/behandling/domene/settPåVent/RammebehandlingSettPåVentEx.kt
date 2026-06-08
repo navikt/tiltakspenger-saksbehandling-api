@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVent
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVentOgNullstillSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
@@ -109,7 +109,7 @@ private fun Rammebehandling.oppdaterKlagebehandling(
     clock: Clock,
 ): Pair<Klagebehandling?, Statistikkhendelser> {
     val klage = klagebehandling ?: return (null to Statistikkhendelser.empty())
-    return klage.settPåVent(
+    return klage.settPåVentOgNullstillSaksbehandler(
         kommando = SettKlagebehandlingPåVentKommando(
             sakId = kommando.sakId,
             klagebehandlingId = klage.id,
@@ -118,5 +118,6 @@ private fun Rammebehandling.oppdaterKlagebehandling(
             frist = kommando.frist,
         ),
         clock = clock,
+        sjekkSaksbehandler = this.status != UNDER_BESLUTNING,
     ).getOrThrow()
 }

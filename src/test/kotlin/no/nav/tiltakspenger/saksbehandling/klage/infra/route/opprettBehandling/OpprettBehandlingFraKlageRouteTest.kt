@@ -1,12 +1,11 @@
-package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling
+package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettBehandling
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.dato.februar
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
@@ -20,25 +19,28 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageInnsendingskilde
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOpprettholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRevurderingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 
-class OpprettRammebehandlingFraKlageRouteTest {
+class OpprettBehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette søknadsbehandling for klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            rammebehandlingMedKlagebehandling as Søknadsbehandling
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,
                 sakId = sak.id,
@@ -53,10 +55,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    behandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -95,12 +97,11 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette revurdering innvilgelse for klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = opprettetRevurderingForKlage(
                 tac = tac,
                 type = "REVURDERING_INNVILGELSE",
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            rammebehandlingMedKlagebehandling as Revurdering
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,
                 sakId = sak.id,
@@ -115,10 +116,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    behandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -157,12 +158,11 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette omgjøring for klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = opprettetRevurderingForKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            rammebehandlingMedKlagebehandling as Revurdering
             klagebehandling shouldBe Klagebehandling(
                 id = klagebehandling.id,
                 sakId = sak.id,
@@ -177,10 +177,10 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 resultat = Klagebehandlingsresultat.Omgjør(
                     årsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
                     begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
-                    rammebehandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
+                    behandlingId = nonEmptyListOf(rammebehandlingMedKlagebehandling.id),
                     ferdigstiltTidspunkt = null,
                     begrunnelseFerdigstilling = null,
-                    åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id,
+                    åpenBehandlingId = rammebehandlingMedKlagebehandling.id,
                 ),
                 formkrav = KlageFormkrav(
                     erKlagerPartISaken = true,
@@ -220,12 +220,12 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan ikke ha 2 åpne rammebehandlinger knyttet til samme klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            val søknad = (rammebehandlingMedKlagebehandling as Søknadsbehandling).søknad
-            opprettRammebehandlingForKlage(
+            val søknad = rammebehandlingMedKlagebehandling.søknad
+            opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
@@ -236,8 +236,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 forventetJsonBody = {
                     """
                         {
-                          "melding": "Det finnes allerede en åpen rammebehandling ${rammebehandlingMedKlagebehandling.id} for denne klagebehandlingen.",
-                          "kode": "finnes_åpen_rammebehandling"
+                          "melding": "Det finnes allerede en åpen behandling ${rammebehandlingMedKlagebehandling.id} for denne klagebehandlingen.",
+                          "kode": "finnes_åpen_behandling"
                         }
                     """.trimIndent()
                 },
@@ -248,11 +248,11 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette, og vedta rammebehandling for en ferdigstilt klagebehandling `() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, ferdigstiltKlagebehandling, _) = opprettSakOgFerdigstillOppretholdtKlagebehandling(
+            val (sak, ferdigstiltKlagebehandling, _) = ferdigstiltOpprettholdtKlagebehandling(
                 tac = tac,
             )!!
             val saksbehandler = ObjectMother.saksbehandler(ferdigstiltKlagebehandling.saksbehandler!!)
-            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+            val (_, opprettetRammebehandling) = opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = ferdigstiltKlagebehandling.id,
@@ -264,27 +264,27 @@ class OpprettRammebehandlingFraKlageRouteTest {
             oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
                 vedtaksperiode = ObjectMother.vedtaksperiode(),
             )
             sendRevurderingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
             taBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 saksbehandler = beslutter,
             )
             iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 beslutter = beslutter,
             )!!
 
@@ -298,11 +298,11 @@ class OpprettRammebehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette N antall behandlinger på ferdigstilt klage, så lenge det kun er 1 åpen om gangen`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, ferdigstiltKlagebehandling, _) = opprettSakOgFerdigstillOppretholdtKlagebehandling(
+            val (sak, ferdigstiltKlagebehandling, _) = ferdigstiltOpprettholdtKlagebehandling(
                 tac = tac,
             )!!
             val saksbehandler = ObjectMother.saksbehandler(ferdigstiltKlagebehandling.saksbehandler!!)
-            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+            val (_, opprettetRammebehandling) = opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = ferdigstiltKlagebehandling.id,
@@ -311,7 +311,7 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 type = "REVURDERING_OMGJØRING",
             )!!
             // bare en sanity check på at vi får feil
-            opprettRammebehandlingForKlage(
+            opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = ferdigstiltKlagebehandling.id,
@@ -322,8 +322,8 @@ class OpprettRammebehandlingFraKlageRouteTest {
                 forventetJsonBody = {
                     """
                         {
-                          "melding": "Det finnes allerede en åpen rammebehandling ${opprettetRammebehandling.id} for denne klagebehandlingen.",
-                          "kode": "finnes_åpen_rammebehandling"
+                          "melding": "Det finnes allerede en åpen behandling ${opprettetRammebehandling.id} for denne klagebehandlingen.",
+                          "kode": "finnes_åpen_behandling"
                         }
                     """.trimIndent()
                 },
@@ -332,32 +332,32 @@ class OpprettRammebehandlingFraKlageRouteTest {
             oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
                 vedtaksperiode = opprinneligvedtaksperiode.periode,
             )
             sendRevurderingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
             taBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 saksbehandler = beslutter,
             )
             val (_, nyttRammevedtak) = iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id,
+                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
                 beslutter = beslutter,
             )!!
 
             // andre behandling på ferdigstile klagebehandlingen
-            val (_, andreRammebehandling) = opprettRammebehandlingForKlage(
+            val (_, andreRammebehandling) = opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = ferdigstiltKlagebehandling.id,
@@ -369,29 +369,47 @@ class OpprettRammebehandlingFraKlageRouteTest {
             oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = andreRammebehandling.id,
+                behandlingId = andreRammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
                 vedtaksperiode = nyttRammevedtak.periode,
             )
             sendRevurderingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = andreRammebehandling.id,
+                behandlingId = andreRammebehandling.id as RammebehandlingId,
                 saksbehandler = saksbehandler,
             )
             val andreRammebehandlingBeslutter = ObjectMother.beslutter()
             taBehandling(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = andreRammebehandling.id,
+                behandlingId = andreRammebehandling.id as RammebehandlingId,
                 saksbehandler = andreRammebehandlingBeslutter,
             )
             iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
-                behandlingId = andreRammebehandling.id,
+                behandlingId = andreRammebehandling.id as RammebehandlingId,
                 beslutter = andreRammebehandlingBeslutter,
             )!!
+        }
+    }
+
+    @Test
+    fun `Kan opprette meldekortbehandling for klagebehandling`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
+                tac = tac,
+            )
+
+            klagebehandling.status shouldBe Klagebehandlingsstatus.UNDER_BEHANDLING
+            klagebehandling.saksbehandler shouldBe "saksbehandlerKlagebehandling"
+
+            meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+            meldekortbehandling.type shouldBe MeldekortbehandlingType.KORRIGERING
+            meldekortbehandling.sakId shouldBe sak.id
+            meldekortbehandling.klagebehandling?.id shouldBe klagebehandling.id
+            meldekortbehandling.saksbehandler shouldBe klagebehandling.saksbehandler
         }
     }
 }

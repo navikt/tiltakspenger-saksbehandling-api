@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
@@ -20,10 +22,18 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOmgjøringKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOpprettholdelseKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettOmgjøring
+import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettOpprettholdelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.underkjenn.KanIkkeUnderkjenneMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDateTime
@@ -56,6 +66,7 @@ data class MeldekortbehandlingManuell(
     override val skalSendeVedtaksbrev: Boolean,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
+    override val klagebehandling: Klagebehandling?,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
     override val beregning: Beregning get() = meldeperioder.beregning!!
@@ -93,12 +104,14 @@ data class MeldekortbehandlingManuell(
                 requireNotNull(sendtTilBeslutning)
             }
         }
+        initKlagebehandling()
     }
 
     fun iverksettMeldekort(
         beslutter: Saksbehandler,
         clock: Clock,
-    ): Either<KanIkkeIverksetteMeldekortbehandling, MeldekortbehandlingManuell> {
+        correlationId: CorrelationId,
+    ): Either<KanIkkeIverksetteMeldekortbehandling, Pair<MeldekortbehandlingManuell, Statistikkhendelser>> {
         if (saksbehandler == beslutter.navIdent) {
             return KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
         }
@@ -119,13 +132,50 @@ data class MeldekortbehandlingManuell(
             ),
         )
 
-        return this.copy(
-            beslutter = beslutter.navIdent,
-            status = MeldekortbehandlingStatus.GODKJENT,
-            iverksattTidspunkt = nå(clock),
-            attesteringer = attesteringer,
-            sistEndret = nå(clock),
-        ).right()
+        val iverksattTidspunkt = nå(clock)
+
+        val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.let { kl ->
+            if (kl.erFerdigstilt) {
+                kl.nullstillÅpenBehandlingId() to Statistikkhendelser.empty()
+            } else {
+                when (kl.resultat) {
+                    is Klagebehandlingsresultat.Opprettholdt -> kl.iverksettOpprettholdelse(
+                        IverksettOpprettholdelseKommando(
+                            sakId = sakId,
+                            klagebehandlingId = kl.id,
+                            iverksattTidspunkt = iverksattTidspunkt,
+                            correlationId = correlationId,
+                        ),
+                    ).getOrElse {
+                        throw IllegalStateException("Feil ved iverksetting av opprettholdelse for meldekortbehandling $id: $it, sakId: $sakId")
+                    }
+
+                    is Klagebehandlingsresultat.Omgjør -> kl.iverksettOmgjøring(
+                        IverksettOmgjøringKommando(
+                            sakId = sakId,
+                            klagebehandlingId = kl.id,
+                            iverksattTidspunkt = iverksattTidspunkt,
+                            correlationId = correlationId,
+                        ),
+                    ).getOrElse {
+                        throw IllegalStateException("Feil ved iverksetting av omgjøring for meldekortbehandling $id: $it, sakId: $sakId")
+                    }
+
+                    else -> null to Statistikkhendelser.empty()
+                }
+            }
+        } ?: (null to Statistikkhendelser.empty())
+
+        return (
+            this.copy(
+                beslutter = beslutter.navIdent,
+                status = MeldekortbehandlingStatus.GODKJENT,
+                iverksattTidspunkt = iverksattTidspunkt,
+                attesteringer = attesteringer,
+                sistEndret = iverksattTidspunkt,
+                klagebehandling = oppdatertKlagebehandling ?: klagebehandling,
+            ) to klagestatistikk
+            ).right()
     }
 
     fun underkjenn(
@@ -175,11 +225,12 @@ data class MeldekortbehandlingManuell(
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             meldeperioder = this.meldeperioder,
             ventestatus = ventestatus,
+            klagebehandling = klagebehandling,
         ).right()
     }
 
     override fun overta(
-        saksbehandler: Saksbehandler,
+        kommando: OvertaMeldekortbehandlingKommando,
         clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling> {
         return when (this.status) {
@@ -192,15 +243,15 @@ data class MeldekortbehandlingManuell(
             MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortbehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
 
             MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
-                krevBeslutterRolle(saksbehandler)
+                krevBeslutterRolle(kommando.saksbehandler)
                 if (this.beslutter == null) {
                     return KunneIkkeOvertaMeldekortbehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
                 }
-                if (this.saksbehandler == saksbehandler.navIdent) {
+                if (this.saksbehandler == kommando.saksbehandler.navIdent) {
                     return KunneIkkeOvertaMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
                 }
                 this.copy(
-                    beslutter = saksbehandler.navIdent,
+                    beslutter = kommando.saksbehandler.navIdent,
                     sistEndret = nå(clock),
                 ).right()
             }
@@ -241,6 +292,13 @@ data class MeldekortbehandlingManuell(
         throw IllegalStateException("Kan ikke oppdatere simulering for status $status. SakId: $sakId, meldekortId: $id")
     }
 
+    override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {
+        require(this.klagebehandling?.id == klagebehandling.id) {
+            "Kan ikke oppdatere meldekortbehandling $id med en annen klagebehandling enn den er knyttet til"
+        }
+        return this.copy(klagebehandling = klagebehandling)
+    }
+
     fun tilUnderBehandling(
         nyeMeldeperioder: Meldeperiodebehandlinger,
         tidspunkt: LocalDateTime,
@@ -277,6 +335,7 @@ data class MeldekortbehandlingManuell(
             meldeperioder = nyeMeldeperioder,
             skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
             ventestatus = ventestatus,
+            klagebehandling = klagebehandling,
         )
     }
 }

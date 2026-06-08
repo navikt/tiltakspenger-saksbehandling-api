@@ -112,7 +112,7 @@ interface OmgjørEtterKaKlagebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
         behandlingstype: String = "REVURDERING_OMGJØRING",
-        søknadId: `SøknadId`? = null,
+        søknadId: SøknadId? = null,
     ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
@@ -120,12 +120,21 @@ interface OmgjørEtterKaKlagebehandlingBuilder {
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/opprettRammebehandling")
+                path("/sak/$sakId/klage/$klagebehandlingId/opprettBehandling")
             },
             jwt = jwt,
         ) {
             //language=json
-            this.setBody("""{"type": "$behandlingstype", "søknadId": ${søknadId?.let { "\"$it\"" }}}""".trimIndent())
+            this.setBody(
+                """
+                {
+                    "type": "$behandlingstype",
+                    "søknadId": ${søknadId?.let { "\"$it\"" }},
+                    "vedtakIdSomSkalOmgjøres": null,
+                    "kjedeId": null
+                }
+                """.trimIndent(),
+            )
         }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(

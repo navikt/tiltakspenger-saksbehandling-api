@@ -40,16 +40,24 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebeh
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
+import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.SettMeldekortbehandlingPåVentService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 
 open class KlagebehandlingContext(
@@ -70,8 +78,16 @@ open class KlagebehandlingContext(
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
     private val gjenopptaRammebehandlingService: GjenopptaRammebehandlingService,
     private val settRammebehandlingPåVentService: SettRammebehandlingPåVentService,
+    private val taMeldekortbehandlingService: TaMeldekortbehandlingService,
+    private val opprettMeldekortbehandlingService: OpprettMeldekortbehandlingService,
+    private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
+    private val overtaMeldekortbehandlingService: OvertaMeldekortbehandlingService,
+    private val leggTilbakeMeldekortbehandlingService: LeggTilbakeMeldekortbehandlingService,
+    private val gjenopptaMeldekortbehandlingService: GjenopptaMeldekortbehandlingService,
+    private val settMeldekortbehandlingPåVentService: SettMeldekortbehandlingPåVentService,
     private val statistikkService: StatistikkService,
     private val rammevedtakRepo: RammevedtakRepo,
+    private val meldekortvedtakRepo: MeldekortvedtakRepo,
     private val texasClient: TexasClient,
 ) {
 
@@ -161,6 +177,7 @@ open class KlagebehandlingContext(
             klagevedtakRepo = klagevedtakRepo,
             klagebehandlingRepo = klagebehandlingRepo,
             rammevedtakRepo = rammevedtakRepo,
+            meldekortvedtakRepo = meldekortvedtakRepo,
             genererKlagebrevKlient = genererKlagebrevKlient,
             personService = personService,
             navIdentClient = navIdentClient,
@@ -192,17 +209,19 @@ open class KlagebehandlingContext(
             clock = clock,
         )
     }
-    open val opprettRammebehandlingFraKlageService by lazy {
-        OpprettRammebehandlingFraKlageService(
+    open val opprettBehandlingForKlageService by lazy {
+        OpprettBehandlingForKlageService(
             sakService = sakService,
             behandleSøknadPåNyttService = behandleSøknadPåNyttService,
             startRevurderingService = startRevurderingService,
+            opprettMeldekortbehandlingService = opprettMeldekortbehandlingService,
         )
     }
     open val overtaKlagebehandlingService by lazy {
         OvertaKlagebehandlingService(
             sakService = sakService,
             overtaRammebehandlingService = overtaRammebehandlingService,
+            overtaMeldekortbehandlingService = overtaMeldekortbehandlingService,
             klagebehandlingRepo = klagebehandlingRepo,
             clock = clock,
             statistikkService = statistikkService,
@@ -214,6 +233,7 @@ open class KlagebehandlingContext(
             sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
             taRammebehandlingService = taRammebehandlingService,
+            taMeldekortbehandlingService = taMeldekortbehandlingService,
             clock = clock,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
@@ -224,6 +244,7 @@ open class KlagebehandlingContext(
             sakService = sakService,
             klagebehandlingRepo = klagebehandlingRepo,
             leggTilbakeRammebehandlingService = leggTilbakeRammebehandlingService,
+            leggTilbakeMeldekortbehandlingService = leggTilbakeMeldekortbehandlingService,
             clock = clock,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
@@ -234,6 +255,7 @@ open class KlagebehandlingContext(
         GjenopptaKlagebehandlingService(
             sakService = sakService,
             gjenopptaRammebehandlingService = gjenopptaRammebehandlingService,
+            gjenopptaMeldekortbehandlingService = gjenopptaMeldekortbehandlingService,
             klagebehandlingRepo = klagebehandlingRepo,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
@@ -244,6 +266,7 @@ open class KlagebehandlingContext(
         SettKlagebehandlingPåVentService(
             sakService = sakService,
             settRammebehandlingPåVentService = settRammebehandlingPåVentService,
+            settMeldekortbehandlingPåVentService = settMeldekortbehandlingPåVentService,
             klagebehandlingRepo = klagebehandlingRepo,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,

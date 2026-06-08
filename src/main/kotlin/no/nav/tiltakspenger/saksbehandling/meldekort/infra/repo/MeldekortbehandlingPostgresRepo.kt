@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -79,7 +81,8 @@ class MeldekortbehandlingPostgresRepo(
                         avbrutt,
                         ventestatus,
                         sist_endret,
-                        skal_sende_vedtaksbrev
+                        skal_sende_vedtaksbrev,
+                        klagebehandling_id
                     ) values (
                         :id,
                         :sak_id,
@@ -103,7 +106,8 @@ class MeldekortbehandlingPostgresRepo(
                         to_jsonb(:avbrutt::jsonb),
                         to_jsonb(:ventestatus::jsonb),
                         :sist_endret,
-                        :skal_sende_vedtaksbrev
+                        :skal_sende_vedtaksbrev,
+                        :klagebehandling_id
                     )
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -130,8 +134,12 @@ class MeldekortbehandlingPostgresRepo(
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.id?.toString(),
                 ).asUpdate,
             )
+            meldekortbehandling.klagebehandling?.let {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(it, tx)
+            }
         }
     }
 
@@ -156,7 +164,8 @@ class MeldekortbehandlingPostgresRepo(
                         attesteringer = to_json(:attesteringer::jsonb),
                         avbrutt = to_jsonb(:avbrutt::jsonb),
                         ventestatus = to_jsonb(:ventestatus::jsonb),
-                        sist_endret = :sist_endret
+                        sist_endret = :sist_endret,
+                        klagebehandling_id = :klagebehandling_id
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -173,8 +182,12 @@ class MeldekortbehandlingPostgresRepo(
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.id?.toString(),
                 ).asUpdate,
             )
+            meldekortbehandling.klagebehandling?.let {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(it, tx)
+            }
         }
     }
 
@@ -204,7 +217,8 @@ class MeldekortbehandlingPostgresRepo(
                         ventestatus = to_jsonb(:ventestatus::jsonb),
                         sist_endret = :sist_endret,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
-                        skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
+                        skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
+                        klagebehandling_id = :klagebehandling_id
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -225,8 +239,12 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.id?.toString(),
                 ).asUpdate,
             )
+            meldekortbehandling.klagebehandling?.let {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(it, tx)
+            }
         }
     }
 
@@ -246,14 +264,15 @@ class MeldekortbehandlingPostgresRepo(
     }
 
     override fun overtaSaksbehandler(
-        meldekortId: MeldekortId,
-        nySaksbehandler: Saksbehandler,
+        meldekortbehandling: Meldekortbehandling,
         nåværendeSaksbehandler: String,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        return sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            meldekortbehandling.klagebehandling?.also {
+                KlagebehandlingPostgresRepo.overtaBehandling(it, nåværendeSaksbehandler, tx)
+            }
+            tx.run(
                 sqlQuery(
                     """
                     update meldekortbehandling set
@@ -262,10 +281,10 @@ class MeldekortbehandlingPostgresRepo(
                         sist_endret = :sist_endret
                     where id = :id and saksbehandler = :lagretSaksbehandler
                     """,
-                    "id" to meldekortId.toString(),
-                    "nySaksbehandler" to nySaksbehandler.navIdent,
+                    "id" to meldekortbehandling.id.toString(),
+                    "nySaksbehandler" to meldekortbehandling.saksbehandler,
                     "lagretSaksbehandler" to nåværendeSaksbehandler,
-                    "sist_endret" to sistEndret,
+                    "sist_endret" to meldekortbehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -294,14 +313,14 @@ class MeldekortbehandlingPostgresRepo(
     }
 
     override fun taBehandlingSaksbehandler(
-        meldekortId: MeldekortId,
-        saksbehandler: Saksbehandler,
-        meldekortbehandlingStatus: MeldekortbehandlingStatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        return sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            meldekortbehandling.klagebehandling?.also {
+                KlagebehandlingPostgresRepo.taBehandling(it, tx)
+            }
+            tx.run(
                 sqlQuery(
                     """
                     update meldekortbehandling set
@@ -311,10 +330,10 @@ class MeldekortbehandlingPostgresRepo(
                         sist_endret = :sist_endret
                     where id = :id and saksbehandler is null
                     """,
-                    "id" to meldekortId.toString(),
-                    "saksbehandler" to saksbehandler.navIdent,
-                    "status" to meldekortbehandlingStatus.toDb(),
-                    "sist_endret" to sistEndret,
+                    "id" to meldekortbehandling.id.toString(),
+                    "saksbehandler" to meldekortbehandling.saksbehandler,
+                    "status" to meldekortbehandling.status.toDb(),
+                    "sist_endret" to meldekortbehandling.sistEndret,
                 ).asUpdate,
             ) > 0
         }
@@ -347,21 +366,22 @@ class MeldekortbehandlingPostgresRepo(
     }
 
     override fun leggTilbakeBehandlingSaksbehandler(
-        meldekortId: MeldekortId,
+        meldekortbehandling: Meldekortbehandling,
         nåværendeSaksbehandler: Saksbehandler,
-        meldekortbehandlingStatus: MeldekortbehandlingStatus,
-        sistEndret: LocalDateTime,
-        sessionContext: SessionContext?,
+        transactionContext: TransactionContext?,
     ): Boolean {
-        return sessionFactory.withSession(sessionContext) { sx ->
-            sx.run(
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            meldekortbehandling.klagebehandling?.also {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(it, tx)
+            }
+            tx.run(
                 queryOf(
                     """update meldekortbehandling set saksbehandler = null, status = :status, sist_endret = :sist_endret where id = :id and saksbehandler = :lagretSaksbehandler""",
                     mapOf(
-                        "id" to meldekortId.toString(),
+                        "id" to meldekortbehandling.id.toString(),
                         "lagretSaksbehandler" to nåværendeSaksbehandler.navIdent,
-                        "status" to meldekortbehandlingStatus.toDb(),
-                        "sist_endret" to sistEndret,
+                        "status" to meldekortbehandling.status.toDb(),
+                        "sist_endret" to meldekortbehandling.sistEndret,
                     ),
                 ).asUpdate,
             ) > 0
@@ -518,6 +538,10 @@ class MeldekortbehandlingPostgresRepo(
             }
 
             val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
+            val klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
+                KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
+                    ?: throw IllegalStateException("Fant ikke klagebehandling $it for meldekortbehandling $id")
+            }
 
             return when (val status = row.string("status").toMeldekortbehandlingStatus()) {
                 MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> {
@@ -562,6 +586,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         ventestatus = ventestatus,
+                        klagebehandling = klagebehandling,
                     )
                 }
 
@@ -585,6 +610,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         ventestatus = ventestatus,
+                        klagebehandling = klagebehandling,
                     )
                 }
 
@@ -607,6 +633,7 @@ class MeldekortbehandlingPostgresRepo(
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         ventestatus = ventestatus,
+                        klagebehandling = klagebehandling,
                     )
                 }
             }

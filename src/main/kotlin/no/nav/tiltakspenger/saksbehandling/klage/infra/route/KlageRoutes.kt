@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.iverksettAvvistKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.leggTilbakeKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprett.opprettKlagebehandlingRoute
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettRammebehandling.opprettRammebehandlingFraKlageRoute
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettBehandling.opprettBehandlingForKlageRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppretthold.opprettholdKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.overtaKlagebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent.settKlagebehandlingPåVentRoute
@@ -27,8 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.IverksettAvvistKlagebeh
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingFormkravService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OppdaterKlagebehandlingTekstTilBrevService
+import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettRammebehandlingFraKlageService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettholdKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåVentService
@@ -47,7 +47,7 @@ fun Route.klagebehandlingRoutes(
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     vurderKlagebehandlingService: VurderKlagebehandlingService,
-    opprettRammebehandlingFraKlageService: OpprettRammebehandlingFraKlageService,
+    opprettBehandlingForKlageService: OpprettBehandlingForKlageService,
     overtaKlagebehandlingService: OvertaKlagebehandlingService,
     taKlagebehandlingService: TaKlagebehandlingService,
     leggTilbakeKlagebehandlingService: LeggTilbakeKlagebehandlingService,
@@ -95,10 +95,11 @@ fun Route.klagebehandlingRoutes(
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
     )
-    opprettRammebehandlingFraKlageRoute(
-        opprettRammebehandlingFraKlageService = opprettRammebehandlingFraKlageService,
+    opprettBehandlingForKlageRoute(
+        opprettBehandlingForKlageService = opprettBehandlingForKlageService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
+        clock = clock,
     )
     overtaKlagebehandlingRoute(
         overtaKlagebehandlingService = overtaKlagebehandlingService,

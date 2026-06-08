@@ -16,12 +16,12 @@ fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode,
             )
         }
 
-        is KanIkkeOppdatereKlagebehandling.FeilRammebehandlingssstatus -> {
+        is KanIkkeOppdatereKlagebehandling.FeilTilknyttetBehandlingsstatus -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 ErrorJson(
-                    "Feil rammebehandlingsstatus. Forventet: ${u.forventetStatus}, faktisk: ${u.faktiskStatus}",
-                    "feil_rammebehandlingsstatus",
+                    "Feil tilknyttet behandlingsstatus. Forventet: ${u.forventetStatus}, faktisk: ${u.faktiskStatus}",
+                    "feil_tilknyttet_behandlingsstatus",
                 ),
             )
         }
@@ -36,12 +36,12 @@ fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode,
             )
         }
 
-        is KanIkkeOppdatereKlagebehandling.KlageErKnyttetTilRammebehandling -> {
+        is KanIkkeOppdatereKlagebehandling.KlageErKnyttetTilBehandling -> {
             Pair(
                 HttpStatusCode.BadRequest,
                 ErrorJson(
-                    "Klagebehandling er knyttet til rammebehandling med id ${u.rammebehandlingId}, og kan derfor ikke oppdateres",
-                    "klage_er_knyttet_til_rammebehandling",
+                    "Klagebehandling er knyttet til behandling med id ${u.behandlingId}, og kan derfor ikke oppdateres",
+                    "klage_er_knyttet_til_behandling",
                 ),
             )
         }

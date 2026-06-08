@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
-import no.nav.tiltakspenger.saksbehandling.klage.domene.åpneRammebehandlingerMedKlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.åpneBehandlingerMedKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
@@ -26,7 +26,7 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
      *  4. Setter klagebehandlingen på vent
      *  5. Gjenopptar klagebehandlingen
      */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgGjenopptaKlagebehandlingMedRammebehandling(
+    suspend fun ApplicationTestBuilder.gjenopptattMeldekortbehandlingMedKlageFraKlageRoute(
         tac: TestApplicationContext,
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
@@ -41,8 +41,6 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
             journalpostId = journalpostId,
-            erKlagefristenOverholdt = erKlagefristenOverholdt,
-            erUnntakForKlagefrist = erUnntakForKlagefrist,
         ) ?: return null
         val klagebehandling = rammebehandlingMedSøknadsbehandling.klagebehandling!!
         val (oppdatertSak, oppdatertKlagebehandling, sakJson) = gjenopptaKlagebehandling(
@@ -53,7 +51,7 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null
-        val oppdatertRammebehandling = oppdatertSak.åpneRammebehandlingerMedKlagebehandlingId(oppdatertKlagebehandling.id).first()
+        val oppdatertRammebehandling = oppdatertSak.åpneBehandlingerMedKlagebehandlingId(oppdatertKlagebehandling.id).first() as Rammebehandling
         val klagebehandlingJson = sakJson.get("klageBehandlinger").first()
         return Triple(oppdatertSak, oppdatertRammebehandling, klagebehandlingJson)
     }

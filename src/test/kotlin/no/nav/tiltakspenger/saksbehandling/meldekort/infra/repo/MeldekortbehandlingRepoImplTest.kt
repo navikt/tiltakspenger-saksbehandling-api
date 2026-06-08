@@ -62,6 +62,7 @@ class MeldekortbehandlingRepoImplTest {
                 oppdatertSak.meldeperiodeKjeder[1].kjedeId,
                 ObjectMother.navkontor(),
                 ObjectMother.saksbehandler(),
+                null,
                 fixedClock,
             ).getOrFail().second.also { meldekortRepo.lagre(it, null) }
 
@@ -85,6 +86,7 @@ class MeldekortbehandlingRepoImplTest {
                     sak.meldeperiodeKjeder.first().kjedeId,
                     ObjectMother.navkontor(),
                     ObjectMother.saksbehandler(),
+                    null,
                     fixedClock,
                 ).getOrFail()
 

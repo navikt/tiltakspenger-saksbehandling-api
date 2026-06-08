@@ -16,9 +16,10 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSettRammebehandlingMedKlagebehandlingPåVentFraUnderBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.rammebehandlingMedFerdigstiltOpprettholdtKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -45,8 +46,8 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                rammebehandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
+                behandlingId = listOf(rammebehandlingMedKlagebehandling.id.toString()),
+                åpenBehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
                 //language=json
                 ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}"""),
             )
@@ -74,7 +75,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
@@ -116,7 +117,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (sak, rammebehandling) = ferdigstillOpprettholdtKlagebehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
                 saksbehandler = saksbehandler,
@@ -153,10 +154,90 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 fnr = "12345678911",
                 resultat = rammebehandlingPåVent.klagebehandling!!.resultat as Klagebehandlingsresultat.Opprettholdt,
                 behandlingDetKlagesPå = "${sak.rammevedtaksliste.first().behandlingId}",
-                rammebehandlingId = listOf(rammebehandling.id.toString()),
-                åpenRammebehandlingId = rammebehandling.id.toString(),
+                behandlingId = listOf(rammebehandling.id.toString()),
+                åpenBehandlingId = rammebehandling.id.toString(),
                 vedtakDetKlagesPå = rammebehandling.klagebehandling!!.formkrav.vedtakDetKlagesPå!!.toString(),
             )
+        }
+    }
+
+    @Test
+    fun `beslutter kan sette rammebehandling med klagebehandling på vent fra UNDER_BESLUTNING`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (_, oppdatertRammebehandling, sakJson) =
+                iverksettSøknadsbehandlingOgSettRammebehandlingMedKlagebehandlingPåVentFraUnderBeslutning(
+                    tac = tac,
+                    saksbehandler = saksbehandler,
+                    beslutter = beslutter,
+                )!!
+            val oppdatertKlagebehandling = requireNotNull(oppdatertRammebehandling.klagebehandling)
+
+            oppdatertRammebehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            oppdatertRammebehandling.saksbehandler shouldBe saksbehandler.navIdent
+            oppdatertRammebehandling.beslutter shouldBe null
+            oppdatertRammebehandling.ventestatus.erSattPåVent shouldBe true
+            oppdatertRammebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
+                Ventestatus(
+                    listOf(
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN,
+                            endretAv = beslutter.navIdent,
+                            begrunnelse = "begrunnelse for å sette rammebehandling på vent",
+                            erSattPåVent = true,
+                            status = "UNDER_BESLUTNING",
+                            frist = 14.januar(2025),
+                        ),
+                    ),
+                ),
+            )
+
+            oppdatertKlagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
+            oppdatertKlagebehandling.saksbehandler shouldBe null
+            oppdatertKlagebehandling.ventestatus.erSattPåVent shouldBe true
+            oppdatertKlagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
+                Ventestatus(
+                    listOf(
+                        VentestatusHendelse(
+                            tidspunkt = LocalDateTime.MIN,
+                            endretAv = beslutter.navIdent,
+                            begrunnelse = "begrunnelse for å sette rammebehandling på vent",
+                            erSattPåVent = true,
+                            status = "UNDER_BEHANDLING",
+                            frist = 14.januar(2025),
+                        ),
+                    ),
+                ),
+            )
+
+            val rammebehandlingJson = sakJson.get("behandlinger").last()
+            rammebehandlingJson.get("status").asString() shouldBe "KLAR_TIL_BESLUTNING"
+            rammebehandlingJson.get("saksbehandler").asString() shouldBe saksbehandler.navIdent
+            rammebehandlingJson.get("beslutter").isNull shouldBe true
+            val rammebehandlingVentestatusArray = rammebehandlingJson.get("ventestatus")
+            rammebehandlingVentestatusArray.size() shouldBe 1
+            rammebehandlingVentestatusArray[0].also { hendelse ->
+                hendelse.get("sattPåVentAv").asString() shouldBe beslutter.navIdent
+                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette rammebehandling på vent"
+                hendelse.get("erSattPåVent").asBoolean() shouldBe true
+                hendelse.get("status").asString() shouldBe "UNDER_BESLUTNING"
+                hendelse.get("frist").asString() shouldBe "2025-01-14"
+            }
+
+            val klageJson = sakJson.get("klageBehandlinger").first()
+            klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+            klageJson.get("saksbehandler").isNull shouldBe true
+            val klageVentestatusArray = klageJson.get("ventestatus")
+            klageVentestatusArray.size() shouldBe 1
+            klageVentestatusArray[0].also { hendelse ->
+                hendelse.get("sattPåVentAv").asString() shouldBe beslutter.navIdent
+                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette rammebehandling på vent"
+                hendelse.get("erSattPåVent").asBoolean() shouldBe true
+                hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
+                hendelse.get("frist").asString() shouldBe "2025-01-14"
+            }
         }
     }
 }

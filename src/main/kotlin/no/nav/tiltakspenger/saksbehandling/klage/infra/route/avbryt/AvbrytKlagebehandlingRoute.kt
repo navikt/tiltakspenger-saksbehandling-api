@@ -93,11 +93,11 @@ private fun KanIkkeAvbryteKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatu
             ),
         )
 
-        is KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttRammebehandling -> Pair(
+        is KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttBehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en rammebehandling som ikke er avbrutt: ${this.rammebehandlingId}",
-                "knyttet_til_ikke_avbrutt_rammebehandling",
+                "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en behandling som ikke er avbrutt: ${this.behandlingId}",
+                "knyttet_til_ikke_avbrutt_behandling",
             ),
         )
 

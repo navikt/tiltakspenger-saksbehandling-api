@@ -21,8 +21,20 @@ fun Klagebehandling.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeGjenopptaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    return this.gjenopptaKlagebehandling(
+        klagensSaksbehandler = kommando.saksbehandler.navIdent,
+        endretAv = null,
+        clock = clock,
+    )
+}
+
+fun Klagebehandling.gjenopptaKlagebehandling(
+    klagensSaksbehandler: String,
+    endretAv: String?,
+    clock: Clock,
+): Either<KanIkkeGjenopptaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     kanOppdatereIDenneStatusen(
-        rammebehandlingsstatus = null,
+        tilknyttetBehandlingsstatus = null,
         kanVæreUnderBehandling = true,
         kanVæreKlarTilBehandling = true,
         kanVæreOmgjørEtterKA = true,
@@ -37,10 +49,10 @@ fun Klagebehandling.gjenopptaKlagebehandling(
         sistEndret = nå,
         ventestatus = ventestatus.gjenoppta(
             tidspunkt = nå,
-            endretAv = kommando.saksbehandler.navIdent,
+            endretAv = endretAv ?: klagensSaksbehandler,
             status = status.toString(),
         ),
-        saksbehandler = kommando.saksbehandler.navIdent,
+        saksbehandler = this.saksbehandler ?: klagensSaksbehandler,
         status = when (this.resultat) {
             is Klagebehandlingsresultat.Avvist -> UNDER_BEHANDLING
             is Klagebehandlingsresultat.Omgjør -> UNDER_BEHANDLING

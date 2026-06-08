@@ -1,8 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent
 
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVent
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVentOgNullstillSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
@@ -40,6 +44,19 @@ fun Meldekortbehandling.settPåVent(
                 saksbehandler = null,
                 status = KLAR_TIL_BEHANDLING,
                 sistEndret = tidspunktSattPåVent,
+                klagebehandling = klagebehandling?.let { klage ->
+                    klage.settPåVentOgNullstillSaksbehandler(
+                        kommando = SettKlagebehandlingPåVentKommando(
+                            sakId = sakId,
+                            klagebehandlingId = klage.id,
+                            saksbehandler = kommando.saksbehandler,
+                            begrunnelse = kommando.begrunnelse,
+                            frist = kommando.frist,
+                        ),
+                        clock = clock,
+                        sjekkSaksbehandler = true,
+                    ).getOrThrow().first
+                },
             )
         }
 
@@ -60,6 +77,19 @@ fun Meldekortbehandling.settPåVent(
                 beslutter = null,
                 status = KLAR_TIL_BESLUTNING,
                 sistEndret = tidspunktSattPåVent,
+                klagebehandling = klagebehandling?.let { klage ->
+                    klage.settPåVent(
+                        kommando = SettKlagebehandlingPåVentKommando(
+                            sakId = sakId,
+                            klagebehandlingId = klage.id,
+                            saksbehandler = kommando.saksbehandler,
+                            begrunnelse = kommando.begrunnelse,
+                            frist = kommando.frist,
+                        ),
+                        clock = clock,
+                        sjekkSaksbehandler = false,
+                    ).getOrThrow().first
+                },
             )
         }
 

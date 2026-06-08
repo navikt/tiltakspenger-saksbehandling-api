@@ -11,7 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
@@ -42,6 +44,7 @@ data class MeldekortbehandlingAvbrutt(
     override val meldeperioder: Meldeperiodebehandlinger,
     override val skalSendeVedtaksbrev: Boolean,
     override val ventestatus: Ventestatus,
+    override val klagebehandling: Klagebehandling?,
 ) : Meldekortbehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null
@@ -50,12 +53,16 @@ data class MeldekortbehandlingAvbrutt(
 
     override val beslutter = null
 
+    init {
+        initKlagebehandling()
+    }
+
     override val beløpTotal = beregning?.totalBeløp
     override val ordinærBeløp = beregning?.ordinærBeløp
     override val barnetilleggBeløp = beregning?.barnetilleggBeløp
 
     override fun overta(
-        saksbehandler: Saksbehandler,
+        kommando: OvertaMeldekortbehandlingKommando,
         clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling> {
         throw IllegalStateException("Kan ikke overta avbrutt meldekortbehandling")
@@ -67,5 +74,12 @@ data class MeldekortbehandlingAvbrutt(
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {
         throw IllegalStateException("Kan ikke oppdatere simulering på avbrutt meldekortbehandling")
+    }
+
+    override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {
+        require(this.klagebehandling?.id == klagebehandling.id) {
+            "Kan ikke oppdatere meldekortbehandling $id med en annen klagebehandling enn den er knyttet til"
+        }
+        return this.copy(klagebehandling = klagebehandling)
     }
 }

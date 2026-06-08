@@ -64,6 +64,7 @@ data class MeldekortbehandlingDTOV2(
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
     val ventestatus: List<VentestatusHendelseDTO>,
+    val klagebehandlingId: String?,
 )
 
 data class MeldeperiodebehandlingDTO(
@@ -112,6 +113,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         tilbakekrevingId = hentTilbakekreving(id)?.id?.toString(),
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
+        klagebehandlingId = this.klagebehandling?.id?.toString(),
     )
 }
 

@@ -1,8 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Nel
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.libs.common.BehandlingId
 
 /**
  * Brukes på tvers av alle oppdateringsoperasjoner på klagebehandling for å representere feil som kan oppstå ved oppdatering av klagebehandling.
@@ -13,9 +12,9 @@ sealed interface KanIkkeOppdatereKlagebehandling {
         val faktiskStatus: Klagebehandlingsstatus,
     ) : KanIkkeOppdatereKlagebehandling
 
-    data class FeilRammebehandlingssstatus(
-        val forventetStatus: Nel<Rammebehandlingsstatus>,
-        val faktiskStatus: Rammebehandlingsstatus?,
+    data class FeilTilknyttetBehandlingsstatus(
+        val forventetStatus: Nel<TilknyttetBehandlingsstatus>,
+        val faktiskStatus: TilknyttetBehandlingsstatus?,
     ) : KanIkkeOppdatereKlagebehandling
 
     data class FeilResultat(
@@ -23,5 +22,5 @@ sealed interface KanIkkeOppdatereKlagebehandling {
         val faktiskResultat: String?,
     ) : KanIkkeOppdatereKlagebehandling
 
-    data class KlageErKnyttetTilRammebehandling(val rammebehandlingId: List<RammebehandlingId>) : KanIkkeOppdatereKlagebehandling
+    data class KlageErKnyttetTilBehandling(val behandlingId: List<BehandlingId>) : KanIkkeOppdatereKlagebehandling
 }

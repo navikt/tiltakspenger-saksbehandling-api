@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.TilknyttetBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
@@ -16,14 +16,14 @@ import java.time.Clock
  */
 fun Klagebehandling.overta(
     kommando: OvertaKlagebehandlingKommando,
-    rammebehandlingsstatus: Rammebehandlingsstatus?,
+    tilknyttetBehandlingsstatus: TilknyttetBehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeOvertaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
     if (this.erFerdigstilt) {
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }
 
-    kanOppdatereIDenneStatusen(rammebehandlingsstatus, kanVæreMottattFraKA = true, kanVæreOmgjørEtterKA = true).onLeft {
+    kanOppdatereIDenneStatusen(tilknyttetBehandlingsstatus, kanVæreMottattFraKA = true, kanVæreOmgjørEtterKA = true).onLeft {
         return KanIkkeOvertaKlagebehandling.KanIkkeOppdateres(it).left()
     }
     // Spesialtilfelle: Dersom saksbehandler forsøker å overta fra seg selv, så endres ikke behandlingen.

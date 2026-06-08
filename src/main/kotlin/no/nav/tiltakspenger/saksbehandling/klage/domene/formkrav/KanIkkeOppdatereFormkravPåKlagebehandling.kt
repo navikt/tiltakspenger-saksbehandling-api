@@ -8,5 +8,5 @@ sealed interface KanIkkeOppdatereFormkravPåKlagebehandling {
 
     data class SaksbehandlerMismatch(val forventetSaksbehandler: String, val faktiskSaksbehandler: String) : KanIkkeOppdatereFormkravPåKlagebehandling
 
-    data object KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling : KanIkkeOppdatereFormkravPåKlagebehandling
+    data object KanIkkeEndreTilAvvisningNårTilknyttetBehandling : KanIkkeOppdatereFormkravPåKlagebehandling
 }

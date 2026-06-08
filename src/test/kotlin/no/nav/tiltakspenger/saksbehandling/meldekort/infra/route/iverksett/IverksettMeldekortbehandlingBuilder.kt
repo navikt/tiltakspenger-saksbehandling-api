@@ -188,6 +188,7 @@ interface IverksettMeldekortbehandlingBuilder {
 
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
             tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            tac.utbetalingContext.journalførMeldekortvedtakService.journalfør()
 
             return Tuple4(
                 oppdatertSak,

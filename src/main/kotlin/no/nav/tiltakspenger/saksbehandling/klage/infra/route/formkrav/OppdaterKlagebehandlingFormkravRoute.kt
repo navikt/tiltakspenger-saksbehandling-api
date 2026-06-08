@@ -103,11 +103,11 @@ private fun KanIkkeOppdatereFormkravPåKlagebehandling.toStatusAndErrorJson(): P
             )
         }
 
-        is KanIkkeOppdatereFormkravPåKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetRammebehandling -> Pair(
+        is KanIkkeOppdatereFormkravPåKlagebehandling.KanIkkeEndreTilAvvisningNårTilknyttetBehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "Kan ikke endre klagebehandling til avvist når den er tilknyttet en rammebehandling",
-                "kan_ikke_endre_klagebehandling_til_avvist_nar_tilknyttet_rammebehandling",
+                "Kan ikke endre klagebehandling til avvist når den er tilknyttet en behandling",
+                "kan_ikke_endre_klagebehandling_til_avvist_nar_tilknyttet_behandling",
             ),
         )
     }

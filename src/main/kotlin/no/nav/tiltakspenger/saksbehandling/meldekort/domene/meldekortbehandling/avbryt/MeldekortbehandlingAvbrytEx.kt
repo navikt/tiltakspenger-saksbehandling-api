@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernBehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
@@ -27,11 +28,22 @@ fun Meldekortbehandling.avbryt(
         return KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
     }
 
-    return this.avbryt(
+    val avbruttMeldekort = this.avbryt(
         saksbehandlerIdent = avbruttAv,
         avbruttBegrunnelse = kommando.begrunnelse,
         tidspunkt = tidspunkt,
-    ).right()
+    )
+
+    val oppdatertMeldekort = avbruttMeldekort.klagebehandling?.let { kl ->
+        val oppdatertKlage = kl.fjernBehandlingId(
+            behandlingId = avbruttMeldekort.id,
+            saksbehandler = kommando.saksbehandler,
+            sistEndret = tidspunkt,
+        )
+        avbruttMeldekort.copy(klagebehandling = oppdatertKlage)
+    } ?: avbruttMeldekort
+
+    return oppdatertMeldekort.right()
 }
 
 /** Avbryter en meldekortbehandling fordi det ikke lenger er rett til tiltakspenger i perioden. Dette er en automatisk handling. */
@@ -85,5 +97,6 @@ private fun Meldekortbehandling.avbryt(
         meldeperioder = meldeperioder,
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ventestatus = ventestatus,
+        klagebehandling = klagebehandling,
     )
 }

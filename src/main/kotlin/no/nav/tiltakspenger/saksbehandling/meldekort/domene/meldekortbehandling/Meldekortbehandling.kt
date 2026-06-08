@@ -20,10 +20,13 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.avbrytIkkeRettTilTiltakspenger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -51,6 +54,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val ventestatus: Ventestatus
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
+    override val klagebehandling: Klagebehandling?
 
     val type: MeldekortbehandlingType
 
@@ -104,6 +108,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val erAutomatiskBehandling: Boolean get() = this is MeldekortBehandletAutomatisk
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
+    val erUnderAktivBehandling: Boolean get() = this.status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING || this.status == MeldekortbehandlingStatus.UNDER_BEHANDLING || this.status == MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING || this.status == MeldekortbehandlingStatus.UNDER_BESLUTNING || erUnderkjent
+
     fun erÅpen(): Boolean = !erAvsluttet
 
     /**
@@ -150,13 +156,15 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     }
 
     fun overta(
-        saksbehandler: Saksbehandler,
+        kommando: OvertaMeldekortbehandlingKommando,
         clock: Clock,
     ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling>
 
     fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling
 
     fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling
+
+    fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling
 
     fun toSimulertBeregning(beregninger: MeldeperiodeBeregningerVedtatt): SimulertBeregning? {
         return beregning?.let {
@@ -165,6 +173,85 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
                 eksisterendeBeregninger = beregninger,
                 simulering = simulering,
             )
+        }
+    }
+
+    /**
+     * Validerer invarianter knyttet til klagebehandling for alle tilstander.
+     * Kalles fra init-blokken i hver konkret implementasjon, på samme måte som [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling.init].
+     */
+    fun initKlagebehandling() {
+        if (klagebehandling == null) return
+
+        when (status) {
+            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> {
+                require(klagebehandling!!.erKlarTilBehandling || klagebehandling!!.erFerdigstilt) {
+                    "Klagebehandling knyttet til en meldekortbehandling som er KLAR_TIL_BEHANDLING må ha status KLAR_TIL_BEHANDLING/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+                }
+            }
+
+            MeldekortbehandlingStatus.UNDER_BEHANDLING -> {
+                require(
+                    (klagebehandling!!.erOmgjøring && (klagebehandling!!.erUnderBehandling || klagebehandling!!.erFerdigstilt)) ||
+                        (klagebehandling!!.erOpprettholdt && (klagebehandling!!.omgjørEtterKA || klagebehandling!!.erFerdigstilt)),
+                ) {
+                    "Klagebehandling knyttet til en meldekortbehandling som er UNDER_BEHANDLING må ha status UNDER_BEHANDLING (ved omgjøring) eller OMGJØRING_ETTER_KLAGEINSTANS (ved opprettholdelse), men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+                }
+            }
+
+            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
+                require(klagebehandling!!.erUnderBehandling || klagebehandling!!.omgjørEtterKA || klagebehandling!!.erFerdigstilt || klagebehandling!!.erKlarTilBehandling) {
+                    "Klagebehandling knyttet til en meldekortbehandling som er KLAR_TIL_BESLUTNING må ha status UNDER_BEHANDLING/KLAR_TIL_BEHANDLING/OMGJØRING_ETTER_KLAGEINSTANS/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+                }
+            }
+
+            MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
+                require(klagebehandling!!.erUnderBehandling || klagebehandling!!.omgjørEtterKA || klagebehandling!!.erFerdigstilt) {
+                    "Klagebehandling knyttet til en meldekortbehandling som er UNDER_BESLUTNING må ha status UNDER_BEHANDLING/OMGJØRING_ETTER_KLAGEINSTANS/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+                }
+            }
+
+            MeldekortbehandlingStatus.GODKJENT -> {
+                require(klagebehandling!!.erVedtatt || klagebehandling!!.erFerdigstilt) {
+                    "Klagebehandling knyttet til en meldekortbehandling som er GODKJENT må ha status VEDTATT/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+                }
+            }
+
+            MeldekortbehandlingStatus.AVBRUTT -> {
+                // Ved avbrutt meldekortbehandling beholdes koblingen til klagebehandlingen for historikkens skyld (men ikke omvendt).
+            }
+
+            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> {
+                throw IllegalStateException(
+                    "Automatisk behandlet meldekortbehandling kan ikke ha en tilknyttet klagebehandling. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}",
+                )
+            }
+        }
+
+        // Fellessjekker for alle tilstander
+        require(fnr == klagebehandling!!.fnr) {
+            "Klagebehandlingens fnr må være lik meldekortbehandlingens fnr. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+        }
+        require(sakId == klagebehandling!!.sakId) {
+            "Klagebehandlingens sakId må være lik meldekortbehandlingens sakId. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+        }
+        require(saksnummer == klagebehandling!!.saksnummer) {
+            "Klagebehandlingens saksnummer må være lik meldekortbehandlingens saksnummer. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+        }
+
+        if (!erAvbrutt) {
+            require(klagebehandling!!.behandlingId.contains(this.id)) {
+                "Klagebehandlingens behandlingId må inneholde meldekortbehandlingens id. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+            }
+        }
+
+        if (!erAvbrutt && !klagebehandling!!.erFerdigstilt && !klagebehandling!!.erKlarTilBehandling) {
+            require(saksbehandler == klagebehandling!!.saksbehandler) {
+                "Klagebehandlingens saksbehandler må være lik meldekortbehandlingens saksbehandler. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+            }
+            require(klagebehandling!!.resultat is Klagebehandlingsresultat.Omgjør || klagebehandling!!.resultat is Klagebehandlingsresultat.Opprettholdt) {
+                "Klagebehandlingens resultat må være Omgjør/Opprettholdt når den er knyttet til en meldekortbehandling som ikke er avbrutt. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id, klagebehandlingId: ${klagebehandling!!.id}"
+            }
         }
     }
 

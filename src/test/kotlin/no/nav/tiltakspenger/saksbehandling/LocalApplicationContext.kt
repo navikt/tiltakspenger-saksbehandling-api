@@ -306,8 +306,16 @@ class LocalApplicationContext(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
+            taMeldekortbehandlingService = meldekortContext.taMeldekortbehandlingService,
+            opprettMeldekortbehandlingService = meldekortContext.opprettMeldekortbehandlingService,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
+            overtaMeldekortbehandlingService = meldekortContext.overtaMeldekortbehandlingService,
+            leggTilbakeMeldekortbehandlingService = meldekortContext.leggTilbakeMeldekortbehandlingService,
+            settMeldekortbehandlingPåVentService = meldekortContext.settMeldekortbehandlingPåVentService,
+            gjenopptaMeldekortbehandlingService = meldekortContext.gjenopptaMeldekortbehandlingService,
             statistikkService = statistikkContext.statistikkService,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             texasClient = texasClient,
         ) {
             override val kabalClient: KabalClient = KabalClientFake(clock)

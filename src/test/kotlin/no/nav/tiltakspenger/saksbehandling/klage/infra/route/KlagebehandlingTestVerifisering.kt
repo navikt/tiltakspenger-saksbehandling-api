@@ -35,8 +35,8 @@ fun String.shouldBeKlagebehandlingDTO(
     kanIverksetteOpprettholdelse: Boolean = false,
     årsak: String? = null,
     begrunnelse: String? = null,
-    rammebehandlingId: List<String>? = null,
-    åpenRammebehandlingId: String? = null,
+    behandlingId: List<String>? = null,
+    åpenBehandlingId: String? = null,
     ventestatus: List<String> = emptyList(),
     hjemler: List<String> = emptyList(),
     iverksattOpprettholdelseTidspunkt: Boolean = false,
@@ -64,8 +64,8 @@ fun String.shouldBeKlagebehandlingDTO(
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
          "status": "$status",
-         "tilknyttedeRammebehandlingIder": ${if (rammebehandlingId.isNullOrEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
-         "åpenRammebehandlingId": ${åpenRammebehandlingId?.toJsonValue()},
+          "tilknyttedeBehandlingIder": ${if (behandlingId.isNullOrEmpty()) "[]" else behandlingId.map { "\"$it\"" }},
+          "åpenBehandlingId": ${åpenBehandlingId?.toJsonValue()},
          "resultat": ${
             when (resultat) {
                 "OPPRETTHOLDT" -> """
@@ -150,8 +150,8 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
         """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
         """{"tittel":"Vurdering av klagen","tekst":"<saksbehandler fyller ut>"}""",
     ),
-    rammebehandlingId: List<String> = emptyList(),
-    åpenRammebehandlingId: String? = null,
+    behandlingId: List<String> = emptyList(),
+    åpenBehandlingId: String? = null,
     hjemler: List<String> = listOf("ARBEIDSMARKEDSLOVEN_17"),
     klageinstanshendelser: List<String> = listOf(
         """
@@ -185,8 +185,8 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          "klagensJournalpostId": "$journalpostId",
          "klagensJournalpostOpprettet": "TIMESTAMP",
          "status": "FERDIGSTILT",
-         "tilknyttedeRammebehandlingIder": ${if (rammebehandlingId.isEmpty()) "[]" else rammebehandlingId.map { "\"$it\"" }},
-         "åpenRammebehandlingId": ${åpenRammebehandlingId?.toJsonValue()},
+          "tilknyttedeBehandlingIder": ${if (behandlingId.isEmpty()) "[]" else behandlingId.map { "\"$it\"" }},
+          "åpenBehandlingId": ${åpenBehandlingId?.toJsonValue()},
          "resultat": {
             "brevtekst": [${brevtekst.joinToString()}],
             "hjemler": [ ${hjemler.joinToString { "\"$it\"" }} ],
@@ -268,8 +268,8 @@ fun String.shouldBeKlagevedtakJson(
                     "innsendingsdato": "2026-02-16",
                     "innsendingskilde": "DIGITAL"
                   },
-                  "tilknyttedeRammebehandlingIder": [],
-                  "åpenRammebehandlingId": null
+                  "tilknyttedeBehandlingIder": [],
+                  "åpenBehandlingId": null
                 }
     """.trimIndent()
 

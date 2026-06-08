@@ -42,11 +42,6 @@ interface TaKlagebehandlingMedRammebehandlingBuilder {
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
             journalpostId = journalpostId,
-            erKlagerPartISaken = erKlagerPartISaken,
-            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
-            erKlagefristenOverholdt = erKlagefristenOverholdt,
-            erUnntakForKlagefrist = erUnntakForKlagefrist,
-            erKlagenSignert = erKlagenSignert,
         ) ?: return null
         val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
         val (oppdatertSak, _, json) = taKlagebehandling(

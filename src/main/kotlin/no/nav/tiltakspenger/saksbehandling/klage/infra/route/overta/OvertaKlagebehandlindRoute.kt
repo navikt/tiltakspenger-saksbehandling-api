@@ -29,6 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJso
 import no.nav.tiltakspenger.saksbehandling.klage.service.OvertaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.tilStatusOgErrorJson as meldekortTilStatusOgErrorJson
 
 private data class OvertaKlagebehandlingBody(
     val overtarFra: String,
@@ -117,5 +118,7 @@ fun KanIkkeOvertaKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, Er
         )
 
         is KanIkkeOvertaKlagebehandling.KunneIkkeOvertaRammebehandling -> this.underliggende.tilStatusOgErrorJson()
+
+        is KanIkkeOvertaKlagebehandling.KunneIkkeOvertaMeldekortbehandling -> this.underliggende.meldekortTilStatusOgErrorJson()
     }
 }

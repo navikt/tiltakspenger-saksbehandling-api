@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOpprettholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 interface VisInnstillingsbrevKlagebehandlingBuilder {
@@ -34,7 +34,7 @@ interface VisInnstillingsbrevKlagebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, ByteArray>? {
-        val (sak, klagebehandling) = this.opprettSakOgFerdigstillOppretholdtKlagebehandling(
+        val (sak, klagebehandling) = this.ferdigstiltOpprettholdtKlagebehandling(
             tac = tac,
             saksbehandler = saksbehandler,
             fnr = fnr,

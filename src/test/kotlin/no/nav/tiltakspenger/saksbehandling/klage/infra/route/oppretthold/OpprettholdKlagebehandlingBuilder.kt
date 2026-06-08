@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
@@ -30,6 +31,38 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
  * Route: [no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett.iverksettAvvistKlagebehandlingRoute]
  */
 interface OpprettholdKlagebehandlingBuilder {
+    /** 1. Iverksetter en søknadsbehandling og meldekortbehandling.
+     *  2. Starter klagebehandling med vedtakDetKlagesPå = meldekortvedtak
+     *  3. Vurderer til opprettholdelse
+     *  4. Oppdaterer brevtekst
+     *  5. Opprettholder (emulerer journalføring, distribuering av vedtaksbrev og oversendelse til klageinstansen)
+     */
+    suspend fun ApplicationTestBuilder.iverksettMeldekortvedtakOgOpprettholdKlagebehandling(
+        tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
+        saksbehandlerMeldekortbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerMeldekortbehandling"),
+        saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        utførJobber: Boolean = true,
+    ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, _, klagebehandling, _) = this.iverksettMeldekortvedtakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
+            tac = tac,
+            saksbehandlerMeldekortbehandling = saksbehandlerMeldekortbehandling,
+            saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
+            fnr = fnr,
+        ) ?: return null
+        return opprettholdKlagebehandlingForSakId(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandlerKlagebehandling,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+            utførJobber = utførJobber,
+        )
+    }
+
     /** 1. Oppretter ny sak
      *  2. Starter klagebehandling til opprettholdelse
      *  3. Oppdaterer brevtekst

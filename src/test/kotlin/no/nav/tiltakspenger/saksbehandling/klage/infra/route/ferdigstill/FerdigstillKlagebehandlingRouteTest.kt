@@ -12,11 +12,11 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinsta
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstillKlagebehandlingForSakId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOpprettholdtKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettRammebehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgFerdigstillOppretholdtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettBehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgMottaOppretholdtKlagebehandlingFraKa
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -26,7 +26,7 @@ class FerdigstillKlagebehandlingRouteTest {
     fun `kan ferdigstille en klagebehandling (opprettholdelse) som ikke har behov for videre behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, klagebehandling, json) = opprettSakOgFerdigstillOppretholdtKlagebehandling(tac = tac)!!
+            val (sak, klagebehandling, json) = ferdigstiltOpprettholdtKlagebehandling(tac = tac)!!
             val resultat = klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
@@ -38,7 +38,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 behandlingDetKlagesPå = sak.rammevedtaksliste.first().behandlingId.toString(),
                 status = "FERDIGSTILT",
                 kanIverksetteVedtak = null,
-                rammebehandlingId = null,
+                behandlingId = null,
                 brevtekst = listOf(
                     """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
                     """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
@@ -75,7 +75,7 @@ class FerdigstillKlagebehandlingRouteTest {
     fun `kan ferdigstille en klagebehandling (opprettholdelse) som har behov for videre behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, klagebehandling, json) = opprettSakOgFerdigstillOppretholdtKlagebehandling(
+            val (sak, klagebehandling, json) = ferdigstiltOpprettholdtKlagebehandling(
                 tac = tac,
                 hendelseGenerering = { _, klagebehandling ->
                     GenerererKlageinstanshendelse.avsluttetJson(
@@ -143,7 +143,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
                 behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "FERDIGSTILT",
-                rammebehandlingId = null,
+                behandlingId = null,
                 ferdigstiltTidspunkt = true,
                 iverksattTidspunkt = null,
             )
@@ -158,7 +158,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 tac = tac,
             )!!
 
-            val (_, opprettetRammebehandling) = opprettRammebehandlingForKlage(
+            val (_, opprettetRammebehandling) = opprettBehandlingForKlage(
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = oversendtKlagebehandling.id,
@@ -176,8 +176,8 @@ class FerdigstillKlagebehandlingRouteTest {
                     //language=json
                     """
                         {
-                          "kode": "klagebehandling_er_knyttet_til_rammebehandling",
-                          "melding": "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas"
+                          "kode": "klagebehandling_er_knyttet_til_behandling",
+                          "melding": "Klagebehandlingen er knyttet til en behandling og kan derfor ikke ferdigstilles. Behandlingen må enten avbrytes, eller vedtas"
                         }
                     """.trimIndent()
                 },
@@ -189,7 +189,7 @@ class FerdigstillKlagebehandlingRouteTest {
     fun `kan ikke ferdigstille en klagebehandling (omgjøring) som har en aktiv rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, json) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
 
@@ -202,8 +202,8 @@ class FerdigstillKlagebehandlingRouteTest {
                     //language=json
                     """
                         {
-                          "kode": "klagebehandling_er_knyttet_til_rammebehandling",
-                          "melding": "Klagebehandlingen er knyttet til en rammebehandling og kan derfor ikke ferdigstilles. Rammebehandlingen må enten avbrytes, eller vedtas"
+                          "kode": "klagebehandling_er_knyttet_til_behandling",
+                          "melding": "Klagebehandlingen er knyttet til en behandling og kan derfor ikke ferdigstilles. Behandlingen må enten avbrytes, eller vedtas"
                         }
                     """.trimIndent()
                 },
@@ -237,7 +237,7 @@ class FerdigstillKlagebehandlingRouteTest {
                 vedtakDetKlagesPå = rammevedtakSøknadsbehandling.id.toString(),
                 behandlingDetKlagesPå = klagebehandling.formkrav.behandlingDetKlagesPå?.toString(),
                 status = "FERDIGSTILT",
-                rammebehandlingId = null,
+                behandlingId = null,
                 ferdigstiltTidspunkt = true,
                 iverksattTidspunkt = null,
                 begrunnelseFerdigstilling = "Dette er en veltenkt begrunnelse for ferdigstilling",

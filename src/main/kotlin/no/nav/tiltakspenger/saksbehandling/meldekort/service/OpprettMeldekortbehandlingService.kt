@@ -5,12 +5,15 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
@@ -28,21 +31,27 @@ class OpprettMeldekortbehandlingService(
 ) {
     private val logger = KotlinLogging.logger {}
 
+    data class OpprettMeldekortbehandlingKommando(
+        val sakId: SakId,
+        val kjedeId: MeldeperiodeKjedeId,
+        val saksbehandler: Saksbehandler,
+        val klagebehandlingId: KlagebehandlingId? = null,
+        val correlationId: CorrelationId = CorrelationId.generate(),
+    )
+
     suspend fun opprettBehandling(
-        kjedeId: MeldeperiodeKjedeId,
-        sakId: SakId,
-        saksbehandler: Saksbehandler,
+        kommando: OpprettMeldekortbehandlingKommando,
     ): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, Meldekortbehandling>> {
-        val sak = sakService.hentForSakId(sakId)
+        val sak = sakService.hentForSakId(kommando.sakId)
 
         val navkontor = Either.catch {
             navkontorService.hentOppfolgingsenhet(
                 fnr = sak.fnr,
-                sakId = sakId.toString(),
+                sakId = sak.id.toString(),
                 saksnummer = sak.saksnummer.verdi,
             )
         }.getOrElse {
-            with("Kunne ikke hente navkontor for sak $sakId") {
+            with("Kunne ikke hente navkontor for sak ${kommando.sakId}") {
                 logger.error(it) { this }
                 Sikkerlogg.error(it) { "$this - fnr ${sak.fnr.verdi}" }
             }
@@ -50,10 +59,11 @@ class OpprettMeldekortbehandlingService(
         }
 
         val (oppdatertSak, meldekortbehandling) = sak.opprettManuellMeldekortbehandling(
-            kjedeId = kjedeId,
+            kjedeId = kommando.kjedeId,
             navkontor = navkontor,
-            saksbehandler = saksbehandler,
+            saksbehandler = kommando.saksbehandler,
             clock = clock,
+            klagebehandlingId = kommando.klagebehandlingId,
         ).getOrElse {
             return it.left()
         }
@@ -62,7 +72,7 @@ class OpprettMeldekortbehandlingService(
             meldekortbehandlingRepo.lagre(meldekortbehandling, null, tx)
         }
 
-        logger.info { "Opprettet behandling ${meldekortbehandling.id} på meldeperiode kjede $kjedeId for sak $sakId" }
+        logger.info { "Opprettet behandling ${meldekortbehandling.id} på meldeperiode kjede ${kommando.kjedeId} for sak ${kommando.sakId}" }
 
         return (oppdatertSak to meldekortbehandling).right()
     }
@@ -73,5 +83,14 @@ sealed interface KanIkkeOppretteMeldekortbehandling {
 
     data class ValiderOpprettFeil(
         val feil: ValiderOpprettMeldekortbehandlingFeil,
+    ) : KanIkkeOppretteMeldekortbehandling
+
+    data class SaksbehandlerMismatch(
+        val forventetSaksbehandler: String?,
+        val faktiskSaksbehandler: String,
+    ) : KanIkkeOppretteMeldekortbehandling
+
+    data class FinnesÅpenBehandling(
+        val behandlingId: BehandlingId,
     ) : KanIkkeOppretteMeldekortbehandling
 }

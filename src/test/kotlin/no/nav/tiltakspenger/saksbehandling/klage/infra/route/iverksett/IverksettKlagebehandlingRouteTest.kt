@@ -25,20 +25,20 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresR
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagevedtakJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbruttKlagebehandlng
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettKlagebehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgKlagebehandlingTilAvvisning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgAvbrytKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgIverksettKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRammebehandlingMedOpprettholdtKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
@@ -126,7 +126,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `kan ikke iverksette avbrutt klagebehandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, klagebehandling, _) = opprettSakOgAvbrytKlagebehandling(
+            val (sak, klagebehandling, _) = avbruttKlagebehandlng(
                 tac = tac,
             )!!
             iverksettKlagebehandlingForSakId(
@@ -221,18 +221,18 @@ class IverksettKlagebehandlingRouteTest {
     fun `kan iverksette klagebehandling til omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgOpprettRammebehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterSøknadsbehandlingInnvilgelse`(
+            oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
@@ -269,13 +269,13 @@ class IverksettKlagebehandlingRouteTest {
                 Klagebehandling::erAvsluttet,
                 Klagebehandling::erUnderBehandling,
                 Klagebehandling::erÅpen,
-                klagebehandling::åpenRammebehandlingId,
+                Klagebehandling::åpenBehandlingId,
                 Klagebehandling::resultat,
             )
             rammevedtak.klagebehandlingsresultat!!.shouldBeEqualToIgnoringFields(
                 klagebehandling.resultat!!,
                 // denne er fortsatt satt når den er åpen, men fjernes ved iverksettelse av omgjøring, så vi ignorerer den i sammenligningen
-                Klagebehandlingsresultat::åpenRammebehandlingId,
+                Klagebehandlingsresultat::åpenBehandlingId,
             )
             json.getString("klagebehandlingId") shouldBe klagebehandling.id.toString()
         }
@@ -285,7 +285,7 @@ class IverksettKlagebehandlingRouteTest {
     fun `iverksetter klagebehandling (opprettholdelse) med søknadsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandling, klagebehandling) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 behandlingstype = "SØKNADSBEHANDLING_INNVILGELSE",
                 hendelseGenerering = { _, klagebehandling ->
@@ -303,13 +303,13 @@ class IverksettKlagebehandlingRouteTest {
             klagebehandling.resultat.shouldBeInstanceOf<Klagebehandlingsresultat.Opprettholdt>()
 
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterSøknadsbehandlingInnvilgelse`(
+            oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
                 saksbehandler = saksbehandler,
             )
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
@@ -329,7 +329,7 @@ class IverksettKlagebehandlingRouteTest {
                 beslutter = beslutter,
             )!!
 
-            iverksattRammebehandlingJson.toString().`shouldBeSøknadsbehandlingDTO`(
+            iverksattRammebehandlingJson.toString().shouldBeSøknadsbehandlingDTO(
                 rammevedtakId = rammevedtak.id,
                 sakId = sak.id,
                 behandlingId = iverksattRammebehandling.id,
@@ -351,7 +351,7 @@ class IverksettKlagebehandlingRouteTest {
     fun `iverksetter klagebehandling (opprettholdelse) og revurdering innvilgelse`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 behandlingstype = "REVURDERING_INNVILGELSE",
                 hendelseGenerering = { _, klagebehandling ->
@@ -412,7 +412,7 @@ class IverksettKlagebehandlingRouteTest {
     fun `iverksetter klagebehandling (opprettholdelse) og revurdering omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling) = opprettSakOgOmgjørFraKaKlagebehandlingMedNyRammebehandling(
+            val (sak, rammebehandling, klagebehandling) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 hendelseGenerering = { _, klagebehandling ->
                     GenerererKlageinstanshendelse.avsluttetJson(
@@ -428,7 +428,7 @@ class IverksettKlagebehandlingRouteTest {
             sak.vedtaksliste.alle.size shouldBe 1
 
             val saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!)
-            `oppdaterOmgjøringInnvilgelse`(
+            oppdaterOmgjøringInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,

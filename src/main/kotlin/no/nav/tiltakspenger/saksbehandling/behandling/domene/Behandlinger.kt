@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 
@@ -74,7 +75,14 @@ data class Behandlinger(
     }
 
     fun oppdaterMeldekortbehandling(behandling: Meldekortbehandling): Behandlinger {
-        return copy(meldekortbehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(behandling))
+        return copy(
+            klagebehandlinger = if (behandling.klagebehandling != null) {
+                klagebehandlinger.oppdaterKlagebehandling(behandling.klagebehandling!!)
+            } else {
+                klagebehandlinger
+            },
+            meldekortbehandlinger = meldekortbehandlinger.oppdaterMeldekortbehandling(behandling),
+        )
     }
 
     fun leggTilKlagebehandling(klagebehandling: Klagebehandling): Behandlinger {
@@ -85,6 +93,7 @@ data class Behandlinger(
         return copy(
             klagebehandlinger = klagebehandlinger.oppdaterKlagebehandling(klagebehandling),
             rammebehandlinger = rammebehandlinger.oppdaterKlagebehandling(klagebehandling),
+            meldekortbehandlinger = meldekortbehandlinger.oppdaterKlagebehandling(klagebehandling),
         )
     }
 
@@ -92,8 +101,9 @@ data class Behandlinger(
         return klagebehandlinger.hentKlagebehandling(klagebehandlingId)
     }
 
-    fun hentÅpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<Rammebehandling> {
-        return rammebehandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId)
+    fun hentÅpneBehandlingerMedKlagebehandlingId(klagebehandlingId: KlagebehandlingId): List<AttesterbarBehandling> {
+        return rammebehandlinger.åpneRammebehandlingerMedKlagebehandlingId(klagebehandlingId) +
+            meldekortbehandlinger.åpneBehandlingerMedKlagebehandlingId(klagebehandlingId)
     }
 
     fun hentKlagebehandlingerSomSkalOversendesKlageinstansen(): List<Klagebehandling> {
@@ -107,14 +117,17 @@ data class Behandlinger(
         require(slåttSammen.distinctBy { it.id }.size == slåttSammen.size) {
             "Behandlingene må ha unike IDer."
         }
-        klagebehandlinger.filter { it.rammebehandlingId.isNotEmpty() }.forEach { klagebehandling ->
-            val rammebehandlinger = klagebehandling.rammebehandlingId.let { klagensRammebehandlingId ->
-                rammebehandlinger.filter { klagensRammebehandlingId.contains(it.id) }
+        klagebehandlinger.filter { it.behandlingId.isNotEmpty() }.forEach { klagebehandling ->
+            val rammebehandlinger = klagebehandling.behandlingId.let { klagensBehandlingId ->
+                rammebehandlinger.filter { klagensBehandlingId.contains(it.id) }
+            }
+            val meldekortbehandlinger = klagebehandling.behandlingId.let { klagensBehandlingId ->
+                meldekortbehandlinger.filter { klagensBehandlingId.contains(it.id) }
             }
 
-            // Det skal kun være én rammebehandling som er under behandling for en gitt klagebehandling
-            require(rammebehandlinger.singleOrNull { it.erUnderAktivBehandling } != null || rammebehandlinger.all { it.erAvsluttet }) {
-                "Klagebehandling ${klagebehandling.id} er tilknyttet flere rammebehandlinger som er under aktiv behandling"
+            // Det skal kun være én behandling som er under behandling for en gitt klagebehandling
+            require(rammebehandlinger.singleOrNull { it.erUnderAktivBehandling } != null || rammebehandlinger.all { it.erAvsluttet } || meldekortbehandlinger.singleOrNull { it.erUnderAktivBehandling } != null || meldekortbehandlinger.all { it.erAvsluttet }) {
+                "Klagebehandling ${klagebehandling.id} er tilknyttet flere behandlinger som er under aktiv behandling"
             }
 
             // Alle rammebehandlinger som er tilknyttet en klagebehandling skal være i en status som er konsistent med klagebehandlingens status
@@ -123,8 +136,11 @@ data class Behandlinger(
                     "Klagebehandling ${klagebehandling.id} er tilknyttet rammebehandling ${rammebehandling.id}, men objektene er ikke identiske."
                 }
                 when (klagebehandling.status) {
-                    Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BEHANDLING) {
-                        "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                    Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(
+                        rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BEHANDLING ||
+                            rammebehandling.status == Rammebehandlingsstatus.KLAR_TIL_BESLUTNING,
+                    ) {
+                        "Forventet at rammebehandling ${rammebehandling.id} er KLAR_TIL_BEHANDLING eller KLAR_TIL_BESLUTNING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${rammebehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
                     }
 
                     Klagebehandlingsstatus.UNDER_BEHANDLING,
@@ -153,8 +169,47 @@ data class Behandlinger(
                     -> Unit
                 }
             }
+
+            meldekortbehandlinger.forEach { meldekortbehandling ->
+                require(meldekortbehandling.klagebehandling == klagebehandling) {
+                    "Klagebehandling ${klagebehandling.id} er tilknyttet meldekortbehandling ${meldekortbehandling.id}, men objektene er ikke identiske."
+                }
+
+                when (klagebehandling.status) {
+                    Klagebehandlingsstatus.KLAR_TIL_BEHANDLING -> require(
+                        meldekortbehandling.status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING ||
+                            meldekortbehandling.status == MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
+                    ) {
+                        "Forventet at meldekortbehandling ${meldekortbehandling.id} er KLAR_TIL_BEHANDLING eller KLAR_TIL_BESLUTNING når klagebehandling ${klagebehandling.id} er KLAR_TIL_BEHANDLING, men var ${meldekortbehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                    }
+
+                    Klagebehandlingsstatus.UNDER_BEHANDLING,
+                    Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS,
+                    -> require(
+                        meldekortbehandling.status in listOf(
+                            MeldekortbehandlingStatus.UNDER_BEHANDLING,
+                            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
+                            MeldekortbehandlingStatus.UNDER_BESLUTNING,
+                        ),
+                    ) {
+                        "Forventet at meldekortbehandling ${meldekortbehandling.id} er [UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING] når klagebehandling ${klagebehandling.id} er UNDER_BEHANDLING, men var ${meldekortbehandling.status}. sakId =${klagebehandling.sakId}, saksnummer=${klagebehandling.saksnummer}"
+                    }
+
+                    Klagebehandlingsstatus.VEDTATT -> require(meldekortbehandling.status == MeldekortbehandlingStatus.GODKJENT)
+
+                    Klagebehandlingsstatus.AVBRUTT -> throw IllegalStateException(
+                        "En klagebehandling med status ${klagebehandling.status} skal ikke være tilknyttet en rammebehandling",
+                    )
+
+                    Klagebehandlingsstatus.OPPRETTHOLDT,
+                    Klagebehandlingsstatus.OVERSENDT,
+                    Klagebehandlingsstatus.OVERSEND_FEILET,
+                    Klagebehandlingsstatus.MOTTATT_FRA_KLAGEINSTANS,
+                    Klagebehandlingsstatus.FERDIGSTILT,
+                    -> Unit
+                }
+            }
         }
-        // Siden [Rammebehandling] er "eieren" av relasjonen til [Klagebehandling], sjekker vi statusen i initen til implementasjonene av [Rammebehandling].
     }
 
     companion object {

@@ -417,8 +417,16 @@ open class ApplicationContext(
             leggTilbakeRammebehandlingService = behandlingContext.leggTilbakeRammebehandlingService,
             settRammebehandlingPåVentService = behandlingContext.settRammebehandlingPåVentService,
             gjenopptaRammebehandlingService = behandlingContext.gjenopptaRammebehandlingService,
+            taMeldekortbehandlingService = meldekortContext.taMeldekortbehandlingService,
+            opprettMeldekortbehandlingService = meldekortContext.opprettMeldekortbehandlingService,
+            meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
+            overtaMeldekortbehandlingService = meldekortContext.overtaMeldekortbehandlingService,
+            leggTilbakeMeldekortbehandlingService = meldekortContext.leggTilbakeMeldekortbehandlingService,
+            settMeldekortbehandlingPåVentService = meldekortContext.settMeldekortbehandlingPåVentService,
+            gjenopptaMeldekortbehandlingService = meldekortContext.gjenopptaMeldekortbehandlingService,
             texasClient = texasClient,
             rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             statistikkService = statistikkContext.statistikkService,
         )
     }
