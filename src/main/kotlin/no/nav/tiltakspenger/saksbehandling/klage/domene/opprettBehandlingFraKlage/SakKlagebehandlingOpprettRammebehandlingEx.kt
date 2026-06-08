@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage
+package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage
 
 import arrow.core.Either
 import arrow.core.left

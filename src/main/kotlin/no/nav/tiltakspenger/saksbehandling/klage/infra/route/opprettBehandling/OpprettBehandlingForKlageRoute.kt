@@ -28,12 +28,12 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingen
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettBehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettMeldekortbehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRevurderingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.service.KanIkkeOppretteBehandlingForKlage
-import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageResultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.KanIkkeOppretteBehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettBehandlingForKlageResultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettBehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettMeldekortbehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettRevurderingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageService
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.tilStatusOgErrorJson
@@ -175,16 +175,16 @@ fun Route.opprettBehandlingForKlageRoute(
     }
 }
 
-private fun KanIkkeOppretteBehandlingForKlage.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson>? {
+private fun KanIkkeOppretteBehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson>? {
     return when (this) {
-        is KanIkkeOppretteBehandlingForKlage.KanIkkeOppretteMeldekortbehandling -> this.underliggende.tilStatusOgErrorJson()
+        is KanIkkeOppretteBehandlingFraKlage.KanIkkeOppretteMeldekortbehandling -> this.underliggende.tilStatusOgErrorJson()
 
-        is KanIkkeOppretteBehandlingForKlage.SaksbehandlerMismatch -> Pair(
+        is KanIkkeOppretteBehandlingFraKlage.SaksbehandlerMismatch -> Pair(
             HttpStatusCode.BadRequest,
             behandlingenEiesAvAnnenSaksbehandler(forventetSaksbehandler),
         )
 
-        is KanIkkeOppretteBehandlingForKlage.FinnesÅpenBehandling -> Pair(
+        is KanIkkeOppretteBehandlingFraKlage.FinnesÅpenBehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
                 "Det finnes allerede en åpen behandling $behandlingId for denne klagebehandlingen.",

@@ -1,19 +1,19 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
+import arrow.core.left
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.KanIkkeOppretteBehandlingFraKlage
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettBehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettMeldekortbehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettRevurderingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettRammebehandlingFraKlage.opprettBehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.KanIkkeOppretteBehandlingFraKlage
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettBehandlingForKlageResultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettBehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettMeldekortbehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettRevurderingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
+import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.opprettBehandlingFraKlage
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -26,7 +26,7 @@ class OpprettBehandlingForKlageService(
 ) {
     suspend fun opprett(
         kommando: OpprettBehandlingFraKlageKommando,
-    ): Either<KanIkkeOppretteBehandlingForKlage, OpprettBehandlingForKlageResultat> {
+    ): Either<KanIkkeOppretteBehandlingFraKlage, OpprettBehandlingForKlageResultat> {
         return when (kommando) {
             is OpprettSøknadsbehandlingFraKlageKommando -> opprettBehandling(
                 kommando = OpprettSøknadsbehandlingFraKlageKommando(
@@ -66,7 +66,7 @@ class OpprettBehandlingForKlageService(
 
     private suspend fun opprettBehandling(
         kommando: OpprettBehandlingFraKlageKommando,
-    ): Either<KanIkkeOppretteBehandlingForKlage, OpprettBehandlingForKlageResultat> {
+    ): Either<KanIkkeOppretteBehandlingFraKlage, OpprettBehandlingForKlageResultat> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         return sak.opprettBehandlingFraKlage(
             kommando = kommando,
@@ -79,7 +79,7 @@ class OpprettBehandlingForKlageService(
                 opprettMeldekortbehandlingService.opprettBehandling(kommando).getOrThrow()
             },
         ).mapLeft {
-            it.tilKanIkkeOppretteBehandlingForKlage()
+            return it.left()
         }.map { (oppdatertSak, behandling) ->
             when (behandling) {
                 is Rammebehandling -> OpprettBehandlingForKlageResultat.RammebehandlingOpprettet(
@@ -96,46 +96,5 @@ class OpprettBehandlingForKlageService(
                 else -> throw IllegalStateException("Ukjent behandlingstype ${behandling::class} for å opprette behandling fra klage")
             }
         }
-    }
-}
-
-sealed interface OpprettBehandlingForKlageResultat {
-    val sak: Sak
-
-    data class RammebehandlingOpprettet(
-        override val sak: Sak,
-        val rammebehandling: Rammebehandling,
-    ) : OpprettBehandlingForKlageResultat
-
-    data class MeldekortbehandlingOpprettet(
-        override val sak: Sak,
-        val meldekortbehandling: MeldekortUnderBehandling,
-        val kjedeId: MeldeperiodeKjedeId,
-    ) : OpprettBehandlingForKlageResultat
-}
-
-sealed interface KanIkkeOppretteBehandlingForKlage {
-    data class KanIkkeOppretteMeldekortbehandling(
-        val underliggende: no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling,
-    ) : KanIkkeOppretteBehandlingForKlage
-
-    data class SaksbehandlerMismatch(
-        val forventetSaksbehandler: String?,
-        val faktiskSaksbehandler: String,
-    ) : KanIkkeOppretteBehandlingForKlage
-
-    data class FinnesÅpenBehandling(val behandlingId: BehandlingId) : KanIkkeOppretteBehandlingForKlage
-}
-
-private fun KanIkkeOppretteBehandlingFraKlage.tilKanIkkeOppretteBehandlingForKlage(): KanIkkeOppretteBehandlingForKlage {
-    return when (this) {
-        is KanIkkeOppretteBehandlingFraKlage.SaksbehandlerMismatch -> KanIkkeOppretteBehandlingForKlage.SaksbehandlerMismatch(
-            forventetSaksbehandler = forventetSaksbehandler,
-            faktiskSaksbehandler = faktiskSaksbehandler,
-        )
-
-        is KanIkkeOppretteBehandlingFraKlage.FinnesÅpenBehandling -> KanIkkeOppretteBehandlingForKlage.FinnesÅpenBehandling(
-            behandlingId = behandlingId,
-        )
     }
 }
