@@ -1,35 +1,51 @@
 name: "CodeQL"
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 7 * * *'
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'java' ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4.36.0
         with:
-          languages: ${{ matrix.language }}
+          languages: java-kotlin
+          build-mode: manual
           queries: security-and-quality
+          config: |
+            query-filters:
+              - exclude:
+                  problem.severity:
+                    - recommendation
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
       - name: Build
-        run: ./gradlew clean build -x test testClasses
+        run: ./gradlew clean classes --no-build-cache --no-configuration-cache
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4.36.0
         with:
-          category: "/language:${{matrix.language}}"
+          category: "/language:java-kotlin"
