@@ -105,7 +105,7 @@ class OpprettMeldekortbehandlingServiceTest {
                 ),
             ).getOrFail()
 
-            meldekortbehandling.erKorrigering shouldBe true
+            meldekortbehandling.harKorrigering shouldBe true
             oppdatertSak.meldekortbehandlinger.size shouldBe 2
             oppdatertSak.meldekortbehandlinger.last() shouldBe meldekortbehandling
         }

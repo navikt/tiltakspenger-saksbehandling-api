@@ -105,7 +105,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     val rammevedtakIder: NonEmptyList<VedtakId> get() = meldeperioder.rammevedtakIder
 
-    val erKorrigering: Boolean get() = typeLegacy == MeldeperiodebehandlingType.KORRIGERING
+    val harKorrigering: Boolean get() = meldeperioder.any { it.type == MeldeperiodebehandlingType.KORRIGERING }
     val erAutomatiskBehandling: Boolean get() = this is MeldekortBehandletAutomatisk
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
