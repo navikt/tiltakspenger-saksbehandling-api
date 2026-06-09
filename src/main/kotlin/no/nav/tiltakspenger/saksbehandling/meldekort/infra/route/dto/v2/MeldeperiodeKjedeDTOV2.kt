@@ -42,7 +42,8 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKje
         periode = meldeperiodeKjede.periode.toDTO(),
         tiltaksnavn = this.rammevedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
-            .perioderMedVerdi.toList().map { it.verdi.typeNavn },
+            .perioderMedVerdi.toList().map { it.verdi.typeNavn }
+            .distinct(),
         sisteMeldeperiode = meldeperiodeKjede.siste.toMeldeperiodeDTO(),
         meldekortbehandlingIder = meldekortbehandlinger.map { it.id.toString() },
         meldekortbehandlingStatus = meldekortbehandlinger.lastOrNull()?.status?.toStatusDTO(),
