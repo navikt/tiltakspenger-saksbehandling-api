@@ -41,6 +41,10 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val opprettet: LocalDateTime
     val sistEndret: LocalDateTime
     val iverksattTidspunkt: LocalDateTime?
+
+    /**
+     * hendelsene er sortert desc
+     */
     val ventestatus: List<VentestatusHendelseDTO>
     val utbetaling: BehandlingUtbetalingDTO?
     val utbetalingskontroll: UtbetalingskontrollDTO?

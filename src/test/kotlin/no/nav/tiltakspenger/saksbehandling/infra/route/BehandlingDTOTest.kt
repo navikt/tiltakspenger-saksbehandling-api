@@ -77,9 +77,9 @@ class BehandlingDTOTest {
                 val dto = sak.tilRammebehandlingDTO(behandlingSattPåVent.id)
 
                 dto.ventestatus.size shouldBe 3
-                dto.ventestatus.last().erSattPåVent shouldBe true
-                dto.ventestatus.last().sattPåVentAv shouldBe beslutter.navIdent
-                dto.ventestatus.last().begrunnelse shouldBe "2"
+                dto.ventestatus.first().erSattPåVent shouldBe true
+                dto.ventestatus.first().sattPåVentAv shouldBe beslutter.navIdent
+                dto.ventestatus.first().begrunnelse shouldBe "2"
                 dto.beslutter shouldBe null
             }
         }

@@ -37,6 +37,9 @@ data class MeldekortbehandlingDTO(
     val godkjentTidspunkt: LocalDateTime?,
     val status: MeldekortbehandlingStatusDTO,
     val erAvsluttet: Boolean,
+    /**
+     * hendelsene er sortert desc
+     */
     val ventestatus: List<VentestatusHendelseDTO>,
     val navkontor: String,
     val navkontorNavn: String?,

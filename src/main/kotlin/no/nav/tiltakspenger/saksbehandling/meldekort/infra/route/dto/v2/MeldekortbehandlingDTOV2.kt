@@ -62,6 +62,9 @@ data class MeldekortbehandlingDTOV2(
     val tekstTilVedtaksbrev: String?,
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
+    /**
+     * hendelsene er sortert desc
+     */
     val ventestatus: List<VentestatusHendelseDTO>,
     val klagebehandlingId: String?,
 )

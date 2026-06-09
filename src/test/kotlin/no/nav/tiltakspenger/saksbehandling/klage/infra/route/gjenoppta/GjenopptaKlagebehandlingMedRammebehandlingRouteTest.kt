@@ -49,8 +49,8 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                 åpenBehandlingId = rammebehandlingMedKlagebehandling.id.toString(),
                 //language=json
                 ventestatus = listOf(
-                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
                     """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "KLAR_TIL_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
+                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
                 ),
             )
             klagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
@@ -135,8 +135,8 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
                 beslutter = null,
                 //language=json
                 ventestatus = listOf(
-                    """{"sattPåVentAv": "saksbehandlerKlagebehandling", "status": "UNDER_BEHANDLING", "tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
                     """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "KLAR_TIL_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
+                    """{"sattPåVentAv": "saksbehandlerKlagebehandling", "status": "UNDER_BEHANDLING", "tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
                 ),
                 status = "UNDER_BEHANDLING",
                 eksternDeltagelseId = "61328250-7d5d-4961-b70e-5cb727a34371",

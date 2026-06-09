@@ -48,7 +48,7 @@ class GjenopptaMeldekortbehandlingRouteTest {
             json.getString("saksbehandler") shouldBe "Z12345"
             json.getJSONArray("ventestatus").also { ventestatus ->
                 ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(1).also { hendelse ->
+                ventestatus.getJSONObject(0).also { hendelse ->
                     hendelse.getString("sattPåVentAv") shouldBe "Z12345"
                     hendelse.getString("begrunnelse") shouldBe ""
                     hendelse.getBoolean("erSattPåVent") shouldBe false
@@ -93,7 +93,7 @@ class GjenopptaMeldekortbehandlingRouteTest {
             json.getString("beslutter") shouldBe "beslutter"
             json.getJSONArray("ventestatus").also { ventestatus ->
                 ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(1).also { hendelse ->
+                ventestatus.getJSONObject(0).also { hendelse ->
                     hendelse.getString("sattPåVentAv") shouldBe "beslutter"
                     hendelse.getString("begrunnelse") shouldBe ""
                     hendelse.getBoolean("erSattPåVent") shouldBe false

@@ -11,7 +11,8 @@ data class VentestatusHendelseDTO(
     val frist: String? = null,
 )
 
-fun List<VentestatusHendelse>.tilDto(): List<VentestatusHendelseDTO> = this.map { it.tilVentestatusHendelseDTO() }
+fun List<VentestatusHendelse>.tilDto(): List<VentestatusHendelseDTO> =
+    this.map { it.tilVentestatusHendelseDTO() }.reversed()
 
 fun VentestatusHendelse.tilVentestatusHendelseDTO() = VentestatusHendelseDTO(
     sattPåVentAv = endretAv,

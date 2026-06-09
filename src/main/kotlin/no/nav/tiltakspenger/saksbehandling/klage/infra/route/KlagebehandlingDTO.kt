@@ -37,7 +37,9 @@ data class KlagebehandlingDTO(
     val avbrutt: AvbruttDTO?,
     val kanIverksetteVedtak: Boolean?,
     val kanIverksetteOpprettholdelse: Boolean,
-    /** Vil være null mens den ikke er på vent. */
+    /**
+     * hendelsene er sortert desc
+     */
     val ventestatus: List<VentestatusHendelseDTO>,
     val formkrav: KlageFormkravDTO,
     val tilknyttedeBehandlingIder: List<String>,

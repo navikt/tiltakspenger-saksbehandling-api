@@ -89,7 +89,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             klageJson.get("saksbehandler").asString() shouldBe saksbehandler.navIdent
             val klageVentestatusArray = klageJson.get("ventestatus")
             klageVentestatusArray.size() shouldBe 2
-            klageVentestatusArray[1].also { hendelse ->
+            klageVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
                 hendelse.get("begrunnelse").asString() shouldBe ""
                 hendelse.get("erSattPåVent").asBoolean() shouldBe false
@@ -103,7 +103,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             meldekortJson.get("saksbehandler").asString() shouldBe saksbehandler.navIdent
             val meldekortVentestatusArray = meldekortJson.get("ventestatus")
             meldekortVentestatusArray.size() shouldBe 2
-            meldekortVentestatusArray[1].also { hendelse ->
+            meldekortVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
                 hendelse.get("begrunnelse").asString() shouldBe ""
                 hendelse.get("erSattPåVent").asBoolean() shouldBe false
@@ -180,7 +180,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             json.getString("saksbehandler") shouldBe saksbehandler.navIdent
             json.getJSONArray("ventestatus").also { ventestatus ->
                 ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(1).also { hendelse ->
+                ventestatus.getJSONObject(0).also { hendelse ->
                     hendelse.getString("sattPåVentAv") shouldBe saksbehandler.navIdent
                     hendelse.getString("begrunnelse") shouldBe ""
                     hendelse.getBoolean("erSattPåVent") shouldBe false
@@ -262,7 +262,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             json.getString("saksbehandler") shouldBe saksbehandler.navIdent
             json.getJSONArray("ventestatus").also { ventestatus ->
                 ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(1).also { hendelse ->
+                ventestatus.getJSONObject(0).also { hendelse ->
                     hendelse.getString("sattPåVentAv") shouldBe saksbehandler.navIdent
                     hendelse.getString("begrunnelse") shouldBe ""
                     hendelse.getBoolean("erSattPåVent") shouldBe false
@@ -343,7 +343,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             json.getString("beslutter") shouldBe beslutter.navIdent
             json.getJSONArray("ventestatus").also { ventestatus ->
                 ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(1).also { hendelse ->
+                ventestatus.getJSONObject(0).also { hendelse ->
                     hendelse.getString("sattPåVentAv") shouldBe beslutter.navIdent
                     hendelse.getString("begrunnelse") shouldBe ""
                     hendelse.getBoolean("erSattPåVent") shouldBe false
