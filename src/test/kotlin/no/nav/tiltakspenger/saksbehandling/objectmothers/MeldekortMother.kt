@@ -70,9 +70,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
@@ -123,7 +123,7 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             antallDagerForPeriode = antallDagerForPeriode,
         ),
-        type: MeldekortbehandlingType = MeldekortbehandlingType.FØRSTE_BEHANDLING,
+        type: MeldeperiodebehandlingType = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
         dager: UtfyltMeldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
@@ -138,7 +138,6 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             navkontor = navkontor,
             saksbehandler = saksbehandler,
-            type = type,
             attesteringer = attesteringer,
             begrunnelse = null,
             sendtTilBeslutning = null,
@@ -151,6 +150,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 meldeperiode = dager,
                 beregning = null,
                 brukersMeldekort = null,
+                type = type,
             ),
             ventestatus = ventestatus,
             klagebehandling = null,
@@ -180,7 +180,7 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             antallDagerForPeriode = 10,
         ),
-        type: MeldekortbehandlingType = MeldekortbehandlingType.FØRSTE_BEHANDLING,
+        type: MeldeperiodebehandlingType = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
         begrunnelse: Begrunnelse? = null,
         simulering: Simulering? = null,
@@ -197,7 +197,6 @@ interface MeldekortMother : MotherOfAllMothers {
             simulering = simulering,
             saksbehandler = saksbehandler,
             navkontor = navkontor,
-            type = type,
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
             avbrutt = Avbrutt(
@@ -212,6 +211,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 meldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
                 beregning = null,
                 brukersMeldekort = null,
+                type = type,
             ),
             ventestatus = ventestatus,
             klagebehandling = null,
@@ -253,7 +253,7 @@ interface MeldekortMother : MotherOfAllMothers {
         navkontor: Navkontor = ObjectMother.navkontor(),
         sendtTilBeslutning: LocalDateTime = nå(clock),
         erFørsteBehandlingForPerioden: Boolean = true,
-        type: MeldekortbehandlingType = MeldekortbehandlingType.FØRSTE_BEHANDLING,
+        type: MeldeperiodebehandlingType = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
         attesteringer: Attesteringer = Attesteringer.empty(),
         begrunnelse: Begrunnelse? = null,
         simulering: Simulering? = null,
@@ -274,7 +274,6 @@ interface MeldekortMother : MotherOfAllMothers {
             status = status,
             iverksattTidspunkt = iverksattTidspunkt,
             navkontor = navkontor,
-            type = type,
             begrunnelse = begrunnelse,
             attesteringer = attesteringer,
             sistEndret = sistEndret,
@@ -284,6 +283,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 meldeperiode = dager,
                 beregning = meldekortperiodeBeregning,
                 brukersMeldekort = null,
+                type = type,
             ),
             ventestatus = Ventestatus(),
             klagebehandling = null,
@@ -308,7 +308,7 @@ interface MeldekortMother : MotherOfAllMothers {
             opprettet = opprettet,
             antallDagerForPeriode = 10,
         ),
-        type: MeldekortbehandlingType = MeldekortbehandlingType.FØRSTE_BEHANDLING,
+        type: MeldeperiodebehandlingType = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
         brukersMeldekort: BrukersMeldekort = brukersMeldekort(
             sakId = sakId,
             meldeperiode = meldeperiode,
@@ -329,7 +329,6 @@ interface MeldekortMother : MotherOfAllMothers {
             fnr = fnr,
             opprettet = opprettet,
             navkontor = navkontor,
-            type = type,
             status = MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
             simulering = simulering,
             sistEndret = sistEndret,
@@ -337,6 +336,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 meldeperiode = brukersMeldekort.tilUtfyltMeldeperiode(),
                 beregning = beregning,
                 brukersMeldekort = brukersMeldekort,
+                type = type,
             ),
         )
     }
@@ -686,7 +686,6 @@ interface MeldekortMother : MotherOfAllMothers {
                     opprettet = opprettet,
                     navkontor = navkontor,
                     saksbehandler = kommando.saksbehandler.navIdent,
-                    type = MeldekortbehandlingType.FØRSTE_BEHANDLING,
                     begrunnelse = begrunnelse,
                     attesteringer = attesteringer,
                     sendtTilBeslutning = null,
@@ -699,6 +698,7 @@ interface MeldekortMother : MotherOfAllMothers {
                         meldeperiode = dager,
                         beregning = null,
                         brukersMeldekort = null,
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                     ),
                     ventestatus = Ventestatus(),
                     klagebehandling = null,
@@ -716,6 +716,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 Meldeperiodebehandling(
                     dager = it.tilUtfyltMeldeperiode(meldeperiode),
                     brukersMeldekort = null,
+                    type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                 )
             },
             beregning = Beregning(
@@ -808,7 +809,6 @@ interface MeldekortMother : MotherOfAllMothers {
                 opprettet = opprettet,
                 navkontor = navkontor,
                 saksbehandler = kommando.saksbehandler.navIdent,
-                type = MeldekortbehandlingType.FØRSTE_BEHANDLING,
                 begrunnelse = null,
                 attesteringer = attesteringer,
                 sendtTilBeslutning = null,
@@ -821,6 +821,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiode = dager,
                     beregning = null,
                     brukersMeldekort = null,
+                    type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                 ),
                 ventestatus = Ventestatus(),
                 klagebehandling = null,
@@ -837,6 +838,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 Meldeperiodebehandling(
                     dager = it.tilUtfyltMeldeperiode(meldeperiode),
                     brukersMeldekort = null,
+                    type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                 )
             },
             beregning = Beregning(

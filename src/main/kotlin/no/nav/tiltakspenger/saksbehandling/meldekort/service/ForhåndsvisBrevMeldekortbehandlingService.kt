@@ -85,7 +85,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                     sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
                 },
                 iverksattTidspunkt = null,
-                erKorrigering = meldekortbehandling.erKorrigering,
+                erKorrigering = meldekortbehandling.harKorrigering,
                 beregninger = nåværendeBeregningMedTidligereBeregning,
                 totaltBeløp = beregning.sumOf { it.totalBeløp },
                 tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,

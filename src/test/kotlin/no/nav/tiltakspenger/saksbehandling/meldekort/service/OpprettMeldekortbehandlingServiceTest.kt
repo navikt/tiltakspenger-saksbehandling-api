@@ -42,7 +42,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                     saksbehandler = saksbehandler(),
@@ -69,7 +69,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
                     saksbehandler = saksbehandler(),
@@ -97,7 +97,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                     saksbehandler = saksbehandler(),
@@ -105,7 +105,7 @@ class OpprettMeldekortbehandlingServiceTest {
                 ),
             ).getOrFail()
 
-            meldekortbehandling.erKorrigering shouldBe true
+            meldekortbehandling.harKorrigering shouldBe true
             oppdatertSak.meldekortbehandlinger.size shouldBe 2
             oppdatertSak.meldekortbehandlinger.last() shouldBe meldekortbehandling
         }
@@ -120,7 +120,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
                     saksbehandler = saksbehandler(),
@@ -145,7 +145,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder[2].kjedeId,
                     saksbehandler = saksbehandler(),
@@ -165,7 +165,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )!!
 
             val (oppdatertSak, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
                     saksbehandler = saksbehandler(),
@@ -187,7 +187,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )!!
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                     saksbehandler = saksbehandler(),
@@ -220,7 +220,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                     saksbehandler = saksbehandler(),
@@ -248,7 +248,7 @@ class OpprettMeldekortbehandlingServiceTest {
 
             sak.meldeperiodeKjeder.forEach {
                 tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                    no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                         sakId = sak.id,
                         kjedeId = it.kjedeId,
                         saksbehandler = saksbehandler(),
@@ -279,7 +279,7 @@ class OpprettMeldekortbehandlingServiceTest {
             )
 
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
                     kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                     saksbehandler = saksbehandler(),

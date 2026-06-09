@@ -33,7 +33,6 @@ data class MeldekortbehandlingAvbrutt(
     override val fnr: Fnr,
     override val opprettet: LocalDateTime,
     override val simulering: Simulering?,
-    override val type: MeldekortbehandlingType,
     override val saksbehandler: String?,
     override val navkontor: Navkontor,
     override val begrunnelse: Begrunnelse?,

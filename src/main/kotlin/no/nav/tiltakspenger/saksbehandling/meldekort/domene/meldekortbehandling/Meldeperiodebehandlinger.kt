@@ -30,7 +30,8 @@ data class Meldeperiodebehandlinger(
         meldeperiode: UtfyltMeldeperiode,
         beregning: Beregning?,
         brukersMeldekort: BrukersMeldekort?,
-    ) : this(nonEmptyListOf(Meldeperiodebehandling(meldeperiode, brukersMeldekort)), beregning)
+        type: MeldeperiodebehandlingType,
+    ) : this(nonEmptyListOf(Meldeperiodebehandling(meldeperiode, brukersMeldekort, type)), beregning)
 
     val fraOgMed: LocalDate = this.first().fraOgMed
     val tilOgMed: LocalDate = this.last().tilOgMed

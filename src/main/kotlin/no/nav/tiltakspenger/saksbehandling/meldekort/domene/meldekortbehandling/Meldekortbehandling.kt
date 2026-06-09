@@ -56,8 +56,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val skalSendeVedtaksbrev: Boolean
     override val klagebehandling: Klagebehandling?
 
-    val type: MeldekortbehandlingType
-
     val meldeperioder: Meldeperiodebehandlinger
 
     val beregning: Beregning? get() = meldeperioder.beregning
@@ -80,6 +78,9 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val kjedeIdLegacy: MeldeperiodeKjedeId get() = førsteMeldeperiodebehandling.kjedeId
     val brukersMeldekortLegacy: BrukersMeldekort? get() = førsteMeldeperiodebehandling.brukersMeldekort
     val dagerLegacy: UtfyltMeldeperiode get() = førsteMeldeperiodebehandling.dager
+
+    // Type er nå satt per meldeperiode. En behandling kan ha en blanding av førstegangsbehandlinger og korrigeringer.
+    val typeLegacy: MeldeperiodebehandlingType get() = førsteMeldeperiodebehandling.type
 
     override val erAvsluttet
         get() = when (status) {
@@ -104,7 +105,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     val rammevedtakIder: NonEmptyList<VedtakId> get() = meldeperioder.rammevedtakIder
 
-    val erKorrigering: Boolean get() = type == MeldekortbehandlingType.KORRIGERING
+    val harKorrigering: Boolean get() = meldeperioder.any { it.type == MeldeperiodebehandlingType.KORRIGERING }
     val erAutomatiskBehandling: Boolean get() = this is MeldekortBehandletAutomatisk
     val erUnderkjent: Boolean get() = attesteringer.erUnderkjent()
 
