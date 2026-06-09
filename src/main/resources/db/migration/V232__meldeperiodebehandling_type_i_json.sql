@@ -8,7 +8,3 @@ set meldeperioder = (
 where m.type is not null
   and jsonb_typeof(m.meldeperioder) = 'array'
   and jsonb_array_length(m.meldeperioder) > 0;
-
--- Type ligger nå på hver meldeperiode i meldeperioder-json-arrayen, så den gamle kolonnen kan fjernes.
-alter table meldekortbehandling
-    drop column type;
