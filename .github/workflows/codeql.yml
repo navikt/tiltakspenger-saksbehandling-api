@@ -42,7 +42,7 @@ jobs:
           distribution: 'temurin'
           java-version: 21
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.1.0
       - name: Build
         run: ./gradlew clean classes --no-build-cache --no-configuration-cache
       - name: Perform CodeQL Analysis
