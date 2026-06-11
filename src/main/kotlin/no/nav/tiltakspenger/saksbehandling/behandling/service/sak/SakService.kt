@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.hentMeldeperiodeKjederMedKunRettIHelg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -186,20 +187,37 @@ class SakService(
         )
     }
 
-    fun oppdaterKanSendeInnHelgForMeldekort(sakId: SakId, kanSendeHelg: Boolean): Sak {
+    fun oppdaterKanSendeInnHelgForMeldekort(
+        sakId: SakId,
+        kanSendeHelg: Boolean,
+    ): Either<KunneIkkeOppdatereHelgForMeldekort, Sak> {
         val sak = sakRepo.hentForSakId(sakId)
             ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $sakId")
+
+        if (!kanSendeHelg) {
+            val kjederMedKunRettIHelg = sak.hentMeldeperiodeKjederMedKunRettIHelg()
+
+            if (kjederMedKunRettIHelg.isNotEmpty()) {
+                return KunneIkkeOppdatereHelgForMeldekort.HarMeldeperioderMedKunHelg(
+                    kjederMedKunRettIHelg,
+                ).left()
+            }
+        }
 
         val oppdatertSak = sak.oppdaterKanSendeInnHelgForMeldekort(kanSendeHelg)
 
         sessionFactory.withTransactionContext {
-            sakRepo.oppdaterKanSendeInnHelgForMeldekort(sakId = oppdatertSak.id, oppdatertSak.kanSendeInnHelgForMeldekort, it)
+            sakRepo.oppdaterKanSendeInnHelgForMeldekort(
+                sakId = oppdatertSak.id,
+                oppdatertSak.kanSendeInnHelgForMeldekort,
+                it,
+            )
             sakRepo.markerSkalSendesTilMeldekortApi(
                 sakId = oppdatertSak.id,
                 sessionContext = it,
             )
         }
 
-        return oppdatertSak
+        return oppdatertSak.right()
     }
 }

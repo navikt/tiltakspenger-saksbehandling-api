@@ -13,4 +13,8 @@ sealed interface KanIkkeIverksetteBehandling {
     data class UtbetalingFeil(val feil: KanIkkeIverksetteUtbetaling, val sak: Sak, val behandling: Rammebehandling) : KanIkkeIverksetteBehandling
 
     data class OpprettVedtakFeil(val feil: OpprettRammevedtakFeil) : KanIkkeIverksetteBehandling
+
+    data object UgyldigeMeldeperioderHelg : KanIkkeIverksetteBehandling
+
+    data object VedtakErIkkeSisteVedtakPåSaken : KanIkkeIverksetteBehandling
 }

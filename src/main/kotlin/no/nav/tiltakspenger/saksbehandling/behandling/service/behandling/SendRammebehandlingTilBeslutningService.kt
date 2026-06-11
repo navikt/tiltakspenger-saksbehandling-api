@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.harGyldigeMeldeperioderForHelg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
@@ -62,6 +63,10 @@ class SendRammebehandlingTilBeslutningService(
                 oppdaterSak,
                 behandlingMedUtbetalingskontroll,
             ).left()
+        }
+
+        if (!sak.harGyldigeMeldeperioderForHelg(behandlingId, clock)) {
+            return KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg.left()
         }
 
         return behandlingMedUtbetalingskontroll.tilBeslutning(

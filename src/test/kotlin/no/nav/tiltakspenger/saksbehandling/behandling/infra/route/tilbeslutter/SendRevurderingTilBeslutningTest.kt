@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -42,7 +43,11 @@ class SendRevurderingTilBeslutningTest {
     @Test
     fun `kan sende revurdering stans til beslutning`() {
         withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+            // Innvilgelsen starter mandag 2. januar 2023, slik at dagen som beholder rett etter stans (mandag) er en hverdag.
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(2 til 31.januar(2023)),
+            )
 
             val stansFraOgMed = sak.førsteDagSomGirRett!!.plusDays(1)
 
@@ -65,6 +70,64 @@ class SendRevurderingTilBeslutningTest {
             )
 
             JSONObject(responseBody).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
+        }
+    }
+
+    @Test
+    fun `kan sende revurdering stans til beslutning når meldeperiode kun har rett i helg men sak kan sende inn helg`() {
+        withTestApplicationContext { tac ->
+            // Default innvilgelse starter søndag 1. januar 2023. Stans fra dagen etter gjør at kun søndagen beholder rett,
+            // dvs. en meldeperiode med rett kun i helg. Det er likevel gyldig når saken kan sende inn helg.
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+
+            tac.sakContext.sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak.id, true)
+
+            val stansFraOgMed = sak.førsteDagSomGirRett!!.plusDays(1)
+
+            oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(HjemmelForStans.Alder),
+                stansFraOgMed = stansFraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
+            )
+
+            val responseBody = sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                forventetStatus = HttpStatusCode.OK,
+            )
+
+            JSONObject(responseBody).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere revurdering stans når meldeperiode kun har rett i helg`() {
+        withTestApplicationContext { tac ->
+            // Default innvilgelse starter søndag 1. januar 2023. Stans fra dagen etter gjør at kun søndagen beholder rett,
+            // dvs. en meldeperiode med rett kun i helg. Saken kan ikke sende inn helg, så oppdateringen skal avvises.
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
+
+            val stansFraOgMed = sak.førsteDagSomGirRett!!.plusDays(1)
+
+            val (_, _, responseBody) = oppdaterRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                begrunnelseVilkårsvurdering = null,
+                fritekstTilVedtaksbrev = null,
+                valgteHjemler = setOf(HjemmelForStans.Alder),
+                stansFraOgMed = stansFraOgMed,
+                harValgtStansFraFørsteDagSomGirRett = false,
+                forventetStatus = HttpStatusCode.Conflict,
+            )
+
+            responseBody harKode "ugyldige_meldeperioder_for_helg"
         }
     }
 

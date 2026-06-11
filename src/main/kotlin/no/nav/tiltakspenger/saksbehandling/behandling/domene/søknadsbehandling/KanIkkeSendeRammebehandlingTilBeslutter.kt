@@ -15,4 +15,6 @@ sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
     data class UtbetalingFeil(val feil: KanIkkeIverksetteUtbetaling, val sak: Sak, val behandling: Rammebehandling) : KanIkkeSendeRammebehandlingTilBeslutter
 
     data class SimuleringFeil(val feil: KunneIkkeSimulere) : KanIkkeSendeRammebehandlingTilBeslutter
+
+    data object UgyldigeMeldeperioderHelg : KanIkkeSendeRammebehandlingTilBeslutter
 }

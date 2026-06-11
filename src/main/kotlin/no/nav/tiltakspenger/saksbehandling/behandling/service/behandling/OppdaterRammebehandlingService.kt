@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbeh
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.harGyldigeMeldeperioderForHelg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -66,6 +67,10 @@ class OppdaterRammebehandlingService(
             is OppdaterRevurderingKommando -> sak.oppdaterRevurdering(kommando, utbetaling)
         }.map { oppdatertBehandling: Rammebehandling ->
             val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
+
+            if (!oppdatertSak.harGyldigeMeldeperioderForHelg(oppdatertBehandling.id, clock)) {
+                return KanIkkeOppdatereBehandling.UgyldigeMeldeperioderHelg.left()
+            }
 
             log.debug { "Lagrer oppdatert behandling ${behandling.id} for sak ${behandling.sakId}" }
             sessionFactory.withTransactionContext { tx ->

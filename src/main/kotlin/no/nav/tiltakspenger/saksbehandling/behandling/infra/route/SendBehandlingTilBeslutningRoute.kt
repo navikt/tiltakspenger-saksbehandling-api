@@ -61,6 +61,8 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                         -> call.respondJson(statusAndValue = it.toErrorJson())
 
                         is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson())
+
+                        KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg -> call.respondJson(it.toErrorJson())
                     }
                 }.onRight { (sak, behandling) ->
                     auditService.logMedRammebehandlingId(
@@ -104,4 +106,9 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
             data = this.sak.tilRammebehandlingDTO(this.behandling.id),
         )
     }
+
+    KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg -> HttpStatusCode.Conflict to ErrorJson(
+        "Behandlingen har meldeperioder med kun rett i helg, men saken er ikke markert for melding på helgedager",
+        "ugyldige_meldeperioder_for_helg",
+    )
 }

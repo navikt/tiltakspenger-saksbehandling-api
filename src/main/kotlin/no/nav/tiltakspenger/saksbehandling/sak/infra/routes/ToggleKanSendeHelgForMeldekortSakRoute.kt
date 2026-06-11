@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
@@ -12,6 +14,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.KunneIkkeOppdatereHelgForMeldekort
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
@@ -51,8 +54,18 @@ fun Route.toggleKanSendeHelgForMeldekortSakRoute(
                     sakId = sakId,
                     kanSendeHelg = body.kanSendeHelg,
                 )
-                    .also { sak ->
+                    .onRight { sak ->
                         call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
+                    }
+                    .onLeft {
+                        when (it) {
+                            is KunneIkkeOppdatereHelgForMeldekort.HarMeldeperioderMedKunHelg -> call.respondJson(
+                                HttpStatusCode.Conflict to ErrorJson(
+                                    melding = "Kan ikke slå av melding i helg - brukeren har meldeperioder med rett kun på helgedager: ${it.kjedeIder}",
+                                    kode = "kan_ikke_slå_av_helg",
+                                ),
+                            )
+                        }
                     }
             }
         }

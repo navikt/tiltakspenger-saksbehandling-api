@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.harGyldigeMeldeperioderForHelg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -109,12 +110,12 @@ class IverksettRammebehandlingService(
             is Revurdering -> oppdatertSak.iverksettRammebehandling(
                 rammevedtak = vedtak,
                 statistikkhendelser = (klagestatistikk + rammevedtakstatistikk),
-            )
+            ).getOrElse { return it.left() }
 
             is Søknadsbehandling -> oppdatertSak.iverksettSøknadsbehandling(
                 rammevedtak = vedtak,
                 statistikkhendelser = klagestatistikk + rammevedtakstatistikk,
-            )
+            ).getOrElse { return it.left() }
         }
 
         return (doubleOppdatertSak to iverksattRammebehandling).right()
@@ -123,7 +124,7 @@ class IverksettRammebehandlingService(
     private suspend fun Sak.iverksettSøknadsbehandling(
         rammevedtak: Rammevedtak,
         statistikkhendelser: Statistikkhendelser,
-    ): Sak {
+    ): Either<KanIkkeIverksetteBehandling, Sak> {
         return when (rammevedtak.rammebehandlingsresultat) {
             is Søknadsbehandlingsresultat.Innvilgelse -> this.iverksettRammebehandling(
                 rammevedtak,
@@ -147,7 +148,7 @@ class IverksettRammebehandlingService(
                         tx.onSuccess { MetricRegister.IVERKSATT_BEHANDLING.inc() }
                     }
                 }
-                this
+                this.right()
             }
 
             is Revurderingsresultat -> throw IllegalArgumentException("Kan ikke iverksette revurdering-resultat på en søknadsbehandling")
@@ -157,7 +158,7 @@ class IverksettRammebehandlingService(
     private suspend fun Sak.iverksettRammebehandling(
         rammevedtak: Rammevedtak,
         statistikkhendelser: Statistikkhendelser,
-    ): Sak {
+    ): Either<KanIkkeIverksetteBehandling, Sak> {
         when (rammevedtak.rammebehandlingsresultat) {
             is Omgjøringsresultat.OmgjøringIkkeValgt,
             is Søknadsbehandlingsresultat.Avslag,
@@ -171,11 +172,18 @@ class IverksettRammebehandlingService(
             -> Unit
         }
 
-        require(this.rammevedtaksliste.last().id == rammevedtak.id) {
-            "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${rammevedtak.id} skal være siste vedtak på ${this.id})"
+        if (this.rammevedtaksliste.last().id != rammevedtak.id) {
+            logger.error { "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${rammevedtak.id} skal være siste vedtak på ${this.id})" }
+            return KanIkkeIverksetteBehandling.VedtakErIkkeSisteVedtakPåSaken.left()
         }
 
         val (sakOppdatertMedMeldeperioder, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
+
+        if (!sakOppdatertMedMeldeperioder.harGyldigeMeldeperioderForHelg()) {
+            logger.error { "Kan ikke iverksette rammebehandling med ugyldige meldeperioder for helg" }
+            return KanIkkeIverksetteBehandling.UgyldigeMeldeperioderHelg.left()
+        }
+
         val (oppdaterteMeldekortbehandlinger, oppdaterteMeldekort) = this.meldekortbehandlinger.oppdaterMedNyeKjeder(
             oppdaterteKjeder = sakOppdatertMedMeldeperioder.meldeperiodeKjeder,
             clock = clock,
@@ -220,6 +228,6 @@ class IverksettRammebehandlingService(
             }
         }
 
-        return sakOppdatertMedMeldekortbehandlinger
+        return sakOppdatertMedMeldekortbehandlinger.right()
     }
 }
