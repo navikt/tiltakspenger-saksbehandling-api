@@ -21,7 +21,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
-import kotlin.collections.sorted
 import kotlin.math.min
 
 typealias OppdaterteKjederOgMeldeperioder = Pair<MeldeperiodeKjeder, List<Meldeperiode>>
