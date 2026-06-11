@@ -42,7 +42,7 @@ jobs:
       - name: Build and run tests
         run: ./gradlew build
         if: steps.metadata.outputs.package-ecosystem != 'github_actions'
-      - name: Auto-merge changes from Dependabot
+      - name: Auto-merge changes from Dependabot lol
         run: gh pr merge --auto --squash "$PR_URL"
         if: steps.metadata.outputs.update-type != 'version-update:semver-major' || steps.metadata.outputs.package-ecosystem == 'github_actions'
         env:
