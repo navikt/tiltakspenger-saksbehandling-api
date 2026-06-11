@@ -17,7 +17,7 @@ fun Sak.harGyldigeMeldeperioderForHelg(behandlingId: RammebehandlingId, clock: C
 
     // Uten en vedtaksperiode (f.eks. når resultatet er "ikke valgt") finnes det ingen meldeperioder å validere.
     if (rammebehandling.vedtaksperiode == null) {
-        return true
+        return harGyldigeMeldeperioderForHelg()
     }
 
     return genererMeldeperioderForValidering(rammebehandling, clock)

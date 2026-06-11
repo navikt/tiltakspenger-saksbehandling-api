@@ -153,7 +153,7 @@ private fun MeldeperiodeKjeder.genererMeldeperioder(
 }
 
 /**
- * @return Alle 14-dagers perioder som overlapper med [vedtaksperioder]
+ * @return Alle 14-dagers perioder som overlapper med [vedtaksperioder] eller eksisterende meldeperioder
  *
  * */
 private fun MeldeperiodeKjeder.genererPerioder(vedtaksperioder: List<Periode>): List<Periode> {
