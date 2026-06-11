@@ -192,7 +192,7 @@ class SakService(
         kanSendeHelg: Boolean,
     ): Either<KunneIkkeOppdatereHelgForMeldekort, Sak> {
         val sak = sakRepo.hentForSakId(sakId)
-            ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $sakId")
+            ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
 
         if (!kanSendeHelg) {
             val kjederMedKunRettIHelg = sak.hentMeldeperiodeKjederMedKunRettIHelg()
