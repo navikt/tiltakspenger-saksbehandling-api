@@ -135,7 +135,7 @@ private fun MeldeperiodeKjeder.genererMeldeperioder(
             val antallDagerFraVedtak = hentAntallDager(periode)?.value ?: 0
             val antallDagerForPeriode = min(antallDagerFraTidslinje, antallDagerFraVedtak)
 
-            val version = hentMeldeperiodeKjedeForPeriode(periode)?.nesteVersjon()
+            val meldeperiodeVersjon = hentMeldeperiodeKjedeForPeriode(periode)?.nesteVersjon()
                 ?: HendelseVersjon.ny()
 
             Meldeperiode.opprettMeldeperiode(
@@ -145,7 +145,7 @@ private fun MeldeperiodeKjeder.genererMeldeperioder(
                 saksnummer = saksnummer,
                 sakId = sakId,
                 antallDagerForPeriode = antallDagerForPeriode,
-                versjon = version,
+                versjon = meldeperiodeVersjon,
                 rammevedtak = hentVedtakIder(periode),
                 clock = clock,
             )
