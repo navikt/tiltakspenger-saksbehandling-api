@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
@@ -18,8 +20,11 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.GenererMeldeperioderFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.finnNærmesteMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.genererMeldeperioderOgOppdaterKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
@@ -29,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class MeldeperiodeKjederTest {
 
@@ -36,8 +42,17 @@ class MeldeperiodeKjederTest {
     inner class FinnNærmesteMeldeperiodeForDato {
         @Test
         fun `tom kjede finner start dato for en kjede`() {
-            val kjeder = MeldeperiodeKjeder(emptyList())
-            kjeder.finnNærmesteMeldeperiode(2.januar(2023)) shouldBe Periode(2.januar(2023), 15.januar(2023))
+            val tommeKjeder = MeldeperiodeKjeder(emptyList())
+            tommeKjeder.finnNærmesteMeldeperiode(2.januar(2023)) shouldBe Periode(2.januar(2023), 15.januar(2023)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(7.april(2024)) shouldBe Periode(1.april(2024), 14.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(8.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(9.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(10.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(11.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(12.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(13.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(14.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024)).right()
+            tommeKjeder.finnNærmesteMeldeperiode(15.april(2024)) shouldBe Periode(15.april(2024), 28.april(2024)).right()
         }
 
         @Test
@@ -45,8 +60,8 @@ class MeldeperiodeKjederTest {
             val kjeder = MeldeperiodeKjeder(
                 MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
             )
-            kjeder.finnNærmesteMeldeperiode(6.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
-            kjeder.finnNærmesteMeldeperiode(19.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(6.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025)).right()
+            kjeder.finnNærmesteMeldeperiode(19.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025)).right()
         }
 
         @Test
@@ -54,8 +69,8 @@ class MeldeperiodeKjederTest {
             val kjeder = MeldeperiodeKjeder(
                 MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
             )
-            kjeder.finnNærmesteMeldeperiode(23.desember(2024)) shouldBe Periode(23.desember(2024), 5.januar(2025))
-            kjeder.finnNærmesteMeldeperiode(5.januar(2025)) shouldBe Periode(23.desember(2024), 5.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(23.desember(2024)) shouldBe Periode(23.desember(2024), 5.januar(2025)).right()
+            kjeder.finnNærmesteMeldeperiode(5.januar(2025)) shouldBe Periode(23.desember(2024), 5.januar(2025)).right()
         }
 
         @Test
@@ -66,7 +81,7 @@ class MeldeperiodeKjederTest {
             kjeder.finnNærmesteMeldeperiode(25.januar(2025)) shouldBe Periode(
                 20.januar(2025),
                 2.februar(2025),
-            )
+            ).right()
         }
 
         @Test
@@ -74,8 +89,8 @@ class MeldeperiodeKjederTest {
             val kjeder = MeldeperiodeKjeder(
                 MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
             )
-            kjeder.finnNærmesteMeldeperiode(3.februar(2025)) shouldBe Periode(3.februar(2025), 16.februar(2025))
-            kjeder.finnNærmesteMeldeperiode(16.februar(2025)) shouldBe Periode(3.februar(2025), 16.februar(2025))
+            kjeder.finnNærmesteMeldeperiode(3.februar(2025)) shouldBe Periode(3.februar(2025), 16.februar(2025)).right()
+            kjeder.finnNærmesteMeldeperiode(16.februar(2025)) shouldBe Periode(3.februar(2025), 16.februar(2025)).right()
         }
 
         @Test
@@ -83,8 +98,8 @@ class MeldeperiodeKjederTest {
             val kjeder = MeldeperiodeKjeder(
                 MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(20.januar(2025), 2.februar(2025)))),
             )
-            kjeder.finnNærmesteMeldeperiode(17.februar(2025)) shouldBe Periode(17.februar(2025), 2.mars(2025))
-            kjeder.finnNærmesteMeldeperiode(2.mars(2025)) shouldBe Periode(17.februar(2025), 2.mars(2025))
+            kjeder.finnNærmesteMeldeperiode(17.februar(2025)) shouldBe Periode(17.februar(2025), 2.mars(2025)).right()
+            kjeder.finnNærmesteMeldeperiode(2.mars(2025)) shouldBe Periode(17.februar(2025), 2.mars(2025)).right()
         }
 
         @Test
@@ -92,23 +107,21 @@ class MeldeperiodeKjederTest {
             val kjeder = MeldeperiodeKjeder(
                 MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(6.januar(2025), 19.januar(2025)))),
             )
-            kjeder.finnNærmesteMeldeperiode(6.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
-            kjeder.finnNærmesteMeldeperiode(19.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025))
+            kjeder.finnNærmesteMeldeperiode(6.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025)).right()
+            kjeder.finnNærmesteMeldeperiode(19.januar(2025)) shouldBe Periode(6.januar(2025), 19.januar(2025)).right()
         }
 
         @Test
-        fun `starten av en kjede for en sak`() {
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(7.april(2024)) shouldBe Periode(1.april(2024), 14.april(2024))
+        fun `LocalDate MIN og MAX gir UgyldigDato`() {
+            val tommeKjeder = MeldeperiodeKjeder(emptyList())
+            tommeKjeder.finnNærmesteMeldeperiode(LocalDate.MIN) shouldBe GenererMeldeperioderFeil.UgyldigDato.left()
+            tommeKjeder.finnNærmesteMeldeperiode(LocalDate.MAX) shouldBe GenererMeldeperioderFeil.UgyldigDato.left()
 
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(8.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(9.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(10.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(11.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(12.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(13.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(14.april(2024)) shouldBe Periode(8.april(2024), 21.april(2024))
-
-            MeldeperiodeKjeder.finnNærmesteMeldeperiode(15.april(2024)) shouldBe Periode(15.april(2024), 28.april(2024))
+            val kjeder = MeldeperiodeKjeder(
+                MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(6.januar(2025), 19.januar(2025)))),
+            )
+            kjeder.finnNærmesteMeldeperiode(LocalDate.MIN) shouldBe GenererMeldeperioderFeil.UgyldigDato.left()
+            kjeder.finnNærmesteMeldeperiode(LocalDate.MAX) shouldBe GenererMeldeperioderFeil.UgyldigDato.left()
         }
     }
 
@@ -123,12 +136,12 @@ class MeldeperiodeKjederTest {
                 innvilgelsesperiodeKommando(innvilgelsesperiode = periode),
             ),
         )
-        val actual = kjeder.genererMeldeperioder(
+        val actual = kjeder.genererMeldeperioderOgOppdaterKjeder(
             Rammevedtaksliste(
                 innvilgelseVedtak,
             ),
             fixedClock,
-        )
+        ).getOrNull()!!
 
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
@@ -190,7 +203,7 @@ class MeldeperiodeKjederTest {
 
         val kjeder = MeldeperiodeKjeder(emptyList())
 
-        val actual = kjeder.genererMeldeperioder(vedtaksliste, fixedClock)
+        val actual = kjeder.genererMeldeperioderOgOppdaterKjeder(vedtaksliste, fixedClock).getOrNull()!!
 
         actual.let {
             it.first.size shouldBe 0
@@ -219,7 +232,7 @@ class MeldeperiodeKjederTest {
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
 
-        val (nyeKjederV1) = kjederV1.genererMeldeperioder(v1, fixedClock).also {
+        val (nyeKjederV1) = kjederV1.genererMeldeperioderOgOppdaterKjeder(v1, fixedClock).getOrNull()!!.also {
             it.first.sisteMeldeperiodePerKjede.size shouldBe 2
             it.first.sisteMeldeperiodePerKjede shouldBe it.second
 
@@ -263,7 +276,7 @@ class MeldeperiodeKjederTest {
             ),
         )
 
-        val actual = nyeKjederV1.genererMeldeperioder(v2, enUkeEtterFixedClock)
+        val actual = nyeKjederV1.genererMeldeperioderOgOppdaterKjeder(v2, enUkeEtterFixedClock).getOrNull()!!
 
         actual.let {
             it.first.sisteMeldeperiodePerKjede.size shouldBe 2
@@ -353,12 +366,12 @@ class MeldeperiodeKjederTest {
                 ),
             ),
         )
-        val actual = kjeder.genererMeldeperioder(
+        val actual = kjeder.genererMeldeperioderOgOppdaterKjeder(
             Rammevedtaksliste(
                 innvilgelseVedtak,
             ),
             fixedClock,
-        )
+        ).getOrNull()!!
 
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
@@ -375,6 +388,85 @@ class MeldeperiodeKjederTest {
 
             it.first.sisteMeldeperiodePerKjede.last().antallDagerSomGirRett shouldBe 2
             it.first.sisteMeldeperiodePerKjede.last().maksAntallDagerForMeldeperiode shouldBe 2
+        }
+    }
+
+    @Test
+    fun `tom vedtaksliste og tomme kjeder gir tomt resultat`() {
+        val kjeder = MeldeperiodeKjeder(emptyList())
+
+        val actual = kjeder.genererMeldeperioderOgOppdaterKjeder(Rammevedtaksliste(emptyList()), fixedClock).getOrNull()!!
+
+        actual.first shouldBe kjeder
+        actual.second shouldBe emptyList()
+    }
+
+    @Test
+    fun `tom vedtaksliste men eksisterende kjeder gir feil`() {
+        val kjeder = MeldeperiodeKjeder(
+            MeldeperiodeKjede(ObjectMother.meldeperiode(periode = Periode(2.januar(2023), 15.januar(2023)))),
+        )
+
+        kjeder.genererMeldeperioderOgOppdaterKjeder(Rammevedtaksliste(emptyList()), fixedClock) shouldBe
+            GenererMeldeperioderFeil.HarMeldeperioderUtenVedtaksperioder.left()
+    }
+
+    @Test
+    fun `kjøring med uendret vedtaksliste lager ingen nye versjoner (idempotent)`() {
+        val sakId = SakId.random()
+        val periode = Periode(2.januar(2023), 17.januar(2023))
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
+            sakId = sakId,
+            innvilgelsesperioder = listOf(
+                innvilgelsesperiodeKommando(innvilgelsesperiode = periode),
+            ),
+        )
+        val vedtaksliste = Rammevedtaksliste(innvilgelseVedtak)
+
+        val (kjederEtterFørste, nyeFørste) =
+            MeldeperiodeKjeder(emptyList()).genererMeldeperioderOgOppdaterKjeder(vedtaksliste, fixedClock).getOrNull()!!
+
+        nyeFørste.size shouldBe 2
+        kjederEtterFørste.sisteMeldeperiodePerKjede.forEach { it.versjon shouldBe HendelseVersjon(1) }
+
+        val (kjederEtterAndre, nyeAndre) =
+            kjederEtterFørste.genererMeldeperioderOgOppdaterKjeder(vedtaksliste, fixedClock).getOrNull()!!
+
+        // Ingen endringer -> ingen nye meldeperioder og kjedene er uendret
+        nyeAndre shouldBe emptyList()
+        kjederEtterAndre shouldBe kjederEtterFørste
+        kjederEtterAndre.sisteMeldeperiodePerKjede.forEach { it.versjon shouldBe HendelseVersjon(1) }
+    }
+
+    @Test
+    fun `maks antall dager kappes når innvilgelsesperioden bare delvis dekker meldeperioden`() {
+        val sakId = SakId.random()
+        // 2. januar 2023 er en mandag. Innvilger kun mandag og tirsdag, altså 2 dager med rett
+        // i en meldeperiode som strekker seg 2. - 15. januar.
+        val innvilgelsesperiode = Periode(2.januar(2023), 3.januar(2023))
+        val kjeder = MeldeperiodeKjeder(emptyList())
+        val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(
+            sakId = sakId,
+            innvilgelsesperioder = listOf(
+                innvilgelsesperiodeKommando(
+                    innvilgelsesperiode = innvilgelsesperiode,
+                    antallDagerPerMeldeperiode = 10,
+                ),
+            ),
+        )
+
+        val actual =
+            kjeder.genererMeldeperioderOgOppdaterKjeder(Rammevedtaksliste(innvilgelseVedtak), fixedClock).getOrNull()!!
+
+        actual.let {
+            it.first.size shouldBe 1
+            it.first.sisteMeldeperiodePerKjede shouldBe it.second
+
+            val meldeperiode = it.first.sisteMeldeperiodePerKjede.single()
+            meldeperiode.periode shouldBe Periode(2.januar(2023), 15.januar(2023))
+            meldeperiode.antallDagerSomGirRett shouldBe 2
+            // Selv om vedtaket tillater 10 dager, kappes maks til antall dager som faktisk gir rett.
+            meldeperiode.maksAntallDagerForMeldeperiode shouldBe 2
         }
     }
 }

@@ -13,6 +13,8 @@ sealed interface KanIkkeOppdatereBehandling {
     data object ErPaVent : KanIkkeOppdatereBehandling
 
     data object KanIkkeOpphøre : KanIkkeOppdatereBehandling
+
+    data object UgyldigeMeldeperioderHelg : KanIkkeOppdatereBehandling
 }
 
 sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {

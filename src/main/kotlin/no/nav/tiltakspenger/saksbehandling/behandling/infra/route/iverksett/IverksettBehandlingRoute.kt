@@ -90,6 +90,20 @@ private suspend fun ApplicationCall.handleIverksettFeil(feil: KanIkkeIverksetteB
         is KanIkkeIverksetteBehandling.OpprettVedtakFeil -> {
             respondJson(feil.feil.tilErrorJson())
         }
+
+        KanIkkeIverksetteBehandling.UgyldigeMeldeperioderHelg -> respondJson(
+            HttpStatusCode.Conflict to ErrorJson(
+                "Behandlingen har meldeperioder med kun rett i helg, men saken er ikke markert for melding på helgedager",
+                "ugyldige_meldeperioder_for_helg",
+            ),
+        )
+
+        KanIkkeIverksetteBehandling.VedtakErIkkeSisteVedtakPåSaken -> respondJson(
+            HttpStatusCode.Conflict to ErrorJson(
+                "Vedtaket som iverksettes må være det siste vedtaket på saken. Saken kan ha blitt endret av et nytt vedtak etter at behandlingen ble sendt til godkjenning, og må sendes tilbake for å vurderes på nytt.",
+                "vedtak_er_ikke_siste_vedtak_på_saken",
+            ),
+        )
     }
 }
 

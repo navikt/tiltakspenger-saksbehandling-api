@@ -147,6 +147,10 @@ class GenererMeldeperioderSakIT {
                 it.alleMeldeperioder.forEach { mp -> mp.versjon shouldBe HendelseVersjon(1) }
             }
 
+            // Den andre innvilgelsen starter søndag 1. juni 2025, slik at den første meldeperioden (19. mai - 1. juni)
+            // kun har rett i helg. Saken må derfor kunne sende inn helg for at meldeperiodene skal være gyldige.
+            tac.sakContext.sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak.id, true)
+
             val (oppdatertSak) = this.iverksettSøknadsbehandling(
                 tac = tac,
                 fnr = fnr,

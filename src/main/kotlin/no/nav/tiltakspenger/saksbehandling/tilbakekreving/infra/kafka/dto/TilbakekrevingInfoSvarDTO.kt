@@ -21,7 +21,6 @@ data class TilbakekrevingInfoSvarDTO(
     }
 
     data class TilbakekrevingMottaker(
-        // Vet ikke hvilke verdier denne kan ha ennå, så setter den til String inntil videre
         val type: TilbakekrevingMottakerType = TilbakekrevingMottakerType.PERSON,
         val ident: String,
     )

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.meldeperioderErGyldigeForHelg
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -62,6 +63,10 @@ class SendRammebehandlingTilBeslutningService(
                 oppdaterSak,
                 behandlingMedUtbetalingskontroll,
             ).left()
+        }
+
+        if (!sak.meldeperioderErGyldigeForHelg(behandlingId, clock)) {
+            return KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg.left()
         }
 
         return behandlingMedUtbetalingskontroll.tilBeslutning(

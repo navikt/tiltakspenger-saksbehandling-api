@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.hentMeldeperiodeKjederMedKunRettIHelg
 import no.nav.tiltakspenger.saksbehandling.person.BarnMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -186,20 +187,37 @@ class SakService(
         )
     }
 
-    fun oppdaterKanSendeInnHelgForMeldekort(sakId: SakId, kanSendeHelg: Boolean): Sak {
+    fun oppdaterKanSendeInnHelgForMeldekort(
+        sakId: SakId,
+        kanSendeHelg: Boolean,
+    ): Either<KunneIkkeOppdatereHelgForMeldekort, Sak> {
         val sak = sakRepo.hentForSakId(sakId)
-            ?: throw IkkeFunnetException("Fant ikke sak med saksnummer $sakId")
+            ?: throw IkkeFunnetException("Fant ikke sak med sakId $sakId")
+
+        if (!kanSendeHelg) {
+            val kjederMedKunRettIHelg = sak.hentMeldeperiodeKjederMedKunRettIHelg()
+
+            if (kjederMedKunRettIHelg.isNotEmpty()) {
+                return KunneIkkeOppdatereHelgForMeldekort.HarMeldeperioderMedKunHelg(
+                    kjederMedKunRettIHelg,
+                ).left()
+            }
+        }
 
         val oppdatertSak = sak.oppdaterKanSendeInnHelgForMeldekort(kanSendeHelg)
 
         sessionFactory.withTransactionContext {
-            sakRepo.oppdaterKanSendeInnHelgForMeldekort(sakId = oppdatertSak.id, oppdatertSak.kanSendeInnHelgForMeldekort, it)
+            sakRepo.oppdaterKanSendeInnHelgForMeldekort(
+                sakId = oppdatertSak.id,
+                oppdatertSak.kanSendeInnHelgForMeldekort,
+                it,
+            )
             sakRepo.markerSkalSendesTilMeldekortApi(
                 sakId = oppdatertSak.id,
                 sessionContext = it,
             )
         }
 
-        return oppdatertSak
+        return oppdatertSak.right()
     }
 }

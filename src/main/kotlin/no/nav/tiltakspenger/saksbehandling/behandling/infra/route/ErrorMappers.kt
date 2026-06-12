@@ -70,4 +70,9 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "For valgt hjemmel må vedtaket begrunnes med fritekst: ${this.hjemler}",
         "valgte_hjemler_krever_fritekst",
     )
+
+    KanIkkeOppdatereBehandling.UgyldigeMeldeperioderHelg -> HttpStatusCode.Conflict to ErrorJson(
+        "Behandlingen har meldeperioder med kun rett i helg, men saken er ikke markert for melding på helgedager",
+        "ugyldige_meldeperioder_for_helg",
+    )
 }

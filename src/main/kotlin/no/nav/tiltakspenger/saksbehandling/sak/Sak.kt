@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak
 
+import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -8,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meld
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.genererMeldeperioderOgOppdaterKjeder
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalinger
@@ -77,8 +78,6 @@ data class Sak(
     val revurderinger = rammebehandlinger.revurderinger
 
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy { rammevedtaksliste.barnetilleggsperioder }
-
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy { rammevedtaksliste.tiltakstypeperioder }
 
     /** Et førstegangsvedtak defineres som den første søknadsbehandlingen som førte til innvilgelse. */
     val harFørstegangsvedtak: Boolean by lazy { this.vedtaksliste.harFørstegangsvedtak }
@@ -179,7 +178,8 @@ data class Sak(
 
     fun genererMeldeperioder(clock: Clock): Pair<Sak, List<Meldeperiode>> {
         return this.meldeperiodeKjeder
-            .genererMeldeperioder(this.rammevedtaksliste, clock)
+            .genererMeldeperioderOgOppdaterKjeder(this.rammevedtaksliste, clock)
+            .getOrElse { throw IllegalStateException("Kunne ikke generere meldeperioder for sak ${this.id}: $it") }
             .let { this.copy(meldeperiodeKjeder = it.first) to it.second }
     }
 

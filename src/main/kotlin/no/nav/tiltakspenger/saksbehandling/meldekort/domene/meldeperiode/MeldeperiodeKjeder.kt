@@ -1,25 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode
 
-import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.periode.overlapperIkke
-import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
-import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
-import java.time.Clock
-import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAdjusters
-import kotlin.math.min
 
 data class MeldeperiodeKjeder(
     private val meldeperiodeKjeder: List<MeldeperiodeKjede>,
@@ -105,125 +95,6 @@ data class MeldeperiodeKjeder(
         return meldeperiode == meldeperiodeKjede.last()
     }
 
-    /** Perioden må matche 1-1 med en eksisterende meldeperiode, hvis ikke legger den til en ny. */
-    fun oppdaterEllerLeggTilNy(meldeperiode: Meldeperiode): Pair<MeldeperiodeKjeder, Meldeperiode?> {
-        val kjede = hentMeldeperiodeKjedeForPeriode(meldeperiode.periode)
-            ?: return run {
-                if (meldeperiode.ingenDagerGirRett) {
-                    // Det finnes ikke noen kjeder fra får, og meldeperioden gir heller ikke noen rett til de dagene. Så vi legger ikke til noe
-                    this to null
-                } else {
-                    MeldeperiodeKjeder(
-                        (this.meldeperiodeKjeder.plus(listOf(MeldeperiodeKjede(nonEmptyListOf(meldeperiode))))).sorted(),
-                    ) to meldeperiode
-                }
-            }
-
-        val (oppdatertKjede, oppdatertMeldeperiode) = kjede.leggTilMeldeperiode(meldeperiode)
-
-        return MeldeperiodeKjeder(
-            this.meldeperiodeKjeder.map {
-                if (it.kjedeId == oppdatertKjede.kjedeId) {
-                    oppdatertKjede
-                } else {
-                    it
-                }
-            },
-        ) to oppdatertMeldeperiode
-    }
-
-    fun oppdaterEllerLeggTilNy(meldeperioder: List<Meldeperiode>): Pair<MeldeperiodeKjeder, List<Meldeperiode>> =
-        meldeperioder.fold(this to listOf()) { acc, m ->
-            val ny = acc.first.oppdaterEllerLeggTilNy(m)
-            Pair(ny.first, listOfNotNull(ny.second).plus(acc.second).sorted())
-        }
-
-    fun genererMeldeperioder(
-        vedtaksliste: Rammevedtaksliste,
-        clock: Clock,
-    ): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
-        if (vedtaksliste.isEmpty()) {
-            require(this.isEmpty()) { "Forventet ingen meldeperioder ved tom vedtaksliste" }
-            return this to emptyList()
-        }
-        val vedtaksperioder = vedtaksliste.vedtaksperioder
-        val førsteFraOgMed = vedtaksperioder.first().fraOgMed
-        val sisteTilOgMed = vedtaksperioder.last().tilOgMed
-        var nærmesteMeldeperiode = finnNærmesteMeldeperiode(førsteFraOgMed)
-
-        val potensielleNyeMeldeperioder = mutableListOf<Meldeperiode>()
-
-        // før eller samme dag
-        while (!nærmesteMeldeperiode.starterEtter(sisteTilOgMed)) {
-            if (vedtaksperioder.overlapperIkke(nærmesteMeldeperiode) && !this.harMeldeperiode(nærmesteMeldeperiode)) {
-                // hvis perioden ikke overlapper, og den ikke finnes fra før, så skal ikke vi oppdatere noe
-                nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
-                continue
-            }
-            val girRett = nærmesteMeldeperiode.tilDager()
-                .associateWith { vedtaksliste.harInnvilgetTiltakspengerPåDato(it) }
-            val antallDagerSomGirRettForNærmesteMeldeperiode = girRett.count { it.value }
-
-            val antallDagerForMeldeperiodeFraBehandling =
-                vedtaksliste.antallDagerForMeldeperiode(nærmesteMeldeperiode)?.value ?: 0
-            val antallDagerSomGirRettForMeldePeriode =
-                min(antallDagerSomGirRettForNærmesteMeldeperiode, antallDagerForMeldeperiodeFraBehandling)
-
-            val kjede = this.hentMeldeperiodeKjedeForPeriode(nærmesteMeldeperiode)
-            val versjon = kjede?.nesteVersjon() ?: HendelseVersjon.ny()
-            // Hvis den er lik den forrige meldeperioden, blir den ikke lagt til
-
-            val potensiellNyMeldeperiode = Meldeperiode.opprettMeldeperiode(
-                periode = nærmesteMeldeperiode,
-                girRett = girRett,
-                fnr = vedtaksliste.fnr!!,
-                saksnummer = vedtaksliste.saksnummer!!,
-                sakId = vedtaksliste.sakId!!,
-                antallDagerForPeriode = antallDagerSomGirRettForMeldePeriode,
-                versjon = versjon,
-                rammevedtak = vedtaksliste.vedtakForPeriode(nærmesteMeldeperiode) as IkkeTomPeriodisering,
-                clock = clock,
-            )
-
-            potensielleNyeMeldeperioder.add(potensiellNyMeldeperiode)
-            nærmesteMeldeperiode = nærmesteMeldeperiode.nesteMeldeperiode()
-        }
-
-        return this.oppdaterEllerLeggTilNy(potensielleNyeMeldeperioder)
-    }
-
-    /** Kun public for testing. Finner første meldeperiode med [dato] */
-    fun finnNærmesteMeldeperiode(dato: LocalDate): Periode {
-        require(dato != LocalDate.MIN && dato != LocalDate.MAX) { "Dato må være en gyldig dato, ikke MIN eller MAX" }
-        if (this.isEmpty()) return Companion.finnNærmesteMeldeperiode(dato)
-
-        val førstePeriode = this.meldeperiodeKjeder.first().periode
-
-        if (dato.isBefore(førstePeriode.fraOgMed)) {
-            var periode = førstePeriode
-            while (true) {
-                periode = periode.forrigeMeldeperiode()
-                if (periode.inneholder(dato)) {
-                    return periode
-                }
-            }
-        } else if (dato.isAfter(førstePeriode.tilOgMed)) {
-            var periode = førstePeriode
-            while (true) {
-                periode = periode.nesteMeldeperiode()
-                if (periode.inneholder(dato)) {
-                    return periode
-                }
-            }
-        }
-
-        return førstePeriode
-    }
-
-    fun hentMeldeperiodekjedeForKjedeId(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
-        return meldeperiodeKjeder.singleOrNullOrThrow { it.kjedeId == kjedeId }
-    }
-
     fun hentForegåendeMeldeperiodekjede(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
         return meldeperiodeKjeder.hentForegående(kjedeId)
     }
@@ -237,14 +108,6 @@ data class MeldeperiodeKjeder(
     }
 
     companion object {
-        /**
-         * Skal kun kalles/brukes på en sak som aldri har hatt en meldeperiode før
-         */
-        fun finnNærmesteMeldeperiode(dato: LocalDate): Periode {
-            val førsteMandagIMeldekortsperiode = dato.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-            val sisteSøndagIMeldekortsperiode = førsteMandagIMeldekortsperiode.plusDays(13)
-            return Periode(førsteMandagIMeldekortsperiode, sisteSøndagIMeldekortsperiode)
-        }
 
         fun fraMeldeperioder(meldeperioder: List<Meldeperiode>): MeldeperiodeKjeder {
             return meldeperioder
@@ -260,16 +123,6 @@ data class MeldeperiodeKjeder(
         }
     }
 }
-
-fun Periode.forrigeMeldeperiode(): Periode = Periode(
-    this.fraOgMed.minusDays(14),
-    this.tilOgMed.minusDays(14),
-)
-
-fun Periode.nesteMeldeperiode(): Periode = Periode(
-    this.fraOgMed.plusDays(14),
-    this.tilOgMed.plusDays(14),
-)
 
 private fun List<MeldeperiodeKjede>.hentForegående(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjede? {
     this.zipWithNext { a, b -> if (b.kjedeId == kjedeId) return a }
