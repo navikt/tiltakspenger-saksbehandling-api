@@ -62,7 +62,7 @@ data class AvbrytKlagebehandlingBody(
                 null
             }
 
-            AvbruttKlagebehandlingStatus.ANNET -> begrunnelse?.toNonBlankString() ?: return Either.Left(
+            AvbruttKlagebehandlingStatus.ANNET -> Either.catch { begrunnelse?.toNonBlankString() }.getOrNull() ?: return Either.Left(
                 HttpStatusCode.BadRequest to ErrorJson(
                     melding = "Begrunnelse må være satt når status er ANNET",
                     kode = "begrunnelse_må_være_satt_for_status",
