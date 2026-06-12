@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
@@ -26,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.O
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OVERSEND_FEILET
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.VEDTATT
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.KlagebehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
@@ -52,7 +52,7 @@ data class Klagebehandling(
     val status: Klagebehandlingsstatus,
     val resultat: Klagebehandlingsresultat?,
     val formkrav: KlageFormkrav,
-    val avbrutt: Avbrutt?,
+    val avbrutt: KlagebehandlingAvbrutt?,
     val ventestatus: Ventestatus,
 ) : Behandling {
 

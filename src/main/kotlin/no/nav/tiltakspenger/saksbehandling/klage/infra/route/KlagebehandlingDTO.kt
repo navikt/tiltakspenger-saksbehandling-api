@@ -2,16 +2,16 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
 import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
 import no.nav.tiltakspenger.saksbehandling.dokument.toDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
-import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlageFormkrav
 import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnntakSvarord
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto.Companion.toKlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.KlagebehandlingAvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.toDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnsendingskildeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlageInnsendingskildeDto.Companion.toDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.formkrav.KlagefristUnntakSvarordDto
@@ -34,7 +34,7 @@ data class KlagebehandlingDTO(
     /** Vil være null frem til enten formkravene ikke er oppfylt eller saksbehandler har valgt opprettholdelse eller omgjøring (medhold)*/
     val resultat: KlagebehandlingsresultatDTO?,
     /** Vil være null frem til den er avbrutt og få tilstanden [no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT]*/
-    val avbrutt: AvbruttDTO?,
+    val avbrutt: KlagebehandlingAvbruttDTO?,
     val kanIverksetteVedtak: Boolean?,
     val kanIverksetteOpprettholdelse: Boolean,
     /**
@@ -131,7 +131,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     klagensJournalpostId = klagensJournalpostId.toString(),
     klagensJournalpostOpprettet = klagensJournalpostOpprettet.toString(),
     status = status.toKlagestatustypeDto(),
-    avbrutt = avbrutt?.toAvbruttDTO(),
+    avbrutt = avbrutt?.toDTO(),
     kanIverksetteVedtak = kanIverksetteVedtak,
     kanIverksetteOpprettholdelse = kanIverksetteOpprettholdelse,
     ventestatus = ventestatus.ventestatusHendelser.tilDto(),

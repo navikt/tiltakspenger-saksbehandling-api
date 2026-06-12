@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -32,10 +31,11 @@ fun Klagebehandling.avbryt(
     val oppdatertKlagebehandling = this.copy(
         sistEndret = nå(clock),
         status = AVBRUTT,
-        avbrutt = Avbrutt(
+        avbrutt = KlagebehandlingAvbrutt(
             begrunnelse = kommando.begrunnelse,
             saksbehandler = kommando.saksbehandler.navIdent,
             tidspunkt = nå(clock),
+            status = kommando.status,
         ),
     )
     val statistikkhendelser = Statistikkhendelser(

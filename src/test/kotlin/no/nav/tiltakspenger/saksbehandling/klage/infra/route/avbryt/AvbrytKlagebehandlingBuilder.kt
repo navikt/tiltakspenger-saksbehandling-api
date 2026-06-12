@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbruttKlagebehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
@@ -67,12 +68,14 @@ interface AvbrytKlagebehandlingBuilder {
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        begrunnelse: String = "begrunnelse for avbryt klagebehandling",
+        avbruttStatus: AvbruttKlagebehandlingStatus = AvbruttKlagebehandlingStatus.ANNET,
+        begrunnelse: String? = "begrunnelse for avbryt klagebehandling",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
+        val begrunnelseJson = if (begrunnelse != null) "\"$begrunnelse\"" else "null"
         defaultRequest(
             HttpMethod.Patch,
             url {
@@ -81,7 +84,7 @@ interface AvbrytKlagebehandlingBuilder {
             },
             jwt = jwt,
         ) {
-            setBody("""{"begrunnelse": "$begrunnelse"}""")
+            setBody("""{"status": "$avbruttStatus", "begrunnelse": $begrunnelseJson}""")
         }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
