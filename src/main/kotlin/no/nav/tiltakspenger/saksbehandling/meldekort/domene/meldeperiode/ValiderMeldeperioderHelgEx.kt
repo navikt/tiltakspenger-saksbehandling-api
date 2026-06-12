@@ -1,12 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode
 
+import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.erHverdag
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
-fun Sak.harGyldigeMeldeperioderForHelg(behandlingId: RammebehandlingId, clock: Clock): Boolean {
+fun Sak.meldeperioderErGyldigeForHelg(behandlingId: RammebehandlingId, clock: Clock): Boolean {
     if (kanSendeInnHelgForMeldekort) {
         return true
     }
@@ -15,14 +16,15 @@ fun Sak.harGyldigeMeldeperioderForHelg(behandlingId: RammebehandlingId, clock: C
 
     // Uten en vedtaksperiode (f.eks. når resultatet er "ikke valgt") finnes det ingen nye meldeperioder å validere.
     if (rammebehandling.vedtaksperiode == null) {
-        return harGyldigeMeldeperioderForHelg()
+        return meldeperioderErGyldigeForHelg()
     }
 
     return genererMeldeperioderForValidering(rammebehandling, clock)
+        .getOrElse { throw IllegalStateException("Kunne ikke generere meldeperioder for validering på sak ${this.id}: $it") }
         .hentMeldeperiodeKjederMedKunRettIHelg().isEmpty()
 }
 
-fun Sak.harGyldigeMeldeperioderForHelg(): Boolean {
+fun Sak.meldeperioderErGyldigeForHelg(): Boolean {
     return kanSendeInnHelgForMeldekort || meldeperiodeKjeder
         .sisteMeldeperiodePerKjede
         .hentMeldeperiodeKjederMedKunRettIHelg().isEmpty()
