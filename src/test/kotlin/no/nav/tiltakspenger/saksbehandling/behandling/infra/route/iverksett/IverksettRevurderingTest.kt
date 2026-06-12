@@ -1,16 +1,22 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -416,6 +422,63 @@ internal class IverksettRevurderingTest {
                     }
                 """.trimIndent(),
             )
+        }
+    }
+
+    @Test
+    fun `Kan ikke iverksette rammevedtak dersom det ikke er det nyeste på saken`() {
+        val søknadsbehandlingPeriode = 1.til(10.april(2025))
+        val revurderingPeriode = 1.til(10.juni(2025))
+        withTestApplicationContext { tac ->
+            val (sak, _, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(
+                tac,
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingPeriode),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse(revurderingPeriode),
+            )
+
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                fritekstTilVedtaksbrev = "brevtekst",
+                begrunnelseVilkårsvurdering = "begrunnelse",
+                innvilgelsesperioder = innvilgelsesperioder(revurderingPeriode),
+            )
+
+            sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurdering.id)
+            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+
+            // Klokke satt før søknadsbehandlingsvedtaket sitt opprettet-tidspunkt, slik at det nye
+            // revurderingsvedtaket ikke ville blitt det «siste» vedtaket dersom listen ble sortert på opprettet.
+            val klokkeFørSøknadsbehandlingsvedtaket = fixedClockAt(1.april(2025))
+            val søknadsvedtakOpprettet = rammevedtakSøknadsbehandling.opprettet
+            require(nå(klokkeFørSøknadsbehandlingsvedtaket).isBefore(søknadsvedtakOpprettet)) {
+                "Forutsetter at den tidligere klokken er før søknadsbehandlingsvedtaket sitt opprettet-tidspunkt"
+            }
+
+            val iverksettServiceMedTidligereKlokke = IverksettRammebehandlingService(
+                rammebehandlingRepo = tac.behandlingContext.rammebehandlingRepo,
+                rammevedtakRepo = tac.behandlingContext.rammevedtakRepo,
+                meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo,
+                meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo,
+                sessionFactory = tac.sessionFactory,
+                sakService = tac.sakContext.sakService,
+                clock = klokkeFørSøknadsbehandlingsvedtaket,
+                oppdaterBeregningOgSimuleringService = tac.behandlingContext.oppdaterBeregningOgSimuleringService,
+                statistikkService = tac.statistikkContext.statistikkService,
+            )
+
+            // Vi når aldri guarden for VedtakErIkkeSisteVedtakPåSaken.
+            // Rammevedtaksliste-init validerer rekkefølgen på opprettet-tidspunkt først.
+            val exception = shouldThrow<IllegalArgumentException> {
+                iverksettServiceMedTidligereKlokke.iverksettRammebehandling(
+                    rammebehandlingId = revurdering.id,
+                    beslutter = ObjectMother.beslutter(),
+                    sakId = sak.id,
+                    correlationId = CorrelationId.generate(),
+                )
+            }
+            exception.message shouldContain "Vedtakene må være sortert på opprettet-tidspunkt"
         }
     }
 
