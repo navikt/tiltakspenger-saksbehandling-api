@@ -37,6 +37,31 @@ enum class GenererMeldeperioderFeil {
     UgyldigDato,
 }
 
+fun MeldeperiodeKjeder.genererMeldeperioderOgOppdaterKjeder(
+    vedtaksliste: Rammevedtaksliste,
+    clock: Clock,
+): Either<GenererMeldeperioderFeil, OppdaterteKjederOgMeldeperioder> {
+    if (vedtaksliste.isEmpty()) {
+        if (this.isNotEmpty()) {
+            return GenererMeldeperioderFeil.HarMeldeperioderUtenVedtaksperioder.left()
+        }
+        return (this to emptyList<Meldeperiode>()).right()
+    }
+
+    return this.genererMeldeperioder(
+        vedtaksperioder = vedtaksliste.vedtaksperioder,
+        hentAntallDager = { vedtaksliste.antallDagerForMeldeperiode(it) },
+        hentVedtakIder = { vedtaksliste.vedtakForPeriode(it) as IkkeTomPeriodisering },
+        harRett = { vedtaksliste.harInnvilgetTiltakspengerPåDato(it) },
+        fnr = vedtaksliste.fnr!!,
+        saksnummer = vedtaksliste.saksnummer!!,
+        sakId = vedtaksliste.sakId!!,
+        clock = clock,
+    ).map {
+        this.oppdaterEllerLeggTilNy(it)
+    }
+}
+
 /**
  *  Genererer hypotetiske meldeperioder ut fra en ikke-vedtatt behandling.
  *
@@ -98,31 +123,6 @@ fun Sak.genererMeldeperioderForValidering(
         sakId = id,
         clock = clock,
     )
-}
-
-fun MeldeperiodeKjeder.genererMeldeperioderOgOppdaterKjeder(
-    vedtaksliste: Rammevedtaksliste,
-    clock: Clock,
-): Either<GenererMeldeperioderFeil, OppdaterteKjederOgMeldeperioder> {
-    if (vedtaksliste.isEmpty()) {
-        if (this.isNotEmpty()) {
-            return GenererMeldeperioderFeil.HarMeldeperioderUtenVedtaksperioder.left()
-        }
-        return (this to emptyList<Meldeperiode>()).right()
-    }
-
-    return this.genererMeldeperioder(
-        vedtaksperioder = vedtaksliste.vedtaksperioder,
-        hentAntallDager = { vedtaksliste.antallDagerForMeldeperiode(it) },
-        hentVedtakIder = { vedtaksliste.vedtakForPeriode(it) as IkkeTomPeriodisering },
-        harRett = { vedtaksliste.harInnvilgetTiltakspengerPåDato(it) },
-        fnr = vedtaksliste.fnr!!,
-        saksnummer = vedtaksliste.saksnummer!!,
-        sakId = vedtaksliste.sakId!!,
-        clock = clock,
-    ).map {
-        this.oppdaterEllerLeggTilNy(it)
-    }
 }
 
 private fun MeldeperiodeKjeder.genererMeldeperioder(
