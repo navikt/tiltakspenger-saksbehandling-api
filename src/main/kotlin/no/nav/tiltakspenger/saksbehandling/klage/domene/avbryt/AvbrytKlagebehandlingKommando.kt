@@ -9,7 +9,23 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 data class AvbrytKlagebehandlingKommando(
     val sakId: SakId,
     val klagebehandlingId: KlagebehandlingId,
-    val begrunnelse: NonBlankString,
+    val status: AvbruttKlagebehandlingStatus,
+    val begrunnelse: NonBlankString?,
     val saksbehandler: Saksbehandler,
     val correlationId: CorrelationId,
-)
+) {
+    init {
+        when (status) {
+            AvbruttKlagebehandlingStatus.ANNET -> require(begrunnelse != null) {
+                "Begrunnelse må være satt når status er ANNET"
+            }
+
+            AvbruttKlagebehandlingStatus.KLAGE_TRUKKET,
+            AvbruttKlagebehandlingStatus.FEILREGISTRER_KLAGE,
+            AvbruttKlagebehandlingStatus.MANGLENDE_UTBETALING,
+            -> require(begrunnelse == null) {
+                "Begrunnelse må være null når status ikke er ANNET"
+            }
+        }
+    }
+}

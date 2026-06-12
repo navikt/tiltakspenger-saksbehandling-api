@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
@@ -395,7 +394,7 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                     brevtekst = row.stringOrNull("brevtekst")?.toKlageBrevtekst(),
                 ),
                 iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
-                avbrutt = row.stringOrNull("avbrutt")?.toAvbrutt(),
+                avbrutt = row.stringOrNull("avbrutt")?.toKlagebehandlingAvbrutt(),
                 ventestatus = row.stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus(),
             )
         }
