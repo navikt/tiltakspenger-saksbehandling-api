@@ -28,7 +28,7 @@ typealias OppdaterteKjederOgMeldeperioder = Pair<MeldeperiodeKjeder, List<Meldep
 /**
  *  Genererer hypotetiske meldeperioder ut fra en ikke-vedtatt behandling.
  *
- *  Skal kun benyttes for validering/testing, ikke for å generere faktiske meldeperioder som persisteres!
+ *  Skal kun benyttes for validering/testing, ikke for å generere faktiske meldeperioder som persisteres
  * */
 fun Sak.genererMeldeperioderForValidering(rammebehandling: Rammebehandling, clock: Clock): List<Meldeperiode> {
     val vedtaksperiode = rammebehandling.vedtaksperiode
@@ -88,7 +88,7 @@ fun Sak.genererMeldeperioderForValidering(rammebehandling: Rammebehandling, cloc
     )
 }
 
-fun MeldeperiodeKjeder.genererMeldeperioder(
+fun MeldeperiodeKjeder.genererMeldeperioderOgOppdaterKjeder(
     vedtaksliste: Rammevedtaksliste,
     clock: Clock,
 ): OppdaterteKjederOgMeldeperioder {
@@ -195,6 +195,13 @@ fun MeldeperiodeKjeder.finnNærmesteMeldeperiode(dato: LocalDate): Periode {
     return Periode(fraOgMed, fraOgMed.plusDays(13))
 }
 
+private fun MeldeperiodeKjeder.oppdaterEllerLeggTilNy(meldeperioder: List<Meldeperiode>): OppdaterteKjederOgMeldeperioder {
+    return meldeperioder.fold(this to listOf()) { acc, m ->
+        val ny = acc.first.oppdaterEllerLeggTilNy(m)
+        Pair(ny.first, listOfNotNull(ny.second).plus(acc.second).sorted())
+    }
+}
+
 /** Perioden må matche 1-1 med en eksisterende meldeperiode, hvis ikke legger den til en ny. */
 private fun MeldeperiodeKjeder.oppdaterEllerLeggTilNy(meldeperiode: Meldeperiode): Pair<MeldeperiodeKjeder, Meldeperiode?> {
     val kjede = hentMeldeperiodeKjedeForPeriode(meldeperiode.periode)
@@ -204,7 +211,7 @@ private fun MeldeperiodeKjeder.oppdaterEllerLeggTilNy(meldeperiode: Meldeperiode
                 this to null
             } else {
                 MeldeperiodeKjeder(
-                    (this.plus(listOf(MeldeperiodeKjede(nonEmptyListOf(meldeperiode))))).sorted(),
+                    this.plus(listOf(MeldeperiodeKjede(nonEmptyListOf(meldeperiode)))).sorted(),
                 ) to meldeperiode
             }
         }
@@ -220,11 +227,4 @@ private fun MeldeperiodeKjeder.oppdaterEllerLeggTilNy(meldeperiode: Meldeperiode
             }
         },
     ) to oppdatertMeldeperiode
-}
-
-private fun MeldeperiodeKjeder.oppdaterEllerLeggTilNy(meldeperioder: List<Meldeperiode>): Pair<MeldeperiodeKjeder, List<Meldeperiode>> {
-    return meldeperioder.fold(this to listOf()) { acc, m ->
-        val ny = acc.first.oppdaterEllerLeggTilNy(m)
-        Pair(ny.first, listOfNotNull(ny.second).plus(acc.second).sorted())
-    }
 }

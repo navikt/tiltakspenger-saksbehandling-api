@@ -1,10 +1,8 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode
 
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.erHverdag
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.genererMeldeperioderForValidering
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 
@@ -15,7 +13,7 @@ fun Sak.harGyldigeMeldeperioderForHelg(behandlingId: RammebehandlingId, clock: C
 
     val rammebehandling = hentRammebehandling(behandlingId)!!
 
-    // Uten en vedtaksperiode (f.eks. når resultatet er "ikke valgt") finnes det ingen meldeperioder å validere.
+    // Uten en vedtaksperiode (f.eks. når resultatet er "ikke valgt") finnes det ingen nye meldeperioder å validere.
     if (rammebehandling.vedtaksperiode == null) {
         return harGyldigeMeldeperioderForHelg()
     }
@@ -31,7 +29,9 @@ fun Sak.harGyldigeMeldeperioderForHelg(): Boolean {
 }
 
 fun Sak.hentMeldeperiodeKjederMedKunRettIHelg(): List<MeldeperiodeKjedeId> {
-    return this.meldeperiodeKjeder.sisteMeldeperiodePerKjede.hentMeldeperiodeKjederMedKunRettIHelg()
+    return this.meldeperiodeKjeder
+        .sisteMeldeperiodePerKjede
+        .hentMeldeperiodeKjederMedKunRettIHelg()
 }
 
 private fun List<Meldeperiode>.hentMeldeperiodeKjederMedKunRettIHelg(): List<MeldeperiodeKjedeId> {

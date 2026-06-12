@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.finnNærmesteMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.genererMeldeperioder
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.genererMeldeperioderOgOppdaterKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
@@ -119,7 +119,7 @@ class MeldeperiodeKjederTest {
                 innvilgelsesperiodeKommando(innvilgelsesperiode = periode),
             ),
         )
-        val actual = kjeder.genererMeldeperioder(
+        val actual = kjeder.genererMeldeperioderOgOppdaterKjeder(
             Rammevedtaksliste(
                 innvilgelseVedtak,
             ),
@@ -186,7 +186,7 @@ class MeldeperiodeKjederTest {
 
         val kjeder = MeldeperiodeKjeder(emptyList())
 
-        val actual = kjeder.genererMeldeperioder(vedtaksliste, fixedClock)
+        val actual = kjeder.genererMeldeperioderOgOppdaterKjeder(vedtaksliste, fixedClock)
 
         actual.let {
             it.first.size shouldBe 0
@@ -215,7 +215,7 @@ class MeldeperiodeKjederTest {
         val forventetFørstePeriode = Periode(2.januar(2023), 15.januar(2023))
         val forventetSistePeriode = Periode(16.januar(2023), 29.januar(2023))
 
-        val (nyeKjederV1) = kjederV1.genererMeldeperioder(v1, fixedClock).also {
+        val (nyeKjederV1) = kjederV1.genererMeldeperioderOgOppdaterKjeder(v1, fixedClock).also {
             it.first.sisteMeldeperiodePerKjede.size shouldBe 2
             it.first.sisteMeldeperiodePerKjede shouldBe it.second
 
@@ -259,7 +259,7 @@ class MeldeperiodeKjederTest {
             ),
         )
 
-        val actual = nyeKjederV1.genererMeldeperioder(v2, enUkeEtterFixedClock)
+        val actual = nyeKjederV1.genererMeldeperioderOgOppdaterKjeder(v2, enUkeEtterFixedClock)
 
         actual.let {
             it.first.sisteMeldeperiodePerKjede.size shouldBe 2
@@ -349,7 +349,7 @@ class MeldeperiodeKjederTest {
                 ),
             ),
         )
-        val actual = kjeder.genererMeldeperioder(
+        val actual = kjeder.genererMeldeperioderOgOppdaterKjeder(
             Rammevedtaksliste(
                 innvilgelseVedtak,
             ),
