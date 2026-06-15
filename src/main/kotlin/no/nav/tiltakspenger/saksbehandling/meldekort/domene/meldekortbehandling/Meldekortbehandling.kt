@@ -158,11 +158,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
         }
     }
 
-    fun overta(
-        kommando: OvertaMeldekortbehandlingKommando,
-        clock: Clock,
-    ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling>
-
     fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling
 
     fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling

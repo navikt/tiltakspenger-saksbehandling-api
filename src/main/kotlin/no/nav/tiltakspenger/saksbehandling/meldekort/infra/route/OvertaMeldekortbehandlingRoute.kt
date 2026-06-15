@@ -110,5 +110,20 @@ internal fun KunneIkkeOvertaMeldekortbehandling.tilStatusOgErrorJson(): Pair<Htt
             "Behandlingen kan ikke være en automatisk behandling",
             "behandling_kan_ikke_være_automatisk",
         )
+
+        KunneIkkeOvertaMeldekortbehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
+            "Du må være saksbehandler for å overta denne meldekortbehandlingen",
+            "maa_vaere_saksbehandler",
+        )
+
+        KunneIkkeOvertaMeldekortbehandling.MåVæreBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
+            "Du må være beslutter for å overta denne meldekortbehandlingen",
+            "maa_vaere_beslutter",
+        )
+
+        is KunneIkkeOvertaMeldekortbehandling.UgyldigStatus -> HttpStatusCode.BadRequest to ErrorJson(
+            "Kan ikke overta meldekortbehandling med status ${this.status}",
+            "ugyldig_status_for_overta",
+        )
     }
 }

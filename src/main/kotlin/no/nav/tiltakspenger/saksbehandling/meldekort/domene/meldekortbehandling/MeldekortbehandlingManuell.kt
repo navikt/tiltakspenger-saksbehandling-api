@@ -29,8 +29,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOppre
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettOmgjøring
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettOpprettholdelse
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.underkjenn.KanIkkeUnderkjenneMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -225,39 +223,6 @@ data class MeldekortbehandlingManuell(
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
         ).right()
-    }
-
-    override fun overta(
-        kommando: OvertaMeldekortbehandlingKommando,
-        clock: Clock,
-    ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling> {
-        return when (this.status) {
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status KLAR_TIL_BEHANDLING")
-
-            MeldekortbehandlingStatus.AVBRUTT -> throw IllegalStateException("Et manuelt behandlet meldekort kan ikke ha status AVBRUTT")
-
-            MeldekortbehandlingStatus.UNDER_BEHANDLING -> throw IllegalStateException("Et utfylt meldekort kan ikke ha status UNDER_BEHANDLING")
-
-            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> KunneIkkeOvertaMeldekortbehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
-
-            MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
-                krevBeslutterRolle(kommando.saksbehandler)
-                if (this.beslutter == null) {
-                    return KunneIkkeOvertaMeldekortbehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
-                }
-                if (this.saksbehandler == kommando.saksbehandler.navIdent) {
-                    return KunneIkkeOvertaMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
-                }
-                this.copy(
-                    beslutter = kommando.saksbehandler.navIdent,
-                    sistEndret = nå(clock),
-                ).right()
-            }
-
-            MeldekortbehandlingStatus.GODKJENT,
-            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            -> KunneIkkeOvertaMeldekortbehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett.left()
-        }
     }
 
     override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
