@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.kanAvbryte
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.kanGjenoppta
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.kanSettePåVent
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ta.kanTaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 
@@ -24,6 +25,7 @@ fun Meldekortbehandling.gyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
         if (kanOvertaBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.OvertaBeslutter)
         if (kanLeggeTilbakeBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter)
         if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
+        if (kanSettePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.SettPåVent)
         if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avslutt)
     }
 }

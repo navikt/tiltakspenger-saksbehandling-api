@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVentOgNullstillSaksbehandler
@@ -22,14 +24,13 @@ import java.time.Clock
 fun Meldekortbehandling.settPåVent(
     kommando: SettMeldekortbehandlingPåVentKommando,
     clock: Clock,
-): Meldekortbehandling {
-    require(!ventestatus.erSattPåVent) { "Meldekortbehandling med id ${this.id} er allerede satt på vent" }
+): Either<KanIkkeSetteMeldekortbehandlingPåVent, Meldekortbehandling> {
+    kanSettePåVent(kommando.saksbehandler).onLeft { return it.left() }
+
     val endretAv = kommando.saksbehandler
 
     return when (status) {
         UNDER_BEHANDLING -> {
-            krevSaksbehandlerRolle(endretAv)
-            require(this.saksbehandler == endretAv.navIdent) { "Du må være saksbehandler på meldekortbehandlingen for å kunne sette den på vent." }
             require(this is MeldekortUnderBehandling) { "Meldekortbehandling med status $status må være MeldekortUnderBehandling" }
 
             val tidspunktSattPåVent = nå(clock)
@@ -57,12 +58,10 @@ fun Meldekortbehandling.settPåVent(
                         sjekkSaksbehandler = true,
                     ).getOrThrow().first
                 },
-            )
+            ).right()
         }
 
         UNDER_BESLUTNING -> {
-            krevBeslutterRolle(endretAv)
-            require(this.beslutter == endretAv.navIdent) { "Du må være beslutter på meldekortbehandlingen for å kunne sette den på vent." }
             require(this is MeldekortbehandlingManuell) { "Meldekortbehandling med status $status må være MeldekortbehandlingManuell" }
 
             val tidspunktSattPåVent = nå(clock)
@@ -90,7 +89,7 @@ fun Meldekortbehandling.settPåVent(
                         sjekkSaksbehandler = false,
                     ).getOrThrow().first
                 },
-            )
+            ).right()
         }
 
         KLAR_TIL_BEHANDLING,
@@ -98,6 +97,51 @@ fun Meldekortbehandling.settPåVent(
         GODKJENT,
         AUTOMATISK_BEHANDLET,
         AVBRUTT,
-        -> throw IllegalStateException("Kan ikke sette meldekortbehandling på vent som har status ${status.name}")
+        -> KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus(status).left()
+    }
+}
+
+/**
+ * Avgjør om [saksbehandler] kan sette meldekortbehandlingen på vent.
+ *
+ * Betingelsene speiler hvilke tilstander [settPåVent] faktisk håndterer:
+ *  - behandlingen kan ikke allerede være satt på vent
+ *  - [UNDER_BEHANDLING]: kan settes på vent av saksbehandleren som er tildelt behandlingen
+ *  - [UNDER_BESLUTNING]: kan settes på vent av beslutteren som er tildelt behandlingen
+ */
+fun Meldekortbehandling.kanSettePåVent(
+    saksbehandler: Saksbehandler,
+): Either<KanIkkeSetteMeldekortbehandlingPåVent, Unit> {
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErAlleredePåVent.left()
+    }
+
+    return when (status) {
+        UNDER_BEHANDLING -> {
+            if (!saksbehandler.erSaksbehandler()) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandler.left()
+            } else if (this.saksbehandler != saksbehandler.navIdent) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandlerForMeldekortet.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        UNDER_BESLUTNING -> {
+            if (!saksbehandler.erBeslutter()) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutter.left()
+            } else if (this.beslutter != saksbehandler.navIdent) {
+                KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutterForMeldekortet.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        KLAR_TIL_BEHANDLING,
+        KLAR_TIL_BESLUTNING,
+        GODKJENT,
+        AUTOMATISK_BEHANDLET,
+        AVBRUTT,
+        -> KanIkkeSetteMeldekortbehandlingPåVent.UgyldigStatus(status).left()
     }
 }

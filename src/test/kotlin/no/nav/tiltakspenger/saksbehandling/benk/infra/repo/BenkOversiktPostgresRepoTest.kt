@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.februar
@@ -473,7 +474,7 @@ class BenkOversiktPostgresRepoTest {
                     correlationId = CorrelationId.generate(),
                 ),
                 clock = testDataHelper.clock,
-            )
+            ).getOrFail()
             testDataHelper.meldekortRepo.oppdater(meldekortbehandlingPåVent)
 
             val (actual, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
