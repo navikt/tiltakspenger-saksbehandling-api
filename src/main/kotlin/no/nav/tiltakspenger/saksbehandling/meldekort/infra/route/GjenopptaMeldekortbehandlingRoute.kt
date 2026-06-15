@@ -16,8 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.GjenopptaMeldekortbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val GJENOPPTA_MELDEKORTBEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/gjenoppta"
 
@@ -25,6 +26,7 @@ fun Route.gjenopptaMeldekortbehandlingRoute(
     auditService: AuditService,
     gjenopptaMeldekortbehandlingService: GjenopptaMeldekortbehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     patch(GJENOPPTA_MELDEKORTBEHANDLING_PATH) {
@@ -43,7 +45,7 @@ fun Route.gjenopptaMeldekortbehandlingRoute(
                         saksbehandler = saksbehandler,
                         correlationId = correlationId,
                     ),
-                ).also { (sak, behandling) ->
+                ).also { (sak) ->
                     auditService.logMedMeldekortId(
                         meldekortId = meldekortId,
                         navIdent = saksbehandler.navIdent,
@@ -53,7 +55,7 @@ fun Route.gjenopptaMeldekortbehandlingRoute(
                     )
 
                     call.respondJson(
-                        value = behandling.tilMeldekortbehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
+                        value = sak.toSakDTO(saksbehandler, clock),
                     )
                 }
             }

@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -47,7 +46,7 @@ interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder {
         saksbehandlerSomOvertarKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
+    ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
         val (sak, _, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,

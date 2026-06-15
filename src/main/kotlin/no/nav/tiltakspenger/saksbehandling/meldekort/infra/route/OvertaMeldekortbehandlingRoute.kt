@@ -20,12 +20,13 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutte
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
-internal const val OVERTA_MELDEKORTBEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/overta"
+private const val OVERTA_MELDEKORTBEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/overta"
 
-data class OvertaBehandlingBody(
+private data class OvertaBehandlingBody(
     val overtarFra: String,
 )
 
@@ -33,6 +34,7 @@ fun Route.overtaMeldekortbehandlingRoute(
     overtaMeldekortbehandlingService: OvertaMeldekortbehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     patch(OVERTA_MELDEKORTBEHANDLING_PATH) {
@@ -57,7 +59,7 @@ fun Route.overtaMeldekortbehandlingRoute(
                         {
                             call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
                         },
-                        { (sak, behandling) ->
+                        { (sak) ->
                             auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
                                 navIdent = saksbehandler.navIdent,
@@ -67,7 +69,7 @@ fun Route.overtaMeldekortbehandlingRoute(
                             )
 
                             call.respondJson(
-                                value = behandling.tilMeldekortbehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
+                                value = sak.toSakDTO(saksbehandler, clock),
                             )
                         },
                     )

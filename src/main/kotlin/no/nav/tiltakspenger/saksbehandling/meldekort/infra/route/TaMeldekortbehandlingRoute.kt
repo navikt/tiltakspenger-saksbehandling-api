@@ -18,8 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ta.KanIkkeTaMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val PATH = "/sak/{sakId}/meldekort/{meldekortId}/ta"
 
@@ -27,6 +28,7 @@ fun Route.taMeldekortbehandlingRoute(
     auditService: AuditService,
     taMeldekortbehandlingService: TaMeldekortbehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post(PATH) {
@@ -71,7 +73,7 @@ fun Route.taMeldekortbehandlingRoute(
                             )
                         }
                     },
-                    { (sak, behandling) ->
+                    { (sak) ->
                         auditService.logMedMeldekortId(
                             meldekortId = meldekortId,
                             navIdent = saksbehandler.navIdent,
@@ -81,7 +83,7 @@ fun Route.taMeldekortbehandlingRoute(
                         )
 
                         call.respondJson(
-                            value = behandling.tilMeldekortbehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
+                            value = sak.toSakDTO(saksbehandler, clock),
                         )
                     },
                 )

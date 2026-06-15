@@ -6,7 +6,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -62,7 +62,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
+    ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
         val (sak, meldekortbehandling, _) = this.meldekortbehandlingMedKlageSattPåVentFraKlageRoute(
             tac = tac,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
@@ -88,7 +88,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-    ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
+    ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
         val (sak, meldekortbehandling, _) = meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -115,7 +115,7 @@ interface GjenopptaKlagebehandlingMedMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-    ): Triple<Sak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
+    ): Triple<Sak, MeldekortbehandlingManuell, SakDTOJson>? {
         val (sak, meldekortbehandling, _) = meldekortbehandlingUnderBeslutningMedKlagebehandlingSattPåVentFraMeldekortRoute(
             tac = tac,
             saksbehandler = saksbehandler,

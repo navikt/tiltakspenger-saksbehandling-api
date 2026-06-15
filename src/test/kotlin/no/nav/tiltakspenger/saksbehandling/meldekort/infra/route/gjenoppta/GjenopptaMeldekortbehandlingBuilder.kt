@@ -16,9 +16,10 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
@@ -27,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import org.json.JSONObject
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.gjenopptaMeldekortbehandlingRoute]
@@ -39,7 +39,7 @@ interface GjenopptaMeldekortbehandlingBuilder : SettMeldekortbehandlingPåVentBu
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, SakDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, meldekortbehandling, _) = iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgSettPåVent(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -69,7 +69,7 @@ interface GjenopptaMeldekortbehandlingBuilder : SettMeldekortbehandlingPåVentBu
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, SakDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, meldekortbehandling, _) = iverksettSøknadsbehandlingSendMeldekortbehandlingTilBeslutningTaBehandlingOgSettPåVent(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -104,7 +104,7 @@ interface GjenopptaMeldekortbehandlingBuilder : SettMeldekortbehandlingPåVentBu
         saksbehandlerEllerBeslutter: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter("saksbehandlerOgBeslutter"),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: String? = null,
-    ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
+    ): Triple<Sak, Meldekortbehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandlerEllerBeslutter,
         )
@@ -126,8 +126,9 @@ interface GjenopptaMeldekortbehandlingBuilder : SettMeldekortbehandlingPåVentBu
                 contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
             }
             if (status != HttpStatusCode.OK) return null
-            val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
+            val jsonObject: SakDTOJson = objectMapper.readTree(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+
             return Triple(
                 oppdatertSak,
                 oppdatertSak.hentMeldekortbehandling(meldekortId)!!,

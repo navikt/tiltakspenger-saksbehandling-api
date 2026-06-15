@@ -17,7 +17,7 @@ class GjenopptaMeldekortbehandlingRouteTest {
     @Test
     fun `saksbehandler kan gjenoppta meldekortbehandling`() {
         withTestApplicationContext { tac ->
-            val (_, _, _, meldekortbehandling, json) = iverksettSøknadsbehandlingOpprettMeldekortbehandlingSettPåVentOgGjenoppta(tac = tac)!!
+            val (_, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOpprettMeldekortbehandlingSettPåVentOgGjenoppta(tac = tac)!!
 
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
             meldekortbehandling.saksbehandler shouldBe "Z12345"
@@ -43,26 +43,13 @@ class GjenopptaMeldekortbehandlingRouteTest {
                     ),
                 ),
             )
-
-            json.getString("status") shouldBe "UNDER_BEHANDLING"
-            json.getString("saksbehandler") shouldBe "Z12345"
-            json.getJSONArray("ventestatus").also { ventestatus ->
-                ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(0).also { hendelse ->
-                    hendelse.getString("sattPåVentAv") shouldBe "Z12345"
-                    hendelse.getString("begrunnelse") shouldBe ""
-                    hendelse.getBoolean("erSattPåVent") shouldBe false
-                    hendelse.getString("status") shouldBe "KLAR_TIL_BEHANDLING"
-                    hendelse.isNull("frist") shouldBe true
-                }
-            }
         }
     }
 
     @Test
     fun `beslutter kan gjenoppta meldekortbehandling`() {
         withTestApplicationContext { tac ->
-            val (_, _, _, meldekortbehandling, json) = iverksettSøknadsbehandlingSendMeldekortbehandlingTilBeslutningTaBehandlingSettPåVentOgGjenoppta(tac = tac)!!
+            val (_, _, _, meldekortbehandling) = iverksettSøknadsbehandlingSendMeldekortbehandlingTilBeslutningTaBehandlingSettPåVentOgGjenoppta(tac = tac)!!
 
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
             meldekortbehandling.beslutter shouldBe "beslutter"
@@ -88,19 +75,6 @@ class GjenopptaMeldekortbehandlingRouteTest {
                     ),
                 ),
             )
-
-            json.getString("status") shouldBe "UNDER_BESLUTNING"
-            json.getString("beslutter") shouldBe "beslutter"
-            json.getJSONArray("ventestatus").also { ventestatus ->
-                ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(0).also { hendelse ->
-                    hendelse.getString("sattPåVentAv") shouldBe "beslutter"
-                    hendelse.getString("begrunnelse") shouldBe ""
-                    hendelse.getBoolean("erSattPåVent") shouldBe false
-                    hendelse.getString("status") shouldBe "KLAR_TIL_BESLUTNING"
-                    hendelse.isNull("frist") shouldBe true
-                }
-            }
         }
     }
 }

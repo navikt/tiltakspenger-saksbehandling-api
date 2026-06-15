@@ -118,7 +118,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (_, oppdatertMeldekortbehandling, json) = gjenopptattMeldekortbehandlngMedKlagebehandlingFraMeldekortbehandling(
+            val (_, oppdatertMeldekortbehandling) = gjenopptattMeldekortbehandlngMedKlagebehandlingFraMeldekortbehandling(
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
@@ -175,19 +175,6 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
                     ),
                 ),
             )
-
-            json.getString("status") shouldBe "UNDER_BEHANDLING"
-            json.getString("saksbehandler") shouldBe saksbehandler.navIdent
-            json.getJSONArray("ventestatus").also { ventestatus ->
-                ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(0).also { hendelse ->
-                    hendelse.getString("sattPåVentAv") shouldBe saksbehandler.navIdent
-                    hendelse.getString("begrunnelse") shouldBe ""
-                    hendelse.getBoolean("erSattPåVent") shouldBe false
-                    hendelse.getString("status") shouldBe "KLAR_TIL_BEHANDLING"
-                    hendelse.isNull("frist") shouldBe true
-                }
-            }
         }
     }
 
@@ -196,7 +183,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
-            val (_, oppdatertMeldekortbehandling, json) =
+            val (_, oppdatertMeldekortbehandling) =
                 gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBehanlingFraMeldekortRoute(
                     tac = tac,
                     saksbehandler = saksbehandler,
@@ -256,20 +243,6 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
                     ),
                 ),
             )
-
-            // Sjekk JSON (MeldekortbehandlingDTOJson)
-            json.getString("status") shouldBe "UNDER_BEHANDLING"
-            json.getString("saksbehandler") shouldBe saksbehandler.navIdent
-            json.getJSONArray("ventestatus").also { ventestatus ->
-                ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(0).also { hendelse ->
-                    hendelse.getString("sattPåVentAv") shouldBe saksbehandler.navIdent
-                    hendelse.getString("begrunnelse") shouldBe ""
-                    hendelse.getBoolean("erSattPåVent") shouldBe false
-                    hendelse.getString("status") shouldBe "KLAR_TIL_BEHANDLING"
-                    hendelse.isNull("frist") shouldBe true
-                }
-            }
         }
     }
 
@@ -279,7 +252,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val beslutter = ObjectMother.beslutter("beslutter")
-            val (_, oppdatertMeldekortbehandling, json) =
+            val (_, oppdatertMeldekortbehandling) =
                 gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBeslutningFraMeldekortRoute(
                     tac = tac,
                     saksbehandler = saksbehandler,
@@ -338,19 +311,6 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
                     ),
                 ),
             )
-
-            json.getString("status") shouldBe "UNDER_BESLUTNING"
-            json.getString("beslutter") shouldBe beslutter.navIdent
-            json.getJSONArray("ventestatus").also { ventestatus ->
-                ventestatus.length() shouldBe 2
-                ventestatus.getJSONObject(0).also { hendelse ->
-                    hendelse.getString("sattPåVentAv") shouldBe beslutter.navIdent
-                    hendelse.getString("begrunnelse") shouldBe ""
-                    hendelse.getBoolean("erSattPåVent") shouldBe false
-                    hendelse.getString("status") shouldBe "KLAR_TIL_BESLUTNING"
-                    hendelse.isNull("frist") shouldBe true
-                }
-            }
         }
     }
 }
