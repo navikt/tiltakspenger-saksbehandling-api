@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.kanGjenoppta
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ta.kanTaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 
 /**
@@ -26,7 +27,7 @@ fun Meldekortbehandling.gyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
 }
 
 private fun Meldekortbehandling.kanTildelSaksbehandler(saksbehandler: Saksbehandler): Boolean =
-    status == KLAR_TIL_BEHANDLING && saksbehandler.erSaksbehandler()
+    status == KLAR_TIL_BEHANDLING && kanTaMeldekortbehandling(saksbehandler).isRight()
 
 private fun Meldekortbehandling.kanOvertaSaksbehandler(saksbehandler: Saksbehandler): Boolean =
     status == UNDER_BEHANDLING &&
@@ -37,9 +38,7 @@ private fun Meldekortbehandling.kanLeggeTilbakeSaksbehandler(saksbehandler: Saks
     status == UNDER_BEHANDLING && this.saksbehandler == saksbehandler.navIdent
 
 private fun Meldekortbehandling.kanTildelBeslutter(saksbehandler: Saksbehandler): Boolean =
-    status == KLAR_TIL_BESLUTNING &&
-        saksbehandler.erBeslutter() &&
-        this.saksbehandler != saksbehandler.navIdent
+    status == KLAR_TIL_BESLUTNING && kanTaMeldekortbehandling(saksbehandler).isRight()
 
 private fun Meldekortbehandling.kanOvertaBeslutter(saksbehandler: Saksbehandler): Boolean =
     status == UNDER_BESLUTNING &&

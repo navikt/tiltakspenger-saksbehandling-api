@@ -6,8 +6,6 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.ta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.tilTilknyttetBehandlingsstatus
@@ -26,18 +24,14 @@ fun Meldekortbehandling.taMeldekortbehandling(
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): Either<KanIkkeTaMeldekortbehandling, Meldekortbehandling> {
+    kanTaMeldekortbehandling(saksbehandler).onLeft { return it.left() }
+
     val nå = nå(clock)
     return when (this.status) {
         MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> {
             require(this is MeldekortUnderBehandling) {
                 "Forventet MeldekortUnderBehandling for status KLAR_TIL_BEHANDLING, var ${this::class.simpleName}"
             }
-
-            if (this.saksbehandler != null) {
-                return KanIkkeTaMeldekortbehandling.HarAlleredeSaksbehandler.left()
-            }
-
-            krevSaksbehandlerRolle(saksbehandler)
 
             this.copy(
                 saksbehandler = saksbehandler.navIdent,
@@ -62,21 +56,53 @@ fun Meldekortbehandling.taMeldekortbehandling(
                 "Forventet MeldekortbehandlingManuell for status KLAR_TIL_BESLUTNING, var ${this::class.simpleName}"
             }
 
-            if (this.beslutter != null) {
-                return KanIkkeTaMeldekortbehandling.HarAlleredeBeslutter.left()
-            }
-
-            if (this.saksbehandler == saksbehandler.navIdent) {
-                return KanIkkeTaMeldekortbehandling.BeslutterKanIkkeVæreSammeSomSaksbehandler.left()
-            }
-
-            krevBeslutterRolle(saksbehandler)
-
             this.copy(
                 beslutter = saksbehandler.navIdent,
                 status = MeldekortbehandlingStatus.UNDER_BESLUTNING,
                 sistEndret = nå,
             ).right()
+        }
+
+        MeldekortbehandlingStatus.UNDER_BEHANDLING,
+        MeldekortbehandlingStatus.UNDER_BESLUTNING,
+        MeldekortbehandlingStatus.GODKJENT,
+        MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
+        MeldekortbehandlingStatus.AVBRUTT,
+        -> KanIkkeTaMeldekortbehandling.UgyldigStatus(this.status).left()
+    }
+}
+
+/**
+ * Avgjør om [saksbehandler] kan ta meldekortbehandlingen.
+ *
+ * Betingelsene speiler hvilke tilstander [taMeldekortbehandling] faktisk håndterer:
+ *  - [MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING]: kan tas av en saksbehandler dersom behandlingen ikke allerede har en saksbehandler.
+ *  - [MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING]: kan tas av en beslutter (som ikke er saksbehandleren) dersom behandlingen ikke allerede har en beslutter.
+ */
+fun Meldekortbehandling.kanTaMeldekortbehandling(
+    saksbehandler: Saksbehandler,
+): Either<KanIkkeTaMeldekortbehandling, Unit> {
+    return when (this.status) {
+        MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> {
+            if (this.saksbehandler != null) {
+                KanIkkeTaMeldekortbehandling.HarAlleredeSaksbehandler.left()
+            } else if (!saksbehandler.erSaksbehandler()) {
+                KanIkkeTaMeldekortbehandling.MåVæreSaksbehandler.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
+            if (this.beslutter != null) {
+                KanIkkeTaMeldekortbehandling.HarAlleredeBeslutter.left()
+            } else if (this.saksbehandler == saksbehandler.navIdent) {
+                KanIkkeTaMeldekortbehandling.BeslutterKanIkkeVæreSammeSomSaksbehandler.left()
+            } else if (!saksbehandler.erBeslutter()) {
+                KanIkkeTaMeldekortbehandling.MåVæreBeslutter.left()
+            } else {
+                Unit.right()
+            }
         }
 
         MeldekortbehandlingStatus.UNDER_BEHANDLING,
