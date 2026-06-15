@@ -121,7 +121,11 @@ data class Klagebehandling(
         kanVæreKlarTilBehandling: Boolean = false,
         kanVæreMottattFraKA: Boolean = false,
         kanVæreOmgjørEtterKA: Boolean = false,
+        kanVæreSattPåVent: Boolean = false,
     ): Either<KanIkkeOppdatereKlagebehandling, Unit> {
+        if (ventestatus.erSattPåVent && !kanVæreSattPåVent) {
+            return KanIkkeOppdatereKlagebehandling.BehandlingenErSattPåVent.left()
+        }
         val forventetKlagebehandlingsstatuser = listOfNotNull(
             if (kanVæreUnderBehandling) UNDER_BEHANDLING else null,
             if (kanVæreKlarTilBehandling) KLAR_TIL_BEHANDLING else null,

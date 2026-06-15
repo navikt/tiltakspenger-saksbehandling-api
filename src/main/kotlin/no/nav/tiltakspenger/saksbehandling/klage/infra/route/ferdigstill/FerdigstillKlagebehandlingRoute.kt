@@ -82,6 +82,14 @@ fun Route.ferdigstillKlagebehandlingRoute(
 
 fun KunneIkkeFerdigstilleKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
+        KunneIkkeFerdigstilleKlagebehandling.BehandlingenErSattPåVent -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                kode = "klagebehandling_er_satt_p_vent",
+                melding = "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre.",
+            ),
+        )
+
         KunneIkkeFerdigstilleKlagebehandling.KreverUtfallFraKlageinstans -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(

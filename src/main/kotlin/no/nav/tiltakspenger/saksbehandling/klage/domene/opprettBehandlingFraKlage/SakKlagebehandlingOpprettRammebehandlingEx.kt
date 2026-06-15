@@ -24,6 +24,9 @@ suspend fun Sak.opprettBehandlingFraKlage(
     opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingKommando, Sak) -> Pair<Sak, Meldekortbehandling>,
 ): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, AttesterbarBehandling>> {
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
+    if (klagebehandling.ventestatus.erSattPåVent) {
+        return KanIkkeOppretteBehandlingFraKlage.BehandlingenErSattPåVent.left()
+    }
     this.åpneBehandlingerMedKlagebehandlingId(klagebehandling.id).also {
         if (it.isNotEmpty()) {
             return KanIkkeOppretteBehandlingFraKlage.FinnesÅpenBehandling(it.first().id).left()

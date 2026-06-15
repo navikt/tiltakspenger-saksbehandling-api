@@ -20,6 +20,9 @@ import java.time.LocalDateTime
 fun Klagebehandling.oppretthold(
     kommando: OpprettholdKlagebehandlingKommando,
 ): Either<KanIkkeOpprettholdeKlagebehandling, Klagebehandling> {
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeOpprettholdeKlagebehandling.BehandlingenErSattPåVent.left()
+    }
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
         return SaksbehandlerMismatch(
             forventetSaksbehandler = this.saksbehandler!!,

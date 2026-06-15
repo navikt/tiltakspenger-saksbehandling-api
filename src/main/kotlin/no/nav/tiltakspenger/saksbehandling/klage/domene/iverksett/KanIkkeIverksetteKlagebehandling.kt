@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett
 
 sealed interface KanIkkeIverksetteKlagebehandling {
+    data object BehandlingenErSattPåVent : KanIkkeIverksetteKlagebehandling
+
     data class SaksbehandlerMismatch(val forventetSaksbehandler: String, val faktiskSaksbehandler: String) : KanIkkeIverksetteKlagebehandling
 
     data class MåHaStatus(val forventetStats: String, val actualStatus: String) : KanIkkeIverksetteKlagebehandling

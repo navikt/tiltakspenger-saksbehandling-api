@@ -29,6 +29,9 @@ fun Klagebehandling.ferdigstill(
     tilknyttedeBehandlinger: List<AttesterbarBehandling>,
     clock: Clock,
 ): Either<KunneIkkeFerdigstilleKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (ventestatus.erSattPåVent) {
+        return KunneIkkeFerdigstilleKlagebehandling.BehandlingenErSattPåVent.left()
+    }
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
         return KunneIkkeFerdigstilleKlagebehandling.SaksbehandlerMismatch(
             forventetSaksbehandler = this.saksbehandler,
@@ -103,6 +106,8 @@ private fun Klagebehandling.ferdigstillOmgjør(
 }
 
 sealed interface KunneIkkeFerdigstilleKlagebehandling {
+    data object BehandlingenErSattPåVent : KunneIkkeFerdigstilleKlagebehandling
+
     data class SaksbehandlerMismatch(val forventetSaksbehandler: String?, val faktiskSaksbehandler: String) : KunneIkkeFerdigstilleKlagebehandling
 
     data object ResultatMåVæreOpprettholdEllerOmgjør : KunneIkkeFerdigstilleKlagebehandling

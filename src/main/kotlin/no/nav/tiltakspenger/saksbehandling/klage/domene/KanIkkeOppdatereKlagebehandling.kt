@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.BehandlingId
  * Brukes på tvers av alle oppdateringsoperasjoner på klagebehandling for å representere feil som kan oppstå ved oppdatering av klagebehandling.
  */
 sealed interface KanIkkeOppdatereKlagebehandling {
+    data object BehandlingenErSattPåVent : KanIkkeOppdatereKlagebehandling
+
     data class FeilKlagebehandlingsstatus(
         val forventetStatus: Nel<Klagebehandlingsstatus>,
         val faktiskStatus: Klagebehandlingsstatus,

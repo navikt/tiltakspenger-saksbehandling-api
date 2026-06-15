@@ -24,7 +24,11 @@ fun Klagebehandling.leggTilbake(
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }
 
-    kanOppdatereIDenneStatusen(tilknyttetBehandlingsstatus, kanVæreOmgjørEtterKA = true).onLeft {
+    kanOppdatereIDenneStatusen(
+        tilknyttetBehandlingsstatus = tilknyttetBehandlingsstatus,
+        kanVæreOmgjørEtterKA = true,
+        kanVæreSattPåVent = true,
+    ).onLeft {
         return KanIkkeLeggeTilbakeKlagebehandling.KanIkkeOppdateres(it).left()
     }
     if (saksbehandler != kommando.saksbehandler.navIdent) {

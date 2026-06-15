@@ -38,6 +38,7 @@ fun Klagebehandling.gjenopptaKlagebehandling(
         kanVæreUnderBehandling = true,
         kanVæreKlarTilBehandling = true,
         kanVæreOmgjørEtterKA = true,
+        kanVæreSattPåVent = true,
     ).onLeft {
         return KanIkkeGjenopptaKlagebehandling.KanIkkeOppdateres(it).left()
     }

@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKla
 import no.nav.tiltakspenger.libs.common.BehandlingId
 
 sealed interface KanIkkeOppretteBehandlingFraKlage {
+    data object BehandlingenErSattPåVent : KanIkkeOppretteBehandlingFraKlage
+
     data class SaksbehandlerMismatch(
         val forventetSaksbehandler: String,
         val faktiskSaksbehandler: String,

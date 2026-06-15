@@ -177,6 +177,14 @@ fun Route.opprettBehandlingForKlageRoute(
 
 private fun KanIkkeOppretteBehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson>? {
     return when (this) {
+        KanIkkeOppretteBehandlingFraKlage.BehandlingenErSattPåVent -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre.",
+                "klagebehandling_er_satt_p_vent",
+            ),
+        )
+
         is KanIkkeOppretteBehandlingFraKlage.KanIkkeOppretteMeldekortbehandling -> this.underliggende.tilStatusOgErrorJson()
 
         is KanIkkeOppretteBehandlingFraKlage.SaksbehandlerMismatch -> Pair(

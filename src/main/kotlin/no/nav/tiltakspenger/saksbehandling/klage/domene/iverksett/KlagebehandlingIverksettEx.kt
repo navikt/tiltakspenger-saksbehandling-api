@@ -17,6 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehand
 fun Klagebehandling.iverksettOmgjøring(
     kommando: IverksettOmgjøringKommando,
 ): Either<KanIkkeIverksetteKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeIverksetteKlagebehandling.BehandlingenErSattPåVent.left()
+    }
     if (resultat !is Omgjør) {
         return KanIkkeIverksetteKlagebehandling.FeilResultat(
             Omgjør::class.simpleName!!,
@@ -49,6 +52,9 @@ fun Klagebehandling.iverksettOmgjøring(
 fun Klagebehandling.iverksettAvvisning(
     kommando: IverksettAvvisningKommando,
 ): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeIverksetteKlagebehandling.BehandlingenErSattPåVent.left()
+    }
     if (resultat !is Avvist) {
         return KanIkkeIverksetteKlagebehandling.FeilResultat(
             Avvist::class.simpleName!!,
@@ -84,6 +90,9 @@ fun Klagebehandling.iverksettAvvisning(
 fun Klagebehandling.iverksettOpprettholdelse(
     kommando: IverksettOpprettholdelseKommando,
 ): Either<KanIkkeIverksetteKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeIverksetteKlagebehandling.BehandlingenErSattPåVent.left()
+    }
     if (resultat !is Opprettholdt) {
         return KanIkkeIverksetteKlagebehandling.FeilResultat(
             Opprettholdt::class.simpleName!!,

@@ -6,6 +6,16 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebeh
 
 fun KanIkkeOppdatereKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (val u = this) {
+        KanIkkeOppdatereKlagebehandling.BehandlingenErSattPåVent -> {
+            Pair(
+                HttpStatusCode.BadRequest,
+                ErrorJson(
+                    "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre.",
+                    "klagebehandling_er_satt_på_vent",
+                ),
+            )
+        }
+
         is KanIkkeOppdatereKlagebehandling.FeilKlagebehandlingsstatus -> {
             Pair(
                 HttpStatusCode.BadRequest,

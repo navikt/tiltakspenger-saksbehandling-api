@@ -18,6 +18,9 @@ fun Klagebehandling.avbryt(
     if (erAvsluttet) {
         return KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet(this.status).left()
     }
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeAvbryteKlagebehandling.BehandlingenErSattPåVent.left()
+    }
     // det går fint å bare sjekke om det finnes behandling på klagen fordi klagen fortsatt er aktiv, og da vil det ikke være mulig å avbryte klagen uten å avbryte behandlingen først
     if (erKnyttetTilBehandling) {
         return KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttBehandling(behandlingId).left()

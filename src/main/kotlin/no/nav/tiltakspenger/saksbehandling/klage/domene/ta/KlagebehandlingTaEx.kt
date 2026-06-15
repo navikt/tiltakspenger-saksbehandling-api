@@ -28,6 +28,7 @@ fun Klagebehandling.ta(
         kanVæreUnderBehandling = false,
         kanVæreKlarTilBehandling = true,
         kanVæreOmgjørEtterKA = false,
+        kanVæreSattPåVent = true,
     ).onLeft {
         return KanIkkeTaKlagebehandling.KanIkkeOppdateres(it).left()
     }

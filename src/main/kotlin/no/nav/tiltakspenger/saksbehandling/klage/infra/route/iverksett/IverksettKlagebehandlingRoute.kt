@@ -76,6 +76,14 @@ fun Route.iverksettAvvistKlagebehandlingRoute(
 
 private fun KanIkkeIverksetteKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
+        KanIkkeIverksetteKlagebehandling.BehandlingenErSattPåVent -> Pair(
+            HttpStatusCode.BadRequest,
+            ErrorJson(
+                "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre.",
+                "klagebehandling_er_satt_p_vent",
+            ),
+        )
+
         is KanIkkeIverksetteKlagebehandling.SaksbehandlerMismatch -> Pair(
             HttpStatusCode.BadRequest,
             behandlingenEiesAvAnnenSaksbehandler(
