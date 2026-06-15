@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
@@ -36,7 +37,13 @@ class GjenopptaKlagebehandlingService(
             gjenopptaRammebehandling = { gjenopptaKommando ->
                 gjenopptaRammebehandlingService.gjenopptaBehandlingFraKlage(gjenopptaKommando).getOrThrow()
             },
-            gjenopptaMeldekortbehandling = gjenopptaMeldekortbehandlingService::gjenoppta,
+            gjenopptaMeldekortbehandling = { gjenopptaKommando ->
+                gjenopptaMeldekortbehandlingService.gjenoppta(gjenopptaKommando).getOrElse {
+                    throw IllegalStateException(
+                        "Kunne ikke gjenoppta meldekortbehandling ${gjenopptaKommando.meldekortId} tilknyttet klagebehandling ${kommando.klagebehandlingId}: $it",
+                    )
+                }
+            },
             lagre = ::lagreKlagebehandlingOgStatistikk,
         )
     }

@@ -72,6 +72,8 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     val kjedeIder: NonEmptySet<MeldeperiodeKjedeId> get() = meldeperioder.kjedeIder
 
+    val erSattPåVent: Boolean get() = ventestatus.erSattPåVent
+
     /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder i en behandling er på plass */
     private val førsteMeldeperiodebehandling: Meldeperiodebehandling get() = meldeperioder.first()
     val meldeperiodeLegacy: Meldeperiode get() = førsteMeldeperiodebehandling.meldeperiode

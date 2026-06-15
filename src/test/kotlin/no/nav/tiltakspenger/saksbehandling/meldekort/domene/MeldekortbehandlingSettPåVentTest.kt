@@ -9,12 +9,14 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.GjenopptaMeldekortbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.KanIkkeGjenopptaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.SettMeldekortbehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.settPåVent
@@ -141,7 +143,7 @@ class MeldekortbehandlingSettPåVentTest {
                 correlationId = CorrelationId.generate(),
             ),
             clock = clock,
-        )
+        ).getOrFail()
 
         oppdatert.shouldBeInstanceOf<MeldekortUnderBehandling>()
         oppdatert.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
@@ -173,7 +175,7 @@ class MeldekortbehandlingSettPåVentTest {
                 correlationId = CorrelationId.generate(),
             ),
             clock = clock,
-        )
+        ).getOrFail()
 
         oppdatert.shouldBeInstanceOf<MeldekortUnderBehandling>()
         oppdatert.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
@@ -198,19 +200,17 @@ class MeldekortbehandlingSettPåVentTest {
             ),
         )
 
-        val exception = shouldThrow<IllegalArgumentException> {
-            meldekortbehandling.gjenoppta(
-                kommando = GjenopptaMeldekortbehandlingKommando(
-                    sakId = meldekortbehandling.sakId,
-                    meldekortId = meldekortbehandling.id,
-                    saksbehandler = annenSaksbehandler,
-                    correlationId = CorrelationId.generate(),
-                ),
-                clock = clock,
-            )
-        }
+        val feil = meldekortbehandling.gjenoppta(
+            kommando = GjenopptaMeldekortbehandlingKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = annenSaksbehandler,
+                correlationId = CorrelationId.generate(),
+            ),
+            clock = clock,
+        ).leftOrNull()
 
-        exception.message shouldBe "Du må være saksbehandler på meldekortbehandlingen for å kunne gjenoppta den."
+        feil shouldBe KanIkkeGjenopptaMeldekortbehandling.MåVæreSaksbehandlerSomEierBehandlingen
     }
 
     @Test
@@ -238,7 +238,7 @@ class MeldekortbehandlingSettPåVentTest {
                 saksbehandler = beslutter,
             ),
             clock = clock,
-        )
+        ).getOrFail()
 
         oppdatert.shouldBeInstanceOf<MeldekortbehandlingManuell>()
         oppdatert.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
@@ -263,18 +263,16 @@ class MeldekortbehandlingSettPåVentTest {
             ),
         )
 
-        val exception = shouldThrow<IllegalStateException> {
-            meldekortbehandlingPåVent.gjenoppta(
-                kommando = gjenopptaMeldekortbehandlingKommando(
-                    sakId = meldekortbehandlingPåVent.sakId,
-                    meldekortId = meldekortbehandlingPåVent.id,
-                    saksbehandler = saksbehandler,
-                ),
-                clock = clock,
-            )
-        }
+        val feil = meldekortbehandlingPåVent.gjenoppta(
+            kommando = gjenopptaMeldekortbehandlingKommando(
+                sakId = meldekortbehandlingPåVent.sakId,
+                meldekortId = meldekortbehandlingPåVent.id,
+                saksbehandler = saksbehandler,
+            ),
+            clock = clock,
+        ).leftOrNull()
 
-        exception.message shouldBe "Kan ikke gjenoppta meldekortbehandling som har status AVBRUTT"
+        feil shouldBe KanIkkeGjenopptaMeldekortbehandling.UgyldigStatus(MeldekortbehandlingStatus.AVBRUTT)
     }
 
     @Test
@@ -283,18 +281,16 @@ class MeldekortbehandlingSettPåVentTest {
         val saksbehandler = ObjectMother.saksbehandler()
         val meldekortbehandling = ObjectMother.meldekortBehandletAutomatisk()
 
-        val exception = shouldThrow<IllegalArgumentException> {
-            meldekortbehandling.gjenoppta(
-                kommando = gjenopptaMeldekortbehandlingKommando(
-                    sakId = meldekortbehandling.sakId,
-                    meldekortId = meldekortbehandling.id,
-                    saksbehandler = saksbehandler,
-                ),
-                clock = clock,
-            )
-        }
+        val feil = meldekortbehandling.gjenoppta(
+            kommando = gjenopptaMeldekortbehandlingKommando(
+                sakId = meldekortbehandling.sakId,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = saksbehandler,
+            ),
+            clock = clock,
+        ).leftOrNull()
 
-        exception.message shouldBe "Meldekortbehandling med id ${meldekortbehandling.id} er ikke satt på vent"
+        feil shouldBe KanIkkeGjenopptaMeldekortbehandling.BehandlingenErIkkePåVent
     }
 
     private fun settPåVentKommando(
