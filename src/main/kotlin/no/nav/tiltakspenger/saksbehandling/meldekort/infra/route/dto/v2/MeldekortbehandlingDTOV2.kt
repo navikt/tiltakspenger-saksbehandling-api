@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingMedBeregning
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gyldigeKommandoer
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingStatusDTO
@@ -122,7 +122,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
-        gyldigeKommandoer = this.gyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
+        gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
 

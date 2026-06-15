@@ -17,14 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
-import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.LeggTilbakeKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.leggTilbake
-import no.nav.tiltakspenger.saksbehandling.klage.domene.tilTilknyttetBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
@@ -175,43 +170,6 @@ data class MeldekortUnderBehandling(
 
     fun erKlarTilUtfylling(clock: Clock): Boolean {
         return !LocalDate.now(clock).isBefore(periode.fraOgMed)
-    }
-
-    override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        return when (this.status) {
-            MeldekortbehandlingStatus.UNDER_BEHANDLING -> {
-                krevSaksbehandlerRolle(saksbehandler)
-                require(this.saksbehandler == saksbehandler.navIdent)
-                this.copy(
-                    saksbehandler = null,
-                    status = MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
-                    sistEndret = nå(clock),
-                    klagebehandling = klagebehandling?.let { klage ->
-                        klage.leggTilbake(
-                            kommando = LeggTilbakeKlagebehandlingKommando(
-                                sakId = sakId,
-                                klagebehandlingId = klage.id,
-                                saksbehandler = saksbehandler,
-                            ),
-                            tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
-                            clock = clock,
-                        ).getOrThrow().first
-                    },
-                )
-            }
-
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
-            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
-            MeldekortbehandlingStatus.UNDER_BESLUTNING,
-            MeldekortbehandlingStatus.GODKJENT,
-            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.AVBRUTT,
-            -> {
-                throw IllegalArgumentException(
-                    "Kan ikke ta meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-                )
-            }
-        }
     }
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {

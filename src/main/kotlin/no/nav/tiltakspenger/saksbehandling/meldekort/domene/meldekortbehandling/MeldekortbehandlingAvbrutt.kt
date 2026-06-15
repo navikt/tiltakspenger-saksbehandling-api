@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -13,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
-import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -56,10 +54,6 @@ data class MeldekortbehandlingAvbrutt(
     override val beløpTotal = beregning?.totalBeløp
     override val ordinærBeløp = beregning?.ordinærBeløp
     override val barnetilleggBeløp = beregning?.barnetilleggBeløp
-
-    override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        throw IllegalStateException("Kan ikke legge tilbake avbrutt meldekortbehandling")
-    }
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {
         throw IllegalStateException("Kan ikke oppdatere simulering på avbrutt meldekortbehandling")

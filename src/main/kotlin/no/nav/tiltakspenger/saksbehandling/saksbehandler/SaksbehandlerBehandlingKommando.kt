@@ -14,7 +14,7 @@ enum class SaksbehandlerBehandlingKommando {
     LeggTilbakeBeslutter,
     SettPåVent,
     Gjenoppta,
-    Avslutt,
+    Avbryt,
     ;
 
     fun tilDTO(): SaksbehandlerBehandlingKommandoDTO {
@@ -27,7 +27,7 @@ enum class SaksbehandlerBehandlingKommando {
             LeggTilbakeBeslutter -> SaksbehandlerBehandlingKommandoDTO.LeggTilbakeBeslutter
             SettPåVent -> SaksbehandlerBehandlingKommandoDTO.SettPåVent
             Gjenoppta -> SaksbehandlerBehandlingKommandoDTO.Gjenoppta
-            Avslutt -> SaksbehandlerBehandlingKommandoDTO.Avslutt
+            Avbryt -> SaksbehandlerBehandlingKommandoDTO.Avbryt
         }
     }
 }
@@ -41,7 +41,7 @@ enum class SaksbehandlerBehandlingKommandoDTO {
     LeggTilbakeBeslutter,
     SettPåVent,
     Gjenoppta,
-    Avslutt,
+    Avbryt,
 }
 
 fun List<SaksbehandlerBehandlingKommando>.tilDTO(): List<SaksbehandlerBehandlingKommandoDTO> {

@@ -9,7 +9,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
@@ -74,10 +73,6 @@ data class MeldekortBehandletAutomatisk(
             "Ugyldig status for automatisk behandling: $status"
         }
         require(!ingenDagerGirRett)
-    }
-
-    override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        throw IllegalStateException("Kan ikke legge tilbake automatisk behandlet meldekort")
     }
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {

@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOmgjøringKommando
@@ -223,32 +222,6 @@ data class MeldekortbehandlingManuell(
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
         ).right()
-    }
-
-    override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        return when (this.status) {
-            MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
-                krevBeslutterRolle(saksbehandler)
-                require(this.beslutter == saksbehandler.navIdent)
-                this.copy(
-                    beslutter = null,
-                    status = MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
-                    sistEndret = nå(clock),
-                )
-            }
-
-            MeldekortbehandlingStatus.UNDER_BEHANDLING,
-            MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
-            MeldekortbehandlingStatus.GODKJENT,
-            MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
-            MeldekortbehandlingStatus.AVBRUTT,
-            MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
-            -> {
-                throw IllegalArgumentException(
-                    "Kan ikke legge tilbake meldekortbehandling når behandlingen har status ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-                )
-            }
-        }
     }
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.kanAvbryte
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.gjenoppta.kanGjenoppta
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.leggTilbake.kanLeggeTilbake
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.kanOverta
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.kanSettePåVent
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ta.kanTaMeldekortbehandling
@@ -17,21 +18,21 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
  *
  * Hver kommando evalueres for seg selv via egne `kan...`-funksjoner.
  */
-fun Meldekortbehandling.gyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
+fun Meldekortbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     return buildList {
-        if (kanTildelSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
+        if (kanTildeleSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
+        if (kanTildeleBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelBeslutter)
         if (kanOvertaSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.OvertaSaksbehandler)
-        if (kanLeggeTilbakeSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler)
-        if (kanTildelBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelBeslutter)
         if (kanOvertaBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.OvertaBeslutter)
+        if (kanLeggeTilbakeSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler)
         if (kanLeggeTilbakeBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter)
-        if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
         if (kanSettePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.SettPåVent)
-        if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avslutt)
+        if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
+        if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avbryt)
     }
 }
 
-private fun Meldekortbehandling.kanTildelSaksbehandler(saksbehandler: Saksbehandler): Boolean =
+private fun Meldekortbehandling.kanTildeleSaksbehandler(saksbehandler: Saksbehandler): Boolean =
     status == KLAR_TIL_BEHANDLING && kanTaMeldekortbehandling(saksbehandler).isRight()
 
 private fun Meldekortbehandling.kanOvertaSaksbehandler(saksbehandler: Saksbehandler): Boolean =
@@ -40,9 +41,9 @@ private fun Meldekortbehandling.kanOvertaSaksbehandler(saksbehandler: Saksbehand
         kanOverta(saksbehandler).isRight()
 
 private fun Meldekortbehandling.kanLeggeTilbakeSaksbehandler(saksbehandler: Saksbehandler): Boolean =
-    status == UNDER_BEHANDLING && this.saksbehandler == saksbehandler.navIdent
+    status == UNDER_BEHANDLING && kanLeggeTilbake(saksbehandler).isRight()
 
-private fun Meldekortbehandling.kanTildelBeslutter(saksbehandler: Saksbehandler): Boolean =
+private fun Meldekortbehandling.kanTildeleBeslutter(saksbehandler: Saksbehandler): Boolean =
     status == KLAR_TIL_BESLUTNING && kanTaMeldekortbehandling(saksbehandler).isRight()
 
 private fun Meldekortbehandling.kanOvertaBeslutter(saksbehandler: Saksbehandler): Boolean =
@@ -51,4 +52,4 @@ private fun Meldekortbehandling.kanOvertaBeslutter(saksbehandler: Saksbehandler)
         kanOverta(saksbehandler).isRight()
 
 private fun Meldekortbehandling.kanLeggeTilbakeBeslutter(saksbehandler: Saksbehandler): Boolean =
-    status == UNDER_BESLUTNING && this.beslutter == saksbehandler.navIdent
+    status == UNDER_BESLUTNING && kanLeggeTilbake(saksbehandler).isRight()
