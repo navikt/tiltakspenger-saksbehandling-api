@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernBehandlingId
@@ -18,15 +19,9 @@ fun Meldekortbehandling.avbryt(
     kommando: AvbrytMeldekortbehandlingKommando,
     tidspunkt: LocalDateTime,
 ): Either<KanIkkeAvbryteMeldekortbehandling, Meldekortbehandling> {
-    if (this.status != MeldekortbehandlingStatus.UNDER_BEHANDLING) {
-        return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
-    }
+    kanAvbryte(kommando.saksbehandler).onLeft { return it.left() }
 
     val avbruttAv = kommando.saksbehandler.navIdent
-
-    if (this.saksbehandler != avbruttAv) {
-        return KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
-    }
 
     val avbruttMeldekort = this.avbryt(
         saksbehandlerIdent = avbruttAv,
@@ -44,6 +39,27 @@ fun Meldekortbehandling.avbryt(
     } ?: avbruttMeldekort
 
     return oppdatertMeldekort.right()
+}
+
+/**
+ * Avgjør om [saksbehandler] kan avbryte meldekortbehandlingen.
+ *
+ * Betingelsene speiler hva [avbryt] faktisk håndterer:
+ *  - behandlingen må ha status [MeldekortbehandlingStatus.UNDER_BEHANDLING]
+ *  - [saksbehandler] må være saksbehandleren som er tildelt behandlingen
+ */
+fun Meldekortbehandling.kanAvbryte(
+    saksbehandler: Saksbehandler,
+): Either<KanIkkeAvbryteMeldekortbehandling, Unit> {
+    if (this.status != MeldekortbehandlingStatus.UNDER_BEHANDLING) {
+        return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
+    }
+
+    if (this.saksbehandler != saksbehandler.navIdent) {
+        return KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
+    }
+
+    return Unit.right()
 }
 
 /** Avbryter en meldekortbehandling fordi det ikke lenger er rett til tiltakspenger i perioden. Dette er en automatisk handling. */
