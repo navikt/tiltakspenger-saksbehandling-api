@@ -15,8 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 
 /**
  * Handlinger som en saksbehandler/beslutter kan utføre på en meldekortbehandling.
- *
- * Hver kommando evalueres for seg selv via egne `kan...`-funksjoner.
  */
 fun Meldekortbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     return buildList {
