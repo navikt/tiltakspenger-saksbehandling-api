@@ -8,31 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
-    val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
-
-    if (meldeperiode.ingenDagerGirRett) {
-        val harMottattMeldekortEtterSisteBehandling = this.kjedeHarUbehandletBrukersMeldekort(kjedeId)
-
-        /* Dersom det finnes et ubehandlet meldekort fra bruker må vi tillate å behandle/avbryte dette meldekortet
-          Kan skje dersom vi mottok meldekortet før en stans eller omgjøring fjernet retten til tiltakspenger for en meldeperiode
-         */
-        if (harMottattMeldekortEtterSisteBehandling) {
-            val forrigeKjede = this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjede(kjedeId)
-
-            // Må være første kjede med et ubehandlet meldekort
-            if (forrigeKjede == null ||
-                (
-                    !kjedeHarUbehandletBrukersMeldekort(forrigeKjede.kjedeId) &&
-                        kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(forrigeKjede.kjedeId)
-                    )
-            ) {
-                return Unit.right()
-            }
-        }
-
-        return ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT.left()
-    }
-
     return validerOpprettBehandlingPåKjede(kjedeId)
 }
 
@@ -94,7 +69,6 @@ private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersM
             ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
             ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
             ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
-            ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT -> MeldekortBehandletAutomatiskStatus.INGEN_DAGER_GIR_RETT
         }.left()
     }
 
@@ -109,11 +83,11 @@ private fun Sak.validerOpprettBehandlingPåKjede(kjedeId: MeldeperiodeKjedeId): 
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
     val erFørsteBehandlingPåSaken = this.meldekortbehandlinger.isEmpty()
-    val erFørsteMeldeperiodeMedRettPåSaken = meldeperiode == this.meldeperiodeKjeder
-        .meldeperiodeKjederMedRett.first()
-        .hentSisteMeldeperiode()
+    val førsteMeldeperiodeMedRettPåSaken = this.meldeperiodeKjeder
+        .meldeperiodeKjederMedRett.firstOrNull()
+        ?.hentSisteMeldeperiode()
 
-    if (erFørsteBehandlingPåSaken && !erFørsteMeldeperiodeMedRettPåSaken) {
+    if (erFørsteBehandlingPåSaken && førsteMeldeperiodeMedRettPåSaken != null && !meldeperiode.ingenDagerGirRett && førsteMeldeperiodeMedRettPåSaken != meldeperiode) {
         return ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE.left()
     }
 
@@ -124,14 +98,6 @@ private fun Sak.validerOpprettBehandlingPåKjede(kjedeId: MeldeperiodeKjedeId): 
     }
 
     return Unit.right()
-}
-
-/** @return true dersom det ikke er opprettet eller endret på en meldekortbehandling på kjeden etter siste mottatte meldekort fra bruker */
-private fun Sak.kjedeHarUbehandletBrukersMeldekort(kjedeId: MeldeperiodeKjedeId): Boolean {
-    val sisteBrukersMeldekort = this.brukersMeldekort.filter { it.kjedeId == kjedeId }.maxByOrNull { it.mottatt }
-    val sisteBehandling = this.meldekortbehandlinger.hentSisteMeldekortbehandlingForKjede(kjedeId)
-
-    return sisteBrukersMeldekort != null && (sisteBehandling == null || sisteBehandling.sistEndret < sisteBrukersMeldekort.mottatt)
 }
 
 private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Boolean {
@@ -153,5 +119,4 @@ enum class ValiderOpprettMeldekortbehandlingFeil {
     HAR_ÅPEN_BEHANDLING,
     MÅ_BEHANDLE_FØRSTE_KJEDE,
     MÅ_BEHANDLE_NESTE_KJEDE,
-    INGEN_DAGER_GIR_RETT,
 }

@@ -10,16 +10,13 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.INGEN_DAGER_GIR_RETT
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOmgjøringInnvilgelse
 import org.junit.jupiter.api.Test
@@ -178,7 +175,7 @@ class OpprettMeldekortbehandlingServiceTest {
     }
 
     @Test
-    fun `Skal ikke opprette behandling for meldeperiode uten rett`() {
+    fun `Kan opprette behandling for meldeperiode uten rett`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
                 tac = tac,
@@ -193,43 +190,7 @@ class OpprettMeldekortbehandlingServiceTest {
                     saksbehandler = saksbehandler(),
                     klagebehandlingId = null,
                 ),
-            ) shouldBe ValiderOpprettFeil(INGEN_DAGER_GIR_RETT).left()
-        }
-    }
-
-    @Test
-    fun `Kan opprette behandling for meldeperiode uten rett dersom det finnes et ubehandlet brukers-meldekort`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, vedtak) = iverksettSøknadsbehandling(
-                tac = tac,
-                innvilgelsesperioder = innvilgelsesperioderTotal,
-            )
-
-            val brukersMeldekortMedRett = ObjectMother.brukersMeldekort(
-                sakId = sak.id,
-                meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
-            )
-
-            tac.meldekortContext.brukersMeldekortRepo.lagre(brukersMeldekortMedRett)
-
-            iverksettOmgjøringInnvilgelse(
-                tac = tac,
-                sakId = sak.id,
-                rammevedtakIdSomOmgjøres = vedtak.id,
-                innvilgelsesperioder = innvilgelsesperioder(andrePeriode),
-            )
-
-            val (_, meldekortbehandling) = tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
-                    sakId = sak.id,
-                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-                    saksbehandler = saksbehandler(),
-                    klagebehandlingId = null,
-                ),
             ).getOrFail()
-
-            meldekortbehandling.kjedeIdLegacy shouldBe sak.meldeperiodeKjeder.first().kjedeId
-            meldekortbehandling.meldeperiodeLegacy.ingenDagerGirRett shouldBe true
         }
     }
 

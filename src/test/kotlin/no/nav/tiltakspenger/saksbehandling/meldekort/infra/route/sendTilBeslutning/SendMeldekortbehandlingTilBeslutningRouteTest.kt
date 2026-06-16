@@ -1,14 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendTilBeslutning
 
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import org.junit.jupiter.api.Test
 
 internal class SendMeldekortbehandlingTilBeslutningRouteTest {
@@ -18,8 +21,40 @@ internal class SendMeldekortbehandlingTilBeslutningRouteTest {
             withTestApplicationContext { tac ->
                 this.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(
                     tac = tac,
-                    saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
+                    saksbehandler = saksbehandler("saksbehandler"),
                 )!!
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke sende meldekortbehandling til beslutter hvis ingen dager gir rett`() {
+        runTest {
+            withTestApplicationContext { tac ->
+                val førstePeriode = 6.januar(2025) til 19.januar(2025)
+                val andrePeriode = førstePeriode.plus14Dager()
+                val totalPeriode = førstePeriode.fraOgMed til andrePeriode.tilOgMed
+
+                val (sak) = iverksettSøknadsbehandlingOgOmgjøringInnvilgelse(
+                    tac = tac,
+                    søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(totalPeriode),
+                    omgjøringInnvilgelsesperioder = innvilgelsesperioder(andrePeriode),
+                )!!
+
+                val (_, meldekortbehandling) = this.opprettMeldekortbehandlingForSakId(
+                    tac = tac,
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                )!!
+
+                meldekortbehandling.ingenDagerGirRett shouldBe true
+
+                this.sendMeldekortbehandlingTilBeslutning(
+                    tac = tac,
+                    sakId = sak.id,
+                    meldekortId = meldekortbehandling.id,
+                    forventetStatus = HttpStatusCode.InternalServerError,
+                )
             }
         }
     }
