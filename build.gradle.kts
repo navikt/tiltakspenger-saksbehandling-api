@@ -10,7 +10,7 @@ val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
 val confluentVersion = "8.1.1"
 val avroVersion = "1.12.1"
-val prometeusVersion = "1.16.6"
+val prometeusVersion = "1.17.0"
 
 dependencies {
     // Align versions of all Kotlin components
