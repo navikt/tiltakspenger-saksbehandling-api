@@ -9,7 +9,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
@@ -21,8 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.KunneIkkeOvertaMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.overta.OvertaMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -76,17 +73,6 @@ data class MeldekortBehandletAutomatisk(
             "Ugyldig status for automatisk behandling: $status"
         }
         require(!ingenDagerGirRett)
-    }
-
-    override fun overta(
-        kommando: OvertaMeldekortbehandlingKommando,
-        clock: Clock,
-    ): Either<KunneIkkeOvertaMeldekortbehandling, Meldekortbehandling> {
-        return KunneIkkeOvertaMeldekortbehandling.KanIkkeOvertaAutomatiskBehandling.left()
-    }
-
-    override fun leggTilbakeMeldekortbehandling(saksbehandler: Saksbehandler, clock: Clock): Meldekortbehandling {
-        throw IllegalStateException("Kan ikke legge tilbake automatisk behandlet meldekort")
     }
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {

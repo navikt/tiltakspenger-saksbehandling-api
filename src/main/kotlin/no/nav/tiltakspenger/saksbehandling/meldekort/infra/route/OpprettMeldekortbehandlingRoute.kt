@@ -91,6 +91,7 @@ fun Route.opprettMeldekortbehandlingRoute(
                                     beregninger = sak.meldeperiodeBeregninger,
                                     hentVedtak = { null },
                                     hentTilbakekreving = { null },
+                                    kallendeSaksbehandler = saksbehandler,
                                 ),
                             )
                         } else {

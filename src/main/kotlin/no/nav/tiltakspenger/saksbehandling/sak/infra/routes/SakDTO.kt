@@ -85,6 +85,7 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
             beregninger = this.meldeperiodeBeregninger,
             hentVedtak = this.meldekortvedtaksliste::hentForMeldekortbehandling,
             hentTilbakekreving = this::hentTilbakekrevingForMeldekortbehandling,
+            kallendeSaksbehandler = saksbehandler,
         )
     },
     åpenMeldekortbehandlingId = meldekortbehandlinger.åpenMeldekortbehandling?.id?.toString(),

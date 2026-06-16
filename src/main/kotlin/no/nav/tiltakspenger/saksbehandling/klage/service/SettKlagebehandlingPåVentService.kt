@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
@@ -33,7 +34,13 @@ class SettKlagebehandlingPåVentService(
             kommando = kommando,
             clock = clock,
             settRammebehandlingPåVent = settRammebehandlingPåVentService::settBehandlingPåVentFraKlage,
-            settMeldekortbehandlingPåVent = settMeldekortbehandlingPåVentService::settPåVent,
+            settMeldekortbehandlingPåVent = { settPåVentKommando ->
+                settMeldekortbehandlingPåVentService.settPåVent(settPåVentKommando).getOrElse {
+                    throw IllegalStateException(
+                        "Kunne ikke sette meldekortbehandling ${settPåVentKommando.meldekortId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
+                    )
+                }
+            },
             lagre = ::lagreKlagebehandlingOgStatistikk,
         )
     }

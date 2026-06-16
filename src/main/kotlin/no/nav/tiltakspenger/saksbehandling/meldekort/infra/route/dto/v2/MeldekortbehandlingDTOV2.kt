@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
@@ -21,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingMedBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingStatusDTO
@@ -28,6 +30,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.Meldeperiod
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagerDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toStatusDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.KanIkkeIverksetteUtbetalingDTO
@@ -67,6 +71,7 @@ data class MeldekortbehandlingDTOV2(
      */
     val ventestatus: List<VentestatusHendelseDTO>,
     val klagebehandlingId: String?,
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 )
 
 data class MeldeperiodebehandlingDTO(
@@ -84,6 +89,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
     beregninger: MeldeperiodeBeregningerVedtatt,
     hentVedtak: (id: MeldekortId) -> Meldekortvedtak?,
     hentTilbakekreving: (id: MeldekortId) -> TilbakekrevingBehandling?,
+    kallendeSaksbehandler: Saksbehandler,
 ): MeldekortbehandlingDTOV2 {
     val vedtak: Meldekortvedtak? = hentVedtak(id)
 
@@ -94,7 +100,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
     return MeldekortbehandlingDTOV2(
         id = id.toString(),
         sakId = sakId.toString(),
-        saksbehandler = saksbehandler,
+        saksbehandler = this.saksbehandler,
         beslutter = beslutter,
         opprettet = opprettet,
         godkjentTidspunkt = vedtak?.opprettet ?: iverksattTidspunkt,
@@ -116,6 +122,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTOV2(
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
+        gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
 

@@ -5,6 +5,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
+import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
@@ -60,6 +61,16 @@ fun Route.taMeldekortbehandlingRoute(
                             is KanIkkeTaMeldekortbehandling.HarAlleredeBeslutter -> call.respond400BadRequest(
                                 melding = "Meldekortbehandlingen har allerede en beslutter. Bruk overta for å overta behandlingen.",
                                 kode = "behandlingen_har_allerede_beslutter",
+                            )
+
+                            is KanIkkeTaMeldekortbehandling.MåVæreSaksbehandler -> call.respond403Forbidden(
+                                melding = "Du må være saksbehandler for å ta denne meldekortbehandlingen.",
+                                kode = "maa_vaere_saksbehandler",
+                            )
+
+                            is KanIkkeTaMeldekortbehandling.MåVæreBeslutter -> call.respond403Forbidden(
+                                melding = "Du må være beslutter for å ta denne meldekortbehandlingen.",
+                                kode = "maa_vaere_beslutter",
                             )
 
                             is KanIkkeTaMeldekortbehandling.BeslutterKanIkkeVæreSammeSomSaksbehandler -> call.respond400BadRequest(

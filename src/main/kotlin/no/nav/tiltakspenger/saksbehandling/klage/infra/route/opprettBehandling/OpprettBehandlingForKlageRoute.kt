@@ -163,6 +163,7 @@ fun Route.opprettBehandlingForKlageRoute(
                                             beregninger = it.sak.meldeperiodeBeregninger,
                                             hentVedtak = it.sak.meldekortvedtaksliste::hentForMeldekortbehandling,
                                             hentTilbakekreving = it.sak::hentTilbakekrevingForMeldekortbehandling,
+                                            kallendeSaksbehandler = saksbehandler,
                                         ),
                                     )
                                 }

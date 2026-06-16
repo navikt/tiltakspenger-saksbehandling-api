@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
+import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -7,6 +8,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.leggTilbake.KanIkkeLeggeTilbakeMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.leggTilbake.leggTilbakeMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -22,10 +25,10 @@ class LeggTilbakeMeldekortbehandlingService(
         sakId: SakId,
         meldekortId: MeldekortId,
         saksbehandler: Saksbehandler,
-    ): Pair<Sak, Meldekortbehandling> {
+    ): Either<KanIkkeLeggeTilbakeMeldekortbehandling, Pair<Sak, Meldekortbehandling>> {
         val sak: Sak = sakService.hentForSakId(sakId)
         val meldekortbehandling: Meldekortbehandling = sak.hentMeldekortbehandling(meldekortId)!!
-        return meldekortbehandling.leggTilbakeMeldekortbehandling(saksbehandler, clock).let {
+        return meldekortbehandling.leggTilbakeMeldekortbehandling(saksbehandler, clock).map {
             when (it.status) {
                 MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> meldekortbehandlingRepo.leggTilbakeBehandlingSaksbehandler(
                     it,

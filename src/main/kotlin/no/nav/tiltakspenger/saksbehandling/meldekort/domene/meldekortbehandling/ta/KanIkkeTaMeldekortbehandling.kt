@@ -9,6 +9,10 @@ sealed interface KanIkkeTaMeldekortbehandling {
 
     data object HarAlleredeBeslutter : KanIkkeTaMeldekortbehandling
 
+    data object MåVæreSaksbehandler : KanIkkeTaMeldekortbehandling
+
+    data object MåVæreBeslutter : KanIkkeTaMeldekortbehandling
+
     data object BeslutterKanIkkeVæreSammeSomSaksbehandler : KanIkkeTaMeldekortbehandling
 
     data class UgyldigStatus(val status: MeldekortbehandlingStatus) : KanIkkeTaMeldekortbehandling
