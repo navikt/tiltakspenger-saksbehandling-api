@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenErSattPåVent
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.kanIkkeOppdatereBehandling
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
@@ -45,8 +46,7 @@ fun Route.oppdaterKlagebehandlingFormkravRoute(
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                     oppdaterKlagebehandlingFormkravService
                         .oppdaterFormkrav(
-                            kommando =
-                            body.tilKommando(
+                            kommando = body.tilKommando(
                                 sakId = sakId,
                                 saksbehandler = saksbehandler,
                                 correlationId = correlationId,
@@ -108,6 +108,13 @@ private fun KanIkkeOppdatereFormkravPåKlagebehandling.toStatusAndErrorJson(): P
             ErrorJson(
                 "Kan ikke endre klagebehandling til avvist når den er tilknyttet en behandling",
                 "kan_ikke_endre_klagebehandling_til_avvist_nar_tilknyttet_behandling",
+            ),
+        )
+
+        KanIkkeOppdatereFormkravPåKlagebehandling.BehandlingenErSattPåVent -> Pair(
+            HttpStatusCode.BadRequest,
+            behandlingenErSattPåVent(
+                melding = "Kan ikke oppdatere formkrav fordi behandlingen er satt på vent",
             ),
         )
     }

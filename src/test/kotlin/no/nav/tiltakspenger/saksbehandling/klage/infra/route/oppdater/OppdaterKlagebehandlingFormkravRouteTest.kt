@@ -13,10 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjørings�
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingFormkravForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRevurderingForKlage
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import org.junit.jupiter.api.Test
 
@@ -58,7 +60,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val fnr = Fnr.fromString("12345678912")
-            val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettKlagebehandling(
+            val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
                 tac = tac,
                 fnr = fnr,
                 journalpostId = JournalpostId("123456"),
@@ -159,6 +161,35 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 klagesDetPåKonkreteElementerIVedtaket = true,
                 erKlagefristenOverholdt = true,
                 resultat = null,
+            )
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne oppdatere formkrav når klagebehandlingen er satt på vent og saksbehandler er på behandlingen`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(tac)!!
+
+            settKlagebehandlingPåVent(tac, sak.id, klagebehandling.id)
+
+            taKlagebehandling(tac, sak.id, klagebehandling.id)
+
+            oppdaterKlagebehandlingFormkravForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                vedtakDetKlagesPå = null,
+                erKlagerPartISaken = true,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erKlagefristenOverholdt = true,
+                erUnntakForKlagefrist = null,
+                erKlagenSignert = true,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    //language=json
+                    """{"melding": "Kan ikke oppdatere formkrav fordi behandlingen er satt på vent", "kode": "behandlingen_er_satt_på_vent"}"""
+                },
             )
         }
     }

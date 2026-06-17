@@ -6,6 +6,8 @@ sealed interface KanIkkeOppdatereFormkravPåKlagebehandling {
     /** Behandlingen er i en tilstand der den ikke kan oppdateres. */
     data object KanIkkeOppdateres : KanIkkeOppdatereFormkravPåKlagebehandling
 
+    data object BehandlingenErSattPåVent : KanIkkeOppdatereFormkravPåKlagebehandling
+
     data class SaksbehandlerMismatch(val forventetSaksbehandler: String, val faktiskSaksbehandler: String) : KanIkkeOppdatereFormkravPåKlagebehandling
 
     data object KanIkkeEndreTilAvvisningNårTilknyttetBehandling : KanIkkeOppdatereFormkravPåKlagebehandling

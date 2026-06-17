@@ -1,10 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandlingTilOpprettholdelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingBrevtekstForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taKlagebehandling
 import org.junit.jupiter.api.Test
 
 class OppdaterKlagebehandlingBrevtekstRouteTest {
@@ -48,6 +56,29 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                 ),
                 kanIverksetteOpprettholdelse = true,
                 hjemler = listOf("ARBEIDSMARKEDSLOVEN_17"),
+            )
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne oppdatere brevtekst dersom klagebehandlingen er satt på vent, og saksbehandler er på behandlingen`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(runIsolated = true, clock = clock) { tac ->
+            val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgVurderKlagebehandlingTilOpprettholdelse(tac)!!
+
+            settKlagebehandlingPåVent(tac = tac, sakId = sak.id, klagebehandlingId = klagebehandling.id)
+
+            taKlagebehandling(tac = tac, sakId = sak.id, klagebehandlingId = klagebehandling.id)
+
+            oppdaterKlagebehandlingBrevtekstForSakId(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    //language=json
+                    """{"kode": "behandlingen_er_satt_på_vent", "melding": "Kan ikke oppdatere brevtekst fordi klagebehandlingen er satt på vent"}"""
+                },
             )
         }
     }

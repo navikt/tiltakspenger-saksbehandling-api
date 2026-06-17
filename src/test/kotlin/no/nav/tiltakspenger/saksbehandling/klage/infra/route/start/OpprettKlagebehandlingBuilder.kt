@@ -74,7 +74,7 @@ interface OpprettKlagebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple4<Sak, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
-        val (oppdatertSak, _, rammevedtak, klagebehandling) = this.iverksettSøknadsbehandlingOgOpprettKlagebehandling(
+        val (oppdatertSak, _, rammevedtak, klagebehandling) = this.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
             tac = tac,
             forventetStatus = forventetStatus,
             saksbehandlerKlagebehandling = saksbehandler,
@@ -97,7 +97,7 @@ interface OpprettKlagebehandlingBuilder {
     }
 
     /** Oppretter ny sak, søknad og iverksetter søknadsbehandlingen; og starter klagebehandling med oppfylte formkrav  */
-    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling(
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
         tac: TestApplicationContext,
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),

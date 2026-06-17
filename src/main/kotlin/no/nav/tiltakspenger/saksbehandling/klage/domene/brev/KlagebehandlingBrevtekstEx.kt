@@ -22,6 +22,8 @@ fun Klagebehandling.oppdaterBrevtekst(
         ).left()
     }
 
+    if (this.ventestatus.erSattPåVent) return KanIkkeOppdatereBrevtekstPåKlagebehandling.BehandlingenErSattPåVent.left()
+
     return when (resultat) {
         is Klagebehandlingsresultat.Avvist -> this.resultat.oppdaterBrevtekst(kommando.brevtekster).let {
             this.copy(

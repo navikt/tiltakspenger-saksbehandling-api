@@ -23,6 +23,7 @@ fun Klagebehandling.oppdaterFormkrav(
             faktiskSaksbehandler = kommando.saksbehandler.navIdent,
         ).left()
     }
+    if (this.ventestatus.erSattPåVent) return KanIkkeOppdatereFormkravPåKlagebehandling.BehandlingenErSattPåVent.left()
     val oppdaterteFormkrav = kommando.toKlageFormkrav(behandlingDetKlagesPå)
     val tidligereResultat = this.resultat
     val harTilknyttetBehandling =

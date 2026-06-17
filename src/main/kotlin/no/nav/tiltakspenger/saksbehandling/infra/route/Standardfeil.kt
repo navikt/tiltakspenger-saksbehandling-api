@@ -43,4 +43,9 @@ object Standardfeil {
         "Fant ikke ressursen",
         "ikke_funnet",
     )
+
+    fun behandlingenErSattPåVent(
+        melding: String = "Kan ikke oppdatere fordi behandlingen er satt på vent",
+        kode: String = "behandlingen_er_satt_på_vent",
+    ): ErrorJson = ErrorJson(melding = melding, kode = kode)
 }

@@ -15,7 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import org.junit.jupiter.api.Test
 
@@ -252,6 +254,36 @@ class VurderKlagebehandlingRouteTest {
                         "kode": "feil_klagebehandlingsstatus"
                       }
                     """.trimIndent()
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne oppdatere vurdering når klagebehandlingen er satt på vent, og saksbehandler har tatt behandlingen`() {
+        val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
+        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+            val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
+                tac = tac,
+            )!!
+
+            settKlagebehandlingPåVent(tac = tac, sakId = sak.id, klagebehandlingId = klagebehandling.id)
+
+            taKlagebehandling(tac = tac, sakId = sak.id, klagebehandlingId = klagebehandling.id)
+
+            vurderKlagebehandling(
+                tac = tac,
+                sakId = sak.id,
+                klagebehandlingId = klagebehandling.id,
+                saksbehandler = ObjectMother.saksbehandler(klagebehandling.saksbehandler!!),
+                begrunnelse = Begrunnelse.createOrThrow("oppdatert begrunnelse for omgjøring"),
+                årsak = KlageOmgjøringsårsak.ANNET,
+                vurderingstype = Vurderingstype.OMGJØR,
+                hjemler = null,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = {
+                    //language=json
+                    """{"kode": "klagebehandling_er_satt_på_vent", "melding": "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre."}"""
                 },
             )
         }

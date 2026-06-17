@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagehjemmelDto
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -59,7 +59,7 @@ interface VurderKlagebehandlingBuilder {
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
-        val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettKlagebehandling(
+        val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
             tac = tac,
             saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
@@ -79,6 +79,34 @@ interface VurderKlagebehandlingBuilder {
             årsak = årsak,
             hjemler = hjemler,
             vurderingstype = vurderingstype,
+            forventetStatus = forventetStatus,
+            forventetJsonBody = forventetJsonBody,
+        ) ?: return null
+        return Tuple5(oppdatertSak, søknad, rammevedtakSøknadsbehandling, oppdatertKlagebehandling, json)
+    }
+
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgVurderKlagebehandlingTilOpprettholdelse(
+        tac: TestApplicationContext,
+        saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
+        saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
+        hjemler: List<KlagehjemmelDto>? = listOf(KlagehjemmelDto.ARBEIDSMARKEDSLOVEN_17),
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+    ): Tuple5<Sak, Søknad, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
+        val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
+            tac = tac,
+            saksbehandlerSøknadsbehandling = saksbehandlerSøknadsbehandling,
+            saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
+        ) ?: return null
+        val (oppdatertSak, oppdatertKlagebehandling, json) = vurderKlagebehandling(
+            tac = tac,
+            sakId = sak.id,
+            klagebehandlingId = klagebehandling.id,
+            saksbehandler = saksbehandlerKlagebehandling,
+            begrunnelse = null,
+            årsak = null,
+            hjemler = hjemler,
+            vurderingstype = Vurderingstype.OPPRETTHOLD,
             forventetStatus = forventetStatus,
             forventetJsonBody = forventetJsonBody,
         ) ?: return null

@@ -4,6 +4,8 @@ sealed interface KanIkkeOppdatereBrevtekstPåKlagebehandling {
     /** Behandlingen er i en tilstand der den ikke kan oppdateres. */
     data object KanIkkeOppdateres : KanIkkeOppdatereBrevtekstPåKlagebehandling
 
+    data object BehandlingenErSattPåVent : KanIkkeOppdatereBrevtekstPåKlagebehandling
+
     data class SaksbehandlerMismatch(
         val forventetSaksbehandler: String,
         val faktiskSaksbehandler: String,

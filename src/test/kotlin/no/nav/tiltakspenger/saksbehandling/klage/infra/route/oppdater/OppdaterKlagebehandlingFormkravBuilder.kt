@@ -138,11 +138,7 @@ interface OppdaterKlagebehandlingFormkravBuilder {
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            return Triple(
-                oppdatertSak,
-                oppdatertSak.hentKlagebehandling(klagebehandlingId),
-                jsonObject,
-            )
+            return Triple(oppdatertSak, oppdatertSak.hentKlagebehandling(klagebehandlingId), jsonObject)
         }
     }
 }
