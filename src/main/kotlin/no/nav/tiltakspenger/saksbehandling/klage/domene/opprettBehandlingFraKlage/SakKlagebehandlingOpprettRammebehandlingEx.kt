@@ -21,7 +21,7 @@ suspend fun Sak.opprettBehandlingFraKlage(
     kommando: OpprettBehandlingFraKlageKommando,
     opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak) -> Pair<Sak, Søknadsbehandling>,
     opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Pair<Sak, Revurdering>,
-    opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingKommando, Sak) -> Pair<Sak, Meldekortbehandling>,
+    opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingKommando, Sak) -> Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, Meldekortbehandling>>,
 ): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, AttesterbarBehandling>> {
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
     if (klagebehandling.ventestatus.erSattPåVent) {
@@ -36,18 +36,18 @@ suspend fun Sak.opprettBehandlingFraKlage(
         is OpprettSøknadsbehandlingFraKlageKommando -> this.opprettSøknadsbehandlingFraKlage(
             kommando = kommando,
             opprettSøknadsbehandling = opprettSøknadsbehandling,
-        )
+        ).right()
 
         is OpprettRevurderingFraKlageKommando -> this.opprettRevurderingFraKlage(
             kommando = kommando,
             opprettRevurdering = opprettRevurdering,
-        )
+        ).right()
 
         is OpprettMeldekortbehandlingFraKlageKommando -> this.opprettMeldekortbehandlingFraKlage(
             kommando,
             opprettMeldekortbehandling,
         )
-    }.right()
+    }
 }
 
 private suspend fun Sak.opprettSøknadsbehandlingFraKlage(
@@ -91,8 +91,8 @@ private suspend fun Sak.opprettRevurderingFraKlage(
 
 private suspend fun Sak.opprettMeldekortbehandlingFraKlage(
     kommando: OpprettMeldekortbehandlingFraKlageKommando,
-    opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingKommando, Sak) -> Pair<Sak, Meldekortbehandling>,
-): Pair<Sak, Meldekortbehandling> = opprettMeldekortbehandling(
+    opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingKommando, Sak) -> Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, Meldekortbehandling>>,
+): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, Meldekortbehandling>> = opprettMeldekortbehandling(
     OpprettMeldekortbehandlingKommando(
         sakId = kommando.sakId,
         kjedeId = kommando.kjedeId,

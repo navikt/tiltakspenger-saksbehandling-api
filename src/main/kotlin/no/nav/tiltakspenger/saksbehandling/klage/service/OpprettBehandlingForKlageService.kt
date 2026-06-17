@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.KanIkkeOppretteBehandlingFraKlage
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettBehandlingForKlageResultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettBehandlingFraKlageKommando
@@ -76,7 +75,9 @@ class OpprettBehandlingForKlageService(
             opprettRevurdering = startRevurderingService::startRevurdering,
             // Har ansvar for å lagre meldekortbehandling og endringer på klagen + sideeffekter som statistikk og metrikker.
             opprettMeldekortbehandling = { kommando, _ ->
-                opprettMeldekortbehandlingService.opprettBehandling(kommando).getOrThrow()
+                opprettMeldekortbehandlingService.opprettBehandling(kommando).mapLeft {
+                    KanIkkeOppretteBehandlingFraKlage.KanIkkeOppretteMeldekortbehandling(it)
+                }
             },
         ).mapLeft {
             return it.left()
