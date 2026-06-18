@@ -12,7 +12,7 @@ data class VentestatusHendelseDTO(
 )
 
 fun List<VentestatusHendelse>.tilDto(): List<VentestatusHendelseDTO> =
-    this.map { it.tilVentestatusHendelseDTO() }.reversed()
+    this.map { it.tilVentestatusHendelseDTO() }.sortedByDescending { it.tidspunkt }
 
 fun VentestatusHendelse.tilVentestatusHendelseDTO() = VentestatusHendelseDTO(
     sattPåVentAv = endretAv,
