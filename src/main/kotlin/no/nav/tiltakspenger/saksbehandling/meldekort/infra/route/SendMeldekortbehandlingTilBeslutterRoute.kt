@@ -69,6 +69,11 @@ fun Route.sendMeldekortTilBeslutningRoute(
                             is KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(
                                 statusAndValue = it.feil.tilErrorJson(),
                             )
+
+                            KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeFullstendigUtfylt -> call.respond400BadRequest(
+                                melding = "Meldeperiodene må være fullstendig utfylt for å kunne sende meldekortet til beslutter.",
+                                kode = "meldeperiodene_er_ikke_utfylt",
+                            )
                         }
                     },
                     ifRight = {

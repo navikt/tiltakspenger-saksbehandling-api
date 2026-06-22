@@ -52,7 +52,8 @@ private data class SimuleringResponseDTO(
             val sakId: String by lazy { posteringer.map { it.sakId }.distinct().single() }
             val fraOgMed: LocalDate by lazy { posteringer.map { it.fom }.distinct().single() }
             val tilOgMed: LocalDate by lazy { posteringer.map { it.tom }.distinct().single() }
-            val periode: Periode by lazy { Periode(fraOgMed, tilOgMed) }
+
+            val periode: Periode = Periode(fom, tom)
 
             data class Postering(
                 val fagområde: String,
@@ -74,6 +75,14 @@ private data class SimuleringResponseDTO(
                         "TREKK" -> Posteringstype.TREKK
                         "MOTPOSTERING" -> Posteringstype.MOTPOSTERING
                         else -> error("Ukjent posteringstype: $type")
+                    }
+                }
+            }
+
+            init {
+                if (posteringer.isNotEmpty()) {
+                    require(fom == fraOgMed && tom == tilOgMed) {
+                        "Periodene for posteringer må være like perioden de tilhører. Forventet $fom - $tom, fikk $fraOgMed - $tilOgMed"
                     }
                 }
             }

@@ -71,9 +71,11 @@ data class MeldekortbehandlingManuell(
         require(meldeperioder.fraOgMed == beregningPeriode.fraOgMed) {
             "Fra og med dato for beregningsperioden og meldeperioden må være like"
         }
+
         require(meldeperioder.tilOgMed <= beregningPeriode.tilOgMed) {
             "Til og med dato for beregningsperioden må være nyere eller lik meldeperioden"
         }
+
         when (status) {
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
             MeldekortbehandlingStatus.UNDER_BEHANDLING,
@@ -100,6 +102,12 @@ data class MeldekortbehandlingManuell(
                 requireNotNull(sendtTilBeslutning)
             }
         }
+
+//        TODO abn: Sjekk at ingen meldekortbehandlinger i prod vil feile før denne enables
+//        require(erFullstendigUtfylt) {
+//            "Alle meldeperioder i behandlingen må være fullstendig utfylt for manuelle meldekortbehandlinger (id: $id / sakId: $sakId)"
+//        }
+
         initKlagebehandling()
     }
 

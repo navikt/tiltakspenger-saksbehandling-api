@@ -24,6 +24,10 @@ data class UtfyltMeldeperiode(
     val tilOgMed: LocalDate get() = this.last().dato
     val periode = Periode(fraOgMed, tilOgMed)
 
+    val erFullstendigUtfylt: Boolean by lazy {
+        dager.none { it.status == MeldekortDagStatus.IKKE_BESVART }
+    }
+
     private val antallDagerMedDeltattEllerFravær: Int get() = this.count { it.harDeltattEllerFravær }
 
     init {

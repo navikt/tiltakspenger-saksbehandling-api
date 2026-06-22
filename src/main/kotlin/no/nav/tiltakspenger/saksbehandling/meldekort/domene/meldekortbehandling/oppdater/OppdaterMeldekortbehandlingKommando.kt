@@ -65,8 +65,6 @@ class OppdaterMeldekortbehandlingKommando(
 
     /** En spesialisering av [MeldekortDagStatus].
      * Skal kun brukes i kontrakten mot frontend.
-     * Dette er de verdiene saksbehandler kan velge. Se egen kommentar for [IKKE_RETT_TIL_TILTAKSPENGER].
-     * Merk at vi ikke ønsker IKKE_BESVART i denne listen, da dette kun er et implisitt valg for bruker. Saksbehandler må ta stilling til alle dagene.
      * */
     enum class Status {
         DELTATT_UTEN_LØNN_I_TILTAKET,
@@ -77,6 +75,7 @@ class OppdaterMeldekortbehandlingKommando(
         FRAVÆR_GODKJENT_AV_NAV,
         FRAVÆR_ANNET,
         IKKE_TILTAKSDAG,
+        IKKE_BESVART,
 
         /** Vi tar i mot [IKKE_RETT_TIL_TILTAKSPENGER] siden det er det saksbehandler ser/sender inn, men vi vil validere at dagen matcher med meldekortutkastet. */
         IKKE_RETT_TIL_TILTAKSPENGER,
@@ -94,6 +93,7 @@ class OppdaterMeldekortbehandlingKommando(
             FRAVÆR_ANNET -> MeldekortDagStatus.FRAVÆR_ANNET
             IKKE_TILTAKSDAG -> MeldekortDagStatus.IKKE_TILTAKSDAG
             IKKE_RETT_TIL_TILTAKSPENGER -> MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER
+            IKKE_BESVART -> MeldekortDagStatus.IKKE_BESVART
         }
     }
 }
@@ -101,25 +101,14 @@ class OppdaterMeldekortbehandlingKommando(
 fun MeldekortDagStatusDTO.tilOppdaterKommandoStatus(): OppdaterMeldekortbehandlingKommando.Status {
     return when (this) {
         MeldekortDagStatusDTO.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-
         MeldekortDagStatusDTO.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-
         MeldekortDagStatusDTO.FRAVÆR_SYK -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYK
-
         MeldekortDagStatusDTO.FRAVÆR_SYKT_BARN -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYKT_BARN
-
         MeldekortDagStatusDTO.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
-
         MeldekortDagStatusDTO.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_GODKJENT_AV_NAV
-
         MeldekortDagStatusDTO.FRAVÆR_ANNET -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_ANNET
-
         MeldekortDagStatusDTO.IKKE_TILTAKSDAG -> OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
-
         MeldekortDagStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
-
-        MeldekortDagStatusDTO.IKKE_BESVART -> throw IllegalArgumentException(
-            "IKKE_BESVART er ikke en gyldig status når saksbehandler oppdaterer et meldekort - saksbehandler må ta stilling til alle dagene",
-        )
+        MeldekortDagStatusDTO.IKKE_BESVART -> OppdaterMeldekortbehandlingKommando.Status.IKKE_BESVART
     }
 }

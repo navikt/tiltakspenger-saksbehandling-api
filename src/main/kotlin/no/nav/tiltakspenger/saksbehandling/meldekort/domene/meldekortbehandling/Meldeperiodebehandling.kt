@@ -25,6 +25,8 @@ data class Meldeperiodebehandling(
     val fraOgMed: LocalDate = periode.fraOgMed
     val tilOgMed: LocalDate = periode.tilOgMed
 
+    val erFullstendigUtfylt: Boolean by lazy { dager.erFullstendigUtfylt }
+
     init {
         if (brukersMeldekort != null) {
             require(kjedeId == brukersMeldekort.kjedeId) {

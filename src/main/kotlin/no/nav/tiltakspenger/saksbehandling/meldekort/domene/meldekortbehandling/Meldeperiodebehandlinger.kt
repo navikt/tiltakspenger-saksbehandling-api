@@ -65,6 +65,8 @@ data class Meldeperiodebehandlinger(
         }
     }
 
+    val erFullstendigUtfylt: Boolean by lazy { meldeperioder.all { it.erFullstendigUtfylt } }
+
     // Returnerer null dersom ingen kjeder har nyere meldeperioder (ingenting å oppdatere)
     fun oppdaterMedNyeKjeder(
         oppdaterteKjeder: MeldeperiodeKjeder,

@@ -27,6 +27,13 @@ class SendMeldekortbehandlingTilBeslutterService(
     ): Either<KanIkkeSendeMeldekortbehandlingTilBeslutter, Pair<Sak, MeldekortbehandlingManuell>> {
         val sak = sakService.hentForSakId(kommando.sakId)
 
+        val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)!!
+
+        if (!meldekortbehandling.erFullstendigUtfylt) {
+            logger.warn { "Meldeperiodene må være fullstendig utfylt før send til beslutning - sakId: ${sak.id}, meldekortId: ${kommando.meldekortId}" }
+            return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeFullstendigUtfylt.left()
+        }
+
         if (!sak.harSisteMeldeperiodeVersjoner(kommando.meldekortId)) {
             logger.warn { "Meldeperiodene må være siste versjon ved send til beslutning - sakId: ${sak.id}, meldekortId: ${kommando.meldekortId}" }
             return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeSisteVersjon.left()
