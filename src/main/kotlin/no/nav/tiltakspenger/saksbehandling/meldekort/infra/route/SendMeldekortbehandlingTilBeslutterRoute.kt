@@ -18,8 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortbehandlingTilBeslutterService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 import java.time.Clock
 
@@ -76,7 +76,7 @@ fun Route.sendMeldekortTilBeslutningRoute(
                             )
                         }
                     },
-                    ifRight = {
+                    ifRight = { (sak) ->
                         auditService.logMedMeldekortId(
                             meldekortId = meldekortId,
                             navIdent = saksbehandler.navIdent,
@@ -85,7 +85,7 @@ fun Route.sendMeldekortTilBeslutningRoute(
                             correlationId = correlationId,
                         )
                         call.respondJson(
-                            value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeIdLegacy, clock),
+                            value = sak.toSakDTO(saksbehandler, clock),
                         )
                     },
                 )

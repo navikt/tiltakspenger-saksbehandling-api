@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 import arrow.core.Tuple5
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -21,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.MeldeperiodeKjedeDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOV2Json
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
@@ -30,7 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import org.json.JSONObject
 
 /**
  * Route: [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprettMeldekortbehandlingRoute]
@@ -52,7 +53,7 @@ interface OpprettMeldekortbehandlingBuilder {
         ),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
-    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
+    ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortbehandlingDTOV2Json>? {
         val (sak, søknad, rammevedtak, _) = iverksettSøknadsbehandling(
             tac = tac,
             saksbehandler = saksbehandler,
@@ -85,7 +86,7 @@ interface OpprettMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode = HttpStatusCode.OK,
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
-    ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
+    ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOV2Json>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         val kjedeId = "${kjedeId.fraOgMed}%2F${kjedeId.tilOgMed}"
@@ -93,7 +94,15 @@ interface OpprettMeldekortbehandlingBuilder {
             HttpMethod.Post,
             "/sak/$sakId/meldeperiode/$kjedeId/opprettBehandling",
             jwt = jwt,
-        ).apply {
+        ) {
+            setBody(
+                """
+                {
+                "v2": true
+                }
+                """.trimIndent(),
+            )
+        }.apply {
             val bodyAsText = this.bodyAsText()
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
@@ -109,14 +118,12 @@ interface OpprettMeldekortbehandlingBuilder {
                 return null
             }
 
-            val jsonObject: MeldeperiodeKjedeDTOJson = JSONObject(bodyAsText)
-            val meldekortbehandlingerJson = jsonObject.getJSONArray("meldekortbehandlinger")
-            val meldekortbehandlingJson =
-                meldekortbehandlingerJson.getJSONObject(meldekortbehandlingerJson.length() - 1)
-            val meldekortbehandlingId = MeldekortId.fromString(meldekortbehandlingJson.getString("id"))
+            val jsonObject: MeldekortbehandlingDTOV2Json = objectMapper.readTree(bodyAsText)
+            val meldekortbehandlingId = MeldekortId.fromString(jsonObject.get("id").asString())
 
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val meldekortbehandling = tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandlingId) as MeldekortUnderBehandling
+            val meldekortbehandling =
+                tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandlingId) as MeldekortUnderBehandling
 
             return Triple(
                 oppdatertSak,

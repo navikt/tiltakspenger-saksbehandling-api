@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
@@ -28,154 +27,13 @@ class OpprettMeldekortbehandlingTest {
                 innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
             )
             val førsteMeldeperiode = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
-            val (_, meldekortbehandling, jsonResponse) = opprettMeldekortbehandlingForSakId(
+            val (oppdatertSak) = opprettMeldekortbehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = førsteMeldeperiode.kjedeId,
             )!!
-            jsonResponse.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                    {
-                      "periodeMedÅpenBehandling": {
-                        "fraOgMed": "2025-03-31",
-                        "tilOgMed": "2025-04-13"
-                      },
-                      "avbrutteMeldekortbehandlinger": [],
-                      "tiltaksnavn": [
-                        "Arbeidsmarkedsoppfølging gruppe"
-                      ],
-                      "sisteBeregning": null,
-                      "brukersMeldekort": [],
-                      "id": "2025-03-31/2025-04-13",
-                      "sisteMeldeperiode": {
-                          "opprettet": "2025-05-01T01:02:22.456789",
-                          "kjedeId": "2025-03-31/2025-04-13",
-                          "girRett": {
-                            "2025-03-31": false,
-                            "2025-04-10": true,
-                            "2025-04-11": false,
-                            "2025-04-01": true,
-                            "2025-04-12": false,
-                            "2025-04-02": true,
-                            "2025-04-13": false,
-                            "2025-04-03": true,
-                            "2025-04-04": true,
-                            "2025-04-05": true,
-                            "2025-04-06": true,
-                            "2025-04-07": true,
-                            "2025-04-08": true,
-                            "2025-04-09": true
-                          },
-                          "id": "${meldekortbehandling.meldeperiodeLegacy.id}",
-                          "ingenDagerGirRett": false,
-                          "versjon": 1,
-                          "periode": {
-                            "fraOgMed": "2025-03-31",
-                            "tilOgMed": "2025-04-13"
-                          },
-                          "antallDager": 10
-                      },
-                      "meldekortbehandlinger": [
-                        {
-                          "begrunnelse": null,
-                          "avbrutt": null,
-                          "attesteringer": [],
-                          "saksbehandler": "Z12345",
-                          "opprettet": "2025-05-01T01:02:26.456789",
-                          "kanIkkeIverksetteUtbetaling": null,
-                          "tilbakekrevingId": null,
-                          "type": "FØRSTE_BEHANDLING",
-                          "meldeperiodeId": "${meldekortbehandling.meldeperiodeLegacy.id}",
-                          "beregning": null,
-                          "beslutter": null,
-                          "simulertBeregning": null,
-                          "brukersMeldekortId": "null",
-                          "navkontor": "0220",
-                          "periode": {
-                            "fraOgMed": "2025-03-31",
-                            "tilOgMed": "2025-04-13"
-                          },
-                          "erAvsluttet": false,
-                          "navkontorNavn": "Nav Asker",
-                          "dager": [
-                            {
-                              "dato": "2025-03-31",
-                              "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                            },
-                            {
-                              "dato": "2025-04-01",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-02",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-03",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-04",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-05",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-06",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-07",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-08",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-09",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-10",
-                              "status": "IKKE_BESVART"
-                            },
-                            {
-                              "dato": "2025-04-11",
-                              "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                            },
-                            {
-                              "dato": "2025-04-12",
-                              "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                            },
-                            {
-                              "dato": "2025-04-13",
-                              "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                            }
-                          ],
-                          "sakId": "${meldekortbehandling.sakId}",
-                          "id": "${meldekortbehandling.id}",
-                          "godkjentTidspunkt": null,
-                          "utbetalingsstatus": "IKKE_GODKJENT",
-                          "tekstTilVedtaksbrev": null,
-                          "status": "UNDER_BEHANDLING",
-                          "skalSendeVedtaksbrev": true,
-                          "harFlereMeldeperioder": false,
-                          "ventestatus": [],
-                          "klagebehandlingId": null
-                        }
-                      ],
-                      "korrigeringFraTidligerePeriode": null,
-                      "periode": {
-                        "fraOgMed": "2025-03-31",
-                        "tilOgMed": "2025-04-13"
-                      },
-                      "status": "UNDER_BEHANDLING"
-                    }
-                """.trimIndent(),
-            )
+
+            oppdatertSak.meldekortbehandlinger.single().meldeperioder.single().meldeperiode shouldBe førsteMeldeperiode
         }
     }
 

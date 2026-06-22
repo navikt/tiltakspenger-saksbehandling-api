@@ -34,6 +34,11 @@ typealias MeldeperiodeKjedeDTOJson = JSONObject
 typealias MeldekortbehandlingDTOJson = JSONObject
 
 /**
+ * Se også [no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.MeldekortbehandlingDTOV2]
+ */
+typealias MeldekortbehandlingDTOV2Json = JsonNode
+
+/**
  * Se [RammebehandlingDTOJson] & [MeldekortbehandlingDTOJson]
  */
 typealias AttesterbarBehandlingDTOJson = JSONObject

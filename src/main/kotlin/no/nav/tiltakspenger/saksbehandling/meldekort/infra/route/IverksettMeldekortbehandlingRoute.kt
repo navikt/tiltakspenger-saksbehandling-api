@@ -20,8 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldekort/{meldekortId}/iverksett"
@@ -74,7 +74,7 @@ fun Route.iverksettMeldekortRoute(
                             )
                         }
                     },
-                    {
+                    { (sak) ->
                         auditService.logMedMeldekortId(
                             meldekortId = meldekortId,
                             navIdent = saksbehandler.navIdent,
@@ -82,7 +82,7 @@ fun Route.iverksettMeldekortRoute(
                             contextMessage = "Iverksetter meldekort",
                             correlationId = correlationId,
                         )
-                        call.respondJson(value = it.first.toMeldeperiodeKjedeDTO(it.second.kjedeIdLegacy, clock))
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                     },
                 )
             }

@@ -27,8 +27,9 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
 ): MeldeperiodeKjedeStatusDTO {
     val brukersMeldekort = this.brukersMeldekort.filter { it.kjedeId == kjedeId }
     val sisteInnsendteMeldekort = brukersMeldekort.maxByOrNull { it.mottatt }
-    val sisteMeldekortbehandling =
-        this.meldekortbehandlinger.filter { it.kjedeIdLegacy == kjedeId }.maxByOrNull { it.opprettet }
+    val sisteMeldekortbehandling = this.meldekortbehandlinger
+        .filter { it.kjedeIder.contains(kjedeId) }
+        .maxByOrNull { it.opprettet }
 
     val harMottattMeldekortEtterSisteBehandling =
         sisteInnsendteMeldekort != null && (sisteMeldekortbehandling == null || sisteInnsendteMeldekort.mottatt > sisteMeldekortbehandling.sistEndret)

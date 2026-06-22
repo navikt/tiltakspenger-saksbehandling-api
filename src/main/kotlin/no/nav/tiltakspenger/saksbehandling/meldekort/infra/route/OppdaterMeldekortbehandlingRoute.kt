@@ -21,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling.MeldekortperiodenKanIkkeVæreFremITid
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
@@ -58,7 +57,7 @@ fun Route.oppdaterMeldekortbehandlingRoute(
                         ifLeft = {
                             respondWithError(it)
                         },
-                        ifRight = {
+                        ifRight = { (sak) ->
                             auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
                                 navIdent = saksbehandler.navIdent,
@@ -67,14 +66,7 @@ fun Route.oppdaterMeldekortbehandlingRoute(
                                 correlationId = correlationId,
                             )
                             call.respondJson(
-                                value = if (body.v2) {
-                                    it.first.toSakDTO(
-                                        saksbehandler,
-                                        clock,
-                                    )
-                                } else {
-                                    it.first.toMeldeperiodeKjedeDTO(it.second.kjedeIdLegacy, clock)
-                                },
+                                value = sak.toSakDTO(saksbehandler, clock),
                             )
                         },
                     )
