@@ -12,12 +12,11 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjedeDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
 private const val OPPDATER_SIMULERING_PATH = "/sak/{sakId}/behandling/{behandlingId}/oppdaterSimulering"
@@ -59,7 +58,6 @@ fun Route.oppdaterSimuleringRoute(
                                 contextMessage = "Saksbehandler har oppdatert simuleringen på en rammebehandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respondJson(value = sak.tilRammebehandlingDTO(it.id))
                         },
                         ifRight = {
                             auditService.logMedMeldekortId(
@@ -69,9 +67,10 @@ fun Route.oppdaterSimuleringRoute(
                                 contextMessage = "Saksbehandler har oppdatert simuleringen på en meldekortbehandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respondJson(value = sak.toMeldeperiodeKjedeDTO(it.kjedeIdLegacy, clock))
                         },
-                    )
+                    ).also {
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
+                    }
                 },
             )
         }
