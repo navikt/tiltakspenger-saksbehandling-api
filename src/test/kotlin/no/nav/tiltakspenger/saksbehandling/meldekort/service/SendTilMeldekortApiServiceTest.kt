@@ -185,7 +185,7 @@ class SendTilMeldekortApiServiceTest {
             val vedtakDto = dto.meldekortvedtak.single()
             vedtakDto.id shouldBe meldekortvedtak.id.toString()
             vedtakDto.opprettet shouldBe meldekortvedtak.opprettet
-            vedtakDto.erKorrigering shouldBe meldekortvedtak.erKorrigering
+            vedtakDto.erKorrigering shouldBe meldekortvedtak.harKorrigering
             vedtakDto.erAutomatiskBehandlet shouldBe meldekortvedtak.erAutomatiskBehandlet
             vedtakDto.meldeperiodebehandlinger shouldHaveSize meldekortvedtak.meldeperiodebehandlinger.size
 

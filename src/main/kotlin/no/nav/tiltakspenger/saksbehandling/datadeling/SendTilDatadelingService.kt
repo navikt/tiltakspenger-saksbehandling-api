@@ -156,7 +156,7 @@ class SendTilDatadelingService(
         Either.catch {
             meldekortvedtakRepo.hentMeldekortvedtakTilDatadeling().forEach { meldekortvedtak ->
                 val correlationId = CorrelationId.generate()
-                val totalDifferanse = if (meldekortvedtak.erKorrigering) {
+                val totalDifferanse = if (meldekortvedtak.harKorrigering) {
                     getTotalDifferanseForKorrigering(meldekortvedtak)
                 } else {
                     null

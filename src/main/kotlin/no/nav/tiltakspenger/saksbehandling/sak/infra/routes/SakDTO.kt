@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagevedtakDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortVedtakDto
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortvedtakDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
@@ -49,7 +49,7 @@ data class SakDTO(
     val innvilgetTidslinje: TidslinjeDTO,
     val alleRammevedtak: List<RammevedtakDTO>,
     val alleKlagevedtak: List<KlagevedtakDTO>,
-    val meldekortvedtak: List<MeldekortVedtakDto>,
+    val meldekortvedtak: List<MeldekortvedtakDTO>,
     val meldekortbehandlinger: Map<String, MeldekortbehandlingDTOV2>,
     val åpenMeldekortbehandlingId: String?,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,

@@ -406,7 +406,8 @@ class OpprettBehandlingFraKlageRouteTest {
             klagebehandling.saksbehandler shouldBe "saksbehandlerKlagebehandling"
 
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
-            meldekortbehandling.typeLegacy shouldBe MeldeperiodebehandlingType.KORRIGERING
+            meldekortbehandling.harKorrigering shouldBe true
+            meldekortbehandling.meldeperioder.single().type shouldBe MeldeperiodebehandlingType.KORRIGERING
             meldekortbehandling.sakId shouldBe sak.id
             meldekortbehandling.klagebehandling?.id shouldBe klagebehandling.id
             meldekortbehandling.saksbehandler shouldBe klagebehandling.saksbehandler

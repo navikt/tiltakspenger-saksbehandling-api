@@ -53,7 +53,7 @@ data class Meldekortvedtak(
 
     val skalSendeVedtaksbrev: Boolean = meldekortbehandling.skalSendeVedtaksbrev
     val erAutomatiskBehandlet: Boolean = meldekortbehandling.erAutomatiskBehandling
-    val erKorrigering: Boolean = meldekortbehandling.harKorrigering
+    val harKorrigering: Boolean = meldekortbehandling.harKorrigering
 
     val meldeperioderMedBeregninger: List<MeldeperiodebehandlingMedBeregning> =
         meldeperiodebehandlinger.meldeperioderMedBeregninger

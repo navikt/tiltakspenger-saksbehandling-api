@@ -48,7 +48,7 @@ private fun Meldekortvedtak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO.Meldekor
     return SakTilMeldekortApiDTO.MeldekortvedtakDTO(
         id = this.id.toString(),
         opprettet = this.opprettet,
-        erKorrigering = this.erKorrigering,
+        erKorrigering = this.harKorrigering,
         erAutomatiskBehandlet = this.erAutomatiskBehandlet,
         meldeperiodebehandlinger = meldeperioderMedBeregninger.map {
             SakTilMeldekortApiDTO.MeldekortvedtakDTO.MeldeperiodebehandlingDTO(

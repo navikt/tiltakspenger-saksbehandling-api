@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.http
 
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.ArkivPDF
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivRequest.JournalpostDokument.DokumentVariant.OriginalJson
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
@@ -15,7 +13,8 @@ import java.time.temporal.WeekFields
 fun Meldekortvedtak.toJournalpostRequest(
     pdfOgJson: PdfOgJson,
 ): String {
-    val tittel = lagMeldekortTittel(this.periode, this.meldekortbehandling.typeLegacy)
+    val tittel = lagMeldekortTittel()
+
     return DokarkivRequest(
         tittel = tittel,
         journalpostType = DokarkivRequest.JournalPostType.UTGAAENDE,
@@ -43,9 +42,9 @@ fun Meldekortvedtak.toJournalpostRequest(
     ).let { objectMapper.writeValueAsString(it) }
 }
 
-private fun lagMeldekortTittel(periode: Periode, type: MeldeperiodebehandlingType): String {
+private fun Meldekortvedtak.lagMeldekortTittel(): String {
     // Utbetalingsvedtak for uke 5 - 6 (29.01.2024 - 11.02.2024)
-    val prefix = if (type == MeldeperiodebehandlingType.KORRIGERING) {
+    val prefix = if (harKorrigering) {
         "Korrigert utbetalingsvedtak"
     } else {
         "Utbetalingsvedtak"

@@ -79,9 +79,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val brukersMeldekortLegacy: BrukersMeldekort? get() = førsteMeldeperiodebehandling.brukersMeldekort
     val dagerLegacy: UtfyltMeldeperiode get() = førsteMeldeperiodebehandling.dager
 
-    // Type er nå satt per meldeperiode. En behandling kan ha en blanding av førstegangsbehandlinger og korrigeringer.
-    val typeLegacy: MeldeperiodebehandlingType get() = førsteMeldeperiodebehandling.type
-
     override val erAvsluttet
         get() = when (status) {
             MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING, MeldekortbehandlingStatus.UNDER_BEHANDLING, MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING -> false

@@ -115,7 +115,7 @@ suspend fun Meldekortvedtak.toJsonRequest(
         ),
         tiltak = tiltaksdeltakelser.map { it.toTiltakDTO() },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
-        korrigering = erKorrigering,
+        korrigering = harKorrigering,
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
         totaltBelop = meldekortbehandling.beløpTotal,
         brevTekst = this.meldekortbehandling.fritekstTilVedtaksbrev?.verdi,

@@ -84,7 +84,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
         begrunnelse = begrunnelse?.verdi,
-        type = typeLegacy.tilDTO(),
+        type = meldeperioder.first().type.tilDTO(),
         attesteringer = attesteringer.toAttesteringDTO(),
         utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDto(),
         periode = periode.toDTO(),

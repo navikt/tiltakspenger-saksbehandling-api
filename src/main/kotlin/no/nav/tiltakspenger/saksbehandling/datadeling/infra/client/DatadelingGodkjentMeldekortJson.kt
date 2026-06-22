@@ -61,7 +61,7 @@ fun Meldekortvedtak.toDatadelingJson(totalDifferanse: Int?): String {
         mottattTidspunkt = meldekortbehandling.brukersMeldekortLegacy?.mottatt,
         vedtattTidspunkt = opprettet,
         behandletAutomatisk = erAutomatiskBehandlet,
-        korrigert = erKorrigering,
+        korrigert = harKorrigering,
         fraOgMed = meldekortbehandling.fraOgMed,
         tilOgMed = meldekortbehandling.tilOgMed,
         meldekortdager = meldekortbehandling.dagerLegacy.dager.map { it.toDatadelingMeldekortDagDTO() },
