@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
+import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
 
@@ -23,6 +26,12 @@ data class Meldekortvedtaksliste(
 
     val tidslinje: Periodisering<Meldekortvedtak> by lazy {
         verdi.toTidslinje()
+    }
+
+    val meldeperiodebehandlingTidslinje: Periodisering<Meldeperiodebehandling> by lazy {
+        tidslinje.flatMapPeriodisering { (vedtak) ->
+            vedtak.meldeperiodebehandlinger.map { PeriodeMedVerdi(it, it.periode) }.tilPeriodisering()
+        }
     }
 
     /**

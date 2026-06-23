@@ -525,6 +525,7 @@ class MeldekortbehandlingPostgresRepo(
                 hentBrukersMeldekort = { meldekortId ->
                     BrukersMeldekortPostgresRepo.hentForMeldekortId(meldekortId, session)
                 },
+                meldekortbehandlingId = id,
             )
 
             val fritekstTilVedtaksbrev = row.stringOrNull("tekst_til_vedtaksbrev")?.let {

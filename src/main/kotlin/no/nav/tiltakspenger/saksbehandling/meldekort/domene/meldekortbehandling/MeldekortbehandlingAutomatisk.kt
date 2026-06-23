@@ -125,7 +125,12 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
         simulering = null,
         sistEndret = tidspunkt,
         meldeperioder = Meldeperiodebehandlinger(
-            meldeperioder = nonEmptyListOf(brukersMeldekort.tilMeldeperiodebehandling(MeldeperiodebehandlingType.FØRSTE_BEHANDLING)),
+            meldeperioder = nonEmptyListOf(
+                brukersMeldekort.tilMeldeperiodebehandling(
+                    MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    meldekortbehandlingId,
+                ),
+            ),
             beregning = beregning,
         ),
     )

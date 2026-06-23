@@ -230,7 +230,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         sistEndret = nå,
         fritekstTilVedtaksbrev = null,
         meldeperioder = Meldeperiodebehandlinger(
-            meldeperioder = nonEmptyListOf(meldeperiode.tilMeldeperiodebehandling(type)),
+            meldeperioder = nonEmptyListOf(meldeperiode.tilMeldeperiodebehandling(type, meldekortId)),
             beregning = null,
         ),
         skalSendeVedtaksbrev = true,

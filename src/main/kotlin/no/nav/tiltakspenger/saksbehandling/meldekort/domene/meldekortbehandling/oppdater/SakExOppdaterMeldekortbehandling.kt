@@ -18,7 +18,7 @@ suspend fun Sak.oppdaterMeldekort(
     simuler: (suspend (Meldekortbehandling) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>),
     clock: Clock,
 ): Either<KanIkkeOppdatereMeldekortbehandling, Triple<Sak, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
-    val meldekort = this.meldekortbehandlinger.hentMeldekortbehandling(kommando.meldekortId) as MeldekortUnderBehandling
+    val meldekortbehandling = this.meldekortbehandlinger.hentMeldekortbehandling(kommando.meldekortId) as MeldekortUnderBehandling
 
     val meldeperioder = kommando.meldeperioder.map {
         val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId)
@@ -26,19 +26,19 @@ suspend fun Sak.oppdaterMeldekort(
     }
 
     val beregning = this.beregnMeldekort(
-        meldekortIdSomBeregnes = kommando.meldekortId,
+        meldekortIdSomBeregnes = meldekortbehandling.id,
         meldeperioderSomBeregnes = meldeperioder,
         beregningstidspunkt = nå(clock),
     )
 
-    return meldekort.oppdater(
+    return meldekortbehandling.oppdater(
         kommando = kommando,
         oppdatertePerioder = Meldeperiodebehandlinger(
             meldeperioder = meldeperioder.map { utfylt ->
                 val kjedeId = utfylt.meldeperiode.kjedeId
                 val tidligereBehandlingerForKjede = this.meldekortbehandlinger
                     .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
-                    .filter { it.id != meldekort.id }
+                    .filter { it.id != meldekortbehandling.id }
 
                 Meldeperiodebehandling(
                     dager = utfylt,
@@ -48,6 +48,7 @@ suspend fun Sak.oppdaterMeldekort(
                     } else {
                         MeldeperiodebehandlingType.KORRIGERING
                     },
+                    meldekortbehandlingId = meldekortbehandling.id,
                 )
             },
             beregning = beregning,

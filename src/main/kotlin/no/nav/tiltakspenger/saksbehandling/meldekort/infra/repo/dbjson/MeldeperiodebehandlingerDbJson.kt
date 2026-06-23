@@ -32,6 +32,7 @@ private data class MeldeperiodebehandlingDbJson(
     fun tilDomene(
         hentMeldeperiode: (MeldeperiodeId) -> Meldeperiode,
         hentBrukersMeldekort: (MeldekortId) -> BrukersMeldekort?,
+        meldekortbehandlingId: MeldekortId,
     ): Meldeperiodebehandling {
         val meldeperiode = hentMeldeperiode(MeldeperiodeId.fromString(this.meldeperiodeId))
         val brukersMeldekort = this.brukersMeldekortId?.let {
@@ -45,6 +46,7 @@ private data class MeldeperiodebehandlingDbJson(
             ),
             brukersMeldekort = brukersMeldekort,
             type = this.type.tilMeldeperiodebehandlingType(),
+            meldekortbehandlingId = meldekortbehandlingId,
         )
     }
 
@@ -67,9 +69,14 @@ fun String.tilMeldeperiodebehandlinger(
     beregning: Beregning?,
     hentMeldeperiode: (MeldeperiodeId) -> Meldeperiode,
     hentBrukersMeldekort: (MeldekortId) -> BrukersMeldekort?,
+    meldekortbehandlingId: MeldekortId,
 ): Meldeperiodebehandlinger {
     val meldeperioder = deserializeList<MeldeperiodebehandlingDbJson>(this).map {
-        it.tilDomene(hentMeldeperiode = hentMeldeperiode, hentBrukersMeldekort = hentBrukersMeldekort)
+        it.tilDomene(
+            hentMeldeperiode = hentMeldeperiode,
+            hentBrukersMeldekort = hentBrukersMeldekort,
+            meldekortbehandlingId = meldekortbehandlingId,
+        )
     }
     return Meldeperiodebehandlinger(
         meldeperioder = meldeperioder.toNonEmptyListOrThrow(),

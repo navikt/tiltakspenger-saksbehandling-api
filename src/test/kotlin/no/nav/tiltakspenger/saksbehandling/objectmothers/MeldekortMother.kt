@@ -151,6 +151,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 beregning = null,
                 brukersMeldekort = null,
                 type = type,
+                meldekortbehandlingId = id,
             ),
             ventestatus = ventestatus,
             klagebehandling = null,
@@ -212,6 +213,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 beregning = null,
                 brukersMeldekort = null,
                 type = type,
+                meldekortbehandlingId = id,
             ),
             ventestatus = ventestatus,
             klagebehandling = null,
@@ -284,6 +286,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 beregning = meldekortperiodeBeregning,
                 brukersMeldekort = null,
                 type = type,
+                meldekortbehandlingId = id,
             ),
             ventestatus = Ventestatus(),
             klagebehandling = null,
@@ -337,6 +340,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 beregning = beregning,
                 brukersMeldekort = brukersMeldekort,
                 type = type,
+                meldekortbehandlingId = id,
             ),
         )
     }
@@ -699,6 +703,7 @@ interface MeldekortMother : MotherOfAllMothers {
                         beregning = null,
                         brukersMeldekort = null,
                         type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                        meldekortbehandlingId = meldekortId,
                     ),
                     ventestatus = Ventestatus(),
                     klagebehandling = null,
@@ -717,6 +722,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     dager = it.tilUtfyltMeldeperiode(meldeperiode),
                     brukersMeldekort = null,
                     type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    meldekortbehandlingId = meldekortId,
                 )
             },
             beregning = Beregning(
@@ -726,7 +732,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     hentInnvilgelse = innvilgelsesperioder::hentVerdiForDag,
                     gjeldendeBeregninger = meldekortvedtaksliste.tilMeldeperiodeBeregninger(),
-                    meldekortvedtakTidslinje = meldekortvedtaksliste.tidslinje,
+                    meldeperiodebehandlingerTidslinje = meldekortvedtaksliste.meldeperiodebehandlingTidslinje,
                 ),
                 beregningstidspunkt = nå(clock),
             ),
@@ -822,6 +828,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     beregning = null,
                     brukersMeldekort = null,
                     type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    meldekortbehandlingId = meldekortId,
                 ),
                 ventestatus = Ventestatus(),
                 klagebehandling = null,
@@ -839,6 +846,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     dager = it.tilUtfyltMeldeperiode(meldeperiode),
                     brukersMeldekort = null,
                     type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    meldekortbehandlingId = meldekortId,
                 )
             },
             beregning = Beregning(
@@ -848,7 +856,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     barnetilleggsPerioder = barnetilleggsPerioder,
                     hentInnvilgelse = innvilgelsesperioder::hentVerdiForDag,
                     gjeldendeBeregninger = meldekortvedtaksliste.tilMeldeperiodeBeregninger(),
-                    meldekortvedtakTidslinje = meldekortvedtaksliste.tidslinje,
+                    meldeperiodebehandlingerTidslinje = meldekortvedtaksliste.meldeperiodebehandlingTidslinje,
                 ),
                 beregningstidspunkt = nå(clock),
             ),

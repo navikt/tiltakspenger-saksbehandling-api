@@ -5,6 +5,7 @@ import arrow.core.NonEmptySet
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrThrow
 import arrow.core.toNonEmptySetOrThrow
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -31,7 +32,18 @@ data class Meldeperiodebehandlinger(
         beregning: Beregning?,
         brukersMeldekort: BrukersMeldekort?,
         type: MeldeperiodebehandlingType,
-    ) : this(nonEmptyListOf(Meldeperiodebehandling(meldeperiode, brukersMeldekort, type)), beregning)
+        meldekortbehandlingId: MeldekortId,
+    ) : this(
+        nonEmptyListOf(
+            Meldeperiodebehandling(
+                dager = meldeperiode,
+                brukersMeldekort = brukersMeldekort,
+                type = type,
+                meldekortbehandlingId = meldekortbehandlingId,
+            ),
+        ),
+        beregning,
+    )
 
     val fraOgMed: LocalDate = this.first().fraOgMed
     val tilOgMed: LocalDate = this.last().tilOgMed
