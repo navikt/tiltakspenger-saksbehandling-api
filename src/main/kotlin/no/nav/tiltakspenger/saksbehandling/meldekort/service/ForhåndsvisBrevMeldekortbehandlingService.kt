@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevCommand
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
@@ -28,19 +28,16 @@ class ForhåndsvisBrevMeldekortbehandlingService(
     val navIdentClient: NavIdentClient,
     val clock: Clock,
 ) {
-    fun hentKjedeIdForMeldekortbehandling(meldekortbehandlingId: MeldekortId): String {
-        return meldekortbehandlingRepo.hent(meldekortbehandlingId)!!.kjedeIdLegacy.verdi
-    }
 
-    suspend fun forhåndsvisBrev(command: ForhåndsvisBrevMeldekortbehandlingCommand): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, PdfOgJson> {
-        val meldekortbehandling = meldekortbehandlingRepo.hent(command.meldekortbehandlingId)
+    suspend fun forhåndsvisBrev(kommando: ForhåndsvisBrevMeldekortbehandlingKommando): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, PdfOgJson> {
+        val meldekortbehandling = meldekortbehandlingRepo.hent(kommando.meldekortbehandlingId)
             ?: return KunneIkkeForhåndsviseBrevMeldekortbehandling.FantIkkeMeldekortbehandling.left()
 
         val sak = sakService.hentForSakId(meldekortbehandling.sakId)
 
         val beregning = sak.beregnMeldekort(
             meldekortIdSomBeregnes = meldekortbehandling.id,
-            meldeperioderSomBeregnes = command.meldeperioder
+            meldeperioderSomBeregnes = kommando.meldeperioder
                 .map {
                     it.tilUtfyltMeldeperiode(
                         sak.meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId),
@@ -68,7 +65,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
             }
 
         return genererBrevClient.genererMeldekortvedtakBrev(
-            command = GenererMeldekortVedtakBrevCommand(
+            kommando = GenererMeldekortVedtakBrevKommando(
                 sakId = meldekortbehandling.sakId,
                 saksnummer = meldekortbehandling.saksnummer,
                 fnr = meldekortbehandling.fnr,
@@ -88,7 +85,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                 erKorrigering = meldekortbehandling.harKorrigering,
                 beregninger = nåværendeBeregningMedTidligereBeregning,
                 totaltBeløp = beregning.sumOf { it.totalBeløp },
-                tekstTilVedtaksbrev = command.tekstTilVedtaksbrev,
+                tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
                 forhåndsvisning = true,
             ),
             hentSaksbehandlersNavn = hentSaksbehandlersNavn,
@@ -106,7 +103,7 @@ sealed interface KunneIkkeForhåndsviseBrevMeldekortbehandling {
     data class FeilVedGenereringAvPdf(val feil: KunneIkkeGenererePdf) : KunneIkkeForhåndsviseBrevMeldekortbehandling
 }
 
-data class ForhåndsvisBrevMeldekortbehandlingCommand(
+data class ForhåndsvisBrevMeldekortbehandlingKommando(
     val meldekortbehandlingId: MeldekortId,
     val correlationId: CorrelationId,
     val saksbehandler: Saksbehandler,

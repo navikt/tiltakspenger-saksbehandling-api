@@ -96,7 +96,6 @@ fun SammenligningAvBeregninger.MeldeperiodeSammenligninger.toDTO(): BrevMeldekor
     )
 }
 
-// TODO: må tilpasses utbetalinger fra revurdering
 suspend fun Meldekortvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltakelser: Tiltaksdeltakelser,

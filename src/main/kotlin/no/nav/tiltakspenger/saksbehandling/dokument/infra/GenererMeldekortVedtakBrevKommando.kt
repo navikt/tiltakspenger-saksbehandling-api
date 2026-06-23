@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import java.time.LocalDateTime
 
-data class GenererMeldekortVedtakBrevCommand(
+data class GenererMeldekortVedtakBrevKommando(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,

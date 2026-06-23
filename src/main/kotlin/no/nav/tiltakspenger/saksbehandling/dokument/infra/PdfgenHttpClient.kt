@@ -208,27 +208,27 @@ class PdfgenHttpClient(
     }
 
     override suspend fun genererMeldekortvedtakBrev(
-        command: GenererMeldekortVedtakBrevCommand,
+        kommando: GenererMeldekortVedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
                 BrevMeldekortvedtakDTO(
-                    fødselsnummer = command.fnr.verdi,
-                    saksbehandler = command.saksbehandler?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
-                    beslutter = command.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
-                    meldekortId = command.meldekortbehandlingId.toString(),
-                    saksnummer = command.saksnummer.verdi,
-                    meldekortPeriode = command.beregningsperiode?.let {
+                    fødselsnummer = kommando.fnr.verdi,
+                    saksbehandler = kommando.saksbehandler?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+                    beslutter = kommando.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+                    meldekortId = kommando.meldekortbehandlingId.toString(),
+                    saksnummer = kommando.saksnummer.verdi,
+                    meldekortPeriode = kommando.beregningsperiode?.let {
                         BrevMeldekortvedtakDTO.BrevMeldekortPeriodeDTO(
                             fom = it.fraOgMed.format(norskDatoFormatter),
                             tom = it.tilOgMed.format(norskDatoFormatter),
                         )
                     },
-                    tiltak = command.tiltaksdeltakelser.map { it.toTiltakDTO() },
-                    iverksattTidspunkt = command.iverksattTidspunkt?.format(norskTidspunktFormatter),
-                    korrigering = command.erKorrigering,
-                    sammenligningAvBeregninger = command.beregninger?.map {
+                    tiltak = kommando.tiltaksdeltakelser.map { it.toTiltakDTO() },
+                    iverksattTidspunkt = kommando.iverksattTidspunkt?.format(norskTidspunktFormatter),
+                    korrigering = kommando.erKorrigering,
+                    sammenligningAvBeregninger = kommando.beregninger?.map {
                         sammenlign(it.first, it.second).toDTO()
                     }?.let {
                         BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
@@ -236,14 +236,14 @@ class PdfgenHttpClient(
                             totalDifferanse = it.sumOf { periode -> periode.differanseFraForrige },
                         )
                     },
-                    totaltBelop = command.totaltBeløp,
-                    brevTekst = command.tekstTilVedtaksbrev?.value,
-                    forhandsvisning = command.forhåndsvisning,
+                    totaltBelop = kommando.totaltBeløp,
+                    brevTekst = kommando.tekstTilVedtaksbrev?.value,
+                    forhandsvisning = kommando.forhåndsvisning,
                 ).let {
                     serialize(it)
                 }
             },
-            errorContext = "SakId: ${command.sakId}, saksnummer: ${command.saksnummer}, meldekortbehandlingId: ${command.meldekortbehandlingId}",
+            errorContext = "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}",
             uri = meldekortvedtakUri,
         )
     }

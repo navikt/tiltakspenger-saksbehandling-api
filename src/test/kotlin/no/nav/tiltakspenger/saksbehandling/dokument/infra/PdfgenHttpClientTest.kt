@@ -79,7 +79,7 @@ class PdfgenHttpClientTest {
 
             runTest {
                 val actual = PdfgenHttpClient(wiremock.baseUrl()).genererMeldekortvedtakBrev(
-                    command = GenererMeldekortVedtakBrevCommand(
+                    kommando = GenererMeldekortVedtakBrevKommando(
                         sakId = SakId.random(),
                         saksnummer = saksnummer,
                         fnr = fnr,

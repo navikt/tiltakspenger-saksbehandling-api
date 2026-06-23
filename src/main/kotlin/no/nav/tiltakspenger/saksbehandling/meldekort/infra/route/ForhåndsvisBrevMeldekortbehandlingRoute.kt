@@ -1,17 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
+import arrow.core.getOrElse
 import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.request.receiveText
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.ktor.common.parseBody
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
@@ -28,13 +28,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigReque
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.tilOppdaterKommandoStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdaterMeldekortdagDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingCommand
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KunneIkkeForhåndsviseBrevMeldekortbehandling
-import java.time.LocalDate
 
 private const val PATH =
     "/sak/{sakId}/meldekortbehandling/{meldekortId}/forhandsvis"
@@ -43,44 +40,6 @@ private data class ForhåndsvisBrevMeldekortbehandlingBody(
     val tekstTilVedtaksbrev: String?,
     val meldeperioder: List<OppdatertMeldeperiodeDTO>,
 )
-
-private data class LegacyForhåndsvisBrevMeldekortbehandlingBody(
-    val tekstTilVedtaksbrev: String?,
-    val dager: List<LegacyOppdaterMeldekortdagDTO>,
-) {
-    data class LegacyOppdaterMeldekortdagDTO(
-        val dato: LocalDate,
-        val status: MeldekortDagStatusDTO,
-    )
-
-    fun tilNyBody(kjedeId: String): ForhåndsvisBrevMeldekortbehandlingBody {
-        return ForhåndsvisBrevMeldekortbehandlingBody(
-            tekstTilVedtaksbrev = tekstTilVedtaksbrev,
-            meldeperioder = listOf(
-                OppdatertMeldeperiodeDTO(
-                    kjedeId = kjedeId,
-                    dager = dager.map {
-                        OppdaterMeldekortdagDTO(
-                            dato = it.dato,
-                            status = it.status,
-                        )
-                    },
-                ),
-            ),
-        )
-    }
-}
-
-private fun deserializeCompatForhåndsvisBrevMeldekortbehandlingBody(
-    rawBody: String,
-    hentLegacyKjedeId: () -> String,
-): ForhåndsvisBrevMeldekortbehandlingBody {
-    return runCatching {
-        deserialize<ForhåndsvisBrevMeldekortbehandlingBody>(rawBody)
-    }.getOrElse {
-        deserialize<LegacyForhåndsvisBrevMeldekortbehandlingBody>(rawBody).tilNyBody(hentLegacyKjedeId())
-    }
-}
 
 fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
     forhåndsvisBrevMeldekortbehandlingService: ForhåndsvisBrevMeldekortbehandlingService,
@@ -98,21 +57,13 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
                 krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
 
-                val rawBody = call.receiveText()
-                val body = runCatching {
-                    deserializeCompatForhåndsvisBrevMeldekortbehandlingBody(
-                        rawBody = rawBody,
-                        hentLegacyKjedeId = {
-                            forhåndsvisBrevMeldekortbehandlingService.hentKjedeIdForMeldekortbehandling(meldekortId)
-                        },
-                    )
-                }.getOrElse {
+                val body = call.parseBody<ForhåndsvisBrevMeldekortbehandlingBody>().getOrElse {
                     call.respond400BadRequest(errorJson = ugyldigRequest())
                     return@withMeldekortId
                 }
 
                 forhåndsvisBrevMeldekortbehandlingService.forhåndsvisBrev(
-                    command = ForhåndsvisBrevMeldekortbehandlingCommand(
+                    kommando = ForhåndsvisBrevMeldekortbehandlingKommando(
                         meldekortbehandlingId = meldekortId,
                         correlationId = correlationId,
                         saksbehandler = saksbehandler,

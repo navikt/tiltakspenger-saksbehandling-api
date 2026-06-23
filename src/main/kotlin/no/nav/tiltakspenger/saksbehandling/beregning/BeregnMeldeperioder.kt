@@ -106,10 +106,9 @@ private data class BeregnMeldeperioder(
 
                         nyBeregning to harEndringer
                     }
-                    /*Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
-                     men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
-                     meldeperiode uten endring
-                     */
+                    /* Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
+                    men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
+                    meldeperiode uten endring */
                     .dropLastWhile { (_, harEndringer) -> !harEndringer }
                     .map { it.first }
 
@@ -283,6 +282,11 @@ private data class MeldeperiodeSomSkalBeregnes(
 ) {
     val fraOgMed: LocalDate = dager.first().dato
     val tilOgMed: LocalDate = dager.last().dato
+    val periode: Periode = Periode(fraOgMed, tilOgMed)
+
+    init {
+        require(periode.antallDager == 14L)
+    }
 }
 
 /** Nytt meldekort */
