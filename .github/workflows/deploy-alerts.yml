@@ -20,7 +20,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v6.0.3
 
       - uses: nais/deploy/actions/deploy@v2
         env:
