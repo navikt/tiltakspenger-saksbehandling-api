@@ -6,8 +6,8 @@ ENV LANG='nb_NO.UTF-8'
 
 WORKDIR /app
 
-COPY build/install/tiltakspenger-saksbehandling-api/lib/*.jar ./
+COPY build/install/tiltakspenger-saksbehandling-api/lib/*.jar /app/lib/
 
 USER nobody
 
-CMD ["app.jar"]
+ENTRYPOINT ["java", "-cp", "/app/lib/*", "no.nav.tiltakspenger.saksbehandling.AppKt"]

@@ -38,7 +38,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6.1.1
 
       - name: Test and build application
-        run: ./gradlew build --info installDist
+        run: ./gradlew build --info installDist --configuration-cache
 
       - name: Build and push docker image
         uses: nais/docker-build-push@v0

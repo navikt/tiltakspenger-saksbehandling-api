@@ -248,16 +248,4 @@ tasks {
     check {
         dependsOn("checkFlywayMigrationNames")
     }
-    jar {
-        dependsOn(configurations.runtimeClasspath)
-        archiveBaseName = "app"
-
-        manifest {
-            attributes["Main-Class"] = "no.nav.tiltakspenger.saksbehandling.AppKt"
-            attributes["Class-Path"] =
-                configurations.runtimeClasspath
-                    .get()
-                    .joinToString(separator = " ") { file -> file.name }
-        }
-    }
 }
