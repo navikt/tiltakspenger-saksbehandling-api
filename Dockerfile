@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java21-debian12
+FROM gcr.io/distroless/java25-debian13
 
 ENV TZ='Europe/Oslo'
 ENV LC_ALL='nb_NO.UTF-8'

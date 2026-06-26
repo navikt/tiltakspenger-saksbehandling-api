@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-val jvmVersion = JvmTarget.JVM_21
+val jvmVersion = JvmTarget.JVM_25
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.1.11"
 val felleslibVersion = "0.0.827"
