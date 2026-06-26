@@ -74,7 +74,7 @@ dependencies {
 
     // DB
     implementation("org.flywaydb:flyway-database-postgresql:12.8.1")
-    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.11")
     implementation("com.github.seratch:kotliquery:1.9.1")
 
@@ -120,7 +120,7 @@ dependencies {
 plugins {
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
     kotlin("jvm") version "2.4.0"
-    id("com.diffplug.spotless") version "8.6.0"
+    id("com.diffplug.spotless") version "8.7.0"
     application
 }
 application {
