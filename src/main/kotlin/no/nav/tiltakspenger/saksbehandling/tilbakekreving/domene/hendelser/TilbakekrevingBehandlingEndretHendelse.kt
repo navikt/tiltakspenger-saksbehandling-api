@@ -70,7 +70,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
     private fun harEndringer(behandling: TilbakekrevingBehandling): Boolean {
         return behandling.status != behandlingsstatus ||
             behandling.kravgrunnlagTotalPeriode != fullstendigPeriode ||
-            behandling.url !== url ||
+            behandling.url != url ||
             behandling.varselSendt != varselSendt ||
             behandling.totaltFeilutbetaltBeløp != totaltFeilutbetaltBeløp ||
             behandling.venter != venter
