@@ -11,7 +11,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.common.withWireMockServer
+import no.nav.tiltakspenger.libs.common.withWireMockServer
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorhistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk
