@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val jvmVersion = JvmTarget.JVM_25
 val kotlinxCoroutinesVersion = "1.11.0"
-val kotestVersion = "6.1.11"
+val kotestVersion = "6.2.1"
 val felleslibVersion = "0.0.827"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
@@ -80,7 +80,7 @@ dependencies {
     api("com.auth0:jwks-rsa:0.24.1")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:12.8.1")
+    implementation("org.flywaydb:flyway-database-postgresql:12.9.0")
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.11")
     implementation("com.github.seratch:kotliquery:1.9.1")
