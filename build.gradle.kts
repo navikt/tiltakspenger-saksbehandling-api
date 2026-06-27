@@ -11,11 +11,11 @@ val avroVersion = "1.12.1"
 val prometeusVersion = "1.17.0"
 
 dependencies {
-    // Align versions of all Kotlin components
+    // Lås versjonene på alle Kotlin-komponenter til samme versjon
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation(kotlin("stdlib"))
 
-    // Align all io.netty:* to a single version. r2dbc-postgresql/reactor-netty (transitiv via
+    // Lås alle io.netty:* til samme versjon. r2dbc-postgresql/reactor-netty (transitiv via
     // persistering-infrastruktur) drar inn netty 4.1.x, mens ktor-server-netty bruker 4.2.x.
     // Uten dette havner både netty-codec (4.1) og netty-codec-base (4.2) på classpath med
     // duplikate baseklasser (ByteToMessageDecoder m.fl.), som med `-cp lib/*` lastes i feil
@@ -112,8 +112,6 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinxCoroutinesVersion")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
-    // need quarkus-junit-4-mock because of https://github.com/testcontainers/testcontainers-java/issues/970
-    testImplementation("io.quarkus:quarkus-junit4-mock:3.30.8")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.1")
     testImplementation("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
@@ -167,21 +165,21 @@ tasks {
     }
 
     test {
-        // JUnit 5 support
+        // JUnit 5-støtte
         useJUnitPlatform()
         // https://phauer.com/2018/best-practices-unit-testing-kotlin/
         systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_class")
         // https://github.com/mockito/mockito/issues/3037#issuecomment-1588199599
         jvmArgs("-XX:+EnableDynamicAgentLoading")
         testLogging {
-            // We only want to log failed and skipped tests when running Gradle.
+            // Vi logger bare feilede og hoppede tester når Gradle kjører.
             events("skipped", "failed")
             exceptionFormat = TestExceptionFormat.FULL
         }
     }
 }
 configurations.all {
-    // exclude JUnit 4
+    // ekskluder JUnit 4
     exclude(group = "junit", module = "junit")
 }
 tasks {
@@ -227,7 +225,7 @@ tasks {
                 throw GradleException("Invalid Kotlin/Java migration filenames:\n${invalidKotlinFiles.joinToString("\n")}")
             }
 
-            // Check for duplicate versions across ALL migration types
+            // Sjekk for dupliserte versjoner på tvers av ALLE migreringstyper
             val allFiles = sqlFiles + kotlinFiles
             val duplicateVersions =
                 allFiles
