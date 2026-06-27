@@ -18,7 +18,7 @@ private val logger = KotlinLogging.logger {}
  *  [eksternFagsakId] Tilsvarer saksnummer [no.nav.tiltakspenger.libs.common.Saksnummer] for brukerens sak
  *
  * */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "hendelsestype")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "hendelsestype", visible = true)
 @JsonSubTypes(
     JsonSubTypes.Type(value = TilbakekrevingInfoBehovDTO::class, name = "fagsysteminfo_behov"),
     JsonSubTypes.Type(value = TilbakekrevingInfoSvarDTO::class, name = "fagsysteminfo_svar"),

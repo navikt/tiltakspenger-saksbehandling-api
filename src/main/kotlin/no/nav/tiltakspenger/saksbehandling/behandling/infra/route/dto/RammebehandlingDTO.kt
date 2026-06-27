@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
@@ -84,6 +85,9 @@ data class SøknadsbehandlingDTO(
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
+
+    @get:JsonIgnore
+    override val resultat: RammebehandlingResultatTypeDTO get() = resultatDTO.resultat
 }
 
 data class RevurderingDTO(
@@ -114,6 +118,9 @@ data class RevurderingDTO(
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.REVURDERING
+
+    @get:JsonIgnore
+    override val resultat: RammebehandlingResultatTypeDTO get() = resultatDTO.resultat
 }
 
 fun Sak.tilRammebehandlingDTO(behandlingId: RammebehandlingId): RammebehandlingDTO {
