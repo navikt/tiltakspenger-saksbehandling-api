@@ -79,7 +79,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
-            val (_, _, oppdatertRammebehandlingMedKlagebehandling, json) = `settRammebehandlingPåVent`(
+            val (_, _, oppdatertRammebehandlingMedKlagebehandling, _) = `settRammebehandlingPåVent`(
                 tac = tac,
                 sakId = sak.id,
                 rammebehandlingId = rammebehandlingMedKlagebehandling.id,

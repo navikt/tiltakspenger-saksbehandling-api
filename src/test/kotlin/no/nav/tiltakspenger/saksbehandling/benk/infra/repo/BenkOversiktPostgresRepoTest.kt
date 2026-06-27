@@ -734,7 +734,7 @@ class BenkOversiktPostgresRepoTest {
             actualEtterAutomatiskBehandling shouldBe emptyList()
 
             // Bruker sender korrigering i samme kjede
-            val (sakEtterKorrigering, _) = testDataHelper.persisterBrukersMeldekort(sak = sak, periode = periode)
+            testDataHelper.persisterBrukersMeldekort(sak = sak, periode = periode)
 
             val (actualEtterKorrigering, antallEtterKorrigering) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),

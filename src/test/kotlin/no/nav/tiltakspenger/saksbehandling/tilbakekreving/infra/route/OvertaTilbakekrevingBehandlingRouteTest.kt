@@ -27,7 +27,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
                 saksbehandler = saksbehandler1,
             )!!
 
-            val (oppdatertSak, oppdatertBehandling, json) = overtaTilbakekrevingBehandling(
+            val (_, oppdatertBehandling, json) = overtaTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,

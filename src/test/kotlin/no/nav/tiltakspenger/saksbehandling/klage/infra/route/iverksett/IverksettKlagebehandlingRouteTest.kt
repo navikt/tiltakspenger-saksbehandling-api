@@ -351,7 +351,7 @@ class IverksettKlagebehandlingRouteTest {
     fun `iverksetter klagebehandling (opprettholdelse) og revurdering innvilgelse`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandling, klagebehandling, rammebehandlingJson) = opprettetRammebehandlingMedOpprettholdtKlage(
+            val (sak, rammebehandling, klagebehandling, _) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 behandlingstype = "REVURDERING_INNVILGELSE",
                 hendelseGenerering = { _, klagebehandling ->
@@ -448,7 +448,7 @@ class IverksettKlagebehandlingRouteTest {
                 behandlingId = rammebehandling.id,
                 saksbehandler = beslutter,
             )
-            val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
+            val (_, rammevedtak, _, iverksattRammebehandlingJson) = iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,

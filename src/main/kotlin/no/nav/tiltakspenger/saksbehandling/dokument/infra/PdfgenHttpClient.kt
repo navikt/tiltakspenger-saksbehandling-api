@@ -229,7 +229,7 @@ class PdfgenHttpClient(
                     iverksattTidspunkt = kommando.iverksattTidspunkt?.format(norskTidspunktFormatter),
                     korrigering = kommando.erKorrigering,
                     sammenligningAvBeregninger = kommando.beregninger?.map {
-                        sammenlign(it.first, it.second).toDTO()
+                        sammenlign(it.first, it.second).toDto()
                     }?.let {
                         BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
                             meldeperioder = it,

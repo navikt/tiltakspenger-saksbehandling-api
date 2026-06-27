@@ -48,7 +48,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
             saksbehandlerKlagebehandling = saksbehandlerKlagebehandling,
             journalpostId = journalpostId,
         ) ?: return null
-        val (oppdatertSak, oppdatertKlagebehandling, json) = leggKlagebehandlingTilbake(
+        val (oppdatertSak, _, json) = leggKlagebehandlingTilbake(
             tac = tac,
             sakId = sak.id,
             klagebehandlingId = rammebehandlingMedKlagebehandling.klagebehandling!!.id,

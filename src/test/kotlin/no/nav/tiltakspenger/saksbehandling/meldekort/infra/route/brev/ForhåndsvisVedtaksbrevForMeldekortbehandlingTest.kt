@@ -8,7 +8,7 @@ class ForhåndsvisVedtaksbrevForMeldekortbehandlingTest {
     @Test
     fun `kan forhåndsvise vedtaksbrev`() {
         withTestApplicationContext { tac ->
-            val (_, _, _, _, _) = iverksettSøknadsbehandlingOgForhåndsvisVedtaksbrevForMeldekortbehandling(
+            iverksettSøknadsbehandlingOgForhåndsvisVedtaksbrevForMeldekortbehandling(
                 tac = tac,
             )!!
         }

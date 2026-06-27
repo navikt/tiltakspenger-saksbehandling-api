@@ -20,7 +20,7 @@ class TaTilbakekrevingBehandlingRouteTest {
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar")
 
-            val (oppdatertSak, oppdatertBehandling, json) = tildelTilbakekrevingBehandling(
+            val (_, oppdatertBehandling, json) = tildelTilbakekrevingBehandling(
                 tac = tac,
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,

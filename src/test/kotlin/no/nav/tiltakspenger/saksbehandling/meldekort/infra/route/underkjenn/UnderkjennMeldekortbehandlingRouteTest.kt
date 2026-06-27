@@ -9,7 +9,7 @@ class UnderkjennMeldekortbehandlingRouteTest {
     @Test
     fun `saksbehandler kan underkjenne meldekortbehandling`() {
         withTestApplicationContext { tac ->
-            val (_, _, _, _, _) = this.iverksettSøknadsbehandlingOgUnderkjennMeldekortbehandling(
+            this.iverksettSøknadsbehandlingOgUnderkjennMeldekortbehandling(
                 tac = tac,
             )!!
         }

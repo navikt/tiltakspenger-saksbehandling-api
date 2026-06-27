@@ -15,7 +15,7 @@ class SettRammebehandlingPåVentRouteTest {
     @Test
     fun `sett søknadsbehandling på vent`() {
         withTestApplicationContext { tac ->
-            val (sak, søknad, søknadsbehandling, json) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+            val (_, _, søknadsbehandling, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
             // TODO: sjekk noe her, men trenger kanskje ikke sjekke hele saken
 //            json.toString().shouldEqualJsonIgnoringTimestamps(
 //                """

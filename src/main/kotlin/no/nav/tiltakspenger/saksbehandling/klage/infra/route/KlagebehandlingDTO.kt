@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
 import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
-import no.nav.tiltakspenger.saksbehandling.dokument.toDTO
+import no.nav.tiltakspenger.saksbehandling.dokument.toDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -142,7 +142,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
 )
 
 fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): KlagebehandlingsresultatDTO {
-    val brevtekstDTO = brevtekst?.toDTO() ?: emptyList()
+    val brevtekstDTO = brevtekst?.toDto() ?: emptyList()
 
     return when (this) {
         is Klagebehandlingsresultat.Avvist -> KlagebehandlingsresultatDTO.Avvist(

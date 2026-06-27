@@ -105,7 +105,7 @@ class AvbrytKlagebehandlingRouteTest {
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
             val klagebehandling = rammebehandlingMedklagebehandling.klagebehandling!!
-            val (_, _, _, _) = avbrytRammebehandling(
+            avbrytRammebehandling(
                 tac = tac,
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
@@ -146,7 +146,7 @@ class AvbrytKlagebehandlingRouteTest {
                 type = "REVURDERING_OMGJØRING",
             )!!
             val klagebehandling = rammebehandlingMedklagebehandling.klagebehandling!!
-            val (_, _, _, _) = avbrytRammebehandling(
+            avbrytRammebehandling(
                 tac = tac,
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,

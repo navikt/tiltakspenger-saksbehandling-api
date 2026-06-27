@@ -94,7 +94,7 @@ class RammevedtakPostgresRepoTest {
     @Test
     fun `hentRammevedtakSomSkalJournalføres returnerer ikke vedtak når skalSendeVedtaksbrev er false`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, _, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
+            testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
             val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)
             vedtakSomSkalJournalføres.size shouldBe 0
         }

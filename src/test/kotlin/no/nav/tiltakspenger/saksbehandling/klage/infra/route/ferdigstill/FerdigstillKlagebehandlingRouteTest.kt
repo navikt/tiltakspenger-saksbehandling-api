@@ -189,7 +189,7 @@ class FerdigstillKlagebehandlingRouteTest {
     fun `kan ikke ferdigstille en klagebehandling (omgjøring) som har en aktiv rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val (sak, rammebehandlingMedKlagebehandling, json) = opprettetSøknadsbehandlingForKlage(
+            val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
 

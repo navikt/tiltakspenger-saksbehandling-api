@@ -79,7 +79,7 @@ data class BrevMeldekortvedtakDTO(
     )
 }
 
-fun SammenligningAvBeregninger.MeldeperiodeSammenligninger.toDTO(): BrevMeldekortvedtakDTO.MeldeperiodeSammenligningerDTO {
+fun SammenligningAvBeregninger.MeldeperiodeSammenligninger.toDto(): BrevMeldekortvedtakDTO.MeldeperiodeSammenligningerDTO {
     val fraOgMed = periode.fraOgMed.format(norskDatoFormatter)
     val tilOgMed = periode.tilOgMed.format(norskDatoFormatter)
     val tittel = "Meldekort $fraOgMed - $tilOgMed"
@@ -127,7 +127,7 @@ fun Meldekortvedtak.toBeregningSammenligningDTO(
 ): BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO {
     return this.utbetaling.beregning.beregninger
         .map { beregninger -> sammenlign(beregninger) }
-        .map { it.toDTO() }
+        .map { it.toDto() }
         .let { meldeperiodeSammenligninger ->
             // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
             BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(

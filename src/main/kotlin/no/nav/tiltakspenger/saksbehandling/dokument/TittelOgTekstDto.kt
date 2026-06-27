@@ -7,7 +7,7 @@ data class TittelOgTekstDTO(
     val tekst: String,
 )
 
-fun List<TittelOgTekst>.toDTO(): List<TittelOgTekstDTO> {
+fun List<TittelOgTekst>.toDto(): List<TittelOgTekstDTO> {
     return this.map { it.toDto() }
 }
 

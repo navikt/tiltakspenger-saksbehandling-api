@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
-import no.nav.tiltakspenger.saksbehandling.dokument.toDTO
+import no.nav.tiltakspenger.saksbehandling.dokument.toDto
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import java.time.LocalDate
@@ -46,7 +46,7 @@ data class BrevKlageInnstillingDTO private constructor(
                     etternavn = brukersNavn.mellomnavnOgEtternavn,
                 ),
                 saksnummer = saksnummer.verdi,
-                tilleggstekst = tilleggstekst.toDTO(),
+                tilleggstekst = tilleggstekst.toDto(),
                 forhandsvisning = forhåndsvisning,
                 saksbehandlerNavn = saksbehandlersNavn,
                 datoForUtsending = datoForUtsending.format(norskDatoFormatter),
