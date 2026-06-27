@@ -73,10 +73,6 @@ dependencies {
 
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
 
-    // Auth
-    api("com.auth0:java-jwt:4.5.2")
-    api("com.auth0:jwks-rsa:0.24.1")
-
     // DB
     implementation("org.flywaydb:flyway-database-postgresql:12.9.0")
     implementation("com.zaxxer:HikariCP:7.1.0")
@@ -100,6 +96,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("com.lemonappdev:konsist:0.17.3")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
