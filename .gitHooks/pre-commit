@@ -1,5 +1,16 @@
 #!/bin/bash
+#
+# Pre-commit-orkestrator. Kjører navngitte sjekk-skript i .gitHooks/.
+# Hver sjekk VERIFISERER bare – den endrer aldri koden din og gjør ingen
+# `git add`. Formatering skal skje når du BYGGER (./lint_and_build.sh kjører
+# `gradlew spotlessApply build`), ikke når du committer.
+#
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-"$HOOK_DIR/flyway.sh" || exit 1
+# Spotless-formatering.
 "$HOOK_DIR/spotless.sh" || exit 1
+
+# Flyway-migreringsnavn.
+"$HOOK_DIR/flyway.sh" || exit 1
+
+exit 0
