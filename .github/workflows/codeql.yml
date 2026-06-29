@@ -2,7 +2,7 @@ name: "CodeQL"
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 7 * * 1'
 
 concurrency:
   group: codeql-${{ github.ref }}
