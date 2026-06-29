@@ -20,7 +20,7 @@ dependencies {
     // Uten dette havner både netty-codec (4.1) og netty-codec-base (4.2) på classpath med
     // duplikate baseklasser (ByteToMessageDecoder m.fl.), som med `-cp lib/*` lastes i feil
     // rekkefølge og brekker HTTP-pipelinen.
-    implementation(platform("io.netty:netty-bom:4.2.12.Final"))
+    implementation(platform("io.netty:netty-bom:4.2.15.Final"))
 
     implementation("com.github.navikt.tiltakspenger-libs:soknad-dtos:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:tiltak-dtos:$felleslibVersion")
