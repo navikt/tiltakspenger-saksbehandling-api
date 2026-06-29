@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevKommando
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortvedtakBrevKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
@@ -65,7 +65,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
             }
 
         return genererBrevClient.genererMeldekortvedtakBrev(
-            kommando = GenererMeldekortVedtakBrevKommando(
+            kommando = GenererMeldekortvedtakBrevKommando(
                 sakId = meldekortbehandling.sakId,
                 saksnummer = meldekortbehandling.saksnummer,
                 fnr = meldekortbehandling.fnr,

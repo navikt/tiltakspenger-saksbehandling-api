@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
-import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
+import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
@@ -58,7 +58,7 @@ class JournalførMeldekortvedtakService(
                                 }
                             }
                         }
-                        sammenlign(beregningFør, beregningEtter)
+                        sammenlignBeregninger(beregningFør, beregningEtter)
                     }
                     val tiltak = sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(meldekortvedtak.rammevedtak)
 

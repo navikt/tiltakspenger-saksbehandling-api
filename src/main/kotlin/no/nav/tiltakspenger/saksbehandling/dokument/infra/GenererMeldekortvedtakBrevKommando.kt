@@ -10,19 +10,19 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import java.time.LocalDateTime
 
-data class GenererMeldekortVedtakBrevKommando(
+data class GenererMeldekortvedtakBrevKommando(
     val sakId: SakId,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val saksbehandler: String?,
     val beslutter: String?,
     val meldekortbehandlingId: MeldekortId,
-    val beregningsperiode: Periode?,
+    val beregningsperiode: Periode,
     val tiltaksdeltakelser: Tiltaksdeltakelser,
     val iverksattTidspunkt: LocalDateTime?,
     val erKorrigering: Boolean,
-    val beregninger: List<Pair<MeldeperiodeBeregning?, MeldeperiodeBeregning>>?,
-    val totaltBeløp: Int?,
+    val beregninger: List<Pair<MeldeperiodeBeregning?, MeldeperiodeBeregning>>,
+    val totaltBeløp: Int,
     val tekstTilVedtaksbrev: NonBlankString?,
     val forhåndsvisning: Boolean,
 )

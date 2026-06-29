@@ -13,9 +13,6 @@ import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
-import no.nav.tiltakspenger.libs.dato.norskTidspunktFormatter
-import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
@@ -34,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
-import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
@@ -214,41 +210,11 @@ class PdfgenHttpClient(
     }
 
     override suspend fun genererMeldekortvedtakBrev(
-        kommando: GenererMeldekortVedtakBrevKommando,
+        kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
-            jsonPayload = {
-                BrevMeldekortvedtakDTO(
-                    fødselsnummer = kommando.fnr.verdi,
-                    saksbehandler = kommando.saksbehandler?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
-                    beslutter = kommando.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
-                    meldekortId = kommando.meldekortbehandlingId.toString(),
-                    saksnummer = kommando.saksnummer.verdi,
-                    meldekortPeriode = kommando.beregningsperiode?.let {
-                        BrevMeldekortvedtakDTO.BrevMeldekortPeriodeDTO(
-                            fom = it.fraOgMed.format(norskDatoFormatter),
-                            tom = it.tilOgMed.format(norskDatoFormatter),
-                        )
-                    },
-                    tiltak = kommando.tiltaksdeltakelser.map { it.toTiltakDTO() },
-                    iverksattTidspunkt = kommando.iverksattTidspunkt?.format(norskTidspunktFormatter),
-                    korrigering = kommando.erKorrigering,
-                    sammenligningAvBeregninger = kommando.beregninger?.map {
-                        sammenlign(it.first, it.second).toDto()
-                    }?.let {
-                        BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
-                            meldeperioder = it,
-                            totalDifferanse = it.sumOf { periode -> periode.differanseFraForrige },
-                        )
-                    },
-                    totaltBelop = kommando.totaltBeløp,
-                    brevTekst = kommando.tekstTilVedtaksbrev?.value,
-                    forhandsvisning = kommando.forhåndsvisning,
-                ).let {
-                    serialize(it)
-                }
-            },
+            jsonPayload = { kommando.tilJsonRequest(hentSaksbehandlersNavn) },
             errorContext = "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}",
             uri = meldekortvedtakUri,
         )

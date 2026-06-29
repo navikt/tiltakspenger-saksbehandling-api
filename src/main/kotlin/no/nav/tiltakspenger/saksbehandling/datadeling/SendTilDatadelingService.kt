@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
-import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
+import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
@@ -217,7 +217,7 @@ class SendTilDatadelingService(
                     }
                 }
             }
-            beregningEtter.kjedeId to sammenlign(beregningFør, beregningEtter).differanseFraForrige
+            beregningEtter.kjedeId to sammenlignBeregninger(beregningFør, beregningEtter).differanseFraForrige
         }
     }
 }

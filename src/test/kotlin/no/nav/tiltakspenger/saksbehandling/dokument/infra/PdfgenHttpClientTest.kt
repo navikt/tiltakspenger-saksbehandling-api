@@ -49,7 +49,11 @@ class PdfgenHttpClientTest {
                     ),
                     opprettet = LocalDateTime.now(fixedClock),
                 )
-                val actual = PdfgenHttpClient(wiremock.baseUrl(), wiremock.baseUrl(), isLocalOrDev = true).genererMeldekortvedtakBrev(
+                val actual = PdfgenHttpClient(
+                    wiremock.baseUrl(),
+                    wiremock.baseUrl(),
+                    isLocalOrDev = true,
+                ).genererMeldekortvedtakBrev(
                     meldekortvedtak,
                     tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
                     hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
@@ -78,8 +82,12 @@ class PdfgenHttpClientTest {
             val meldekortId = MeldekortId.random()
 
             runTest {
-                val actual = PdfgenHttpClient(wiremock.baseUrl(), wiremock.baseUrl(), isLocalOrDev = true).genererMeldekortvedtakBrev(
-                    kommando = GenererMeldekortVedtakBrevKommando(
+                val actual = PdfgenHttpClient(
+                    wiremock.baseUrl(),
+                    wiremock.baseUrl(),
+                    isLocalOrDev = true,
+                ).genererMeldekortvedtakBrev(
+                    kommando = GenererMeldekortvedtakBrevKommando(
                         sakId = SakId.random(),
                         saksnummer = saksnummer,
                         fnr = fnr,

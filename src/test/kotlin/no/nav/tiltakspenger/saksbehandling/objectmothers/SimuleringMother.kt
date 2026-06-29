@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
-import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
+import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
@@ -113,7 +113,7 @@ fun Sak.genererSimuleringFraBeregning(
 ): SimuleringMedMetadata {
     val simuleringForMeldeperioder = beregning.beregninger.mapNotNull { beregningEtter ->
         val beregningFør = this.meldeperiodeBeregninger.hentForrigeBeregningForSimulering(beregningEtter)
-        val sammenligning = sammenlign(
+        val sammenligning = sammenlignBeregninger(
             forrigeBeregning = beregningFør,
             gjeldendeBeregning = beregningEtter,
         )

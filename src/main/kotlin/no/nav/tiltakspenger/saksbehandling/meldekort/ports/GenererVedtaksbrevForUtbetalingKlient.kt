@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortVedtakBrevKommando
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortvedtakBrevKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 
 interface GenererVedtaksbrevForUtbetalingKlient {
@@ -19,7 +19,7 @@ interface GenererVedtaksbrevForUtbetalingKlient {
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererMeldekortvedtakBrev(
-        kommando: GenererMeldekortVedtakBrevKommando,
+        kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

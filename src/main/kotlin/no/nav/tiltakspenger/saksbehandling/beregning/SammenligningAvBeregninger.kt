@@ -46,7 +46,7 @@ data class SammenligningAvBeregninger(
     }
 }
 
-fun sammenlign(
+fun sammenlignBeregninger(
     forrigeBeregning: MeldeperiodeBeregning?,
     gjeldendeBeregning: MeldeperiodeBeregning,
 ): SammenligningAvBeregninger.MeldeperiodeSammenligninger {

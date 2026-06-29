@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
+import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -17,15 +18,15 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 data class BrevMeldekortvedtakDTO(
     val meldekortId: String,
     val saksnummer: String,
-    val meldekortPeriode: BrevMeldekortPeriodeDTO?,
+    val meldekortPeriode: BrevMeldekortPeriodeDTO,
     val saksbehandler: SaksbehandlerDTO?,
     val beslutter: SaksbehandlerDTO?,
     val tiltak: List<TiltakDTO>,
     val iverksattTidspunkt: String?,
     val fødselsnummer: String,
-    val sammenligningAvBeregninger: SammenligningAvBeregningerDTO?,
+    val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
     val korrigering: Boolean,
-    val totaltBelop: Int?,
+    val totaltBelop: Int,
     val brevTekst: String?,
     val forhandsvisning: Boolean,
 ) {
@@ -79,7 +80,7 @@ data class BrevMeldekortvedtakDTO(
     )
 }
 
-fun SammenligningAvBeregninger.MeldeperiodeSammenligninger.toDto(): BrevMeldekortvedtakDTO.MeldeperiodeSammenligningerDTO {
+private fun SammenligningAvBeregninger.MeldeperiodeSammenligninger.toDto(): BrevMeldekortvedtakDTO.MeldeperiodeSammenligningerDTO {
     val fraOgMed = periode.fraOgMed.format(norskDatoFormatter)
     val tilOgMed = periode.tilOgMed.format(norskDatoFormatter)
     val tittel = "Meldekort $fraOgMed - $tilOgMed"
@@ -91,9 +92,73 @@ fun SammenligningAvBeregninger.MeldeperiodeSammenligninger.toDto(): BrevMeldekor
     return BrevMeldekortvedtakDTO.MeldeperiodeSammenligningerDTO(
         tittel = tittel,
         differanseFraForrige = this.differanseFraForrige,
-        dager = this.dager.toDto(),
+        dager = this.dager.map { it.toDto() },
         harBarnetillegg = harBarnetillegg,
     )
+}
+
+private fun Meldekortvedtak.toBeregningSammenligningDTO(
+    sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+): BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO {
+    return this.utbetaling.beregning.beregninger
+        .map { beregninger -> sammenlign(beregninger) }
+        .map { it.toDto() }
+        .let { meldeperiodeSammenligninger ->
+            // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
+            BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
+                meldeperioder = meldeperiodeSammenligninger.toList(),
+                totalDifferanse = meldeperiodeSammenligninger.toList().sumOf { it.differanseFraForrige },
+            )
+        }
+}
+
+private fun Tiltaksdeltakelse.toTiltakDTO() =
+    BrevMeldekortvedtakDTO.TiltakDTO(
+        tiltakstypenavn = typeNavn,
+        tiltakstype = typeKode.name,
+    )
+
+private fun MeldeperiodeBeregningDag.toStatus(): String {
+    return when (this) {
+        is MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket -> "Deltatt med lønn"
+        is MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Syk"
+        is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Sykt barn eller syk barnepasser"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværSterkeVelferdsgrunnerEllerJobbintervju -> "Sterke velferdsgrunner eller jobbintervju"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav -> "Fravær godkjent av Nav"
+        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet -> "Annet fravær"
+        is MeldeperiodeBeregningDag.IkkeBesvart -> "Ikke besvart"
+        is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke tiltaksdag"
+        is MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger -> "Ikke rett til tiltakspenger"
+    }
+}
+
+fun SammenligningAvBeregninger.DagSammenligning.toDto(): BrevMeldekortvedtakDTO.DagSammenligningDTO =
+    BrevMeldekortvedtakDTO.DagSammenligningDTO(
+        dato = this.dato.format(norskUkedagOgDatoUtenÅrFormatter),
+        status = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = this.status.forrige?.toStatus(),
+            gjeldende = this.status.gjeldende.toStatus(),
+        ),
+        beløp = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = this.beløp.forrige,
+            gjeldende = this.beløp.gjeldende,
+        ),
+        barnetillegg = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = this.barnetillegg.forrige,
+            gjeldende = this.barnetillegg.gjeldende,
+        ),
+        prosent = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = this.prosent.forrige,
+            gjeldende = this.prosent.gjeldende,
+        ),
+    )
+
+suspend fun String.tilSaksbehandlerDto(
+    hentSaksbehandlersNavn: suspend (String) -> String,
+): BrevMeldekortvedtakDTO.SaksbehandlerDTO? = when (this) {
+    AUTOMATISK_SAKSBEHANDLER_ID -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Automatisk
+    else -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Manuell(navn = hentSaksbehandlersNavn(this))
 }
 
 suspend fun Meldekortvedtak.toJsonRequest(
@@ -122,69 +187,36 @@ suspend fun Meldekortvedtak.toJsonRequest(
     ).let { serialize(it) }
 }
 
-fun Meldekortvedtak.toBeregningSammenligningDTO(
-    sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-): BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO {
-    return this.utbetaling.beregning.beregninger
-        .map { beregninger -> sammenlign(beregninger) }
-        .map { it.toDto() }
-        .let { meldeperiodeSammenligninger ->
-            // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
-            BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
-                meldeperioder = meldeperiodeSammenligninger.toList(),
-                totalDifferanse = meldeperiodeSammenligninger.toList().sumOf { it.differanseFraForrige },
-            )
-        }
-}
-
-fun List<SammenligningAvBeregninger.DagSammenligning>.toDto(): List<BrevMeldekortvedtakDTO.DagSammenligningDTO> =
-    this.map { it.toDto() }
-
-fun SammenligningAvBeregninger.DagSammenligning.toDto(): BrevMeldekortvedtakDTO.DagSammenligningDTO =
-    BrevMeldekortvedtakDTO.DagSammenligningDTO(
-        dato = this.dato.format(norskUkedagOgDatoUtenÅrFormatter),
-        status = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.status.forrige?.toStatus(),
-            gjeldende = this.status.gjeldende.toStatus(),
-        ),
-        beløp = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.beløp.forrige,
-            gjeldende = this.beløp.gjeldende,
-        ),
-        barnetillegg = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.barnetillegg.forrige,
-            gjeldende = this.barnetillegg.gjeldende,
-        ),
-        prosent = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.prosent.forrige,
-            gjeldende = this.prosent.gjeldende,
-        ),
-    )
-
-fun Tiltaksdeltakelse.toTiltakDTO() =
-    BrevMeldekortvedtakDTO.TiltakDTO(
-        tiltakstypenavn = typeNavn,
-        tiltakstype = typeKode.name,
-    )
-
-suspend fun String.tilSaksbehandlerDto(
+suspend fun GenererMeldekortvedtakBrevKommando.tilJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
-): BrevMeldekortvedtakDTO.SaksbehandlerDTO? = when (this) {
-    AUTOMATISK_SAKSBEHANDLER_ID -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Automatisk
-    else -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Manuell(navn = hentSaksbehandlersNavn(this))
-}
-
-private fun MeldeperiodeBeregningDag.toStatus(): String {
-    return when (this) {
-        is MeldeperiodeBeregningDag.Deltatt.DeltattMedLønnITiltaket -> "Deltatt med lønn"
-        is MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket -> "Deltatt"
-        is MeldeperiodeBeregningDag.Fravær.Syk.SykBruker -> "Syk"
-        is MeldeperiodeBeregningDag.Fravær.Syk.SyktBarn -> "Sykt barn eller syk barnepasser"
-        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværSterkeVelferdsgrunnerEllerJobbintervju -> "Sterke velferdsgrunner eller jobbintervju"
-        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav -> "Fravær godkjent av Nav"
-        is MeldeperiodeBeregningDag.Fravær.Velferd.FraværAnnet -> "Annet fravær"
-        is MeldeperiodeBeregningDag.IkkeBesvart -> "Ikke besvart"
-        is MeldeperiodeBeregningDag.IkkeDeltatt -> "Ikke tiltaksdag"
-        is MeldeperiodeBeregningDag.IkkeRettTilTiltakspenger -> "Ikke rett til tiltakspenger"
+): String {
+    return BrevMeldekortvedtakDTO(
+        fødselsnummer = this.fnr.verdi,
+        saksbehandler = this.saksbehandler?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+        beslutter = this.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+        meldekortId = this.meldekortbehandlingId.toString(),
+        saksnummer = this.saksnummer.verdi,
+        meldekortPeriode = this.beregningsperiode.let {
+            BrevMeldekortvedtakDTO.BrevMeldekortPeriodeDTO(
+                fom = it.fraOgMed.format(norskDatoFormatter),
+                tom = it.tilOgMed.format(norskDatoFormatter),
+            )
+        },
+        tiltak = this.tiltaksdeltakelser.map { it.toTiltakDTO() },
+        iverksattTidspunkt = this.iverksattTidspunkt?.format(norskTidspunktFormatter),
+        korrigering = this.erKorrigering,
+        sammenligningAvBeregninger = this.beregninger.map {
+            sammenlignBeregninger(it.first, it.second).toDto()
+        }.let {
+            BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
+                meldeperioder = it,
+                totalDifferanse = it.sumOf { periode -> periode.differanseFraForrige },
+            )
+        },
+        totaltBelop = this.totaltBeløp,
+        brevTekst = this.tekstTilVedtaksbrev?.value,
+        forhandsvisning = this.forhåndsvisning,
+    ).let {
+        serialize(it)
     }
 }
