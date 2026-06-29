@@ -44,10 +44,11 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKje
     val meldekortbehandlinger = this.meldekortbehandlinger
         .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
 
-    val sisteMeldekortbehandling = this.meldekortbehandlinger.hentSisteMeldekortbehandlingForKjede(kjedeId)
-
-    val harBehandletSiste =
-        sisteMeldekortbehandling != null && sisteBrukersMeldekort != null && sisteMeldekortbehandling.sistEndret > sisteBrukersMeldekort.mottatt
+    val harBehandletSiste = this.meldekortbehandlinger
+        .hentSisteMeldekortbehandlingForKjede(kjedeId)
+        ?.let { sisteBehandling ->
+            sisteBrukersMeldekort == null || sisteBehandling.sistEndret > sisteBrukersMeldekort.mottatt
+        } ?: false
 
     return MeldeperiodeKjedeDTOV2(
         id = meldeperiodeKjede.kjedeId.toString(),
