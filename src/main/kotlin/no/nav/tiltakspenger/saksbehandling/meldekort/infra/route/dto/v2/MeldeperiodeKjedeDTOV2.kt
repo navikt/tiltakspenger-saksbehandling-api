@@ -11,6 +11,11 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.Meldeperiod
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toBrukersMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toStatusDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.BrukersMeldekortStatusDTO.BEHANDLET
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.BrukersMeldekortStatusDTO.IKKE_MOTTATT
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.BrukersMeldekortStatusDTO.KORRIGERING_BEHANDLET
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.BrukersMeldekortStatusDTO.KORRIGERING_VENTER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.BrukersMeldekortStatusDTO.VENTER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
@@ -34,8 +39,15 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKje
         .filter { it.kjedeId == kjedeId }
         .sortedBy { it.mottatt }
 
+    val sisteBrukersMeldekort = brukersMeldekort.lastOrNull()
+
     val meldekortbehandlinger = this.meldekortbehandlinger
-        .hentIkkeAvbrutteBehandlingerForKjede(meldeperiodeKjede.kjedeId)
+        .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
+
+    val sisteMeldekortbehandling = this.meldekortbehandlinger.hentSisteMeldekortbehandlingForKjede(kjedeId)
+
+    val harBehandletSiste =
+        sisteMeldekortbehandling != null && sisteBrukersMeldekort != null && sisteMeldekortbehandling.sistEndret > sisteBrukersMeldekort.mottatt
 
     return MeldeperiodeKjedeDTOV2(
         id = meldeperiodeKjede.kjedeId.toString(),
@@ -48,11 +60,10 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKje
         meldekortbehandlingIder = meldekortbehandlinger.map { it.id.toString() },
         meldekortbehandlingStatus = meldekortbehandlinger.lastOrNull()?.status?.toStatusDTO(),
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
-        // TODO: behandlet statuser
         brukersMeldekortStatus = when (brukersMeldekort.size) {
-            0 -> BrukersMeldekortStatusDTO.IKKE_MOTTATT
-            1 -> BrukersMeldekortStatusDTO.VENTER_BEHANDLING
-            else -> BrukersMeldekortStatusDTO.KORRIGERING_VENTER_BEHANDLING
+            0 -> IKKE_MOTTATT
+            1 -> if (harBehandletSiste) BEHANDLET else VENTER_BEHANDLING
+            else -> if (harBehandletSiste) KORRIGERING_BEHANDLET else KORRIGERING_VENTER_BEHANDLING
         },
         gjeldendeBeregning = meldeperiodeBeregninger
             .hentSisteForKjedeId(kjedeId)
