@@ -139,18 +139,33 @@ class GenererFakeVedtaksbrevKlient :
         forhåndsvisning: Boolean,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return PdfOgJson(
-            pdf = PdfA("pdf".toByteArray()),
-            json = BrevKlageAvvisningDTO.create(
-                hentBrukersNavn = hentBrukersNavn,
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                datoForUtsending = vedtaksdato,
-                tilleggstekst = tilleggstekst,
-                saksbehandlerNavIdent = saksbehandlerNavIdent,
-                saksnummer = saksnummer,
-                forhåndsvisning = forhåndsvisning,
-                fnr = fnr,
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        return Pair(
+            PdfOgJson(
+                pdf = PdfA("pdf".toByteArray()),
+                json = BrevKlageAvvisningDTO.create(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    fnr = fnr,
+                ),
+            ),
+            PdfOgJson(
+                pdf = PdfA("pdf".toByteArray()),
+                json = BrevKlageAvvisningDTO.create(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    fnr = fnr,
+                ),
             ),
         ).right()
     }
@@ -160,7 +175,7 @@ class GenererFakeVedtaksbrevKlient :
         fnr: Fnr,
         tilleggstekst: Brevtekster,
         saksbehandlerNavIdent: String,
-        `forhåndsvisning`: Boolean,
+        forhåndsvisning: Boolean,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,

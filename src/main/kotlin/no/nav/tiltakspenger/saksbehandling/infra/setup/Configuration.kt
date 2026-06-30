@@ -62,6 +62,8 @@ object Configuration {
                 "DOKDIST_URL" to "http://host.docker.internal:8091",
                 "PDFGEN_SCOPE" to "localhost",
                 "PDFGEN_URL" to "http://host.docker.internal:8081",
+                "PDFGENRS_SCOPE" to "localhost",
+                "PDFGENRS_URL" to "http://host.docker.internal:8083",
                 "NAIS_APP_IMAGE" to "http://localhost8080:githubhash",
                 "DB_JDBC_URL" to "jdbc:postgresql://host.docker.internal:5433/saksbehandling?user=postgres&password=test",
                 "MICROSOFT_SCOPE" to "localhost",
@@ -117,6 +119,8 @@ object Configuration {
                 "DOKDIST_URL" to "https://dokdistfordeling.dev-fss-pub.nais.io",
                 "PDFGEN_SCOPE" to "dev-gcp:tpts:tiltakspenger-pdfgen",
                 "PDFGEN_URL" to "http://tiltakspenger-pdfgen",
+                "PDFGENRS_SCOPE" to "dev-gcp:tpts:tiltakspenger-pdfgenrs",
+                "PDFGENRS_URL" to "http://tiltakspenger-pdfgenrs",
                 "MICROSOFT_SCOPE" to "https://graph.microsoft.com/.default",
                 "MICROSOFT_URL" to "graph.microsoft.com/v1.0",
                 "DATADELING_SCOPE" to "dev-gcp:tpts:tiltakspenger-datadeling",
@@ -261,6 +265,7 @@ object Configuration {
     val dokarkivUrl: String by lazy { config()[Key("DOKARKIV_URL", stringType)] }
     val dokdistUrl: String by lazy { config()[Key("DOKDIST_URL", stringType)] }
     val pdfgenUrl: String by lazy { config()[Key("PDFGEN_URL", stringType)] }
+    val pdfgenrsUrl: String by lazy { config()[Key("PDFGENRS_URL", stringType)] }
     val utbetalingUrl: String by lazy { config()[Key("UTBETALING_URL", stringType)] }
     val microsoftUrl: String by lazy { config()[Key("MICROSOFT_URL", stringType)] }
     val datadelingUrl: String by lazy { config()[Key("DATADELING_URL", stringType)] }

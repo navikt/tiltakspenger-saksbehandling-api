@@ -39,7 +39,11 @@ open class DokumentContext(
     open val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient by lazy { dokarkivClient }
     open val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient by lazy { dokarkivClient }
     private val pdfgen by lazy {
-        PdfgenHttpClient(Configuration.pdfgenUrl)
+        PdfgenHttpClient(
+            baseUrl = Configuration.pdfgenUrl,
+            basePdfgenrsUrl = Configuration.pdfgenrsUrl,
+            isLocalOrDev = !Configuration.isProd(),
+        )
     }
     open val genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient by lazy { pdfgen }
     open val genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient by lazy { pdfgen }

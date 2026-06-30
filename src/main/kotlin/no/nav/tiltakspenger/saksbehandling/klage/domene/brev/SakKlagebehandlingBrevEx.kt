@@ -16,7 +16,7 @@ suspend fun Sak.forhåndsvisKlagebrev(
     kommando: KlagebehandlingBrevKommando,
     genererAvvisningsbrev: GenererKlageAvvisningsbrev,
     genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
-): Either<KunneIkkeGenererePdf, PdfOgJson> {
+): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
     val klage = this.hentKlagebehandling(kommando.klagebehandlingId)
     val vedtak = this.vedtaksliste.alle.singleOrNullOrThrow { it.id == klage.formkrav.vedtakDetKlagesPå }
 

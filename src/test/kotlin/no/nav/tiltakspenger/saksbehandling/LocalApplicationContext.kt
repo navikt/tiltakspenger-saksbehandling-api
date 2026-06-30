@@ -81,7 +81,7 @@ class LocalApplicationContext(
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
     private val realPdfGen = if (usePdfGen) {
-        PdfgenHttpClient(baseUrl = "http://host.docker.internal:8081")
+        PdfgenHttpClient(baseUrl = "http://host.docker.internal:8081", basePdfgenrsUrl = "http://host.docker.internal:8083", isLocalOrDev = true)
     } else {
         null
     }

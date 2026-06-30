@@ -22,7 +22,7 @@ class ForhåndsvisBrevKlagebehandlingService(
 ) {
     suspend fun forhåndsvisBrev(
         kommando: KlagebehandlingBrevKommando,
-    ): Either<KanIkkeForhåndsviseBrev, PdfA> {
+    ): Either<KanIkkeForhåndsviseBrev, Pair<PdfA, PdfA?>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         return sak.forhåndsvisKlagebrev(
             kommando = kommando,
@@ -52,7 +52,9 @@ class ForhåndsvisBrevKlagebehandlingService(
                     clock = clock,
                 )
             },
-        ).map { it.pdf }.mapLeft {
+        ).map {
+            Pair(it.first.pdf, it.second?.pdf)
+        }.mapLeft {
             KanIkkeForhåndsviseBrev.FeilMotPdfgen
         }
     }

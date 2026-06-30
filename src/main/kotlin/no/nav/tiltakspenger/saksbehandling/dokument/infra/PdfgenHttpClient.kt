@@ -2,9 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
 import arrow.core.NonEmptySet
+import arrow.core.flatMap
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -49,6 +52,7 @@ import java.time.Clock
 import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTimedValue
 import kotlin.time.toJavaDuration
 
 /**
@@ -58,7 +62,9 @@ import kotlin.time.toJavaDuration
  */
 class PdfgenHttpClient(
     baseUrl: String,
+    basePdfgenrsUrl: String,
     connectTimeout: Duration = 1.seconds,
+    private val isLocalOrDev: Boolean,
     private val timeout: Duration = 20.seconds,
 ) : GenererVedtaksbrevForInnvilgelseKlient,
     GenererVedtaksbrevForUtbetalingKlient,
@@ -83,6 +89,7 @@ class PdfgenHttpClient(
     private val opphørUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
+    private val pdfgenrsKlageAvvisUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageAvvis")
     private val klageInnstillingUrl = URI.create("$baseUrl/api/v1/genpdf/tpts/klageInnstilling")
 
     override suspend fun genererInnvilgetVedtakBrev(
@@ -361,6 +368,10 @@ class PdfgenHttpClient(
         )
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererAvvisningsvedtak(
         saksnummer: Saksnummer,
         fnr: Fnr,
@@ -370,23 +381,43 @@ class PdfgenHttpClient(
         forhåndsvisning: Boolean,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                BrevKlageAvvisningDTO.create(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    fnr = fnr,
-                )
-            },
-            errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
-            uri = klageAvvisUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = {
+                    BrevKlageAvvisningDTO.create(
+                        hentBrukersNavn = hentBrukersNavn,
+                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                        datoForUtsending = vedtaksdato,
+                        tilleggstekst = tilleggstekst,
+                        saksbehandlerNavIdent = saksbehandlerNavIdent,
+                        saksnummer = saksnummer,
+                        forhåndsvisning = forhåndsvisning,
+                        fnr = fnr,
+                    )
+                },
+                errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
+                pdfgenUri = klageAvvisUri,
+                pdfgenrsUri = pdfgenrsKlageAvvisUri,
+            )
+        } else {
+            pdfgenRequest(
+                jsonPayload = {
+                    BrevKlageAvvisningDTO.create(
+                        hentBrukersNavn = hentBrukersNavn,
+                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                        datoForUtsending = vedtaksdato,
+                        tilleggstekst = tilleggstekst,
+                        saksbehandlerNavIdent = saksbehandlerNavIdent,
+                        saksnummer = saksnummer,
+                        forhåndsvisning = forhåndsvisning,
+                        fnr = fnr,
+                    )
+                },
+                errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
+                uri = klageAvvisUri,
+            ).map { it to null }
+        }
     }
 
     override suspend fun genererInnstillingsbrev(
@@ -495,12 +526,40 @@ class PdfgenHttpClient(
                     Sikkerlogg.error { "Feil ved kall til pdfgen. $errorContext. uri: $uri. jsonResponse: $jsonResponse. jsonPayload: $payload." }
                     return@withContext KunneIkkeGenererePdf.left()
                 }
+
                 PdfOgJson(PdfA(jsonResponse), payload)
             }.mapLeft {
                 // Either.catch slipper igjennom CancellationException som er ønskelig.
                 log.error(it) { "Feil ved kall til pdfgen. $errorContext. Se sikkerlogg for detaljer." }
                 Sikkerlogg.error(it) { "Feil ved kall til pdfgen. $errorContext. jsonPayload: $payload, uri: $uri" }
                 KunneIkkeGenererePdf
+            }
+        }
+    }
+
+    private suspend fun runParallel(
+        jsonPayload: suspend () -> String,
+        errorContext: String,
+        pdfgenUri: URI,
+        pdfgenrsUri: URI,
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        return coroutineScope {
+            val pdfgenDeferred = async {
+                measureTimedValue { pdfgenRequest(jsonPayload, errorContext, pdfgenUri) }
+            }
+            val pdfgenrsDeferred = async {
+                measureTimedValue { pdfgenRequest(jsonPayload, errorContext, pdfgenrsUri) }
+            }
+
+            val (pdfgenResult, pdfgenDuration) = pdfgenDeferred.await()
+            val (pdfgenrsResult, pdfgenrsDuration) = pdfgenrsDeferred.await()
+
+            log.info { "pdfgen brukte $pdfgenDuration, pdfgenrs brukte $pdfgenrsDuration" }
+
+            pdfgenResult.flatMap { pdfgen ->
+                pdfgenrsResult.map { pdfgenrs ->
+                    Pair(pdfgen, pdfgenrs)
+                }
             }
         }
     }

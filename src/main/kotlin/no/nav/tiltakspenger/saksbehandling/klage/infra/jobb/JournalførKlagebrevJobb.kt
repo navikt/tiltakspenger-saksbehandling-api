@@ -60,9 +60,22 @@ class JournalførKlagebrevJobb(
                     log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                     val (journalpostId, _, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
                         klagevedtak = vedtak,
-                        pdfOgJson = pdfOgJson,
+                        pdfOgJson = pdfOgJson.first,
                         correlationId = correlationId,
                     )
+
+                    /*
+                        TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-avvis pdf er ok
+                            Akkurat nå bryr vi oss ikke om journalpostId'en etc. Så lenge vi finner saken igjen i gosys
+                            så bare manuelt sjekker vi at ting er ok.
+                     */
+                    pdfOgJson.second?.let {
+                        journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
+                            klagevedtak = vedtak,
+                            pdfOgJson = it,
+                            correlationId = correlationId,
+                        )
+                    }
                     log.info { "Vedtaksbrev journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                     klagevedtakRepo.markerJournalført(
                         vedtak.id,

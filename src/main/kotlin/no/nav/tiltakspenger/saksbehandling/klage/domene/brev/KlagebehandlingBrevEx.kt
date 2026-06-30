@@ -29,7 +29,7 @@ suspend fun Klagebehandling.genererBrev(
     genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
     // til bruk for innstillingsbrev
     vedtaksdato: LocalDate?,
-): Either<KunneIkkeGenererePdf, PdfOgJson> {
+): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
     require(resultat is Klagebehandlingsresultat.Avvist || resultat is Klagebehandlingsresultat.Opprettholdt) {
         """
             Kan kun generere klagebrev dersom;
@@ -77,7 +77,7 @@ suspend fun Klagebehandling.genererBrev(
             true,
             this.formkrav.innsendingsdato,
             vedtaksdato!!,
-        )
+        ).map { it to null }
     }
 }
 
@@ -90,7 +90,7 @@ suspend fun Klagebehandling.genererBrev(
     genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
     // til bruk for innstillingsbrev
     vedtaksdato: LocalDate?,
-): Either<KunneIkkeGenererePdf, PdfOgJson> {
+): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
     require(skalGenerereBrevKunFraBehandling()) {
         """
             Kan kun generere endelig klagebrev dersom;
@@ -125,7 +125,7 @@ suspend fun Klagebehandling.genererBrev(
                 false,
                 this.formkrav.innsendingsdato,
                 vedtaksdato!!,
-            )
+            ).map { it to null }
         }
 
         is Klagebehandlingsresultat.Omgjør, null -> throw IllegalStateException("Ingen resultat og omgjør er ikke en gyldig tilstand for klagebehandlingsresultat ved generering av brev. Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")

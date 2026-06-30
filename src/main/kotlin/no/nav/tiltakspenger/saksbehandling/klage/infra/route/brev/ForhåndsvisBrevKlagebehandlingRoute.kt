@@ -5,8 +5,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.utils.io.writeFully
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
@@ -22,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeForhåndsviseBrev
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
+import java.io.ByteArrayOutputStream
 
 internal const val FORHÅNDSVIS_BREV_KLAGEBEHANDLING_PATH =
     "/sak/{sakId}/klage/{klagebehandlingId}/forhandsvis"
@@ -62,13 +65,36 @@ fun Route.forhåndsvisBrevKlagebehandlingRoute(
                                 contextMessage = "Forhåndsviser brev for klagebehandling",
                                 correlationId = correlationId,
                             )
-                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                            if (it.second == null) {
+                                call.respondBytes(it.first.getContent(), ContentType.Application.Pdf)
+                            } else {
+                                call.respondBytesWriter(
+                                    ContentType.MultiPart.Mixed.withParameter("boundary", "pdf-boundary"),
+                                ) {
+                                    writeFully(buildMultipartBody(it.first.getContent(), it.second!!.getContent()))
+                                }
+                            }
                         },
                     )
                 }
             }
         }
     }
+}
+
+private fun buildMultipartBody(vararg pdfs: ByteArray): ByteArray {
+    val boundary = "pdf-boundary"
+    return ByteArrayOutputStream().apply {
+        pdfs.forEachIndexed { index, pdf ->
+            write("--$boundary\r\n".toByteArray())
+            write("Content-Type: application/pdf\r\n".toByteArray())
+            write("Content-Disposition: attachment; filename=\"brev-${index + 1}.pdf\"\r\n".toByteArray())
+            write("\r\n".toByteArray())
+            write(pdf)
+            write("\r\n".toByteArray())
+        }
+        write("--$boundary--\r\n".toByteArray())
+    }.toByteArray()
 }
 
 private fun KanIkkeForhåndsviseBrev.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {

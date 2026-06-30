@@ -58,6 +58,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
                 forventetStatus = forventetStatus,
+                forventetContenttype = ContentType.parse("multipart/mixed; boundary=pdf-boundary"),
                 forventetPdf = forventetPdf,
             )!!,
         )
@@ -85,6 +86,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
                 forventetStatus = forventetStatus,
+                forventetContenttype = ContentType.parse("multipart/mixed; boundary=pdf-boundary"),
                 forventetPdf = forventetPdf,
             )!!,
         )
@@ -103,6 +105,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
             ),
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetContenttype: ContentType? = ContentType.parse("application/pdf"),
         forventetPdf: PdfA? = null,
     ): PdfA? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
@@ -141,10 +144,8 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 ) {
                     if (forventetStatus != null) {
                         status shouldBe forventetStatus
-                        if (forventetStatus == HttpStatusCode.OK) {
-                            contentType() shouldBe ContentType.parse("application/pdf")
-                        } else {
-                            contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
+                        if (forventetContenttype != null) {
+                            contentType() shouldBe forventetContenttype
                         }
                     }
                     if (forventetPdf != null) pdfBytes shouldBe forventetPdf
