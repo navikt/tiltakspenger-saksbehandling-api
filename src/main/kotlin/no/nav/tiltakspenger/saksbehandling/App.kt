@@ -21,14 +21,13 @@ import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.CALL_ID_MDC_KEY
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration.httpPort
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import java.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
-    System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile())
+    System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
 
     val log = KotlinLogging.logger {}
 
@@ -42,7 +41,7 @@ fun main() {
 
 internal fun start(
     log: KLogger,
-    port: Int = httpPort(),
+    port: Int = Configuration.httpPort,
     isNais: Boolean = Configuration.isNais(),
     clock: Clock = Clock.system(zoneIdOslo),
     applicationContext: ApplicationContext = ApplicationContext(
@@ -64,7 +63,7 @@ internal fun start(
         RunCheckFactory(
             leaderPodLookup =
             LeaderPodLookupClient(
-                electorPath = Configuration.electorPath(),
+                electorPath = Configuration.electorPath,
                 logger = KotlinLogging.logger { },
             ),
             attributes = server.application.attributes,

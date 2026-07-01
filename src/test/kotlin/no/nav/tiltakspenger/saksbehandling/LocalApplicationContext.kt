@@ -81,13 +81,22 @@ class LocalApplicationContext(
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
     private val realPdfGen = if (usePdfGen) {
-        PdfgenHttpClient(baseUrl = "http://host.docker.internal:8081", basePdfgenrsUrl = "http://host.docker.internal:8083", isLocalOrDev = true)
+        PdfgenHttpClient(
+            baseUrl = "http://host.docker.internal:8081",
+            basePdfgenrsUrl = "http://host.docker.internal:8083",
+            isLocalOrDev = true,
+        )
     } else {
         null
     }
 
+    private val brukFakeMeldekortApi: Boolean =
+        System.getenv("BRUK_FAKE_MELDEKORT_API")?.toBooleanStrictOrNull() ?: true
+    private val brukFakeTexasClient: Boolean =
+        System.getenv("BRUK_FAKE_AUTH")?.toBooleanStrictOrNull() ?: true
+
     override val texasClient =
-        if (Configuration.brukFakeTexasClientLokalt) TexasClientFake(clock) else super.texasClient
+        if (brukFakeTexasClient) TexasClientFake(clock) else super.texasClient
 
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient =
@@ -230,7 +239,7 @@ class LocalApplicationContext(
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
                 // Ved kjøring lokalt kan vi styre kjøring av fake eller ekte API med env-var BRUK_FAKE_MELDEKORT_API
-                get() = if (Configuration.brukFakeMeldekortApiLokalt) {
+                get() = if (brukFakeMeldekortApi) {
                     MeldekortApiFakeKlient()
                 } else {
                     MeldekortApiHttpClient(

@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import org.flywaydb.core.Flyway
 
 private fun flyway(dataSource: javax.sql.DataSource): Flyway =
-    when (Configuration.applicationProfile()) {
+    when (Configuration.profile) {
         Profile.LOCAL -> localFlyway(dataSource)
         else -> gcpFlyway(dataSource)
     }

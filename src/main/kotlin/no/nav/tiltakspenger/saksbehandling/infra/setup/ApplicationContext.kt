@@ -90,8 +90,8 @@ open class ApplicationContext(
 
     open val texasClient: TexasClient by lazy {
         TexasHttpClient(
-            introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
-            tokenUrl = Configuration.naisTokenEndpoint,
+            introspectionUrl = Configuration.tokenIntrospectionEndpoint,
+            tokenUrl = Configuration.tokenEndpoint,
             tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
             clock = clock,
         )
@@ -333,7 +333,7 @@ open class ApplicationContext(
             sessionFactory = sessionFactory,
         )
     }
-    open val profile by lazy { Configuration.applicationProfile() }
+    open val profile by lazy { Configuration.profile }
     open val sakContext by lazy {
         SakContext(
             sessionFactory = sessionFactory,

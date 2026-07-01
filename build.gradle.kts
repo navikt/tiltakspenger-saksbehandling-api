@@ -62,8 +62,6 @@ dependencies {
     implementation("io.ktor:ktor-utils:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
 
-    implementation("com.natpryce:konfig:1.6.10.0")
-
     // Http
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-apache5:$ktorVersion")
