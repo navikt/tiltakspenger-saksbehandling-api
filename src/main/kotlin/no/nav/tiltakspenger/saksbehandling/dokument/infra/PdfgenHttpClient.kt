@@ -57,13 +57,11 @@ import kotlin.time.toJavaDuration
 
 /**
  * Har ansvar for å konvertere domene til JSON som sendes til https://github.com/navikt/tiltakspenger-pdfgen for å generere PDF.
- *
- * timeout er satt til 6 sekunder siden pdfgen bruker lang tid første gang den genererer en pdf (nesten 5 sekunder). Etter det tar det 1-2 sekunder
  */
 class PdfgenHttpClient(
     baseUrl: String,
     basePdfgenrsUrl: String,
-    connectTimeout: Duration = 1.seconds,
+    connectTimeout: Duration = 3.seconds,
     private val isLocalOrDev: Boolean,
     private val timeout: Duration = 20.seconds,
 ) : GenererVedtaksbrevForInnvilgelseKlient,
