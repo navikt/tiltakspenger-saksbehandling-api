@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
 
 private val logger = KotlinLogging.logger {}
@@ -54,7 +53,6 @@ fun Route.mottaSøknadRoute(
                     internTiltaksdeltakelsesId = internTiltaksdeltakelsesId,
                 ),
             )
-            MetricRegister.MOTTATT_SOKNAD.inc()
             call.respondText(text = "OK", status = HttpStatusCode.OK)
         }
     }

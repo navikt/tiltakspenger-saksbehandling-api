@@ -26,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.meldeperioderErGyldigeForHelg
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
@@ -228,7 +227,6 @@ class IverksettRammebehandlingService(
             onSuccess = {
                 if (rammevedtak.rammebehandling.utbetaling?.harFeilutbetaling() == true) {
                     logger.warn { "Rammebehandling med feilutbetaling har blitt iverksatt - Behandling-id ${rammevedtak.rammebehandling.id} - vedtak-id: ${rammevedtak.id} - sak-id: ${rammevedtak.sakId}" }
-                    MetricRegister.IVERKSATT_RAMMEBEHANDLING_MED_FEILUTBETALING.inc()
                 }
             },
         )
@@ -258,7 +256,6 @@ class IverksettRammebehandlingService(
             tilleggsoperasjoner(tx)
             runBlocking {
                 tx.onSuccess {
-                    MetricRegister.IVERKSATT_BEHANDLING.inc()
                     onSuccess()
                 }
             }

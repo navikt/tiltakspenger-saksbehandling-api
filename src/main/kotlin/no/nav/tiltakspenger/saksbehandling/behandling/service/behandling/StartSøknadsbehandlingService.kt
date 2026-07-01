@@ -9,11 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import java.time.Clock
 
@@ -58,8 +55,6 @@ class StartSøknadsbehandlingService(
                 sessionContext = tx,
             )
         }
-
-        MetricRegister.STARTET_BEHANDLING.inc()
         return behandling
     }
 }

@@ -3,11 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.STARTET_BEHANDLING_KLAGE
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.ValiderJournalpostResponse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -60,9 +58,6 @@ class OpprettKlagebehandlingService(
         sessionFactory.withTransactionContext { tx ->
             klagebehandlingRepo.lagreKlagebehandling(klagebehandling, tx)
             statistikkService.lagre(statistikk, tx)
-            runBlocking {
-                tx.onSuccess { STARTET_BEHANDLING_KLAGE.inc() }
-            }
         }
 
         return Pair(oppdatertSak, klagebehandling).right()

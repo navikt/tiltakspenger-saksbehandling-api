@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -9,7 +8,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.startSøknadsbehandlingPåNytt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.time.Clock
@@ -52,12 +50,6 @@ class BehandleSøknadPåNyttService(
                 sakId = sak.id,
                 sessionContext = tx,
             )
-            runBlocking {
-                tx.onSuccess {
-                    MetricRegister.STARTET_BEHANDLING.inc()
-                    MetricRegister.SØKNAD_BEHANDLET_PÅ_NYTT.inc()
-                }
-            }
         }
         return (oppdatertSak to søknadsbehandling)
     }

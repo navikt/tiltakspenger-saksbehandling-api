@@ -27,9 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLES_MANUELT_GRUNN
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_BEHANDLET_DELVIS_AUTOMATISK
-import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister.SOKNAD_IKKE_BEHANDLET_AUTOMATISK
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
@@ -84,11 +81,9 @@ class DelautomatiskBehandlingService(
         if (manueltBehandlesGrunner.isEmpty()) {
             log.info { "Kan behandle behandling med id ${behandling.id} automatisk, sender til beslutning, correlationId $correlationId" }
             sak.sendTilBeslutning(oppdatertBehandling, statistikkhendelser, correlationId)
-            SOKNAD_BEHANDLET_DELVIS_AUTOMATISK.inc()
         } else {
             log.info { "Kan ikke behandle behandling med id ${behandling.id} automatisk, sender til manuell behandling, correlationId $correlationId" }
             sendTilManuellBehandling(oppdatertBehandling, manueltBehandlesGrunner, statistikkhendelser, correlationId)
-            SOKNAD_IKKE_BEHANDLET_AUTOMATISK.inc()
         }
     }
 
@@ -255,9 +250,6 @@ class DelautomatiskBehandlingService(
                 rammebehandlingRepo.lagre(it, tx)
                 statistikkService.lagre(statistikkDTO, tx)
             }
-        }
-        manueltBehandlesGrunner.forEach {
-            SOKNAD_BEHANDLES_MANUELT_GRUNN.labelValues(it.name).inc()
         }
         log.info { "Behandling med id ${behandling.id} er gjort klar til manuell behandling, correlationId $correlationId" }
     }
