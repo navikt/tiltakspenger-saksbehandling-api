@@ -61,7 +61,7 @@ import kotlin.time.toJavaDuration
 class PdfgenHttpClient(
     baseUrl: String,
     basePdfgenrsUrl: String,
-    connectTimeout: Duration = 3.seconds,
+    connectTimeout: Duration = 10.seconds,
     private val isLocalOrDev: Boolean,
     private val timeout: Duration = 20.seconds,
 ) : GenererVedtaksbrevForInnvilgelseKlient,
