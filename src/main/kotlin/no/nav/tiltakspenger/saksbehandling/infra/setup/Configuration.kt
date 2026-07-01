@@ -170,6 +170,8 @@ object Configuration {
                 "DOKDIST_URL" to "https://dokdistfordeling.prod-fss-pub.nais.io",
                 "PDFGEN_SCOPE" to "prod-gcp:tpts:tiltakspenger-pdfgen",
                 "PDFGEN_URL" to "http://tiltakspenger-pdfgen",
+                "PDFGENRS_SCOPE" to "prod-gcp:tpts:tiltakspenger-pdfgenrs",
+                "PDFGENRS_URL" to "http://tiltakspenger-pdfgenrs",
                 "MICROSOFT_SCOPE" to "https://graph.microsoft.com/.default",
                 "MICROSOFT_URL" to "graph.microsoft.com/v1.0",
                 "DATADELING_SCOPE" to "prod-gcp:tpts:tiltakspenger-datadeling",
