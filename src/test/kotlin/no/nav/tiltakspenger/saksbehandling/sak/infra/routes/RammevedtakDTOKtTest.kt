@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
@@ -11,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.TidslinjeResultat
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.toTidslinjeElementDto
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class RammevedtakDTOKtTest {
 
@@ -123,7 +123,7 @@ class RammevedtakDTOKtTest {
 
     @Test
     fun `avslag kaster exception`() {
-        assertThrows<IllegalStateException> {
+        shouldThrow<IllegalStateException> {
             val avslagsperiode = ObjectMother.vedtaksperiode()
             val rammevedtak = ObjectMother.nyRammevedtakAvslag(avslagsperiode = avslagsperiode)
             rammevedtak.toTidslinjeElementDto(avslagsperiode)

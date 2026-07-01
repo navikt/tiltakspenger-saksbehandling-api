@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 class VentestatusTest {
@@ -38,7 +37,7 @@ class VentestatusTest {
     fun `kaster exception dersom frist er i fortid`() {
         val clock = TikkendeKlokke()
         val ventestatus = Ventestatus()
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             ventestatus.settPåVent(
                 tidspunktSattPåVent = nå(clock),
                 endretAv = "saksbehandler",

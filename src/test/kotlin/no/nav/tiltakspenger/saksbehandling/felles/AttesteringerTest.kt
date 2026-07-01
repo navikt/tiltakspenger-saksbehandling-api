@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 
 class AttesteringerTest {
 
@@ -15,24 +15,24 @@ class AttesteringerTest {
         val a1 = ObjectMother.underkjentAttestering(clock = fixedClock)
         val a2 = ObjectMother.underkjentAttestering(clock = enUkeEtterFixedClock)
 
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             Attesteringer(listOf(a2, a1))
         }
 
-        assertDoesNotThrow {
+        shouldNotThrowAny {
             Attesteringer(listOf(a1, a2))
         }
     }
 
     @Test
     fun `skal kunne ha max 1 godkjent attestering`() {
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             val a1 = ObjectMother.godkjentAttestering()
             val a2 = ObjectMother.godkjentAttestering()
             Attesteringer(listOf(a1, a2))
         }
 
-        assertDoesNotThrow {
+        shouldNotThrowAny {
             val a1 = ObjectMother.underkjentAttestering()
             val a2 = ObjectMother.godkjentAttestering()
             Attesteringer(listOf(a1, a2))

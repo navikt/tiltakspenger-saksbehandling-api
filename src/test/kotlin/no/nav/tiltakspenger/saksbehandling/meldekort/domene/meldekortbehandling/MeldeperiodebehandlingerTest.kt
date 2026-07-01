@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import java.time.LocalDate
 
 class MeldeperiodebehandlingerTest {
@@ -19,7 +19,7 @@ class MeldeperiodebehandlingerTest {
             kjedeId = meldekort.kjedeIdLegacy,
         )
 
-        assertDoesNotThrow {
+        shouldNotThrowAny {
             Meldeperiodebehandlinger(
                 meldeperioder = meldekort.meldeperioder.meldeperioder,
                 beregning = beregning,

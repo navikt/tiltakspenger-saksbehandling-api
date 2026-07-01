@@ -1,21 +1,21 @@
 package no.nav.tiltakspenger.saksbehandling.benk.domene
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.mai
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
 
 class BehandlingssammendragTest {
 
     @Test
     fun `krever at kravtidspunkt finnes for søknadsbehandlinger`() {
-        assertDoesNotThrow {
+        shouldNotThrowAny {
             Behandlingssammendrag(
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
@@ -36,7 +36,7 @@ class BehandlingssammendragTest {
             )
         }
 
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             Behandlingssammendrag(
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
@@ -60,7 +60,7 @@ class BehandlingssammendragTest {
 
     @Test
     fun `kravtidspunkt skal være null for ikke-søknadsbehandlinger`() {
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             Behandlingssammendrag(
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
@@ -81,7 +81,7 @@ class BehandlingssammendragTest {
             )
         }
 
-        assertDoesNotThrow {
+        shouldNotThrowAny {
             Behandlingssammendrag(
                 sakId = SakId.random(),
                 fnr = Fnr.random(),

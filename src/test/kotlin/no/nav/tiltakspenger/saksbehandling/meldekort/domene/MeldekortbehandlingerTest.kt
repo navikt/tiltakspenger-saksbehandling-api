@@ -1,18 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 
 class MeldekortbehandlingerTest {
 
     @Test
     fun `kun 1 eller 0 meldekortbehandling kan være åpen om gangen`() {
         val sakId = SakId.random()
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             Meldekortbehandlinger(
                 verdi = listOf(
                     ObjectMother.meldekortUnderBehandling(
@@ -25,7 +25,7 @@ class MeldekortbehandlingerTest {
             )
         }
 
-        assertDoesNotThrow {
+        shouldNotThrowAny {
             Meldekortbehandlinger(verdi = listOf(ObjectMother.meldekortUnderBehandling()))
             Meldekortbehandlinger(verdi = emptyList())
         }

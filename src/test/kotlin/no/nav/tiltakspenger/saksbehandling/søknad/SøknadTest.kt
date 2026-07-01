@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.søknad
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -21,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 class SøknadTest {
@@ -127,7 +127,7 @@ class SøknadTest {
             ),
         )
 
-        assertThrows<IllegalStateException> {
+        shouldThrow<IllegalStateException> {
             avbruttSøknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), 1.november(2024).atStartOfDay())
         }
     }

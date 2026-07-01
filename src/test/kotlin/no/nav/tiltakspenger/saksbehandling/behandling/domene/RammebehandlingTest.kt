@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.left
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
@@ -23,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -84,7 +84,7 @@ class RammebehandlingTest {
             begrunnelse = "skal få exception",
         )
 
-        assertThrows<IllegalArgumentException> {
+        shouldThrow<IllegalArgumentException> {
             avbruttBehandling.avbryt(
                 avbruttAv = ObjectMother.saksbehandler(),
                 begrunnelse = "begrunnelse".toNonBlankString(),
@@ -200,7 +200,7 @@ class RammebehandlingTest {
             val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
                 .leggTilbakeRammebehandling(saksbehandler = saksbehandler, clock = clock).first
 
-            assertThrows<IllegalStateException> {
+            shouldThrow<IllegalStateException> {
                 val kommando = SettRammebehandlingPåVentKommando(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
@@ -242,7 +242,7 @@ class RammebehandlingTest {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
 
-            assertThrows<IllegalStateException> {
+            shouldThrow<IllegalStateException> {
                 val kommando = SettRammebehandlingPåVentKommando(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
@@ -286,7 +286,7 @@ class RammebehandlingTest {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nyVedtattSøknadsbehandling(saksbehandler = saksbehandler)
 
-            assertThrows<IllegalStateException> {
+            shouldThrow<IllegalStateException> {
                 val kommando = SettRammebehandlingPåVentKommando(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
@@ -304,7 +304,7 @@ class RammebehandlingTest {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nyAvbruttSøknadsbehandling(saksbehandler = saksbehandler)
 
-            assertThrows<IllegalStateException> {
+            shouldThrow<IllegalStateException> {
                 val kommando = SettRammebehandlingPåVentKommando(
                     sakId = behandling.sakId,
                     rammebehandlingId = behandling.id,
@@ -451,7 +451,7 @@ class RammebehandlingTest {
                 val saksbehandler = ObjectMother.saksbehandler()
                 val behandling = ObjectMother.nyVedtattSøknadsbehandling(saksbehandler = saksbehandler)
 
-                assertThrows<IllegalStateException> {
+                shouldThrow<IllegalStateException> {
                     val kommando = SettRammebehandlingPåVentKommando(
                         sakId = behandling.sakId,
                         rammebehandlingId = behandling.id,
@@ -480,7 +480,7 @@ class RammebehandlingTest {
                 val saksbehandler = ObjectMother.saksbehandler()
                 val behandling = ObjectMother.nyAvbruttSøknadsbehandling(saksbehandler = saksbehandler)
 
-                assertThrows<IllegalStateException> {
+                shouldThrow<IllegalStateException> {
                     val kommando = SettRammebehandlingPåVentKommando(
                         sakId = behandling.sakId,
                         rammebehandlingId = behandling.id,
@@ -509,7 +509,7 @@ class RammebehandlingTest {
                 val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
                 val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-                assertThrows<IllegalArgumentException> {
+                shouldThrow<IllegalArgumentException> {
                     behandling.gjenoppta(
                         GjenopptaRammebehandlingKommando(
                             sakId = behandling.sakId,

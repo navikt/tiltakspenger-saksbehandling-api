@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.uke
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class BarnetilleggTest {
 
@@ -20,13 +20,14 @@ class BarnetilleggTest {
         fun `kaster exception ved overlappende perioder`() {
             val overlappendeBt1 = Pair(Periode(10.januar(2026), 15.januar(2026)), AntallBarn(1))
 
-            assertThrows<IllegalArgumentException> {
+            val exception = shouldThrow<IllegalArgumentException> {
                 Barnetillegg.periodiserOgFyllUtHullMed0(
                     perioderMedBarn = nonEmptyListOf(bt1, overlappendeBt1),
                     begrunnelse = null,
                     innvilgelsesperioder = nonEmptyListOf(Periode(1.januar(2026), 31.januar(2026))),
                 )
-            }.message shouldBe ("Støtter ikke overlappende perioder, men var: [1.–4. januar 2026, 5.–11. januar 2026, 10.–15. januar 2026, 16.–31. januar 2026]")
+            }
+            exception.message shouldBe ("Støtter ikke overlappende perioder, men var: [1.–4. januar 2026, 5.–11. januar 2026, 10.–15. januar 2026, 16.–31. januar 2026]")
         }
 
         @Test
@@ -121,13 +122,14 @@ class BarnetilleggTest {
                 Periode(18.januar(2026), 24.januar(2026)),
             )
 
-            assertThrows<IllegalArgumentException> {
+            val exception = shouldThrow<IllegalArgumentException> {
                 Barnetillegg.periodiserOgFyllUtHullMed0(
                     perioderMedBarn = barnetilleggPerioder,
                     begrunnelse = null,
                     innvilgelsesperioder = innvilgelsesperioder,
                 )
-            }.message shouldBe "Barnetilleggsperiodene må være innenfor innvilgelsesperiodene"
+            }
+            exception.message shouldBe "Barnetilleggsperiodene må være innenfor innvilgelsesperiodene"
         }
     }
 }
