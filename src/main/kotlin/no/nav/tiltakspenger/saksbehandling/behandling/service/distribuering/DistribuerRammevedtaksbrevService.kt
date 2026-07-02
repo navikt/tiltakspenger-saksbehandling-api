@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import java.time.Clock
 
 class DistribuerRammevedtaksbrevService(
@@ -26,7 +27,7 @@ class DistribuerRammevedtaksbrevService(
                     val distribusjonId =
                         dokumentdistribusjonsklient.distribuerDokument(vedtakSomSkalDistribueres.journalpostId, correlationId)
                             .getOrElse {
-                                log.error { "Kunne ikke distribuere rammevedtaksbrev. $vedtakSomSkalDistribueres" }
+                                it.loggFeil(log, "distribuering av rammevedtaksbrev", "$vedtakSomSkalDistribueres")
                                 return@forEach
                             }
                     log.info { "Rammevedtaksbrev distribuert. $vedtakSomSkalDistribueres" }

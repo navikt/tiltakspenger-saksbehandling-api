@@ -32,7 +32,8 @@ open class DokumentContext(
     open val dokumentdistribusjonsklient: Dokumentdistribusjonsklient by lazy {
         DokdistHttpClient(
             baseUrl = Configuration.dokdistUrl,
-            getToken = { texasClient.getSystemToken(Configuration.dokdistScope, IdentityProvider.AZUREAD) },
+            clock = clock,
+            authTokenProvider = { texasClient.getSystemToken(Configuration.dokdistScope, IdentityProvider.AZUREAD) },
         )
     }
     open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { dokarkivClient }

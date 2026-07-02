@@ -1,90 +1,67 @@
 package no.nav.tiltakspenger.saksbehandling.distribusjon.infra
 
 import arrow.core.Either
-import arrow.core.flatten
-import arrow.core.left
-import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.httpklient.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.post
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
-import no.nav.tiltakspenger.saksbehandling.distribusjon.KunneIkkeDistribuereDokument
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import java.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
+/**
+ * Responsen fra dokdist ved distribusjon av en journalpost.
+ * `bestillingsId` er distribusjons-id-en vi lagrer på vedtaket.
+ */
+internal data class DokdistResponse(
+    val bestillingsId: String,
+)
+
+/**
+ * Klient mot dokdist (distribusjon av journalførte dokumenter), bygget på den felles [HttpKlient]-modulen i tiltakspenger-libs.
+ *
+ * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og den bærer all HTTP-kontekst (status, rå request/respons, throwable) via `metadata`.
+ * Feilloggingen gjøres én gang av konsumenten ([no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService]), som i tillegg har domenekonteksten.
+ * Mangler noe som burde vært felles for alle konsumenter av httpklient, bør det legges til i libs framfor her.
+ *
+ * [httpKlient] bygges som default ut fra parametrene over ([clock], [authTokenProvider], [connectTimeout], [defaultTimeout], [successStatus]) slik at hele klientoppsettet kan leses ett sted.
+ * Sender man inn en egen [httpKlient] (typisk `HttpKlientFake` i test), **ignoreres** de parametrene som kun brukes til å bygge default-klienten.
+ *
+ * @param clock Klokke som sendes videre til [HttpKlient]. Ignoreres hvis [httpKlient] sendes inn.
+ * @param authTokenProvider Henter system-token mot dokdist. Ignoreres hvis [httpKlient] sendes inn.
+ * @param connectTimeout Connect-timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ * @param defaultTimeout Per-request timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ * @param successStatus Predikat for hvilke HTTP-statuser som regnes som suksess i default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ */
 class DokdistHttpClient(
     baseUrl: String,
-    private val getToken: suspend () -> AccessToken,
+    clock: Clock,
+    authTokenProvider: suspend () -> AccessToken,
     connectTimeout: Duration = 1.seconds,
-    private val timeout: Duration = 1.seconds,
+    defaultTimeout: Duration = 1.seconds,
+    // 409 er en forventet statuskode ved forsøk på å distribuere samme dokument flere ganger, og regnes derfor som suksess.
+    successStatus: (Int) -> Boolean = { it == 200 || it == 409 },
+    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
+        this.connectTimeout = connectTimeout
+        this.defaultTimeout = defaultTimeout
+        this.successStatus = successStatus
+        this.authTokenProvider = authTokenProvider
+    },
 ) : Dokumentdistribusjonsklient {
-
-    private val log = KotlinLogging.logger {}
-
-    private val client =
-        HttpClient
-            .newBuilder()
-            .connectTimeout(connectTimeout.toJavaDuration())
-            .followRedirects(HttpClient.Redirect.NEVER)
-            .build()
-
     private val uri = URI.create("$baseUrl/rest/v1/distribuerjournalpost")
 
     override suspend fun distribuerDokument(
         journalpostId: JournalpostId,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeDistribuereDokument, DistribusjonId> {
-        return withContext(Dispatchers.IO) {
-            val jsonPayload = journalpostId.toDokdistRequest()
-            Either.catch {
-                val token = getToken()
-                val request = createRequest(jsonPayload, correlationId, token.token)
-                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-                val status = httpResponse.statusCode()
-                val jsonResponse = httpResponse.body()
-                if (status == 401 || status == 403) {
-                    log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokdist. status: $status." }
-                    token.invaliderCache()
-                }
-                if (status != 409 && status != 200) {
-                    log.error { "Feil ved kall til dokdist. journalpostId: $journalpostId. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
-                    Sikkerlogg.error { "Feil ved kall til dokdist. journalpostId: $journalpostId. Status: $status. uri: $uri. jsonPayload: $jsonPayload. jsonResponse: $jsonResponse" }
-                    return@withContext KunneIkkeDistribuereDokument.left()
-                }
-                // 409 er en forventet statuskode ved forsøk på å distribuere samme dokument flere ganger.
-                jsonResponse.dokdistResponseToDomain(log)
-            }.mapLeft {
-                // Either.catch slipper igjennom CancellationException som er ønskelig.
-                log.error(it) { "Feil ved kall til dokdist. journalpostId: $journalpostId. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error(it) { "Feil ved kall til dokdist. journalpostId: $journalpostId. . jsonPayload: $jsonPayload, uri: $uri" }
-                KunneIkkeDistribuereDokument
-            }.flatten()
-        }
+    ): Either<HttpKlientError, DistribusjonId> {
+        val jsonPayload = journalpostId.toDokdistRequest()
+        return httpKlient.post<DokdistResponse>(uri, jsonPayload) {
+            header("Nav-CallId", correlationId.value)
+        }.map { DistribusjonId(it.body.bestillingsId) }
     }
-
-    private fun createRequest(
-        jsonPayload: String,
-        correlationId: CorrelationId,
-        token: String,
-    ): HttpRequest? =
-        HttpRequest
-            .newBuilder()
-            .uri(uri)
-            .timeout(timeout.toJavaDuration())
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("Authorization", "Bearer $token")
-            .header("Nav-CallId", correlationId.value)
-            .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
 }

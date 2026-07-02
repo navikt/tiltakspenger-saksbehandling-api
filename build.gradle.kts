@@ -264,6 +264,7 @@ kover {
                     // Utvid lista etter hvert som flere klienter migreres (jf. TASKS.md httpklient-punkt).
                     classes(
                         "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
+                        "no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient",
                     )
                 }
             }
