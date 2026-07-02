@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
@@ -10,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen.saniterBeholdNewline
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -17,6 +19,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeAvbryteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
@@ -27,13 +30,14 @@ import java.time.Clock
 
 internal const val AVBRYT_SØKNAD_OG_BEHANDLING_PATH = "$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling"
 
+private val logger = KotlinLogging.logger {}
+
 fun Route.avbrytSøknadOgBehandling(
     auditService: AuditService,
     avbrytSøknadOgBehandlingService: AvbrytSøknadOgBehandlingService,
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
 ) {
-    val logger = KotlinLogging.logger {}
     post(AVBRYT_SØKNAD_OG_BEHANDLING_PATH) {
         logger.debug { "Mottatt post-request på $AVBRYT_SØKNAD_OG_BEHANDLING_PATH - Prøver å avslutte søknad og behandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
@@ -48,7 +52,10 @@ fun Route.avbrytSøknadOgBehandling(
                         avsluttetAv = saksbehandler,
                         correlationId = call.correlationId(),
                     ),
-                ).let {
+                ).onLeft { feil ->
+                    feil.logg()
+                    call.respondJson(statusAndValue = feil.tilStatusOgErrorJson())
+                }.onRight { sak ->
                     auditService.logMedSaksnummer(
                         saksnummer = saksnummer,
                         navIdent = saksbehandler.navIdent,
@@ -56,11 +63,39 @@ fun Route.avbrytSøknadOgBehandling(
                         correlationId = call.correlationId(),
                         contextMessage = "Avsluttet søknad og behandling",
                     )
-                    call.respondJson(value = it.toSakDTO(saksbehandler, clock))
+                    call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                 }
             }
         }
     }
+}
+
+/**
+ * Logger feilen i tråd med dens egen tolkning: [KunneIkkeAvbryteBehandling.loggnivå] avgjør nivået i vanlig logg.
+ * [KunneIkkeAvbryteBehandling.beskrivelse] er fri for personopplysninger og trygg å logge.
+ */
+private fun KunneIkkeAvbryteBehandling.logg() {
+    when (loggnivå) {
+        KunneIkkeAvbryteBehandling.Loggnivå.INFO -> logger.info { beskrivelse }
+        KunneIkkeAvbryteBehandling.Loggnivå.WARN -> logger.warn { beskrivelse }
+        KunneIkkeAvbryteBehandling.Loggnivå.ERROR -> logger.error { beskrivelse }
+    }
+}
+
+/**
+ * Oversetter en [KunneIkkeAvbryteBehandling] til en HTTP-status og en [ErrorJson] som saksbehandler kan lese i frontend.
+ * [ErrorJson.melding] er derfor saksbehandlervennlig og fri for interne IDer - de hører kun hjemme i loggen via [KunneIkkeAvbryteBehandling.beskrivelse].
+ */
+private fun KunneIkkeAvbryteBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KunneIkkeAvbryteBehandling.FantIkkeBehandling -> HttpStatusCode.NotFound to ErrorJson(
+        melding = "Vi fant ikke behandlingen du prøver å avbryte. Last inn siden på nytt og prøv igjen.",
+        kode = "fant_ikke_behandling",
+    )
+
+    is KunneIkkeAvbryteBehandling.BehandlingKanIkkeAvbrytesITilstanden -> HttpStatusCode.Conflict to ErrorJson(
+        melding = "Behandlingen er allerede avsluttet og kan ikke avbrytes. Last inn siden på nytt for å se oppdatert status.",
+        kode = "behandling_kan_ikke_avbrytes_i_tilstanden",
+    )
 }
 
 data class AvsluttSøknadOgBehandlingBody(

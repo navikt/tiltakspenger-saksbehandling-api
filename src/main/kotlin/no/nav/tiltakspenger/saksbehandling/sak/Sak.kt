@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.sak
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -11,6 +14,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeAvbryteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -149,8 +153,9 @@ data class Sak(
     fun avbrytSøknadOgBehandling(
         command: AvbrytRammebehandlingKommando,
         avbruttTidspunkt: LocalDateTime,
-    ): Triple<Sak, Søknad?, Rammebehandling> {
-        val rammebehandling: Rammebehandling = this.hentRammebehandling(command.behandlingId)!!
+    ): Either<KunneIkkeAvbryteBehandling, Triple<Sak, Søknad?, Rammebehandling>> {
+        val rammebehandling: Rammebehandling = this.hentRammebehandling(command.behandlingId)
+            ?: return KunneIkkeAvbryteBehandling.FantIkkeBehandling(command.behandlingId).left()
         val skalAvbryteSøknad =
             rammebehandling is Søknadsbehandling && this.rammebehandlinger.filter { it.id != rammebehandling.id }
                 .none { it is Søknadsbehandling && it.søknad.id == rammebehandling.søknad.id && !it.erAvbrutt }
@@ -159,14 +164,14 @@ data class Sak(
             begrunnelse = command.begrunnelse,
             tidspunkt = avbruttTidspunkt,
             skalAvbryteSøknad = skalAvbryteSøknad,
-        )
+        ).getOrElse { return it.left() }
         val avbruttSøknad = if (skalAvbryteSøknad) (avbruttBehandling as Søknadsbehandling).søknad else null
 
         val oppdatertSak = this.copy(
             søknader = if (avbruttSøknad != null) oppdaterSøknad(avbruttSøknad) else this.søknader,
             behandlinger = this.behandlinger.oppdaterRammebehandling(avbruttBehandling),
         )
-        return Triple(oppdatertSak, avbruttSøknad, avbruttBehandling)
+        return Triple(oppdatertSak, avbruttSøknad, avbruttBehandling).right()
     }
 
     fun oppdaterSøknad(søknad: Søknad): List<Søknad> {

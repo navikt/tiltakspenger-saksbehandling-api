@@ -183,10 +183,14 @@ data class Søknadsbehandling(
         begrunnelse: NonBlankString,
         tidspunkt: LocalDateTime,
         skalAvbryteSøknad: Boolean,
-    ): Søknadsbehandling {
+    ): Either<KunneIkkeAvbryteBehandling, Søknadsbehandling> {
         when (status) {
             UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> Unit
-            VEDTATT, AVBRUTT -> throw IllegalArgumentException("Kan ikke avbryte en søknadsbehandling i tilstanden $status")
+
+            VEDTATT, AVBRUTT -> return KunneIkkeAvbryteBehandling.BehandlingKanIkkeAvbrytesITilstanden(
+                behandlingId = id,
+                status = status,
+            ).left()
         }
         return this.copy(
             status = AVBRUTT,
@@ -202,7 +206,7 @@ data class Søknadsbehandling(
                 saksbehandler = avbruttAv,
                 sistEndret = tidspunkt,
             ),
-        )
+        ).right()
     }
 
     override fun erFerdigutfylt(): Boolean {

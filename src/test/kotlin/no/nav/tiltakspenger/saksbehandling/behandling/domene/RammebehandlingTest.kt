@@ -40,7 +40,7 @@ class RammebehandlingTest {
             begrunnelse = "begrunnelse".toNonBlankString(),
             tidspunkt = 1.november(2024).atStartOfDay(),
             skalAvbryteSøknad = true,
-        )
+        ).getOrFail()
 
         avbruttBehandling.erAvsluttet shouldBe true
         avbruttBehandling.avbrutt.let {
@@ -62,7 +62,7 @@ class RammebehandlingTest {
             begrunnelse = "begrunnelse".toNonBlankString(),
             tidspunkt = 1.november(2024).atStartOfDay(),
             skalAvbryteSøknad = true,
-        )
+        ).getOrFail()
 
         avbruttBehandling.erAvsluttet shouldBe true
         avbruttBehandling.avbrutt.let {
@@ -81,17 +81,18 @@ class RammebehandlingTest {
         val avbruttBehandling = ObjectMother.nyAvbruttSøknadsbehandling(
             tidspunkt = 1.november(2024).atStartOfDay(),
             avbruttAv = ObjectMother.saksbehandler(navIdent = "navident"),
-            begrunnelse = "skal få exception",
+            begrunnelse = "skal få feil",
         )
 
-        shouldThrow<IllegalArgumentException> {
-            avbruttBehandling.avbryt(
-                avbruttAv = ObjectMother.saksbehandler(),
-                begrunnelse = "begrunnelse".toNonBlankString(),
-                tidspunkt = 1.november(2024).atStartOfDay(),
-                skalAvbryteSøknad = true,
-            )
-        }
+        avbruttBehandling.avbryt(
+            avbruttAv = ObjectMother.saksbehandler(),
+            begrunnelse = "begrunnelse".toNonBlankString(),
+            tidspunkt = 1.november(2024).atStartOfDay(),
+            skalAvbryteSøknad = true,
+        ) shouldBe KunneIkkeAvbryteBehandling.BehandlingKanIkkeAvbrytesITilstanden(
+            behandlingId = avbruttBehandling.id,
+            status = Rammebehandlingsstatus.AVBRUTT,
+        ).left()
     }
 
     @Nested

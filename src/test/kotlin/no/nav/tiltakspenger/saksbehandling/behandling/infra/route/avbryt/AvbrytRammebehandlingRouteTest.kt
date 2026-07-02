@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt
 
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import no.nav.tiltakspenger.saksbehandling.søknad.shouldBeSøknadDTO
 import org.junit.jupiter.api.Test
@@ -53,6 +55,31 @@ class AvbrytRammebehandlingRouteTest {
                 innvilgelsesperiode = false,
                 barnetillegg = false,
                 avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "2025-05-01T01:02:13.456789","begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"}""",
+            )
+        }
+    }
+
+    @Test
+    fun `avbryter en behandling som allerede er avbrutt gir 409 Conflict`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, søknadsbehandling, _) = opprettSøknadsbehandlingOgAvbryt(
+                tac = tac,
+            )!!
+
+            avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = søknadsbehandling!!.id,
+                forventetStatus = HttpStatusCode.Conflict,
+                forventetJsonBody = {
+                    """
+                    {
+                      "melding": "Behandlingen er allerede avsluttet og kan ikke avbrytes. Last inn siden på nytt for å se oppdatert status.",
+                      "kode": "behandling_kan_ikke_avbrytes_i_tilstanden"
+                    }
+                    """.trimIndent()
+                },
             )
         }
     }

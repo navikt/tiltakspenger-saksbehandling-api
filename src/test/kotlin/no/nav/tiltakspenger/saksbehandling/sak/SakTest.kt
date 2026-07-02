@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.desember
@@ -54,7 +55,7 @@ class SakTest {
                 begrunnelse = "begrunnelse".toNonBlankString(),
             ),
             avbruttTidspunkt = 1.november(2024).atStartOfDay(),
-        )
+        ).getOrFail()
         avbruttSøknad?.avbrutt shouldNotBe null
         avbruttBehandling.avbrutt shouldNotBe null
         sakMedAvbruttsøknad.søknader.size shouldBe 1

@@ -239,7 +239,7 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
         begrunnelse = begrunnelse.toNonBlankString(),
         tidspunkt = LocalDateTime.now(clock),
         skalAvbryteSøknad = false,
-    )
+    ).getOrFail()
 
     behandlingRepo.lagre(avbruttRevurdering)
     return Pair(sakRepo.hentForSakId(sakMedOpprettetRevurdering.id)!!, opprettetRevurdering)

@@ -465,7 +465,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
         begrunnelse = "begrunnelse".toNonBlankString(),
         tidspunkt = avbruttTidspunkt,
         skalAvbryteSøknad = true,
-    )
+    ).getOrFail()
     behandlingRepo.lagre(avbruttBehandling)
     return sakRepo.hentForSakId(sakMedSøknadsbehandling.id)!! to avbruttBehandling
 }

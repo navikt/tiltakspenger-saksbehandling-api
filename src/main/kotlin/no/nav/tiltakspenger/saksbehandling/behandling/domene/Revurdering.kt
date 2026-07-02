@@ -166,10 +166,14 @@ data class Revurdering(
         begrunnelse: NonBlankString,
         tidspunkt: LocalDateTime,
         skalAvbryteSøknad: Boolean,
-    ): Revurdering {
+    ): Either<KunneIkkeAvbryteBehandling, Revurdering> {
         when (status) {
             UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> Unit
-            VEDTATT, AVBRUTT -> throw IllegalArgumentException("Kan ikke avbryte en revurdering i tilstanden $status")
+
+            VEDTATT, AVBRUTT -> return KunneIkkeAvbryteBehandling.BehandlingKanIkkeAvbrytesITilstanden(
+                behandlingId = id,
+                status = status,
+            ).left()
         }
         return this.copy(
             status = AVBRUTT,
@@ -184,7 +188,7 @@ data class Revurdering(
                 saksbehandler = avbruttAv,
                 sistEndret = tidspunkt,
             ),
-        )
+        ).right()
     }
 
     override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?, clock: Clock): Rammebehandling {

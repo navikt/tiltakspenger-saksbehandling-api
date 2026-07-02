@@ -512,7 +512,7 @@ interface BehandlingMother : MotherOfAllMothers {
             begrunnelse = begrunnelse.toNonBlankString(),
             tidspunkt = tidspunkt,
             skalAvbryteSøknad = true,
-        )
+        ).getOrFail()
     }
 }
 

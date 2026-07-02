@@ -138,7 +138,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         begrunnelse: NonBlankString,
         tidspunkt: LocalDateTime,
         skalAvbryteSøknad: Boolean,
-    ): Rammebehandling
+    ): Either<KunneIkkeAvbryteBehandling, Rammebehandling>
 
     fun erFerdigutfylt(): Boolean
 
