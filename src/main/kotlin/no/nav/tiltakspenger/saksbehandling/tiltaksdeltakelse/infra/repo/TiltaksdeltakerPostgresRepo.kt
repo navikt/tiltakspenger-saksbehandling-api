@@ -32,7 +32,7 @@ class TiltaksdeltakerPostgresRepo(
 
     override fun hentEllerLagre(
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakType,
+        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         return sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -79,7 +79,7 @@ class TiltaksdeltakerPostgresRepo(
     override fun lagre(
         id: TiltaksdeltakerId,
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakType,
+        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -163,7 +163,7 @@ class TiltaksdeltakerPostgresRepo(
     private fun Row.tilTiltaksdeltaker() = Tiltaksdeltaker(
         id = TiltaksdeltakerId.fromString(string("id")),
         eksternId = string("ekstern_id"),
-        tiltakstype = TiltakResponsDTO.TiltakType.valueOf(string("tiltakstype")),
+        tiltakstype = TiltakResponsDTO.TiltakTypeDTO.valueOf(string("tiltakstype")),
         utdatertEksternId = stringOrNull("utdatert_ekstern_id"),
     )
 }

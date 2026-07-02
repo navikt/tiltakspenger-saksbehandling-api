@@ -30,7 +30,7 @@ interface SøknadMother {
         id: String = UUID.randomUUID().toString(),
         deltakelseFom: LocalDate = 1.januar(2022),
         deltakelseTom: LocalDate = 31.januar(2022),
-        typeKode: TiltakResponsDTO.TiltakType = TiltakResponsDTO.TiltakType.GRUPPEAMO,
+        typeKode: TiltakResponsDTO.TiltakTypeDTO = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO,
         typeNavn: String = "Gruppe AMO",
         tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     ): Søknadstiltak =

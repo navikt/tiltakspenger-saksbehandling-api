@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -12,7 +12,7 @@ data class TiltaksdeltakelseFraRegister(
     val eksternDeltakelseId: String,
     val gjennomføringId: String?,
     val typeNavn: String,
-    val typeKode: TiltakstypeSomGirRett,
+    val typeKode: TiltakstypeSomGirRettDTO,
     val rettPåTiltakspenger: Boolean,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,

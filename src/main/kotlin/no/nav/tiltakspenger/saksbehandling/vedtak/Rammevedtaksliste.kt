@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
@@ -148,7 +148,7 @@ data class Rammevedtaksliste(
         }
     }
 
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRett> by lazy {
+    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRettDTO> by lazy {
         valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi.typeKode }
     }
 

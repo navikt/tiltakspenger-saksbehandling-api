@@ -22,6 +22,7 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Readiness
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.TexasAuthenticationProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
@@ -31,6 +32,7 @@ const val CALL_ID_MDC_KEY = "call-id"
 
 internal fun Application.ktorSetup(
     applicationContext: ApplicationContext,
+    readiness: Readiness,
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     install(CallId)
@@ -44,14 +46,12 @@ internal fun Application.ktorSetup(
         }
     }
     metrics()
-    // Kommentar jah: Denne skal egentlig ikke være i bruk, men legger den inn som et sikkerhetsnett frem til vi har migrert oss vekk fra call.respond( i common libs. Bør også gå over alt av implisitt retur av JSON, som f.eks. auth.
-    //  Denne er uforandret. Bare kopiert fra funksjonen som var brukt av testene.
     install(ContentNegotiation) {
         register(ContentType.Application.Json, JacksonConverter(objectMapper))
     }
     configureExceptions()
     setupAuthentication(applicationContext.texasClient)
-    routing { routes(applicationContext, devRoutes) }
+    routing { routes(applicationContext, readiness = readiness, devRoutes = devRoutes) }
 }
 
 fun Application.metrics() {

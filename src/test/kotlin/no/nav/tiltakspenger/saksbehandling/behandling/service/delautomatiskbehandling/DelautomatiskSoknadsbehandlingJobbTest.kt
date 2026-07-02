@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test
 
 class DelautomatiskSoknadsbehandlingJobbTest {
     @Test
-    fun `opprettBehandlingForNyeSoknader - oppretter behandling for åpen søknad uten behandling`() {
+    fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter behandling for åpen søknad uten behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
@@ -49,7 +49,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     )
                 } returns ObjectMother.nyOpprettetAutomatiskSøknadsbehandling()
 
-                delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader()
+                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingerFraNyeSøknader()
 
                 coVerify { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(soknad, any()) }
             }
@@ -57,7 +57,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
     }
 
     @Test
-    fun `opprettBehandlingForNyeSoknader - oppretter ikke behandling for avbrutt søknad`() {
+    fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter ikke behandling for avbrutt søknad`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
@@ -86,7 +86,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     ),
                 )
 
-                delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader()
+                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingerFraNyeSøknader()
 
                 coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
             }
@@ -94,7 +94,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
     }
 
     @Test
-    fun `opprettBehandlingForNyeSoknader - oppretter ikke behandling for søknad med åpen behandling`() {
+    fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter ikke behandling for søknad med åpen behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
@@ -112,7 +112,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
                 testDataHelper.persisterOpprettetSøknadsbehandling()
 
-                delautomatiskSoknadsbehandlingJobb.opprettBehandlingForNyeSoknader()
+                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingerFraNyeSøknader()
 
                 coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
             }
@@ -120,7 +120,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
     }
 
     @Test
-    fun `behandleSoknaderAutomatisk - behandler opprettet automatisk behandling`() {
+    fun `automatiskBehandleSøknadsbehandlinger - behandler opprettet automatisk behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
@@ -138,7 +138,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
 
-                delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
 
                 coVerify { delautomatiskBehandlingService.behandleAutomatisk(automatiskBehandling, any()) }
                 coVerify(exactly = 0) {
@@ -154,7 +154,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
     }
 
     @Test
-    fun `behandleSoknaderAutomatisk - behandler ikke behandling med status UNDER_BEHANDLING`() {
+    fun `automatiskBehandleSøknadsbehandlinger - behandler ikke behandling med status UNDER_BEHANDLING`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
@@ -170,7 +170,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     oppdaterSaksopplysningerService,
                 )
 
-                delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
 
                 coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
             }
@@ -178,7 +178,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
     }
 
     @Test
-    fun `behandleSoknaderAutomatisk - behandler ikke automatisk behandling der venter til ikke er passert`() {
+    fun `automatiskBehandleSøknadsbehandlinger - behandler ikke automatisk behandling der venter til ikke er passert`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
@@ -209,7 +209,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 ).first as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
 
-                delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
 
                 coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
             }
@@ -217,7 +217,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
     }
 
     @Test
-    fun `behandleSoknaderAutomatisk - behandler automatisk behandling der venter til er passert, oppdaterer saksopplysninger`() {
+    fun `automatiskBehandleSøknadsbehandlinger - behandler automatisk behandling der venter til er passert, oppdaterer saksopplysninger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
@@ -256,7 +256,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     )
                 } returns (sak to behandlingPaVent).right()
 
-                delautomatiskSoknadsbehandlingJobb.behandleSoknaderAutomatisk()
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
 
                 coVerify {
                     delautomatiskBehandlingService.behandleAutomatisk(

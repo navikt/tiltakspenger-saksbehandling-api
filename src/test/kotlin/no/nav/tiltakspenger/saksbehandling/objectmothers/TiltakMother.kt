@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltak.toTiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -29,7 +29,7 @@ interface TiltakMother {
      */
     fun tiltaksdeltakelseTac(
         eksternTiltaksdeltakelseId: String = "TA12345",
-        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Testnavn",
         eksternTiltaksgjennomføringsId: String? = null,
         fom: LocalDate,
@@ -62,7 +62,7 @@ interface TiltakMother {
     fun SøknadstiltakIdGenerator.tiltaksdeltakelse(
         periode: Periode = 1.januar(2023) til 31.mars(2023),
         eksternTiltaksdeltakelseId: String = this.generer(),
-        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         // Denne er ikke unik i databasen og brukes ikke i domenelogikken, så den kan være statisk på tvers av alle deltakelser.
         eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
@@ -97,7 +97,7 @@ interface TiltakMother {
         periode: Periode = 1.januar(2023) til 31.mars(2023),
         // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
         eksternTiltaksdeltakelseId: String = DEFAULT_TILTAK_DELTAKELSE_EKSTERN_ID,
-        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
         eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
@@ -130,7 +130,7 @@ interface TiltakMother {
 
     fun tiltakOgSøknadstiltak(
         eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
-        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
         søknadFraOgMed: LocalDate = 1.januar(2023),
@@ -172,7 +172,7 @@ interface TiltakMother {
 
     fun tiltaksdeltakelseMedArrangørnavn(
         eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
-        typeKode: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
         arrangørnavn: String? = "Testarrangør med geolokaliserende navn",
         fom: LocalDate? = 1.januar(2023),

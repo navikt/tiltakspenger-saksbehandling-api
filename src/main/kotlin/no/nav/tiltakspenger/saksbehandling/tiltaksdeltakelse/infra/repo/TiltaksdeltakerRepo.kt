@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 interface TiltaksdeltakerRepo {
     fun hentEllerLagre(
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakType,
+        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
         sessionContext: SessionContext? = null,
     ): TiltaksdeltakerId
 
@@ -15,7 +15,7 @@ interface TiltaksdeltakerRepo {
     fun lagre(
         id: TiltaksdeltakerId,
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakType,
+        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
         sessionContext: SessionContext? = null,
     )
 

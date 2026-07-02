@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.infra.route
 import io.ktor.server.auth.authenticate
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.routing.Route
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Readiness
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.healthRoutes
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.rammebehandlingRoutes
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.hentBenkRoute
@@ -19,10 +21,11 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route.hentTil
 
 fun Route.routes(
     applicationContext: ApplicationContext,
+    readiness: Readiness,
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
     devRoutes(applicationContext)
-    healthRoutes()
+    healthRoutes { readiness.erKlar() }
     authenticate(IdentityProvider.AZUREAD.value) {
         meRoute()
         rammebehandlingRoutes(

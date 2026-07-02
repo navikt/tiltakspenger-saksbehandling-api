@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -153,7 +153,7 @@ class TiltaksdeltakelseTest {
             eksternDeltakelseId = UUID.randomUUID().toString(),
             gjennomføringId = UUID.randomUUID().toString(),
             typeNavn = "Avklaring",
-            typeKode = TiltakstypeSomGirRett.AVKLARING,
+            typeKode = TiltakstypeSomGirRettDTO.AVKLARING,
             rettPåTiltakspenger = true,
             deltakelseFraOgMed = fom,
             deltakelseTilOgMed = tom,

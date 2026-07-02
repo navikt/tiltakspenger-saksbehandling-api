@@ -77,7 +77,7 @@ class OlderMottaSøknadTest {
                         id = "123",
                         deltakelseFom = 1.april(2025),
                         deltakelseTom = 10.april(2025),
-                        typeKode = TiltakResponsDTO.TiltakType.ANNUTDANN,
+                        typeKode = TiltakResponsDTO.TiltakTypeDTO.ANNUTDANN,
                         typeNavn = "Annen utdanning",
                         tiltaksdeltakerId = internTiltaksdeltakerId!!,
                     ),

@@ -18,7 +18,7 @@ class DelautomatiskSoknadsbehandlingJobb(
 ) {
     private val log = KotlinLogging.logger {}
 
-    suspend fun opprettBehandlingForNyeSoknader() {
+    suspend fun opprettSøknadsbehandlingerFraNyeSøknader() {
         val ubehandledeSoknader = søknadRepo.hentAlleUbehandledeSoknader(limit = 10)
         log.debug { "Fant ${ubehandledeSoknader.size} åpne søknader som det skal opprettes behandling for" }
         ubehandledeSoknader.forEach {
@@ -33,7 +33,7 @@ class DelautomatiskSoknadsbehandlingJobb(
         }
     }
 
-    suspend fun behandleSoknaderAutomatisk() {
+    suspend fun automatiskBehandleSøknadsbehandlinger() {
         val automatiskeBehandlinger = rammebehandlingRepo.hentAlleAutomatiskeSoknadsbehandlinger(limit = 10)
         log.debug { "Fant ${automatiskeBehandlinger.size} åpne automatiske søknadsbehandlinger" }
         automatiskeBehandlinger.forEach { behandling ->

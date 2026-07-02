@@ -304,7 +304,7 @@ open class ApplicationContext(
         )
     }
 
-    open val delautomatiskSoknadsbehandlingJobb by lazy {
+    open val delautomatiskSøknadsbehandlingJobb by lazy {
         DelautomatiskSoknadsbehandlingJobb(
             søknadRepo = søknadContext.søknadRepo,
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,

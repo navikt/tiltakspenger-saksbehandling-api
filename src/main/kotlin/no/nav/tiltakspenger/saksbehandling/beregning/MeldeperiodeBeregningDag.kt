@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning
 
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.beregning.ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon
 import no.nav.tiltakspenger.saksbehandling.beregning.ReduksjonAvYtelsePåGrunnAvFravær.YtelsenFallerBort
@@ -17,7 +17,7 @@ import java.time.LocalDate
 sealed interface MeldeperiodeBeregningDag {
     val dato: LocalDate
     val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær
-    val tiltakstype: TiltakstypeSomGirRett?
+    val tiltakstype: TiltakstypeSomGirRettDTO?
     val beregningsdag: Beregningsdag?
 
     /** Ordinært beløp + barnetillegg */
@@ -36,7 +36,7 @@ sealed interface MeldeperiodeBeregningDag {
 
         data class DeltattUtenLønnITiltaket private constructor(
             override val dato: LocalDate,
-            override val tiltakstype: TiltakstypeSomGirRett,
+            override val tiltakstype: TiltakstypeSomGirRettDTO,
             override val beregningsdag: Beregningsdag,
         ) : Deltatt {
             override val reduksjon = IngenReduksjon
@@ -44,7 +44,7 @@ sealed interface MeldeperiodeBeregningDag {
             companion object {
                 fun create(
                     dato: LocalDate,
-                    tiltakstype: TiltakstypeSomGirRett,
+                    tiltakstype: TiltakstypeSomGirRettDTO,
                     antallBarn: AntallBarn,
                 ) = DeltattUtenLønnITiltaket(
                     dato,
@@ -54,7 +54,7 @@ sealed interface MeldeperiodeBeregningDag {
 
                 fun fromDb(
                     dato: LocalDate,
-                    tiltakstype: TiltakstypeSomGirRett,
+                    tiltakstype: TiltakstypeSomGirRettDTO,
                     beregningsdag: Beregningsdag,
                 ) = DeltattUtenLønnITiltaket(dato, tiltakstype, beregningsdag)
             }
@@ -62,7 +62,7 @@ sealed interface MeldeperiodeBeregningDag {
 
         data class DeltattMedLønnITiltaket private constructor(
             override val dato: LocalDate,
-            override val tiltakstype: TiltakstypeSomGirRett,
+            override val tiltakstype: TiltakstypeSomGirRettDTO,
             override val beregningsdag: Beregningsdag,
         ) : Deltatt {
             override val reduksjon = YtelsenFallerBort
@@ -70,7 +70,7 @@ sealed interface MeldeperiodeBeregningDag {
             companion object {
                 fun create(
                     dato: LocalDate,
-                    tiltakstype: TiltakstypeSomGirRett,
+                    tiltakstype: TiltakstypeSomGirRettDTO,
                     antallBarn: AntallBarn,
                 ) = DeltattMedLønnITiltaket(
                     dato,
@@ -80,7 +80,7 @@ sealed interface MeldeperiodeBeregningDag {
 
                 fun fromDb(
                     dato: LocalDate,
-                    tiltakstype: TiltakstypeSomGirRett,
+                    tiltakstype: TiltakstypeSomGirRettDTO,
                     beregningsdag: Beregningsdag,
                 ) = DeltattMedLønnITiltaket(dato, tiltakstype, beregningsdag)
             }
@@ -89,7 +89,7 @@ sealed interface MeldeperiodeBeregningDag {
 
     data class IkkeDeltatt private constructor(
         override val dato: LocalDate,
-        override val tiltakstype: TiltakstypeSomGirRett,
+        override val tiltakstype: TiltakstypeSomGirRettDTO,
         override val beregningsdag: Beregningsdag,
     ) : MeldeperiodeBeregningDag {
         override val reduksjon = YtelsenFallerBort
@@ -98,13 +98,13 @@ sealed interface MeldeperiodeBeregningDag {
         companion object {
             fun create(
                 dato: LocalDate,
-                tiltakstype: TiltakstypeSomGirRett,
+                tiltakstype: TiltakstypeSomGirRettDTO,
                 antallBarn: AntallBarn,
             ) = IkkeDeltatt(dato, tiltakstype, beregnDag(dato, YtelsenFallerBort, antallBarn))
 
             fun fromDb(
                 dato: LocalDate,
-                tiltakstype: TiltakstypeSomGirRett,
+                tiltakstype: TiltakstypeSomGirRettDTO,
                 beregningsdag: Beregningsdag,
             ) = IkkeDeltatt(dato, tiltakstype, beregningsdag)
         }
@@ -112,7 +112,7 @@ sealed interface MeldeperiodeBeregningDag {
 
     data class IkkeBesvart private constructor(
         override val dato: LocalDate,
-        override val tiltakstype: TiltakstypeSomGirRett,
+        override val tiltakstype: TiltakstypeSomGirRettDTO,
         override val beregningsdag: Beregningsdag,
     ) : MeldeperiodeBeregningDag {
         override val reduksjon = YtelsenFallerBort
@@ -121,13 +121,13 @@ sealed interface MeldeperiodeBeregningDag {
         companion object {
             fun create(
                 dato: LocalDate,
-                tiltakstype: TiltakstypeSomGirRett,
+                tiltakstype: TiltakstypeSomGirRettDTO,
                 antallBarn: AntallBarn,
             ) = IkkeBesvart(dato, tiltakstype, beregnDag(dato, YtelsenFallerBort, antallBarn))
 
             fun fromDb(
                 dato: LocalDate,
-                tiltakstype: TiltakstypeSomGirRett,
+                tiltakstype: TiltakstypeSomGirRettDTO,
                 beregningsdag: Beregningsdag,
             ) = IkkeBesvart(dato, tiltakstype, beregningsdag)
         }
@@ -145,7 +145,7 @@ sealed interface MeldeperiodeBeregningDag {
 
             data class SykBruker private constructor(
                 override val dato: LocalDate,
-                override val tiltakstype: TiltakstypeSomGirRett,
+                override val tiltakstype: TiltakstypeSomGirRettDTO,
                 override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                 override val beregningsdag: Beregningsdag,
             ) : Syk {
@@ -153,7 +153,7 @@ sealed interface MeldeperiodeBeregningDag {
                     fun create(
                         dato: LocalDate,
                         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         antallBarn: AntallBarn,
                     ) = SykBruker(
                         dato,
@@ -164,7 +164,7 @@ sealed interface MeldeperiodeBeregningDag {
 
                     fun fromDb(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                         beregningsdag: Beregningsdag,
                     ) = SykBruker(dato, tiltakstype, reduksjon, beregningsdag)
@@ -173,7 +173,7 @@ sealed interface MeldeperiodeBeregningDag {
 
             data class SyktBarn private constructor(
                 override val dato: LocalDate,
-                override val tiltakstype: TiltakstypeSomGirRett,
+                override val tiltakstype: TiltakstypeSomGirRettDTO,
                 override val reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                 override val beregningsdag: Beregningsdag,
 
@@ -182,7 +182,7 @@ sealed interface MeldeperiodeBeregningDag {
                     fun create(
                         dato: LocalDate,
                         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         antallBarn: AntallBarn,
                     ) = SyktBarn(
                         dato,
@@ -193,7 +193,7 @@ sealed interface MeldeperiodeBeregningDag {
 
                     fun fromDb(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær,
                         beregningsdag: Beregningsdag,
                     ) = SyktBarn(dato, tiltakstype, reduksjon, beregningsdag)
@@ -204,7 +204,7 @@ sealed interface MeldeperiodeBeregningDag {
         sealed interface Velferd : Fravær {
             data class FraværGodkjentAvNav private constructor(
                 override val dato: LocalDate,
-                override val tiltakstype: TiltakstypeSomGirRett,
+                override val tiltakstype: TiltakstypeSomGirRettDTO,
                 override val beregningsdag: Beregningsdag,
             ) : Velferd {
                 override val reduksjon = IngenReduksjon
@@ -212,7 +212,7 @@ sealed interface MeldeperiodeBeregningDag {
                 companion object {
                     fun create(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         antallBarn: AntallBarn,
                     ) = FraværGodkjentAvNav(
                         dato,
@@ -222,7 +222,7 @@ sealed interface MeldeperiodeBeregningDag {
 
                     fun fromDb(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         beregningsdag: Beregningsdag,
                     ) = FraværGodkjentAvNav(dato, tiltakstype, beregningsdag)
                 }
@@ -230,7 +230,7 @@ sealed interface MeldeperiodeBeregningDag {
 
             data class FraværSterkeVelferdsgrunnerEllerJobbintervju private constructor(
                 override val dato: LocalDate,
-                override val tiltakstype: TiltakstypeSomGirRett,
+                override val tiltakstype: TiltakstypeSomGirRettDTO,
                 override val beregningsdag: Beregningsdag,
             ) : Velferd {
                 override val reduksjon = IngenReduksjon
@@ -238,7 +238,7 @@ sealed interface MeldeperiodeBeregningDag {
                 companion object {
                     fun create(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         antallBarn: AntallBarn,
                     ) = FraværSterkeVelferdsgrunnerEllerJobbintervju(
                         dato,
@@ -248,7 +248,7 @@ sealed interface MeldeperiodeBeregningDag {
 
                     fun fromDb(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         beregningsdag: Beregningsdag,
                     ) = FraværSterkeVelferdsgrunnerEllerJobbintervju(dato, tiltakstype, beregningsdag)
                 }
@@ -256,7 +256,7 @@ sealed interface MeldeperiodeBeregningDag {
 
             data class FraværAnnet private constructor(
                 override val dato: LocalDate,
-                override val tiltakstype: TiltakstypeSomGirRett,
+                override val tiltakstype: TiltakstypeSomGirRettDTO,
                 override val beregningsdag: Beregningsdag,
             ) : Velferd {
                 override val reduksjon = YtelsenFallerBort
@@ -264,7 +264,7 @@ sealed interface MeldeperiodeBeregningDag {
                 companion object {
                     fun create(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         antallBarn: AntallBarn,
                     ) = FraværAnnet(
                         dato,
@@ -274,7 +274,7 @@ sealed interface MeldeperiodeBeregningDag {
 
                     fun fromDb(
                         dato: LocalDate,
-                        tiltakstype: TiltakstypeSomGirRett,
+                        tiltakstype: TiltakstypeSomGirRettDTO,
                         beregningsdag: Beregningsdag,
                     ) = FraværAnnet(dato, tiltakstype, beregningsdag)
                 }

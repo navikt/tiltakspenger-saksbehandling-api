@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import java.time.LocalDate
 
 /**
@@ -18,7 +18,7 @@ import java.time.LocalDate
 data class TiltaksdeltakelseMedArrangørnavn(
     val eksternDeltakelseId: String,
     val typeNavn: String,
-    val typeKode: TiltakstypeSomGirRett,
+    val typeKode: TiltakstypeSomGirRettDTO,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
     val visningsnavn: String,

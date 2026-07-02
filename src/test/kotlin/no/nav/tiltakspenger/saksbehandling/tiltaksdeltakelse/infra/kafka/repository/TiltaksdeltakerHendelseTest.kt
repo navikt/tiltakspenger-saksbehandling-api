@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -28,7 +28,7 @@ class TiltaksdeltakerHendelseTest {
             eksternDeltakelseId = UUID.randomUUID().toString(),
             gjennomføringId = UUID.randomUUID().toString(),
             typeNavn = "Avklaring",
-            typeKode = TiltakstypeSomGirRett.AVKLARING,
+            typeKode = TiltakstypeSomGirRettDTO.AVKLARING,
             rettPåTiltakspenger = true,
             deltakelseFraOgMed = 5.januar(2025),
             deltakelseTilOgMed = 5.april(2025),

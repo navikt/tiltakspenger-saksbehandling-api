@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -122,7 +122,7 @@ class LocalApplicationContext(
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID. Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         eksternTiltaksdeltakelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",
         eksternTiltaksgjennomføringsId = "5667273f-784e-4521-89c3-75b0be8ee250",
-        typeKode = TiltakstypeSomGirRett.GRUPPE_AMO,
+        typeKode = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn = "Arbeidsmarkedsoppfølging gruppe",
         fom = ObjectMother.vedtaksperiode().fraOgMed,
         tom = ObjectMother.vedtaksperiode().tilOgMed,

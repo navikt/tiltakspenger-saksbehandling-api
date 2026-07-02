@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.libs.satser.Satser
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
@@ -57,7 +57,7 @@ class BeregnRevurderingTest {
         antallBarnFraSøknad: Int = 0,
         periodeForSøknadsbehandling: Periode = vedtaksperiodeSøknadsbehandling,
         periodeForRevurdering: Periode = vedtaksperiodeRevurdering,
-        tiltakskodeForRevurdering: TiltakstypeSomGirRett = TiltakstypeSomGirRett.GRUPPE_AMO,
+        tiltakskodeForRevurdering: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
     ): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
             vedtaksperiode = periodeForSøknadsbehandling,

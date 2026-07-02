@@ -19,7 +19,7 @@ class TiltakMapperTest {
             gjennomforing = TiltakshistorikkDTO.GjennomforingDTO(
                 id = UUID.randomUUID().toString(),
                 visningsnavn = "$tiltakstypenavn hos $arrangornavn",
-                arenaKode = TiltakResponsDTO.TiltakType.ARBFORB,
+                arenaKode = TiltakResponsDTO.TiltakTypeDTO.ARBFORB,
                 arrangornavn = arrangornavn,
                 typeNavn = tiltakstypenavn,
                 deltidsprosent = 100.0,

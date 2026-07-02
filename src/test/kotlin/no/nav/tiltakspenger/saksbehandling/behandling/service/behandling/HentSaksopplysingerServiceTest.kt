@@ -88,7 +88,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -97,7 +97,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -203,7 +203,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -212,7 +212,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -318,7 +318,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -327,7 +327,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -447,7 +447,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
@@ -468,7 +468,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -594,7 +594,7 @@ internal class HentSaksopplysingerServiceTest {
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
@@ -615,7 +615,7 @@ internal class HentSaksopplysingerServiceTest {
                 override fun lagre(
                     id: TiltaksdeltakerId,
                     eksternId: String,
-                    tiltakstype: TiltakResponsDTO.TiltakType,
+                    tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
                     sessionContext: SessionContext?,
                 ) {}
 

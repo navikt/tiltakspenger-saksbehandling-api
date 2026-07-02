@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.ikkeRettDager
@@ -613,22 +613,22 @@ internal class UtbetalingDTOTest {
                 beregningDager = tiltaksdager(
                     startDato = periode.fraOgMed,
                     meldekortId = meldekortvedtak.meldekortId,
-                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
                     antallDager = 5,
                 ) + tiltaksdager(
                     startDato = periode.fraOgMed.plusDays(5),
                     meldekortId = meldekortvedtak.meldekortId,
-                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
                     antallDager = 2,
                 ) + tiltaksdager(
                     startDato = periode.fraOgMed.plusDays(7),
                     meldekortId = meldekortvedtak.meldekortId,
-                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
                     antallDager = 5,
                 ) + tiltaksdager(
                     startDato = periode.fraOgMed.plusDays(12),
                     meldekortId = meldekortvedtak.meldekortId,
-                    tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                    tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
                     antallDager = 2,
                 ),
             ),
@@ -734,7 +734,7 @@ internal class UtbetalingDTOTest {
                     tiltaksdager(
                         startDato = periode.fraOgMed.plusDays(12),
                         meldekortId = meldekortvedtak.meldekortId,
-                        tiltakstype = TiltakstypeSomGirRett.GRUPPE_AMO,
+                        tiltakstype = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
                         antallDager = 2,
                     ),
                 ).toNonEmptyListOrNull()!!,

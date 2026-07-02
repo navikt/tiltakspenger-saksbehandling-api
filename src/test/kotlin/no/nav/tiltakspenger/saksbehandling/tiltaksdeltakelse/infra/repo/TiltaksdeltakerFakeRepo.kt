@@ -9,7 +9,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
 
     override fun hentEllerLagre(
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakType,
+        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         data.get()[eksternId]?.let { return it }
@@ -36,7 +36,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
             Tiltaksdeltaker(
                 id = it,
                 eksternId = eksternId,
-                tiltakstype = TiltakResponsDTO.TiltakType.GRUPPEAMO,
+                tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO,
                 utdatertEksternId = null,
             )
         }
@@ -51,7 +51,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
     override fun lagre(
         id: TiltaksdeltakerId,
         eksternId: String,
-        tiltakstype: TiltakResponsDTO.TiltakType,
+        tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
         sessionContext: SessionContext?,
     ) {
         data.get()[eksternId] = id

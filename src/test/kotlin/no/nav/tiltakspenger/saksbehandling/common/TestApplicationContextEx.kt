@@ -5,6 +5,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Readiness
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.test.common.TestSessionFactory
@@ -25,6 +26,7 @@ fun withTestApplicationContextAndPostgres(
     texasClient: TexasClient = TexasClientFake(clock),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     runIsolated: Boolean = false,
+    readiness: Readiness = Readiness(),
     testBlock: suspend ApplicationTestBuilder.(TestApplicationContextMedPostgres) -> Unit,
 ) {
     dbManager.withMigratedDb(
@@ -43,7 +45,7 @@ fun withTestApplicationContextAndPostgres(
             val tac = this
             testApplication {
                 application {
-                    ktorSetup(tac)
+                    ktorSetup(tac, readiness)
                     additionalConfig()
                 }
                 testBlock(this@with)
@@ -61,6 +63,7 @@ fun withTestApplicationContext(
     texasClient: TexasClient = TexasClientFake(clock),
     sessionFactory: TestSessionFactory = TestSessionFactory(),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
+    readiness: Readiness = Readiness(),
     testBlock: suspend ApplicationTestBuilder.(TestApplicationContextMedInMemoryDb) -> Unit,
 ) {
     with(
@@ -74,7 +77,7 @@ fun withTestApplicationContext(
         val tac = this
         testApplication {
             application {
-                ktorSetup(tac)
+                ktorSetup(tac, readiness)
                 additionalConfig()
             }
             testBlock(this@with)

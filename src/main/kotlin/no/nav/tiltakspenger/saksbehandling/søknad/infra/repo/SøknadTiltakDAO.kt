@@ -72,7 +72,7 @@ internal object SøknadTiltakDAO {
             id = eksternId,
             deltakelseFom = deltakelseFom,
             deltakelseTom = deltakelseTom,
-            typeKode = TiltakResponsDTO.TiltakType.valueOf(typekode),
+            typeKode = TiltakResponsDTO.TiltakTypeDTO.valueOf(typekode),
             typeNavn = typenavn,
             tiltaksdeltakerId = TiltaksdeltakerId.fromString(tiltaksdeltakerId),
         )

@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
@@ -200,30 +200,30 @@ private sealed interface Resultat {
     data class KanSlåSammen(val utbetalingsperiode: UtbetalingV2Dto) : Resultat
 }
 
-private fun TiltakstypeSomGirRett.mapStønadstype(): StønadTypeTiltakspenger =
+private fun TiltakstypeSomGirRettDTO.mapStønadstype(): StønadTypeTiltakspenger =
     when (this) {
-        TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING -> StønadTypeTiltakspenger.ARBEIDSFORBEREDENDE_TRENING
-        TiltakstypeSomGirRett.ARBEIDSRETTET_REHABILITERING -> StønadTypeTiltakspenger.ARBEIDSRETTET_REHABILITERING
-        TiltakstypeSomGirRett.ARBEIDSTRENING -> StønadTypeTiltakspenger.ARBEIDSTRENING
-        TiltakstypeSomGirRett.AVKLARING -> StønadTypeTiltakspenger.AVKLARING
-        TiltakstypeSomGirRett.DIGITAL_JOBBKLUBB -> StønadTypeTiltakspenger.DIGITAL_JOBBKLUBB
-        TiltakstypeSomGirRett.ENKELTPLASS_AMO -> StønadTypeTiltakspenger.ENKELTPLASS_AMO
-        TiltakstypeSomGirRett.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG
-        TiltakstypeSomGirRett.GRUPPE_AMO -> StønadTypeTiltakspenger.GRUPPE_AMO
-        TiltakstypeSomGirRett.ARBEIDSMARKEDSOPPLAERING -> StønadTypeTiltakspenger.ARBEIDSMARKEDSOPPLÆRING_AMO
-        TiltakstypeSomGirRett.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> StønadTypeTiltakspenger.NORSKOPPLÆRING_GRUNNLEGGENDE_FERDIGHETER
-        TiltakstypeSomGirRett.STUDIESPESIALISERING -> StønadTypeTiltakspenger.STUDIESPESIALISERING
-        TiltakstypeSomGirRett.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.GRUPPE_VGS_OG_HØYERE_YRKESFAG
-        TiltakstypeSomGirRett.FAG_OG_YRKESOPPLAERING -> StønadTypeTiltakspenger.FAG_OG_YRKESOPPLÆRING
-        TiltakstypeSomGirRett.HOYERE_YRKESFAGLIG_UTDANNING -> StønadTypeTiltakspenger.FAGSKOLE
-        TiltakstypeSomGirRett.HØYERE_UTDANNING -> StønadTypeTiltakspenger.HØYERE_UTDANNING
-        TiltakstypeSomGirRett.INDIVIDUELL_JOBBSTØTTE -> StønadTypeTiltakspenger.INDIVIDUELL_JOBBSTØTTE
-        TiltakstypeSomGirRett.INDIVIDUELL_KARRIERESTØTTE_UNG -> StønadTypeTiltakspenger.INDIVIDUELL_KARRIERESTØTTE_UNG
-        TiltakstypeSomGirRett.JOBBKLUBB -> StønadTypeTiltakspenger.JOBBKLUBB
-        TiltakstypeSomGirRett.OPPFØLGING -> StønadTypeTiltakspenger.OPPFØLGING
-        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_NAV -> StønadTypeTiltakspenger.UTVIDET_OPPFØLGING_I_NAV
-        TiltakstypeSomGirRett.UTVIDET_OPPFØLGING_I_OPPLÆRING -> StønadTypeTiltakspenger.UTVIDET_OPPFØLGING_I_OPPLÆRING
-        TiltakstypeSomGirRett.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> StønadTypeTiltakspenger.FORSØK_OPPLÆRING_LENGRE_VARIGHET
+        TiltakstypeSomGirRettDTO.ARBEIDSFORBEREDENDE_TRENING -> StønadTypeTiltakspenger.ARBEIDSFORBEREDENDE_TRENING
+        TiltakstypeSomGirRettDTO.ARBEIDSRETTET_REHABILITERING -> StønadTypeTiltakspenger.ARBEIDSRETTET_REHABILITERING
+        TiltakstypeSomGirRettDTO.ARBEIDSTRENING -> StønadTypeTiltakspenger.ARBEIDSTRENING
+        TiltakstypeSomGirRettDTO.AVKLARING -> StønadTypeTiltakspenger.AVKLARING
+        TiltakstypeSomGirRettDTO.DIGITAL_JOBBKLUBB -> StønadTypeTiltakspenger.DIGITAL_JOBBKLUBB
+        TiltakstypeSomGirRettDTO.ENKELTPLASS_AMO -> StønadTypeTiltakspenger.ENKELTPLASS_AMO
+        TiltakstypeSomGirRettDTO.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.ENKELTPLASS_VGS_OG_HØYERE_YRKESFAG
+        TiltakstypeSomGirRettDTO.GRUPPE_AMO -> StønadTypeTiltakspenger.GRUPPE_AMO
+        TiltakstypeSomGirRettDTO.ARBEIDSMARKEDSOPPLAERING -> StønadTypeTiltakspenger.ARBEIDSMARKEDSOPPLÆRING_AMO
+        TiltakstypeSomGirRettDTO.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV -> StønadTypeTiltakspenger.NORSKOPPLÆRING_GRUNNLEGGENDE_FERDIGHETER
+        TiltakstypeSomGirRettDTO.STUDIESPESIALISERING -> StønadTypeTiltakspenger.STUDIESPESIALISERING
+        TiltakstypeSomGirRettDTO.GRUPPE_VGS_OG_HØYERE_YRKESFAG -> StønadTypeTiltakspenger.GRUPPE_VGS_OG_HØYERE_YRKESFAG
+        TiltakstypeSomGirRettDTO.FAG_OG_YRKESOPPLAERING -> StønadTypeTiltakspenger.FAG_OG_YRKESOPPLÆRING
+        TiltakstypeSomGirRettDTO.HOYERE_YRKESFAGLIG_UTDANNING -> StønadTypeTiltakspenger.FAGSKOLE
+        TiltakstypeSomGirRettDTO.HØYERE_UTDANNING -> StønadTypeTiltakspenger.HØYERE_UTDANNING
+        TiltakstypeSomGirRettDTO.INDIVIDUELL_JOBBSTØTTE -> StønadTypeTiltakspenger.INDIVIDUELL_JOBBSTØTTE
+        TiltakstypeSomGirRettDTO.INDIVIDUELL_KARRIERESTØTTE_UNG -> StønadTypeTiltakspenger.INDIVIDUELL_KARRIERESTØTTE_UNG
+        TiltakstypeSomGirRettDTO.JOBBKLUBB -> StønadTypeTiltakspenger.JOBBKLUBB
+        TiltakstypeSomGirRettDTO.OPPFØLGING -> StønadTypeTiltakspenger.OPPFØLGING
+        TiltakstypeSomGirRettDTO.UTVIDET_OPPFØLGING_I_NAV -> StønadTypeTiltakspenger.UTVIDET_OPPFØLGING_I_NAV
+        TiltakstypeSomGirRettDTO.UTVIDET_OPPFØLGING_I_OPPLÆRING -> StønadTypeTiltakspenger.UTVIDET_OPPFØLGING_I_OPPLÆRING
+        TiltakstypeSomGirRettDTO.FORSØK_OPPLÆRING_LENGRE_VARIGHET -> StønadTypeTiltakspenger.FORSØK_OPPLÆRING_LENGRE_VARIGHET
     }
 
 private data class MeldeperiodeTilOppdrag(private val meldeperiodeBeregning: MeldeperiodeBeregning) {
@@ -266,7 +266,7 @@ private data class MeldeperiodeTilOppdrag(private val meldeperiodeBeregning: Mel
         val dato: LocalDate,
         val beløp: Int,
         val beløpBarnetillegg: Int,
-        val tiltakstype: TiltakstypeSomGirRett?,
+        val tiltakstype: TiltakstypeSomGirRettDTO?,
     ) {
         val totalBeløp: Int = beløp + beløpBarnetillegg
     }

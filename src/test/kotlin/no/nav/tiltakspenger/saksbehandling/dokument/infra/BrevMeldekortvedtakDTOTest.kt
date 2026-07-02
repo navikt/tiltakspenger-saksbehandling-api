@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.desember
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
@@ -17,12 +17,12 @@ class BrevMeldekortvedtakDTOTest {
             status = SammenligningAvBeregninger.ForrigeOgGjeldende(
                 forrige = MeldeperiodeBeregningDag.Deltatt.DeltattUtenLønnITiltaket.create(
                     dato = 1.desember(2025),
-                    tiltakstype = TiltakstypeSomGirRett.ARBEIDSFORBEREDENDE_TRENING,
+                    tiltakstype = TiltakstypeSomGirRettDTO.ARBEIDSFORBEREDENDE_TRENING,
                     antallBarn = AntallBarn(5),
                 ),
                 gjeldende = MeldeperiodeBeregningDag.Fravær.Velferd.FraværGodkjentAvNav.create(
                     dato = 1.desember(2025),
-                    tiltakstype = TiltakstypeSomGirRett.ARBEIDSTRENING,
+                    tiltakstype = TiltakstypeSomGirRettDTO.ARBEIDSTRENING,
                     antallBarn = AntallBarn(3),
                 ),
             ),

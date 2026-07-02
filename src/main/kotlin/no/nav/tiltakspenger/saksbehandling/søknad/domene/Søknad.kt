@@ -240,14 +240,14 @@ sealed interface Søknad {
 
 /**
  * @param id mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
- * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN ([TiltakResponsDTO.TiltakType])
+ * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN ([TiltakResponsDTO.TiltakTypeDTO])
  * @param typeNavn f.eks. Jobbklubb, Arbeidsmarkedsopplæring (gruppe), Oppfølging, Arbeidstrening
  */
 data class Søknadstiltak(
     val id: String,
     val deltakelseFom: LocalDate,
     val deltakelseTom: LocalDate,
-    val typeKode: TiltakResponsDTO.TiltakType,
+    val typeKode: TiltakResponsDTO.TiltakTypeDTO,
     val typeNavn: String,
     val tiltaksdeltakerId: TiltaksdeltakerId,
 )

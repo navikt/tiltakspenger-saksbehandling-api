@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -120,7 +120,7 @@ private data class BeregnMeldeperioder(
         return hentInnvilgelse(dato) != null
     }
 
-    private fun hentTiltakstype(dato: LocalDate): TiltakstypeSomGirRett? {
+    private fun hentTiltakstype(dato: LocalDate): TiltakstypeSomGirRettDTO? {
         return hentInnvilgelse(dato)?.valgtTiltaksdeltakelse?.typeKode
     }
 

@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.1"
-val felleslibVersion = "0.0.842"
+val felleslibVersion = "0.0.863"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet
 
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
+import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO
 import no.nav.tiltakspenger.libs.tiltak.toDeltakerStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -20,7 +20,7 @@ data class DeltakerV1Dto(
     val prosentStilling: Float?,
 ) {
     data class DeltakerStatusDto(
-        val type: KometDeltakerStatusType,
+        val type: KometDeltakerStatusTypeDTO,
     )
 
     fun tilTiltaksdeltakerHendelse(sakId: SakId, tiltaksdeltakerId: TiltaksdeltakerId) =
@@ -38,6 +38,6 @@ data class DeltakerV1Dto(
             behandlingId = null,
         )
 
-    private fun KometDeltakerStatusType.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
+    private fun KometDeltakerStatusTypeDTO.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
         this.toDeltakerStatusDTO().toDomain()
 }

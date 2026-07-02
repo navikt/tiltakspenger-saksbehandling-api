@@ -92,7 +92,7 @@ object SøknadDTOMapper {
             id = this.id,
             deltakelseFom = this.deltakelseFom,
             deltakelseTom = this.deltakelseTom,
-            typeKode = TiltakResponsDTO.TiltakType.valueOf(this.typeKode),
+            typeKode = TiltakResponsDTO.TiltakTypeDTO.valueOf(this.typeKode),
             typeNavn = this.typeNavn,
             tiltaksdeltakerId = internTiltaksdeltakelsesId,
         )

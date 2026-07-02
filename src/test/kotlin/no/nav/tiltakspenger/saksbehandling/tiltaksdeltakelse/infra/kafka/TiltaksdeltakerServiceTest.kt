@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusType
+import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -505,7 +505,7 @@ class TiltaksdeltakerServiceTest {
             id = UUID.randomUUID(),
             startDato = LocalDate.of(2024, 10, 14),
             sluttDato = LocalDate.of(2025, 8, 10),
-            status = DeltakerV1Dto.DeltakerStatusDto(type = KometDeltakerStatusType.DELTAR),
+            status = DeltakerV1Dto.DeltakerStatusDto(type = KometDeltakerStatusTypeDTO.DELTAR),
             dagerPerUke = 2.0F,
             prosentStilling = 50.0F,
         )

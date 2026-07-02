@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdaterSakso
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRett
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
@@ -35,7 +35,7 @@ internal class OppdaterRammebehandlingSaksopplysningerTest {
                     eksternDeltakelseId = "TA12345",
                     gjennomføringId = null,
                     typeNavn = "Testnavn",
-                    typeKode = TiltakstypeSomGirRett.JOBBKLUBB,
+                    typeKode = TiltakstypeSomGirRettDTO.JOBBKLUBB,
                     rettPåTiltakspenger = true,
                     deltakelseFraOgMed = behandling.saksopplysningsperiode!!.fraOgMed,
                     deltakelseTilOgMed = behandling.saksopplysningsperiode!!.tilOgMed,
