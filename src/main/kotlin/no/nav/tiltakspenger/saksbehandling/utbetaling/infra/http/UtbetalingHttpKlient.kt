@@ -312,7 +312,6 @@ private fun mapIverksettStatus(
         }
 
         401, 403 -> {
-            token.invaliderCache()
             log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
                 "$status fra helved utsjekk, for utbetaling $utbetalingId. Denne vil bli prøvd på nytt. Response: $response. Se sikkerlogg for mer kontekst."
             }

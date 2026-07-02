@@ -165,8 +165,7 @@ internal class DokarkivHttpClient(
                 if (throwable is ClientRequestException) {
                     when (status) {
                         Unauthorized, Forbidden -> {
-                            log.warn(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot dokarkiv. status: $status." }
-                            token.invaliderCache()
+                            log.warn(RuntimeException("Trigger stacktrace for debug.")) { "Mottok $status fra dokarkiv." }
                         }
 
                         Conflict -> {

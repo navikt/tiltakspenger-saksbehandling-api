@@ -91,8 +91,7 @@ class TiltaksdeltakelseHttpKlient(
 
                 else -> {
                     if (httpResponse.status == Unauthorized || httpResponse.status == Forbidden) {
-                        log.error(RuntimeException("Trigger stacktrace for debug.")) { "Invaliderer cache for systemtoken mot tiltakspenger-tiltak. status: $httpResponse.status." }
-                        token.invaliderCache()
+                        log.error(RuntimeException("Trigger stacktrace for debug.")) { "Mottok ${httpResponse.status} fra tiltakspenger-tiltak." }
                     }
                     throw RuntimeException("error (responseCode=${httpResponse.status.value}) from Tiltak")
                 }
