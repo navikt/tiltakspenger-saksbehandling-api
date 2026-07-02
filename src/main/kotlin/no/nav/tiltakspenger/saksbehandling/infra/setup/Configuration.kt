@@ -3,22 +3,19 @@ package no.nav.tiltakspenger.saksbehandling.infra.setup
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.texas.AdRolle
 
-private const val APPLICATION_NAME = "tiltakspenger-saksbehandling-api"
-const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
+const val KAFKA_CONSUMER_GROUP_ID = "tiltakspenger-saksbehandling-api-consumer"
 
 const val AUTOMATISK_SAKSBEHANDLER_ID = "tp-sak"
 
-enum class Profile {
-    LOCAL,
-    DEV,
-    PROD,
+private fun hentConfigForMiljø(): EnvironmentConfig {
+    return when (System.getenv("NAIS_CLUSTER_NAME")) {
+        "prod-gcp" -> ProdConfig
+        "dev-gcp" -> DevConfig
+        else -> LocalConfig
+    }
 }
 
-object Configuration : EnvironmentConfig by when (System.getenv("NAIS_CLUSTER_NAME")) {
-    "dev-gcp" -> DevConfig
-    "prod-gcp" -> ProdConfig
-    else -> LocalConfig
-} {
+object Configuration : EnvironmentConfig by hentConfigForMiljø() {
     fun alleAdRoller(): List<AdRolle> =
         listOf(
             AdRolle(Saksbehandlerrolle.SAKSBEHANDLER, roleSaksbehandler),

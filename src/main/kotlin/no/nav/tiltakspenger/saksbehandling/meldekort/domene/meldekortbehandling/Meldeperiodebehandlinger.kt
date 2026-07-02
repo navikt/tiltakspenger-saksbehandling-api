@@ -50,9 +50,7 @@ data class Meldeperiodebehandlinger(
 
     val totalPeriode: Periode = Periode(fraOgMed, tilOgMed)
 
-    val kjedeIder: NonEmptySet<MeldeperiodeKjedeId> by lazy {
-        this.map { it.kjedeId }.toNonEmptySetOrThrow()
-    }
+    val kjedeIder: NonEmptySet<MeldeperiodeKjedeId> = this.map { it.kjedeId }.toNonEmptySetOrThrow()
 
     val rammevedtakIder: NonEmptyList<VedtakId> by lazy {
         this.flatMap { it.meldeperiode.rammevedtak.verdier }.distinct().toNonEmptyListOrThrow()
@@ -102,23 +100,23 @@ data class Meldeperiodebehandlinger(
     }
 
     init {
-        // TODO: denne sjekken må kanskje justeres litt på sikt, for å støtte saker med hull i vedtakene (uten meldeperioder)
         require(
             meldeperioder.size == 1 || meldeperioder.zipWithNext().all { (a, b) ->
-                a.periode.tilOgMed.plusDays(1) == b.periode.fraOgMed
+                a.periode.tilOgMed.isBefore(b.periode.fraOgMed)
             },
-        ) { "Meldeperiodene for en behandling må være sammenhengende og sortert" }
+        ) { "Meldeperiodene for en behandling må være sortert" }
 
         if (beregning != null) {
+            // Beregningen kan inkludere flere/andre perioder enn behandlingen, f.eks. påfølgende perioder ved
+            // korrigering av sykedager, eller perioder som faller i et hull mellom behandlingens meldeperioder.
+            // Det er ok, vi sjekker kun de beregningene som gjelder kjedene i denne behandlingen.
             val beregnedeKjedeIder = beregning.beregninger
-                // Beregningen kan inkludere flere påfølgende perioder ved korrigering av sykedager
-                // Det er ok, vi sjekker kun de n periodene som omfattes av behandlingen
-                .take(this.size)
                 .map { it.kjedeId }
+                .filter { it in kjedeIder }
+                .toSet()
 
-            val behandlingsKjedeIder = meldeperioder.map { it.kjedeId }
-            require(behandlingsKjedeIder == beregnedeKjedeIder) {
-                "Beregningen må omfatte alle kjedene i behandlingen - Forventet $behandlingsKjedeIder, fant $beregnedeKjedeIder"
+            require(kjedeIder == beregnedeKjedeIder) {
+                "Beregningen må omfatte alle kjedene i behandlingen - Forventet $kjedeIder, fant $beregnedeKjedeIder"
             }
         }
     }

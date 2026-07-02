@@ -58,10 +58,10 @@ private typealias HentInnvilgelse = (dato: LocalDate) -> InnvilgelsesperiodeVerd
  */
 private data class BeregnMeldeperioder(
     val beregningKilde: BeregningKilde,
-    val meldeperioderSomBeregnes: NonEmptyList<MeldeperiodeSomSkalBeregnes>,
     val hentAntallBarn: HentAntallBarn,
     val hentInnvilgelse: HentInnvilgelse,
     val gjeldendeBeregninger: MeldeperiodeBeregningerVedtatt,
+    val meldeperioderSomBeregnes: NonEmptyList<MeldeperiodeSomSkalBeregnes>,
     val meldeperiodebehandlingerTidslinje: Periodisering<Meldeperiodebehandling>,
 ) {
     private val egenSykeperiode: SykedagerPeriode = SykedagerPeriode()
@@ -70,7 +70,7 @@ private data class BeregnMeldeperioder(
     init {
         meldeperioderSomBeregnes.zipWithNext().forEach { (a, b) ->
             require(a.fraOgMed < b.fraOgMed) {
-                "Meldeperioder som skal beregnes må være sammenhengende uten overlapp - $a og $b oppfyller ikke kriteriene"
+                "Oppdaterte meldeperioder som skal beregnes må være sortert - $a og $b oppfyller ikke kriteriene"
             }
         }
     }
@@ -80,40 +80,40 @@ private data class BeregnMeldeperioder(
         egenSykeperiode.reset()
         barnSykeperiode.reset()
 
-        val beregningsperiode = Periode(
-            meldeperioderSomBeregnes.first().fraOgMed,
-            meldeperioderSomBeregnes.last().tilOgMed,
-        )
+        val førsteDag = meldeperioderSomBeregnes.first().fraOgMed
+        val oppdaterteKjeder = meldeperioderSomBeregnes.map { it.kjedeId }.toSet()
 
-        return meldeperiodebehandlingerTidslinje.verdier
-            .partition { it.fraOgMed < beregningsperiode.fraOgMed }
-            .let { (behandlingerFørBeregningsperioden, behandlingerUnderOgEtterBeregningsperioden) ->
-                // Kjør gjennom tidligere beregninger for å sette riktig state for sykedager før vi gjør nye beregninger
-                behandlingerFørBeregningsperioden
-                    .map { it.tilSkalBeregnes() }
-                    .forEach { beregnMeldeperiode(it) }
+        // Nye meldeperioder som beregnes skal ha presedens over eksisterende meldeperioder i tidslinjen
+        val alleMeldeperioder: List<MeldeperiodeSomSkalBeregnes> = meldeperioderSomBeregnes.fold(
+            meldeperiodebehandlingerTidslinje.map { it.verdi.tilSkalBeregnes() },
+        ) { periodisering, meldeperiodeSomBeregnes ->
+            periodisering.setVerdiForDelperiode(meldeperiodeSomBeregnes, meldeperiodeSomBeregnes.periode)
+        }.verdier
 
-                val beregningerForBeregningsperioden = meldeperioderSomBeregnes.map { beregnMeldeperiode(it) }
+        val (tidligereMeldeperioder, nyeOgPåfølgendeMeldeperioder) = alleMeldeperioder.partition { it.fraOgMed < førsteDag }
 
-                val beregningerEtterBeregningsperioden = behandlingerUnderOgEtterBeregningsperioden
-                    .dropWhile { it.tilOgMed <= beregningsperiode.tilOgMed }
-                    .map { it.tilSkalBeregnes() }
+        // Kjør beregning av tidligere meldeperioder for å sette riktig state for sykedager før vi gjør nye beregninger
+        tidligereMeldeperioder.forEach { beregnMeldeperiode(it) }
 
-                val beregningerEtterBeregningsperiodenOmberegnet = beregningerEtterBeregningsperioden
-                    .map { beregning ->
-                        val nyBeregning = beregnMeldeperiode(beregning)
-                        val harEndringer = nyBeregning.dager != hentGjeldendeBeregningDagerForKjede(beregning.kjedeId)
+        return nyeOgPåfølgendeMeldeperioder
+            .map { meldeperiode ->
+                val nyBeregning = beregnMeldeperiode(meldeperiode)
 
-                        nyBeregning to harEndringer
-                    }
-                    /* Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
-                    men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
-                    meldeperiode uten endring */
-                    .dropLastWhile { (_, harEndringer) -> !harEndringer }
-                    .map { it.first }
+                // Beregning for nye meldeperioder skal alltid inkluderes, selv om det ikke er noen endringer
+                if (oppdaterteKjeder.contains(meldeperiode.kjedeId)) {
+                    return@map nyBeregning to true
+                }
 
-                beregningerForBeregningsperioden.plus(beregningerEtterBeregningsperiodenOmberegnet)
+                val harEndringer = nyBeregning.dager != hentGjeldendeBeregningDagerForKjede(meldeperiode.kjedeId)
+
+                nyBeregning to harEndringer
             }
+            /* Beregninger etter beregningsperioden skal i utgangspunktet kun med dersom de har endringer,
+            men vi ønsker ikke "hull" i beregningene på en behandling, så vi dropper kun de etter siste
+            meldeperiode uten endring */
+            .dropLastWhile { (_, harEndringer) -> !harEndringer }
+            .map { it.first }
+            .toNonEmptyListOrThrow()
     }
 
     private fun harRett(dato: LocalDate): Boolean {
