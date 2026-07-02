@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.toBeregningSammenligningDTO
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
@@ -47,7 +48,7 @@ class SendTilDatadelingService(
                         sakRepo.markerSendtTilDatadeling(sakDb.id, nå(clock))
                         logger.info { "Sak med id ${sakDb.id} markert som sendt til datadeling." }
                     }.onLeft {
-                        // Disse logges av klienten, trenger ikke duplikat logglinje.
+                        it.loggFeil(logger, "sending av sak til datadeling", "Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}")
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av sak med id ${sakDb.id} til datadeling." }
@@ -68,7 +69,11 @@ class SendTilDatadelingService(
                         rammevedtakRepo.markerSendtTilDatadeling(rammevedtak.id, nå(clock))
                         logger.info { "Vedtak markert som sendt til datadeling. VedtakId: ${rammevedtak.id}" }
                     }.onLeft {
-                        // Disse logges av klienten, trenger ikke duplikat logglinje.
+                        it.loggFeil(
+                            logger,
+                            "sending av vedtak til datadeling",
+                            "Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}",
+                        )
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av vedtak til datadeling. Saksnummer: ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}, vedtakId: ${rammevedtak.id}" }
@@ -90,7 +95,11 @@ class SendTilDatadelingService(
                         rammebehandlingRepo.markerSendtTilDatadeling(behandling.id, nå(clock))
                         logger.info { "Behandling markert som sendt til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
                     }.onLeft {
-                        logger.error { "Behandling kunne ikke sendes til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
+                        it.loggFeil(
+                            logger,
+                            "sending av behandling til datadeling",
+                            "Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}",
+                        )
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av behandling til datadeling. Saksnummer: ${behandling.saksnummer}, sakId: ${behandling.sakId}, behandlingId: ${behandling.id}" }
@@ -112,7 +121,11 @@ class SendTilDatadelingService(
                         meldekortbehandlingRepo.markerBehandlingSendtTilDatadeling(meldekortbehandling.id, nå(clock))
                         logger.info { "Meldekortbehandling markert som sendt til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
                     }.onLeft {
-                        logger.error { "Meldekortbehandling kunne ikke sendes til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
+                        it.loggFeil(
+                            logger,
+                            "sending av meldekortbehandling til datadeling",
+                            "Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}",
+                        )
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av meldekortbehandling til datadeling. Saksnummer: ${meldekortbehandling.saksnummer}, sakId: ${meldekortbehandling.sakId}, meldekortbehandlingId: ${meldekortbehandling.id}" }
@@ -138,7 +151,11 @@ class SendTilDatadelingService(
                             )
                             logger.info { "Meldeperioder markert som sendt til datadeling. SakId: ${sak.id}" }
                         }.onLeft {
-                            // Disse logges av klienten, trenger ikke duplikat logglinje.
+                            it.loggFeil(
+                                logger,
+                                "sending av meldeperioder til datadeling",
+                                "Saksnummer: ${sak.saksnummer}, sakId: ${sak.id}",
+                            )
                         }
                     } else {
                         logger.warn { "Sak med id ${sak.id} har ingen meldeperioder som kan deles" }
@@ -167,7 +184,11 @@ class SendTilDatadelingService(
                         meldekortvedtakRepo.markerSendtTilDatadeling(meldekortvedtak.id, nå(clock))
                         logger.info { "Meldekort med vedtakid ${meldekortvedtak.id} markert som sendt til datadeling. SakId: ${meldekortvedtak.sakId}" }
                     }.onLeft {
-                        // Disse logges av klienten, trenger ikke duplikat logglinje.
+                        it.loggFeil(
+                            logger,
+                            "sending av meldekort til datadeling",
+                            "Meldekortvedtak ${meldekortvedtak.id}, saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}",
+                        )
                     }
                 }.onLeft {
                     logger.error(it) { "Ukjent feil skjedde under sending av meldekort med meldekortvedtakId ${meldekortvedtak.id} til datadeling. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}" }

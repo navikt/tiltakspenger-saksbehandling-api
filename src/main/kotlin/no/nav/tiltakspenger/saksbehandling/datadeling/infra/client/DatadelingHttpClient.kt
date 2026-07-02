@@ -1,43 +1,53 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import arrow.core.Either
-import arrow.core.left
-import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.future.await
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.httpklient.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.post
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
-import no.nav.tiltakspenger.saksbehandling.datadeling.FeilVedSendingTilDatadeling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import java.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
+/**
+ * Klient mot tiltakspenger-datadeling, bygget på den felles [HttpKlient]-modulen i tiltakspenger-libs.
+ *
+ * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og den bærer all HTTP-kontekst (status, rå request/respons, throwable) via `metadata`.
+ * Feilloggingen gjøres én gang av konsumenten ([no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService]), som i tillegg har domenekonteksten.
+ *
+ * [httpKlient] bygges som default ut fra parametrene over ([clock], [authTokenProvider], [connectTimeout], [defaultTimeout], [successStatus]) slik at hele klientoppsettet kan leses ett sted.
+ * Sender man inn en egen [httpKlient] (typisk `HttpKlientFake` i test), **ignoreres** de parametrene som kun brukes til å bygge default-klienten.
+ *
+ * @param clock Klokke som sendes videre til [HttpKlient]. Ignoreres hvis [httpKlient] sendes inn.
+ * @param authTokenProvider Henter system-token mot datadeling. Ignoreres hvis [httpKlient] sendes inn.
+ * @param connectTimeout Connect-timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ * @param defaultTimeout Per-request timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ * @param successStatus Predikat for hvilke HTTP-statuser som regnes som suksess i default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ */
 class DatadelingHttpClient(
     baseUrl: String,
-    val getToken: suspend () -> AccessToken,
-    connectTimeout: Duration = 1.seconds,
-    private val timeout: Duration = 1.seconds,
+    clock: Clock,
+    authTokenProvider: suspend () -> AccessToken,
+    connectTimeout: Duration = 5.seconds,
+    defaultTimeout: Duration = 10.seconds,
+    successStatus: (Int) -> Boolean = { it == 200 },
+    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
+        this.connectTimeout = connectTimeout
+        this.defaultTimeout = defaultTimeout
+        this.successStatus = successStatus
+        this.authTokenProvider = authTokenProvider
+    },
 ) : DatadelingClient {
-    private val log = KotlinLogging.logger {}
-
-    private val client = HttpClient
-        .newBuilder()
-        .connectTimeout(connectTimeout.toJavaDuration())
-        .followRedirects(HttpClient.Redirect.NEVER)
-        .build()
-
     private val behandlingsUri = URI.create("$baseUrl/behandling")
     private val vedtaksUri = URI.create("$baseUrl/vedtak")
     private val meldeperioderUri = URI.create("$baseUrl/meldeperioder")
@@ -47,141 +57,46 @@ class DatadelingHttpClient(
     override suspend fun send(
         rammevedtak: Rammevedtak,
         correlationId: CorrelationId,
-    ): Either<FeilVedSendingTilDatadeling, Unit> {
-        val jsonPayload = rammevedtak.toDatadelingJson()
-        return Either.catch {
-            val request = createRequest(jsonPayload, vedtaksUri)
-            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-            val jsonResponse = httpResponse.body()
-            val status = httpResponse.statusCode()
-            if (status != 200) {
-                log.error { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}. Status: $status. uri: $vedtaksUri. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}. uri: $vedtaksUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
-                return FeilVedSendingTilDatadeling.left()
-            }
-            Unit
-        }.mapLeft {
-            // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}. uri: $vedtaksUri. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Vedtak ${rammevedtak.id}, saksnummer ${rammevedtak.saksnummer}, sakId: ${rammevedtak.sakId}, uri: $vedtaksUri, jsonPayload: $jsonPayload" }
-            FeilVedSendingTilDatadeling
-        }
-    }
+    ): Either<HttpKlientError, Unit> = sendTilDatadeling(rammevedtak.toDatadelingJson(), vedtaksUri)
 
     override suspend fun send(
         behandling: AttesterbarBehandling,
         correlationId: CorrelationId,
-    ): Either<FeilVedSendingTilDatadeling, Unit> {
-        val jsonPayload = if (behandling is Rammebehandling) {
-            behandling.toBehandlingJson()
-        } else if (behandling is Meldekortbehandling) {
-            behandling.toBehandlingJson()
-        } else {
-            throw IllegalStateException("Kan ikke dele behandling med id ${behandling.id} som ikke er rammebehandling eller meldekortbehandling")
+    ): Either<HttpKlientError, Unit> {
+        val jsonPayload = when (behandling) {
+            is Rammebehandling -> behandling.toBehandlingJson()
+            is Meldekortbehandling -> behandling.toBehandlingJson()
+            else -> throw IllegalStateException("Kan ikke dele behandling med id ${behandling.id} som ikke er rammebehandling eller meldekortbehandling")
         }
-        return Either.catch {
-            val request = createRequest(jsonPayload, behandlingsUri)
-            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-            val jsonResponse = httpResponse.body()
-            val status = httpResponse.statusCode()
-            if (status != 200) {
-                log.error { "Feil ved kall til tiltakspenger-datadeling. Behandling ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. Status: $status. uri: $behandlingsUri. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Behandling ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. uri: $behandlingsUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
-                return FeilVedSendingTilDatadeling.left()
-            }
-            Unit
-        }.mapLeft {
-            // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til datadeling. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til datadeling. Vedtak ${behandling.id}, saksnummer ${behandling.saksnummer}, sakId: ${behandling.sakId}. jsonPayload: $jsonPayload, uri: $behandlingsUri" }
-            FeilVedSendingTilDatadeling
-        }
+        return sendTilDatadeling(jsonPayload, behandlingsUri)
     }
 
     override suspend fun send(
         meldeperioder: List<Meldeperiode>,
         correlationId: CorrelationId,
-    ): Either<FeilVedSendingTilDatadeling, Unit> {
+    ): Either<HttpKlientError, Unit> {
         val sakId = meldeperioder.firstOrNull()?.sakId ?: throw IllegalStateException("Kan ikke dele tom liste med meldeperioder")
-        val jsonPayload = meldeperioder.toDatadelingJson(sakId)
-        return Either.catch {
-            val request = createRequest(jsonPayload, meldeperioderUri)
-            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-            val jsonResponse = httpResponse.body()
-            val status = httpResponse.statusCode()
-            if (status != 200) {
-                log.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId. Status: $status. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId. uri: $meldeperioderUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
-                return FeilVedSendingTilDatadeling.left()
-            }
-            Unit
-        }.mapLeft {
-            // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId. uri: $meldeperioderUri. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldeperioder for sakId: $sakId, uri: $meldeperioderUri, jsonPayload: $jsonPayload" }
-            FeilVedSendingTilDatadeling
-        }
+        return sendTilDatadeling(meldeperioder.toDatadelingJson(sakId), meldeperioderUri)
     }
 
     override suspend fun send(
         meldekortvedtak: Meldekortvedtak,
         totalDifferanse: Int?,
         correlationId: CorrelationId,
-    ): Either<FeilVedSendingTilDatadeling, Unit> {
+    ): Either<HttpKlientError, Unit> {
         require(meldekortvedtak.journalpostId != null) {
             "Kan ikke dele meldekortvedtak med id ${meldekortvedtak.id} som ikke er journalført ennå"
         }
-        val jsonPayload = meldekortvedtak.toDatadelingJson(totalDifferanse)
-        return Either.catch {
-            val request = createRequest(jsonPayload, meldekortUri)
-            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-            val jsonResponse = httpResponse.body()
-            val status = httpResponse.statusCode()
-            if (status != 200) {
-                log.error { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}. Status: $status. uri: $meldekortUri. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}. uri: $meldekortUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
-                return FeilVedSendingTilDatadeling.left()
-            }
-            Unit
-        }.mapLeft {
-            // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}. uri: $meldekortUri. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Meldekort med id ${meldekortvedtak.id} for saksnummer ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, uri: $meldekortUri, jsonPayload: $jsonPayload" }
-            FeilVedSendingTilDatadeling
-        }
+        return sendTilDatadeling(meldekortvedtak.toDatadelingJson(totalDifferanse), meldekortUri)
     }
 
-    override suspend fun send(sakDb: SakDb, correlationId: CorrelationId): Either<FeilVedSendingTilDatadeling, Unit> {
-        val jsonPayload = sakDb.toDatadelingJson()
-        return Either.catch {
-            val request = createRequest(jsonPayload, sakUri)
-            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-            val jsonResponse = httpResponse.body()
-            val status = httpResponse.statusCode()
-            if (status != 200) {
-                log.error { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}. Status: $status. uri: $sakUri. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}. uri: $sakUri. jsonResponse: $jsonResponse. jsonPayload: $jsonPayload." }
-                return FeilVedSendingTilDatadeling.left()
-            }
-            Unit
-        }.mapLeft {
-            // Either.catch slipper igjennom CancellationException som er ønskelig.
-            log.error(it) { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}. uri: $sakUri. Se sikkerlogg for detaljer." }
-            Sikkerlogg.error(it) { "Feil ved kall til tiltakspenger-datadeling. Sak ${sakDb.id}, saksnummer ${sakDb.saksnummer}, uri: $sakUri, jsonPayload: $jsonPayload" }
-            FeilVedSendingTilDatadeling
-        }
-    }
+    override suspend fun send(
+        sakDb: SakDb,
+        correlationId: CorrelationId,
+    ): Either<HttpKlientError, Unit> = sendTilDatadeling(sakDb.toDatadelingJson(), sakUri)
 
-    private suspend fun createRequest(
+    private suspend fun sendTilDatadeling(
         jsonPayload: String,
         uri: URI,
-    ): HttpRequest? =
-        HttpRequest
-            .newBuilder()
-            .uri(uri)
-            .timeout(timeout.toJavaDuration())
-            .header("Authorization", "Bearer ${getToken().token}")
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
+    ): Either<HttpKlientError, Unit> = httpKlient.post<Unit>(uri, jsonPayload).map { }
 }

@@ -455,7 +455,8 @@ open class ApplicationContext(
     private val datadelingKlient by lazy {
         DatadelingHttpClient(
             baseUrl = Configuration.datadelingUrl,
-            getToken = { texasClient.getSystemToken(Configuration.datadelingScope, IdentityProvider.AZUREAD) },
+            clock = clock,
+            authTokenProvider = { texasClient.getSystemToken(Configuration.datadelingScope, IdentityProvider.AZUREAD) },
         )
     }
 

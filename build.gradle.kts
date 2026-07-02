@@ -1,4 +1,6 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import kotlinx.kover.gradle.plugin.dsl.AggregationType
+import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.1"
@@ -34,6 +36,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:jobber:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:httpklient:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:meldekort-dtos:$felleslibVersion")
@@ -119,6 +122,7 @@ plugins {
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
     kotlin("jvm") version "2.4.0"
     id("com.diffplug.spotless") version "8.7.0"
+    id("org.jetbrains.kotlinx.kover") version "0.9.8"
     application
 }
 application {
@@ -248,5 +252,46 @@ tasks {
     }
     check {
         dependsOn("checkFlywayMigrationNames")
+    }
+}
+
+kover {
+    reports {
+        total {
+            filters {
+                includes {
+                    // Klienter som er migrert til libs `httpklient` og skal ha full linjedekning.
+                    // Utvid lista etter hvert som flere klienter migreres (jf. TASKS.md httpklient-punkt).
+                    classes(
+                        "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
+                    )
+                }
+            }
+            html {
+                onCheck = true
+            }
+            xml {
+                onCheck = true
+            }
+            verify {
+                onCheck = true
+                rule("migrerte httpklient-klienter har full linjedekning") {
+                    bound {
+                        minValue = 100
+                        coverageUnits = CoverageUnit.LINE
+                        aggregationForGroup = AggregationType.COVERED_PERCENTAGE
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named("koverXmlReport") {
+    val xmlReport = layout.buildDirectory.file("reports/kover/report.xml")
+    doLast {
+        val xml = xmlReport.get().asFile
+        val classCount = xml.readText().split("<class ").size - 1
+        if (classCount == 0) throw GradleException("Kover report contains no classes — include filters likely stale")
     }
 }
