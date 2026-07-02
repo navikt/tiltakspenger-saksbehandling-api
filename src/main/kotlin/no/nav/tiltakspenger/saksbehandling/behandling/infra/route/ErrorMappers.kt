@@ -75,4 +75,9 @@ internal fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusC
         "Behandlingen har meldeperioder med kun rett i helg, men saken er ikke markert for melding på helgedager",
         "ugyldige_meldeperioder_for_helg",
     )
+
+    KanIkkeOppdatereBehandling.InnvilgelsesperiodeHarIngenOverlappMedTiltaksdeltakelserFraSaksopplysninger -> HttpStatusCode.BadRequest to ErrorJson(
+        "Innvilgelsesperiode har ingen overlapp med tiltaksdeltakelser fra saksopplysninger",
+        "innvilgelsesperiode_har_ingen_overlapp_med_tiltaksdeltakelser_fra_saksopplysninger",
+    )
 }

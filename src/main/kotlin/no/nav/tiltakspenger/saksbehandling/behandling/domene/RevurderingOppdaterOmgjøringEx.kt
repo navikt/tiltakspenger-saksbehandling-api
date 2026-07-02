@@ -83,9 +83,8 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
         .tilInnvilgelseperioder(this)
         .oppdaterTiltaksdeltakelser(saksopplysninger.tiltaksdeltakelser)
 
-    requireNotNull(oppdaterteInnvilgelsesperioder) {
-        // Dersom denne kaster og vi savner mer sakskontekst, bør denne returnere Either, slik at callee kan håndtere feilen.
-        "Valgte innvilgelsesperioder har ingen overlapp med tiltaksdeltakelser fra saksopplysningene"
+    if (oppdaterteInnvilgelsesperioder == null) {
+        return KanIkkeOppdatereBehandling.InnvilgelsesperiodeHarIngenOverlappMedTiltaksdeltakelserFraSaksopplysninger.left()
     }
 
     return this.copy(

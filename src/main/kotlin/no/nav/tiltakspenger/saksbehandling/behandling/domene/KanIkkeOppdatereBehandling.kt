@@ -15,6 +15,8 @@ sealed interface KanIkkeOppdatereBehandling {
     data object KanIkkeOpphøre : KanIkkeOppdatereBehandling
 
     data object UgyldigeMeldeperioderHelg : KanIkkeOppdatereBehandling
+
+    data object InnvilgelsesperiodeHarIngenOverlappMedTiltaksdeltakelserFraSaksopplysninger : KanIkkeOppdatereBehandling
 }
 
 sealed interface KanIkkeOppdatereOmgjøring : KanIkkeOppdatereBehandling {
