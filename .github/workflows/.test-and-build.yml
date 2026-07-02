@@ -42,6 +42,7 @@ jobs:
 
       - name: Build and push docker image
         # Versjonsoversikt (tag -> SHA): https://github.com/nais/docker-build-push/tags
+        # Denne SHA-en: https://github.com/nais/docker-build-push/commit/31c3a7321909bcb20799fdf46153fec721fd9512
         uses: nais/docker-build-push@31c3a7321909bcb20799fdf46153fec721fd9512 # v0
         id: docker-push
         if: inputs.buildImage == true
