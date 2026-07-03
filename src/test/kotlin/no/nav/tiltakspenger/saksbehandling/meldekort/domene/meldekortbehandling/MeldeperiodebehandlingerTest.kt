@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
-import io.kotest.assertions.throwables.shouldNotThrowAny
 import arrow.core.toNonEmptyListOrThrow
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.periode.Periode
