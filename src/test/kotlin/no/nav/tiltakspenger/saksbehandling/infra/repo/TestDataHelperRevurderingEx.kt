@@ -156,7 +156,7 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
 ): Pair<Sak, Rammebehandling> {
     val (sakMedRevurderingTilBeslutning, revurderingTilBeslutning) = genererSak(sak)
 
-    val revurderingUnderBeslutning = revurderingTilBeslutning.taBehandling(beslutterAv, clock).first
+    val revurderingUnderBeslutning = revurderingTilBeslutning.taBehandling(beslutterAv, clock).getOrFail().first
     behandlingRepo.lagre(revurderingUnderBeslutning)
 
     return Pair(sakRepo.hentForSakId(sakMedRevurderingTilBeslutning.id)!!, revurderingUnderBeslutning)
@@ -310,7 +310,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     }.getOrFail().tilBeslutning().taBehandling(
         saksbehandler = beslutter,
         clock = clock,
-    ).first.iverksett(
+    ).getOrFail().first.iverksett(
         utøvendeBeslutter = beslutter,
         attestering = Attestering(
             status = Attesteringsstatus.GODKJENT,

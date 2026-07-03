@@ -104,7 +104,7 @@ class GenererMeldeperioderSammenligningTest {
         val behandlingUnderBeslutning = behandling
             .tilBeslutning(saksbehandler = saksbehandler, clock = clock)
             .taBehandling(beslutter, clock)
-            .first
+            .getOrFail().first
 
         // 1. Generer meldeperioder for validering ut fra den ikke-vedtatte behandlingen
         val valideringMeldeperioder = sak

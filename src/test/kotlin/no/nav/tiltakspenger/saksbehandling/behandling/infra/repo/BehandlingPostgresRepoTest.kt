@@ -186,7 +186,7 @@ internal class BehandlingPostgresRepoTest {
             val oppdatertBehandling = behandlingRepo.hent(behandlingId).taBehandling(
                 saksbehandler = beslutter,
                 clock = testDataHelper.clock,
-            ).first
+            ).getOrFail().first
 
             val harTatt = behandlingRepo.taBehandlingSaksbehandler(
                 rammebehandling = oppdatertBehandling,

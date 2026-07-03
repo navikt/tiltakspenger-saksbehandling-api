@@ -231,19 +231,20 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     fun taBehandling(
         saksbehandler: Saksbehandler,
         clock: Clock,
-    ): Pair<Rammebehandling, Statistikkhendelser> {
+    ): Either<KunneIkkeTaBehandling, Pair<Rammebehandling, Statistikkhendelser>> {
         val nå = nå(clock)
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
                 krevSaksbehandlerRolle(saksbehandler)
-
-                require(this.saksbehandler == null) { "Saksbehandler skal ikke kunne være satt på behandlingen dersom den er KLAR_TIL_BEHANDLING" }
+                if (this.saksbehandler != null) {
+                    return KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler.left()
+                }
                 val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.ta(
                     kommando = TaKlagebehandlingKommando(sakId, klagebehandling!!.id, saksbehandler),
                     tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
                     sistEndret = nå,
                 )?.getOrElse {
-                    throw IllegalStateException("Kunne ikke ta klagebehandling når rammebehandling tas: $it")
+                    return KunneIkkeTaBehandling.FeilVedKlagebehandling(it).left()
                 } ?: (null to Statistikkhendelser.empty())
                 val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
@@ -265,15 +266,17 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 val statistikkhendelser = klagestatistikk.leggTil(
                     oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
                 )
-                oppdatertRammebehandling to statistikkhendelser
+                Pair(oppdatertRammebehandling, statistikkhendelser).right()
             }
 
             KLAR_TIL_BESLUTNING -> {
-                check(saksbehandler.navIdent != this.saksbehandler) {
-                    "Beslutter ($saksbehandler) kan ikke være den samme som saksbehandleren (${this.saksbehandler}"
+                if (saksbehandler.navIdent == this.saksbehandler) {
+                    return KunneIkkeTaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling.left()
                 }
                 krevBeslutterRolle(saksbehandler)
-                require(this.beslutter == null) { "Behandlingen har en eksisterende beslutter. For å overta behandlingen, bruk overta() - behandlingsId: ${this.id}" }
+                if (this.beslutter != null) {
+                    return KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()
+                }
 
                 val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
@@ -291,18 +294,14 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 val statistikkhendelser = Statistikkhendelser(
                     oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
                 )
-                oppdatertRammebehandling to statistikkhendelser
+                Pair(oppdatertRammebehandling, statistikkhendelser).right()
             }
 
-            UNDER_BEHANDLING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en saksbehandler fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
+            UNDER_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler.left()
 
-            UNDER_BESLUTNING -> throw IllegalStateException("Skal kun kunne ta behandlingen dersom det er registrert en beslutter fra før. For å overta behandlingen, skal andre operasjoner bli brukt")
+            UNDER_BESLUTNING -> KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()
 
-            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> {
-                throw IllegalArgumentException(
-                    "Kan ikke ta behandling når behandlingen har status $status. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-                )
-            }
+            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling.left()
         }
     }
 

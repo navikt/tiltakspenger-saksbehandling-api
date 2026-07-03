@@ -350,7 +350,7 @@ interface BehandlingMother : MotherOfAllMothers {
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
             automatiskBehandling = automatiskBehandling,
-        ).taBehandling(beslutter, clock).first as Søknadsbehandling
+        ).taBehandling(beslutter, clock).getOrFail().first as Søknadsbehandling
     }
 
     @Suppress("unused")

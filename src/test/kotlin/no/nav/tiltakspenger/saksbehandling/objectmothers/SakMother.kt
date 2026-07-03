@@ -46,7 +46,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
 import java.time.LocalDate
-import kotlin.Pair
 
 interface SakMother {
     fun nySak(
@@ -304,7 +303,7 @@ interface SakMother {
             saksbehandler = saksbehandler,
             clock = clock,
         ).taBehandling(beslutter, clock)
-            .first.iverksett(
+            .getOrFail().first.iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),
                 correlationId = correlationId,
@@ -352,7 +351,7 @@ interface SakMother {
         ).getOrFail().tilBeslutning(
             saksbehandler = saksbehandler,
             clock = clock,
-        ).taBehandling(beslutter, clock).first
+        ).taBehandling(beslutter, clock).getOrFail().first
             .iverksett(
                 utøvendeBeslutter = beslutter,
                 attestering = ObjectMother.godkjentAttestering(beslutter),

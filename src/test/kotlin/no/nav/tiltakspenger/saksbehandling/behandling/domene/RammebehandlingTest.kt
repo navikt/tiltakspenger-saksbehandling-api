@@ -104,7 +104,7 @@ class RammebehandlingTest {
             val behandling = ObjectMother.nyAutomatiskSøknadsbehandlingManuellBehandling()
             val saksbehandler = ObjectMother.saksbehandler()
 
-            val taBehandling = behandling.taBehandling(saksbehandler, clock).first
+            val taBehandling = behandling.taBehandling(saksbehandler, clock).getOrFail().first
 
             taBehandling.saksbehandler shouldBe saksbehandler.navIdent
             taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -114,7 +114,7 @@ class RammebehandlingTest {
         fun `en beslutter kan ta behandlingen`() {
             val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning()
             val beslutter = ObjectMother.beslutter()
-            val taBehandling = behandling.taBehandling(beslutter, clock).first
+            val taBehandling = behandling.taBehandling(beslutter, clock).getOrFail().first
 
             taBehandling.beslutter shouldBe beslutter.navIdent
             taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING

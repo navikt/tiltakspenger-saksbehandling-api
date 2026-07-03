@@ -234,7 +234,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
 
     behandlingRepo.lagre(klarTilBeslutning)
 
-    val tilBeslutning = behandlingRepo.hent(behandling.id).taBehandling(beslutter, clock).first
+    val tilBeslutning = behandlingRepo.hent(behandling.id).taBehandling(beslutter, clock).getOrFail().first
 
     behandlingRepo.taBehandlingBeslutter(tilBeslutning)
 
@@ -402,7 +402,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
         clock = clock,
     ).second
 
-    val tilBeslutning = behandling.taBehandling(beslutter, clock).first
+    val tilBeslutning = behandling.taBehandling(beslutter, clock).getOrFail().first
 
     behandlingRepo.lagre(tilBeslutning)
     val oppdatertSak = sakRepo.hentForSakId(sakId)!!
@@ -550,7 +550,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     )
 
     val oppdatertRammebehandling = søknadsbehandling
-        .taBehandling(beslutter, clock).first
+        .taBehandling(beslutter, clock).getOrFail().first
         .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock).first
     behandlingRepo.lagre(oppdatertRammebehandling)
     val vedtak = sak.opprettRammevedtak(oppdatertRammebehandling, clock)
@@ -621,7 +621,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     )
 
     val oppdatertSøknadsbehandling =
-        søknadsbehandling.taBehandling(beslutter, clock).first
+        søknadsbehandling.taBehandling(beslutter, clock).getOrFail().first
             .iverksett(beslutter, ObjectMother.godkjentAttestering(beslutter), correlationId, clock).first
     behandlingRepo.lagre(oppdatertSøknadsbehandling)
     val (sakMedVedtak, vedtak) = sak.opprettRammevedtak(oppdatertSøknadsbehandling, clock)

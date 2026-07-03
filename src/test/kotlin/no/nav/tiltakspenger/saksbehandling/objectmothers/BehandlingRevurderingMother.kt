@@ -180,7 +180,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             sisteDagSomGirRett = sisteDagSomGirRett,
             omgjørRammevedtak = omgjørRammevedtak,
             clock = clock,
-        ).taBehandling(beslutter, clock).first.iverksett(
+        ).taBehandling(beslutter, clock).getOrFail().first.iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             correlationId = correlationId,
@@ -344,7 +344,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             barnetillegg = barnetillegg,
             beregning = beregning,
             clock = clock,
-        ).taBehandling(beslutter, clock).first.iverksett(
+        ).taBehandling(beslutter, clock).getOrFail().first.iverksett(
             utøvendeBeslutter = beslutter,
             attestering = attestering,
             correlationId = correlationId,
@@ -455,7 +455,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             correlationId = CorrelationId.generate(),
             clock = clock,
-        ).taBehandling(beslutter, clock).first
+        ).taBehandling(beslutter, clock).getOrFail().first
     }
 
     fun nyIverksattRevurderingOmgjøring(

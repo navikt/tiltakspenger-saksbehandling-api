@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilStatusOgErrorJson
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
@@ -87,5 +88,7 @@ fun KanIkkeTaKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJ
                 "kan_ikke_ta_klagebehandling_bruk_overta_klagebehandling_isteden",
             ),
         )
+
+        is KanIkkeTaKlagebehandling.FeilVedRammebehandling -> this.originalFeil.tilStatusOgErrorJson()
     }
 }
