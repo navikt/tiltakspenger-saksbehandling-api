@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.http
 
 import io.github.oshai.kotlinlogging.KLogger
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.throwableOrNull
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 
 /**
@@ -34,16 +35,4 @@ fun HttpKlientError.loggFeil(
         logger.error { logMelding }
         Sikkerlogg.error { sikkerMelding }
     }
-}
-
-/**
- * Den underliggende exceptionen når feilen bærer en, ellers `null`.
- * [HttpKlientError.UventetStatus] har ingen throwable (serveren svarte, bare med en uventet status), så den logges uten stacktrace.
- * TODO jah: Fjern og bruk fra libs når den er tilgjengelig.
- */
-private fun HttpKlientError.throwableOrNull(): Throwable? = when (this) {
-    is HttpKlientError.RequestIkkeSendt -> throwable
-    is HttpKlientError.IngenRespons -> throwable
-    is HttpKlientError.DeserializationError -> throwable
-    is HttpKlientError.UventetStatus -> null
 }

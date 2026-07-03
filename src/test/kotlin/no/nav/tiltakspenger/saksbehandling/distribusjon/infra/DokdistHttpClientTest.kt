@@ -6,6 +6,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
 import no.nav.tiltakspenger.libs.httpklient.HttpMethod
@@ -28,10 +29,14 @@ internal class DokdistHttpClientTest {
     private val correlationId = CorrelationId.generate()
     private val journalpostId = JournalpostId("journalpostId")
 
+    private val fakeAuthTokenProvider = object : AuthTokenProvider {
+        override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
+    }
+
     private fun client(httpKlient: HttpKlientFake) = DokdistHttpClient(
         baseUrl = baseUrl,
         clock = ObjectMother.clock,
-        authTokenProvider = { AccessToken("token", Instant.MAX) {} },
+        authTokenProvider = fakeAuthTokenProvider,
         httpKlient = httpKlient,
     )
 
@@ -40,7 +45,7 @@ internal class DokdistHttpClientTest {
         DokdistHttpClient(
             baseUrl = baseUrl,
             clock = ObjectMother.clock,
-            authTokenProvider = { AccessToken("token", Instant.MAX) {} },
+            authTokenProvider = fakeAuthTokenProvider,
         )
     }
 

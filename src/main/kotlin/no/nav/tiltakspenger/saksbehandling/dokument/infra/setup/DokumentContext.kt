@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra.setup
 
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
@@ -33,7 +34,10 @@ open class DokumentContext(
         DokdistHttpClient(
             baseUrl = Configuration.dokdistUrl,
             clock = clock,
-            authTokenProvider = { texasClient.getSystemToken(Configuration.dokdistScope, IdentityProvider.AZUREAD) },
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(Configuration.dokdistScope, IdentityProvider.AZUREAD, skipCache = skipCache)
+            },
         )
     }
     open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { dokarkivClient }

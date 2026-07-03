@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.post
@@ -37,7 +37,7 @@ import kotlin.time.Duration.Companion.seconds
 class DatadelingHttpClient(
     baseUrl: String,
     clock: Clock,
-    authTokenProvider: suspend () -> AccessToken,
+    authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 5.seconds,
     defaultTimeout: Duration = 10.seconds,
     successStatus: (Int) -> Boolean = { it == 200 },

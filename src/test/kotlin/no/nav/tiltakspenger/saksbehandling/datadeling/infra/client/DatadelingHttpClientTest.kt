@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
 import no.nav.tiltakspenger.libs.httpklient.HttpMethod
@@ -35,10 +36,14 @@ internal class DatadelingHttpClientTest {
     private val baseUrl = "http://datadeling.test"
     private val correlationId = CorrelationId.generate()
 
+    private val fakeAuthTokenProvider = object : AuthTokenProvider {
+        override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
+    }
+
     private fun client(httpKlient: HttpKlientFake) = DatadelingHttpClient(
         baseUrl = baseUrl,
         clock = ObjectMother.clock,
-        authTokenProvider = { AccessToken("token", Instant.MAX) {} },
+        authTokenProvider = fakeAuthTokenProvider,
         httpKlient = httpKlient,
     )
 
@@ -47,7 +52,7 @@ internal class DatadelingHttpClientTest {
         DatadelingHttpClient(
             baseUrl = baseUrl,
             clock = ObjectMother.clock,
-            authTokenProvider = { AccessToken("token", Instant.MAX) {} },
+            authTokenProvider = fakeAuthTokenProvider,
         )
     }
 

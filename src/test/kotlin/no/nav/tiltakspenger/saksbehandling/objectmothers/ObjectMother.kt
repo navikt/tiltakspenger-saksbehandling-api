@@ -45,10 +45,8 @@ object ObjectMother :
     fun accessToken(
         token: String = "token",
         expiresAt: Instant = Instant.MAX,
-        invaliderCache: () -> Unit = {},
     ) = AccessToken(
         token = token,
         expiresAt = expiresAt,
-        invaliderCache = invaliderCache,
     )
 }

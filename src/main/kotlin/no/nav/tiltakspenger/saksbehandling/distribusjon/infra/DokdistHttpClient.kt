@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.distribusjon.infra
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.post
@@ -41,7 +41,7 @@ internal data class DokdistResponse(
 class DokdistHttpClient(
     baseUrl: String,
     clock: Clock,
-    authTokenProvider: suspend () -> AccessToken,
+    authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 1.seconds,
     defaultTimeout: Duration = 1.seconds,
     // 409 er en forventet statuskode ved forsøk på å distribuere samme dokument flere ganger, og regnes derfor som suksess.

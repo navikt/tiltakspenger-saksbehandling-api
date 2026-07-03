@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.kafka.Producer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -456,7 +457,10 @@ open class ApplicationContext(
         DatadelingHttpClient(
             baseUrl = Configuration.datadelingUrl,
             clock = clock,
-            authTokenProvider = { texasClient.getSystemToken(Configuration.datadelingScope, IdentityProvider.AZUREAD) },
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(Configuration.datadelingScope, IdentityProvider.AZUREAD, skipCache = skipCache)
+            },
         )
     }
 
