@@ -47,7 +47,7 @@ class MeldeperiodebehandlingerTest {
     }
 
     @Test
-    fun `tillater beregning som inkluderer perioder utenfor meldeperiodene, f.eks. ved hull mellom meldeperiodene`() {
+    fun `tillater beregning som inkluderer perioder utenfor meldeperiodene, f eks ved hull mellom meldeperiodene`() {
         val meldekort = ObjectMother.meldekortUnderBehandling()
         val beregningForBehandlingen = ObjectMother.meldekortBeregning(
             meldekortId = meldekort.id,
