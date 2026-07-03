@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.http
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 class MeldekortApiFakeKlient : MeldekortApiKlient {
-    override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
+    override suspend fun sendSak(sak: Sak): Either<HttpKlientError, Unit> {
         return Unit.right()
     }
 }

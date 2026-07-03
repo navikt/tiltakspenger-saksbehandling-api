@@ -265,6 +265,7 @@ kover {
                     classes(
                         "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient",
+                        "no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient",
                     )
                 }
             }

@@ -8,12 +8,12 @@ import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.SakTilMeldekortApiDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.tilMeldekortApiDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.FeilVedSendingTilMeldekortApi
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
@@ -90,7 +90,7 @@ class SendTilMeldekortApiServiceTest {
             // Lag en MeldekortApiKlient som venter til vi har iverksatt revurderingen
             val revurderingIverksatt = AtomicBoolean(false)
             val slowMeldekortApiKlient = object : MeldekortApiKlient {
-                override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
+                override suspend fun sendSak(sak: Sak): Either<HttpKlientError, Unit> {
                     // Vent til revurderingen er iverksatt
                     while (!revurderingIverksatt.get()) {
                         delay(10)
@@ -149,7 +149,7 @@ class SendTilMeldekortApiServiceTest {
             // Bruk en tracking-klient som fanger opp hva som faktisk sendes
             val sendteSaker = mutableListOf<Sak>()
             val trackingKlient = object : MeldekortApiKlient {
-                override suspend fun sendSak(sak: Sak): Either<FeilVedSendingTilMeldekortApi, Unit> {
+                override suspend fun sendSak(sak: Sak): Either<HttpKlientError, Unit> {
                     sendteSaker.add(sak)
                     return Unit.right()
                 }

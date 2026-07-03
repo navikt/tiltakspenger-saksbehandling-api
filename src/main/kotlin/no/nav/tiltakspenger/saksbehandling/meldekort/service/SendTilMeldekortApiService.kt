@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 
 /**
@@ -29,7 +30,7 @@ class SendTilMeldekortApiService(
                         logger.warn { "Sak $id ble sendt til meldekort-api, men det er nye vedtak på saken - sendes igjen ved neste kjøring" }
                     }
                 }.onLeft {
-                    logger.error { "Kunne ikke sende sak til meldekort-api med id $id" }
+                    it.loggFeil(logger, "sending av sak til meldekort-api", "Sak $id")
                 }
             }
         }.onLeft {

@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
@@ -244,12 +245,13 @@ class LocalApplicationContext(
                 } else {
                     MeldekortApiHttpClient(
                         baseUrl = Configuration.meldekortApiUrl,
-                        // Vi trenger en ekte token-klient for å snakke med meldekort-api
-                        getToken = {
-                            texasClient.getSystemToken(
-                                Configuration.meldekortApiScope,
-                                IdentityProvider.AZUREAD,
-                            )
+                        clock = clock,
+                        authTokenProvider = object : AuthTokenProvider {
+                            override suspend fun hentToken(skipCache: Boolean) =
+                                texasClient.getSystemToken(
+                                    Configuration.meldekortApiScope,
+                                    IdentityProvider.AZUREAD,
+                                )
                         },
                     )
                 }
