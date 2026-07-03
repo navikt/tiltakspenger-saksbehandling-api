@@ -77,7 +77,7 @@ suspend fun Klagebehandling.genererBrev(
             true,
             this.formkrav.innsendingsdato,
             vedtaksdato!!,
-        ).map { it to null }
+        )
     }
 }
 
@@ -125,7 +125,7 @@ suspend fun Klagebehandling.genererBrev(
                 false,
                 this.formkrav.innsendingsdato,
                 vedtaksdato!!,
-            ).map { it to null }
+            )
         }
 
         is Klagebehandlingsresultat.Omgjør, null -> throw IllegalStateException("Ingen resultat og omgjør er ikke en gyldig tilstand for klagebehandlingsresultat ved generering av brev. Feilen skjedde for sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id")

@@ -89,6 +89,7 @@ class PdfgenHttpClient(
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
     private val pdfgenrsKlageAvvisUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageAvvis")
     private val klageInnstillingUrl = URI.create("$baseUrl/api/v1/genpdf/tpts/klageInnstilling")
+    private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
 
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
@@ -429,25 +430,34 @@ class PdfgenHttpClient(
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
         clock: Clock,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                BrevKlageInnstillingDTO.create(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = LocalDate.now(clock),
-                    tilleggstekst = tilleggstekst,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    fnr = fnr,
-                    vedtaksdato = vedtaksdato,
-                    innsendingsdato = innsendingsdato,
-                )
-            },
-            errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
-            uri = klageInnstillingUrl,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            BrevKlageInnstillingDTO.create(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = LocalDate.now(clock),
+                tilleggstekst = tilleggstekst,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                fnr = fnr,
+                vedtaksdato = vedtaksdato,
+                innsendingsdato = innsendingsdato,
+            )
+        }
+        val errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = klageInnstillingUrl,
+                pdfgenrsUri = pdfgenrsKlageInnstillingUrl,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = klageInnstillingUrl)
+                .map { it to null }
+        }
     }
 
     override suspend fun genererOpphørBrev(

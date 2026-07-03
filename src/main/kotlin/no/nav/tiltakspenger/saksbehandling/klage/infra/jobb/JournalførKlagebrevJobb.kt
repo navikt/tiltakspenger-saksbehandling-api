@@ -127,9 +127,21 @@ class JournalførKlagebrevJobb(
                     log.info { "Innstillingsbrev generert. $loggkontekst" }
                     val (journalpostId, dokumentInfoId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
                         klagebehandling = klagebehandling,
-                        pdfOgJson = pdfOgJson,
+                        pdfOgJson = pdfOgJson.first,
                         correlationId = correlationId,
                     )
+                    /*
+                        TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-innstilling pdf er ok
+                            Akkurat nå bryr vi oss ikke om journalpostId'en etc. Så lenge vi finner saken igjen i gosys
+                            så bare manuelt sjekker vi at ting er ok.
+                     */
+                    pdfOgJson.second?.let {
+                        journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
+                            klagebehandling = klagebehandling,
+                            pdfOgJson = pdfOgJson.first,
+                            correlationId = correlationId,
+                        )
+                    }
                     val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
                         brevdato = LocalDate.now(clock),
                         journalpostId = journalpostId,

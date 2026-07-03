@@ -33,5 +33,5 @@ interface GenererKlagebrevKlient {
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
         clock: Clock,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson>
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
 }

@@ -181,20 +181,37 @@ class GenererFakeVedtaksbrevKlient :
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
         clock: Clock,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return PdfOgJson(
-            pdf = PdfA("pdf".toByteArray()),
-            json = BrevKlageInnstillingDTO.create(
-                hentBrukersNavn = hentBrukersNavn,
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                datoForUtsending = vedtaksdato,
-                tilleggstekst = tilleggstekst,
-                saksbehandlerNavIdent = saksbehandlerNavIdent,
-                saksnummer = saksnummer,
-                forhåndsvisning = forhåndsvisning,
-                fnr = fnr,
-                vedtaksdato = vedtaksdato,
-                innsendingsdato = innsendingsdato,
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        return Pair(
+            PdfOgJson(
+                pdf = PdfA("pdf".toByteArray()),
+                json = BrevKlageInnstillingDTO.create(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    fnr = fnr,
+                    vedtaksdato = vedtaksdato,
+                    innsendingsdato = innsendingsdato,
+                ),
+            ),
+            PdfOgJson(
+                pdf = PdfA("pdf".toByteArray()),
+                json = BrevKlageInnstillingDTO.create(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    datoForUtsending = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                    saksbehandlerNavIdent = saksbehandlerNavIdent,
+                    saksnummer = saksnummer,
+                    forhåndsvisning = forhåndsvisning,
+                    fnr = fnr,
+                    vedtaksdato = vedtaksdato,
+                    innsendingsdato = innsendingsdato,
+                ),
             ),
         ).right()
     }

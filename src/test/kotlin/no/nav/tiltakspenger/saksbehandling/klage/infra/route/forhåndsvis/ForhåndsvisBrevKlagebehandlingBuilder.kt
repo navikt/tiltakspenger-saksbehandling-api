@@ -105,7 +105,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
             ),
         ),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetContenttype: ContentType? = ContentType.parse("application/pdf"),
+        forventetContenttype: ContentType? = ContentType.parse("multipart/mixed; boundary=pdf-boundary"),
         forventetPdf: PdfA? = null,
     ): PdfA? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
