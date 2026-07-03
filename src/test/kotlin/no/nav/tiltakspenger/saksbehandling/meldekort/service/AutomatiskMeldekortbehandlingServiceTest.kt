@@ -54,7 +54,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 val sisteMeldekortbehandling = meldekortbehandlinger.sisteGodkjenteMeldekort!!
 
                 sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                sisteMeldekortbehandling.brukersMeldekortLegacy!!.id shouldBe brukersMeldekort.id
+                sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
             }
         }
     }
@@ -164,7 +164,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
 
                 meldekortbehandlinger.godkjenteMeldekort.size shouldBe 1
                 meldekortbehandlinger.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                meldekortbehandlinger.sisteGodkjenteMeldekort!!.brukersMeldekortLegacy!!.id shouldBe brukersMeldekort1.id
+                (meldekortbehandlinger.sisteGodkjenteMeldekort as MeldekortBehandletAutomatisk).brukersMeldekort.id shouldBe brukersMeldekort1.id
 
                 automatiskMeldekortbehandlingService.behandleBrukersMeldekort(
                     clock.plus(
@@ -177,7 +177,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
 
                 meldekortbehandlingerNeste.godkjenteMeldekort.size shouldBe 2
                 meldekortbehandlingerNeste.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                meldekortbehandlingerNeste.sisteGodkjenteMeldekort!!.brukersMeldekortLegacy!!.id shouldBe brukersMeldekort2.id
+                (meldekortbehandlingerNeste.sisteGodkjenteMeldekort as MeldekortBehandletAutomatisk).brukersMeldekort.id shouldBe brukersMeldekort2.id
             }
         }
     }
@@ -501,15 +501,15 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 )
                 brukersMeldekortRepo.lagre(brukersMeldekort)
 
-                // Innenfor MAKS_DELAY (1 dag etter mottatt) -> skal forbli markert for automatisk retry
-                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusHours(23)))
+                // Innenfor MAKS_DELAY (2 dager etter mottatt) -> skal forbli markert for automatisk retry
+                service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusHours(47)))
 
                 brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
                     it.behandlesAutomatisk shouldBe true
                 }
 
-                // Etter MAKS_DELAY (mer enn 1 dag siden mottatt) -> skal ikke prøves automatisk på nytt
+                // Etter MAKS_DELAY (mer enn 2 dager siden mottatt) -> skal ikke prøves automatisk på nytt
                 service.behandleBrukersMeldekort(clock = fixedClockAt(mottatt.plusSeconds(1) + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING))
 
                 brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {

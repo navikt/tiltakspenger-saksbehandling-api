@@ -18,7 +18,7 @@ class MeldeperiodebehandlingerTest {
         val beregning = ObjectMother.meldekortBeregning(
             meldekortId = meldekort.id,
             startDato = meldekort.fraOgMed,
-            kjedeId = meldekort.kjedeIdLegacy,
+            kjedeId = meldekort.meldeperioder.first().kjedeId,
         )
 
         shouldNotThrowAny {
@@ -52,7 +52,7 @@ class MeldeperiodebehandlingerTest {
         val beregningForBehandlingen = ObjectMother.meldekortBeregning(
             meldekortId = meldekort.id,
             startDato = meldekort.fraOgMed,
-            kjedeId = meldekort.kjedeIdLegacy,
+            kjedeId = meldekort.meldeperioder.first().kjedeId,
         )
         // Representerer en påfølgende periode som ikke er en del av behandlingen.
         // Dette kan f.eks. være fordi det er et hull mellom meldeperiodene i behandlingen.

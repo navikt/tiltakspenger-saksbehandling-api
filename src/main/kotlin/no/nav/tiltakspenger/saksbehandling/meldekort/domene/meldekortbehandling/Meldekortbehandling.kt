@@ -20,10 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.avbrytIkkeRettTilTiltakspenger
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
@@ -71,13 +68,6 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val erSattPåVent: Boolean get() = ventestatus.erSattPåVent
 
     val erFullstendigUtfylt: Boolean get() = meldeperioder.erFullstendigUtfylt
-
-    /** TODO: fjernes når all funksjonalitet for å behandle flere meldeperioder i en behandling er på plass */
-    private val førsteMeldeperiodebehandling: Meldeperiodebehandling get() = meldeperioder.first()
-    val meldeperiodeLegacy: Meldeperiode get() = førsteMeldeperiodebehandling.meldeperiode
-    val kjedeIdLegacy: MeldeperiodeKjedeId get() = førsteMeldeperiodebehandling.kjedeId
-    val brukersMeldekortLegacy: BrukersMeldekort? get() = førsteMeldeperiodebehandling.brukersMeldekort
-    val dagerLegacy: UtfyltMeldeperiode get() = førsteMeldeperiodebehandling.dager
 
     override val erAvsluttet
         get() = when (status) {

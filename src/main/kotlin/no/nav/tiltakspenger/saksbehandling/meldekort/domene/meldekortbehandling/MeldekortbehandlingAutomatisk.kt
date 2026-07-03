@@ -65,6 +65,8 @@ data class MeldekortBehandletAutomatisk(
 
     override val beregning: Beregning get() = meldeperioder.beregning!!
 
+    val brukersMeldekort: BrukersMeldekort by lazy { meldeperioder.single().brukersMeldekort!! }
+
     init {
         require(!harKorrigering) {
             "Vi støtter ikke automatisk behandling av korrigering fra bruker"
@@ -72,7 +74,12 @@ data class MeldekortBehandletAutomatisk(
         require(status === MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
             "Ugyldig status for automatisk behandling: $status"
         }
-        require(!ingenDagerGirRett)
+        require(!ingenDagerGirRett) {
+            "Kan ikke automatisk behandle meldekort når ingen dager gir rett"
+        }
+        require(meldeperioder.size == 1) {
+            "Automatiske meldekortbehandlinger skal kun ha en meldeperiode"
+        }
     }
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {

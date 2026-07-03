@@ -35,7 +35,7 @@ class AvbrytMeldekortbehandlingRouteTest {
                       "kanIkkeIverksetteUtbetaling": null,
                       "tilbakekrevingId": null,
                       "type": "FØRSTE_BEHANDLING",
-                      "meldeperiodeId": "${avbruttMeldekortbehandling.meldeperiodeLegacy.id}",
+                      "meldeperiodeId": "${avbruttMeldekortbehandling.meldeperioder.first().meldeperiode.id}",
                       "beregning": null,
                       "beslutter": null,
                       "simulertBeregning": null,
@@ -129,7 +129,7 @@ class AvbrytMeldekortbehandlingRouteTest {
                 tac = tac,
             )!!
             val sakId = sakMedFørsteAvbrutteMeldekortbehandling.id
-            val kjedeId = avbruttMeldekortbehandling.meldeperiodeLegacy.kjedeId
+            val kjedeId = avbruttMeldekortbehandling.meldeperioder.first().meldeperiode.kjedeId
             val (oppdatertSak) = this.opprettOgAvbrytMeldekortbehandling(
                 tac = tac,
                 sakId = sakId,

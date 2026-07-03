@@ -155,8 +155,8 @@ class OpprettMeldekortbehandlingTest {
                 kjedeId = førsteKjede.kjedeId,
             )!!
 
-            meldekortbehandling.kjedeIdLegacy shouldBe førsteKjede.kjedeId
-            meldekortbehandling.meldeperiodeLegacy.ingenDagerGirRett shouldBe true
+            meldekortbehandling.meldeperioder.first().kjedeId shouldBe førsteKjede.kjedeId
+            meldekortbehandling.meldeperioder.first().meldeperiode.ingenDagerGirRett shouldBe true
             oppdatertSak.meldekortbehandlinger.single() shouldBe meldekortbehandling
         }
     }
@@ -215,8 +215,8 @@ class OpprettMeldekortbehandlingTest {
                 sakId = sak.id,
                 kjedeId = andreKjede.kjedeId,
             )!!
-            andreBehandling.kjedeIdLegacy shouldBe andreKjede.kjedeId
-            andreBehandling.meldeperiodeLegacy.ingenDagerGirRett shouldBe true
+            andreBehandling.meldeperioder.first().kjedeId shouldBe andreKjede.kjedeId
+            andreBehandling.meldeperioder.first().meldeperiode.ingenDagerGirRett shouldBe true
         }
     }
 }

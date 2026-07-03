@@ -745,8 +745,8 @@ interface MeldekortMother : MotherOfAllMothers {
                 ObjectMother.simuleringMedMetadata(
                     simulering = ObjectMother.simulering(
                         periode = it.periode,
-                        meldeperiodeKjedeId = it.kjedeIdLegacy,
-                        meldeperiode = it.meldeperiodeLegacy,
+                        meldeperiodeKjedeId = it.meldeperioder.first().kjedeId,
+                        meldeperiode = it.meldeperioder.first().meldeperiode,
                         clock = clock,
                     ),
                     originalJson = "{}",
@@ -869,8 +869,8 @@ interface MeldekortMother : MotherOfAllMothers {
                 ObjectMother.simuleringMedMetadata(
                     simulering = ObjectMother.simulering(
                         periode = it.periode,
-                        meldeperiodeKjedeId = it.kjedeIdLegacy,
-                        meldeperiode = it.meldeperiodeLegacy,
+                        meldeperiodeKjedeId = it.meldeperioder.first().kjedeId,
+                        meldeperiode = it.meldeperioder.first().meldeperiode,
                         clock = clock,
                     ),
                     originalJson = "{}",
@@ -1011,7 +1011,10 @@ interface MeldekortMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
-        dager: OppdatertMeldeperiode,
+        dager: OppdatertMeldeperiode? = null,
+        meldeperioder: NonEmptyList<OppdatertMeldeperiode> = nonEmptyListOf(
+            dager ?: throw IllegalArgumentException("Enten dager eller meldeperioder må angis"),
+        ),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
     ): OppdaterMeldekortbehandlingKommando {
@@ -1019,7 +1022,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sakId = sakId,
             meldekortId = meldekortId,
             saksbehandler = saksbehandler,
-            meldeperioder = nonEmptyListOf(dager),
+            meldeperioder = meldeperioder,
             begrunnelse = begrunnelse,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
@@ -1033,7 +1036,7 @@ interface MeldekortMother : MotherOfAllMothers {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: Begrunnelse? = null,
         correlationId: CorrelationId = CorrelationId.generate(),
-        dager: OppdatertMeldeperiode,
+        dager: OppdatertMeldeperiode? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
     ): SendMeldekortbehandlingTilBeslutterKommando {
         return SendMeldekortbehandlingTilBeslutterKommando(
@@ -1048,49 +1051,26 @@ interface MeldekortMother : MotherOfAllMothers {
 fun Meldekortbehandling.tilOppdaterMeldekortKommando(
     saksbehandler: Saksbehandler,
 ): OppdaterMeldekortbehandlingKommando {
-    val dager = dagerLegacy.map { dag ->
-        OppdatertMeldeperiode.OppdatertDag(
-            dag = dag.dato,
-            status = when (dag.status) {
-                MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
-
-                MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-
-                MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> OppdaterMeldekortbehandlingKommando.Status.DELTATT_MED_LØNN_I_TILTAKET
-
-                MeldekortDagStatus.IKKE_TILTAKSDAG -> OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
-
-                MeldekortDagStatus.FRAVÆR_SYK -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYK
-
-                MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYKT_BARN
-
-                MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_GODKJENT_AV_NAV
-
-                MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
-
-                MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_ANNET
-
-                MeldekortDagStatus.IKKE_BESVART -> if (dag.dato.erHelg()) {
-                    OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
-                } else {
-                    OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
-                }
-            },
-        )
-    }.toNonEmptyListOrNull()!!
-
     return ObjectMother.oppdaterMeldekortKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,
-        dager = OppdatertMeldeperiode(dager, kjedeIdLegacy),
+        meldeperioder = meldeperioder.map { it.tilOppdatertMeldeperiode() }.toNonEmptyListOrNull()!!,
     )
 }
 
 fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
     saksbehandler: Saksbehandler,
 ): SendMeldekortbehandlingTilBeslutterKommando {
-    val dager = dagerLegacy.map { dag ->
+    return ObjectMother.sendMeldekortTilBeslutterKommando(
+        sakId = sakId,
+        meldekortId = id,
+        saksbehandler = saksbehandler,
+    )
+}
+
+private fun Meldeperiodebehandling.tilOppdatertMeldeperiode(): OppdatertMeldeperiode {
+    val oppdaterteDager = dager.map { dag ->
         OppdatertMeldeperiode.OppdatertDag(
             dag = dag.dato,
             status = when (dag.status) {
@@ -1106,9 +1086,9 @@ fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
 
                 MeldekortDagStatus.FRAVÆR_SYKT_BARN -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_SYKT_BARN
 
-                MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
-
                 MeldekortDagStatus.FRAVÆR_GODKJENT_AV_NAV -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_GODKJENT_AV_NAV
+
+                MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU
 
                 MeldekortDagStatus.FRAVÆR_ANNET -> OppdaterMeldekortbehandlingKommando.Status.FRAVÆR_ANNET
 
@@ -1121,12 +1101,7 @@ fun Meldekortbehandling.tilSendMeldekortTilBeslutterKommando(
         )
     }.toNonEmptyListOrNull()!!
 
-    return ObjectMother.sendMeldekortTilBeslutterKommando(
-        sakId = sakId,
-        meldekortId = id,
-        saksbehandler = saksbehandler,
-        dager = OppdatertMeldeperiode(dager, kjedeIdLegacy),
-    )
+    return OppdatertMeldeperiode(oppdaterteDager, kjedeId)
 }
 
 /**
