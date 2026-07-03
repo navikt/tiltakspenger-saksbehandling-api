@@ -1,5 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
+enum class Profile {
+    LOCAL,
+    DEV,
+    PROD,
+}
+
 sealed interface EnvironmentConfig {
     val profile: Profile
     val httpPort: Int

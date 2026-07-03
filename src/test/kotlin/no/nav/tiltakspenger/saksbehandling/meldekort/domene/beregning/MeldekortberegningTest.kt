@@ -24,7 +24,7 @@ import java.time.LocalDate
 private typealias Dag = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
 private typealias Status = OppdaterMeldekortbehandlingKommando.Status
 
-internal class MeldekortberegningKorrigeringTest {
+internal class MeldekortberegningTest {
     private val førsteDag = LocalDate.of(2024, 1, 1)
     private val vedtaksperiode = Periode(fraOgMed = førsteDag, tilOgMed = førsteDag.plusDays(364))
 
@@ -464,6 +464,193 @@ internal class MeldekortberegningKorrigeringTest {
             meldekortbehandlinger.sisteBehandledeMeldekortPerKjede[0].beløpTotal shouldBe sumAv(
                 full = 20,
             )
+        }
+    }
+
+    @Test
+    fun `Skal beregne meldeperioder med hull mellom seg`() {
+        runTest {
+            val clock = TikkendeKlokke()
+
+            // Kun periode 1 og 3 finnes - periode 2 er et hull som aldri behandles
+            val periode1 = førsteDag
+            val periode3 = førsteDag.plusWeeks(4)
+
+            fun kjedeId(fraDato: LocalDate) =
+                MeldeperiodeKjedeId.fraPeriode(Periode(fraDato, fraDato.plusDays(13)))
+
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                clock = clock,
+                vedtaksperiode = vedtaksperiode,
+                meldeperioder = nonEmptyListOf(
+                    periodeMedFullDeltakelse(periode1),
+                    periodeMedFullDeltakelse(periode3),
+
+                    // Korriger periode 1 -> 5 dager med rett
+                    periodeMedStatuser(
+                        periode1,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                        List(5) { Status.FRAVÆR_ANNET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                    ),
+                ),
+            )
+
+            val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
+
+            beregninger.gjeldendeBeregningPerKjede[kjedeId(periode1)]!!.totalBeløp shouldBe sumAv(full = 5)
+            beregninger.gjeldendeBeregningPerKjede[kjedeId(periode3)]!!.totalBeløp shouldBe sumAv(full = 10)
+        }
+    }
+
+    @Test
+    fun `Skal korrigere ikke-sammenhengende meldeperioder - periode 1 og 3 av 3`() {
+        runTest {
+            val clock = TikkendeKlokke()
+
+            val periode1 = førsteDag
+            val periode2 = førsteDag.plusWeeks(2)
+            val periode3 = førsteDag.plusWeeks(4)
+
+            fun kjedeId(fraDato: LocalDate) =
+                MeldeperiodeKjedeId.fraPeriode(Periode(fraDato, fraDato.plusDays(13)))
+
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                clock = clock,
+                vedtaksperiode = vedtaksperiode,
+                meldeperioder = nonEmptyListOf(
+                    // 3 initielle meldeperioder med full deltakelse (10 dager med rett hver)
+                    periodeMedFullDeltakelse(periode1),
+                    periodeMedFullDeltakelse(periode2),
+                    periodeMedFullDeltakelse(periode3),
+
+                    // Korriger periode 1 -> 5 dager med rett
+                    periodeMedStatuser(
+                        periode1,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                        List(5) { Status.FRAVÆR_ANNET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                    ),
+
+                    // Korriger periode 3 -> 5 dager med rett (hull ved periode 2, som ikke korrigeres)
+                    periodeMedStatuser(
+                        periode3,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                        List(5) { Status.FRAVÆR_ANNET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                    ),
+                ),
+            )
+
+            val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
+
+            // Periode 1 og 3 er korrigert, periode 2 er urørt
+            beregninger.gjeldendeBeregningPerKjede[kjedeId(periode1)]!!.totalBeløp shouldBe sumAv(full = 5)
+            beregninger.gjeldendeBeregningPerKjede[kjedeId(periode2)]!!.totalBeløp shouldBe sumAv(full = 10)
+            beregninger.gjeldendeBeregningPerKjede[kjedeId(periode3)]!!.totalBeløp shouldBe sumAv(full = 5)
+        }
+    }
+
+    @Test
+    fun `Skal beregne reduksjon for en korrigert senere periode basert på sykedager fra en tidligere periode`() {
+        runTest {
+            val clock = TikkendeKlokke()
+
+            val periode1 = førsteDag
+            val periode2 = førsteDag.plusWeeks(2)
+
+            fun kjedeId(fraDato: LocalDate) =
+                MeldeperiodeKjedeId.fraPeriode(Periode(fraDato, fraDato.plusDays(13)))
+
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                clock = clock,
+                vedtaksperiode = vedtaksperiode,
+                meldeperioder = nonEmptyListOf(
+                    // Periode 1: 5 sykedager -> sykedagtelleren står på 5 ved slutten
+                    // (siste sykedag = førsteDag+11)
+                    periodeMedStatuser(
+                        periode1,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                    ),
+
+                    // Periode 2: opprinnelig full deltakelse
+                    periodeMedFullDeltakelse(periode2),
+
+                    // Korriger periode 2 til sykedager. Reduksjonen avhenger av at
+                    // sykedagtelleren fra periode 1 - som IKKE beregnes på nytt her - spilles
+                    // av på nytt (tidligereMeldeperioder) for å sette riktig state.
+                    periodeMedStatuser(
+                        periode2,
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                    ),
+                ),
+            )
+
+            val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
+
+            // Telleren fortsetter fra 5 (periode 1, kun 3 dager unna) -> alle 5 sykedagene i
+            // periode 2 blir redusert. Uten avspilling ville de 3 første vært uten reduksjon
+            // (full sats), altså sumAv(full = 8, redusert = 2).
+            beregninger.gjeldendeBeregningPerKjede[kjedeId(periode2)]!!.totalBeløp shouldBe
+                sumAv(full = 5, redusert = 5)
+        }
+    }
+
+    @Test
+    fun `Skal videreføre sykedagtelleren over et hull i meldeperiodene når det er 16 dager eller mindre mellom sykedagene`() {
+        runTest {
+            val clock = TikkendeKlokke()
+
+            // Kun periode 1 og 3 finnes - periode 2 er et hull
+            val periode1 = førsteDag
+            val periode3 = førsteDag.plusWeeks(4)
+
+            fun kjedeId(fraDato: LocalDate) =
+                MeldeperiodeKjedeId.fraPeriode(Periode(fraDato, fraDato.plusDays(13)))
+
+            val meldekortbehandlinger = ObjectMother.beregnMeldekortperioder(
+                clock = clock,
+                vedtaksperiode = vedtaksperiode,
+                meldeperioder = nonEmptyListOf(
+                    // Periode 1 ender med 5 sykedager på de siste dagene (siste sykedag = førsteDag+13),
+                    // slik at telleren står på 5.
+                    periodeMedStatuser(
+                        periode1,
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(4) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                        List(5) { Status.FRAVÆR_SYK },
+                    ),
+
+                    // Periode 3 starter på førsteDag+28 med sykedager fra første dag. Første sykedag er
+                    // da 15 dager etter siste sykedag i periode 1, altså <= 16 dager -> telleren
+                    // videreføres over hullet (ingen nullstilling). Dette krever at periode 1 spilles
+                    // av på nytt (tidligereMeldeperioder) selv om den ligger på andre siden av hullet.
+                    periodeMedStatuser(
+                        periode3,
+                        List(5) { Status.FRAVÆR_SYK },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                        List(5) { Status.DELTATT_UTEN_LØNN_I_TILTAKET },
+                        List(2) { Status.IKKE_RETT_TIL_TILTAKSPENGER },
+                    ),
+                ),
+            )
+
+            val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
+
+            // Telleren fortsetter fra 5 -> alle 5 sykedagene i periode 3 blir redusert.
+            // Uten videreføring over hullet ville de 3 første vært uten reduksjon (full sats),
+            // altså sumAv(full = 8, redusert = 2).
+            beregninger.gjeldendeBeregningPerKjede[kjedeId(periode3)]!!.totalBeløp shouldBe
+                sumAv(full = 5, redusert = 5)
         }
     }
 }

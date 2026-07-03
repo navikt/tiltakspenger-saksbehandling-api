@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdatertMeldeperiod
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgOppdaterMeldekortbehandling
 import org.junit.jupiter.api.Test
 
@@ -130,7 +131,7 @@ class OppdaterMeldekortbehandlingRouteTest {
     }
 
     @Test
-    fun `kan ikke oppdatere meldekortbehandling med ikke-sammenhengende meldeperioder`() {
+    fun `kan oppdatere meldekortbehandling med ikke-sammenhengende meldeperioder`() {
         val clock = TikkendeKlokke(fixedClockAt(12.mai(2026)))
 
         withTestApplicationContext(clock = clock) { tac ->
@@ -141,19 +142,111 @@ class OppdaterMeldekortbehandlingRouteTest {
             )
             sak.meldeperiodeKjeder.size shouldBe 3
 
-            // Hopper over meldeperiode 2 (midten) - kjede 0 og kjede 2 er ikke sammenhengende
+            // Hopper over meldeperiode 2 (midten).
+            // Kjede 0 og kjede 2 er ikke sammenhengende.
+            // Det er nå støttet å ha hull mellom meldeperiodene i en behandling.
             val ikkeSammenhengendeMeldeperioder = listOf(
                 sak.meldeperiodeKjeder[0].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),
                 sak.meldeperiodeKjeder[2].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),
             )
 
-            opprettOgOppdaterMeldekortbehandling(
+            val (oppdatertSak, oppdatertMeldekortbehandling) = opprettOgOppdaterMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                 meldeperioder = ikkeSammenhengendeMeldeperioder,
-                forventetStatus = HttpStatusCode.InternalServerError,
+            )!!
+
+            oppdatertMeldekortbehandling.meldeperioder.meldeperioder.size shouldBe 2
+            oppdatertMeldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+            // Totalperioden spenner over hele intervallet, inkludert hullet i midten.
+            oppdatertMeldekortbehandling.periode shouldBe (30.mars(2026) til 10.mai(2026))
+
+            oppdatertSak.meldekortbehandlinger.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `beregner korrekt for ikke-sammenhengende meldeperioder`() {
+        val clock = TikkendeKlokke(fixedClockAt(12.mai(2026)))
+
+        withTestApplicationContext(clock = clock) { tac ->
+            val vedtaksperiode = 1.april(2026) til 10.mai(2026)
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
             )
+            sak.meldeperiodeKjeder.size shouldBe 3
+
+            val kjede0 = sak.meldeperiodeKjeder[0].kjedeId
+            val kjede1 = sak.meldeperiodeKjeder[1].kjedeId
+            val kjede2 = sak.meldeperiodeKjeder[2].kjedeId
+
+            // Behandler periode 1 og 3, hopper over periode 2 (hull i midten)
+            val ikkeSammenhengendeMeldeperioder = listOf(
+                sak.meldeperiodeKjeder[0].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),
+                sak.meldeperiodeKjeder[2].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),
+            )
+
+            val (_, oppdatertMeldekortbehandling) = opprettOgOppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjede0,
+                meldeperioder = ikkeSammenhengendeMeldeperioder,
+            )!!
+
+            val beregning = oppdatertMeldekortbehandling.beregning!!
+
+            // Beregningen omfatter kun de to behandlede kjedene - ingen beregning for hullet (periode 2)
+            beregning.beregninger.map { it.kjedeId }.toSet() shouldBe setOf(kjede0, kjede2)
+            beregning.beregninger.none { it.kjedeId == kjede1 } shouldBe true
+
+            val beløpKjede0 = beregning.beregninger.single { it.kjedeId == kjede0 }.totalBeløp
+            val beløpKjede2 = beregning.beregninger.single { it.kjedeId == kjede2 }.totalBeløp
+
+            beløpKjede0 shouldBeGreaterThan 0
+            beløpKjede2 shouldBeGreaterThan 0
+            oppdatertMeldekortbehandling.beløpTotal shouldBe (beløpKjede0 + beløpKjede2)
+        }
+    }
+
+    @Test
+    fun `beregning beholder urørt midtre meldeperiode mellom to behandlede - ingen hull`() {
+        val clock = TikkendeKlokke(fixedClockAt(12.mai(2026)))
+
+        withTestApplicationContext(clock = clock) { tac ->
+            val vedtaksperiode = 1.april(2026) til 10.mai(2026)
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
+            )
+            sak.meldeperiodeKjeder.size shouldBe 3
+
+            val kjede0 = sak.meldeperiodeKjeder[0].kjedeId
+            val kjede1 = sak.meldeperiodeKjeder[1].kjedeId
+            val kjede2 = sak.meldeperiodeKjeder[2].kjedeId
+
+            // Iverksett alle tre meldeperiodene, slik at kjede 1 (midten) har en gjeldende beregning
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = kjede0)!!
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = kjede1)!!
+            opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = kjede2)!!
+
+            // Korriger periode 1 og 3 (ikke-sammenhengende). Midterste periode er uendret.
+            val (_, korrigering) = opprettOgOppdaterMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = kjede0,
+                meldeperioder = listOf(
+                    sak.meldeperiodeKjeder[0].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),
+                    sak.meldeperiodeKjeder[2].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),
+                ),
+            )!!
+
+            // Behandlingen eier kun kjede 0 og 2
+            korrigering.meldeperioder.meldeperioder.size shouldBe 2
+
+            // Men beregningen inkluderer også den uendrede kjede 1 i midten, for å unngå hull
+            korrigering.beregning!!.beregninger.map { it.kjedeId } shouldBe listOf(kjede0, kjede1, kjede2)
         }
     }
 
