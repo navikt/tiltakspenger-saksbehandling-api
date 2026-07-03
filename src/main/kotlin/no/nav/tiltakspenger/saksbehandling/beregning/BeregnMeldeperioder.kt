@@ -80,7 +80,7 @@ private data class BeregnMeldeperioder(
         egenSykeperiode.reset()
         barnSykeperiode.reset()
 
-        val førsteDag = meldeperioderSomBeregnes.first().fraOgMed
+        val førsteOppdaterteDag = meldeperioderSomBeregnes.first().fraOgMed
         val oppdaterteKjeder = meldeperioderSomBeregnes.map { it.kjedeId }.toSet()
 
         // Nye meldeperioder som beregnes skal ha presedens over eksisterende meldeperioder i tidslinjen
@@ -90,7 +90,7 @@ private data class BeregnMeldeperioder(
             periodisering.setVerdiForDelperiode(meldeperiodeSomBeregnes, meldeperiodeSomBeregnes.periode)
         }.verdier
 
-        val (tidligereMeldeperioder, nyeOgPåfølgendeMeldeperioder) = alleMeldeperioder.partition { it.fraOgMed < førsteDag }
+        val (tidligereMeldeperioder, nyeOgPåfølgendeMeldeperioder) = alleMeldeperioder.partition { it.fraOgMed < førsteOppdaterteDag }
 
         // Kjør beregning av tidligere meldeperioder for å sette riktig state for sykedager før vi gjør nye beregninger
         tidligereMeldeperioder.forEach { beregnMeldeperiode(it) }
