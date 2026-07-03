@@ -107,9 +107,10 @@ data class Meldeperiodebehandlinger(
         ) { "Meldeperiodene for en behandling må være sortert" }
 
         if (beregning != null) {
-            // Beregningen kan inkludere flere/andre perioder enn behandlingen, f.eks. påfølgende perioder ved
-            // korrigering av sykedager, eller perioder som faller i et hull mellom behandlingens meldeperioder.
-            // Det er ok, vi sjekker kun de beregningene som gjelder kjedene i denne behandlingen.
+            // Beregningen kan inkludere flere/andre perioder enn behandlingen.
+            // Dette kan f.eks. være påfølgende perioder ved korrigering av sykedager.
+            // Det kan også være perioder som faller i et hull mellom behandlingens meldeperioder.
+            // Det er ok; vi sjekker kun beregningene som gjelder kjedene i denne behandlingen.
             val beregnedeKjedeIder = beregning.beregninger
                 .map { it.kjedeId }
                 .filter { it in kjedeIder }

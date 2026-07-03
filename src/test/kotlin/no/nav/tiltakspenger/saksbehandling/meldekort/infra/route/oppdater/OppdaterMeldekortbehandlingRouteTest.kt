@@ -142,8 +142,9 @@ class OppdaterMeldekortbehandlingRouteTest {
             )
             sak.meldeperiodeKjeder.size shouldBe 3
 
-            // Hopper over meldeperiode 2 (midten) - kjede 0 og kjede 2 er ikke sammenhengende,
-            // men det er nå støttet å ha hull mellom meldeperiodene i en behandling.
+            // Hopper over meldeperiode 2 (midten).
+            // Kjede 0 og kjede 2 er ikke sammenhengende.
+            // Det er nå støttet å ha hull mellom meldeperiodene i en behandling.
             val ikkeSammenhengendeMeldeperioder = listOf(
                 sak.meldeperiodeKjeder[0].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),
                 sak.meldeperiodeKjeder[2].hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO(),

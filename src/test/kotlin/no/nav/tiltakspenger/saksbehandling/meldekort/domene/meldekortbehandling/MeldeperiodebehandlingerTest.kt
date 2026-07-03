@@ -47,15 +47,16 @@ class MeldeperiodebehandlingerTest {
     }
 
     @Test
-    fun `tillater beregning som inkluderer perioder utenfor meldeperiodene, f eks ved hull mellom meldeperiodene`() {
+    fun `tillater beregning som inkluderer perioder utenfor meldeperiodene, f.eks. ved hull mellom meldeperiodene`() {
         val meldekort = ObjectMother.meldekortUnderBehandling()
         val beregningForBehandlingen = ObjectMother.meldekortBeregning(
             meldekortId = meldekort.id,
             startDato = meldekort.fraOgMed,
             kjedeId = meldekort.kjedeIdLegacy,
         )
-        // Representerer en påfølgende periode som ikke er en del av behandlingen, f.eks. fordi det er et hull
-        // mellom meldeperiodene i behandlingen, eller fordi beregningen er korrigert med sykedager i etterkant.
+        // Representerer en påfølgende periode som ikke er en del av behandlingen.
+        // Dette kan f.eks. være fordi det er et hull mellom meldeperiodene i behandlingen.
+        // Eller fordi beregningen er korrigert med sykedager i etterkant.
         val påfølgendePeriode = Periode(LocalDate.of(2025, 1, 20), LocalDate.of(2025, 2, 2))
         val beregningForPåfølgendePeriode = ObjectMother.meldekortBeregning(
             meldekortId = meldekort.id,
