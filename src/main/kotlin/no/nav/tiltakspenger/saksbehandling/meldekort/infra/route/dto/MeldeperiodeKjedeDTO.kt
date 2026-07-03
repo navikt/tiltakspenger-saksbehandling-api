@@ -43,7 +43,7 @@ fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): Meld
             return@let null
         }
 
-        if (forrigeBehandling.kjedeIdLegacy == kjedeId) {
+        if (forrigeBehandling.meldeperioder.first().kjedeId == kjedeId) {
             null
         } else {
             forrigeBehandling.tilMeldeperiodeKorrigeringDTO(it.kjedeId)

@@ -5,13 +5,12 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlign
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.toBeregningSammenligningDTO
 import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
@@ -173,13 +172,13 @@ class SendTilDatadelingService(
         Either.catch {
             meldekortvedtakRepo.hentMeldekortvedtakTilDatadeling().forEach { meldekortvedtak ->
                 val correlationId = CorrelationId.generate()
-                val totalDifferanse = if (meldekortvedtak.harKorrigering) {
-                    getTotalDifferanseForKorrigering(meldekortvedtak)
+                val differansePerKjede = if (meldekortvedtak.harKorrigering) {
+                    getDifferansePerKjedeForKorrigering(meldekortvedtak)
                 } else {
                     null
                 }
                 Either.catch {
-                    datadelingClient.send(meldekortvedtak, totalDifferanse, correlationId).onRight {
+                    datadelingClient.send(meldekortvedtak, differansePerKjede, correlationId).onRight {
                         logger.info { "Meldekort sendt til datadeling. MeldekortvedtakId: ${meldekortvedtak.id}, sakId: ${meldekortvedtak.sakId}" }
                         meldekortvedtakRepo.markerSendtTilDatadeling(meldekortvedtak.id, nå(clock))
                         logger.info { "Meldekort med vedtakid ${meldekortvedtak.id} markert som sendt til datadeling. SakId: ${meldekortvedtak.sakId}" }
@@ -199,10 +198,10 @@ class SendTilDatadelingService(
         }
     }
 
-    private fun getTotalDifferanseForKorrigering(meldekortvedtak: Meldekortvedtak): Int {
+    private fun getDifferansePerKjedeForKorrigering(meldekortvedtak: Meldekortvedtak): Map<MeldeperiodeKjedeId, Int> {
         val sak = sakRepo.hentForSakId(meldekortvedtak.sakId)
             ?: throw IllegalStateException("Fant ikke sak med id ${meldekortvedtak.sakId} ved beregning av differanse")
-        val sammenligning = { beregningEtter: MeldeperiodeBeregning ->
+        return meldekortvedtak.utbetaling.beregning.beregninger.associate { beregningEtter ->
             val beregningFør = sak.meldeperiodeBeregninger.hentForrigeBeregning(
                 beregningEtter.id,
                 beregningEtter.kjedeId,
@@ -218,8 +217,7 @@ class SendTilDatadelingService(
                     }
                 }
             }
-            sammenlign(beregningFør, beregningEtter)
+            beregningEtter.kjedeId to sammenlign(beregningFør, beregningEtter).differanseFraForrige
         }
-        return meldekortvedtak.toBeregningSammenligningDTO(sammenligning).totalDifferanse
     }
 }

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
@@ -81,13 +82,13 @@ class DatadelingHttpClient(
 
     override suspend fun send(
         meldekortvedtak: Meldekortvedtak,
-        totalDifferanse: Int?,
+        differansePerKjede: Map<MeldeperiodeKjedeId, Int>?,
         correlationId: CorrelationId,
     ): Either<HttpKlientError, Unit> {
         require(meldekortvedtak.journalpostId != null) {
             "Kan ikke dele meldekortvedtak med id ${meldekortvedtak.id} som ikke er journalført ennå"
         }
-        return sendTilDatadeling(meldekortvedtak.toDatadelingJson(totalDifferanse), meldekortUri)
+        return sendTilDatadeling(meldekortvedtak.toDatadelingJson(differansePerKjede), meldekortUri)
     }
 
     override suspend fun send(

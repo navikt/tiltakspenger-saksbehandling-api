@@ -1,16 +1,20 @@
 package no.nav.tiltakspenger.saksbehandling.datadeling.infra.client
 
 import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingMedBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 private data class DatadelingGodkjentMeldekortJson(
     val meldekortbehandlingId: String,
-    val kjedeId: String,
     val sakId: String,
+    val meldeperioder: List<MeldeperiodeDTO>,
+    val kjedeId: String,
     val meldeperiodeId: String,
     val mottattTidspunkt: LocalDateTime?,
     val vedtattTidspunkt: LocalDateTime,
@@ -26,6 +30,18 @@ private data class DatadelingGodkjentMeldekortJson(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
 ) {
+
+    data class MeldeperiodeDTO(
+        val kjedeId: String,
+        val meldeperiodeId: String,
+        val korrigert: Boolean,
+        val meldekortdager: List<MeldekortDagDTO>,
+        val totaltBelop: Int,
+        val totalDifferanse: Int?,
+        val fraOgMed: LocalDate,
+        val tilOgMed: LocalDate,
+    )
+
     data class MeldekortDagDTO(
         val dato: LocalDate,
         val status: String,
@@ -52,27 +68,46 @@ private data class DatadelingGodkjentMeldekortJson(
     }
 }
 
-fun Meldekortvedtak.toDatadelingJson(totalDifferanse: Int?): String {
+fun Meldekortvedtak.toDatadelingJson(differansePerKjede: Map<MeldeperiodeKjedeId, Int>?): String {
+    val legacyMeldeperiode = meldekortbehandling.meldeperioder.first()
+
     return DatadelingGodkjentMeldekortJson(
         meldekortbehandlingId = meldekortbehandling.id.toString(),
-        kjedeId = meldekortbehandling.kjedeIdLegacy.toString(),
         sakId = sakId.toString(),
-        meldeperiodeId = meldekortbehandling.meldeperiodeLegacy.id.toString(),
-        mottattTidspunkt = meldekortbehandling.brukersMeldekortLegacy?.mottatt,
+        meldeperioder = meldekortbehandling.meldeperioder.meldeperioderMedBeregninger.map {
+            it.toDatadelingMeldeperiodeDTO(differansePerKjede?.get(it.meldeperiodebehandling.kjedeId))
+        },
         vedtattTidspunkt = opprettet,
         behandletAutomatisk = erAutomatiskBehandlet,
-        korrigert = harKorrigering,
         fraOgMed = meldekortbehandling.fraOgMed,
         tilOgMed = meldekortbehandling.tilOgMed,
-        meldekortdager = meldekortbehandling.dagerLegacy.dager.map { it.toDatadelingMeldekortDagDTO() },
         journalpostId = journalpostId!!.toString(),
         totaltBelop = meldekortbehandling.beløpTotal,
-        totalDifferanse = totalDifferanse,
+        totalDifferanse = differansePerKjede?.values?.sum(),
         barnetillegg = meldekortbehandling.barnetilleggBeløp != 0,
         opprettet = opprettet,
         sistEndret = meldekortbehandling.sistEndret,
+
+        // TODO: fjernes når datadeling er oppdatert til å bruke meldeperioder
+        kjedeId = legacyMeldeperiode.kjedeId.toString(),
+        meldeperiodeId = legacyMeldeperiode.meldeperiodeId.toString(),
+        meldekortdager = legacyMeldeperiode.dager.map { it.toDatadelingMeldekortDagDTO() },
+        mottattTidspunkt = legacyMeldeperiode.brukersMeldekort?.mottatt,
+        korrigert = harKorrigering,
     ).let { serialize(it) }
 }
+
+private fun MeldeperiodebehandlingMedBeregning.toDatadelingMeldeperiodeDTO(totalDifferanse: Int?) =
+    DatadelingGodkjentMeldekortJson.MeldeperiodeDTO(
+        kjedeId = meldeperiodebehandling.kjedeId.toString(),
+        meldeperiodeId = meldeperiodebehandling.meldeperiodeId.toString(),
+        korrigert = meldeperiodebehandling.type == MeldeperiodebehandlingType.KORRIGERING,
+        meldekortdager = meldeperiodebehandling.dager.dager.map { it.toDatadelingMeldekortDagDTO() },
+        totaltBelop = meldeperiodeberegning?.totalBeløp ?: 0,
+        totalDifferanse = totalDifferanse,
+        fraOgMed = meldeperiodebehandling.fraOgMed,
+        tilOgMed = meldeperiodebehandling.tilOgMed,
+    )
 
 private fun MeldekortDag.toDatadelingMeldekortDagDTO() = DatadelingGodkjentMeldekortJson.MeldekortDagDTO(
     dato = dato,

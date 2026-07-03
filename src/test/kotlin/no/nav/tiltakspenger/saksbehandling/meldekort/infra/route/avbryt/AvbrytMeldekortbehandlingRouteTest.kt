@@ -39,7 +39,7 @@ class AvbrytMeldekortbehandlingRouteTest {
                       "beregning": null,
                       "beslutter": null,
                       "simulertBeregning": null,
-                      "brukersMeldekortId": "null",
+                      "brukersMeldekortId": null,
                       "navkontor": "0220",
                       "periode": {
                         "fraOgMed": "2025-03-31",

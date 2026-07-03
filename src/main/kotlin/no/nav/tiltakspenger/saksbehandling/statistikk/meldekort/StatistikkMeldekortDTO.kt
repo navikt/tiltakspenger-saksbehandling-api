@@ -5,13 +5,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.GenererMeldekortstatistikk
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class StatistikkMeldekortDTO(
-    val meldeperiodeKjedeId: String,
     val sakId: String,
     val meldekortbehandlingId: String,
     val brukerId: String,
@@ -20,10 +20,22 @@ data class StatistikkMeldekortDTO(
     val behandletAutomatisk: Boolean,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val meldekortdager: List<StatistikkMeldekortDag>,
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
+    val meldeperioder: List<StatistikkMeldeperiode>,
+
+    // TODO: fjernes når statistikk har tatt i bruk meldeperioder
+    val meldeperiodeKjedeId: String,
+    val meldekortdager: List<StatistikkMeldekortDag>,
 ) {
+
+    data class StatistikkMeldeperiode(
+        val fraOgMed: LocalDate,
+        val tilOgMed: LocalDate,
+        val meldekortdager: List<StatistikkMeldekortDag>,
+        val meldeperiodeKjedeId: String,
+    )
+
     data class StatistikkMeldekortDag(
         val dato: LocalDate,
         val status: MeldekortDagStatus,
@@ -51,9 +63,11 @@ data class StatistikkMeldekortDTO(
 }
 
 fun Meldekortbehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): GenererMeldekortstatistikk {
+    val legacyMeldeperiode = meldeperioder.first()
+
     return GenererMeldekortstatistikk {
         StatistikkMeldekortDTO(
-            meldeperiodeKjedeId = kjedeIdLegacy.toString(),
+            meldeperiodeKjedeId = legacyMeldeperiode.kjedeId.toString(),
             sakId = sakId.toString(),
             meldekortbehandlingId = id.toString(),
             brukerId = fnr.verdi,
@@ -62,7 +76,8 @@ fun Meldekortbehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): Gener
             behandletAutomatisk = this is MeldekortBehandletAutomatisk,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
-            meldekortdager = dagerLegacy.dager.map { it.tilStatistikkMeldekortDag() },
+            meldekortdager = legacyMeldeperiode.dager.map { it.tilStatistikkMeldekortDag() },
+            meldeperioder = meldeperioder.map { it.tilStatistikkMeldeperiode() },
             opprettet = opprettet,
             sistEndret = nå(clock),
         )
@@ -74,6 +89,15 @@ private fun MeldekortDag.tilStatistikkMeldekortDag(): StatistikkMeldekortDTO.Sta
         dato = dato,
         status = status.tilStatistikkMeldekortDagStatus(),
         reduksjon = status.tilReduksjon(),
+    )
+}
+
+private fun Meldeperiodebehandling.tilStatistikkMeldeperiode(): StatistikkMeldekortDTO.StatistikkMeldeperiode {
+    return StatistikkMeldekortDTO.StatistikkMeldeperiode(
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        meldekortdager = dager.dager.map { it.tilStatistikkMeldekortDag() },
+        meldeperiodeKjedeId = kjedeId.toString(),
     )
 }
 

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.datadeling
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
@@ -33,7 +34,7 @@ interface DatadelingClient {
 
     suspend fun send(
         meldekortvedtak: Meldekortvedtak,
-        totalDifferanse: Int?,
+        differansePerKjede: Map<MeldeperiodeKjedeId, Int>?,
         correlationId: CorrelationId,
     ): Either<HttpKlientError, Unit>
 

@@ -150,7 +150,7 @@ internal class DatadelingHttpClientTest {
         val meldekortvedtak = ObjectMother.meldekortvedtak(journalpostId = JournalpostId("journalpostId"))
 
         runTest {
-            client(httpKlient).send(meldekortvedtak, totalDifferanse = 0, correlationId) shouldBe Unit.right()
+            client(httpKlient).send(meldekortvedtak, differansePerKjede = emptyMap(), correlationId) shouldBe Unit.right()
         }
 
         httpKlient.assertPostTil("$baseUrl/meldekort")
@@ -162,7 +162,7 @@ internal class DatadelingHttpClientTest {
         val meldekortvedtak = ObjectMother.meldekortvedtak(journalpostId = null)
 
         shouldThrow<IllegalArgumentException> {
-            runTest { client(httpKlient).send(meldekortvedtak, totalDifferanse = null, correlationId) }
+            runTest { client(httpKlient).send(meldekortvedtak, differansePerKjede = null, correlationId) }
         }
     }
 
