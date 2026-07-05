@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.setup
 
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
@@ -104,14 +105,15 @@ open class KlagebehandlingContext(
     open val kabalClient: KabalClient by lazy {
         KabalHttpClient(
             baseUrl = Configuration.kabalUrl,
-            getToken = {
-                texasClient.getSystemToken(
-                    Configuration.kabalScope,
-                    IdentityProvider.AZUREAD,
-                    rewriteAudienceTarget = false,
-                )
-            },
             clock = clock,
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(
+                        Configuration.kabalScope,
+                        IdentityProvider.AZUREAD,
+                        rewriteAudienceTarget = false,
+                    )
+            },
         )
     }
 
@@ -287,6 +289,7 @@ open class KlagebehandlingContext(
             kabalClient = kabalClient,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
 

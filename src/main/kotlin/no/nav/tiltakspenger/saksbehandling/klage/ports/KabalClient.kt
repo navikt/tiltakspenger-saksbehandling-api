@@ -1,15 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.klage.ports
 
 import arrow.core.Either
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.FeilVedOversendelseTilKabal
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
-import java.time.LocalDateTime
 
 interface KabalClient {
     suspend fun oversend(
         klagebehandling: Klagebehandling,
         journalpostIdVedtak: JournalpostId,
-    ): Either<FeilVedOversendelseTilKabal, OversendtKlageTilKabalMetadata>
+    ): Either<HttpKlientError, HttpKlientResponse<String>>
 }

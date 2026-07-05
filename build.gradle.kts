@@ -4,7 +4,7 @@ import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.1"
-val felleslibVersion = "0.0.868"
+val felleslibVersion = "0.0.869"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
@@ -265,6 +265,7 @@ kover {
                     classes(
                         "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient",
+                        "no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient",
                     )
                 }

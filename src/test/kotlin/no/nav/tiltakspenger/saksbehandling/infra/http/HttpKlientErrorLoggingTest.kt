@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.assertSoftly
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import kotlin.time.Duration
@@ -25,6 +26,7 @@ internal class HttpKlientErrorLoggingTest {
         attempts = 1,
         attemptDurations = emptyList(),
         totalDuration = Duration.ZERO,
+        tidsstempler = HttpKlientTidsstempler.INGEN,
     )
 
     @Test

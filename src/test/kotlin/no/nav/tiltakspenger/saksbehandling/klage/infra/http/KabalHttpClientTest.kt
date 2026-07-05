@@ -1,21 +1,26 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.http
 
-import arrow.core.right
+import arrow.core.Either
 import com.marcinziolo.kotlin.wiremock.equalTo
 import com.marcinziolo.kotlin.wiremock.post
 import com.marcinziolo.kotlin.wiremock.returns
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.withWireMockServer
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.OversendtKlageTilKabalMetadata
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.tilOversendtKlageTilKabalMetadata
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class KabalHttpClientTest {
-
     @Test
     fun `håndterer ok request`() {
         withWireMockServer { wiremock ->
@@ -27,22 +32,95 @@ class KabalHttpClientTest {
             }
             val kabalclient = KabalHttpClient(
                 baseUrl = wiremock.baseUrl(),
-                getToken = { ObjectMother.accessToken() },
                 clock = fixedClock,
+                authTokenProvider = object : AuthTokenProvider {
+                    override suspend fun hentToken(skipCache: Boolean) = ObjectMother.accessToken()
+                },
             )
 
             runTest {
                 val klagebehandling = ObjectMother.opprettholdtKlagebehandlingKlarForOversendelse()
-                kabalclient.oversend(
+                val resultat = kabalclient.oversend(
                     klagebehandling = klagebehandling,
                     journalpostIdVedtak = JournalpostId("journalpost-vedtak-1"),
-                ) shouldBe OversendtKlageTilKabalMetadata(
-                    request = """{"sakenGjelder":{"id":{"verdi":"${klagebehandling.fnr.verdi}","type":"PERSON"}},"fagsak":{"fagsakId":"202401011234","fagsystem":"TILTAKSPENGER"},"kildeReferanse":"${klagebehandling.id}","dvhReferanse":"${klagebehandling.id}","hjemler":["FS_TIP_3"],"tilknyttedeJournalposter":[{"type":"BRUKERS_KLAGE","journalpostId":"journalpostId"},{"type":"OPPRINNELIG_VEDTAK","journalpostId":"journalpost-vedtak-1"},{"type":"OVERSENDELSESBREV","journalpostId":"journalpostId"}],"brukersKlageMottattVedtaksinstans":"2026-02-16","forrigeBehandlendeEnhet":"0387","type":"KLAGE","ytelse":"TIL_TIP"}""".trimIndent(),
-                    response = "",
-                    statusKode = 200,
-                    oversendtTidspunkt = nå(fixedClock),
-                ).right()
+                )
+
+                val response = resultat.shouldBeInstanceOf<Either.Right<HttpKlientResponse<String>>>().value
+                response.statusCode shouldBe 200
+                response.body shouldBe ""
+                val metadata = response.metadata.tilOversendtKlageTilKabalMetadata(clock = fixedClock)
+                metadata.statusKode shouldBe 200
+                metadata.response shouldBe ""
+                metadata.oversendtTidspunkt shouldBe nå(fixedClock)
+                // request lagres som redaktert rå-request; body-en skal fortsatt være med.
+                response.rawRequestString shouldContain """"kildeReferanse":"${klagebehandling.id}""""
+                response.rawRequestString shouldContain "Authorization: ***"
             }
+        }
+    }
+
+    @Test
+    fun `returnerer feil for uventet statuskode`() {
+        withWireMockServer { wiremock ->
+            wiremock.post {
+                url equalTo "/api/oversendelse/v4/sak"
+            } returns {
+                statusCode = 400
+                body = """{"message":"bad request"}"""
+                header = "Content-Type" to "application/json"
+            }
+            val kabalclient = KabalHttpClient(
+                baseUrl = wiremock.baseUrl(),
+                clock = fixedClock,
+                authTokenProvider = object : AuthTokenProvider {
+                    override suspend fun hentToken(skipCache: Boolean) = ObjectMother.accessToken()
+                },
+            )
+
+            runTest {
+                val klagebehandling = ObjectMother.opprettholdtKlagebehandlingKlarForOversendelse()
+                val resultat = kabalclient.oversend(
+                    klagebehandling = klagebehandling,
+                    journalpostIdVedtak = JournalpostId("journalpost-vedtak-1"),
+                )
+
+                val feil = resultat.shouldBeInstanceOf<Either.Left<HttpKlientError>>().value
+                val responsFeil = feil.shouldBeInstanceOf<HttpKlientError.ResponsMottatt>()
+                responsFeil.statusCode shouldBe 400
+                responsFeil.body shouldBe """{"message":"bad request"}"""
+
+                // Domenet bygger metadataen fra feilen (mappingen ligger på Metadata-typen).
+                val metadata = responsFeil.tilOversendtKlageTilKabalMetadata(clock = fixedClock)
+                metadata.statusKode shouldBe 400
+                metadata.response shouldBe """{"message":"bad request"}"""
+                metadata.oversendtTidspunkt shouldBe nå(fixedClock)
+            }
+        }
+    }
+
+    @Test
+    fun `returnerer feil ved transportfeil`() {
+        runTest {
+            val fakeHttpKlient = HttpKlientFake().apply {
+                enqueueTimeout(throwable = IllegalStateException("boom"))
+            }
+            val kabalclient = KabalHttpClient(
+                baseUrl = "http://example.com",
+                clock = fixedClock,
+                authTokenProvider = object : AuthTokenProvider {
+                    override suspend fun hentToken(skipCache: Boolean) = ObjectMother.accessToken()
+                },
+                httpKlient = fakeHttpKlient,
+            )
+
+            val klagebehandling = ObjectMother.opprettholdtKlagebehandlingKlarForOversendelse()
+            val resultat = kabalclient.oversend(
+                klagebehandling = klagebehandling,
+                journalpostIdVedtak = JournalpostId("journalpost-vedtak-1"),
+            )
+
+            val feil = resultat.shouldBeInstanceOf<Either.Left<HttpKlientError>>().value
+            feil.shouldBeInstanceOf<HttpKlientError.IngenRespons>()
         }
     }
 }

@@ -2,13 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
-import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.FeilVedOversendelseTilKabal
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOversendtKlageinstansFeilet
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOversendtKlageinstansenTidspunkt
+import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.tilOversendtKlageTilKabalMetadata
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -16,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehandling.genererSaksstatistikk
+import java.time.Clock
 
 class OversendKlageTilKlageinstansJobb(
     private val klagebehandlingRepo: KlagebehandlingRepo,
@@ -23,6 +26,7 @@ class OversendKlageTilKlageinstansJobb(
     private val kabalClient: KabalClient,
     private val statistikkService: StatistikkService,
     private val sessionFactory: SessionFactory,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -43,40 +47,34 @@ class OversendKlageTilKlageinstansJobb(
                         val journalpostIdVedtak = klagebehandling.formkrav.vedtakDetKlagesPå!!.let {
                             sak.hentJournalpostIdForVedtakId(it)
                         }
-                        // Left skal logges i klienten.
                         kabalClient.oversend(klagebehandling, journalpostIdVedtak).onRight {
+                            val metadata = it.metadata.tilOversendtKlageTilKabalMetadata(clock = clock)
                             val oppdatertKlagebehandling =
-                                klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(it.oversendtTidspunkt)
+                                klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(metadata.oversendtTidspunkt)
                             val statistikkDTO = statistikkService.generer(
                                 Statistikkhendelser(
                                     oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.OVERSENDT_KA),
                                 ),
                             )
                             sessionFactory.withTransactionContext { tx ->
-                                klagebehandlingRepo.markerOversendtTilKlageinstans(oppdatertKlagebehandling, it, tx)
+                                klagebehandlingRepo.markerOversendtTilKlageinstans(
+                                    klagebehandling = oppdatertKlagebehandling,
+                                    metadata = metadata,
+                                    sessionContext = tx,
+                                )
                                 statistikkService.lagre(statistikkDTO, tx)
                             }
-                        }.onLeft {
-                            when (it) {
-                                FeilVedOversendelseTilKabal.UkjentFeil -> return@onLeft
+                        }.onLeft { error ->
+                            error.loggFeil(logger, "oversendelse av klage til klageinstans", kontekstTilLog)
 
-                                is FeilVedOversendelseTilKabal.FeilMedResponse -> {
-                                    if (it.kanPrøvesIgjen) {
-                                        logger.info { "Oversending til klageinstans feilet, men vil prøves igjen ved neste kjøring - $kontekstTilLog" }
-                                        return@onLeft
-                                    }
-
-                                    logger.error { "Oversending til klageinstans feilet med status ${it.metadata.statusKode} - $kontekstTilLog" }
-
-                                    val oppdatertKlagebehandling =
-                                        klagebehandling.oppdaterOversendtKlageinstansFeilet(it.metadata.oversendtTidspunkt)
-
-                                    klagebehandlingRepo.markerOversendtTilKlageinstans(
-                                        oppdatertKlagebehandling,
-                                        it.metadata,
-                                    )
-                                }
+                            if (error is HttpKlientError.ResponsMottatt && error.statusCode == 400) {
+                                // Kabal avviste klagen (bad request) — terminalt, klagen forsøkes ikke igjen.
+                                val metadata = error.tilOversendtKlageTilKabalMetadata(clock = clock)
+                                val oppdatertKlagebehandling =
+                                    klagebehandling.oppdaterOversendtKlageinstansFeilet(metadata.oversendtTidspunkt)
+                                klagebehandlingRepo.markerOversendtTilKlageinstans(oppdatertKlagebehandling, metadata)
                             }
+                            // Andre feil: klagen står igjen og forsøkes på nytt ved neste kjøring.
                         }
                     }.onFailure { e ->
                         logger.error(e) {
