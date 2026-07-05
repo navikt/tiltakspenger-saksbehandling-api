@@ -51,6 +51,9 @@ class GjenopptaRammebehandlingService(
                     is Revurdering -> false
                     is Søknadsbehandling -> true
                 },
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                behandlingId = behandling.id,
             )
         }
 

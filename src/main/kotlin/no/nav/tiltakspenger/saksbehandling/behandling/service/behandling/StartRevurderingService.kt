@@ -45,6 +45,8 @@ class StartRevurderingService(
                     tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                     inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 )
             },
         )

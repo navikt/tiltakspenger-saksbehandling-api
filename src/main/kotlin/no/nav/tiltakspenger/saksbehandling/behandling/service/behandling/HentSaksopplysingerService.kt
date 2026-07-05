@@ -1,7 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
@@ -11,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
 import no.nav.tiltakspenger.saksbehandling.felles.min
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -30,6 +35,8 @@ class HentSaksopplysingerService(
     private val clock: Clock,
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
+    private val logger = KotlinLogging.logger {}
+
     /**
      * Tiltakspenger er alltid begrenset av tiltaksdeltakelsen(e) det er søkt på.
      * Derfor begrenser tiltaksdeltakelsesperioden(e) behandlingsgrunnlaget vårt.
@@ -47,6 +54,9 @@ class HentSaksopplysingerService(
         aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
         sessionContext: SessionContext? = null,
+        sakId: SakId? = null,
+        saksnummer: Saksnummer? = null,
+        behandlingId: RammebehandlingId? = null,
     ): Saksopplysninger {
         val oppslagstidspunkt = LocalDateTime.now(clock)
 
@@ -70,7 +80,16 @@ class HentSaksopplysingerService(
                 ?.let { hentYtelser(it, fnr, correlationId) }
                 ?: Ytelser.IkkeBehandlingsgrunnlag,
             tiltakspengevedtakFraArena = saksopplysningsperiode
-                ?.let { hentTiltakspengevedtakFraArena(it, fnr, correlationId) }
+                ?.let {
+                    hentTiltakspengevedtakFraArena(
+                        saksopplysningsperiode = it,
+                        fnr = fnr,
+                        correlationId = correlationId,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        behandlingId = behandlingId,
+                    )
+                }
                 ?: TiltakspengevedtakFraArena.IkkeBehandlingsgrunnlag,
             oppslagstidspunkt = oppslagstidspunkt,
         )
@@ -120,6 +139,18 @@ class HentSaksopplysingerService(
         return Tiltaksdeltakelser(tiltaksdeltakelser)
     }
 
+    private fun lagLoggcontext(
+        correlationId: CorrelationId,
+        sakId: SakId? = null,
+        saksnummer: Saksnummer? = null,
+        behandlingId: RammebehandlingId? = null,
+    ): String = buildString {
+        append("correlationId: $correlationId")
+        sakId?.let { append(", sakId: $it") }
+        saksnummer?.let { append(", saksnummer: $it") }
+        behandlingId?.let { append(", behandlingId: $it") }
+    }
+
     private suspend fun hentYtelser(
         saksopplysningsperiode: Periode,
         fnr: Fnr,
@@ -152,14 +183,34 @@ class HentSaksopplysingerService(
         saksopplysningsperiode: Periode,
         fnr: Fnr,
         correlationId: CorrelationId,
-    ): TiltakspengevedtakFraArena =
-        TiltakspengevedtakFraArena.fromList(
-            arenaTpVedtak = tiltakspengerArenaClient.hentTiltakspengevedtakFraArena(
-                fnr,
-                saksopplysningsperiode,
-                correlationId,
-            ),
+        sakId: SakId? = null,
+        saksnummer: Saksnummer? = null,
+        behandlingId: RammebehandlingId? = null,
+    ): TiltakspengevedtakFraArena {
+        val arenaTpVedtak = tiltakspengerArenaClient.hentTiltakspengevedtakFraArena(
+            fnr,
+            saksopplysningsperiode,
+            correlationId,
+        ).fold(
+            ifLeft = { error ->
+                error.loggFeil(
+                    logger,
+                    "henting av tiltakspengevedtak fra Arena",
+                    lagLoggcontext(
+                        correlationId = correlationId,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        behandlingId = behandlingId,
+                    ),
+                )
+                emptyList()
+            },
+            ifRight = { it },
+        )
+        return TiltakspengevedtakFraArena.fromList(
+            arenaTpVedtak = arenaTpVedtak,
             oppslagsperiode = saksopplysningsperiode,
             oppslagstidspunkt = LocalDateTime.now(clock),
         )
+    }
 }

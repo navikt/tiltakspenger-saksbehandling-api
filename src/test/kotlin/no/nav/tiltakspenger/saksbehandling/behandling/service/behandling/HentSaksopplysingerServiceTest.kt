@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
@@ -83,7 +84,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<ArenaTPVedtak>()
+                ) = emptyList<ArenaTPVedtak>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -198,7 +199,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<ArenaTPVedtak>()
+                ) = emptyList<ArenaTPVedtak>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -313,7 +314,7 @@ internal class HentSaksopplysingerServiceTest {
                         rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
                         vedtakId = 123L,
                     ),
-                )
+                ).right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -442,7 +443,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<ArenaTPVedtak>()
+                ) = emptyList<ArenaTPVedtak>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(
@@ -589,7 +590,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<ArenaTPVedtak>()
+                ) = emptyList<ArenaTPVedtak>().right()
             }
             val tiltaksdeltakerRepo = object : TiltaksdeltakerRepo {
                 override fun hentEllerLagre(

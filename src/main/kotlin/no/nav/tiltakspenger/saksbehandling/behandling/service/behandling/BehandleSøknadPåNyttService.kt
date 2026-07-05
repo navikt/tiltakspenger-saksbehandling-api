@@ -39,6 +39,8 @@ class BehandleSøknadPåNyttService(
                     aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                     inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
                     sessionContext = transactionContext,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                 )
             },
         )

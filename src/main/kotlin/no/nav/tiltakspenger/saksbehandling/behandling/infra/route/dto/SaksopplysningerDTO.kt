@@ -23,7 +23,7 @@ fun Saksopplysninger.toSaksopplysningerDTO(): SaksopplysningerDTO {
         tiltaksdeltagelse = this.tiltaksdeltakelser.map { it.toDTO() },
         periode = this.periode?.toDTO(),
         ytelser = this.ytelser.map { it.toDTO() },
-        tiltakspengevedtakFraArena = this.tiltakspengevedtakFraArena.map { it.toDTO() },
+        tiltakspengevedtakFraArena = this.tiltakspengevedtakFraArena.map { it.toDto() },
         oppslagstidspunkt = this.oppslagstidspunkt,
     )
 }

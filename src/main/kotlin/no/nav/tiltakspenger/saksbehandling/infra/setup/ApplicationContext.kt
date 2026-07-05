@@ -152,6 +152,7 @@ open class ApplicationContext(
         TiltakspengerArenaHttpClient(
             baseUrl = Configuration.tiltakspengerArenaUrl,
             getToken = { texasClient.getSystemToken(Configuration.tiltakspengerArenaScope, IdentityProvider.AZUREAD) },
+            clock = clock,
         )
     }
 

@@ -39,6 +39,9 @@ class OppdaterSaksopplysningerService(
                 is Revurdering -> false
                 is Søknadsbehandling -> true
             },
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            behandlingId = behandling.id,
         )
 
         return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).map {
