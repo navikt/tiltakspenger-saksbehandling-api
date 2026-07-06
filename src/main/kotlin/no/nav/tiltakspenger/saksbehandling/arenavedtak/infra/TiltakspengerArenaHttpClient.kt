@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.arenavedtak.infra
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
@@ -19,7 +18,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class TiltakspengerArenaHttpClient(
     baseUrl: String,
-    getToken: suspend () -> AccessToken,
+    authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 3.seconds,
     private val timeout: Duration = 6.seconds,
     clock: Clock,
@@ -27,9 +26,7 @@ class TiltakspengerArenaHttpClient(
         this.connectTimeout = connectTimeout
         this.defaultTimeout = timeout
         this.successStatus = { it == 200 }
-        this.authTokenProvider = object : AuthTokenProvider {
-            override suspend fun hentToken(skipCache: Boolean): AccessToken = getToken()
-        }
+        this.authTokenProvider = authTokenProvider
     },
 ) : TiltakspengerArenaClient {
     private val uri = URI.create("$baseUrl/azure/tiltakspenger/vedtak")

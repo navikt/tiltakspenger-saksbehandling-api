@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
-import arrow.core.left
+import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 
@@ -14,35 +13,25 @@ open class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Tilgangsvurdering {
-        data.get()[fnr]?.let { return it }
-        return Tilgangsvurdering.Avvist(
-            type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
+    ): Either<Nothing, Tilgangsvurdering> {
+        return data.get()[fnr]?.let { it.right() } ?: Tilgangsvurdering.Avvist(
             årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
-            status = 403,
-            brukerIdent = fnr.verdi,
-            navIdent = "Z12345",
             begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-        )
+            metadata = AvvistMetadata(
+                type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
+                navIdent = "Z12345",
+                brukerIdent = fnr.verdi,
+            ),
+        ).right()
     }
 
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): TilgangBulkResponse {
-        return TilgangBulkResponse(
-            ansattId = "Z123456",
-            resultater = fnrs.map {
-                TilgangBulkResponse.TilgangResponse(
-                    brukerId = it.verdi,
-                    status = if (data.get()[it] == null || data.get()[it] is Tilgangsvurdering.Godkjent) {
-                        204
-                    } else {
-                        403
-                    },
-                )
-            },
-        )
+    ): Either<Nothing, Map<Fnr, Boolean>> {
+        return fnrs.associateWith {
+            data.get()[it] == null || data.get()[it] is Tilgangsvurdering.Godkjent
+        }.right()
     }
 
     fun leggTil(

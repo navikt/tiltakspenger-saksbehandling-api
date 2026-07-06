@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
@@ -21,7 +20,7 @@ import kotlin.time.Duration.Companion.seconds
 // swagger: https://sokos-utbetaldata.dev.intern.nav.no/utbetaldata/api/v2/docs
 class SokosUtbetaldataHttpClient(
     baseUrl: String,
-    getToken: suspend () -> AccessToken,
+    authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 3.seconds,
     private val timeout: Duration = 6.seconds,
     private val clock: Clock,
@@ -29,9 +28,7 @@ class SokosUtbetaldataHttpClient(
         this.connectTimeout = connectTimeout
         this.defaultTimeout = timeout
         this.successStatus = { it == 200 }
-        this.authTokenProvider = object : AuthTokenProvider {
-            override suspend fun hentToken(skipCache: Boolean): AccessToken = getToken()
-        }
+        this.authTokenProvider = authTokenProvider
     },
 ) : SokosUtbetaldataClient {
     // utbetaldata sender beskrivelsen, ikke kodeverdien

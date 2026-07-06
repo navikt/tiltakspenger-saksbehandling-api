@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
+import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 
 class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
@@ -11,38 +12,27 @@ class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Tilgangsvurdering {
+    ): Either<Nothing, Tilgangsvurdering> {
         return if (harTilgang(fnr)) {
-            Tilgangsvurdering.Godkjent
+            Tilgangsvurdering.Godkjent.right()
         } else {
             Tilgangsvurdering.Avvist(
-                type = "TilgangAvvist",
                 årsak = no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak.FORTROLIG,
-                status = 403,
-                brukerIdent = fnr.verdi,
-                navIdent = "Z123456",
                 begrunnelse = "Saksbehandler har ikke tilgang til person",
-            )
+                metadata = AvvistMetadata(
+                    type = "TilgangAvvist",
+                    navIdent = "Z123456",
+                    brukerIdent = fnr.verdi,
+                ),
+            ).right()
         }
     }
 
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): TilgangBulkResponse {
-        return TilgangBulkResponse(
-            ansattId = "Z123456",
-            resultater = fnrs.map {
-                TilgangBulkResponse.TilgangResponse(
-                    brukerId = it.verdi,
-                    status = if (harTilgang(it)) {
-                        204
-                    } else {
-                        403
-                    },
-                )
-            },
-        )
+    ): Either<Nothing, Map<Fnr, Boolean>> {
+        return fnrs.associateWith { harTilgang(it) }.right()
     }
 
     private fun harTilgang(fnr: Fnr): Boolean {

@@ -263,10 +263,13 @@ kover {
                     // Klienter som er migrert til libs `httpklient` og skal ha full linjedekning.
                     // Utvid lista etter hvert som flere klienter migreres (jf. TASKS.md httpklient-punkt).
                     classes(
+                        "no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient",
+                        "no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient",
+                        "no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient",
                     )
                 }
             }

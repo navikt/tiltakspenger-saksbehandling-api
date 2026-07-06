@@ -1,5 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
 
+import arrow.core.Either
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
+import no.nav.tiltakspenger.libs.json.objectMapper
+import tools.jackson.module.kotlin.readValue
+
 data class AvvistTilgangResponse(
     val type: String,
     val title: String,
@@ -8,6 +14,10 @@ data class AvvistTilgangResponse(
     val navIdent: String,
     val begrunnelse: String,
 ) {
+    /** Maskerer [brukerIdent] (fnr, PII) slik at den ikke havner tilfeldigvis i logger. */
+    override fun toString(): String =
+        "AvvistTilgangResponse(type=$type, title=$title, status=$status, brukerIdent=*****, navIdent=$navIdent, begrunnelse=$begrunnelse)"
+
     fun tilAvvistTilgangsvurdering(): Tilgangsvurdering.Avvist {
         val årsak = when (title) {
             "AVVIST_STRENGT_FORTROLIG_ADRESSE" -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
@@ -31,12 +41,32 @@ data class AvvistTilgangResponse(
             }
         }
         return Tilgangsvurdering.Avvist(
-            type = type,
             årsak = årsak,
-            status = status,
-            brukerIdent = brukerIdent,
-            navIdent = navIdent,
             begrunnelse = begrunnelse,
+            metadata = AvvistMetadata(
+                type = type,
+                navIdent = navIdent,
+                brukerIdent = brukerIdent,
+            ),
         )
+    }
+
+    companion object {
+        fun tilAvvistTilgangsvurdering(
+            body: String,
+            statusCode: Int,
+            metadata: HttpKlientMetadata,
+        ): Either<HttpKlientError, Tilgangsvurdering.Avvist> =
+            Either
+                .catch { objectMapper.readValue<AvvistTilgangResponse>(body) }
+                .map { it.tilAvvistTilgangsvurdering() }
+                .mapLeft { throwable ->
+                    HttpKlientError.DeserializationError(
+                        throwable = throwable,
+                        body = body,
+                        statusCode = statusCode,
+                        metadata = metadata,
+                    )
+                }
     }
 }

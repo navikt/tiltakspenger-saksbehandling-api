@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
 import no.nav.tiltakspenger.libs.httpklient.HttpMethod
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
@@ -25,9 +26,13 @@ internal class TiltakspengerArenaHttpClientTest {
         tilOgMed = LocalDate.of(2024, 1, 31),
     )
 
+    private val authTokenProvider = object : AuthTokenProvider {
+        override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
+    }
+
     private fun client(httpKlient: HttpKlientFake) = TiltakspengerArenaHttpClient(
         baseUrl = baseUrl,
-        getToken = { AccessToken("token", Instant.MAX) },
+        authTokenProvider = authTokenProvider,
         clock = ObjectMother.clock,
         httpKlient = httpKlient,
     )
@@ -36,7 +41,7 @@ internal class TiltakspengerArenaHttpClientTest {
     fun `bygger default HttpKlient når httpKlient ikke sendes inn`() {
         TiltakspengerArenaHttpClient(
             baseUrl = baseUrl,
-            getToken = { AccessToken("token", Instant.MAX) },
+            authTokenProvider = authTokenProvider,
             clock = ObjectMother.clock,
         )
     }

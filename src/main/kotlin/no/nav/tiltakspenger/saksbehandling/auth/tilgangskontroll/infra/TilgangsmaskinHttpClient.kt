@@ -1,102 +1,117 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
-import kotlinx.coroutines.future.await
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.right
+import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.httpklient.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
+import no.nav.tiltakspenger.libs.httpklient.post
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollFeil
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.PersonRequestItem
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponseDto
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangPersonRequestDto
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
-import tools.jackson.module.kotlin.readValue
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import java.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
-// Dokumentasjon: https://confluence.adeo.no/spaces/TM/pages/628888614/Intro+til+Tilgangsmaskinen
-// swagger: https://tilgangsmaskin.intern.nav.no/swagger-ui/index.html
+/**
+ * Klient mot tilgangsmaskinen med støtte for enkel- og bulk-tilgangskontroll.
+ *
+ * Dokumentasjon: https://confluence.adeo.no/spaces/TM/pages/628888614/Intro+til+Tilgangsmaskinen
+ * Swagger: https://tilgangsmaskin.intern.nav.no/swagger-ui/index.html
+ */
 class TilgangsmaskinHttpClient(
     baseUrl: String,
     private val scope: String,
     private val texasClient: TexasClient,
+    clock: Clock,
     connectTimeout: Duration = 5.seconds,
-    private val timeout: Duration = 10.seconds,
+    defaultTimeout: Duration = 10.seconds,
+    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
+        this.connectTimeout = connectTimeout
+        this.defaultTimeout = defaultTimeout
+    },
 ) : TilgangsmaskinClient {
-    private val client = HttpClient
-        .newBuilder()
-        .connectTimeout(connectTimeout.toJavaDuration())
-        .followRedirects(HttpClient.Redirect.NEVER)
-        .build()
-
+    private val log = KotlinLogging.logger {}
     private val tilgangTilPersonUri = URI.create("$baseUrl/api/v1/kjerne")
     private val tilgangTilPersonerUri = URI.create("$baseUrl/api/v1/bulk/obo")
 
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Tilgangsvurdering {
-        val oboToken = texasClient.exchangeToken(
-            userToken = saksbehandlerToken,
-            audienceTarget = scope,
-            identityProvider = IdentityProvider.AZUREAD,
-        )
-        val request = createPostRequest(fnr.verdi, tilgangTilPersonUri, oboToken.token)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        if (status == 204) {
-            return Tilgangsvurdering.Godkjent
+    ): Either<TilgangskontrollFeil, Tilgangsvurdering> = exchangeToken(saksbehandlerToken).flatMap { oboToken ->
+        httpKlient.post<String>(tilgangTilPersonUri) {
+            body(fnr.verdi)
+            bearerToken(oboToken)
+            successStatus(204, 403)
+        }.flatMap { response ->
+            // successStatus(204, 403) garanterer at kun disse to statusene når hit; alt annet er allerede en Left(UventetStatus).
+            if (response.statusCode == 204) {
+                Tilgangsvurdering.Godkjent.right()
+            } else {
+                AvvistTilgangResponse.tilAvvistTilgangsvurdering(response.body, response.statusCode, response.metadata)
+                    .onRight(::loggAvvist)
+            }
         }
-        val jsonResponse = httpResponse.body()
-        if (status == 403) {
-            val avvistTilgangResponse = objectMapper.readValue<AvvistTilgangResponse>(jsonResponse)
-            Sikkerlogg.info { "Tilgang avvist: ${avvistTilgangResponse.begrunnelse}. Nav-ident: ${avvistTilgangResponse.navIdent}, fnr: ${avvistTilgangResponse.brukerIdent}, regel: ${avvistTilgangResponse.title}" }
-            return avvistTilgangResponse.tilAvvistTilgangsvurdering()
-        }
-        return Tilgangsvurdering.GenerellFeilMotTilgangsmaskin
-    }
+    }.mapLeft(::tilTilgangskontrollFeil)
 
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): TilgangBulkResponse {
-        val oboToken = texasClient.exchangeToken(
-            userToken = saksbehandlerToken,
-            audienceTarget = scope,
-            identityProvider = IdentityProvider.AZUREAD,
-        )
-        val personRequestItemListe = fnrs.map { PersonRequestItem(brukerId = it.verdi) }
-        val request = createPostRequest(objectMapper.writeValueAsString(personRequestItemListe), tilgangTilPersonerUri, oboToken.token)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        if (status == 207) {
-            val jsonResponse = httpResponse.body()
-            return objectMapper.readValue<TilgangBulkResponse>(jsonResponse)
-        }
-        if (status == 413) {
-            throw RuntimeException("Forsøkte å sjekke tilgang for flere enn 1000 identer")
-        }
-        throw RuntimeException("Noe gikk galt ved sjekk mot tilgangsmaskinen, statuskode $status")
+    ): Either<TilgangskontrollFeil, Map<Fnr, Boolean>> = exchangeToken(saksbehandlerToken).flatMap { oboToken ->
+        httpKlient.post<TilgangBulkResponseDto>(tilgangTilPersonerUri) {
+            json(fnrs.map { TilgangPersonRequestDto(brukerId = it.verdi) })
+            bearerToken(oboToken)
+            successStatus(207)
+        }.map { it.body.tilTilgangPerFnr() }
+    }.mapLeft(::tilTilgangskontrollFeil)
+
+    private suspend fun exchangeToken(saksbehandlerToken: String): Either<HttpKlientError, AccessToken> {
+        return Either
+            .catch {
+                texasClient.exchangeToken(
+                    userToken = saksbehandlerToken,
+                    audienceTarget = scope,
+                    identityProvider = IdentityProvider.AZUREAD,
+                )
+            }
+            .mapLeft(::tilAuthError)
     }
 
-    private fun createPostRequest(
-        jsonPayload: String,
-        uri: URI,
-        token: String,
-    ): HttpRequest? {
-        return HttpRequest
-            .newBuilder()
-            .uri(uri)
-            .timeout(timeout.toJavaDuration())
-            .header("Authorization", "Bearer $token")
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
+    private fun tilAuthError(throwable: Throwable): HttpKlientError = HttpKlientError.AuthError(
+        throwable = throwable,
+        metadata = HttpKlientMetadata(
+            rawRequestString = "",
+            rawResponseString = null,
+            requestHeaders = emptyMap(),
+            responseHeaders = emptyMap(),
+            statusCode = null,
+            attempts = 0,
+            attemptDurations = emptyList(),
+            totalDuration = Duration.ZERO,
+            tidsstempler = HttpKlientTidsstempler.INGEN,
+        ),
+    )
+
+    private fun tilTilgangskontrollFeil(feil: HttpKlientError): TilgangskontrollFeil =
+        if (feil is HttpKlientError.UventetStatus && feil.statusCode == 413) {
+            TilgangskontrollFeil.ForMangeIdenter
+        } else {
+            TilgangskontrollFeil.Uventet(feil)
+        }
+
+    private fun loggAvvist(avvist: Tilgangsvurdering.Avvist) {
+        log.info { "Tilgang avvist av tilgangsmaskinen. Nav-ident: ${avvist.metadata.navIdent}, regel: ${avvist.metadata.type}, årsak: ${avvist.årsak}. Se sikkerlogg for detaljer." }
+        Sikkerlogg.info { "Tilgang avvist: ${avvist.begrunnelse}. Nav-ident: ${avvist.metadata.navIdent}, fnr: ${avvist.metadata.brukerIdent}, regel: ${avvist.metadata.type}, årsak: ${avvist.årsak}." }
     }
 }

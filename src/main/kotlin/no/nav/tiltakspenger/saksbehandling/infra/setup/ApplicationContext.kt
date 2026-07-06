@@ -103,6 +103,7 @@ open class ApplicationContext(
             baseUrl = Configuration.tilgangsmaskinenUrl,
             scope = Configuration.tilgangsmaskinenScope,
             texasClient = texasClient,
+            clock = clock,
         )
     }
 
@@ -143,7 +144,10 @@ open class ApplicationContext(
     open val sokosUtbetaldataClient: SokosUtbetaldataClient by lazy {
         SokosUtbetaldataHttpClient(
             baseUrl = Configuration.sokosUtbetaldataUrl,
-            getToken = { texasClient.getSystemToken(Configuration.sokosUtbetaldataScope, IdentityProvider.AZUREAD) },
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(Configuration.sokosUtbetaldataScope, IdentityProvider.AZUREAD, skipCache = skipCache)
+            },
             clock = clock,
         )
     }
@@ -151,7 +155,10 @@ open class ApplicationContext(
     open val tiltakspengerArenaClient: TiltakspengerArenaClient by lazy {
         TiltakspengerArenaHttpClient(
             baseUrl = Configuration.tiltakspengerArenaUrl,
-            getToken = { texasClient.getSystemToken(Configuration.tiltakspengerArenaScope, IdentityProvider.AZUREAD) },
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(Configuration.tiltakspengerArenaScope, IdentityProvider.AZUREAD, skipCache = skipCache)
+            },
             clock = clock,
         )
     }
