@@ -1,45 +1,41 @@
 package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.future.await
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.post
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
-import tools.jackson.module.kotlin.readValue
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 // swagger: https://sokos-utbetaldata.dev.intern.nav.no/utbetaldata/api/v2/docs
 class SokosUtbetaldataHttpClient(
     baseUrl: String,
-    val getToken: suspend () -> AccessToken,
-    connectTimeout: Duration = 1.seconds,
-    private val timeout: Duration = 1.seconds,
+    getToken: suspend () -> AccessToken,
+    connectTimeout: Duration = 3.seconds,
+    private val timeout: Duration = 6.seconds,
     private val clock: Clock,
+    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
+        this.connectTimeout = connectTimeout
+        this.defaultTimeout = timeout
+        this.successStatus = { it == 200 }
+        this.authTokenProvider = object : AuthTokenProvider {
+            override suspend fun hentToken(skipCache: Boolean): AccessToken = getToken()
+        }
+    },
 ) : SokosUtbetaldataClient {
-    private val log = KotlinLogging.logger {}
-
     // utbetaldata sender beskrivelsen, ikke kodeverdien
     private val relevanteYtelsestyper = Ytelsetype.entries.toTypedArray().map { it.tekstverdi }
-
-    private val client = HttpClient
-        .newBuilder()
-        .connectTimeout(connectTimeout.toJavaDuration())
-        .followRedirects(HttpClient.Redirect.NEVER)
-        .build()
 
     private val utbetalingsinformasjonUri = URI.create("$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern")
 
@@ -47,36 +43,21 @@ class SokosUtbetaldataHttpClient(
         fnr: Fnr,
         periode: Periode,
         correlationId: CorrelationId,
-    ): List<Ytelse> {
-        try {
-            // Siden domenet lagrer perioden vi har søkt på, må den ha kontroll på dette selv, den kan ikke bli hemmelig mutert av klienten.
-            if (periode.tilOgMed > LocalDate.now(clock)) throw IllegalStateException("Utbetaldata godtar ikke datoer frem i tid.")
-            val jsonPayload = serialize(
-                HentUtbetalingsinformasjonRequest(
-                    ident = fnr.verdi,
-                    periode = UtbetalingDto.UtbetalingsperiodeDto(
-                        fom = periode.fraOgMed,
-                        tom = periode.tilOgMed,
-                    ),
+    ): Either<HttpKlientError, List<Ytelse>> {
+        // Siden domenet lagrer perioden vi har søkt på, må den ha kontroll på dette selv, den kan ikke bli hemmelig mutert av klienten.
+        if (periode.tilOgMed > LocalDate.now(clock)) throw IllegalStateException("Utbetaldata godtar ikke datoer frem i tid.")
+        val jsonPayload = serialize(
+            HentUtbetalingsinformasjonRequest(
+                ident = fnr.verdi,
+                periode = UtbetalingDto.UtbetalingsperiodeDto(
+                    fom = periode.fraOgMed,
+                    tom = periode.tilOgMed,
                 ),
-            )
-            val request = createPostRequest(jsonPayload, getToken().token, correlationId)
-            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-            val status = httpResponse.statusCode()
-            val jsonResponse = httpResponse.body()
-            if (status != 200) {
-                log.error { "Kunne ikke hente utbetalingsinformasjon, statuskode $status. CorrelationId: $correlationId" }
-                Sikkerlogg.error { "Feil mot utbetaldata: Request: $jsonPayload, response: $jsonResponse" }
-                error("Kunne ikke hente utbetalingsinformasjon, statuskode $status")
-            }
-            val utbetalinger = objectMapper.readValue<List<UtbetalingDto>>(jsonResponse)
-            val ytelser = utbetalinger.tilYtelser()
-            log.info { "Fant ${ytelser.size} relevante ytelser for correlationId $correlationId" }
-            return ytelser
-        } catch (e: Exception) {
-            log.error(e) { "Noe gikk galt ved henting av ytelser fra Utbetaldata: ${e.message}" }
-            throw e
-        }
+            ),
+        )
+        return httpKlient.post<List<UtbetalingDto>>(utbetalingsinformasjonUri, jsonPayload) {
+            header("nav-call-id", correlationId.toString())
+        }.map { it.body.tilYtelser() }
     }
 
     private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
@@ -95,22 +76,5 @@ class SokosUtbetaldataHttpClient(
                 },
             )
         }
-    }
-
-    private fun createPostRequest(
-        jsonPayload: String,
-        token: String,
-        callId: CorrelationId,
-    ): HttpRequest? {
-        return HttpRequest
-            .newBuilder()
-            .uri(utbetalingsinformasjonUri)
-            .timeout(timeout.toJavaDuration())
-            .header("Authorization", "Bearer $token")
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("nav-call-id", callId.toString())
-            .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
     }
 }

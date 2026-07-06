@@ -77,7 +77,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>()
+                ) = emptyList<Ytelse>().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -192,7 +192,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>()
+                ) = emptyList<Ytelse>().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -300,7 +300,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>()
+                ) = emptyList<Ytelse>().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -436,7 +436,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>()
+                ) = emptyList<Ytelse>().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(
@@ -583,7 +583,7 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     periode: Periode,
                     correlationId: CorrelationId,
-                ) = emptyList<Ytelse>()
+                ) = emptyList<Ytelse>().right()
             }
             val tiltakspengerArenaClient = object : TiltakspengerArenaClient {
                 override suspend fun hentTiltakspengevedtakFraArena(

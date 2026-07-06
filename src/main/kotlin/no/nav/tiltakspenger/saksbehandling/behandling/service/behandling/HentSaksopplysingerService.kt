@@ -77,7 +77,16 @@ class HentSaksopplysingerService(
             // Vi tar foreløpig med de periodene
             tiltaksdeltakelser = aktuelleTiltaksdeltakelser,
             ytelser = saksopplysningsperiode
-                ?.let { hentYtelser(it, fnr, correlationId) }
+                ?.let {
+                    hentYtelser(
+                        saksopplysningsperiode = it,
+                        fnr = fnr,
+                        correlationId = correlationId,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        behandlingId = behandlingId,
+                    )
+                }
                 ?: Ytelser.IkkeBehandlingsgrunnlag,
             tiltakspengevedtakFraArena = saksopplysningsperiode
                 ?.let {
@@ -155,6 +164,9 @@ class HentSaksopplysingerService(
         saksopplysningsperiode: Periode,
         fnr: Fnr,
         correlationId: CorrelationId,
+        sakId: SakId? = null,
+        saksnummer: Saksnummer? = null,
+        behandlingId: RammebehandlingId? = null,
     ): Ytelser {
         // Gjør et unntak for sokosperioden, siden måneden ikke nødvendigvis er utbetalt enda, henter vi fra 1. forrige måned. Vi henter også hele inneværende måned (men ikke lenger enn dagens dato, siden det er en begrensing de har). Klienten fikser det sistnevnte.
         val utbetaldataFraOgMed = saksopplysningsperiode.fraOgMed.minusMonths(1).withDayOfMonth(1)
@@ -168,12 +180,28 @@ class HentSaksopplysingerService(
             } else {
                 Periode(utbetaldataFraOgMed, utbetaldataTilOgMed)
             }
+        val ytelser = sokosUtbetaldataClient.hentYtelserFraUtbetaldata(
+            fnr,
+            utbetaldataPeriode,
+            correlationId,
+        ).fold(
+            ifLeft = { error ->
+                error.loggFeil(
+                    logger,
+                    "henting av ytelser fra Utbetaldata",
+                    lagLoggcontext(
+                        correlationId = correlationId,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        behandlingId = behandlingId,
+                    ),
+                )
+                emptyList()
+            },
+            ifRight = { it },
+        )
         return Ytelser.fromList(
-            ytelser = sokosUtbetaldataClient.hentYtelserFraUtbetaldata(
-                fnr,
-                utbetaldataPeriode,
-                correlationId,
-            ),
+            ytelser = ytelser,
             oppslagsperiode = utbetaldataPeriode,
             oppslagstidspunkt = LocalDateTime.now(clock),
         )
