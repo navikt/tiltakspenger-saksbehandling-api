@@ -101,7 +101,7 @@ data class Meldeperiodebehandlinger(
 
     init {
         require(
-            meldeperioder.size == 1 || meldeperioder.zipWithNext().all { (a, b) ->
+            meldeperioder.zipWithNext().all { (a, b) ->
                 a.periode.tilOgMed.isBefore(b.periode.fraOgMed)
             },
         ) { "Meldeperiodene for en behandling må være sortert" }

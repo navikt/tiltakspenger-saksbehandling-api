@@ -40,6 +40,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     override val iverksattTidspunkt: LocalDateTime?
     override val sendtTilBeslutning: LocalDateTime?
     override val attesteringer: Attesteringer
+    override val klagebehandling: Klagebehandling?
 
     val status: MeldekortbehandlingStatus
     val navkontor: Navkontor
@@ -47,27 +48,24 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val ventestatus: Ventestatus
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
-    override val klagebehandling: Klagebehandling?
 
     val meldeperioder: Meldeperiodebehandlinger
-
-    val beregning: Beregning? get() = meldeperioder.beregning
 
     /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
     val simulering: Simulering?
 
-    val periode: Periode get() = meldeperioder.totalPeriode
+    val beregning: Beregning? get() = meldeperioder.beregning
 
+    val periode: Periode get() = meldeperioder.totalPeriode
     val fraOgMed: LocalDate get() = periode.fraOgMed
     val tilOgMed: LocalDate get() = periode.tilOgMed
 
     val ingenDagerGirRett: Boolean get() = meldeperioder.ingenDagerGirRett
+    val erFullstendigUtfylt: Boolean get() = meldeperioder.erFullstendigUtfylt
 
     val kjedeIder: NonEmptySet<MeldeperiodeKjedeId> get() = meldeperioder.kjedeIder
 
     val erSattPåVent: Boolean get() = ventestatus.erSattPåVent
-
-    val erFullstendigUtfylt: Boolean get() = meldeperioder.erFullstendigUtfylt
 
     override val erAvsluttet
         get() = when (status) {
