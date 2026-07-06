@@ -25,9 +25,9 @@ private fun Sak.validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort: Bruk
         return MeldekortBehandletAutomatiskStatus.SKAL_IKKE_BEHANDLES_AUTOMATISK.left()
     }
 
-    val behandlingerKnyttetTilKjede = this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
+    val behandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId] ?: emptyList()
 
-    if (behandlingerKnyttetTilKjede.isNotEmpty()) {
+    if (behandledeMeldekort.isNotEmpty()) {
         return MeldekortBehandletAutomatiskStatus.ALLEREDE_BEHANDLET.left()
     }
 

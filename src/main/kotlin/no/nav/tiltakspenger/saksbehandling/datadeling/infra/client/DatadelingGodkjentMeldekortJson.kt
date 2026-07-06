@@ -115,7 +115,7 @@ private fun MeldekortDag.toDatadelingMeldekortDagDTO() = DatadelingGodkjentMelde
     reduksjon = status.tilDatadelingReduksjon(),
 )
 
-fun MeldekortDagStatus.tilDatadelingMeldekortDagStatus(): String =
+private fun MeldekortDagStatus.tilDatadelingMeldekortDagStatus(): String =
     when (this) {
         MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.DELTATT_UTEN_LONN_I_TILTAKET.name
         MeldekortDagStatus.DELTATT_MED_LØNN_I_TILTAKET -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.DELTATT_MED_LONN_I_TILTAKET.name
@@ -129,7 +129,7 @@ fun MeldekortDagStatus.tilDatadelingMeldekortDagStatus(): String =
         MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER -> DatadelingGodkjentMeldekortJson.MeldekortDagDTO.MeldekortDagStatus.IKKE_RETT_TIL_TILTAKSPENGER.name
     }
 
-fun MeldekortDagStatus.tilDatadelingReduksjon(): String =
+private fun MeldekortDagStatus.tilDatadelingReduksjon(): String =
     when (this) {
         MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET,
         MeldekortDagStatus.FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
