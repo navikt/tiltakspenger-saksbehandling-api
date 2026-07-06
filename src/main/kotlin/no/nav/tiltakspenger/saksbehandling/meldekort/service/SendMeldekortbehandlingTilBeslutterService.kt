@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
@@ -18,6 +19,7 @@ import java.time.Clock
 class SendMeldekortbehandlingTilBeslutterService(
     private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     private val sakService: SakService,
+    private val erProd: Boolean,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -46,6 +48,10 @@ class SendMeldekortbehandlingTilBeslutterService(
             val oppdatertSak = sak.oppdaterMeldekortbehandlinger(meldekortbehandlinger)
 
             meldekort.validerKanIverksetteUtbetaling().onLeft {
+                if (it == KanIkkeIverksetteUtbetaling.SimuleringMangler && !erProd) {
+                    return@onLeft
+                }
+
                 return KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
             }
 

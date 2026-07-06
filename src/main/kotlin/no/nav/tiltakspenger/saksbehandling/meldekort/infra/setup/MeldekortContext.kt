@@ -176,6 +176,7 @@ open class MeldekortContext(
         SendMeldekortbehandlingTilBeslutterService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
+            erProd = Configuration.isProd(),
         )
     }
 
