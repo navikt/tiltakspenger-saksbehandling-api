@@ -14,15 +14,10 @@ private data class DatadelingGodkjentMeldekortJson(
     val meldekortbehandlingId: String,
     val sakId: String,
     val meldeperioder: List<MeldeperiodeDTO>,
-    val kjedeId: String,
-    val meldeperiodeId: String,
-    val mottattTidspunkt: LocalDateTime?,
     val vedtattTidspunkt: LocalDateTime,
     val behandletAutomatisk: Boolean,
-    val korrigert: Boolean,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val meldekortdager: List<MeldekortDagDTO>,
     val journalpostId: String,
     val totaltBelop: Int,
     val totalDifferanse: Int?,
@@ -40,6 +35,7 @@ private data class DatadelingGodkjentMeldekortJson(
         val totalDifferanse: Int?,
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
+        val mottattTidspunkt: LocalDateTime?,
     )
 
     data class MeldekortDagDTO(
@@ -69,8 +65,6 @@ private data class DatadelingGodkjentMeldekortJson(
 }
 
 fun Meldekortvedtak.toDatadelingJson(differansePerKjede: Map<MeldeperiodeKjedeId, Int>?): String {
-    val legacyMeldeperiode = meldekortbehandling.meldeperioder.first()
-
     return DatadelingGodkjentMeldekortJson(
         meldekortbehandlingId = meldekortbehandling.id.toString(),
         sakId = sakId.toString(),
@@ -87,13 +81,6 @@ fun Meldekortvedtak.toDatadelingJson(differansePerKjede: Map<MeldeperiodeKjedeId
         barnetillegg = meldekortbehandling.barnetilleggBeløp != 0,
         opprettet = opprettet,
         sistEndret = meldekortbehandling.sistEndret,
-
-        // TODO: fjernes når datadeling er oppdatert til å bruke meldeperioder
-        kjedeId = legacyMeldeperiode.kjedeId.toString(),
-        meldeperiodeId = legacyMeldeperiode.meldeperiodeId.toString(),
-        meldekortdager = legacyMeldeperiode.dager.map { it.toDatadelingMeldekortDagDTO() },
-        mottattTidspunkt = legacyMeldeperiode.brukersMeldekort?.mottatt,
-        korrigert = harKorrigering,
     ).let { serialize(it) }
 }
 
@@ -107,6 +94,7 @@ private fun MeldeperiodebehandlingMedBeregning.toDatadelingMeldeperiodeDTO(total
         totalDifferanse = totalDifferanse,
         fraOgMed = meldeperiodebehandling.fraOgMed,
         tilOgMed = meldeperiodebehandling.tilOgMed,
+        mottattTidspunkt = meldeperiodebehandling.brukersMeldekort?.mottatt,
     )
 
 private fun MeldekortDag.toDatadelingMeldekortDagDTO() = DatadelingGodkjentMeldekortJson.MeldekortDagDTO(
