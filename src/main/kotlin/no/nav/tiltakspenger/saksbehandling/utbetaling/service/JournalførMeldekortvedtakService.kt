@@ -9,8 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
+import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
@@ -23,10 +24,11 @@ import java.time.Clock
 class JournalførMeldekortvedtakService(
     private val journalførMeldekortKlient: JournalførMeldekortKlient,
     private val meldekortvedtakRepo: MeldekortvedtakRepo,
-    private val genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
+    private val genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     private val navIdentClient: NavIdentClient,
     private val sakRepo: SakRepo,
     private val clock: Clock,
+    private val brukMeldekortvedtakBrevV2: Boolean,
 ) {
     private val log = KotlinLogging.logger { }
     private val errorEveryNLogger = ErrorEveryNLogger(log, 3)
@@ -73,20 +75,39 @@ class JournalførMeldekortvedtakService(
                             navIdentClient::hentNavnForNavIdent
                         }
 
-                    val pdfOgJson =
-                        genererVedtaksbrevForUtbetalingKlient.genererMeldekortvedtakBrev(
-                            meldekortvedtak,
-                            tiltaksdeltakelser = tiltak,
-                            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                            sammenligning = sammenligning,
-                            false,
-                        ).getOrElse { return@forEach }
+                    val (pdfOgJson, pdfOgJsonPdfgenrs) =
+                        if (brukMeldekortvedtakBrevV2) {
+                            genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrevV2(
+                                meldekortvedtak,
+                                tiltaksdeltakelser = tiltak,
+                                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                                sammenligning = sammenligning,
+                            )
+                        } else {
+                            genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrev(
+                                meldekortvedtak,
+                                tiltaksdeltakelser = tiltak,
+                                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                                sammenligning = sammenligning,
+                            ).map { it to null as PdfOgJson? }
+                        }.getOrElse { return@forEach }
                     log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
                         meldekortvedtak = meldekortvedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     ).first
+                    /*
+                        TODO - pdfgenrs: fjern journalføringen av pdfgenrs-pdf'en når det er verifisert at pdf'en er ok.
+                            Vi journalfører den kun for å manuelt kunne sjekke at pdfgenrs genererer riktig pdf i dev.
+                     */
+                    pdfOgJsonPdfgenrs?.let {
+                        journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
+                            meldekortvedtak = meldekortvedtak,
+                            pdfOgJson = it,
+                            correlationId = correlationId,
+                        )
+                    }
                     log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
                     meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
                     log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }

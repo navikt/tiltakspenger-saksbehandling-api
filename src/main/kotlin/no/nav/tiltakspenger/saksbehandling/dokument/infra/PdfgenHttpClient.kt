@@ -37,7 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
@@ -61,7 +61,7 @@ class PdfgenHttpClient(
     private val isLocalOrDev: Boolean,
     private val timeout: Duration = 20.seconds,
 ) : GenererVedtaksbrevForInnvilgelseKlient,
-    GenererVedtaksbrevForUtbetalingKlient,
+    GenererVedtaksbrevForMeldekortKlient,
     GenererVedtaksbrevForStansKlient,
     GenererVedtaksbrevForAvslagKlient,
     GenererVedtaksbrevForOpphørKlient,
@@ -79,6 +79,9 @@ class PdfgenHttpClient(
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val meldekortvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
+    private val meldekortvedtakV2Uri = URI.create("$baseUrl/api/v1/genpdf/tpts/meldekortvedtak")
+    private val meldekortvedtakV2RsUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/meldekortvedtak")
+
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
     private val opphørUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
@@ -193,7 +196,6 @@ class PdfgenHttpClient(
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return pdfgenRequest(
             jsonPayload = {
@@ -201,7 +203,6 @@ class PdfgenHttpClient(
                     hentSaksbehandlersNavn,
                     tiltaksdeltakelser,
                     sammenligning,
-                    forhåndsvisning,
                 )
             },
             errorContext = "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}",
@@ -218,6 +219,56 @@ class PdfgenHttpClient(
             errorContext = "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}",
             uri = meldekortvedtakUri,
         )
+    }
+
+    override suspend fun genererMeldekortvedtakBrevV2(
+        meldekortvedtak: Meldekortvedtak,
+        tiltaksdeltakelser: Tiltaksdeltakelser,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            meldekortvedtak.toJsonRequestV2(
+                hentSaksbehandlersNavn,
+                tiltaksdeltakelser,
+                sammenligning,
+            )
+        }
+        val errorContext =
+            "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = meldekortvedtakV2Uri,
+                pdfgenrsUri = meldekortvedtakV2RsUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakV2Uri)
+                .map { it to null }
+        }
+    }
+
+    override suspend fun genererMeldekortvedtakBrevV2(
+        kommando: GenererMeldekortvedtakBrevKommando,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend { kommando.tilJsonRequestV2(hentSaksbehandlersNavn) }
+        val errorContext =
+            "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = meldekortvedtakV2Uri,
+                pdfgenrsUri = meldekortvedtakV2RsUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakV2Uri)
+                .map { it to null }
+        }
     }
 
     override suspend fun genererStansBrev(

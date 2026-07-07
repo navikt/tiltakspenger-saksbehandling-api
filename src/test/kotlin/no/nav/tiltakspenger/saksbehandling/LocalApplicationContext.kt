@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
@@ -39,7 +39,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
@@ -83,8 +83,8 @@ class LocalApplicationContext(
     val distribusjonIdGenerator = DistribusjonIdGenerator()
     private val realPdfGen = if (usePdfGen) {
         PdfgenHttpClient(
-            baseUrl = "http://host.docker.internal:8081",
-            basePdfgenrsUrl = "http://host.docker.internal:8083",
+            baseUrl = Configuration.pdfgenUrl,
+            basePdfgenrsUrl = Configuration.pdfgenrsUrl,
             isLocalOrDev = true,
         )
     } else {
@@ -100,17 +100,17 @@ class LocalApplicationContext(
         if (brukFakeTexasClient) TexasClientFake(clock) else super.texasClient
 
     private val personFakeKlient = PersonFakeKlient(clock)
-    private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevForUtbetalingKlient()
+    private val genererFakeVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient =
+        realPdfGen ?: GenererFakeVedtaksbrevForMeldekortKlient()
 
     private val genererFakeVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
     private val dokumentdistribusjonsklientFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
@@ -161,7 +161,7 @@ class LocalApplicationContext(
         object : DokumentContext(texasClient, clock) {
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
-            override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
+            override val genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient
             override val genererVedtaksbrevForInnvilgelseKlient =
                 this@LocalApplicationContext.genererFakeVedtaksbrevForInnvilgelseKlient
         }
@@ -239,7 +239,7 @@ class LocalApplicationContext(
             clock = clock,
             simulerService = utbetalingContext.simulerService,
             statistikkService = statistikkContext.statistikkService,
-            genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
@@ -289,7 +289,7 @@ class LocalApplicationContext(
     override val utbetalingContext by lazy {
         object : UtbetalingContext(
             sessionFactory = sessionFactory,
-            genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
             texasClient = texasClient,
             sakRepo = sakContext.sakRepo,

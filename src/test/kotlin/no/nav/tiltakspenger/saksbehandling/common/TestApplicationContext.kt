@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.fixedClock
@@ -114,7 +114,7 @@ sealed class TestApplicationContext(
     protected open val personFakeKlient by lazy { PersonFakeKlient(clock) }
     protected open val sokosUtbetaldataFakeClient by lazy { SokosUtbetaldataFakeClient() }
     protected open val tiltakspengerArenaFakeClient by lazy { TiltakspengerArenaFakeClient() }
-    protected open val genererFakeVedtaksbrevForUtbetalingKlient by lazy { GenererFakeVedtaksbrevForUtbetalingKlient() }
+    protected open val genererFakeVedtaksbrevForMeldekortKlient by lazy { GenererFakeVedtaksbrevForMeldekortKlient() }
     protected open val genererFakeVedtaksbrevKlient by lazy { GenererFakeVedtaksbrevKlient() }
     protected open val journalførFakeMeldekortKlient by lazy { JournalførFakeMeldekortKlient(journalpostIdGenerator) }
     protected open val journalførFakeRammevedtaksbrevKlient by lazy {
@@ -174,7 +174,7 @@ sealed class TestApplicationContext(
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
             override val journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient
-            override val genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient
+            override val genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient
             override val genererVedtaksbrevForInnvilgelseKlient = genererFakeVedtaksbrevKlient
             override val genererVedtaksbrevForAvslagKlient = genererFakeVedtaksbrevKlient
             override val genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevKlient
@@ -283,7 +283,7 @@ sealed class TestApplicationContext(
             sakRepo = sakContext.sakRepo,
             clock = clock,
             simulerService = utbetalingContext.simulerService,
-            genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
             statistikkService = statistikkContext.statistikkService,
         ) {
@@ -386,7 +386,7 @@ sealed class TestApplicationContext(
 
         object : UtbetalingContext(
             sessionFactory = sessionFactory,
-            genererVedtaksbrevForUtbetalingKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
             texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,

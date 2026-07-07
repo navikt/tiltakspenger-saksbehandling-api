@@ -355,7 +355,7 @@ open class ApplicationContext(
     open val utbetalingContext by lazy {
         UtbetalingContext(
             sessionFactory = sessionFactory,
-            genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = dokumentContext.genererVedtaksbrevForMeldekortKlient,
             journalførMeldekortKlient = dokumentContext.journalførMeldekortKlient,
             texasClient = texasClient,
             navIdentClient = personContext.navIdentClient,
@@ -377,7 +377,7 @@ open class ApplicationContext(
             clock = clock,
             simulerService = utbetalingContext.simulerService,
             statistikkService = statistikkContext.statistikkService,
-            genererVedtaksbrevForUtbetalingKlient = dokumentContext.genererVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = dokumentContext.genererVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
         )
     }

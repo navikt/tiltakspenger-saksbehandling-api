@@ -9,17 +9,28 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortvedtakBrevKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 
-interface GenererVedtaksbrevForUtbetalingKlient {
+interface GenererVedtaksbrevForMeldekortKlient {
     suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererMeldekortvedtakBrev(
         kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
+
+    suspend fun genererMeldekortvedtakBrevV2(
+        meldekortvedtak: Meldekortvedtak,
+        tiltaksdeltakelser: Tiltaksdeltakelser,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+
+    suspend fun genererMeldekortvedtakBrevV2(
+        kommando: GenererMeldekortvedtakBrevKommando,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
 }

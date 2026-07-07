@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
@@ -55,7 +55,7 @@ open class MeldekortContext(
     clock: Clock,
     simulerService: SimulerService,
     statistikkService: StatistikkService,
-    genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
+    genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     navIdentClient: NavIdentClient,
 ) {
     open val meldekortbehandlingRepo: MeldekortbehandlingRepo by lazy {
@@ -206,11 +206,12 @@ open class MeldekortContext(
 
     val forhåndsvisBrevMeldekortbehandlingService by lazy {
         ForhåndsvisBrevMeldekortbehandlingService(
-            genererBrevClient = genererVedtaksbrevForUtbetalingKlient,
+            genererBrevClient = genererVedtaksbrevForMeldekortKlient,
             sakService = sakService,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             navIdentClient = navIdentClient,
             clock = clock,
+            brukMeldekortvedtakBrevV2 = !Configuration.isProd(),
         )
     }
 }
