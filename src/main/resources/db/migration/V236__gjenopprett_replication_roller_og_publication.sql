@@ -1,13 +1,16 @@
--- Gjenoppretter logisk replikering til BigQuery (Datastream/Team Sak DVH) i miljøer der replication slot
--- og/eller publication har forsvunnet, f.eks. fordi Cloud SQL har invalidert slotten på grunn av at WAL har
--- vokst seg for stor (typisk i dev når ingen konsumerer slotten kontinuerlig).
+-- Gjenoppretter roller og publication for logisk replikering til BigQuery (Datastream/Team Sak DVH)
+-- i miljøer der oppsettet har forsvunnet, f.eks. fordi Cloud SQL har invalidert replication slotten
+-- på grunn av at WAL har vokst seg for stor (typisk i dev når ingen konsumerer slotten kontinuerlig).
 --
--- Bakgrunn: `SELECT * FROM pg_replication_slots;` returnerte tom resultatmengde i dev.
--- Se også docs/database/gjenopprett_replication_slot.sql for samme script til manuell kjøring,
+-- Selve replication slotten opprettes i en egen migrering, V237, fordi
+-- `pg_create_logical_replication_slot` ikke kan kjøres i en transaksjon som allerede har gjort skriving,
+-- og Flyway kjører som standard hver migrering i én transaksjon.
+--
+-- Se også docs/database/gjenopprett_replication_slot.sql for samme oppsett til manuell kjøring,
 -- og V3, V4, V5, V7 og V59 som satte opp det samme oppsettet opprinnelig.
 --
 -- Scriptet er idempotent, så det er trygt at det står igjen i migreringshistorikken selv om det
--- ikke gjør noe i miljøer der slotten/publication allerede finnes (f.eks. prod).
+-- ikke gjør noe i miljøer der rollene/publication allerede finnes (f.eks. prod).
 
 DO
 $$
@@ -47,15 +50,6 @@ $$
     BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'ds_publication') THEN
             CREATE PUBLICATION ds_publication FOR ALL TABLES;
-        END IF;
-    END
-$$;
-
-DO
-$$
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = 'ds_replication') THEN
-            PERFORM pg_create_logical_replication_slot('ds_replication', 'pgoutput');
         END IF;
     END
 $$;
