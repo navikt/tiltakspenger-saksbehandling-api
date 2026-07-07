@@ -75,7 +75,7 @@ class AvbrytRammebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                     {
-                      "melding": "Behandlingen er allerede avsluttet og kan ikke avbrytes. Last inn siden på nytt for å se oppdatert status.",
+                      "melding": "Behandlingen er allerede avsluttet.",
                       "kode": "behandling_kan_ikke_avbrytes_i_tilstanden"
                     }
                     """.trimIndent()

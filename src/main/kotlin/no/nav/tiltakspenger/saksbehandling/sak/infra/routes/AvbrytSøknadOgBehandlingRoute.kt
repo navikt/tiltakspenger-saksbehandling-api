@@ -88,12 +88,12 @@ private fun KunneIkkeAvbryteBehandling.logg() {
  */
 private fun KunneIkkeAvbryteBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     is KunneIkkeAvbryteBehandling.FantIkkeBehandling -> HttpStatusCode.NotFound to ErrorJson(
-        melding = "Vi fant ikke behandlingen du prøver å avbryte. Last inn siden på nytt og prøv igjen.",
+        melding = "Behandlingen finnes ikke lenger.",
         kode = "fant_ikke_behandling",
     )
 
     is KunneIkkeAvbryteBehandling.BehandlingKanIkkeAvbrytesITilstanden -> HttpStatusCode.Conflict to ErrorJson(
-        melding = "Behandlingen er allerede avsluttet og kan ikke avbrytes. Last inn siden på nytt for å se oppdatert status.",
+        melding = "Behandlingen er allerede avsluttet.",
         kode = "behandling_kan_ikke_avbrytes_i_tilstanden",
     )
 }

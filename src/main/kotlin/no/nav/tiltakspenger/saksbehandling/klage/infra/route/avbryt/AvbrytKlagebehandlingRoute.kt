@@ -144,7 +144,7 @@ private fun KanIkkeAvbryteKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatu
         KanIkkeAvbryteKlagebehandling.BehandlingenErSattPåVent -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre.",
+                "Klagebehandlingen er på vent. Gjenoppta den og prøv igjen.",
                 "klagebehandling_er_satt_p_vent",
             ),
         )
@@ -159,15 +159,15 @@ private fun KanIkkeAvbryteKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatu
         is KanIkkeAvbryteKlagebehandling.KnyttetTilIkkeAvbruttBehandling -> Pair(
             HttpStatusCode.BadRequest,
             ErrorJson(
-                "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en behandling som ikke er avbrutt: ${this.behandlingId}",
+                "Klagebehandlingen er knyttet til en annen behandling. Avslutt den andre behandlingen først.",
                 "knyttet_til_ikke_avbrutt_behandling",
             ),
         )
 
         is KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet -> Pair(
-            HttpStatusCode.BadRequest,
+            HttpStatusCode.Conflict,
             ErrorJson(
-                "Klagebehandlingen er allerede avsluttet med status: ${this.status}",
+                "Klagebehandlingen er allerede avsluttet",
                 "allerede_avsluttet",
             ),
         )

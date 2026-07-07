@@ -51,7 +51,7 @@ class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
                 forventetJsonBody = {
                     """
                     {
-                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en behandling som ikke er avbrutt: [${meldekortbehandling.id}]",
+                        "melding": "Klagebehandlingen er knyttet til en annen behandling. Avslutt den andre behandlingen først.",
                         "kode": "knyttet_til_ikke_avbrutt_behandling"
                     }
                     """.trimIndent()

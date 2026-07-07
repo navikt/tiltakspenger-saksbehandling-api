@@ -81,12 +81,12 @@ fun Route.avbrytMeldekortbehandlingRoute(
 private fun KanIkkeAvbryteMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet -> HttpStatusCode.BadRequest to ErrorJson(
-            "Meldekortbehandlingen er tildelt en annen saksbehandler",
+            "Meldekortbehandlingen tilhører en annen saksbehandler. Overta behandlingen og prøv igjen.",
             "behandlingen_tildelt_annen_saksbehandler",
         )
 
-        KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling -> HttpStatusCode.BadRequest to ErrorJson(
-            "Meldekortbehandlingen må være under behandling for å kunne avbrytes",
+        KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling -> HttpStatusCode.Conflict to ErrorJson(
+            "Meldekortbehandlingen er allerede avsluttet",
             "behandlingen_ikke_under_behandling",
         )
     }

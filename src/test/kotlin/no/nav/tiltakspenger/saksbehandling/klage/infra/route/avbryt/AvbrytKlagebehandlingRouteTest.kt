@@ -183,7 +183,6 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            val rammebehandlingId = sak.rammebehandlinger[1].id
             avbrytKlagebehandlingForSak(
                 tac = tac,
                 sakId = sak.id,
@@ -192,7 +191,7 @@ class AvbrytKlagebehandlingRouteTest {
                 forventetJsonBody = {
                     """
                      {
-                        "melding": "Klagebehandlingen kan ikke avbrytes fordi den er knyttet til en behandling som ikke er avbrutt: [$rammebehandlingId]",
+                        "melding": "Klagebehandlingen er knyttet til en annen behandling. Avslutt den andre behandlingen først.",
                         "kode": "knyttet_til_ikke_avbrutt_behandling"
                      }
                     """.trimIndent()
@@ -210,11 +209,11 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventetStatus = HttpStatusCode.Conflict,
                 forventetJsonBody = {
                     """
                      {
-                      "melding": "Klagebehandlingen er allerede avsluttet med status: VEDTATT",
+                      "melding": "Klagebehandlingen er allerede avsluttet",
                       "kode": "allerede_avsluttet"
                      }
                     """.trimIndent()
@@ -231,11 +230,11 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventetStatus = HttpStatusCode.Conflict,
                 forventetJsonBody = {
                     """
                      {
-                      "melding": "Klagebehandlingen er allerede avsluttet med status: AVBRUTT",
+                      "melding": "Klagebehandlingen er allerede avsluttet",
                       "kode": "allerede_avsluttet"
                      }
                     """.trimIndent()
@@ -281,11 +280,11 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventetStatus = HttpStatusCode.Conflict,
                 forventetJsonBody = {
                     """
                      {
-                      "melding": "Klagebehandlingen er allerede avsluttet med status: VEDTATT",
+                      "melding": "Klagebehandlingen er allerede avsluttet",
                       "kode": "allerede_avsluttet"
                      }
                     """.trimIndent()
