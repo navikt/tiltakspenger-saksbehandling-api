@@ -83,8 +83,8 @@ class LocalApplicationContext(
     val distribusjonIdGenerator = DistribusjonIdGenerator()
     private val realPdfGen = if (usePdfGen) {
         PdfgenHttpClient(
-            baseUrl = "http://host.docker.internal:8081",
-            basePdfgenrsUrl = "http://host.docker.internal:8083",
+            baseUrl = Configuration.pdfgenUrl,
+            basePdfgenrsUrl = Configuration.pdfgenrsUrl,
             isLocalOrDev = true,
         )
     } else {
@@ -101,16 +101,16 @@ class LocalApplicationContext(
 
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForMeldekortKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevForMeldekortKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevForMeldekortKlient()
 
     private val genererFakeVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient =
-        if (usePdfGen) realPdfGen!! else GenererFakeVedtaksbrevKlient()
+        realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
     private val dokumentdistribusjonsklientFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)

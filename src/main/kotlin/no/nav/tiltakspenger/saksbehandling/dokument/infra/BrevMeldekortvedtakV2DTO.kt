@@ -47,6 +47,7 @@ private data class BrevMeldekortvedtakV2DTO(
         val barnetillegg: ForrigeOgGjeldendeDTO<Int>,
         val prosent: ForrigeOgGjeldendeDTO<Int>,
     ) {
+        @Suppress("unused")
         val harEndring: Boolean = status.harEndring || beløp.harEndring || barnetillegg.harEndring || prosent.harEndring
     }
 

@@ -95,7 +95,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                     forhåndsvisning = true,
                 ),
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            )
+            ).map { it.first }
         } else {
             genererBrevClient.genererMeldekortvedtakBrev(
                 kommando = GenererMeldekortvedtakBrevKommando(

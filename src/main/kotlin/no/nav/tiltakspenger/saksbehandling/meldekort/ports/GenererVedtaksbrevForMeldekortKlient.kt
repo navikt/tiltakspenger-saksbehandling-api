@@ -28,10 +28,10 @@ interface GenererVedtaksbrevForMeldekortKlient {
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson>
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
 
     suspend fun genererMeldekortvedtakBrevV2(
         kommando: GenererMeldekortvedtakBrevKommandoV2,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson>
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
 }

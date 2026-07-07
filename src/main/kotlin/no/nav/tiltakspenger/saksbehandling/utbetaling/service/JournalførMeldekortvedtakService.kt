@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
+import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
@@ -74,7 +75,7 @@ class JournalførMeldekortvedtakService(
                             navIdentClient::hentNavnForNavIdent
                         }
 
-                    val pdfOgJson =
+                    val (pdfOgJson, pdfOgJsonPdfgenrs) =
                         if (brukMeldekortvedtakBrevV2) {
                             genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrevV2(
                                 meldekortvedtak,
@@ -88,7 +89,7 @@ class JournalførMeldekortvedtakService(
                                 tiltaksdeltakelser = tiltak,
                                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                                 sammenligning = sammenligning,
-                            )
+                            ).map { it to null as PdfOgJson? }
                         }.getOrElse { return@forEach }
                     log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
@@ -96,6 +97,17 @@ class JournalførMeldekortvedtakService(
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     ).first
+                    /*
+                        TODO - pdfgenrs: fjern journalføringen av pdfgenrs-pdf'en når det er verifisert at pdf'en er ok.
+                            Vi journalfører den kun for å manuelt kunne sjekke at pdfgenrs genererer riktig pdf i dev.
+                     */
+                    pdfOgJsonPdfgenrs?.let {
+                        journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
+                            meldekortvedtak = meldekortvedtak,
+                            pdfOgJson = it,
+                            correlationId = correlationId,
+                        )
+                    }
                     log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
                     meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
                     log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
