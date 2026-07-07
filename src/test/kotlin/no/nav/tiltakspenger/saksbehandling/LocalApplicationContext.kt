@@ -100,7 +100,7 @@ class LocalApplicationContext(
         if (brukFakeTexasClient) TexasClientFake(clock) else super.texasClient
 
     private val personFakeKlient = PersonFakeKlient(clock)
-    private val genererFakeVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForMeldekortKlient =
+    private val genererFakeVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient =
         realPdfGen ?: GenererFakeVedtaksbrevForMeldekortKlient()
 
     private val genererFakeVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient =
@@ -161,7 +161,7 @@ class LocalApplicationContext(
         object : DokumentContext(texasClient, clock) {
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
-            override val genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForUtbetalingKlient
+            override val genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient
             override val genererVedtaksbrevForInnvilgelseKlient =
                 this@LocalApplicationContext.genererFakeVedtaksbrevForInnvilgelseKlient
         }
@@ -235,7 +235,7 @@ class LocalApplicationContext(
             clock = clock,
             simulerService = utbetalingContext.simulerService,
             statistikkService = statistikkContext.statistikkService,
-            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
@@ -285,7 +285,7 @@ class LocalApplicationContext(
     override val utbetalingContext by lazy {
         object : UtbetalingContext(
             sessionFactory = sessionFactory,
-            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             journalførMeldekortKlient = journalførFakeMeldekortKlient,
             texasClient = texasClient,
             sakRepo = sakContext.sakRepo,
