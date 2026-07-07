@@ -14,19 +14,21 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortvedtakBrevKommando
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererMeldekortvedtakBrevKommandoV2
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.time.Clock
 
 class ForhåndsvisBrevMeldekortbehandlingService(
-    val genererBrevClient: GenererVedtaksbrevForUtbetalingKlient,
+    val genererBrevClient: GenererVedtaksbrevForMeldekortKlient,
     val sakService: SakService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val navIdentClient: NavIdentClient,
     val clock: Clock,
+    val brukMeldekortvedtakBrevV2: Boolean,
 ) {
 
     suspend fun forhåndsvisBrev(kommando: ForhåndsvisBrevMeldekortbehandlingKommando): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, PdfOgJson> {
@@ -64,32 +66,57 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                 navIdentClient::hentNavnForNavIdent
             }
 
-        return genererBrevClient.genererMeldekortvedtakBrev(
-            kommando = GenererMeldekortvedtakBrevKommando(
-                sakId = meldekortbehandling.sakId,
-                saksnummer = meldekortbehandling.saksnummer,
-                fnr = meldekortbehandling.fnr,
-                saksbehandler = meldekortbehandling.saksbehandler,
-                beslutter = meldekortbehandling.beslutter,
-                meldekortbehandlingId = meldekortbehandling.id,
-                beregningsperiode = beregning.let {
-                    Periode(
-                        fraOgMed = it.minOf { it.fraOgMed },
-                        tilOgMed = it.maxOf { it.tilOgMed },
-                    )
-                },
-                tiltaksdeltakelser = meldekortbehandling.rammevedtakIder.let {
-                    sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
-                },
-                iverksattTidspunkt = null,
-                erKorrigering = meldekortbehandling.harKorrigering,
-                beregninger = nåværendeBeregningMedTidligereBeregning,
-                totaltBeløp = beregning.sumOf { it.totalBeløp },
-                tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
-                forhåndsvisning = true,
-            ),
-            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-        ).map {
+        val beregningsperiode = beregning.let {
+            Periode(
+                fraOgMed = it.minOf { it.fraOgMed },
+                tilOgMed = it.maxOf { it.tilOgMed },
+            )
+        }
+        val tiltaksdeltakelser = meldekortbehandling.rammevedtakIder.let {
+            sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
+        }
+
+        return if (brukMeldekortvedtakBrevV2) {
+            genererBrevClient.genererMeldekortvedtakBrevV2(
+                kommando = GenererMeldekortvedtakBrevKommandoV2(
+                    sakId = meldekortbehandling.sakId,
+                    saksnummer = meldekortbehandling.saksnummer,
+                    fnr = meldekortbehandling.fnr,
+                    saksbehandler = meldekortbehandling.saksbehandler,
+                    beslutter = meldekortbehandling.beslutter,
+                    meldekortbehandlingId = meldekortbehandling.id,
+                    beregningsperiode = beregningsperiode,
+                    tiltaksdeltakelser = tiltaksdeltakelser,
+                    iverksattTidspunkt = null,
+                    erKorrigering = meldekortbehandling.harKorrigering,
+                    beregninger = nåværendeBeregningMedTidligereBeregning,
+                    totaltBeløp = beregning.sumOf { it.totalBeløp },
+                    tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
+                    forhåndsvisning = true,
+                ),
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        } else {
+            genererBrevClient.genererMeldekortvedtakBrev(
+                kommando = GenererMeldekortvedtakBrevKommando(
+                    sakId = meldekortbehandling.sakId,
+                    saksnummer = meldekortbehandling.saksnummer,
+                    fnr = meldekortbehandling.fnr,
+                    saksbehandler = meldekortbehandling.saksbehandler,
+                    beslutter = meldekortbehandling.beslutter,
+                    meldekortbehandlingId = meldekortbehandling.id,
+                    beregningsperiode = beregningsperiode,
+                    tiltaksdeltakelser = tiltaksdeltakelser,
+                    iverksattTidspunkt = null,
+                    erKorrigering = meldekortbehandling.harKorrigering,
+                    beregninger = nåværendeBeregningMedTidligereBeregning,
+                    totaltBeløp = beregning.sumOf { it.totalBeløp },
+                    tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
+                    forhåndsvisning = true,
+                ),
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        }.map {
             it
         }.mapLeft {
             KunneIkkeForhåndsviseBrevMeldekortbehandling.FeilVedGenereringAvPdf(it)

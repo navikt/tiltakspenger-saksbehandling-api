@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -25,7 +25,7 @@ import java.time.Clock
 
 open class UtbetalingContext(
     sessionFactory: SessionFactory,
-    genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient,
+    genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     journalførMeldekortKlient: JournalførMeldekortKlient,
     navIdentClient: NavIdentClient,
     texasClient: TexasClient,
@@ -70,10 +70,11 @@ open class UtbetalingContext(
         JournalførMeldekortvedtakService(
             meldekortvedtakRepo = meldekortvedtakRepo,
             journalførMeldekortKlient = journalførMeldekortKlient,
-            genererVedtaksbrevForUtbetalingKlient = genererVedtaksbrevForUtbetalingKlient,
+            genererVedtaksbrevForMeldekortKlient = genererVedtaksbrevForMeldekortKlient,
             navIdentClient = navIdentClient,
             sakRepo = sakRepo,
             clock = clock,
+            brukMeldekortvedtakBrevV2 = !Configuration.isProd(),
         )
     }
 

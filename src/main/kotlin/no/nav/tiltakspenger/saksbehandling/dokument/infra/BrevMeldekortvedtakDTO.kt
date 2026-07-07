@@ -165,7 +165,6 @@ suspend fun Meldekortvedtak.toJsonRequest(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltakelser: Tiltaksdeltakelser,
     sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-    forhåndsvisning: Boolean,
 ): String {
     return BrevMeldekortvedtakDTO(
         fødselsnummer = fnr.verdi,
@@ -183,7 +182,7 @@ suspend fun Meldekortvedtak.toJsonRequest(
         sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
         totaltBelop = meldekortbehandling.beløpTotal,
         brevTekst = this.meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
-        forhandsvisning = forhåndsvisning,
+        forhandsvisning = false,
     ).let { serialize(it) }
 }
 

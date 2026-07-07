@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import java.time.Clock
 
@@ -50,7 +50,7 @@ open class DokumentContext(
             isLocalOrDev = !Configuration.isProd(),
         )
     }
-    open val genererVedtaksbrevForUtbetalingKlient: GenererVedtaksbrevForUtbetalingKlient by lazy { pdfgen }
+    open val genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient by lazy { pdfgen }
     open val genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient by lazy { pdfgen }
     open val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient by lazy { pdfgen }
     open val genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient by lazy { pdfgen }

@@ -9,9 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForUtbetalingKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 
-class GenererFakeVedtaksbrevForUtbetalingKlient : GenererVedtaksbrevForUtbetalingKlient {
+class GenererFakeVedtaksbrevForMeldekortKlient : GenererVedtaksbrevForMeldekortKlient {
     private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "json") }
 
     override suspend fun genererMeldekortvedtakBrev(
@@ -19,13 +19,28 @@ class GenererFakeVedtaksbrevForUtbetalingKlient : GenererVedtaksbrevForUtbetalin
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-        forhåndsvisning: Boolean,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()
     }
 
     override suspend fun genererMeldekortvedtakBrev(
         kommando: GenererMeldekortvedtakBrevKommando,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
+    }
+
+    override suspend fun genererMeldekortvedtakBrevV2(
+        meldekortvedtak: Meldekortvedtak,
+        tiltaksdeltakelser: Tiltaksdeltakelser,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
+    }
+
+    override suspend fun genererMeldekortvedtakBrevV2(
+        kommando: GenererMeldekortvedtakBrevKommandoV2,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response.right()

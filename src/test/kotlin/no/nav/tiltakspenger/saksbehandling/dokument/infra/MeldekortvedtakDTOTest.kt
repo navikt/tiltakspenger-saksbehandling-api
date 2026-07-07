@@ -36,7 +36,6 @@ class MeldekortvedtakDTOTest {
             hentSaksbehandlersNavn = { "Saksbehandler Navn" },
             tiltaksdeltakelser = Tiltaksdeltakelser(tiltaksdeltakelser),
             sammenlign = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
-            false,
         ) shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"6. januar 2025","tom":"19. januar 2025"},"saksbehandler":{"type":"MANUELL","navn":"Saksbehandler Navn"},"beslutter":{"type":"MANUELL","navn":"Saksbehandler Navn"},"tiltak":[{"tiltakstypenavn":"Arbeidsmarkedsoppfølging gruppe","tiltakstype":"GRUPPE_AMO"}],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[{"tittel":"Meldekort 6. januar 2025 - 19. januar 2025","differanseFraForrige":0,"harBarnetillegg":false,"dager":[]}],"totalDifferanse":0},"korrigering":false,"totaltBelop":2980,"brevTekst":null,"forhandsvisning":false}"""
     }
 
