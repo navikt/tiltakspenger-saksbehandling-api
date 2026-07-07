@@ -168,6 +168,10 @@ class LocalApplicationContext(
     }
 
     private val tiltaksdeltakelseFakeKlient by lazy {
+        // TODO: Vi setter defaultTiltaksdeltakelserTilSøknadHvisDenMangler = true, som lar faken utlede tiltaksdeltakelser fra søknaden.
+        // Dette er en skjør snarvei som forutsetter at søknaden allerede er persistert og at internDeltakelseId bevares (se TiltaksdeltakelseFakeKlient.hentTiltaksdeltakelseFraSøknad).
+        // Den slår feil for manuelt registrerte (papir) søknader, der saksopplysningene beregnes før søknaden lagres.
+        // Vurder å seede tiltaksdeltakelser eksplisitt per fnr ved oppretting av søknad i stedet.
         TiltaksdeltakelseFakeKlient(true) { søknadContext.søknadRepo }
     }
 

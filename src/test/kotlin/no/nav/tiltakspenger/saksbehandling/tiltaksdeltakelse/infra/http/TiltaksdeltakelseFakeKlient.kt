@@ -69,6 +69,11 @@ class TiltaksdeltakelseFakeKlient(
     }
 
     private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): TiltaksdeltakelserFraRegister {
+        // TODO: Denne utledningen av tiltaksdeltakelser fra søknaden er skjør og henger tett sammen med søknadsflyten.
+        // Den fungerer bare når søknaden allerede er persistert i søknadRepo.
+        // For manuelt registrerte (papir) søknader beregnes saksopplysningene før søknaden lagres (se StartBehandlingAvManueltRegistrertSøknadService), så tiltaksdeltakelsen mangler på saksopplysning-tidspunktet og lister returneres tom.
+        // Den forutsetter også at toTiltak()/toTiltaksdeltakelseFraRegister() bevarer internDeltakelseId slik at en påfølgende innvilgelse matcher.
+        // Vurder å seede data[fnr] eksplisitt når en søknad opprettes (både digital seed og papir-route) i stedet for å utlede fra repo.
         val søknadRepo = søknadRepoProvider()!!
         val søknader = søknadRepo.hentSøknaderForFnr(fnr, disableSessionCounter = true)
         val tiltak = søknader
