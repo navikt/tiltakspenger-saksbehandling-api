@@ -40,7 +40,7 @@ class GenererFakeVedtaksbrevForMeldekortKlient : GenererVedtaksbrevForMeldekortK
     }
 
     override suspend fun genererMeldekortvedtakBrevV2(
-        kommando: GenererMeldekortvedtakBrevKommandoV2,
+        kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return (response to null).right()

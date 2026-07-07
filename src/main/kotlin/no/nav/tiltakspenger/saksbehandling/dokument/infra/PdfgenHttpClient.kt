@@ -234,7 +234,8 @@ class PdfgenHttpClient(
                 sammenligning,
             )
         }
-        val errorContext = "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}"
+        val errorContext =
+            "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}"
 
         return if (isLocalOrDev) {
             runParallel(
@@ -250,11 +251,12 @@ class PdfgenHttpClient(
     }
 
     override suspend fun genererMeldekortvedtakBrevV2(
-        kommando: GenererMeldekortvedtakBrevKommandoV2,
+        kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        val jsonPayload = suspend { kommando.tilJsonRequest(hentSaksbehandlersNavn) }
-        val errorContext = "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}"
+        val jsonPayload = suspend { kommando.tilJsonRequestV2(hentSaksbehandlersNavn) }
+        val errorContext =
+            "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}"
 
         return if (isLocalOrDev) {
             runParallel(

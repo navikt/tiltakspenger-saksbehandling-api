@@ -165,7 +165,7 @@ suspend fun Meldekortvedtak.toJsonRequestV2(
     ).let { serialize(it) }
 }
 
-suspend fun GenererMeldekortvedtakBrevKommandoV2.tilJsonRequest(
+suspend fun GenererMeldekortvedtakBrevKommando.tilJsonRequestV2(
     hentSaksbehandlersNavn: suspend (String) -> String,
 ): String {
     val erAutomatiskBehandlet = saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID
