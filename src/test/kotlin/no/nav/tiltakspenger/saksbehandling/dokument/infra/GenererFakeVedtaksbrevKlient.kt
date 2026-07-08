@@ -34,7 +34,13 @@ class GenererFakeVedtaksbrevKlient :
     GenererVedtaksbrevForAvslagKlient,
     GenererVedtaksbrevForOpphørKlient,
     GenererKlagebrevKlient {
-    private val response by lazy { PdfOgJson(PdfA("pdf".toByteArray()), "{}").right() }
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
+    private val response: Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> by lazy {
+        Pair(PdfOgJson(PdfA("pdf".toByteArray()), "{}"), null).right()
+    }
 
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
@@ -42,7 +48,7 @@ class GenererFakeVedtaksbrevKlient :
         tilleggstekst: FritekstTilVedtaksbrev?,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 
@@ -58,7 +64,7 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 
@@ -74,7 +80,7 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> = response
 
     override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
@@ -82,7 +88,7 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harStansetBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 
@@ -99,7 +105,7 @@ class GenererFakeVedtaksbrevKlient :
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForStans>,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 
@@ -117,7 +123,7 @@ class GenererFakeVedtaksbrevKlient :
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 
@@ -126,7 +132,7 @@ class GenererFakeVedtaksbrevKlient :
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 
@@ -222,7 +228,7 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harOpphørtBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 
@@ -239,7 +245,7 @@ class GenererFakeVedtaksbrevKlient :
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         vedtaksperiode: Periode,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return response
     }
 }

@@ -46,7 +46,7 @@ class JournalførRammevedtakService(
                 log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO()}" }
                 Either.catch {
                     val vedtaksdato = LocalDate.now(clock)
-                    val pdfOgJson = when (vedtak.rammebehandlingsresultat) {
+                    val (pdfOgJson, pdfOgJsonPdfgenrs) = when (vedtak.rammebehandlingsresultat) {
                         is Rammebehandlingsresultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
@@ -87,6 +87,17 @@ class JournalførRammevedtakService(
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     ).first
+                    /*
+                        TODO - pdfgenrs: fjern journalføringen av pdfgenrs-pdf'en når det er verifisert at pdf'en er ok.
+                            Vi journalfører den kun for å manuelt kunne sjekke at pdfgenrs genererer riktig pdf i dev.
+                     */
+                    pdfOgJsonPdfgenrs?.let {
+                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
+                            vedtak = vedtak,
+                            pdfOgJson = it,
+                            correlationId = correlationId,
+                        )
+                    }
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }

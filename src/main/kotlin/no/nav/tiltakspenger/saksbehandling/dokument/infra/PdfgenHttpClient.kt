@@ -77,52 +77,79 @@ class PdfgenHttpClient(
             .build()
 
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
+    private val pdfgenrsVedtakInnvilgelseUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
+    private val pdfgenrsVedtakAvslagUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val meldekortvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
+    private val meldekortvedtakRsUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
     private val meldekortvedtakV2Uri = URI.create("$baseUrl/api/v1/genpdf/tpts/meldekortvedtak")
     private val meldekortvedtakV2RsUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/meldekortvedtak")
 
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
+    private val pdfgenrsStansvedtakUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/stansvedtak")
     private val opphørUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakOpphør")
+    private val pdfgenrsOpphørUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
+    private val pdfgenrsRevurderingInnvilgelseUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
     private val pdfgenrsKlageAvvisUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageAvvis")
     private val klageInnstillingUrl = URI.create("$baseUrl/api/v1/genpdf/tpts/klageInnstilling")
     private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         tilleggstekst: FritekstTilVedtaksbrev?,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                when (vedtak.rammebehandling) {
-                    is Revurdering -> vedtak.tilRevurderingInnvilgetBrev(
-                        hentBrukersNavn = hentBrukersNavn,
-                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                        vedtaksdato = vedtaksdato,
-                        tilleggstekst = tilleggstekst,
-                    )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            when (vedtak.rammebehandling) {
+                is Revurdering -> vedtak.tilRevurderingInnvilgetBrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                )
 
-                    is Søknadsbehandling -> vedtak.tilInnvilgetSøknadsbrev(
-                        hentBrukersNavn = hentBrukersNavn,
-                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                        vedtaksdato = vedtaksdato,
-                        tilleggstekst = tilleggstekst,
-                    )
-                }
-            },
-            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-            uri = when (vedtak.rammebehandling) {
-                is Revurdering -> revurderingInnvilgelseUri
-                is Søknadsbehandling -> vedtakInnvilgelseUri
-            },
-        )
+                is Søknadsbehandling -> vedtak.tilInnvilgetSøknadsbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                )
+            }
+        }
+        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}"
+        val uri = when (vedtak.rammebehandling) {
+            is Revurdering -> revurderingInnvilgelseUri
+            is Søknadsbehandling -> vedtakInnvilgelseUri
+        }
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = uri,
+                pdfgenrsUri = when (vedtak.rammebehandling) {
+                    is Revurdering -> pdfgenrsRevurderingInnvilgelseUri
+                    is Søknadsbehandling -> pdfgenrsVedtakInnvilgelseUri
+                },
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = uri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -135,28 +162,41 @@ class PdfgenHttpClient(
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                genererInnvilgetSøknadsbrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    vedtaksdato = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                    fnr = fnr,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    beslutterNavIdent = beslutterNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = true,
-                    innvilgelsesperioder = innvilgelsesperioder,
-                    barnetillegg = barnetilleggsperioder,
-                )
-            },
-            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
-            uri = vedtakInnvilgelseUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            genererInnvilgetSøknadsbrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = vedtaksdato,
+                tilleggstekst = tilleggstekst,
+                fnr = fnr,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                beslutterNavIdent = beslutterNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = true,
+                innvilgelsesperioder = innvilgelsesperioder,
+                barnetillegg = barnetilleggsperioder,
+            )
+        }
+        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = vedtakInnvilgelseUri,
+                pdfgenrsUri = pdfgenrsVedtakInnvilgelseUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = vedtakInnvilgelseUri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -169,56 +209,93 @@ class PdfgenHttpClient(
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                genererRevurderingInnvilgetBrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    fnr = fnr,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    beslutterNavIdent = beslutterNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = true,
-                    innvilgelsesperioder = innvilgelsesperioder,
-                    tilleggstekst = tilleggstekst,
-                    barnetillegg = barnetilleggsperioder,
-                    vedtaksdato = vedtaksdato,
-                )
-            },
-            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
-            uri = revurderingInnvilgelseUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            genererRevurderingInnvilgetBrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                fnr = fnr,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                beslutterNavIdent = beslutterNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = true,
+                innvilgelsesperioder = innvilgelsesperioder,
+                tilleggstekst = tilleggstekst,
+                barnetillegg = barnetilleggsperioder,
+                vedtaksdato = vedtaksdato,
+            )
+        }
+        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = revurderingInnvilgelseUri,
+                pdfgenrsUri = pdfgenrsRevurderingInnvilgelseUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = revurderingInnvilgelseUri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                meldekortvedtak.toJsonRequest(
-                    hentSaksbehandlersNavn,
-                    tiltaksdeltakelser,
-                    sammenligning,
-                )
-            },
-            errorContext = "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}",
-            uri = meldekortvedtakUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            meldekortvedtak.toJsonRequest(
+                hentSaksbehandlersNavn,
+                tiltaksdeltakelser,
+                sammenligning,
+            )
+        }
+        val errorContext =
+            "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = meldekortvedtakUri,
+                pdfgenrsUri = meldekortvedtakRsUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakUri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererMeldekortvedtakBrev(
         kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = { kommando.tilJsonRequest(hentSaksbehandlersNavn) },
-            errorContext = "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}",
-            uri = meldekortvedtakUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend { kommando.tilJsonRequest(hentSaksbehandlersNavn) }
+        val errorContext =
+            "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = meldekortvedtakUri,
+                pdfgenrsUri = meldekortvedtakRsUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakUri)
+                .map { it to null }
+        }
     }
 
     override suspend fun genererMeldekortvedtakBrevV2(
@@ -271,27 +348,44 @@ class PdfgenHttpClient(
         }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harStansetBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                vedtak.toRevurderingStans(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    vedtaksdato = vedtaksdato,
-                    harStansetBarnetillegg = harStansetBarnetillegg,
-                )
-            },
-            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-            uri = stansvedtakUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            vedtak.toRevurderingStans(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = vedtaksdato,
+                harStansetBarnetillegg = harStansetBarnetillegg,
+            )
+        }
+        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = stansvedtakUri,
+                pdfgenrsUri = pdfgenrsStansvedtakUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = stansvedtakUri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -305,29 +399,42 @@ class PdfgenHttpClient(
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForStans>,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                genererStansbrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    vedtaksdato = vedtaksdato,
-                    fnr = fnr,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    beslutterNavIdent = beslutterNavIdent,
-                    stansperiode = stansperiode,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = true,
-                    valgteHjemler = valgteHjemler,
-                    tilleggstekst = tilleggstekst,
-                    harStansetBarnetillegg = harStansetBarnetillegg,
-                )
-            },
-            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
-            uri = stansvedtakUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            genererStansbrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                vedtaksdato = vedtaksdato,
+                fnr = fnr,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                beslutterNavIdent = beslutterNavIdent,
+                stansperiode = stansperiode,
+                saksnummer = saksnummer,
+                forhåndsvisning = true,
+                valgteHjemler = valgteHjemler,
+                tilleggstekst = tilleggstekst,
+                harStansetBarnetillegg = harStansetBarnetillegg,
+            )
+        }
+        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = stansvedtakUri,
+                pdfgenrsUri = pdfgenrsStansvedtakUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = stansvedtakUri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererAvslagsVedtaksbrev(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -342,46 +449,68 @@ class PdfgenHttpClient(
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                genererAvslagSøknadsbrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    tilleggstekst = tilleggstekst,
-                    fnr = fnr,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    beslutterNavIdent = beslutterNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    avslagsgrunner = avslagsgrunner,
-                    harSøktBarnetillegg = harSøktBarnetillegg,
-                    avslagsperiode = avslagsperiode,
-                    datoForUtsending = datoForUtsending,
-                )
-            },
-            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
-            uri = vedtakAvslagUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            genererAvslagSøknadsbrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                tilleggstekst = tilleggstekst,
+                fnr = fnr,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                beslutterNavIdent = beslutterNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                avslagsgrunner = avslagsgrunner,
+                harSøktBarnetillegg = harSøktBarnetillegg,
+                avslagsperiode = avslagsperiode,
+                datoForUtsending = datoForUtsending,
+            )
+        }
+        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = vedtakAvslagUri,
+                pdfgenrsUri = pdfgenrsVedtakAvslagUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = vedtakAvslagUri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererAvslagsVedtaksbrev(
         vedtak: Rammevedtak,
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                vedtak.genererAvslagSøknadsbrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = datoForUtsending,
-                )
-            },
-            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
-            uri = vedtakAvslagUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            vedtak.genererAvslagSøknadsbrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = datoForUtsending,
+            )
+        }
+        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = vedtakAvslagUri,
+                pdfgenrsUri = pdfgenrsVedtakAvslagUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = vedtakAvslagUri)
+                .map { it to null }
+        }
     }
 
     /*
@@ -477,27 +606,44 @@ class PdfgenHttpClient(
         }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererOpphørBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harOpphørtBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                vedtak.tilBrevOmgjøringOpphørDTO(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    harOpphørtBarnetillegg = harOpphørtBarnetillegg,
-                    vedtaksdato = vedtaksdato,
-                )
-            },
-            errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-            uri = opphørUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            vedtak.tilBrevOmgjøringOpphørDTO(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                harOpphørtBarnetillegg = harOpphørtBarnetillegg,
+                vedtaksdato = vedtaksdato,
+            )
+        }
+        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = opphørUri,
+                pdfgenrsUri = pdfgenrsOpphørUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = opphørUri)
+                .map { it to null }
+        }
     }
 
+    /*
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
+            pdfgenrs er ok
+     */
     override suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -511,27 +657,36 @@ class PdfgenHttpClient(
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         vedtaksperiode: Periode,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return pdfgenRequest(
-            jsonPayload = {
-                genererOpphørBrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    harOpphørtBarnetillegg = harOpphørtBarnetillegg,
-                    vedtaksdato = vedtaksdato,
-                    fnr = fnr,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    beslutterNavIdent = beslutterNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = true,
-                    vedtaksperiode = vedtaksperiode,
-                    valgteHjemler = valgteHjemler,
-                    tilleggstekst = tilleggstekst,
-                )
-            },
-            errorContext = "SakId: $sakId, saksnummer: $saksnummer",
-            uri = opphørUri,
-        )
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            genererOpphørBrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                harOpphørtBarnetillegg = harOpphørtBarnetillegg,
+                vedtaksdato = vedtaksdato,
+                fnr = fnr,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                beslutterNavIdent = beslutterNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = true,
+                vedtaksperiode = vedtaksperiode,
+                valgteHjemler = valgteHjemler,
+                tilleggstekst = tilleggstekst,
+            )
+        }
+        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
+
+        return if (isLocalOrDev) {
+            runParallel(
+                jsonPayload = jsonPayload,
+                errorContext = errorContext,
+                pdfgenUri = opphørUri,
+                pdfgenrsUri = pdfgenrsOpphørUri,
+            )
+        } else {
+            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = opphørUri)
+                .map { it to null }
+        }
     }
 
     private suspend fun pdfgenRequest(

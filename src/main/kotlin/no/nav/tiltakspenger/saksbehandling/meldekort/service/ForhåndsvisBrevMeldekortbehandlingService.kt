@@ -114,9 +114,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                     forhåndsvisning = true,
                 ),
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            )
-        }.map {
-            it
+            ).map { it.first }
         }.mapLeft {
             KunneIkkeForhåndsviseBrevMeldekortbehandling.FeilVedGenereringAvPdf(it)
         }

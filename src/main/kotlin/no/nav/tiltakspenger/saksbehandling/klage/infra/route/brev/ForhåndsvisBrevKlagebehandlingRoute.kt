@@ -20,11 +20,11 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.infra.route.buildMultipartBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeForhåndsviseBrev
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
-import java.io.ByteArrayOutputStream
 
 internal const val FORHÅNDSVIS_BREV_KLAGEBEHANDLING_PATH =
     "/sak/{sakId}/klage/{klagebehandlingId}/forhandsvis"
@@ -80,21 +80,6 @@ fun Route.forhåndsvisBrevKlagebehandlingRoute(
             }
         }
     }
-}
-
-private fun buildMultipartBody(vararg pdfs: ByteArray): ByteArray {
-    val boundary = "pdf-boundary"
-    return ByteArrayOutputStream().apply {
-        pdfs.forEachIndexed { index, pdf ->
-            write("--$boundary\r\n".toByteArray())
-            write("Content-Type: application/pdf\r\n".toByteArray())
-            write("Content-Disposition: attachment; filename=\"brev-${index + 1}.pdf\"\r\n".toByteArray())
-            write("\r\n".toByteArray())
-            write(pdf)
-            write("\r\n".toByteArray())
-        }
-        write("--$boundary--\r\n".toByteArray())
-    }.toByteArray()
 }
 
 private fun KanIkkeForhåndsviseBrev.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {

@@ -34,9 +34,12 @@ class ForhåndsvisRammevedtaksbrevService(
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
 ) {
+    /*
+        TODO - pdfgenrs: skift tilbake til PdfA når det er verifisert at PDF fra pdfgenrs er ok
+     */
     suspend fun forhåndsvisVedtaksbrev(
         kommando: ForhåndsvisVedtaksbrevKommando,
-    ): PdfA {
+    ): Pair<PdfA, PdfA?> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         val behandling: Rammebehandling = sak.hentRammebehandling(kommando.behandlingId)!!
 
@@ -108,7 +111,7 @@ class ForhåndsvisRammevedtaksbrevService(
             }
         }.fold(
             ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
-            ifRight = { it.pdf },
+            ifRight = { Pair(it.first.pdf, it.second?.pdf) },
         )
     }
 
@@ -117,7 +120,7 @@ class ForhåndsvisRammevedtaksbrevService(
         behandling: Revurdering,
         innvilgelsesperioder: Innvilgelsesperioder,
         kommando: ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -137,7 +140,7 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         kommando: ForhåndsvisVedtaksbrevForRevurderingStansKommando,
         behandling: Revurdering,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         val (stansperiode, valgteHjemler, tilleggstekst) = when (behandling.status) {
             Rammebehandlingsstatus.UNDER_BEHANDLING -> Triple(
                 kommando.utledStansperiode(
@@ -181,7 +184,7 @@ class ForhåndsvisRammevedtaksbrevService(
         behandling: Revurdering,
         innvilgelsesperioder: Innvilgelsesperioder,
         kommando: ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -201,7 +204,7 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         behandling: Revurdering,
         kommando: ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererOpphørbrevKlient.genererOpphørBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -223,7 +226,7 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         behandling: Søknadsbehandling,
         avslagsperiode: Periode,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
@@ -246,7 +249,7 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         behandling: Søknadsbehandling,
         innvilgelsesperioder: Innvilgelsesperioder,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererInnvilgelsesbrevClient.genererInnvilgetSøknadBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,

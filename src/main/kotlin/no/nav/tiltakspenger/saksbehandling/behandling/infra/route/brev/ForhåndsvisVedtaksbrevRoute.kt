@@ -4,8 +4,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.utils.io.writeFully
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.ktor.common.withRammebehandlingId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
@@ -17,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.infra.route.buildMultipartBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 
 /**
@@ -53,7 +56,19 @@ fun Route.forhåndsvisVedtaksbrevRoute(
                             contextMessage = "forhåndsviser vedtaksbrev",
                             correlationId = correlationId,
                         )
-                        call.respondBytes(it.getContent(), ContentType.Application.Pdf)
+                        /*
+                            TODO - pdfgenrs: skift tilbake til kun call.respondBytes når det er verifisert at PDF
+                                fra pdfgenrs er ok
+                         */
+                        if (it.second == null) {
+                            call.respondBytes(it.first.getContent(), ContentType.Application.Pdf)
+                        } else {
+                            call.respondBytesWriter(
+                                ContentType.MultiPart.Mixed.withParameter("boundary", "pdf-boundary"),
+                            ) {
+                                writeFully(buildMultipartBody(it.first.getContent(), it.second!!.getContent()))
+                            }
+                        }
                     }
                 }
             }
