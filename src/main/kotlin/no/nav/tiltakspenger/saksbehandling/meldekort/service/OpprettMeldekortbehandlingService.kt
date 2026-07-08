@@ -45,10 +45,9 @@ class OpprettMeldekortbehandlingService(
         val sak = sakService.hentForSakId(kommando.sakId)
 
         val navkontor = Either.catch {
-            navkontorService.hentOppfolgingsenhet(
+            navkontorService.hentNavkontor(
                 fnr = sak.fnr,
-                sakId = sak.id.toString(),
-                saksnummer = sak.saksnummer.verdi,
+                loggkontekst = "sakId: ${sak.id}, saksnummer: ${sak.saksnummer.verdi}",
             )
         }.getOrElse {
             with("Kunne ikke hente navkontor for sak ${kommando.sakId}") {

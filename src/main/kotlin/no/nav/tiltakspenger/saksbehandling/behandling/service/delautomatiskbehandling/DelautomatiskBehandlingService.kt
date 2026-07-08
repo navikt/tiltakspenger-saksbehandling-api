@@ -180,11 +180,9 @@ class DelautomatiskBehandlingService(
             barnetilleggsperioder = barnetillegg.periodisering,
             beregningstidspunkt = nå,
         )?.let {
-            val navkontor = navkontorService.hentOppfolgingsenhet(
+            val navkontor = navkontorService.hentNavkontor(
                 fnr = this.fnr,
-                sakId = behandling.sakId.toString(),
-                saksnummer = this.saksnummer.verdi,
-                rammebehandlingId = behandling.id.toString(),
+                loggkontekst = "sakId: ${behandling.sakId}, saksnummer: ${this.saksnummer.verdi}, rammebehandlingId: ${behandling.id}",
             )
             val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
                 behandling = behandling,

@@ -1,60 +1,43 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 
 class NavkontorService(
-    private val veilarboppfolgingKlient: VeilarboppfolgingKlient,
+    private val navkontorKlient: NavkontorKlient,
 ) {
-    private val logger = KotlinLogging.logger {}
-
     /**
      * Returnerer [Navkontor] for bakoverkompatibilitet. Klienten returnerer rik metadata
-     * ([NavkontorMedMetadata]) som vi senere vil ønske å lagre - se [hentOppfolgingsenhetMedMetadata].
+     * ([NavkontorMedMetadata]) som vi senere vil ønske å lagre - se [hentNavkontorMedMetadata].
      * Kaster [IllegalStateException] dersom klienten ikke klarte å hente navkontor.
+     *
+     * Logger ikke selv - all logging for navkontor-oppslag skjer i sammenligningsklienten, som får
+     * [loggkontekst] (sakId/saksnummer/...) med i loggmeldingene for sporbarhet.
      */
-    suspend fun hentOppfolgingsenhet(
+    suspend fun hentNavkontor(
         fnr: Fnr,
-        sakId: String? = null,
-        saksnummer: String? = null,
-        rammebehandlingId: String? = null,
-        meldekortbehandlingId: String? = null,
-    ): Navkontor = hentOppfolgingsenhetMedMetadata(
-        fnr = fnr,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        rammebehandlingId = rammebehandlingId,
-        meldekortbehandlingId = meldekortbehandlingId,
-    ).fold(
-        ifLeft = { error ->
-            val kontekst = "sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $rammebehandlingId, meldekortbehandlingId: $meldekortbehandlingId"
-            logger.error { "Feil ved henting av oppfølgingsenhet. $kontekst. Feiltype=${error.beskrivelse()}. Se sikkerlogg for mer informasjon." }
-            Sikkerlogg.error {
-                "Feil ved henting av oppfølgingsenhet. $kontekst. request=${error.veilarboppfolgingKall?.request}, response=${error.veilarboppfolgingKall?.response}, httpStatus=${error.veilarboppfolgingKall?.httpStatus}."
-            }
-            error("Kunne ikke hente navkontor: $error")
-        },
-        ifRight = { it.navkontor },
-    )
+        loggkontekst: String,
+    ): Navkontor {
+        return hentNavkontorMedMetadata(
+            fnr = fnr,
+            loggkontekst = loggkontekst,
+        ).fold(
+            ifLeft = { feil ->
+                // Kun beskrivelse() i meldingen - feilens toString() bærer rå request/respons med persondata,
+                // og exception-meldinger havner i vanlig logg hos konsumentene.
+                error("Kunne ikke hente navkontor: ${feil.beskrivelse()}")
+            },
+            ifRight = { it.navkontor },
+        )
+    }
 
-    suspend fun hentOppfolgingsenhetMedMetadata(
+    suspend fun hentNavkontorMedMetadata(
         fnr: Fnr,
-        sakId: String? = null,
-        saksnummer: String? = null,
-        rammebehandlingId: String? = null,
-        meldekortbehandlingId: String? = null,
-    ) = veilarboppfolgingKlient.hentOppfolgingsenhet(
-        fnr = fnr,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        rammebehandlingId = rammebehandlingId,
-        meldekortbehandlingId = meldekortbehandlingId,
-    )
-}
-
-private fun KanIkkeHenteOppfølgingsenhet.beskrivelse(): String = when (this) {
-    is KanIkkeHenteOppfølgingsenhet.KallFeilet -> "KallFeilet"
-    is KanIkkeHenteOppfølgingsenhet.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
-    is KanIkkeHenteOppfølgingsenhet.ManglerOppfolgingsenhet -> "ManglerOppfolgingsenhet"
+        loggkontekst: String,
+    ): Either<KanIkkeHenteNavkontor, NavkontorMedMetadata> {
+        return navkontorKlient.hentNavkontor(
+            fnr = fnr,
+            loggkontekst = loggkontekst,
+        )
+    }
 }

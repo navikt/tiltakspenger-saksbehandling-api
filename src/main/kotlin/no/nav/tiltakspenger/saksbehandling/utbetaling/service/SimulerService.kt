@@ -101,11 +101,9 @@ class SimulerService(
             brukersNavkontor = if (brukersNavkontor != null) {
                 brukersNavkontor()
             } else {
-                navkontorService.hentOppfolgingsenhet(
+                navkontorService.hentNavkontor(
                     fnr = fnr,
-                    sakId = sakId.toString(),
-                    saksnummer = saksnummer.verdi,
-                    rammebehandlingId = behandlingId.toString(),
+                    loggkontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId",
                 )
             },
             forrigeUtbetalingJson = forrigeUtbetaling?.let {

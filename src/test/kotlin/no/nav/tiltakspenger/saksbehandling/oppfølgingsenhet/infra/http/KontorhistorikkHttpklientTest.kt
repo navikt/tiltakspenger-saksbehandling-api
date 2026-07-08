@@ -1,228 +1,267 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http
 
 import arrow.core.right
-import com.marcinziolo.kotlin.wiremock.contains
-import com.marcinziolo.kotlin.wiremock.post
-import com.marcinziolo.kotlin.wiremock.returns
 import io.kotest.assertions.withClue
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.common.withWireMockServer
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
+import no.nav.tiltakspenger.libs.httpklient.HttpMethod
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorhistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.KontorType
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.Kontorhistorikkinnslag
 import org.junit.jupiter.api.Test
+import java.time.Instant
 import java.time.LocalDateTime
 
 internal class KontorhistorikkHttpklientTest {
+    private val baseUrl = "http://ao-oppfolgingskontor.test"
+    private val fnr = Fnr.random()
+
+    private val authTokenProvider = object : AuthTokenProvider {
+        override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
+    }
+
+    private fun client(httpKlient: HttpKlientFake) = KontorhistorikkHttpklient(
+        baseUrl = baseUrl,
+        authTokenProvider = authTokenProvider,
+        clock = ObjectMother.clock,
+        httpKlient = httpKlient,
+    )
+
+    private fun httpKlientMedInnslag(innslag: List<KontorhistorikkDto>?) = HttpKlientFake().apply {
+        enqueueResponse(body = GraphQlResponse(data = GraphQlData(kontorHistorikk = innslag)))
+    }
+
+    private fun dto(
+        kontorId: String = "0123",
+        kontorNavn: String? = "NAV Oslo",
+        kontorType: KontorTypeDto = KontorTypeDto.ARBEIDSOPPFOLGING,
+        endretTidspunkt: String = "2024-05-01T10:15:30+02:00[Europe/Oslo]",
+    ) = KontorhistorikkDto(
+        kontorId = kontorId,
+        kontorNavn = kontorNavn,
+        kontorType = kontorType,
+        endretTidspunkt = endretTidspunkt,
+    )
+
+    @Test
+    fun `bygger default HttpKlient når httpKlient ikke sendes inn`() {
+        KontorhistorikkHttpklient(
+            baseUrl = baseUrl,
+            authTokenProvider = authTokenProvider,
+            clock = ObjectMother.clock,
+        )
+    }
 
     /**
      * Vi sammenligner mot hele lista bevisst, slik at testen brekker dersom vi legger til (eller mister) felter på
      * [Kontorhistorikkinnslag] uten å tenke gjennom personvernkonsekvenser.
      */
     @Test
-    fun `parser kontorHistorikk-respons og mapper alle innslag uten filtrering`() {
-        val fnr = Fnr.random()
-        val body = lagKontorhistorikkResponseBody(
-            innslag = listOf(
-                kontorhistorikkInnslagJson(
+    fun `mapper alle innslag uten filtrering og POSTer til endepunktet`() {
+        val httpKlient = httpKlientMedInnslag(
+            listOf(
+                dto(
                     kontorId = "0123",
                     kontorNavn = "NAV Oslo",
-                    kontorType = "ARBEIDSOPPFOLGING",
+                    kontorType = KontorTypeDto.ARBEIDSOPPFOLGING,
                     endretTidspunkt = "2024-05-01T10:15:30+02:00[Europe/Oslo]",
                 ),
-                kontorhistorikkInnslagJson(
+                dto(
                     kontorId = "0456",
                     kontorNavn = null,
-                    kontorType = "ARENA",
+                    kontorType = KontorTypeDto.ARENA,
                     endretTidspunkt = "2024-03-01T08:00:00+01:00[Europe/Oslo]",
                 ),
-                kontorhistorikkInnslagJson(
+                dto(
                     kontorId = "9999",
                     kontorNavn = "Skal IKKE filtreres ut",
-                    kontorType = "GEOGRAFISK_TILKNYTNING",
+                    kontorType = KontorTypeDto.GEOGRAFISK_TILKNYTNING,
                     endretTidspunkt = "2024-04-01T09:00:00+02:00[Europe/Oslo]",
                 ),
             ),
         )
 
-        medWiremock(body) { klient ->
-            runTest {
-                // Vi sender med litt metadata for å verifisere at signaturen tar dem (de logges, men det
-                // tester vi ikke direkte her).
-                klient.hentKontorhistorikk(
-                    fnr = fnr,
-                    sakId = "sak-1",
-                    saksnummer = "2024-1",
-                    rammebehandlingId = "ram-1",
-                    meldekortbehandlingId = "mel-1",
-                ).map { it.kontorhistorikk } shouldBe Kontorhistorikk(
-                    listOf(
-                        Kontorhistorikkinnslag(
-                            kontorId = "0123",
-                            kontorNavn = "NAV Oslo",
-                            kontorType = KontorType.ARBEIDSOPPFOLGING,
-                            endretTidspunkt = LocalDateTime.parse("2024-05-01T10:15:30"),
-                        ),
-                        Kontorhistorikkinnslag(
-                            kontorId = "0456",
-                            kontorNavn = null,
-                            kontorType = KontorType.ARENA,
-                            endretTidspunkt = LocalDateTime.parse("2024-03-01T08:00:00"),
-                        ),
-                        Kontorhistorikkinnslag(
-                            kontorId = "9999",
-                            kontorNavn = "Skal IKKE filtreres ut",
-                            kontorType = KontorType.GEOGRAFISK_TILKNYTNING,
-                            endretTidspunkt = LocalDateTime.parse("2024-04-01T09:00:00"),
-                        ),
+        runTest {
+            val resultat = client(httpKlient).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull()
+
+            resultat.kontorhistorikk shouldBe Kontorhistorikk(
+                listOf(
+                    Kontorhistorikkinnslag(
+                        kontorId = "0123",
+                        kontorNavn = "NAV Oslo",
+                        kontorType = KontorType.ARBEIDSOPPFOLGING,
+                        endretTidspunkt = LocalDateTime.parse("2024-05-01T10:15:30"),
                     ),
-                ).right()
-            }
+                    Kontorhistorikkinnslag(
+                        kontorId = "0456",
+                        kontorNavn = null,
+                        kontorType = KontorType.ARENA,
+                        endretTidspunkt = LocalDateTime.parse("2024-03-01T08:00:00"),
+                    ),
+                    Kontorhistorikkinnslag(
+                        kontorId = "9999",
+                        kontorNavn = "Skal IKKE filtreres ut",
+                        kontorType = KontorType.GEOGRAFISK_TILKNYTNING,
+                        endretTidspunkt = LocalDateTime.parse("2024-04-01T09:00:00"),
+                    ),
+                ),
+            )
+            resultat.kall.httpStatus shouldBe 200
+            resultat.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
         }
+
+        val request = httpKlient.requests.single()
+        request.method shouldBe HttpMethod.POST
+        request.uri.toString() shouldBe "$baseUrl/graphql"
     }
 
     @Test
     fun `tom historikk gir tom liste`() {
-        val fnr = Fnr.random()
-        val body = lagKontorhistorikkResponseBody(innslag = emptyList())
+        val httpKlient = httpKlientMedInnslag(emptyList())
 
-        medWiremock(body) { klient ->
-            runTest {
-                klient.hentKontorhistorikk(fnr).map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
-            }
+        runTest {
+            client(httpKlient).hentKontorhistorikk(fnr)
+                .map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
+        }
+    }
+
+    @Test
+    fun `null kontorHistorikk i responsen gir tom liste`() {
+        val httpKlient = httpKlientMedInnslag(null)
+
+        runTest {
+            client(httpKlient).hentKontorhistorikk(fnr)
+                .map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
         }
     }
 
     @Test
     fun `non-200 fra tjenesten gir Left UventetHttpStatus`() {
-        val fnr = Fnr.random()
-        medWiremock(body = """{"message": "noe gikk galt"}""", statusCode = 503) { klient ->
-            runTest {
-                klient.hentKontorhistorikk(fnr).leftOrNull()
-                    .shouldNotBeNull()
-                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.UventetHttpStatus>()
-                    .status shouldBe 503
-            }
+        val httpKlient = HttpKlientFake().apply {
+            enqueueUventetStatus(statusCode = 503, body = """{"message": "noe gikk galt"}""")
+        }
+
+        runTest {
+            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+                .shouldNotBeNull()
+                .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.UventetHttpStatus>()
+            feil.status shouldBe 503
+            feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 503
+            feil.kall.httpStatus shouldBe 503
+        }
+    }
+
+    @Test
+    fun `nettverksfeil gir Left KallFeilet`() {
+        val httpKlient = HttpKlientFake().apply { enqueueNetworkError() }
+
+        runTest {
+            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+                .shouldNotBeNull()
+                .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
+            feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.NetworkError>()
+            feil.kall.shouldNotBeNull().httpStatus shouldBe null
         }
     }
 
     @Test
     fun `GraphQL errors i respons gir Left GraphQlFeil`() {
-        val fnr = Fnr.random()
-        val body = """
-            {
-              "errors": [{ "message": "noe gikk galt" }],
-              "data": null
-            }
-        """.trimIndent()
+        val httpKlient = HttpKlientFake().apply {
+            enqueueResponse(
+                body = GraphQlResponse(
+                    data = null,
+                    errors = listOf(mapOf("message" to "noe gikk galt")),
+                ),
+            )
+        }
 
-        medWiremock(body) { klient ->
-            runTest {
-                klient.hentKontorhistorikk(fnr).leftOrNull()
-                    .shouldNotBeNull()
-                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.GraphQlFeil>()
-            }
+        runTest {
+            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+                .shouldNotBeNull()
+                .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.GraphQlFeil>()
+            feil.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
+            feil.httpKlientError shouldBe null
         }
     }
 
     @Test
-    fun `ukjent kontorType i respons gir Left KallFeilet`() {
-        val fnr = Fnr.random()
-        val body = lagKontorhistorikkResponseBody(
-            innslag = listOf(
-                kontorhistorikkInnslagJson(
-                    kontorType = "EN_HELT_NY_TYPE",
+    fun `tomt errors-felt behandles som suksess`() {
+        val httpKlient = HttpKlientFake().apply {
+            enqueueResponse(
+                body = GraphQlResponse(
+                    data = GraphQlData(kontorHistorikk = listOf(dto())),
+                    errors = emptyList(),
                 ),
-            ),
-        )
+            )
+        }
 
-        medWiremock(body) { klient ->
-            runTest {
-                klient.hentKontorhistorikk(fnr).leftOrNull()
-                    .shouldNotBeNull()
-                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
-            }
+        runTest {
+            client(httpKlient).hentKontorhistorikk(fnr).isRight() shouldBe true
+        }
+    }
+
+    @Test
+    fun `deserialiseringsfeil fra httpklient gir Left KallFeilet`() {
+        // Modellerer f.eks. en ukjent kontorType-verdi i responsen: Jackson klarer ikke å tolke body-en
+        // til [GraphQlResponse], og httpklient returnerer DeserializationError.
+        val httpKlient = HttpKlientFake().apply {
+            enqueueDeserializationError(body = """{"data": {"kontorHistorikk": [{"kontorType": "EN_HELT_NY_TYPE"}]}}""")
+        }
+
+        runTest {
+            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+                .shouldNotBeNull()
+                .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
+            feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.DeserializationError>()
         }
     }
 
     @Test
     fun `mapper alle kjente kontorType-verdier til domene-enum`() {
-        val fnr = Fnr.random()
-        val body = lagKontorhistorikkResponseBody(
-            innslag = listOf(
-                kontorhistorikkInnslagJson(kontorType = "ARBEIDSOPPFOLGING"),
-                kontorhistorikkInnslagJson(kontorType = "ARENA"),
-                kontorhistorikkInnslagJson(kontorType = "GEOGRAFISK_TILKNYTNING"),
+        val httpKlient = httpKlientMedInnslag(
+            listOf(
+                dto(kontorType = KontorTypeDto.ARBEIDSOPPFOLGING),
+                dto(kontorType = KontorTypeDto.ARENA),
+                dto(kontorType = KontorTypeDto.GEOGRAFISK_TILKNYTNING),
             ),
         )
 
-        medWiremock(body) { klient ->
-            runTest {
-                val resultat = klient.hentKontorhistorikk(fnr)
-                resultat.isRight() shouldBe true
-                resultat.getOrNull()!!.kontorhistorikk.innslag.map { it.kontorType } shouldBe listOf(
-                    KontorType.ARBEIDSOPPFOLGING,
-                    KontorType.ARENA,
-                    KontorType.GEOGRAFISK_TILKNYTNING,
-                )
-            }
+        runTest {
+            val resultat = client(httpKlient).hentKontorhistorikk(fnr)
+            resultat.getOrNull().shouldNotBeNull().kontorhistorikk.innslag.map { it.kontorType } shouldBe listOf(
+                KontorType.ARBEIDSOPPFOLGING,
+                KontorType.ARENA,
+                KontorType.GEOGRAFISK_TILKNYTNING,
+            )
         }
     }
 
     @Test
     fun `konverterer endretTidspunkt fra UTC til Europe-Oslo wall-clock`() {
-        val fnr = Fnr.random()
         // Sommertid: 08-00 UTC = 10-00 Oslo. Vintertid: 08-00 UTC = 09-00 Oslo.
-        val body = lagKontorhistorikkResponseBody(
-            innslag = listOf(
-                kontorhistorikkInnslagJson(
-                    kontorId = "sommer",
-                    kontorType = "ARBEIDSOPPFOLGING",
-                    endretTidspunkt = "2024-07-01T08:00:00Z[UTC]",
-                ),
-                kontorhistorikkInnslagJson(
-                    kontorId = "vinter",
-                    kontorType = "ARBEIDSOPPFOLGING",
-                    endretTidspunkt = "2024-01-15T08:00:00Z[UTC]",
-                ),
+        val httpKlient = httpKlientMedInnslag(
+            listOf(
+                dto(kontorId = "sommer", endretTidspunkt = "2024-07-01T08:00:00Z[UTC]"),
+                dto(kontorId = "vinter", endretTidspunkt = "2024-01-15T08:00:00Z[UTC]"),
             ),
         )
 
-        medWiremock(body) { klient ->
-            runTest {
-                val innslag = klient.hentKontorhistorikk(fnr).getOrNull()!!.kontorhistorikk.innslag
-                innslag.single { it.kontorId == "sommer" }.endretTidspunkt shouldBe
-                    LocalDateTime.parse("2024-07-01T10:00:00")
-                innslag.single { it.kontorId == "vinter" }.endretTidspunkt shouldBe
-                    LocalDateTime.parse("2024-01-15T09:00:00")
-            }
-        }
-    }
-
-    @Test
-    fun `ugyldig endretTidspunkt-format gir Left KallFeilet`() {
-        val fnr = Fnr.random()
-        val body = lagKontorhistorikkResponseBody(
-            innslag = listOf(
-                kontorhistorikkInnslagJson(
-                    endretTidspunkt = "ikke-en-dato",
-                ),
-            ),
-        )
-
-        medWiremock(body) { klient ->
-            runTest {
-                klient.hentKontorhistorikk(fnr).leftOrNull()
-                    .shouldNotBeNull()
-                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
-            }
+        runTest {
+            val innslag = client(httpKlient).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull().kontorhistorikk.innslag
+            innslag.single { it.kontorId == "sommer" }.endretTidspunkt shouldBe
+                LocalDateTime.parse("2024-07-01T10:00:00")
+            innslag.single { it.kontorId == "vinter" }.endretTidspunkt shouldBe
+                LocalDateTime.parse("2024-01-15T09:00:00")
         }
     }
 
@@ -252,24 +291,33 @@ internal class KontorhistorikkHttpklientTest {
         )
 
         varianter.forEach { input ->
-            val fnr = Fnr.random()
-            val body = lagKontorhistorikkResponseBody(
-                innslag = listOf(kontorhistorikkInnslagJson(endretTidspunkt = input)),
-            )
+            val httpKlient = httpKlientMedInnslag(listOf(dto(endretTidspunkt = input)))
 
-            medWiremock(body) { klient ->
-                runTest {
-                    val faktisk = klient.hentKontorhistorikk(fnr).getOrNull()!!
-                        .kontorhistorikk
-                        .innslag
-                        .single()
-                        .endretTidspunkt
-                    withClue("input=$input") {
-                        // Fraksjonelle sekunder blir bevart i LocalDateTime, men er 0 i alle våre eksempler.
-                        faktisk shouldBe forventet
-                    }
+            runTest {
+                val faktisk = client(httpKlient).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull()
+                    .kontorhistorikk
+                    .innslag
+                    .single()
+                    .endretTidspunkt
+                withClue("input=$input") {
+                    // Fraksjonelle sekunder blir bevart i LocalDateTime, men er 0 i alle våre eksempler.
+                    faktisk shouldBe forventet
                 }
             }
+        }
+    }
+
+    @Test
+    fun `ugyldig endretTidspunkt-format gir Left KallFeilet med DeserializationError`() {
+        val httpKlient = httpKlientMedInnslag(listOf(dto(endretTidspunkt = "ikke-en-dato")))
+
+        runTest {
+            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+                .shouldNotBeNull()
+                .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
+            // Mappingfeil pakkes som DeserializationError slik at throwable og metadata følger med til logging.
+            feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.DeserializationError>()
+            feil.kall.shouldNotBeNull().httpStatus shouldBe 200
         }
     }
 
@@ -280,75 +328,12 @@ internal class KontorhistorikkHttpklientTest {
      */
     @Test
     fun `tidsstempel uten sone gir Left KallFeilet`() {
-        val fnr = Fnr.random()
-        val body = lagKontorhistorikkResponseBody(
-            innslag = listOf(
-                kontorhistorikkInnslagJson(
-                    endretTidspunkt = "2024-07-01T10:00:00",
-                ),
-            ),
-        )
+        val httpKlient = httpKlientMedInnslag(listOf(dto(endretTidspunkt = "2024-07-01T10:00:00")))
 
-        medWiremock(body) { klient ->
-            runTest {
-                klient.hentKontorhistorikk(fnr).leftOrNull()
-                    .shouldNotBeNull()
-                    .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
-            }
+        runTest {
+            client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+                .shouldNotBeNull()
+                .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
         }
-    }
-
-    private fun medWiremock(
-        body: String,
-        statusCode: Int = 200,
-        block: (KontorhistorikkHttpklient) -> Unit,
-    ) {
-        withWireMockServer { wiremock ->
-            wiremock.post {
-                url contains "/graphql"
-            } returns {
-                this.statusCode = statusCode
-                header = "Content-Type" to "application/json"
-                this.body = body
-            }
-            block(
-                KontorhistorikkHttpklient(
-                    baseUrl = wiremock.baseUrl(),
-                    getToken = { ObjectMother.accessToken() },
-                ),
-            )
-        }
-    }
-
-    private fun lagKontorhistorikkResponseBody(
-        innslag: List<String> = listOf(kontorhistorikkInnslagJson()),
-    ): String =
-        """
-        {
-          "data": {
-            "kontorHistorikk": [${innslag.joinToString(",")}]
-          }
-        }
-        """.trimIndent()
-
-    /**
-     * Bygger ett JSON-innslag. [kontorNavn] er nullable: `null` blir til JSON `null`, en streng blir til
-     * en JSON-streng.
-     */
-    private fun kontorhistorikkInnslagJson(
-        kontorId: String = "0123",
-        kontorNavn: String? = "NAV Oslo",
-        kontorType: String = "ARBEIDSOPPFOLGING",
-        endretTidspunkt: String = "2024-05-01T10:15:30+02:00[Europe/Oslo]",
-    ): String {
-        val kontorNavnJson = kontorNavn?.let { "\"$it\"" } ?: "null"
-        return """
-        {
-          "kontorId": "$kontorId",
-          "kontorNavn": $kontorNavnJson,
-          "kontorType": "$kontorType",
-          "endretTidspunkt": "$endretTidspunkt"
-        }
-        """.trimIndent()
     }
 }

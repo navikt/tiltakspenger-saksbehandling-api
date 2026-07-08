@@ -41,8 +41,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
@@ -138,8 +138,8 @@ sealed class TestApplicationContext(
     override val tiltakspengerArenaClient by lazy { tiltakspengerArenaFakeClient }
 
     open val jwtGenerator: JwtGenerator by lazy { JwtGenerator(clock = clock) }
-    override val veilarboppfolgingKlient by lazy { VeilarboppfolgingFakeKlient() }
-    override val navkontorService: NavkontorService by lazy { NavkontorService(veilarboppfolgingKlient) }
+    override val navkontorKlient by lazy { NavkontorFakeKlient() }
+    override val navkontorService: NavkontorService by lazy { NavkontorService(navkontorKlient) }
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
     protected open val kabalClientFake by lazy { KabalClientFake(clock) }

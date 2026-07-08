@@ -87,17 +87,17 @@ class OppdaterRammebehandlingService(
 
     private suspend fun Sak.beregnOgSimulerHvisAktuelt(
         kommando: OppdaterBehandlingKommando,
-        behandling: Rammebehandling,
+        rammebehandling: Rammebehandling,
         beregningstidspunkt: LocalDateTime,
     ): Pair<BehandlingUtbetaling?, SimuleringMedMetadata?> {
-        log.debug { "Beregner hvis aktuelt ifm oppdatering av behandling ${behandling.id} for sak ${behandling.sakId}" }
+        log.debug { "Beregner hvis aktuelt ifm oppdatering av behandling ${rammebehandling.id} for sak ${rammebehandling.sakId}" }
         val beregning = when (kommando) {
             is OppdaterSøknadsbehandlingKommando.Innvilgelse,
             is OppdaterRevurderingKommando.Innvilgelse,
             -> this.beregnInnvilgelse(
                 behandlingId = kommando.behandlingId,
                 vedtaksperiode = kommando.innvilgelsesperioder.totalPeriode,
-                innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
+                innvilgelsesperioder = kommando.tilInnvilgelseperioder(rammebehandling),
                 barnetilleggsperioder = kommando.barnetillegg.periodisering,
                 beregningstidspunkt = beregningstidspunkt,
             )
@@ -107,7 +107,7 @@ class OppdaterRammebehandlingService(
                 this.beregnInnvilgelse(
                     behandlingId = kommando.behandlingId,
                     vedtaksperiode = kommando.vedtaksperiode,
-                    innvilgelsesperioder = kommando.tilInnvilgelseperioder(behandling),
+                    innvilgelsesperioder = kommando.tilInnvilgelseperioder(rammebehandling),
                     barnetilleggsperioder = kommando.barnetillegg.periodisering,
                     beregningstidspunkt = beregningstidspunkt,
                 )
@@ -133,15 +133,13 @@ class OppdaterRammebehandlingService(
         }
 
         return beregning?.let {
-            val navkontor = navkontorService.hentOppfolgingsenhet(
+            val navkontor = navkontorService.hentNavkontor(
                 fnr = this.fnr,
-                sakId = behandling.sakId.toString(),
-                saksnummer = this.saksnummer.verdi,
-                rammebehandlingId = behandling.id.toString(),
+                loggkontekst = "sakId: ${rammebehandling.sakId}, saksnummer: ${this.saksnummer.verdi}, rammebehandlingId: ${rammebehandling.id}",
             )
             val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
                 // Merk at behandlingen vi sender inn her er som den kom fra basen. Kanskje vi heller bare skal sende inn od, sakId, fnr og saksnummer?
-                behandling = behandling,
+                behandling = rammebehandling,
                 beregning = it,
                 forrigeUtbetaling = this.utbetalinger.lastOrNull(),
                 meldeperiodeKjeder = this.meldeperiodeKjeder,
