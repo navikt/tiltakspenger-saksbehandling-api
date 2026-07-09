@@ -642,7 +642,7 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
     val behandling = this.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
         søknad,
         correlationId = correlationId,
-    )
+    ).getOrFail()
     val behandlingUnderBehandling = behandling.copy(
         status = Rammebehandlingsstatus.UNDER_BEHANDLING,
         saksbehandler = saksbehandler.navIdent,

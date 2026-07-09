@@ -47,7 +47,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                         any(),
                         any(),
                     )
-                } returns ObjectMother.nyOpprettetAutomatiskSøknadsbehandling()
+                } returns ObjectMother.nyOpprettetAutomatiskSøknadsbehandling().right()
 
                 delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingerFraNyeSøknader()
 

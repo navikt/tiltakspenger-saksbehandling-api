@@ -149,7 +149,7 @@ private fun meldekortJobber(
     Task(
         navn = "saksbehandling-jobb-automatisk-meldekortbehandling",
         utfør = { _ ->
-            applicationContext.meldekortContext.automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock)
+            applicationContext.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
             TaskResultat.Ferdig
         },
     ),

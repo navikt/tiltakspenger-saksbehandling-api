@@ -88,5 +88,7 @@ internal fun KanIkkeHenteKontorhistorikk.beskrivelse(): String = when (this) {
  */
 internal fun KanIkkeHenteKontorhistorikk.throwableForLogg(): Throwable? = when (this) {
     is KanIkkeHenteKontorhistorikk.UventetFeil -> throwable
-    else -> httpKlientError?.throwableOrNull()
+    is KanIkkeHenteKontorhistorikk.KallFeilet -> httpKlientError.throwableOrNull()
+    is KanIkkeHenteKontorhistorikk.UventetHttpStatus -> httpKlientError.throwableOrNull()
+    is KanIkkeHenteKontorhistorikk.GraphQlFeil -> null
 }

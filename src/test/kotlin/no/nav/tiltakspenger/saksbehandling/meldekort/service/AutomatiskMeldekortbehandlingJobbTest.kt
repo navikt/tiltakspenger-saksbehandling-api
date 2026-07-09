@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingService.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
 import org.junit.jupiter.api.Test
@@ -26,7 +26,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class AutomatiskMeldekortbehandlingServiceTest {
+class AutomatiskMeldekortbehandlingJobbTest {
     val clock = TikkendeKlokke(fixedClockAt(1.april(2025).atTime(12, 0)))
     val vedtaksperiode = Periode(6.januar(2025), 31.mars(2025))
 
@@ -36,7 +36,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingService = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val automatiskMeldekortbehandlingJobb = tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,
                     clock = clock,
@@ -48,7 +48,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 )
                 brukersMeldekortRepo.lagre(brukersMeldekort)
 
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!
                 val sisteMeldekortbehandling = meldekortbehandlinger.sisteGodkjenteMeldekort!!
@@ -65,7 +65,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingService = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val automatiskMeldekortbehandlingJobb = tac.meldekortContext.automatiskMeldekortbehandlingJobb
 
                 val sak =
                     tac.søknadsbehandlingIverksattMedMeldeperioder(
@@ -81,7 +81,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
 
                 brukersMeldekortRepo.lagre(brukersMeldekort)
 
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
 
@@ -97,8 +97,8 @@ class AutomatiskMeldekortbehandlingServiceTest {
 
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingService =
-                    tac.meldekortContext.automatiskMeldekortbehandlingService
+                val automatiskMeldekortbehandlingJobb =
+                    tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val sak =
                     tac.søknadsbehandlingIverksattMedMeldeperioder(
                         periode = vedtaksperiode,
@@ -121,7 +121,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 )
 
                 brukersMeldekortRepo.lagre(brukersMeldekort)
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
 
@@ -136,7 +136,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingService = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val automatiskMeldekortbehandlingJobb = tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val sak =
                     tac.søknadsbehandlingIverksattMedMeldeperioder(
                         periode = vedtaksperiode,
@@ -158,7 +158,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort1)
                 brukersMeldekortRepo.lagre(brukersMeldekort2)
 
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!
 
@@ -166,7 +166,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 meldekortbehandlinger.sisteGodkjenteMeldekort.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
                 (meldekortbehandlinger.sisteGodkjenteMeldekort as MeldekortBehandletAutomatisk).brukersMeldekort.id shouldBe brukersMeldekort1.id
 
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(
                     clock.plus(
                         1,
                         ChronoUnit.MINUTES,
@@ -188,8 +188,8 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingService =
-                    tac.meldekortContext.automatiskMeldekortbehandlingService
+                val automatiskMeldekortbehandlingJobb =
+                    tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val sak =
                     tac.søknadsbehandlingIverksattMedMeldeperioder(
                         periode = vedtaksperiode,
@@ -203,7 +203,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 )
 
                 brukersMeldekortRepo.lagre(brukersMeldekort)
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
                 val brukersMeldekortDuplikat = ObjectMother.brukersMeldekort(
                     behandlesAutomatisk = true,
@@ -213,7 +213,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
 
                 brukersMeldekortRepo.lagre(brukersMeldekortDuplikat)
 
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
                 val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
 
@@ -235,8 +235,8 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingService =
-                    tac.meldekortContext.automatiskMeldekortbehandlingService
+                val automatiskMeldekortbehandlingJobb =
+                    tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val nå = LocalDate.now(clock)
                 val mandag = nå.with(DayOfWeek.MONDAY)
 
@@ -260,16 +260,16 @@ class AutomatiskMeldekortbehandlingServiceTest {
                     val klokken2100 = fixedClockAt(dag.atTime(21, 0))
                     val klokken2101 = fixedClockAt(dag.atTime(21, 1))
 
-                    automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock = klokken0559)
-                    automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock = klokken2100)
-                    automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock = klokken2101)
+                    automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = klokken0559)
+                    automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = klokken2100)
+                    automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = klokken2101)
                 }
 
                 for (dagOffset in DayOfWeek.SATURDAY.ordinal..DayOfWeek.SUNDAY.ordinal) {
                     val dag = mandag.plusDays(dagOffset.toLong())
                     val klokken1200 = fixedClockAt(dag.atTime(12, 0))
 
-                    automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock = klokken1200)
+                    automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = klokken1200)
                 }
 
                 meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
@@ -283,7 +283,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,
@@ -322,7 +322,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,
@@ -365,7 +365,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,
@@ -408,7 +408,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,
@@ -450,8 +450,8 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingService =
-                    tac.meldekortContext.automatiskMeldekortbehandlingService
+                val automatiskMeldekortbehandlingJobb =
+                    tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val nå = LocalDateTime.now(clock)
 
                 val sak =
@@ -472,7 +472,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
 
                 val nesteDag = fixedClockAt(nå.plusSeconds(30))
-                automatiskMeldekortbehandlingService.behandleBrukersMeldekort(clock = nesteDag)
+                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock = nesteDag)
 
                 meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
             }
@@ -483,7 +483,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
     fun `skal slutte å prøve på nytt etter MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING`() {
         runTest {
             withTestApplicationContext(clock = clock) { tac ->
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
@@ -527,7 +527,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
                 val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,
@@ -577,7 +577,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
                 val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val sakRepo = tac.sakContext.sakRepo
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
@@ -626,7 +626,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
                 val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val sakRepo = tac.sakContext.sakRepo
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
@@ -679,7 +679,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
                 val meldeperiodeRepo = tac.meldekortContext.meldeperiodeRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
                 val sakRepo = tac.sakContext.sakRepo
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
@@ -728,7 +728,7 @@ class AutomatiskMeldekortbehandlingServiceTest {
             withTestApplicationContext(clock = clock) { tac ->
                 val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val service = tac.meldekortContext.automatiskMeldekortbehandlingService
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
 
                 val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
                     periode = vedtaksperiode,

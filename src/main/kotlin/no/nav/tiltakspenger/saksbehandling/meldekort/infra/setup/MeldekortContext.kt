@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevFor
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
@@ -108,8 +108,8 @@ open class MeldekortContext(
             clock = clock,
         )
     }
-    val automatiskMeldekortbehandlingService by lazy {
-        AutomatiskMeldekortbehandlingService(
+    val automatiskMeldekortbehandlingJobb by lazy {
+        AutomatiskMeldekortbehandlingJobb(
             brukersMeldekortRepo = brukersMeldekortRepo,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakRepo = sakRepo,

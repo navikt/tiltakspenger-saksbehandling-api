@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
@@ -58,7 +59,7 @@ interface StartSøknadsbehandlingBuilder {
         val behandling = tac.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
             soknad = søknad,
             correlationId = CorrelationId.generate(),
-        )
+        ).getOrFail()
         return Triple(sak, søknad, behandling)
     }
 
@@ -73,7 +74,7 @@ interface StartSøknadsbehandlingBuilder {
         val behandling = tac.behandlingContext.startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
             søknad,
             CorrelationId.generate(),
-        )
+        ).getOrFail()
         tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
             behandling,
             CorrelationId.generate(),

@@ -273,6 +273,7 @@ kover {
                         "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient",
                         "no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient",
+                        "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
                     )
                 }
             }

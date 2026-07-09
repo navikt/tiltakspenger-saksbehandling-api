@@ -52,7 +52,7 @@ class BrevSøknadInnvilgetDTOTest {
                  "saksnummer":"$saksnummer",
                  "saksbehandlerNavn":"Saksbehandler Navn",
                  "beslutterNavn":"Saksbehandler Navn",
-                 "kontor":"Nav Tiltak Oslo",
+                 
                  "harBarnetillegg":false,
                  "satser": [
                    {
@@ -105,7 +105,7 @@ class BrevSøknadInnvilgetDTOTest {
                   "saksnummer":"$saksnummer",
                   "saksbehandlerNavn":"Saksbehandler Navn",
                   "beslutterNavn":"Saksbehandler Navn",
-                  "kontor":"Nav Tiltak Oslo",
+                  
                   "harBarnetillegg":false,
                   "satser": [
                   {
@@ -163,7 +163,7 @@ class BrevSøknadInnvilgetDTOTest {
                  "saksnummer":"$saksnummer",
                  "saksbehandlerNavn":"Saksbehandler Navn",
                  "beslutterNavn":"Saksbehandler Navn",
-                 "kontor":"Nav Tiltak Oslo",
+                 
                  "harBarnetillegg":true,
                  "satser": [
                    {
@@ -231,7 +231,6 @@ class BrevSøknadInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "kontor": "Nav Tiltak Oslo",
                   "harBarnetillegg": true,
                   "satser": [
                     {
@@ -312,7 +311,6 @@ class BrevSøknadInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "kontor": "Nav Tiltak Oslo",
                   "harBarnetillegg": true,
                   "satser": [
                     {
@@ -404,7 +402,6 @@ class BrevSøknadInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "kontor": "Nav Tiltak Oslo",
                   "harBarnetillegg": true,
                   "satser": [
                     {
@@ -501,7 +498,6 @@ class BrevSøknadInnvilgetDTOTest {
                   "saksnummer": "${saksnummer.verdi}",
                   "saksbehandlerNavn": "Saksbehandler Navn",
                   "beslutterNavn": "Saksbehandler Navn",
-                  "kontor": "Nav Tiltak Oslo",
                   "harBarnetillegg": true,
                   "satser": [
                     {

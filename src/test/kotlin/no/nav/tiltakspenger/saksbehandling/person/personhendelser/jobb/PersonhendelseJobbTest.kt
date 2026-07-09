@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -42,7 +43,7 @@ class PersonhendelseJobbTest {
                 any(),
                 any(),
             )
-        } returns oppgaveId
+        } returns oppgaveId.right()
     }
 
     @Test
@@ -340,7 +341,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
-        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false
+        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -393,7 +394,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
-        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true
+        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true.right()
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock

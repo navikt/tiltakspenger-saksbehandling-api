@@ -1,7 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
@@ -9,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
@@ -25,10 +31,14 @@ class StartSøknadsbehandlingService(
 ) {
     val logger = KotlinLogging.logger {}
 
+    /**
+     * Returnerer Left dersom gosysoppgaven for adressebeskyttet/skjermet bruker ikke kunne opprettes; behandlingen opprettes da ikke.
+     * Servicen logger selv ved feil - kalleren skal ikke logge i tillegg.
+     */
     suspend fun opprettAutomatiskSoknadsbehandling(
         soknad: InnvilgbarSøknad,
         correlationId: CorrelationId,
-    ): Søknadsbehandling {
+    ): Either<HttpKlientError, Søknadsbehandling> {
         val pdlPerson = sakService.hentEnkelPersonMedSkjermingForSakId(soknad.sakId, correlationId).getOrThrow()
         if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig || pdlPerson.skjermet) {
             logger.info { "Person har adressebeskyttelse eller er skjermet, oppretter oppgave i Gosys" }
@@ -36,7 +46,10 @@ class StartSøknadsbehandlingService(
                 fnr = soknad.fnr,
                 journalpostId = JournalpostId(soknad.journalpostId),
                 oppgavebehov = Oppgavebehov.NY_SOKNAD,
-            )
+            ).getOrElse { feil ->
+                feil.loggFeil(logger, "opprettelse av gosysoppgave for søknad", "sakId: ${soknad.sakId}, journalpostId: ${soknad.journalpostId}")
+                return feil.left()
+            }
         }
         val sak = sakService.hentForSakId(soknad.sakId)
         val (behandling, statistikkhendelser) = Søknadsbehandling.opprettAutomatiskBehandling(
@@ -55,6 +68,6 @@ class StartSøknadsbehandlingService(
                 sessionContext = tx,
             )
         }
-        return behandling
+        return behandling.right()
     }
 }

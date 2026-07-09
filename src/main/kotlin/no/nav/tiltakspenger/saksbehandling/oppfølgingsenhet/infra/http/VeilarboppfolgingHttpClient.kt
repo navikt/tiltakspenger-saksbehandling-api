@@ -49,7 +49,11 @@ class VeilarboppfolgingHttpClient(
         }.mapLeft { error ->
             when (error) {
                 is HttpKlientError.UventetStatus -> KanIkkeHenteNavkontor.UventetHttpStatus(error)
-                else -> KanIkkeHenteNavkontor.KallFeilet(error)
+
+                is HttpKlientError.RequestIkkeSendt,
+                is HttpKlientError.IngenRespons,
+                is HttpKlientError.DeserializationError,
+                -> KanIkkeHenteNavkontor.KallFeilet(error)
             }
         }.flatMap { response ->
             val oppfolgingsenhet = response.body.oppfolgingsenhet

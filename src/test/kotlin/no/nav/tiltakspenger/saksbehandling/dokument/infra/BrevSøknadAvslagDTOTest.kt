@@ -56,8 +56,8 @@ class BrevSøknadAvslagDTOTest {
                   "forhandsvisning":true,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
-                  "datoForUtsending": "1. januar 2025",
-                  "kontor": "Nav Tiltak Oslo"
+                  "datoForUtsending": "1. januar 2025"
+                  
                 }
             """.trimIndent()
 
@@ -93,8 +93,8 @@ class BrevSøknadAvslagDTOTest {
                   "forhandsvisning":false,
                   "avslagFraOgMed":"1. januar 2023",
                   "avslagTilOgMed":"31. mars 2023",
-                  "datoForUtsending": "1. januar 2025",
-                  "kontor": "Nav Tiltak Oslo"
+                  "datoForUtsending": "1. januar 2025"
+                  
                 }
                 """.trimIndent(),
             )

@@ -1,23 +1,25 @@
 package no.nav.tiltakspenger.saksbehandling.oppgave.infra
 
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.future.await
-import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.get
+import no.nav.tiltakspenger.libs.httpklient.patch
+import no.nav.tiltakspenger.libs.httpklient.post
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import tools.jackson.module.kotlin.readValue
 import java.net.URI
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.time.Clock
 import java.util.UUID
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 /**
  *  Sender oppgaver til oppgavesystemet (vises i Gosys)
@@ -29,26 +31,26 @@ import kotlin.time.toJavaDuration
  * */
 class OppgaveHttpClient(
     baseUrl: String,
-    private val getToken: suspend () -> AccessToken,
-    connectTimeout: kotlin.time.Duration = 1.seconds,
-    private val timeout: kotlin.time.Duration = 5.seconds,
+    authTokenProvider: AuthTokenProvider,
+    connectTimeout: Duration = 2.seconds,
+    private val timeout: Duration = 5.seconds,
     private val clock: Clock,
+    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
+        this.connectTimeout = connectTimeout
+        this.defaultTimeout = timeout
+        this.successStatus = { it == 200 }
+        this.authTokenProvider = authTokenProvider
+    },
 ) : OppgaveKlient {
     private val logger = KotlinLogging.logger {}
-    private val client =
-        java.net.http.HttpClient
-            .newBuilder()
-            .connectTimeout(connectTimeout.toJavaDuration())
-            .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
-            .build()
 
-    private val uri = "$baseUrl/api/v1/oppgaver"
+    private val oppgaverUri = URI.create("$baseUrl/api/v1/oppgaver")
 
     override suspend fun opprettOppgave(
         fnr: Fnr,
         journalpostId: JournalpostId,
         oppgavebehov: Oppgavebehov,
-    ): OppgaveId {
+    ): Either<HttpKlientError, OppgaveId> {
         val opprettOppgaveRequest = when (oppgavebehov) {
             Oppgavebehov.NYTT_MELDEKORT -> {
                 OpprettOppgaveRequest.opprettOppgaveRequestForMeldekort(
@@ -66,26 +68,29 @@ class OppgaveHttpClient(
                 )
             }
 
-            else -> {
-                logger.error { "Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}" }
-                throw IllegalArgumentException("Ukjent oppgavebehov for oppgave med journalpost: ${oppgavebehov.name}")
-            }
+            Oppgavebehov.ENDRET_TILTAKDELTAKER,
+            Oppgavebehov.FATT_BARN,
+            Oppgavebehov.DOED,
+            Oppgavebehov.ADRESSEBESKYTTELSE,
+            -> throw IllegalArgumentException("Oppgavebehov ${oppgavebehov.name} har ikke journalpost - bruk opprettOppgaveUtenDuplikatkontroll")
         }
 
         val callId = UUID.randomUUID()
-        val oppgaveResponse = finnOppgave(journalpostId, opprettOppgaveRequest.oppgavetype, callId)
-        if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
-            logger.warn { "Oppgave for journalpostId: $journalpostId finnes fra før, callId: $callId" }
-            return OppgaveId(oppgaveResponse.oppgaver.first().id.toString())
+        return finnOppgave(journalpostId, opprettOppgaveRequest.oppgavetype, callId).flatMap { oppgaveResponse ->
+            if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
+                logger.warn { "Oppgave for journalpostId: $journalpostId finnes fra før, callId: $callId" }
+                OppgaveId(oppgaveResponse.oppgaver.first().id.toString()).right()
+            } else {
+                opprettOppgave(opprettOppgaveRequest, callId)
+            }
         }
-        return opprettOppgave(opprettOppgaveRequest, callId)
     }
 
     override suspend fun opprettOppgaveUtenDuplikatkontroll(
         fnr: Fnr,
         oppgavebehov: Oppgavebehov,
         tilleggstekst: String?,
-    ): OppgaveId {
+    ): Either<HttpKlientError, OppgaveId> {
         val callId = UUID.randomUUID()
         val opprettOppgaveRequest = when (oppgavebehov) {
             Oppgavebehov.ENDRET_TILTAKDELTAKER -> OpprettOppgaveRequest.opprettOppgaveRequestForEndretTiltaksdeltaker(
@@ -100,155 +105,80 @@ class OppgaveHttpClient(
 
             Oppgavebehov.ADRESSEBESKYTTELSE -> OpprettOppgaveRequest.opprettOppgaveRequestForAdressebeskyttelse(fnr, clock = clock)
 
-            Oppgavebehov.NYTT_MELDEKORT -> TODO()
-
-            Oppgavebehov.NY_SOKNAD -> TODO()
+            Oppgavebehov.NYTT_MELDEKORT,
+            Oppgavebehov.NY_SOKNAD,
+            -> throw IllegalArgumentException("Oppgavebehov ${oppgavebehov.name} skal ha duplikatkontroll på journalpost - bruk opprettOppgave")
         }
         return opprettOppgave(opprettOppgaveRequest, callId)
     }
 
-    override suspend fun ferdigstillOppgave(oppgaveId: OppgaveId) {
+    override suspend fun ferdigstillOppgave(oppgaveId: OppgaveId): Either<HttpKlientError, Unit> {
         val callId = UUID.randomUUID()
-        val oppgave = getOppgave(oppgaveId, callId)
-        if (oppgave.erFerdigstilt()) {
-            logger.warn { "Oppgave med id $oppgaveId er allerede ferdigstilt, callId: $callId" }
-        } else {
-            ferdigstillOppgave(oppgave, callId)
-            logger.info { "Ferdigstilt oppgave med id $oppgaveId, callId $callId" }
+        return getOppgave(oppgaveId, callId).flatMap { oppgave ->
+            if (oppgave.erFerdigstilt()) {
+                logger.warn { "Oppgave med id $oppgaveId er allerede ferdigstilt, callId: $callId" }
+                Unit.right()
+            } else {
+                ferdigstillOppgave(oppgave, callId).map {
+                    logger.info { "Ferdigstilt oppgave med id $oppgaveId, callId $callId" }
+                }
+            }
         }
     }
 
-    override suspend fun erFerdigstilt(oppgaveId: OppgaveId): Boolean {
+    override suspend fun erFerdigstilt(oppgaveId: OppgaveId): Either<HttpKlientError, Boolean> {
         val callId = UUID.randomUUID()
         logger.info { "Sjekker om oppgave med id $oppgaveId er ferdigstilt, callId $callId" }
-        val oppgave = getOppgave(oppgaveId, callId)
-        return oppgave.erFerdigstilt()
+        return getOppgave(oppgaveId, callId).map { it.erFerdigstilt() }
     }
 
     private suspend fun opprettOppgave(
         opprettOppgaveRequest: OpprettOppgaveRequest,
         callId: UUID,
-    ): OppgaveId {
-        val jsonPayload = objectMapper.writeValueAsString(opprettOppgaveRequest)
-        val request = createPostRequest(jsonPayload, getToken().token, callId)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        if (status != 201) {
-            logger.error { "Kunne ikke opprette oppgave, statuskode $status. CallId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
-            Sikkerlogg.error { httpResponse.body() }
-            error("Kunne ikke opprette oppgave, statuskode $status")
+    ): Either<HttpKlientError, OppgaveId> {
+        return httpKlient.post<OpprettOppgaveResponse>(oppgaverUri, opprettOppgaveRequest) {
+            header("X-Correlation-ID", callId.toString())
+            successStatus(201)
+        }.map { response ->
+            val oppgaveId = OppgaveId(response.body.id.toString())
+            logger.info { "Opprettet oppgave med id $oppgaveId for callId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
+            oppgaveId
         }
-        val jsonResponse = httpResponse.body()
-        val oppgaveId = objectMapper.readValue<OpprettOppgaveResponse>(jsonResponse).id
-        logger.info { "Opprettet oppgave med id $oppgaveId for callId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
-        return OppgaveId(oppgaveId.toString())
     }
 
     private suspend fun finnOppgave(
         journalpostId: JournalpostId,
         oppgaveType: String,
         callId: UUID,
-    ): FinnOppgaveResponse {
-        val request = createGetRequest(createGetOppgaveUri(journalpostId, oppgaveType), getToken().token, callId)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        if (status != 200) {
-            logger.error { "Noe gikk galt ved søk etter oppgave, statuskode $status. JournalpostId: $journalpostId, callId: $callId" }
-            Sikkerlogg.error { httpResponse.body() }
-            error("Noe gikk galt ved søk etter oppgave, statuskode $status")
-        }
-        val jsonResponse = httpResponse.body()
-        return objectMapper.readValue<FinnOppgaveResponse>(jsonResponse)
+    ): Either<HttpKlientError, FinnOppgaveResponse> {
+        return httpKlient.get<FinnOppgaveResponse>(finnOppgaveUri(journalpostId, oppgaveType)) {
+            header("X-Correlation-ID", callId.toString())
+        }.map { it.body }
     }
 
     private suspend fun getOppgave(
         oppgaveId: OppgaveId,
         callId: UUID,
-    ): Oppgave {
-        val request = createGetRequest(URI.create("$uri/$oppgaveId"), getToken().token, callId)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        if (status != 200) {
-            logger.error { "Noe gikk galt ved henting av oppgave med id $oppgaveId, statuskode $status, callId: $callId" }
-            Sikkerlogg.error { httpResponse.body() }
-            error("Noe gikk galt ved henting av oppgave, statuskode $status")
-        }
-        val jsonResponse = httpResponse.body()
-        return objectMapper.readValue<Oppgave>(jsonResponse)
+    ): Either<HttpKlientError, Oppgave> {
+        return httpKlient.get<Oppgave>(URI.create("$oppgaverUri/$oppgaveId")) {
+            header("X-Correlation-ID", callId.toString())
+        }.map { it.body }
     }
 
     private suspend fun ferdigstillOppgave(
         oppgave: Oppgave,
         callId: UUID,
-    ) {
+    ): Either<HttpKlientError, Unit> {
         val ferdigstillOppgaveRequest = FerdigstillOppgaveRequest(
             versjon = oppgave.versjon,
             status = OppgaveStatus.FERDIGSTILT,
         )
-        val jsonPayload = objectMapper.writeValueAsString(ferdigstillOppgaveRequest)
-        val request = createPatchRequest(URI.create("$uri/${oppgave.id}"), jsonPayload, getToken().token, callId)
-        val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-        val status = httpResponse.statusCode()
-        if (status != 200) {
-            logger.error { "Noe gikk galt ved ferdigstilling av oppgave med id ${oppgave.id}, statuskode $status, callId: $callId" }
-            Sikkerlogg.error { httpResponse.body() }
-            error("Noe gikk galt ved ferdigstilling av oppgave, statuskode $status")
-        }
+        return httpKlient.patch<Unit>(URI.create("$oppgaverUri/${oppgave.id}"), ferdigstillOppgaveRequest) {
+            header("X-Correlation-ID", callId.toString())
+        }.map { }
     }
 
-    private fun createPostRequest(
-        jsonPayload: String,
-        token: String,
-        callId: UUID,
-    ): HttpRequest? {
-        return HttpRequest
-            .newBuilder()
-            .uri(URI.create(uri))
-            .timeout(timeout.toJavaDuration())
-            .header("Authorization", "Bearer $token")
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", callId.toString())
-            .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
-    }
-
-    private fun createGetRequest(
-        uri: URI,
-        token: String,
-        callId: UUID,
-    ): HttpRequest? {
-        return HttpRequest
-            .newBuilder()
-            .uri(uri)
-            .timeout(timeout.toJavaDuration())
-            .header("Authorization", "Bearer $token")
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", callId.toString())
-            .GET()
-            .build()
-    }
-
-    private fun createPatchRequest(
-        uri: URI,
-        jsonPayload: String,
-        token: String,
-        callId: UUID,
-    ): HttpRequest? {
-        return HttpRequest
-            .newBuilder()
-            .uri(uri)
-            .timeout(timeout.toJavaDuration())
-            .header("Authorization", "Bearer $token")
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", callId.toString())
-            .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
-    }
-
-    private fun createGetOppgaveUri(journalpostId: JournalpostId, oppgaveType: String): URI {
-        return URI.create("$uri?tema=$TEMA_TILTAKSPENGER&oppgavetype=$oppgaveType&journalpostId=$journalpostId&statuskategori=AAPEN")
+    private fun finnOppgaveUri(journalpostId: JournalpostId, oppgaveType: String): URI {
+        return URI.create("$oppgaverUri?tema=$TEMA_TILTAKSPENGER&oppgavetype=$oppgaveType&journalpostId=$journalpostId&statuskategori=AAPEN")
     }
 }

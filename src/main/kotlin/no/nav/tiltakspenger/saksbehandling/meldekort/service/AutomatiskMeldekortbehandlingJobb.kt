@@ -8,12 +8,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
@@ -37,7 +39,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
-class AutomatiskMeldekortbehandlingService(
+class AutomatiskMeldekortbehandlingJobb(
     private val brukersMeldekortRepo: BrukersMeldekortRepo,
     private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     private val sakRepo: SakRepo,
@@ -132,7 +134,10 @@ class AutomatiskMeldekortbehandlingService(
                 logger.info { logMsg }
             }
 
+            // Ved Left hopper vi over statusoppdateringen under, slik at meldekortet (og dermed
+            // gosysoppgaven) prøves på nytt neste kjøring. Oppgaveopprettelsen har allerede logget.
             meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker()
+                .getOrElse { return }
         }
 
         brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
@@ -236,19 +241,26 @@ class AutomatiskMeldekortbehandlingService(
         return meldekortbehandling.right()
     }
 
-    private suspend fun BrukersMeldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker() {
+    /**
+     * Returnerer Left dersom gosysoppgaven ikke kunne opprettes.
+     * Logger selv ved feil - kalleren skal ikke logge i tillegg.
+     */
+    private suspend fun BrukersMeldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker(): Either<HttpKlientError, Unit> {
         val pdlPerson = sakService
             .hentEnkelPersonMedSkjermingForSakId(this.sakId, CorrelationId.generate())
             .getOrThrow()
 
         if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig || pdlPerson.skjermet) {
             logger.info { "Person har adressebeskyttelse eller er skjermet, oppretter oppgave i Gosys" }
-            oppgaveKlient.opprettOppgave(
+            return oppgaveKlient.opprettOppgave(
                 fnr = pdlPerson.fnr,
                 journalpostId = this.journalpostId,
                 oppgavebehov = Oppgavebehov.NYTT_MELDEKORT,
-            )
+            ).onLeft { feil ->
+                feil.loggFeil(logger, "opprettelse av gosysoppgave for meldekort", "sakId: ${this.sakId}, meldekortId: ${this.id}")
+            }.map { }
         }
+        return Unit.right()
     }
 
     private fun BrukersMeldekort.skalPrøvePåNytt(nyStatus: MeldekortBehandletAutomatiskStatus, clock: Clock): Boolean {

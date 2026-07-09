@@ -117,4 +117,15 @@ internal class VeilarboppfolgingHttpClientTest {
             feil.veilarboppfolgingKall.shouldNotBeNull().httpStatus shouldBe null
         }
     }
+
+    @Test
+    fun `henter oppfølgingsenhet - deserialiseringsfeil gir KallFeilet`() {
+        val httpKlient = HttpKlientFake().apply { enqueueDeserializationError(body = "ikke json") }
+
+        runTest {
+            val result = client(httpKlient).hentOppfolgingsenhet(fnr)
+            val feil = result.fold({ it }, { null }).shouldBeInstanceOf<KanIkkeHenteNavkontor.KallFeilet>()
+            feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.DeserializationError>()
+        }
+    }
 }

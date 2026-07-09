@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
@@ -36,7 +38,10 @@ class PersonhendelseJobb(
                     val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                         fnr = sak.fnr,
                         oppgavebehov = oppgavebehov,
-                    )
+                    ).getOrElse { feil ->
+                        feil.loggFeil(log, "opprettelse av gosysoppgave for personhendelse", "hendelseId: ${personhendelse.hendelseId}")
+                        return@forEach
+                    }
                     personhendelseRepository.lagreOppgaveId(personhendelse.id, oppgaveId)
                     log.info { "Lagret oppgaveId $oppgaveId for personhendelse med hendelsesId ${personhendelse.hendelseId}" }
                 } else {
@@ -57,7 +62,10 @@ class PersonhendelseJobb(
                 val oppgaveId = it.oppgaveId
 
                 if (oppgaveId != null) {
-                    val ferdigstilt = oppgaveKlient.erFerdigstilt(oppgaveId)
+                    val ferdigstilt = oppgaveKlient.erFerdigstilt(oppgaveId).getOrElse { feil ->
+                        feil.loggFeil(log, "sjekk av om gosysoppgave er ferdigstilt", "oppgaveId: $oppgaveId, hendelseId: $hendelseId")
+                        return@forEach
+                    }
                     if (ferdigstilt) {
                         log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for personhendelse med hendelseId $hendelseId" }
                         personhendelseRepository.slett(it.id)

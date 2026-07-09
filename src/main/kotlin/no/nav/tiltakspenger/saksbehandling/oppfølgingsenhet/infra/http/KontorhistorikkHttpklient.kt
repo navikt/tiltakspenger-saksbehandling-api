@@ -57,7 +57,11 @@ class KontorhistorikkHttpklient(
         return httpKlient.post<GraphQlResponse>(uri, lagGraphQlRequest(fnr.verdi)).mapLeft { error ->
             when (error) {
                 is HttpKlientError.UventetStatus -> KanIkkeHenteKontorhistorikk.UventetHttpStatus(error)
-                else -> KanIkkeHenteKontorhistorikk.KallFeilet(error)
+
+                is HttpKlientError.RequestIkkeSendt,
+                is HttpKlientError.IngenRespons,
+                is HttpKlientError.DeserializationError,
+                -> KanIkkeHenteKontorhistorikk.KallFeilet(error)
             }
         }.flatMap { response ->
             if (!response.body.errors.isNullOrEmpty()) {

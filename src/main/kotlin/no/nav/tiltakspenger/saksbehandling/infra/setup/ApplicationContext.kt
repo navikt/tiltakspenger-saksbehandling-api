@@ -139,7 +139,10 @@ open class ApplicationContext(
     open val oppgaveKlient: OppgaveKlient by lazy {
         OppgaveHttpClient(
             baseUrl = Configuration.oppgaveUrl,
-            getToken = { texasClient.getSystemToken(Configuration.oppgaveScope, IdentityProvider.AZUREAD) },
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(Configuration.oppgaveScope, IdentityProvider.AZUREAD, skipCache = skipCache)
+            },
             clock = clock,
         )
     }

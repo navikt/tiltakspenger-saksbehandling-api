@@ -25,7 +25,9 @@ class DelautomatiskSoknadsbehandlingJobb(
             val correlationId = CorrelationId.generate()
             try {
                 log.info { "Oppretter automatisk behandling for søknad med id ${it.id}, correlationId $correlationId" }
+                // Servicen logger selv ved Left, så vi hopper bare videre til neste søknad.
                 val behandling = startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(it, correlationId)
+                    .getOrElse { return@forEach }
                 log.info { "Opprettet behandling med id ${behandling.id} for søknad med id ${it.id}, correlationId $correlationId" }
             } catch (e: Exception) {
                 log.error(e) { "Noe gikk galt ved oppretting av automatisk behandling for søknad med id ${it.id}, correlationId $correlationId" }
