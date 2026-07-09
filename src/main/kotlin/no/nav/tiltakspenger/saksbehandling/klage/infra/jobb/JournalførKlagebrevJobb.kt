@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlien
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 import java.time.LocalDate
@@ -45,7 +46,7 @@ class JournalførKlagebrevJobb(
                             vedtaksdato = vedtaksdato,
                             tilleggstekst = vedtak.behandling.brevtekst!!,
                             hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                             saksnummer = vedtak.saksnummer,
                             fnr = vedtak.fnr,
                             saksbehandlerNavIdent = vedtak.saksbehandler,
@@ -119,7 +120,7 @@ class JournalførKlagebrevJobb(
                         forhåndsvisning = false,
                         vedtaksdato = vedtaksdatoOpprettet.toLocalDate(),
                         hentBrukersNavn = personService::hentNavn,
-                        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                         innsendingsdato = klagebehandling.formkrav.innsendingsdato,
                         clock = clock,
                     ).getOrElse { return@forEach }

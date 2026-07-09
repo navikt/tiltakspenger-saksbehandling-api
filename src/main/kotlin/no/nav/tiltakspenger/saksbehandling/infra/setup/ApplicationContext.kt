@@ -326,7 +326,7 @@ open class ApplicationContext(
         )
     }
 
-    open val personContext by lazy { PersonContext(sessionFactory, texasClient) }
+    open val personContext by lazy { PersonContext(sessionFactory, texasClient, clock) }
     open val dokumentContext by lazy { DokumentContext(texasClient, clock) }
     open val statistikkContext by lazy {
         StatistikkContext(

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 
@@ -71,7 +72,7 @@ class JournalførMeldekortvedtakService(
                         if (meldekortvedtak.erAutomatiskBehandlet) {
                             { "Automatisk behandlet" }
                         } else {
-                            navIdentClient::hentNavnForNavIdent
+                            navIdentClient::hentNavnForNavIdentEllerKast
                         }
 
                     val (pdfOgJson, pdfOgJsonPdfgenrs) =

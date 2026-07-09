@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -52,7 +53,7 @@ class JournalførRammevedtakService(
                             vedtak = vedtak,
                             tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
                             hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                         )
 
                         is Revurderingsresultat.Stans -> genererVedtaksbrevForStansKlient.genererStansBrev(
@@ -60,14 +61,14 @@ class JournalførRammevedtakService(
                             vedtak = vedtak,
                             harStansetBarnetillegg = vedtak.harOmgjortBarnetillegg(),
                             hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                         )
 
                         is Søknadsbehandlingsresultat.Avslag -> genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
                             vedtak = vedtak,
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                         )
 
                         is Omgjøringsresultat.OmgjøringOpphør -> genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
@@ -75,7 +76,7 @@ class JournalførRammevedtakService(
                             vedtaksdato = vedtaksdato,
                             harOpphørtBarnetillegg = vedtak.harOmgjortBarnetillegg(),
                             hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                         )
 
                         is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()

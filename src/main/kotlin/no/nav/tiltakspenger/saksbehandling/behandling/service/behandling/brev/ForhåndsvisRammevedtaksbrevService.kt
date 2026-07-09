@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import java.time.Clock
 import java.time.LocalDate
 
@@ -123,7 +124,7 @@ class ForhåndsvisRammevedtaksbrevService(
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
-            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
             vedtaksdato = LocalDate.now(clock),
             fnr = sak.fnr,
             saksbehandlerNavIdent = behandling.saksbehandler!!,
@@ -165,7 +166,7 @@ class ForhåndsvisRammevedtaksbrevService(
 
         return genererStansbrevClient.genererStansBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
-            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
             vedtaksdato = LocalDate.now(clock),
             fnr = sak.fnr,
             saksbehandlerNavIdent = behandling.saksbehandler!!,
@@ -187,7 +188,7 @@ class ForhåndsvisRammevedtaksbrevService(
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
-            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
             vedtaksdato = LocalDate.now(clock),
             fnr = sak.fnr,
             saksbehandlerNavIdent = behandling.saksbehandler!!,
@@ -207,7 +208,7 @@ class ForhåndsvisRammevedtaksbrevService(
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererOpphørbrevKlient.genererOpphørBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
-            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
             vedtaksdato = LocalDate.now(clock),
             fnr = sak.fnr,
             saksbehandlerNavIdent = behandling.saksbehandler!!,
@@ -229,7 +230,7 @@ class ForhåndsvisRammevedtaksbrevService(
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
             hentBrukersNavn = personService::hentNavn,
-            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
             avslagsgrunner = kommando.avslagsgrunner,
             fnr = sak.fnr,
             saksbehandlerNavIdent = behandling.saksbehandler!!,
@@ -252,7 +253,7 @@ class ForhåndsvisRammevedtaksbrevService(
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return genererInnvilgelsesbrevClient.genererInnvilgetSøknadBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
-            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
             vedtaksdato = LocalDate.now(clock),
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             fnr = sak.fnr,

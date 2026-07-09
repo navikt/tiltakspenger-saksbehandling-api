@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import java.time.Clock
 
 class ForhåndsvisBrevMeldekortbehandlingService(
@@ -62,7 +63,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
             if (meldekortbehandling is MeldekortBehandletAutomatisk) {
                 { "Automatisk behandlet" }
             } else {
-                navIdentClient::hentNavnForNavIdent
+                navIdentClient::hentNavnForNavIdentEllerKast
             }
 
         val beregningsperiode = beregning.let {

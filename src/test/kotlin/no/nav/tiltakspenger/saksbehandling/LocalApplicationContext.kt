@@ -151,7 +151,7 @@ class LocalApplicationContext(
     override val navkontorService: NavkontorService by lazy { NavkontorService(navkontorKlient) }
 
     override val personContext =
-        object : PersonContext(sessionFactory, texasClient) {
+        object : PersonContext(sessionFactory, texasClient, clock) {
             override val personKlient = personFakeKlient
             override val fellesSkjermingsklient = fellesFakeSkjermingsklient
             override val navIdentClient = if (usePdfGen) FakeNavIdentClient() else super.navIdentClient

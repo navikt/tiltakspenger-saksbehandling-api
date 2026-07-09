@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.setup
 
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesHttpSkjermingsklient
@@ -15,11 +16,13 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient
+import java.time.Clock
 
 @Suppress("unused")
 open class PersonContext(
     sessionFactory: SessionFactory,
     texasClient: TexasClient,
+    clock: Clock,
 ) {
     open val personKlient: PersonKlient by lazy {
         PersonHttpklient(
@@ -35,8 +38,12 @@ open class PersonContext(
     }
     open val navIdentClient: NavIdentClient by lazy {
         MicrosoftGraphApiClient(
-            getToken = { texasClient.getSystemToken(Configuration.microsoftScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false) },
             baseUrl = Configuration.microsoftUrl,
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(Configuration.microsoftScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false, skipCache = skipCache)
+            },
+            clock = clock,
         )
     }
     open val personRepo: PersonRepo by lazy {

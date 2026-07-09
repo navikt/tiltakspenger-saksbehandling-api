@@ -209,7 +209,7 @@ sealed class TestApplicationContext(
     // og faller tilbake til Context-ens default (Postgres-bakt) hvis hooken er null.
 
     override val personContext by lazy {
-        object : PersonContext(sessionFactory, texasClient) {
+        object : PersonContext(sessionFactory, texasClient, clock) {
             override val personKlient = personFakeKlient
             override val fellesSkjermingsklient = fellesFakeSkjermingsklient
             override val navIdentClient = fakeNavIdentClient

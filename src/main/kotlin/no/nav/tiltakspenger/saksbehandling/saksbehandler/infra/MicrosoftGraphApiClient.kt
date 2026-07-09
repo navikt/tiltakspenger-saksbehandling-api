@@ -1,41 +1,29 @@
 package no.nav.tiltakspenger.saksbehandling.saksbehandler.infra
 
 import arrow.core.Either
-import arrow.core.flatten
-import arrow.core.getOrElse
+import arrow.core.flatMap
+import arrow.core.left
 import arrow.core.right
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.encodedPath
 import io.ktor.http.toURI
-import kotlinx.coroutines.future.await
-import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
+import no.nav.tiltakspenger.libs.httpklient.get
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.KanIkkeHenteNavnForNavIdent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.net.URI
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import java.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 /**
- * Disse feltene hentes ut som en del av select-query parameter i uri().
- */
-private data class MicrosoftGraphResponse(
-    val givenName: String,
-    val surname: String,
-)
-
-private data class ListOfMicrosoftGraphResponse(
-    val value: List<MicrosoftGraphResponse>,
-)
-
-/**
+ * Henter navn på en ansatt fra Microsoft Graph basert på navIdent.
+ *
  * Api'et kan testes ut her: https://developer.microsoft.com/en-us/graph/graph-explorer
  * Eksempel request: GET v1.0 https://graph.microsoft.com/v1.0/users?$select=givenName,surname&$filter=onPremisesSamAccountName eq 'din nav ident med apostrof'&$count=true
  *
@@ -44,12 +32,47 @@ private data class ListOfMicrosoftGraphResponse(
  * Microsoft docs: https://learn.microsoft.com/en-us/graph/use-the-api
  */
 class MicrosoftGraphApiClient(
-    private val getToken: suspend () -> AccessToken,
-    private val timeout: Duration = 1.seconds,
     private val baseUrl: String,
-    connectTimeout: Duration = 1.seconds,
+    authTokenProvider: AuthTokenProvider,
+    connectTimeout: Duration = 2.seconds,
+    private val timeout: Duration = 4.seconds,
+    clock: Clock,
+    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
+        this.connectTimeout = connectTimeout
+        this.defaultTimeout = timeout
+        this.successStatus = { it == 200 }
+        this.authTokenProvider = authTokenProvider
+    },
 ) : NavIdentClient {
-    private val log = KotlinLogging.logger { }
+
+    override suspend fun hentNavnForNavIdent(navIdent: String): Either<KanIkkeHenteNavnForNavIdent, String> {
+        if (navIdent == AUTOMATISK_SAKSBEHANDLER_ID) {
+            return "Automatisk saksbehandlet".right()
+        }
+        return httpKlient.get<ListOfMicrosoftGraphResponse>(uri(navIdent)) {
+            // Kreves av Graph for søk med $count=true, se https://learn.microsoft.com/en-us/graph/aad-advanced-queries
+            header("ConsistencyLevel", "eventual")
+        }.mapLeft {
+            KanIkkeHenteNavnForNavIdent.KallFeilet(it)
+        }.flatMap { response ->
+            response.tilNavn()
+        }
+    }
+
+    private fun HttpKlientResponse<ListOfMicrosoftGraphResponse>.tilNavn(): Either<KanIkkeHenteNavnForNavIdent, String> {
+        val brukere = body.value
+        val bruker = brukere.singleOrNull()
+            ?: return KanIkkeHenteNavnForNavIdent.FantIkkeEntydigBruker(
+                antallTreff = brukere.size,
+                httpKlientMetadata = metadata,
+            ).left()
+        val navn = "${bruker.givenName} ${bruker.surname}".trim()
+        return if (navn.isBlank()) {
+            KanIkkeHenteNavnForNavIdent.NavnetErBlankt(httpKlientMetadata = metadata).left()
+        } else {
+            navn.right()
+        }
+    }
 
     /**
      * Denne oppretter en URI med en URLBuilder for at encodingen skal bli riktig for spesialtegn (apostrof ')
@@ -65,72 +88,18 @@ class MicrosoftGraphApiClient(
         }
         return urlBuilder.build().toURI()
     }
-
-    private val client =
-        java.net.http.HttpClient
-            .newBuilder()
-            .connectTimeout(connectTimeout.toJavaDuration())
-            .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
-            .build()
-
-    /**
-     * Denne returnerer navnet til saksbehandler eller kaster runtimeException om noe feiler
-     */
-    override suspend fun hentNavnForNavIdent(navIdent: String): String {
-        return if (navIdent == AUTOMATISK_SAKSBEHANDLER_ID) {
-            "Automatisk saksbehandlet"
-        } else {
-            hentBrukerinformasjonForNavIdent(navIdent).let { brukerInfo ->
-                val saksbehandlersNavn = "${brukerInfo.givenName} ${brukerInfo.surname}".trim()
-                if (saksbehandlersNavn.isBlank()) {
-                    throw RuntimeException("Fant ikke saksbehandlerens navn i microsoftGraphApi $navIdent. Responsen var blank.")
-                }
-                saksbehandlersNavn
-            }
-        }
-    }
-
-    private suspend fun hentBrukerinformasjonForNavIdent(navIdent: String): MicrosoftGraphResponse {
-        return Either.catch {
-            val token = getToken()
-            val uri = uri(navIdent)
-            val request = createRequest(uri, token.token)
-            val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-            val status = httpResponse.statusCode()
-            val body = httpResponse.body()
-            Sikkerlogg.debug { "Logger response fra microsoftGraphApi for å debugge -> $status - $body" }
-            if (status == 401 || status == 403) {
-                log.error(RuntimeException("Trigger stacktrace for debug.")) { "Mottok $status fra Microsoft Graph API." }
-            }
-            val jsonResponse = deserialize<ListOfMicrosoftGraphResponse>(body)
-            jsonResponse.let { response ->
-                if (response.value.size != 1) {
-                    log.error { "Fant ingen eller flere brukere for navIdent $navIdent: ${response.value.size}. Se sikker logg dersom vi fant flere." }
-                    if (response.value.isNotEmpty()) {
-                        Sikkerlogg.error { "Fant ingen eller flere brukere for navIdent $navIdent: ${response.value}" }
-                    }
-                    throw RuntimeException("Fant ikke bruker for navident: $navIdent")
-                } else {
-                    response.value.first().right()
-                }
-            }
-        }.flatten().getOrElse {
-            Sikkerlogg.error(it) { "Ukjent feil mot Microsoft Graph Api for bruker: $navIdent message: ${it.message}" }
-            throw RuntimeException("Ukjent feil mot Microsoft Graph Api for bruker $navIdent. Se sikker logg for mer context")
-        }
-    }
-
-    private fun createRequest(
-        uri: URI,
-        token: String,
-    ): HttpRequest {
-        return HttpRequest.newBuilder()
-            .uri(uri)
-            .timeout(timeout.toJavaDuration())
-            .header("Accept", "application/json")
-            .header("Authorization", "Bearer $token")
-            .header("ConsistencyLevel", "eventual")
-            .GET()
-            .build()
-    }
 }
+
+/**
+ * Disse feltene hentes ut som en del av select-query parameter i uri().
+ * Kun ment brukt av testene utenfor denne fila.
+ */
+data class MicrosoftGraphResponse(
+    val givenName: String,
+    val surname: String,
+)
+
+/** Kun ment brukt av testene utenfor denne fila. */
+data class ListOfMicrosoftGraphResponse(
+    val value: List<MicrosoftGraphResponse>,
+)

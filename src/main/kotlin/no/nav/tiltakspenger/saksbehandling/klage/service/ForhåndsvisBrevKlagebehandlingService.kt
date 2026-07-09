@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.forhåndsvisKlagebr
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import java.time.Clock
 import java.time.LocalDate
 
@@ -35,7 +36,7 @@ class ForhåndsvisBrevKlagebehandlingService(
                     forhåndsvisning = forhåndsvisning,
                     vedtaksdato = LocalDate.now(clock),
                     hentBrukersNavn = personService::hentNavn,
-                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                 )
             },
             genererKlageInnstillingsbrev = { saksnummer, fnr, saksbehandlerNavIdent, tilleggstekst, forhåndsvisning, innsendingsdato, datoVedtak ->
@@ -47,7 +48,7 @@ class ForhåndsvisBrevKlagebehandlingService(
                     forhåndsvisning = forhåndsvisning,
                     vedtaksdato = datoVedtak,
                     hentBrukersNavn = personService::hentNavn,
-                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdent,
+                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                     innsendingsdato = innsendingsdato,
                     clock = clock,
                 )
