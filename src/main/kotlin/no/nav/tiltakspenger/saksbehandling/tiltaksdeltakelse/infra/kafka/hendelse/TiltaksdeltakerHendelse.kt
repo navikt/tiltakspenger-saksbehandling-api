@@ -91,8 +91,12 @@ data class TiltaksdeltakerHendelse(
         return endringer.tilEndringer()
     }
 
-    private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse): Boolean =
-        sammeFom && deltakelseTilOgMed?.isAfter(tiltaksdeltakelseFraBehandling.deltakelseTilOgMed) == true
+    // En null tilOgMed fra behandlingen betyr en åpen/uavsluttet deltakelse.
+    // Å sette en sluttdato på en åpen deltakelse er en innskrenking, ikke en forlengelse.
+    private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse): Boolean {
+        val gammelSluttdato = tiltaksdeltakelseFraBehandling.deltakelseTilOgMed ?: return false
+        return sammeFom && deltakelseTilOgMed?.isAfter(gammelSluttdato) == true
+    }
 
     private fun erAvbruttDeltakelse(
         sammeStatus: Boolean,

@@ -238,6 +238,45 @@ class TiltaksdeltakerHendelseTest {
     }
 
     @Test
+    fun `tiltaksdeltakelseErEndret - lagret deltakelse mangler sluttdato, hendelse har sluttdato i fremtiden - returnerer ENDRET_SLUTTDATO`() {
+        val clock = TikkendeKlokke()
+        val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
+            deltakelseFraOgMed = LocalDate.now(clock).minusMonths(3),
+            deltakelseTilOgMed = null,
+        )
+        val nySluttdato = LocalDate.now(clock).plusMonths(1)
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+            fom = tiltaksdeltakelse.deltakelseFraOgMed,
+            tom = nySluttdato,
+        )
+
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        endringer shouldHaveSize 1
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretSluttdato>()
+        (endringer.first() as TiltaksdeltakerEndring.EndretSluttdato).nySluttdato shouldBe nySluttdato
+    }
+
+    @Test
+    fun `tiltaksdeltakelseErEndret - lagret deltakelse har sluttdato, hendelse mangler sluttdato - returnerer ENDRET_SLUTTDATO`() {
+        val clock = TikkendeKlokke()
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(tom = null)
+
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(lagretTiltaksdeltakelse, clock).shouldNotBeNull()
+        endringer shouldHaveSize 1
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.EndretSluttdato>()
+        (endringer.first() as TiltaksdeltakerEndring.EndretSluttdato).nySluttdato.shouldBeNull()
+    }
+
+    @Test
+    fun `tiltaksdeltakelseErEndret - begge mangler sluttdato - returnerer ingen endringer`() {
+        val clock = TikkendeKlokke()
+        val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(deltakelseTilOgMed = null)
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(tom = null)
+
+        tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldBeNull()
+    }
+
+    @Test
     fun `tiltaksdeltakelseErEndret - blir ikke aktuell - returnerer IKKE_AKTUELL_DELTAKELSE`() {
         val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
