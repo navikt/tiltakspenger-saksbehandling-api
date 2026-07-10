@@ -132,7 +132,7 @@ private fun HjemmelForOpphør.tilTekst(medBarnetillegg: Boolean): String? {
 
         HjemmelForOpphør.Introduksjonsprogrammet ->
             """
-                Du er deltaker i introduksjonsprogram denne perioden. Deltakere i introduksjonsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
+                Du er deltaker i introduksjonsprogram i denne perioden. Deltakere i introduksjonsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
                 
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """.trimIndent()

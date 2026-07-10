@@ -97,41 +97,41 @@ private fun HjemmelForStans.tilTekst(medBarnetillegg: Boolean): String {
                 du ikke lenger deltar på arbeidsmarkedstiltak.
 
                 Du må være deltaker i et arbeidsmarkedstiltak for å ha rett til å få $tiltakspengerOgKanskjeBarnetillegg.
-                
+
                 Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 2.
             """
 
         HjemmelForStans.Alder ->
             """
-                du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få $tiltakspengerOgKanskjeBarnetillegg. 
+                du ikke har fylt 18 år. Du må ha fylt 18 år for å ha rett til å få $tiltakspengerOgKanskjeBarnetillegg.
 
                 Det kommer frem av tiltakspengeforskriften § 3.
             """
 
         HjemmelForStans.Livsoppholdytelser ->
             """
-                du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få $tiltakspengerOgKanskjeBarnetillegg. 
-                
+                du mottar en annen pengestøtte til livsopphold. Deltakere som har rett til andre pengestøtter til livsopphold har ikke samtidig rett til å få $tiltakspengerOgKanskjeBarnetillegg.
+
                 Dette kommer frem av arbeidsmarkedsloven § 13 første ledd og tiltakspengeforskriften § 7 første ledd.
             """
 
         HjemmelForStans.Kvalifiseringsprogrammet ->
             """
-                du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg. 
-                
-                Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.                 
+                du deltar på kvalifiseringsprogram. Deltakere i kvalifiseringsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
+
+                Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """
 
         HjemmelForStans.Introduksjonsprogrammet ->
             """
                 du deltar på introduksjonsprogram. Deltakere i introduksjonsprogram har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
+
                 Dette kommer frem av tiltakspengeforskriften § 7 tredje ledd.
             """
 
         HjemmelForStans.LønnFraTiltaksarrangør ->
             """
-                du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket. 
+                du mottar lønn fra tiltaksarrangør for tiden i arbeidsmarkedstiltaket.
 
                 Deltakere som mottar lønn fra tiltaksarrangør for tid i arbeidsmarkedstiltaket har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
 
@@ -141,30 +141,30 @@ private fun HjemmelForStans.tilTekst(medBarnetillegg: Boolean): String {
         HjemmelForStans.LønnFraAndre ->
             """
                 du mottar lønn for arbeid som er en del av tiltaksdeltakelsen og du derfor har dekning av utgifter til livsopphold.
-                
+
                 Deltaker i arbeidsmarkedstiltak som har rett til å få dekket utgifter til livsopphold på annen måte har ikke rett til $tiltakspengerOgKanskjeBarnetillegg. Lønn anses som dekning av utgifter til livsopphold på annen måte, når du får lønnen for arbeid som er en del av tiltaksdeltakelsen.
-                
+
                 Lønn fra arbeid utenom tiltaksdeltakelsen har ikke betydning for din rett til tiltakspenger.
-                
+
                 Dette kommer frem av arbeidsmarkedsloven § 13 og tiltakspengeforskriften § 8 andre ledd.
             """
 
         HjemmelForStans.Institusjonsopphold ->
-            """                	
-                du oppholder deg på en institusjon med gratis opphold, mat og drikke. 
-                
+            """
+                du oppholder deg på en institusjon med gratis opphold, mat og drikke.
+
                 Deltakere som har opphold i institusjon med gratis opphold, mat og drikke under gjennomføringen av arbeidsmarkedstiltaket har ikke rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Det er gjort unntak for opphold i barnevernsinstitusjoner. Dette kommer frem av tiltakspengeforskriften § 9. 
+
+                Det er gjort unntak for opphold i barnevernsinstitusjoner. Dette kommer frem av tiltakspengeforskriften § 9.
             """
 
         HjemmelForStans.IkkeLovligOpphold ->
             """
-                du i denne perioden ikke har lovlig opphold i Norge. 
-                
+                du i denne perioden ikke har lovlig opphold i Norge.
+
                 Du må ha lovlig opphold i Norge, for å ha rett til $tiltakspengerOgKanskjeBarnetillegg.
-                
-                Dette kommer frem av arbeidsmarkedsloven § 2.                
+
+                Dette kommer frem av arbeidsmarkedsloven § 2.
             """
     }.trimIndent()
 }
