@@ -220,6 +220,24 @@ class TiltaksdeltakerHendelseTest {
     }
 
     @Test
+    fun `tiltaksdeltakelseErEndret - lagret deltakelse mangler sluttdato, hendelse har sluttdato i fortiden - returnerer AVBRUTT_DELTAKELSE`() {
+        val clock = TikkendeKlokke()
+        val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(
+            deltakelseFraOgMed = LocalDate.now(clock).minusMonths(3),
+            deltakelseTilOgMed = null,
+        )
+        val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+            fom = tiltaksdeltakelse.deltakelseFraOgMed,
+            tom = LocalDate.now(clock).minusWeeks(1),
+            deltakerstatus = TiltakDeltakerstatus.HarSluttet,
+        )
+
+        val endringer = tiltaksdeltakerHendelse.finnEndringer(tiltaksdeltakelse, clock).shouldNotBeNull()
+        endringer shouldHaveSize 1
+        endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
+    }
+
+    @Test
     fun `tiltaksdeltakelseErEndret - blir ikke aktuell - returnerer IKKE_AKTUELL_DELTAKELSE`() {
         val clock = TikkendeKlokke()
         val tiltaksdeltakelse = lagretTiltaksdeltakelse.copy(

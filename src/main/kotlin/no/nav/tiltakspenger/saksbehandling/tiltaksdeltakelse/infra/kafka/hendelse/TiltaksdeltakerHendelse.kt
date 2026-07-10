@@ -100,17 +100,24 @@ data class TiltaksdeltakerHendelse(
         tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
         clock: Clock,
     ): Boolean {
-        if (!sammeStatus && deltakerstatus == TiltakDeltakerstatus.Avbrutt) {
-            return true
-        }
-        if (!sammeTom &&
-            deltakelseTilOgMed != null &&
-            deltakelseTilOgMed.isBefore(tiltaksdeltakelseFraBehandling.deltakelseTilOgMed) &&
-            !deltakelseTilOgMed.isAfter(LocalDate.now(clock))
-        ) {
-            return true
-        }
-        return false
+        val statusEndretTilAvbrutt = !sammeStatus && deltakerstatus == TiltakDeltakerstatus.Avbrutt
+        if (statusEndretTilAvbrutt) return true
+
+        return !sammeTom && erSluttdatoAvkortetTilFortiden(tiltaksdeltakelseFraBehandling, clock)
+    }
+
+    private fun erSluttdatoAvkortetTilFortiden(
+        tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
+        clock: Clock,
+    ): Boolean {
+        val nySluttdato = deltakelseTilOgMed ?: return false
+        val gammelSluttdato = tiltaksdeltakelseFraBehandling.deltakelseTilOgMed
+
+        // En null tilOgMed fra behandlingen betyr en åpen/uavsluttet deltakelse.
+        // Å sette en tilOgMed i fortiden er da en avkorting og regnes som avbrutt.
+        val erAvkortet = gammelSluttdato == null || nySluttdato.isBefore(gammelSluttdato)
+        val erIFortiden = !nySluttdato.isAfter(LocalDate.now(clock))
+        return erAvkortet && erIFortiden
     }
 
     private fun erIkkeAktuellDeltakelse(
