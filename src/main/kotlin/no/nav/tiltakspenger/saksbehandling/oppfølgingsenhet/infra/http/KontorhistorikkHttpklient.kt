@@ -23,6 +23,13 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * [HttpKlient]-basert klient mot det nye navkontor-APIet til Arbeidsoppfølging (GraphQL-spørringen `kontorHistorikk(ident: String!)`).
+ *
+ * Kildekode: https://github.com/navikt/ao-oppfolgingskontor
+ * Dokumentasjon: README-en i kildekode-repoet
+ * API-spec: https://ao-oppfolgingskontor.intern.dev.nav.no/sdl (GraphQL-skjema)
+ * Slack: #team_dab_arbeidsoppfølging
+ * Teamkatalog: https://teamkatalogen.nav.no/team/1ad2c9ea-3221-4666-93f3-fe6f7cae94ef
+ *
  * Brukes i første iterasjon for sammenligning mot gammel klient ([VeilarboppfolgingHttpClient]), og kun av [SammenligningVeilarboppfolgingKlient].
  *
  * Vi henter kun feltene vi har dekning for å bruke (behandlingskatalog), og returnerer alle innslag uten
@@ -31,8 +38,6 @@ import kotlin.time.Duration.Companion.seconds
  * Feillogging skjer ikke her, men i [SammenligningVeilarboppfolgingKlient], som har domenekonteksten (loggkontekst med sakId/saksnummer/...).
  * Klienten bærer derfor httpklient sine rå typer videre til domenet: [HttpKlientError] på feilstiene ([KanIkkeHenteKontorhistorikk.httpKlientError]) og [no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata] ellers.
  *
- * API github: https://github.com/navikt/ao-oppfolgingskontor
- * API skjema: https://ao-oppfolgingskontor.intern.dev.nav.no/sdl
  * Merk at dette APIet returnerer historikk også for historiske fødselsnumre/d-numre, som er forventet.
  * Dersom man slår på ident i responsen, vil man få identen kontornummeret ble registrert på, selvom det er historisk.
  */

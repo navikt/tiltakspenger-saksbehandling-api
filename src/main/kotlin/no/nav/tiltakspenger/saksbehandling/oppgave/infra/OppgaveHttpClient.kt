@@ -22,13 +22,14 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- *  Sender oppgaver til oppgavesystemet (vises i Gosys)
+ * Sender oppgaver til oppgavesystemet (vises i Gosys)
  *
- *  Swagger: https://oppgave.intern.dev.nav.no
- *  Github: https://github.com/navikt/oppgave
- *  Slack: #team-oppgavehåndtering
- *
- * */
+ * Kildekode: https://github.com/navikt/oppgave
+ * Dokumentasjon: https://confluence.adeo.no/spaces/BOA/pages/791031394/dokarkiv+tjenesteoversikt og https://kodeverk-web.intern.nav.no/kodeverk/Oppgavetyper
+ * API-spec: https://oppgave.intern.dev.nav.no/ (Swagger) og https://oppgave.intern.dev.nav.no/api/openapi.yaml (Spec)
+ * Slack: #team-oppgavehåndtering
+ * Teamkatalog: https://teamkatalogen.nav.no/team/1672d05d-46ed-4406-a3a4-8343db75c285
+ */
 class OppgaveHttpClient(
     baseUrl: String,
     authTokenProvider: AuthTokenProvider,

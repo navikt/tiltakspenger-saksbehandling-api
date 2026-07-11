@@ -24,12 +24,15 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Henter navn på en ansatt fra Microsoft Graph basert på navIdent.
  *
- * Api'et kan testes ut her: https://developer.microsoft.com/en-us/graph/graph-explorer
+ * Kildekode: ikke aktuelt — eksternt API fra Microsoft
+ * Dokumentasjon: https://learn.microsoft.com/en-us/graph/use-the-api
+ * API-spec: https://developer.microsoft.com/en-us/graph/graph-explorer (Graph Explorer)
+ * Slack: ikke aktuelt (eksternt API)
+ * Teamkatalog: ikke aktuelt (eksternt API)
+ *
+ * Api'et kan testes ut i Graph Explorer.
  * Eksempel request: GET v1.0 https://graph.microsoft.com/v1.0/users?$select=givenName,surname&$filter=onPremisesSamAccountName eq 'din nav ident med apostrof'&$count=true
- *
  * Kan enkelt testes ut ved å se hvilken informasjon du kan hente ut ved å bruke https://graph.microsoft.com/v1.0/me
- *
- * Microsoft docs: https://learn.microsoft.com/en-us/graph/use-the-api
  */
 class MicrosoftGraphApiClient(
     private val baseUrl: String,

@@ -23,6 +23,12 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Klient mot tiltakspenger-datadeling, bygget på den felles [HttpKlient]-modulen i tiltakspenger-libs.
  *
+ * Kildekode: https://github.com/navikt/tiltakspenger-datadeling
+ * Dokumentasjon: README-en i kildekode-repoet
+ * API-spec: -
+ * Slack: #tiltakspenger-værsågod (eget team)
+ * Teamkatalog: https://teamkatalogen.nav.no/team/15bca3d2-2584-4167-85ba-faab1f1cfb53
+ *
  * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og den bærer all HTTP-kontekst (status, rå request/respons, throwable) via `metadata`.
  * Feilloggingen gjøres én gang av konsumenten ([no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService]), som i tillegg har domenekonteksten.
  *

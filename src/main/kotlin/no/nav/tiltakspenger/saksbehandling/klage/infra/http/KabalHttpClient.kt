@@ -17,8 +17,13 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * docs: https://github.com/navikt/kabal-api/tree/main/docs/integrasjon#integrere-med-kabal
- * swagger (husk naisdevice): https://kabal-api.intern.dev.nav.no/swagger-ui/index.html?urls.primaryName=external
+ * Klient mot Kabal for oversendelse av klager til klageinstansen.
+ *
+ * Kildekode: https://github.com/navikt/kabal-api
+ * Dokumentasjon: https://github.com/navikt/kabal-api/tree/main/docs/integrasjon#integrere-med-kabal
+ * API-spec: https://kabal-api.intern.dev.nav.no/swagger-ui/index.html (swagger) og https://kabal-api.intern.dev.nav.no/v3/api-docs/external (Spec)
+ * Slack: #team-klage-værsågod
+ * Teamkatalog: https://teamkatalogen.nav.no/team/ba63bde4-19b0-4700-9400-b699d5db76cd
  *
  * Klienten er bevisst minimal: den gjør selve HTTP-kallet og mapper en vellykket respons til [OversendtKlageTilKabalMetadata].
  * Feillogging og hva som skal skje ved en avvist/feilet oversendelse ligger i [no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.OversendKlageTilKlageinstansJobb], sammen med resten av domenekonteksten.

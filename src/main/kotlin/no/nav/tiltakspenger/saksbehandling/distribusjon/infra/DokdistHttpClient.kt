@@ -25,6 +25,12 @@ internal data class DokdistResponse(
 /**
  * Klient mot dokdist (distribusjon av journalførte dokumenter), bygget på den felles [HttpKlient]-modulen i tiltakspenger-libs.
  *
+ * Kildekode: https://github.com/navikt/dokdistfordeling
+ * Dokumentasjon: https://confluence.adeo.no/display/BOA/dokdistfordeling og https://confluence.adeo.no/display/BOA/Distribuere+dokument+til+bruker
+ * API-spec: https://dokdistfordeling.dev.intern.nav.no/swagger-ui/index.html
+ * Slack: #team-dokumentløsninger
+ * Teamkatalog: https://teamkatalogen.nav.no/team/f3388fcd-898e-40da-8d02-0bf1e3a79120
+ *
  * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og den bærer all HTTP-kontekst (status, rå request/respons, throwable) via `metadata`.
  * Feilloggingen gjøres én gang av konsumenten ([no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService]), som i tillegg har domenekonteksten.
  * Mangler noe som burde vært felles for alle konsumenter av httpklient, bør det legges til i libs framfor her.

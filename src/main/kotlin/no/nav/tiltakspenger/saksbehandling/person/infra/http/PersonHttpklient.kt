@@ -14,6 +14,15 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.Personident
 
+/**
+ * Klient mot PDL (persondataløsningen) for å hente personopplysninger, via personklienten i tiltakspenger-libs.
+ *
+ * Kildekode: https://github.com/navikt/pdl
+ * Dokumentasjon: https://pdl-docs.ansatt.nav.no/ og https://pdl-docs.ansatt.nav.no/intern/index.html
+ * API-spec: https://github.com/navikt/pdl/blob/15bdc571f0357f97f524dc496fb16217ff4aa94d/apps/api/src/main/resources/schemas/pdl.graphqls#L17 og https://pdl-playground.dev.intern.nav.no/ og https://pdl-pip-api.intern.dev.nav.no/swagger-ui/index.html (Swagger)
+ * Slack: #pdl
+ * Teamkatalog: https://teamkatalogen.nav.no/team/034cbcd2-ac28-4e2e-88c8-345945933f70
+ */
 class PersonHttpklient(
     endepunkt: String,
     private val getToken: suspend () -> AccessToken,

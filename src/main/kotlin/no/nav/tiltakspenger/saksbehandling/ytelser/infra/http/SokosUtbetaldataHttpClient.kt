@@ -17,7 +17,15 @@ import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-// swagger: https://sokos-utbetaldata.dev.intern.nav.no/utbetaldata/api/v2/docs
+/**
+ * Klient mot sokos-utbetaldata for utbetalingshistorikk fra økonomisystemene.
+ *
+ * Kildekode: https://github.com/navikt/sokos-utbetaldata
+ * Dokumentasjon: -
+ * API-spec: https://sokos-utbetaldata.dev.intern.nav.no/utbetaldata/api/v2/docs (Swagger) og https://github.com/navikt/sokos-utbetaldata/blob/main/src/main/resources/spec/utbetaldata-v2-openapi-spec.yaml (Spec)
+ * Slack: #utbetaling
+ * Teamkatalog: https://teamkatalogen.nav.no/team/6260623b-d58e-4c17-8861-0a7b92fdc1e2
+ */
 class SokosUtbetaldataHttpClient(
     baseUrl: String,
     authTokenProvider: AuthTokenProvider,

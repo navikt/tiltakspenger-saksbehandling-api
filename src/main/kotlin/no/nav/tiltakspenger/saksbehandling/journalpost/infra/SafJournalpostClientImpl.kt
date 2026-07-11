@@ -25,8 +25,13 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.HentDokumentCommand
 import tools.jackson.module.kotlin.readValue
 
 /**
- * Dokumentasjon for SAF
- * https://confluence.adeo.no/x/fY5zEg
+ * Klient mot SAF (sak- og arkivfasade) for å hente journalposter og dokumenter.
+ *
+ * Kildekode: https://github.com/navikt/saf
+ * Dokumentasjon: https://confluence.adeo.no/display/BOA/saf og https://confluence.adeo.no/spaces/BOA/pages/297076302/saf+-+Tjenester
+ * API-spec: -
+ * Slack: #team-dokumentløsninger
+ * Teamkatalog: https://teamkatalogen.nav.no/team/f3388fcd-898e-40da-8d02-0bf1e3a79120
  */
 class SafJournalpostClientImpl(
     private val httpClient: HttpClient = httpClientWithRetry(timeout = 60L),

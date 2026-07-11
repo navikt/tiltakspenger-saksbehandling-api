@@ -23,6 +23,15 @@ import no.nav.tiltakspenger.saksbehandling.infra.http.httpClientGeneric
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 
+/**
+ * Klient mot tiltakspenger-tiltak for å hente tiltaksdeltakelser.
+ *
+ * Kildekode: https://github.com/navikt/tiltakspenger-tiltak
+ * Dokumentasjon: README-en i kildekode-repoet
+ * API-spec: -
+ * Slack: #tiltakspenger-værsågod (eget team)
+ * Teamkatalog: https://teamkatalogen.nav.no/team/15bca3d2-2584-4167-85ba-faab1f1cfb53
+ */
 class TiltaksdeltakelseHttpKlient(
     val baseUrl: String,
     private val getToken: suspend () -> AccessToken,

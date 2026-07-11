@@ -27,8 +27,11 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Klient mot tilgangsmaskinen med støtte for enkel- og bulk-tilgangskontroll.
  *
+ * Kildekode: https://github.com/navikt/populasjonstilgangskontroll
  * Dokumentasjon: https://confluence.adeo.no/spaces/TM/pages/628888614/Intro+til+Tilgangsmaskinen
- * Swagger: https://tilgangsmaskin.intern.nav.no/swagger-ui/index.html
+ * API-spec: https://tilgangsmaskin.intern.nav.no/swagger-ui/index.html (Swagger) og https://tilgangsmaskin.intern.nav.no/v3/api-docs (Spec)
+ * Slack: #team-tilgangsmaskinen-værsågod
+ * Teamkatalog: https://teamkatalogen.nav.no/tag/Tilgangsmaskinen
  */
 class TilgangsmaskinHttpClient(
     baseUrl: String,

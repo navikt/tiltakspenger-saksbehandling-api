@@ -21,6 +21,13 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * Gammel navkontor-klient (veilarboppfolging) som er på vei ut - erstattes av [KontorhistorikkHttpklient] når vi har verifisert at den nye tjenesten leverer riktige data.
+ *
+ * Kildekode: https://github.com/navikt/veilarboppfolging
+ * Dokumentasjon: -
+ * API-spec: -
+ * Slack: #team_dab_arbeidsoppfølging
+ * Teamkatalog: https://teamkatalogen.nav.no/team/1ad2c9ea-3221-4666-93f3-fe6f7cae94ef
+ *
  * Brukes kun av [SammenligningVeilarboppfolgingKlient], som er eneste konsument av begge klientene.
  *
  * Feillogging skjer ikke her, men i [SammenligningVeilarboppfolgingKlient], som har domenekonteksten (loggkontekst med sakId/saksnummer/...).

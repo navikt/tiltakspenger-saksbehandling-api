@@ -46,8 +46,13 @@ import java.time.Clock
 internal const val DOKARKIV_PATH = "rest/journalpostapi/v1/journalpost"
 
 /**
- * https://confluence.adeo.no/display/BOA/opprettJournalpost
- * swagger: https://dokarkiv-q2.dev.intern.nav.no/swagger-ui/index.html#/
+ * Klient mot dokarkiv for å opprette journalposter (journalføring av brev).
+ *
+ * Kildekode: https://github.com/navikt/dokarkiv
+ * Dokumentasjon: https://confluence.adeo.no/display/BOA/dokarkiv og https://confluence.adeo.no/display/BOA/opprettJournalpost
+ * API-spec: https://dokarkiv.dev.intern.nav.no/swagger-ui/index.html
+ * Slack: #team-dokumentløsninger
+ * Teamkatalog: https://teamkatalogen.nav.no/team/f3388fcd-898e-40da-8d02-0bf1e3a79120
  *
  * Det er caller sitt ansvar å logge errors ved exception
  */
