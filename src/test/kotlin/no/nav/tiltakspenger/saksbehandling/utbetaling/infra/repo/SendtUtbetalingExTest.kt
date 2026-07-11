@@ -9,7 +9,7 @@ internal class SendtUtbetalingExTest {
 
     @Test
     fun `empty and plain string`() {
-        val actual = SendtUtbetaling("", "response", 202).toJson()
+        val actual = SendtUtbetaling("", "response", 202, alleredeMottattTidligere = false).toJson()
         objectMapper.readTree(actual)
         actual.shouldEqualJson(
             """
@@ -24,7 +24,7 @@ internal class SendtUtbetalingExTest {
 
     @Test
     fun `blank string`() {
-        val actual = SendtUtbetaling(" ", " a ", 202).toJson()
+        val actual = SendtUtbetaling(" ", " a ", 202, alleredeMottattTidligere = false).toJson()
         objectMapper.readTree(actual)
         actual.shouldEqualJson(
             """
@@ -41,7 +41,7 @@ internal class SendtUtbetalingExTest {
     fun `escapes non-json string`() {
         val nonEscapedString = """"\/\b\f\n\r\t"""
 
-        val actual = SendtUtbetaling("request", nonEscapedString, 202).toJson()
+        val actual = SendtUtbetaling("request", nonEscapedString, 202, alleredeMottattTidligere = false).toJson()
         objectMapper.readTree(actual)
         actual.shouldEqualJson(
             """
@@ -58,7 +58,7 @@ internal class SendtUtbetalingExTest {
     fun `valid json string`() {
         val validJsonString = """{"key": "value"}"""
 
-        val actual = SendtUtbetaling("request", validJsonString, 202).toJson()
+        val actual = SendtUtbetaling("request", validJsonString, 202, alleredeMottattTidligere = false).toJson()
         objectMapper.readTree(actual)
         actual.shouldEqualJson(
             """
@@ -75,7 +75,7 @@ internal class SendtUtbetalingExTest {
     fun `valid json string with escaped characters`() {
         val validJsonString = """{"key": "value", "escaped": "\"\\\/\\b\\f\\n\\r\\t"}"""
 
-        val actual = SendtUtbetaling("request", validJsonString, 202).toJson()
+        val actual = SendtUtbetaling("request", validJsonString, 202, alleredeMottattTidligere = false).toJson()
         objectMapper.readTree(actual)
         actual.shouldEqualJson(
             """

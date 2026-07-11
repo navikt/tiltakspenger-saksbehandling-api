@@ -1,26 +1,23 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import arrow.core.Either
-import arrow.core.flatten
-import arrow.core.getOrElse
+import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
-import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.withContext
-import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.get
+import no.nav.tiltakspenger.libs.httpklient.post
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -33,160 +30,101 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.net.http.HttpTimeoutException
 import java.time.Clock
-import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
-
-private val log = KotlinLogging.logger {}
 
 /**
- * https://navikt.github.io/utsjekk-docs/
+ * Klient mot helved utsjekk (iverksetting, utbetalingsstatus og simulering), bygget på den felles [HttpKlient]-modulen i tiltakspenger-libs.
+ *
+ * Kildekode: https://github.com/navikt/helved-utbetaling
+ * Dokumentasjon: https://navikt.github.io/utsjekk-docs/ og https://helved-docs.intern.dev.nav.no/
+ * API-spec: iverksetting https://helved-docs.intern.dev.nav.no/v2/doc/, status https://helved-docs.intern.dev.nav.no/v2/doc/status, simulering https://helved-docs.intern.dev.nav.no/v2/doc/simulering
+ * Slack: #team-hel-ved
+ * Teamkatalog: https://teamkatalogen.nav.no/team/93e78ae9-babc-452c-965d-e7dc67af8612
+ *
+ * Klienten logger bevisst ikke selv: den bærer HTTP-konteksten videre via [HttpKlientError] (evt. wrappet i [KunneIkkeUtbetale]/[KunneIkkeSimulere]), og feillogging gjøres én gang i kallende service ([no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService], [no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService], [no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService]), som i tillegg har domenekonteksten.
+ *
+ * [httpKlient] bygges som default ut fra parametrene over ([clock], [authTokenProvider], [connectTimeout], [statusTimeout]) slik at hele klientoppsettet kan leses ett sted.
+ * Sender man inn en egen [httpKlient] (typisk `HttpKlientFake` i test), **ignoreres** de parametrene som kun brukes til å bygge default-klienten.
+ *
+ * @param clock Klokke som sendes videre til [HttpKlient] og brukes til simuleringstidspunkt-fallback.
+ * @param authTokenProvider Henter system-token mot helved. Ignoreres hvis [httpKlient] sendes inn.
+ * @param connectTimeout Connect-timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ * @param statusTimeout Per-request timeout for statusoppslag; også default-timeout for default-klienten.
+ * @param iverksettTimeout Per-request timeout for iverksetting.
+ * @param simuleringTimeout Per-request timeout for simulering. Simulering mot Oppdrag kan være treg, derav den høye defaulten.
  */
 class UtbetalingHttpKlient(
     private val baseUrl: String,
-    private val getToken: suspend () -> AccessToken,
+    private val clock: Clock,
+    authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 5.seconds,
     private val statusTimeout: Duration = 15.seconds,
     private val iverksettTimeout: Duration = 30.seconds,
-    private val clock: Clock,
+    private val simuleringTimeout: Duration = 45.seconds,
+    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
+        this.connectTimeout = connectTimeout
+        this.defaultTimeout = statusTimeout
+        this.successStatus = { it == 200 }
+        this.authTokenProvider = authTokenProvider
+    },
 ) : Utbetalingsklient {
-    private val simuleringTimeout: Duration = 45.seconds
-
-    private val client =
-        HttpClient
-            .newBuilder()
-            .connectTimeout(connectTimeout.toJavaDuration())
-            .followRedirects(HttpClient.Redirect.NEVER)
-            .build()
-
-    private val simuleringClient =
-        HttpClient
-            .newBuilder()
-            .connectTimeout(simuleringTimeout.toJavaDuration())
-            .followRedirects(HttpClient.Redirect.NEVER)
-            .build()
-
     private val iverksettUri = URI.create("$baseUrl/api/iverksetting/v2")
+    private val simuleringUri = URI.create("$baseUrl/api/simulering/v2")
 
     override suspend fun iverksett(
         utbetaling: VedtattUtbetaling,
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
-        return withContext(Dispatchers.IO) {
-            Either.catch {
-                val token = getToken()
-                val jsonPayload = utbetaling.toUtbetalingRequestDTO(forrigeUtbetalingJson)
-                val request = createIverksettRequest(correlationId, jsonPayload, token.token)
-
-                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-                val jsonResponse = httpResponse.body()
-                mapIverksettStatus(
-                    status = httpResponse.statusCode(),
-                    utbetaling = utbetaling,
+        val jsonPayload = utbetaling.toUtbetalingRequestDTO(forrigeUtbetalingJson)
+        return httpKlient.post<String>(iverksettUri, jsonPayload) {
+            timeout = iverksettTimeout
+            // Dette er kun for vår del, open telemetry vil kunne være et alternativ. Slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724072054018589
+            header("Nav-Call-Id", correlationId.value)
+            successStatus(202, 409)
+        }.mapLeft { feil ->
+            KunneIkkeUtbetale(request = jsonPayload, feil = feil)
+        }.flatMap { response ->
+            when {
+                response.statusCode == 202 -> SendtUtbetaling(
                     request = jsonPayload,
-                    response = jsonResponse,
-                    token = token,
-                )
-            }.mapLeft {
-                // Either.catch slipper igjennom CancellationException som er ønskelig.
-                log.error(it) {
-                    "Ukjent feil ved utsjekk for utbetaling ${utbetaling.id}. Saksnummer ${utbetaling.saksnummer}, sakId: ${utbetaling.sakId}"
-                }
-                KunneIkkeUtbetale()
-            }.flatten()
+                    response = response.body,
+                    responseStatus = response.statusCode,
+                    alleredeMottattTidligere = false,
+                ).right()
+
+                // TODO post-mvp jah: På sikt er dette en litt skjør sjekk som kan føre til at vi må endre denne sjekken dersom helved forandrer meldingen. Vi har bestilt et ønske fra helved om at vi får en json-respons med en kontraktsfestet kode, evt. at de garanterer at 409 kun brukes til dedupformål.
+                response.body.contains("Iverksettingen er allerede mottatt") -> SendtUtbetaling(
+                    request = jsonPayload,
+                    response = response.body,
+                    responseStatus = response.statusCode,
+                    alleredeMottattTidligere = true,
+                ).right()
+
+                // 409 uten dedup-meldingen: serveren svarte, men vi tør ikke anta at utbetalingen er mottatt.
+                else -> KunneIkkeUtbetale(
+                    request = jsonPayload,
+                    feil = HttpKlientError.UventetStatus(
+                        statusCode = response.statusCode,
+                        body = response.body,
+                        metadata = response.metadata,
+                    ),
+                ).left()
+            }
         }
     }
 
-    private fun createIverksettRequest(
-        correlationId: CorrelationId,
-        jsonPayload: String,
-        token: String,
-    ): HttpRequest? {
-        return HttpRequest
-            .newBuilder()
-            .uri(iverksettUri)
-            .timeout(iverksettTimeout.toJavaDuration())
-            .header("Authorization", "Bearer $token")
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            // Dette er kun for vår del, open telemetry vil kunne være et alternativ. Slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724072054018589
-            .header("Nav-Call-Id", correlationId.value)
-            .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
-    }
-
-    /**
-     * Logger alle feil(lefts), så det trengs ikke gjøres av service/domenet.
-     * Nåværende versjon: https://helved-docs.intern.dev.nav.no/v2/doc/status
-     * Neste versjon: https://helved-docs.intern.dev.nav.no/v3/doc/sjekk_status_pa_en_utbetaling
-     */
     override suspend fun hentUtbetalingsstatus(
         utbetaling: UtbetalingDetSkalHentesStatusFor,
-    ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus> {
-        return withContext(Dispatchers.IO) {
-            val (utbetalingId, sakId, saksnummer) = utbetaling
-            val path = "$baseUrl/api/iverksetting/${saksnummer.verdi}/${utbetalingId.uuidPart()}/status"
-            Either.catch {
-                val token = getToken().token
-                val request = HttpRequest
-                    .newBuilder()
-                    .uri(URI.create(path))
-                    .timeout(statusTimeout.toJavaDuration())
-                    .header("Authorization", "Bearer $token")
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build()
-
-                val requestHeaders = request.headers().map().filterKeys { it != "Authorization" }
-                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-                val httpResponseBody = httpResponse.body()
-                val status = httpResponse.statusCode()
-                val responseHeaders = httpResponse.headers().map()
-                if (status != 200) {
-                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved henting av utbetalingsstatus. Status var ulik 200. Se sikkerlogg for mer kontekst. utbetalingId: $utbetalingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    Sikkerlogg.error { "Feil ved henting av utbetalingsstatus. Status var ulik 200. utbetalingId: $utbetalingId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
-                    return@catch KunneIkkeHenteUtbetalingsstatus.left()
-                }
-                Either.catch {
-                    when (deserialize<IverksettStatus?>(httpResponseBody)) {
-                        IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag.right()
-
-                        IverksettStatus.FEILET_MOT_OPPDRAG -> Utbetalingsstatus.FeiletMotOppdrag.right()
-
-                        IverksettStatus.OK -> Utbetalingsstatus.Ok.right()
-
-                        IverksettStatus.IKKE_PÅBEGYNT -> Utbetalingsstatus.IkkePåbegynt.right()
-
-                        IverksettStatus.OK_UTEN_UTBETALING -> Utbetalingsstatus.OkUtenUtbetaling.right()
-
-                        null -> {
-                            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Respons fra statusapiet til helved var null. Dette forventer vi ikke. utbetalingId: $utbetalingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                            KunneIkkeHenteUtbetalingsstatus.left()
-                        }
-                    }
-                }.getOrElse {
-                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av utbetalingsstatus. Se sikkerlogg for mer kontekst. utbetalingId: $utbetalingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    Sikkerlogg.error(it) { "Feil ved deserialisering av utbetalingsstatus. utbetalingId: $utbetalingId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
-                    KunneIkkeHenteUtbetalingsstatus.left()
-                }
-            }.mapLeft {
-                log.error(it) { "Ukjent feil ved henting av utbetalingsstatus. utbetalingId: $utbetalingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
-                KunneIkkeHenteUtbetalingsstatus
-            }.flatten()
-        }
+    ): Either<HttpKlientError, Utbetalingsstatus> {
+        val uri = URI.create("$baseUrl/api/iverksetting/${utbetaling.saksnummer.verdi}/${utbetaling.utbetalingId.uuidPart()}/status")
+        return httpKlient.get<IverksettStatus>(uri) {
+            timeout = statusTimeout
+        }.map { it.body.tilUtbetalingsstatus() }
     }
 
-    /**
-     * Logger alle feil(lefts), så det trengs ikke gjøres av service/domenet.
-     * Nåværende versjon: https://helved-docs.intern.dev.nav.no/v2/doc/simulering
-     */
     override suspend fun simuler(
         sakId: SakId,
         saksnummer: Saksnummer,
@@ -200,172 +138,66 @@ class UtbetalingHttpKlient(
         forrigeUtbetalingId: UtbetalingId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        return withContext(Dispatchers.IO) {
-            val sakId = sakId
-            val saksnummer = saksnummer
-            val behandlingId = behandlingId
-            val path = "$baseUrl/api/simulering/v2"
-            val jsonPayload = toSimuleringRequest(
-                saksnummer = saksnummer,
-                behandlingId = behandlingId,
-                fnr = fnr,
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-                brukersNavkontor = brukersNavkontor,
-                forrigeUtbetalingJson = forrigeUtbetalingJson,
-                forrigeUtbetalingId = forrigeUtbetalingId,
-            )
-            Either.catch {
-                val token = getToken().token
-                val request = HttpRequest
-                    .newBuilder()
-                    .uri(URI.create(path))
-                    .timeout(simuleringTimeout.toJavaDuration())
-                    .header("Authorization", "Bearer $token")
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                    .build()
-
-                val requestHeaders = request.headers().map().filterKeys { it != "Authorization" }
-                val httpResponse = simuleringClient.sendAsync(request, HttpResponse.BodyHandlers.ofString()).await()
-                val httpResponseBody = httpResponse.body()
-                val status = httpResponse.statusCode()
-                val responseHeaders = httpResponse.headers().map()
-                if (status == 503) {
-                    log.debug { "503 Service Unavailable fra helved simulering. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId" }
-                    Sikkerlogg.debug { "503 Service Unavailable fra helved simulering. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, body: $httpResponseBody" }
-                    return@catch KunneIkkeSimulere.Stengt.left()
-                }
-                if (status == 204) {
-                    return@catch SimuleringMedMetadata(
-                        simulering = Simulering.IngenEndring(LocalDateTime.now(clock)),
-                        httpResponseBody,
-                    ).right()
-                }
-                if (status != 200) {
-                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved simulering. Status var ulik 200. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    Sikkerlogg.error { "Feil ved simulering. Status var ulik 200. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, httpResponseBody: $httpResponseBody, path: $path, status: $status, requestHeaders: $requestHeaders, responseHeaders: $responseHeaders" }
-                    return@catch KunneIkkeSimulere.UkjentFeil.left()
-                }
-                Either.catch {
+        val jsonPayload = toSimuleringRequest(
+            saksnummer = saksnummer,
+            behandlingId = behandlingId,
+            fnr = fnr,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            brukersNavkontor = brukersNavkontor,
+            forrigeUtbetalingJson = forrigeUtbetalingJson,
+            forrigeUtbetalingId = forrigeUtbetalingId,
+        )
+        return httpKlient.post<String>(simuleringUri, jsonPayload) {
+            timeout = simuleringTimeout
+            // 204 betyr at simuleringen ikke gir noen endring i utbetalingen.
+            successStatus(200, 204)
+        }.mapLeft { it.tilKunneIkkeSimulere() }
+            .flatMap { response ->
+                if (response.statusCode == 204) {
                     SimuleringMedMetadata(
-                        httpResponseBody.toSimuleringFraHelvedResponse(
-                            meldeperiodeKjeder = meldeperiodeKjeder,
-                            clock = clock,
+                        simulering = Simulering.IngenEndring(
+                            simuleringstidspunkt = response.metadata.tidsstempler.responsMottatt ?: nå(clock),
                         ),
-                        httpResponseBody,
+                        originalResponseBody = response.body,
                     ).right()
-                }.getOrElse {
-                    log.error(RuntimeException("Trigger stacktrace for enklere debug.")) { "Feil ved deserialisering av simulering. Se sikkerlogg for mer kontekst. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path, status: $status" }
-                    Sikkerlogg.error(it) { "Feil ved deserialisering av simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, jsonResponse: $httpResponseBody, path: $path, status: $status" }
-                    KunneIkkeSimulere.UkjentFeil.left()
+                } else {
+                    Either.catch {
+                        SimuleringMedMetadata(
+                            simulering = response.body.toSimuleringFraHelvedResponse(
+                                meldeperiodeKjeder = meldeperiodeKjeder,
+                                clock = clock,
+                            ),
+                            originalResponseBody = response.body,
+                        )
+                    }.mapLeft { throwable ->
+                        KunneIkkeSimulere.UkjentFeil(
+                            HttpKlientError.DeserializationError(
+                                throwable = throwable,
+                                body = response.body,
+                                statusCode = response.statusCode,
+                                metadata = response.metadata,
+                            ),
+                        )
+                    }
                 }
-            }.mapLeft {
-                log.error(it) { "Feil ved simulering. behandlingId: $behandlingId, saksnummer: $saksnummer, sakId: $sakId, path: $path" }
-
-                when (it) {
-                    is HttpTimeoutException -> KunneIkkeSimulere.Timeout
-                    else -> KunneIkkeSimulere.UkjentFeil
-                }
-            }.flatten()
-        }
+            }
     }
-}
 
-private fun mapIverksettStatus(
-    status: Int,
-    utbetaling: VedtattUtbetaling,
-    request: String,
-    response: String,
-    token: AccessToken,
-): Either<KunneIkkeUtbetale, SendtUtbetaling> {
-    val utbetalingId = utbetaling.id
+    private fun IverksettStatus.tilUtbetalingsstatus(): Utbetalingsstatus = when (this) {
+        IverksettStatus.SENDT_TIL_OPPDRAG -> Utbetalingsstatus.SendtTilOppdrag
+        IverksettStatus.FEILET_MOT_OPPDRAG -> Utbetalingsstatus.FeiletMotOppdrag
+        IverksettStatus.OK -> Utbetalingsstatus.Ok
+        IverksettStatus.IKKE_PÅBEGYNT -> Utbetalingsstatus.IkkePåbegynt
+        IverksettStatus.OK_UTEN_UTBETALING -> Utbetalingsstatus.OkUtenUtbetaling
+    }
 
-    when (status) {
-        202 -> {
-            log.info {
-                "202 Accepted fra helved utsjekk for, utbetaling $utbetalingId. Response: $response. Se sikkerlogg for mer kontekst."
-            }
-            Sikkerlogg.info {
-                "202 Accepted fra helved utsjekk for, utbetaling $utbetalingId. Response: $response. Request = $request"
-            }
-            return SendtUtbetaling(
-                request = request,
-                response = response,
-                responseStatus = status,
-            ).right()
-        }
+    private fun HttpKlientError.tilKunneIkkeSimulere(): KunneIkkeSimulere = when {
+        this is HttpKlientError.Timeout -> KunneIkkeSimulere.Timeout(this)
 
-        400 -> {
-            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                "400 Bad Request fra helved utsjekk, for utbetaling $utbetalingId. Denne vil bli prøvd på nytt. Response: $response. Se sikkerlogg for mer kontekst."
-            }
-            Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                "400 Bad Request fra helved utsjekk, for utbetaling $utbetalingId. Denne vil bli prøvd på nytt. Response: $response. Request = $request"
-            }
-            return KunneIkkeUtbetale(
-                request = request,
-                response = response,
-                responseStatus = status,
-            ).left()
-        }
+        // OS har åpningstider; 503 betyr stengt/vedlikehold, ikke en feil hos oss.
+        this is HttpKlientError.UventetStatus && statusCode == 503 -> KunneIkkeSimulere.Stengt(this)
 
-        401, 403 -> {
-            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                "$status fra helved utsjekk, for utbetaling $utbetalingId. Denne vil bli prøvd på nytt. Response: $response. Se sikkerlogg for mer kontekst."
-            }
-            Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                "$status fra helved utsjekk, for utbetaling $utbetalingId. Denne vil bli prøvd på nytt. Response: $response. Request = $request"
-            }
-            return KunneIkkeUtbetale(
-                request = request,
-                response = response,
-                responseStatus = status,
-            ).left()
-        }
-
-        409 -> {
-            // TODO post-mvp jah: På sikt er dette en litt skjør sjekk som kan føre til at vi må endre denne sjekken dersom helved forandrer meldingen. Vi har bestilt et ønske fra helved om at vi får en json-respons med en kontraktsfestet kode, evt. at de garanterer at 409 kun brukes til dedupformål.
-            if (response.contains("Iverksettingen er allerede mottatt")) {
-                log.info {
-                    "409 Conflict fra helved utsjekk, for utbetaling $utbetalingId. Vi antar vi har sendt samme melding tidligere og behandler denne på samme måte som 202 Response: $response. Se sikkerlogg for mer kontekst."
-                }
-                Sikkerlogg.info {
-                    "409 Conflict fra helved utsjekk, for utbetaling $utbetalingId. Vi antar vi har sendt samme melding tidligere og behandler denne på samme måte som 202 Response: $response. Request = $request"
-                }
-                return SendtUtbetaling(
-                    request = request,
-                    response = response,
-                    responseStatus = status,
-                ).right()
-            } else {
-                log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                    "409 Conflict fra helved utsjekk, for utbetaling $utbetalingId. Vi forventet responsen 'Iverksettingen er allerede mottatt', men fikk $response. Se sikkerlogg for mer kontekst."
-                }
-                Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                    "409 Conflict fra helved utsjekk, for utbetaling $utbetalingId. Vi forventet responsen 'Iverksettingen er allerede mottatt', men fikk $response. Request = $request"
-                }
-                return KunneIkkeUtbetale(
-                    request = request,
-                    response = response,
-                    responseStatus = status,
-                ).left()
-            }
-        }
-
-        else -> {
-            log.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                "Ukjent feil fra helved utsjekk, for utbetaling $utbetalingId. Denne vil bli prøvd på nytt. Statuskode: $status, response: $response. Se sikkerlogg for mer kontekst."
-            }
-            Sikkerlogg.error(RuntimeException("Trigger stacktrace for enklere debug.")) {
-                "Ukjent feil fra helved utsjekk, for utbetaling $utbetalingId. Denne vil bli prøvd på nytt. Statuskode: $status, response: $response. Request = $request"
-            }
-            return KunneIkkeUtbetale(
-                request = request,
-                response = response,
-                responseStatus = status,
-            ).left()
-        }
+        else -> KunneIkkeSimulere.UkjentFeil(this)
     }
 }

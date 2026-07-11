@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.fixedClock
@@ -16,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldepe
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeHenteUtbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -44,6 +44,7 @@ class UtbetalingFakeKlient(
             utbetaling.toUtbetalingRequestDTO(forrigeUtbetalingJson),
             "response - ${utbetaling.id}",
             responseStatus = 202,
+            alleredeMottattTidligere = false,
         )
 
         if (skalStarteTilbakekrevinger) {
@@ -55,7 +56,7 @@ class UtbetalingFakeKlient(
 
     override suspend fun hentUtbetalingsstatus(
         utbetaling: UtbetalingDetSkalHentesStatusFor,
-    ): Either<KunneIkkeHenteUtbetalingsstatus, Utbetalingsstatus> {
+    ): Either<HttpKlientError, Utbetalingsstatus> {
         return Utbetalingsstatus.Ok.right()
     }
 

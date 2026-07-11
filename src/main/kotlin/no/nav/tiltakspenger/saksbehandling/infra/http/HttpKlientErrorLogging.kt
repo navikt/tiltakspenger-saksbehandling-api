@@ -27,7 +27,7 @@ fun HttpKlientError.loggFeil(
     val logMelding =
         "Feil ved $operasjon. $kontekst. Status: ${metadata.statusCode}, forsøk: ${metadata.attempts}. Se sikkerlogg for detaljer."
     val sikkerMelding =
-        "Feil ved $operasjon. $kontekst. request: ${metadata.rawRequestString}. response: ${metadata.rawResponseString}."
+        "Feil ved $operasjon. $kontekst. Status: ${metadata.statusCode}, forsøk: ${metadata.attempts}, request: ${metadata.rawRequestString}. response: ${metadata.rawResponseString}. responseHeaders: ${metadata.responseHeaders}."
     if (throwable != null) {
         logger.error(throwable) { logMelding }
         Sikkerlogg.error(throwable) { sikkerMelding }

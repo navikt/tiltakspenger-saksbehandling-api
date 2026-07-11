@@ -1,12 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.httpklient.rawResponseString
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -22,6 +26,8 @@ class SimulerService(
     private val navkontorService: NavkontorService,
     private val utbetalingRepo: UtbetalingRepo,
 ) {
+    private val logger = KotlinLogging.logger { }
+
     /**
      * Skal kun brukes fra en annen service.
      * Dersom kommandoen er trigget av en saksbehandler, forventer vi at saksbehandler har tilgang til person.
@@ -112,6 +118,26 @@ class SimulerService(
             forrigeUtbetalingId = forrigeUtbetaling?.id,
             meldeperiodeKjeder = meldeperiodeKjeder,
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
-        )
+        ).onLeft { loggSimuleringsfeil(it, sakId, saksnummer, behandlingId) }
+    }
+
+    private fun loggSimuleringsfeil(
+        feil: KunneIkkeSimulere,
+        sakId: SakId,
+        saksnummer: Saksnummer,
+        behandlingId: Ulid,
+    ) {
+        val kontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId"
+        when (feil) {
+            // Forventet utenfor åpningstidene til OS; ikke en feilsituasjon hos oss.
+            is KunneIkkeSimulere.Stengt -> {
+                logger.debug { "Simulering mot helved: 503 Service Unavailable. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. Se sikkerlogg for mer kontekst. $kontekst" }
+                Sikkerlogg.debug { "Simulering mot helved: 503 Service Unavailable. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. $kontekst, body: ${feil.feil.rawResponseString}" }
+            }
+
+            is KunneIkkeSimulere.Timeout -> feil.feil.loggFeil(logger, "simulering mot helved (timeout)", kontekst)
+
+            is KunneIkkeSimulere.UkjentFeil -> feil.feil.loggFeil(logger, "simulering mot helved", kontekst)
+        }
     }
 }

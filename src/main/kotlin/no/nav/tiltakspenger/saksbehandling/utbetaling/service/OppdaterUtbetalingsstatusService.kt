@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -60,7 +61,7 @@ class OppdaterUtbetalingsstatusService(
                     MetricRegister.UTBETALING_IKKE_OK.inc()
                 }
             }.onLeft {
-                // Dette logges fra klienten.
+                it.loggFeil(logger, "henting av utbetalingsstatus fra helved", "Kontekst: $utbetaling. Denne vil bli prøvd på nytt.")
             }
         }.onLeft {
             with("Uventet feil ved oppdatering av utbetalingsstatus for $utbetaling.") {

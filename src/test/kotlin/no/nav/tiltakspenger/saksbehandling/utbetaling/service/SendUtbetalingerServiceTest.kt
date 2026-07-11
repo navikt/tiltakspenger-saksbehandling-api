@@ -35,7 +35,7 @@ internal class SendUtbetalingerServiceTest {
         val utbetaling = ObjectMother.utbetaling()
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
-        val sendtUtbetaling = SendtUtbetaling("req", "res", 202)
+        val sendtUtbetaling = SendtUtbetaling("req", "res", 202, alleredeMottattTidligere = false)
         coEvery { utbetalingsklient.iverksett(any(), any(), any()) } returns Either.Right(sendtUtbetaling)
         justRun { utbetalingRepo.markerSendtTilUtbetaling(utbetaling.id, any(), sendtUtbetaling) }
 
@@ -55,7 +55,7 @@ internal class SendUtbetalingerServiceTest {
         val utbetaling = ObjectMother.utbetaling()
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
-        val kunneIkkeUtbetale = KunneIkkeUtbetale("req", "res", 409)
+        val kunneIkkeUtbetale = KunneIkkeUtbetale(request = "req", feil = ObjectMother.httpKlientUventetStatus(statusCode = 409, body = "res"))
         coEvery { utbetalingsklient.iverksett(any(), any(), any()) } returns Either.Left(kunneIkkeUtbetale)
         justRun {
             utbetalingRepo.lagreFeilResponsFraUtbetaling(

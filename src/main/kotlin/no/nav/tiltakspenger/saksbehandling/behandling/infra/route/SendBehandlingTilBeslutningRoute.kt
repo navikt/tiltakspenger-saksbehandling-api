@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringErrorJson
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/sendtilbeslutning"
 

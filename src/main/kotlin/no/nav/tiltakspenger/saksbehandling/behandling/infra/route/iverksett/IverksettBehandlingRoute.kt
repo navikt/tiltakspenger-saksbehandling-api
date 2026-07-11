@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringErrorJson
 import no.nav.tiltakspenger.saksbehandling.vedtak.OpprettRammevedtakFeil
 
 private val logger = KotlinLogging.logger {}

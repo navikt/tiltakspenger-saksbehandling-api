@@ -188,7 +188,7 @@ internal fun TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning(
                 correlationId = CorrelationId.generate(),
                 dager = dager,
             ),
-            simuler = { KunneIkkeSimulere.Stengt.left() },
+            simuler = { KunneIkkeSimulere.Stengt(ObjectMother.httpKlientUventetStatus(statusCode = 503)).left() },
             clock = clock,
         ).getOrFail()
 

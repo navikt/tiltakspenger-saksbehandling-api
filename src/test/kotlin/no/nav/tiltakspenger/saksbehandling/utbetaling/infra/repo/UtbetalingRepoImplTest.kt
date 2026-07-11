@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingRequestDTO
@@ -35,7 +36,7 @@ class UtbetalingRepoImplTest {
             utbetalingRepo.markerSendtTilUtbetaling(
                 utbetalingId = utbetaling.id,
                 tidspunkt = tidspunkt,
-                utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202),
+                utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202, alleredeMottattTidligere = false),
             )
             utbetalingRepo.hentUtbetalingJson(utbetaling.id) shouldBe "myReq"
             utbetalingRepo.hentForUtsjekk() shouldBe emptyList()
@@ -56,7 +57,10 @@ class UtbetalingRepoImplTest {
             utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
             utbetalingRepo.lagreFeilResponsFraUtbetaling(
                 utbetalingId = utbetaling.id,
-                utbetalingsrespons = KunneIkkeUtbetale("myFailedReq", "myFailedRes", 409),
+                utbetalingsrespons = KunneIkkeUtbetale(
+                    request = "myFailedReq",
+                    feil = httpKlientUventetStatus(statusCode = 409, body = "myFailedRes"),
+                ),
             )
             utbetalingRepo.hentUtbetalingJson(utbetaling.id) shouldBe "myFailedReq"
             utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
@@ -79,7 +83,7 @@ class UtbetalingRepoImplTest {
             utbetalingRepo.markerSendtTilUtbetaling(
                 utbetalingId = utbetaling.id,
                 tidspunkt = sendtTilUtbetalingTidspunkt,
-                utbetalingsrespons = SendtUtbetaling(utbetaling.toUtbetalingRequestDTO(null), "myRes", 202),
+                utbetalingsrespons = SendtUtbetaling(utbetaling.toUtbetalingRequestDTO(null), "myRes", 202, alleredeMottattTidligere = false),
             )
 
             fun expected(

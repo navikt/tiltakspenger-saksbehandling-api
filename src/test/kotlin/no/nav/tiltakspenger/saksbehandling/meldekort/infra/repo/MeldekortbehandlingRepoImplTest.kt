@@ -95,7 +95,7 @@ class MeldekortbehandlingRepoImplTest {
                 meldekortRepo.lagre(meldekortbehandling, null)
 
                 val (_, oppdatertMeldekortbehandling, simulering) = sakMedMeldekortbehandling.oppdaterMeldekort(
-                    simuler = { KunneIkkeSimulere.UkjentFeil.left() },
+                    simuler = { KunneIkkeSimulere.UkjentFeil(ObjectMother.httpKlientUventetStatus()).left() },
                     kommando = meldekortbehandling.tilOppdaterMeldekortKommando(
                         ObjectMother.saksbehandler(),
                     ),

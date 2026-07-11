@@ -61,4 +61,8 @@ data class VedtattUtbetaling(
     val ordinærBeløp: Int = beregning.ordinærBeløp
     val barnetilleggBeløp: Int = beregning.barnetilleggBeløp
     val totalBeløp: Int = beregning.totalBeløp
+
+    /** PII-fri kontekst for logglinjer om denne utbetalingen, så alle kallere logger de samme identifikatorene på samme format. */
+    val enkelLoggKontekst: String =
+        "sakId: $sakId, saksnummer: $saksnummer, utbetalingId: $id, vedtakId: $vedtakId"
 }

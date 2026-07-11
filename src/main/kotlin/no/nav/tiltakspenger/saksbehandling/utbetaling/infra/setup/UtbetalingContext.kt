@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup
 
+import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
@@ -37,7 +38,10 @@ open class UtbetalingContext(
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
             baseUrl = Configuration.utbetalingUrl,
-            getToken = { texasClient.getSystemToken(Configuration.utbetalingScope, IdentityProvider.AZUREAD) },
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean) =
+                    texasClient.getSystemToken(Configuration.utbetalingScope, IdentityProvider.AZUREAD, skipCache = skipCache)
+            },
             clock = clock,
         )
     }
