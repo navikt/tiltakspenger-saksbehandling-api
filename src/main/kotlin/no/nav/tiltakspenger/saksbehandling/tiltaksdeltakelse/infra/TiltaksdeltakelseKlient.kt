@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra
 
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
@@ -16,11 +18,11 @@ interface TiltaksdeltakelseKlient {
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): TiltaksdeltakelserFraRegister
+    ): Either<HttpKlientError, TiltaksdeltakelserFraRegister>
 
     suspend fun hentTiltaksdeltakelserMedArrangørnavn(
         fnr: Fnr,
         harAdressebeskyttelse: Boolean,
         correlationId: CorrelationId,
-    ): List<TiltaksdeltakelseMedArrangørnavn>
+    ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>>
 }

@@ -64,7 +64,7 @@ class TiltaksdeltakelseServiceTest {
                     harAdressebeskyttelse = any(),
                     correlationId = any(),
                 )
-            } returns tiltaksdeltakelser
+            } returns tiltaksdeltakelser.right()
 
             val tiltaksdeltakelserForPeriode = tiltaksdeltakelseService.hentTiltaksdeltakelserForSak(
                 sakId = sak.id,
@@ -111,7 +111,7 @@ class TiltaksdeltakelseServiceTest {
                     harAdressebeskyttelse = any(),
                     correlationId = any(),
                 )
-            } returns tiltaksdeltakelser
+            } returns tiltaksdeltakelser.right()
 
             val tiltaksdeltakelserForPeriode = tiltaksdeltakelseService.hentTiltaksdeltakelserForSak(
                 sakId = sak.id,
@@ -158,7 +158,7 @@ class TiltaksdeltakelseServiceTest {
                     harAdressebeskyttelse = any(),
                     correlationId = any(),
                 )
-            } returns tiltaksdeltakelser
+            } returns tiltaksdeltakelser.right()
 
             val tiltaksdeltakelserForPeriode = tiltaksdeltakelseService.hentTiltaksdeltakelserForSak(
                 sakId = sak.id,

@@ -346,6 +346,7 @@ open class ApplicationContext(
             personService = personContext.personService,
             sakService = sakContext.sakService,
             sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
     open val profile by lazy { Configuration.profile }

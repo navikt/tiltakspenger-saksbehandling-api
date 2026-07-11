@@ -275,6 +275,7 @@ kover {
                         "no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient",
                         "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",
+                        "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",
                     )
                 }
             }

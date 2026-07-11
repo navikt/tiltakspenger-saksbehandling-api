@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.Either
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.equals.shouldBeEqual
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -62,14 +64,14 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister())
+                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister()).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): List<TiltaksdeltakelseMedArrangørnavn> {
-                    return emptyList()
+                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                    return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
@@ -177,14 +179,14 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister())
+                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister()).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): List<TiltaksdeltakelseMedArrangørnavn> {
-                    return emptyList()
+                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                    return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
@@ -285,14 +287,14 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister())
+                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister()).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): List<TiltaksdeltakelseMedArrangørnavn> {
-                    return emptyList()
+                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                    return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
@@ -421,14 +423,14 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister()))
+                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister())).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): List<TiltaksdeltakelseMedArrangørnavn> {
-                    return emptyList()
+                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                    return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
@@ -568,14 +570,14 @@ internal class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister()))
+                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister())).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): List<TiltaksdeltakelseMedArrangørnavn> {
-                    return emptyList()
+                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                    return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {

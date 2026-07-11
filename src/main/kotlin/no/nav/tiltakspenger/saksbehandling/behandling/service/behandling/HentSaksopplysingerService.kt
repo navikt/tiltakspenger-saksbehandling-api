@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -67,6 +68,12 @@ class HentSaksopplysingerService(
             aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
             inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
             sessionContext = sessionContext,
+            loggkontekst = lagLoggcontext(
+                correlationId = correlationId,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                behandlingId = behandlingId,
+            ),
         )
         // TODO jah: På sikt bør vi hente per periode i listen og ikke den totale perioden. Dette er mest aktuelt ved revurdering av to eller flere tiltaksdeltakelser som ikke overlapper.
         //  TODO 2 jah + Bente: Vi bør nok også krympe perioden basert på kravtidspunktet, slik at vi ikke henter for langt tilbake i tid.
@@ -111,12 +118,17 @@ class HentSaksopplysingerService(
         aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
         sessionContext: SessionContext? = null,
+        loggkontekst: String,
     ): Tiltaksdeltakelser {
         val tiltaksdeltakelserSomKanGiRettTilTiltakspenger = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
             fnr = fnr,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
-        )
+        ).getOrElse { feil ->
+            // Tiltaksdeltakelsene er selve behandlingsgrunnlaget — uten dem kan vi ikke bygge saksopplysninger, i motsetning til ytelser/arenavedtak som kan falle tilbake til tom liste. Kontrakten videre oppover er fortsatt throw-basert.
+            feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakspenger-tiltak", loggkontekst)
+            throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakspenger-tiltak. $loggkontekst")
+        }
         val oppdaterteEksterneIderDetErSoktFor = tiltaksdeltakelserDetErSøktTiltakspengerFor.ider.map {
             tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)
         }

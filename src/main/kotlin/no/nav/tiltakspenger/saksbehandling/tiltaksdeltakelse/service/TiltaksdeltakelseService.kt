@@ -4,11 +4,13 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import java.time.LocalDate
@@ -18,6 +20,8 @@ class TiltaksdeltakelseService(
     private val personService: PersonService,
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
 ) {
+    private val logger = KotlinLogging.logger { }
+
     suspend fun hentTiltaksdeltakelserForSak(
         sakId: SakId,
         fraOgMed: LocalDate?,
@@ -43,7 +47,10 @@ class TiltaksdeltakelseService(
             fnr = sak.fnr,
             harAdressebeskyttelse = harAdressebeskyttelse,
             correlationId = correlationId,
-        )
+        ).getOrElse { feil ->
+            feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakspenger-tiltak", "sakId: $sakId, correlationId: $correlationId")
+            return KunneIkkeHenteTiltaksdeltakelser.FeilVedKallMotTiltak.left()
+        }
 
         // Viser bare tiltaksdeltakelser som overlapper med perioden, tiltak med manglende fom og tom vises ikke.
         return alleTiltaksdeltakelser.filter {

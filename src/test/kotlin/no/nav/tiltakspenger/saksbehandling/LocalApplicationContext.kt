@@ -181,6 +181,7 @@ class LocalApplicationContext(
             sakService = sakContext.sakService,
             personService = personContext.personService,
             sessionFactory = sessionFactory,
+            clock = clock,
         ) {
             override val tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient
         }

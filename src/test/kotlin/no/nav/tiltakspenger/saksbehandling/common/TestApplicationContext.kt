@@ -249,6 +249,7 @@ sealed class TestApplicationContext(
             sakService = sakContext.sakService,
             personService = personContext.personService,
             sessionFactory = sessionFactory,
+            clock = clock,
         ) {
             override val tiltaksdeltakelseKlient = tiltaksdeltakelseFakeKlient
             override val tiltaksdeltakerRepo: TiltaksdeltakerRepo

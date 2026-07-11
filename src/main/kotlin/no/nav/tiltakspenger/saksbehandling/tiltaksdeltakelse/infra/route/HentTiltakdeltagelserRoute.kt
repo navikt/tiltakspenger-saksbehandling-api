@@ -50,6 +50,11 @@ fun Route.hentTiltakdeltakelserRoute(
                                 kode = "feil_ved_kall_mot_pdl",
                             )
 
+                            KunneIkkeHenteTiltaksdeltakelser.FeilVedKallMotTiltak -> call.respond500InternalServerError(
+                                melding = "Feil ved henting av tiltaksdeltakelser",
+                                kode = "feil_ved_kall_mot_tiltak",
+                            )
+
                             KunneIkkeHenteTiltaksdeltakelser.OppslagsperiodeMangler -> call.respond400BadRequest(
                                 melding = "Oppslagsperiode mangler",
                                 kode = "oppslagsperiode_mangler",
