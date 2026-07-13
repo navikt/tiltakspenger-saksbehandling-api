@@ -31,7 +31,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
     val brukMeldekortvedtakBrevV2: Boolean,
 ) {
 
-    suspend fun forhåndsvisBrev(kommando: ForhåndsvisBrevMeldekortbehandlingKommando): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, PdfOgJson> {
+    suspend fun forhåndsvisBrev(kommando: ForhåndsvisBrevMeldekortbehandlingKommando): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, Pair<PdfOgJson, PdfOgJson?>> {
         val meldekortbehandling = meldekortbehandlingRepo.hent(kommando.meldekortbehandlingId)
             ?: return KunneIkkeForhåndsviseBrevMeldekortbehandling.FantIkkeMeldekortbehandling.left()
 
@@ -95,7 +95,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                     forhåndsvisning = true,
                 ),
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            ).map { it.first }
+            )
         } else {
             genererBrevClient.genererMeldekortvedtakBrev(
                 kommando = GenererMeldekortvedtakBrevKommando(
@@ -115,7 +115,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                     forhåndsvisning = true,
                 ),
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            ).map { it.first }
+            )
         }.mapLeft {
             KunneIkkeForhåndsviseBrevMeldekortbehandling.FeilVedGenereringAvPdf(it)
         }

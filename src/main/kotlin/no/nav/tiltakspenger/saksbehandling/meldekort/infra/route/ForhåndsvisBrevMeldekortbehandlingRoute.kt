@@ -7,8 +7,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import io.ktor.utils.io.writeFully
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.parseBody
@@ -25,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.ugyldigRequest
+import no.nav.tiltakspenger.saksbehandling.infra.route.buildMultipartBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.tilOppdaterKommandoStatus
@@ -93,7 +96,19 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
                             correlationId = correlationId,
                             behandlingId = meldekortId,
                         )
-                        call.respondBytes(it.pdf.getContent(), ContentType.Application.Pdf)
+                        /*
+                            TODO - pdfgenrs: skift tilbake til kun call.respondBytes når det er verifisert at PDF
+                                fra pdfgenrs er ok
+                         */
+                        if (it.second == null) {
+                            call.respondBytes(it.first.pdf.getContent(), ContentType.Application.Pdf)
+                        } else {
+                            call.respondBytesWriter(
+                                ContentType.MultiPart.Mixed.withParameter("boundary", "pdf-boundary"),
+                            ) {
+                                writeFully(buildMultipartBody(it.first.pdf.getContent(), it.second!!.pdf.getContent()))
+                            }
+                        }
                     },
                 )
             }

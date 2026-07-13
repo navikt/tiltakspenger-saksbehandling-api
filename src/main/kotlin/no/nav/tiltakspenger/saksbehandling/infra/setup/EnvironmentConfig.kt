@@ -123,7 +123,7 @@ data object LocalConfig : EnvironmentConfig {
     override val dokdistUrl = "http://host.docker.internal:8091"
 
     override val pdfgenUrl = "http://host.docker.internal:8081"
-    override val pdfgenrsUrl = "http://host.docker.internal:8084"
+    override val pdfgenrsUrl = "http://host.docker.internal:8083"
 
     override val microsoftScope = "localhost"
     override val microsoftUrl = "host.docker.internal:8091"
