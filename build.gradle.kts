@@ -3,7 +3,7 @@ import kotlinx.kover.gradle.plugin.dsl.AggregationType
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 val kotlinxCoroutinesVersion = "1.11.0"
-val kotestVersion = "6.2.1"
+val kotestVersion = "6.2.2"
 val felleslibVersion = "0.0.869"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
