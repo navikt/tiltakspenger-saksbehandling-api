@@ -1,5 +1,17 @@
 name: Build and deploy
 
+# Trigges av push til main gjort av et menneske/agent (GitHub-knappen eller gh CLI).
+# Merger dependabot-auto-merge-workflowen en PR med GITHUB_TOKEN, trigges denne workflowen ikke
+# (GitHub starter ikke workflows fra pushes gjort med GITHUB_TOKEN).
+# Dependabot-merger bygges og deployes derfor først ved neste vanlige push til main.
+
+# Raske påfølgende pushes (f.eks. flere dependabot-merger) ga overlappende NAIS-rollouts,
+# der eldre deployer timet ut på readiness-proben og i verste fall vant over nyere (2026-07-16).
+# Kjør deployene serielt; ved flere ventende kjøringer vinner den nyeste.
+concurrency:
+  group: build-and-deploy
+  cancel-in-progress: false
+
 on:
   push:
     branches:
