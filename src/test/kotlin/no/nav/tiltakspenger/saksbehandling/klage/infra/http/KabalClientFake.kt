@@ -18,10 +18,10 @@ class KabalClientFake(
     override suspend fun oversend(
         klagebehandling: Klagebehandling,
         journalpostIdVedtak: JournalpostId,
-    ): Either<HttpKlientError, HttpKlientResponse<String>> =
+    ): Either<HttpKlientError, HttpKlientResponse<Unit>> =
         HttpKlientResponse(
             statusCode = 200,
-            body = "",
+            body = Unit,
             metadata =
             HttpKlientMetadata(
                 rawRequestString = "{}",

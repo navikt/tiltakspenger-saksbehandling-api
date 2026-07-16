@@ -10,5 +10,5 @@ interface KabalClient {
     suspend fun oversend(
         klagebehandling: Klagebehandling,
         journalpostIdVedtak: JournalpostId,
-    ): Either<HttpKlientError, HttpKlientResponse<String>>
+    ): Either<HttpKlientError, HttpKlientResponse<Unit>>
 }

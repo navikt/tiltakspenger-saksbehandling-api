@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
@@ -20,7 +19,7 @@ import kotlin.math.roundToInt
  * Kommentar jah: Ser ikke simuleringstypene i kontrakter: https://github.com/navikt/utsjekk-kontrakter/
  * Se også: https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringDto.kt#L90
  */
-private data class SimuleringResponseDTO(
+internal data class SimuleringResponseDTO(
     val oppsummeringer: List<OppsummeringForPeriode>,
     val detaljer: SimuleringDetaljer,
 ) {
@@ -90,11 +89,11 @@ private data class SimuleringResponseDTO(
     }
 }
 
-fun String.toSimuleringFraHelvedResponse(
+internal fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
     meldeperiodeKjeder: MeldeperiodeKjeder,
     clock: Clock,
 ): Simulering {
-    return deserialize<SimuleringResponseDTO>(this).let { res ->
+    return this.let { res ->
         if (res.detaljer.perioder.isEmpty()) {
             return Simulering.IngenEndring(LocalDateTime.now(clock))
         }

@@ -3,10 +3,16 @@ package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.SerialisertJson
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -30,15 +36,20 @@ class SokosUtbetaldataHttpClient(
     baseUrl: String,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 3.seconds,
-    private val timeout: Duration = 6.seconds,
+    timeout: Duration = 6.seconds,
     private val clock: Clock,
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = timeout
-        this.successStatus = { it == 200 }
-        this.authTokenProvider = authTokenProvider
-    },
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : SokosUtbetaldataClient {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
+
     // utbetaldata sender beskrivelsen, ikke kodeverdien
     private val relevanteYtelsestyper = Ytelsetype.entries.toTypedArray().map { it.tekstverdi }
 
@@ -60,9 +71,13 @@ class SokosUtbetaldataHttpClient(
                 ),
             ),
         )
-        return httpKlient.post<List<UtbetalingDto>>(utbetalingsinformasjonUri, jsonPayload) {
-            header("nav-call-id", correlationId.toString())
-        }.map { it.body.tilYtelser() }
+        // Utbetaldata svarer alltid 200 ved suksess; alt annet skal være feil (paritet med gammel successStatus).
+        return httpKlient.postJson<List<UtbetalingDto>>(
+            uri = utbetalingsinformasjonUri,
+            body = SerialisertJson(jsonPayload),
+            headere = listOf(NavHeadere.navCallId(correlationId.toString())),
+            godta = Statusregel.Eksakt(200),
+        ).map { it.body.tilYtelser() }
     }
 
     private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
@@ -71,8 +86,7 @@ class SokosUtbetaldataHttpClient(
             .groupBy { it.ytelsestype }
         return relevanteYtelser.map { ytelse ->
             Ytelse(
-                ytelsetype = ytelse.key?.let { key -> Ytelsetype.entries.find { key == it.tekstverdi } }
-                    ?: Ytelsetype.UKJENT,
+                ytelsetype = Ytelsetype.entries.find { ytelse.key == it.tekstverdi } ?: Ytelsetype.UKJENT,
                 perioder = ytelse.value.map {
                     Periode(
                         fraOgMed = it.ytelsesperiode.fom,

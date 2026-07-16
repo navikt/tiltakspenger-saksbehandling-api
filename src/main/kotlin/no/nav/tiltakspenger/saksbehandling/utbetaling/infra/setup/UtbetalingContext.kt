@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup
 
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
@@ -38,10 +37,10 @@ open class UtbetalingContext(
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
             baseUrl = Configuration.utbetalingUrl,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.utbetalingScope, IdentityProvider.AZUREAD, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.utbetalingScope,
+            ),
             clock = clock,
         )
     }

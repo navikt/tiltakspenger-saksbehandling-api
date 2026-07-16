@@ -7,9 +7,8 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
@@ -30,11 +29,11 @@ internal class TiltakspengerArenaHttpClientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = TiltakspengerArenaHttpClient(
+    private fun client(transport: FakeHttpTransport) = TiltakspengerArenaHttpClient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = ObjectMother.clock,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
     @Test
@@ -54,9 +53,9 @@ internal class TiltakspengerArenaHttpClientTest {
             rettighet = ArenaTPVedtak.Rettighet.TILTAKSPENGER,
             vedtakId = 42L,
         )
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(
-                body = listOf(
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                listOf(
                     ArenaTPVedtakDto(
                         fraOgMed = vedtak.fraOgMed,
                         tilOgMed = vedtak.tilOgMed,
@@ -69,20 +68,20 @@ internal class TiltakspengerArenaHttpClientTest {
         }
 
         runTest {
-            client(httpKlient).hentTiltakspengevedtakFraArena(fnr, periode, correlationId) shouldBe listOf(vedtak).right()
+            client(transport).hentTiltakspengevedtakFraArena(fnr, periode, correlationId) shouldBe listOf(vedtak).right()
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe "$baseUrl/azure/tiltakspenger/vedtak"
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/azure/tiltakspenger/vedtak"
     }
 
     @Test
     fun `henter vedtak - uventet status gir Left`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "feil") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "feil", contentType = "text/plain") }
 
         runTest {
-            val result = client(httpKlient).hentTiltakspengevedtakFraArena(fnr, periode, correlationId)
+            val result = client(transport).hentTiltakspengevedtakFraArena(fnr, periode, correlationId)
             result.isLeft() shouldBe true
         }
     }

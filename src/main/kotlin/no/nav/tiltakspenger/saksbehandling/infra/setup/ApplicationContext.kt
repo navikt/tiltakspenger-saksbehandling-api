@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.kafka.Producer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -10,6 +9,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
+import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -116,18 +116,18 @@ open class ApplicationContext(
     open val navkontorKlient: NavkontorKlient by lazy {
         val eksisterende = VeilarboppfolgingHttpClient(
             baseUrl = Configuration.veilarboppfolgingUrl,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.veilarboppfolgingScope, IdentityProvider.AZUREAD, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.veilarboppfolgingScope,
+            ),
             clock = clock,
         )
         val kontorhistorikkKlient = KontorhistorikkHttpklient(
             baseUrl = Configuration.aoKontorUrl,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.aoKontorScope, IdentityProvider.AZUREAD, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.aoKontorScope,
+            ),
             clock = clock,
         )
         SammenligningVeilarboppfolgingKlient(
@@ -139,10 +139,10 @@ open class ApplicationContext(
     open val oppgaveKlient: OppgaveKlient by lazy {
         OppgaveHttpClient(
             baseUrl = Configuration.oppgaveUrl,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.oppgaveScope, IdentityProvider.AZUREAD, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.oppgaveScope,
+            ),
             clock = clock,
         )
     }
@@ -150,10 +150,10 @@ open class ApplicationContext(
     open val sokosUtbetaldataClient: SokosUtbetaldataClient by lazy {
         SokosUtbetaldataHttpClient(
             baseUrl = Configuration.sokosUtbetaldataUrl,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.sokosUtbetaldataScope, IdentityProvider.AZUREAD, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.sokosUtbetaldataScope,
+            ),
             clock = clock,
         )
     }
@@ -161,10 +161,10 @@ open class ApplicationContext(
     open val tiltakspengerArenaClient: TiltakspengerArenaClient by lazy {
         TiltakspengerArenaHttpClient(
             baseUrl = Configuration.tiltakspengerArenaUrl,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.tiltakspengerArenaScope, IdentityProvider.AZUREAD, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.tiltakspengerArenaScope,
+            ),
             clock = clock,
         )
     }
@@ -472,10 +472,10 @@ open class ApplicationContext(
         DatadelingHttpClient(
             baseUrl = Configuration.datadelingUrl,
             clock = clock,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.datadelingScope, IdentityProvider.AZUREAD, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.datadelingScope,
+            ),
         )
     }
 

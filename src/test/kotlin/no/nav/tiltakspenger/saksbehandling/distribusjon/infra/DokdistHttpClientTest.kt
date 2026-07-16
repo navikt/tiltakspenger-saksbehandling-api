@@ -6,10 +6,9 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -33,11 +32,11 @@ internal class DokdistHttpClientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = DokdistHttpClient(
+    private fun client(transport: FakeHttpTransport) = DokdistHttpClient(
         baseUrl = baseUrl,
         clock = ObjectMother.clock,
         authTokenProvider = fakeAuthTokenProvider,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
     @Test
@@ -51,33 +50,33 @@ internal class DokdistHttpClientTest {
 
     @Test
     fun `200 gir Right med distribusjonId og POSTer med Nav-CallId`() {
-        val httpKlient = HttpKlientFake().apply { enqueueResponse(body = DokdistResponse(bestillingsId = "bestillingsId"), statusCode = 200) }
+        val transport = FakeHttpTransport().apply { leggIKøJson(DokdistResponse(bestillingsId = "bestillingsId"), statusCode = 200) }
 
         runTest {
-            client(httpKlient).distribuerDokument(journalpostId, correlationId) shouldBe DistribusjonId("bestillingsId").right()
+            client(transport).distribuerDokument(journalpostId, correlationId) shouldBe DistribusjonId("bestillingsId").right()
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe distribuerUri
-        request.headers["Nav-CallId"] shouldBe listOf(correlationId.value)
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe distribuerUri
+        kall.request.headers().allValues("Nav-CallId") shouldBe listOf(correlationId.value)
     }
 
     @Test
     fun `409 regnes som suksess og gir Right med distribusjonId`() {
-        val httpKlient = HttpKlientFake().apply { enqueueResponse(body = DokdistResponse(bestillingsId = "bestillingsId"), statusCode = 409) }
+        val transport = FakeHttpTransport().apply { leggIKøJson(DokdistResponse(bestillingsId = "bestillingsId"), statusCode = 409) }
 
         runTest {
-            client(httpKlient).distribuerDokument(journalpostId, correlationId) shouldBe DistribusjonId("bestillingsId").right()
+            client(transport).distribuerDokument(journalpostId, correlationId) shouldBe DistribusjonId("bestillingsId").right()
         }
     }
 
     @Test
     fun `uventet status videreformidler HttpKlientError som Left`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "noe feilet") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "noe feilet", contentType = "text/plain") }
 
         runTest {
-            val result = client(httpKlient).distribuerDokument(journalpostId, correlationId)
+            val result = client(transport).distribuerDokument(journalpostId, correlationId)
             result.leftOrNull().shouldBeInstanceOf<HttpKlientError.UventetStatus>()
         }
     }

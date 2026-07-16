@@ -10,10 +10,9 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakshistorikkDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
@@ -31,11 +30,11 @@ internal class TiltaksdeltakelseHttpKlientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = TiltaksdeltakelseHttpKlient(
+    private fun client(transport: FakeHttpTransport) = TiltaksdeltakelseHttpKlient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = fixedClock,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
     private fun tiltakshistorikkDTO(
@@ -75,13 +74,13 @@ internal class TiltaksdeltakelseHttpKlientTest {
         val relevantDeltakelse = tiltakshistorikkDTO()
         val utenRett = tiltakshistorikkDTO(arenaKode = TiltakResponsDTO.TiltakTypeDTO.MIDLONTIL)
         val utenDatoerOgIkkeVenterPåOppstart = tiltakshistorikkDTO(deltakelseFom = null, deltakelseTom = null)
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(body = listOf(relevantDeltakelse, utenRett, utenDatoerOgIkkeVenterPåOppstart))
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(listOf(relevantDeltakelse, utenRett, utenDatoerOgIkkeVenterPåOppstart))
         }
         val correlationId = CorrelationId.generate()
 
         runTest {
-            val tiltaksdeltakelser = client(httpKlient).hentTiltaksdeltakelser(
+            val tiltaksdeltakelser = client(transport).hentTiltaksdeltakelser(
                 fnr = fnr,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor.empty(),
                 correlationId = correlationId,
@@ -90,10 +89,10 @@ internal class TiltaksdeltakelseHttpKlientTest {
             tiltaksdeltakelser.value.map { it.eksternDeltakelseId } shouldBe listOf(relevantDeltakelse.id)
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe "$baseUrl/azure/tiltakshistorikk"
-        request.headers["Nav-Call-Id"] shouldBe listOf(correlationId.value)
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/azure/tiltakshistorikk"
+        kall.request.headers().allValues("Nav-Call-Id") shouldBe listOf(correlationId.value)
     }
 
     @Test
@@ -103,10 +102,10 @@ internal class TiltaksdeltakelseHttpKlientTest {
             deltakelseTom = null,
             deltakelseStatus = TiltakResponsDTO.DeltakerStatusDTO.VENTER_PA_OPPSTART,
         )
-        val httpKlient = HttpKlientFake().apply { enqueueResponse(body = listOf(venterPåOppstart)) }
+        val transport = FakeHttpTransport().apply { leggIKøJson(listOf(venterPåOppstart)) }
 
         runTest {
-            val tiltaksdeltakelser = client(httpKlient).hentTiltaksdeltakelser(
+            val tiltaksdeltakelser = client(transport).hentTiltaksdeltakelser(
                 fnr = fnr,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor.empty(),
                 correlationId = CorrelationId.generate(),
@@ -118,10 +117,10 @@ internal class TiltaksdeltakelseHttpKlientTest {
 
     @Test
     fun `hentTiltaksdeltakelser - feilstatus gir Left med HttpKlientError`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "feil") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "feil", contentType = "text/plain") }
 
         runTest {
-            val feil = client(httpKlient).hentTiltaksdeltakelser(
+            val feil = client(transport).hentTiltaksdeltakelser(
                 fnr = fnr,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = TiltaksdeltakelserDetErSøktTiltakspengerFor.empty(),
                 correlationId = CorrelationId.generate(),
@@ -134,10 +133,10 @@ internal class TiltaksdeltakelseHttpKlientTest {
     @Test
     fun `hentTiltaksdeltakelserMedArrangørnavn - maskerer arrangørnavn ved adressebeskyttelse`() {
         val deltakelse = tiltakshistorikkDTO()
-        val httpKlient = HttpKlientFake().apply { enqueueResponse(body = listOf(deltakelse)) }
+        val transport = FakeHttpTransport().apply { leggIKøJson(listOf(deltakelse)) }
 
         runTest {
-            val tiltaksdeltakelser = client(httpKlient).hentTiltaksdeltakelserMedArrangørnavn(
+            val tiltaksdeltakelser = client(transport).hentTiltaksdeltakelserMedArrangørnavn(
                 fnr = fnr,
                 harAdressebeskyttelse = true,
                 correlationId = CorrelationId.generate(),
@@ -154,10 +153,10 @@ internal class TiltaksdeltakelseHttpKlientTest {
 
     @Test
     fun `hentTiltaksdeltakelserMedArrangørnavn - timeout gir Left`() {
-        val httpKlient = HttpKlientFake().apply { enqueueTimeout() }
+        val transport = FakeHttpTransport().apply { leggIKøKast(java.net.http.HttpTimeoutException("simulert timeout")) }
 
         runTest {
-            val feil = client(httpKlient).hentTiltaksdeltakelserMedArrangørnavn(
+            val feil = client(transport).hentTiltaksdeltakelserMedArrangørnavn(
                 fnr = fnr,
                 harAdressebeskyttelse = false,
                 correlationId = CorrelationId.generate(),

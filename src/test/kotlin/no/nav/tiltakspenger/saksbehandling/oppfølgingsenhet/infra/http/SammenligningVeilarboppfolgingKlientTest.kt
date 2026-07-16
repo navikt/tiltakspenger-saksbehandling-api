@@ -7,8 +7,8 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.BruktNavkontorKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteNavkontor
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 /**
- * Klientene er konkrete klasser uten interface, så vi faker på HTTP-nivå med [HttpKlientFake].
+ * Klientene er konkrete klasser uten interface, så vi faker på transport-nivå med `FakeHttpTransport` — hele den reelle pipelinen kjører.
  * Testene dekker dermed også JSON-mappingen i begge klientene, ikke bare valg-/logglogikken.
  */
 internal class SammenligningVeilarboppfolgingKlientTest {
@@ -27,29 +27,29 @@ internal class SammenligningVeilarboppfolgingKlientTest {
     }
 
     private fun klient(
-        veilarbHttp: HttpKlientFake,
-        kontorhistorikkHttp: HttpKlientFake,
+        veilarbHttp: FakeHttpTransport,
+        kontorhistorikkHttp: FakeHttpTransport,
     ) = SammenligningVeilarboppfolgingKlient(
         eksisterende = VeilarboppfolgingHttpClient(
             baseUrl = "http://veilarboppfolging.test",
             authTokenProvider = authTokenProvider,
             clock = ObjectMother.clock,
-            httpKlient = veilarbHttp,
+            transport = veilarbHttp,
         ),
         kontorhistorikkKlient = KontorhistorikkHttpklient(
             baseUrl = "http://ao-oppfolgingskontor.test",
             authTokenProvider = authTokenProvider,
             clock = ObjectMother.clock,
-            httpKlient = kontorhistorikkHttp,
+            transport = kontorhistorikkHttp,
         ),
     )
 
     private fun veilarbHttpMedEnhet(
         navn: String = "Nav Asker",
         enhetId: String = "0220",
-    ) = HttpKlientFake().apply {
-        enqueueResponse(
-            body = Response(
+    ) = FakeHttpTransport().apply {
+        leggIKøJson(
+            Response(
                 oppfolgingsenhet = Oppfolgingsenhet(navn = navn, enhetId = enhetId),
                 veilederId = null,
                 formidlingsgruppe = null,
@@ -59,9 +59,9 @@ internal class SammenligningVeilarboppfolgingKlientTest {
         )
     }
 
-    private fun veilarbHttpUtenEnhet() = HttpKlientFake().apply {
-        enqueueResponse(
-            body = Response(
+    private fun veilarbHttpUtenEnhet() = FakeHttpTransport().apply {
+        leggIKøJson(
+            Response(
                 oppfolgingsenhet = null,
                 veilederId = null,
                 formidlingsgruppe = null,
@@ -71,8 +71,8 @@ internal class SammenligningVeilarboppfolgingKlientTest {
         )
     }
 
-    private fun kontorhistorikkHttpMedInnslag(vararg innslag: KontorhistorikkDto) = HttpKlientFake().apply {
-        enqueueResponse(body = GraphQlResponse(data = GraphQlData(kontorHistorikk = innslag.toList())))
+    private fun kontorhistorikkHttpMedInnslag(vararg innslag: KontorhistorikkDto) = FakeHttpTransport().apply {
+        leggIKøJson(GraphQlResponse(data = GraphQlData(kontorHistorikk = innslag.toList())))
     }
 
     private fun dto(
@@ -115,14 +115,14 @@ internal class SammenligningVeilarboppfolgingKlientTest {
             klient.hentNavkontor(Fnr.random(), loggkontekst = "sakId: 123")
         }
 
-        kontorhistorikkHttp.requests.size shouldBe 1
+        kontorhistorikkHttp.mottatteKall.size shouldBe 1
     }
 
     @Test
     fun `Left fra ny klient påvirker ikke eksisterende svar`() {
         val klient = klient(
             veilarbHttp = veilarbHttpMedEnhet(),
-            kontorhistorikkHttp = HttpKlientFake().apply { enqueueNetworkError() },
+            kontorhistorikkHttp = FakeHttpTransport().apply { leggIKøKast(java.io.IOException("simulert nettverksfeil")) },
         )
 
         runTest {
@@ -136,7 +136,7 @@ internal class SammenligningVeilarboppfolgingKlientTest {
     fun `exception fra ny klient påvirker ikke eksisterende svar`() {
         val klient = klient(
             veilarbHttp = veilarbHttpMedEnhet(),
-            kontorhistorikkHttp = HttpKlientFake().apply { enqueue { error("uventet feil i ny klient") } },
+            kontorhistorikkHttp = FakeHttpTransport().apply { leggIKøKast(IllegalStateException("uventet feil i ny klient")) },
         )
 
         runTest {
@@ -148,7 +148,7 @@ internal class SammenligningVeilarboppfolgingKlientTest {
     @Test
     fun `Left fra eksisterende klient propageres med kontorhistorikkKall vedlagt`() {
         val klient = klient(
-            veilarbHttp = HttpKlientFake().apply { enqueueNetworkError() },
+            veilarbHttp = FakeHttpTransport().apply { leggIKøKast(java.io.IOException("simulert nettverksfeil")) },
             kontorhistorikkHttp = kontorhistorikkHttpMedInnslag(dto()),
         )
 
@@ -200,7 +200,7 @@ internal class SammenligningVeilarboppfolgingKlientTest {
     fun `andre Left enn ManglerOppfolgingsenhet faller IKKE tilbake på ny klient`() {
         // Vi vil ikke skjule kall-/HTTP-/tjenestefeil ved å bytte til ny klient. Bare nullsvar (mangler).
         val klient = klient(
-            veilarbHttp = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 503, body = "fail") },
+            veilarbHttp = FakeHttpTransport().apply { leggIKøStatus(statusCode = 503, body = "fail", contentType = "text/plain") },
             kontorhistorikkHttp = kontorhistorikkHttpMedInnslag(dto()),
         )
 

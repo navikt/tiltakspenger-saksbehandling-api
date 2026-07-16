@@ -2,10 +2,16 @@ package no.nav.tiltakspenger.saksbehandling.distribusjon.infra
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.SerialisertJson
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -49,16 +55,19 @@ class DokdistHttpClient(
     clock: Clock,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 1.seconds,
-    defaultTimeout: Duration = 1.seconds,
-    // 409 er en forventet statuskode ved forsøk på å distribuere samme dokument flere ganger, og regnes derfor som suksess.
-    successStatus: (Int) -> Boolean = { it == 200 || it == 409 },
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = defaultTimeout
-        this.successStatus = successStatus
-        this.authTokenProvider = authTokenProvider
-    },
+    timeout: Duration = 1.seconds,
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : Dokumentdistribusjonsklient {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
+
     private val uri = URI.create("$baseUrl/rest/v1/distribuerjournalpost")
 
     override suspend fun distribuerDokument(
@@ -66,8 +75,12 @@ class DokdistHttpClient(
         correlationId: CorrelationId,
     ): Either<HttpKlientError, DistribusjonId> {
         val jsonPayload = journalpostId.toDokdistRequest()
-        return httpKlient.post<DokdistResponse>(uri, jsonPayload) {
-            header("Nav-CallId", correlationId.value)
-        }.map { DistribusjonId(it.body.bestillingsId) }
+        // 409 er en forventet statuskode ved forsøk på å distribuere samme dokument flere ganger, og bodyen har samme form som ved 200 — derfor er den med i godta i stedet for å utledes fra feiltypen.
+        return httpKlient.postJson<DokdistResponse>(
+            uri = uri,
+            body = SerialisertJson(jsonPayload),
+            headere = listOf(NavHeadere.navCallid(correlationId.value)),
+            godta = Statusregel.Eksakt(200, 409),
+        ).map { DistribusjonId(it.body.bestillingsId) }
     }
 }

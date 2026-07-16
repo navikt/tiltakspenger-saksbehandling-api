@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.setup
 
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesHttpSkjermingsklient
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -27,6 +27,7 @@ open class PersonContext(
     open val personKlient: PersonKlient by lazy {
         PersonHttpklient(
             endepunkt = Configuration.pdlUrl,
+            clock = clock,
             getToken = { texasClient.getSystemToken(Configuration.pdlScope, IdentityProvider.AZUREAD) },
         )
     }
@@ -34,15 +35,17 @@ open class PersonContext(
         FellesHttpSkjermingsklient(
             endepunkt = Configuration.skjermingUrl,
             getToken = { texasClient.getSystemToken(Configuration.skjermingScope, IdentityProvider.AZUREAD) },
+            clock = clock,
         )
     }
     open val navIdentClient: NavIdentClient by lazy {
         MicrosoftGraphApiClient(
             baseUrl = Configuration.microsoftUrl,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(Configuration.microsoftScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false, skipCache = skipCache)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.microsoftScope,
+                rewriteAudienceTarget = false,
+            ),
             clock = clock,
         )
     }

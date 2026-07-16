@@ -9,10 +9,9 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorhistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk
@@ -30,15 +29,15 @@ internal class KontorhistorikkHttpklientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = KontorhistorikkHttpklient(
+    private fun client(transport: FakeHttpTransport) = KontorhistorikkHttpklient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = ObjectMother.clock,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
-    private fun httpKlientMedInnslag(innslag: List<KontorhistorikkDto>?) = HttpKlientFake().apply {
-        enqueueResponse(body = GraphQlResponse(data = GraphQlData(kontorHistorikk = innslag)))
+    private fun httpKlientMedInnslag(innslag: List<KontorhistorikkDto>?) = FakeHttpTransport().apply {
+        leggIKøJson(GraphQlResponse(data = GraphQlData(kontorHistorikk = innslag)))
     }
 
     private fun dto(
@@ -68,7 +67,7 @@ internal class KontorhistorikkHttpklientTest {
      */
     @Test
     fun `mapper alle innslag uten filtrering og POSTer til endepunktet`() {
-        val httpKlient = httpKlientMedInnslag(
+        val transport = httpKlientMedInnslag(
             listOf(
                 dto(
                     kontorId = "0123",
@@ -92,7 +91,7 @@ internal class KontorhistorikkHttpklientTest {
         )
 
         runTest {
-            val resultat = client(httpKlient).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull()
+            val resultat = client(transport).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull()
 
             resultat.kontorhistorikk shouldBe Kontorhistorikk(
                 listOf(
@@ -120,39 +119,51 @@ internal class KontorhistorikkHttpklientTest {
             resultat.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe "$baseUrl/graphql"
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/graphql"
     }
 
     @Test
     fun `tom historikk gir tom liste`() {
-        val httpKlient = httpKlientMedInnslag(emptyList())
+        val transport = httpKlientMedInnslag(emptyList())
 
         runTest {
-            client(httpKlient).hentKontorhistorikk(fnr)
+            client(transport).hentKontorhistorikk(fnr)
                 .map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
         }
     }
 
     @Test
     fun `null kontorHistorikk i responsen gir tom liste`() {
-        val httpKlient = httpKlientMedInnslag(null)
+        val transport = httpKlientMedInnslag(null)
 
         runTest {
-            client(httpKlient).hentKontorhistorikk(fnr)
+            client(transport).hentKontorhistorikk(fnr)
+                .map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
+        }
+    }
+
+    @Test
+    fun `null data uten errors gir tom liste`() {
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(GraphQlResponse(data = null))
+        }
+
+        runTest {
+            client(transport).hentKontorhistorikk(fnr)
                 .map { it.kontorhistorikk } shouldBe Kontorhistorikk(emptyList()).right()
         }
     }
 
     @Test
     fun `non-200 fra tjenesten gir Left UventetHttpStatus`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueUventetStatus(statusCode = 503, body = """{"message": "noe gikk galt"}""")
+        val transport = FakeHttpTransport().apply {
+            leggIKøStatus(statusCode = 503, body = """{"message": "noe gikk galt"}""")
         }
 
         runTest {
-            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+            val feil = client(transport).hentKontorhistorikk(fnr).leftOrNull()
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.UventetHttpStatus>()
             feil.status shouldBe 503
@@ -163,10 +174,10 @@ internal class KontorhistorikkHttpklientTest {
 
     @Test
     fun `nettverksfeil gir Left KallFeilet`() {
-        val httpKlient = HttpKlientFake().apply { enqueueNetworkError() }
+        val transport = FakeHttpTransport().apply { leggIKøKast(java.io.IOException("simulert nettverksfeil")) }
 
         runTest {
-            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+            val feil = client(transport).hentKontorhistorikk(fnr).leftOrNull()
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.NetworkError>()
@@ -176,9 +187,9 @@ internal class KontorhistorikkHttpklientTest {
 
     @Test
     fun `GraphQL errors i respons gir Left GraphQlFeil`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(
-                body = GraphQlResponse(
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                GraphQlResponse(
                     data = null,
                     errors = listOf(mapOf("message" to "noe gikk galt")),
                 ),
@@ -186,7 +197,7 @@ internal class KontorhistorikkHttpklientTest {
         }
 
         runTest {
-            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+            val feil = client(transport).hentKontorhistorikk(fnr).leftOrNull()
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.GraphQlFeil>()
             feil.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
@@ -196,9 +207,9 @@ internal class KontorhistorikkHttpklientTest {
 
     @Test
     fun `tomt errors-felt behandles som suksess`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(
-                body = GraphQlResponse(
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                GraphQlResponse(
                     data = GraphQlData(kontorHistorikk = listOf(dto())),
                     errors = emptyList(),
                 ),
@@ -206,20 +217,19 @@ internal class KontorhistorikkHttpklientTest {
         }
 
         runTest {
-            client(httpKlient).hentKontorhistorikk(fnr).isRight() shouldBe true
+            client(transport).hentKontorhistorikk(fnr).isRight() shouldBe true
         }
     }
 
     @Test
     fun `deserialiseringsfeil fra httpklient gir Left KallFeilet`() {
-        // Modellerer f.eks. en ukjent kontorType-verdi i responsen: Jackson klarer ikke å tolke body-en
-        // til [GraphQlResponse], og httpklient returnerer DeserializationError.
-        val httpKlient = HttpKlientFake().apply {
-            enqueueDeserializationError(body = """{"data": {"kontorHistorikk": [{"kontorType": "EN_HELT_NY_TYPE"}]}}""")
+        // Modellerer f.eks. en ukjent kontorType-verdi i responsen: den ekte pipelinen klarer ikke å tolke body-en til [GraphQlResponse], og gir DeserializationError.
+        val transport = FakeHttpTransport().apply {
+            leggIKøStatus(statusCode = 200, body = """{"data": {"kontorHistorikk": [{"kontorType": "EN_HELT_NY_TYPE"}]}}""")
         }
 
         runTest {
-            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+            val feil = client(transport).hentKontorhistorikk(fnr).leftOrNull()
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.DeserializationError>()
@@ -228,7 +238,7 @@ internal class KontorhistorikkHttpklientTest {
 
     @Test
     fun `mapper alle kjente kontorType-verdier til domene-enum`() {
-        val httpKlient = httpKlientMedInnslag(
+        val transport = httpKlientMedInnslag(
             listOf(
                 dto(kontorType = KontorTypeDto.ARBEIDSOPPFOLGING),
                 dto(kontorType = KontorTypeDto.ARENA),
@@ -237,7 +247,7 @@ internal class KontorhistorikkHttpklientTest {
         )
 
         runTest {
-            val resultat = client(httpKlient).hentKontorhistorikk(fnr)
+            val resultat = client(transport).hentKontorhistorikk(fnr)
             resultat.getOrNull().shouldNotBeNull().kontorhistorikk.innslag.map { it.kontorType } shouldBe listOf(
                 KontorType.ARBEIDSOPPFOLGING,
                 KontorType.ARENA,
@@ -249,7 +259,7 @@ internal class KontorhistorikkHttpklientTest {
     @Test
     fun `konverterer endretTidspunkt fra UTC til Europe-Oslo wall-clock`() {
         // Sommertid: 08-00 UTC = 10-00 Oslo. Vintertid: 08-00 UTC = 09-00 Oslo.
-        val httpKlient = httpKlientMedInnslag(
+        val transport = httpKlientMedInnslag(
             listOf(
                 dto(kontorId = "sommer", endretTidspunkt = "2024-07-01T08:00:00Z[UTC]"),
                 dto(kontorId = "vinter", endretTidspunkt = "2024-01-15T08:00:00Z[UTC]"),
@@ -257,7 +267,7 @@ internal class KontorhistorikkHttpklientTest {
         )
 
         runTest {
-            val innslag = client(httpKlient).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull().kontorhistorikk.innslag
+            val innslag = client(transport).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull().kontorhistorikk.innslag
             innslag.single { it.kontorId == "sommer" }.endretTidspunkt shouldBe
                 LocalDateTime.parse("2024-07-01T10:00:00")
             innslag.single { it.kontorId == "vinter" }.endretTidspunkt shouldBe
@@ -291,10 +301,10 @@ internal class KontorhistorikkHttpklientTest {
         )
 
         varianter.forEach { input ->
-            val httpKlient = httpKlientMedInnslag(listOf(dto(endretTidspunkt = input)))
+            val transport = httpKlientMedInnslag(listOf(dto(endretTidspunkt = input)))
 
             runTest {
-                val faktisk = client(httpKlient).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull()
+                val faktisk = client(transport).hentKontorhistorikk(fnr).getOrNull().shouldNotBeNull()
                     .kontorhistorikk
                     .innslag
                     .single()
@@ -309,10 +319,10 @@ internal class KontorhistorikkHttpklientTest {
 
     @Test
     fun `ugyldig endretTidspunkt-format gir Left KallFeilet med DeserializationError`() {
-        val httpKlient = httpKlientMedInnslag(listOf(dto(endretTidspunkt = "ikke-en-dato")))
+        val transport = httpKlientMedInnslag(listOf(dto(endretTidspunkt = "ikke-en-dato")))
 
         runTest {
-            val feil = client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+            val feil = client(transport).hentKontorhistorikk(fnr).leftOrNull()
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             // Mappingfeil pakkes som DeserializationError slik at throwable og metadata følger med til logging.
@@ -328,10 +338,10 @@ internal class KontorhistorikkHttpklientTest {
      */
     @Test
     fun `tidsstempel uten sone gir Left KallFeilet`() {
-        val httpKlient = httpKlientMedInnslag(listOf(dto(endretTidspunkt = "2024-07-01T10:00:00")))
+        val transport = httpKlientMedInnslag(listOf(dto(endretTidspunkt = "2024-07-01T10:00:00")))
 
         runTest {
-            client(httpKlient).hentKontorhistorikk(fnr).leftOrNull()
+            client(transport).hentKontorhistorikk(fnr).leftOrNull()
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
         }

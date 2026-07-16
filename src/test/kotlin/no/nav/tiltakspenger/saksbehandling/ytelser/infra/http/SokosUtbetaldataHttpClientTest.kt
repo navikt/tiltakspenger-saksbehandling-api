@@ -8,9 +8,8 @@ import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -32,11 +31,11 @@ internal class SokosUtbetaldataHttpClientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = SokosUtbetaldataHttpClient(
+    private fun client(transport: FakeHttpTransport) = SokosUtbetaldataHttpClient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = ObjectMother.clock,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
     @Test
@@ -50,9 +49,9 @@ internal class SokosUtbetaldataHttpClientTest {
 
     @Test
     fun `henter ytelser - 200 gir liste og POSTer til utbetaldata-endepunktet`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(
-                body = listOf(
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                listOf(
                     UtbetalingDto(
                         ytelseListe = listOf(
                             UtbetalingDto.YtelseDto(
@@ -67,21 +66,21 @@ internal class SokosUtbetaldataHttpClientTest {
         }
 
         runTest {
-            client(httpKlient).hentYtelserFraUtbetaldata(fnr, periode, correlationId) shouldBe listOf(
+            client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId) shouldBe listOf(
                 Ytelse(ytelsetype = Ytelsetype.AAP, perioder = listOf(Periode(fom, tom))),
             ).right()
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe "$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern"
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern"
     }
 
     @Test
     fun `henter ytelser - null ytelsestype mappes til UKJENT`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(
-                body = listOf(
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                listOf(
                     UtbetalingDto(
                         ytelseListe = listOf(
                             UtbetalingDto.YtelseDto(
@@ -96,7 +95,7 @@ internal class SokosUtbetaldataHttpClientTest {
         }
 
         runTest {
-            client(httpKlient).hentYtelserFraUtbetaldata(fnr, periode, correlationId) shouldBe listOf(
+            client(transport).hentYtelserFraUtbetaldata(fnr, periode, correlationId) shouldBe listOf(
                 Ytelse(ytelsetype = Ytelsetype.UKJENT, perioder = listOf(Periode(fom, tom))),
             ).right()
         }
@@ -104,7 +103,7 @@ internal class SokosUtbetaldataHttpClientTest {
 
     @Test
     fun `henter ytelser - kaster når perioden er frem i tid`() {
-        val httpKlient = HttpKlientFake()
+        val transport = FakeHttpTransport()
         val fremtidigPeriode = Periode(
             fraOgMed = LocalDate.now(ObjectMother.clock).plusDays(1),
             tilOgMed = LocalDate.now(ObjectMother.clock).plusDays(10),
@@ -112,7 +111,7 @@ internal class SokosUtbetaldataHttpClientTest {
 
         runTest {
             shouldThrow<IllegalStateException> {
-                client(httpKlient).hentYtelserFraUtbetaldata(fnr, fremtidigPeriode, correlationId)
+                client(transport).hentYtelserFraUtbetaldata(fnr, fremtidigPeriode, correlationId)
             }
         }
     }

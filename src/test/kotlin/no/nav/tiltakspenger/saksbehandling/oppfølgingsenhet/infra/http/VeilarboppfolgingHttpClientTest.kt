@@ -7,10 +7,9 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.BruktNavkontorKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteNavkontor
@@ -26,11 +25,11 @@ internal class VeilarboppfolgingHttpClientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = VeilarboppfolgingHttpClient(
+    private fun client(transport: FakeHttpTransport) = VeilarboppfolgingHttpClient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = ObjectMother.clock,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
     @Test
@@ -44,9 +43,9 @@ internal class VeilarboppfolgingHttpClientTest {
 
     @Test
     fun `henter oppfølgingsenhet - 200 gir kontor og POSTer til endepunktet med riktige headere`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(
-                body = Response(
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                Response(
                     oppfolgingsenhet = Oppfolgingsenhet(navn = "Nav Askim", enhetId = "1234"),
                     veilederId = null,
                     formidlingsgruppe = null,
@@ -57,7 +56,7 @@ internal class VeilarboppfolgingHttpClientTest {
         }
 
         runTest {
-            val result = client(httpKlient).hentOppfolgingsenhet(fnr)
+            val result = client(transport).hentOppfolgingsenhet(fnr)
             val metadata = result.fold({ null }, { it })
             metadata!!.navkontor shouldBe Navkontor(kontornummer = "1234", kontornavn = "Nav Askim")
             metadata.brukteKlient shouldBe BruktNavkontorKlient.VEILARBOPPFOLGING
@@ -65,18 +64,18 @@ internal class VeilarboppfolgingHttpClientTest {
             metadata.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe "$baseUrl/veilarboppfolging/api/v2/person/system/hent-oppfolgingsstatus"
-        request.headers["Nav-Consumer-Id"] shouldBe listOf("tiltakspenger-saksbehandling-api")
-        request.headers["Content-Type"] shouldBe listOf("application/json")
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/veilarboppfolging/api/v2/person/system/hent-oppfolgingsstatus"
+        kall.request.headers().allValues("Nav-Consumer-Id") shouldBe listOf("tiltakspenger-saksbehandling-api")
+        kall.request.headers().allValues("Content-Type") shouldBe listOf("application/json")
     }
 
     @Test
     fun `henter oppfølgingsenhet - manglende oppfolgingsenhet gir ManglerOppfolgingsenhet`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueResponse(
-                body = Response(
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(
+                Response(
                     oppfolgingsenhet = null,
                     veilederId = null,
                     formidlingsgruppe = null,
@@ -87,7 +86,7 @@ internal class VeilarboppfolgingHttpClientTest {
         }
 
         runTest {
-            val result = client(httpKlient).hentOppfolgingsenhet(fnr)
+            val result = client(transport).hentOppfolgingsenhet(fnr)
             val feil = result.fold({ it }, { null }).shouldBeInstanceOf<KanIkkeHenteNavkontor.ManglerOppfolgingsenhet>()
             feil.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
             feil.httpKlientError shouldBe null
@@ -96,10 +95,10 @@ internal class VeilarboppfolgingHttpClientTest {
 
     @Test
     fun `henter oppfølgingsenhet - uventet status gir UventetHttpStatus`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "feil") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "feil", contentType = "text/plain") }
 
         runTest {
-            val result = client(httpKlient).hentOppfolgingsenhet(fnr)
+            val result = client(transport).hentOppfolgingsenhet(fnr)
             val feil = result.fold({ it }, { null }) as KanIkkeHenteNavkontor.UventetHttpStatus
             feil.status shouldBe 500
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 500
@@ -108,10 +107,10 @@ internal class VeilarboppfolgingHttpClientTest {
 
     @Test
     fun `henter oppfølgingsenhet - nettverksfeil gir KallFeilet`() {
-        val httpKlient = HttpKlientFake().apply { enqueueNetworkError() }
+        val transport = FakeHttpTransport().apply { leggIKøKast(java.io.IOException("simulert nettverksfeil")) }
 
         runTest {
-            val result = client(httpKlient).hentOppfolgingsenhet(fnr)
+            val result = client(transport).hentOppfolgingsenhet(fnr)
             val feil = result.fold({ it }, { null }).shouldBeInstanceOf<KanIkkeHenteNavkontor.KallFeilet>()
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.NetworkError>()
             feil.veilarboppfolgingKall.shouldNotBeNull().httpStatus shouldBe null
@@ -120,10 +119,10 @@ internal class VeilarboppfolgingHttpClientTest {
 
     @Test
     fun `henter oppfølgingsenhet - deserialiseringsfeil gir KallFeilet`() {
-        val httpKlient = HttpKlientFake().apply { enqueueDeserializationError(body = "ikke json") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 200, body = "ikke json") }
 
         runTest {
-            val result = client(httpKlient).hentOppfolgingsenhet(fnr)
+            val result = client(transport).hentOppfolgingsenhet(fnr)
             val feil = result.fold({ it }, { null }).shouldBeInstanceOf<KanIkkeHenteNavkontor.KallFeilet>()
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.DeserializationError>()
         }

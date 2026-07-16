@@ -9,9 +9,8 @@ import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.KanIkkeHenteNavnForNavIdent
@@ -27,15 +26,21 @@ internal class MicrosoftGraphApiClientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = MicrosoftGraphApiClient(
+    private fun client(transport: FakeHttpTransport) = MicrosoftGraphApiClient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = ObjectMother.clock,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
-    private fun HttpKlientFake.enqueueBrukere(vararg brukere: MicrosoftGraphResponse) {
-        enqueueResponse(body = ListOfMicrosoftGraphResponse(value = brukere.toList()))
+    private fun FakeHttpTransport.leggIKøBrukere(vararg brukere: MicrosoftGraphResponse) {
+        leggIKøJson(ListOfMicrosoftGraphResponse(value = brukere.toList()))
+    }
+
+    @Test
+    fun `graphUri bruker https i NAIS og http lokalt`() {
+        graphUri(baseUrl = "graph.test", navIdent = "Z123456", brukHttps = true).toString() shouldContain "https://graph.test/users?"
+        graphUri(baseUrl = "graph.test", navIdent = "Z123456", brukHttps = false).toString() shouldContain "http://graph.test/users?"
     }
 
     @Test
@@ -49,112 +54,112 @@ internal class MicrosoftGraphApiClientTest {
 
     @Test
     fun `automatisk saksbehandler gir fast navn uten kall mot Graph`() {
-        val httpKlient = HttpKlientFake()
+        val transport = FakeHttpTransport()
 
         runTest {
-            client(httpKlient).hentNavnForNavIdent(AUTOMATISK_SAKSBEHANDLER_ID) shouldBe "Automatisk saksbehandlet".right()
+            client(transport).hentNavnForNavIdent(AUTOMATISK_SAKSBEHANDLER_ID) shouldBe "Automatisk saksbehandlet".right()
         }
 
-        httpKlient.requests shouldBe emptyList()
+        transport.mottatteKall shouldBe emptyList()
     }
 
     @Test
     fun `henter navn - én bruker gir navn og GET mot users-endepunktet med riktig encoding og headere`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueBrukere(MicrosoftGraphResponse(givenName = "Saks", surname = "Behandler"))
+        val transport = FakeHttpTransport().apply {
+            leggIKøBrukere(MicrosoftGraphResponse(givenName = "Saks", surname = "Behandler"))
         }
 
         runTest {
-            client(httpKlient).hentNavnForNavIdent(navIdent) shouldBe "Saks Behandler".right()
+            client(transport).hentNavnForNavIdent(navIdent) shouldBe "Saks Behandler".right()
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.GET
-        request.uri.toString() should {
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "GET"
+        kall.uri.toString() should {
             it shouldContain "http://graph.test/users?"
             // Apostrofene rundt navIdenten i $filter skal være URL-encodet (%27) - det er hele poenget med URLBuilder-bruken i klienten.
             it shouldContain "%27$navIdent%27"
             it shouldNotContain "'"
         }
-        request.headers["ConsistencyLevel"] shouldBe listOf("eventual")
+        kall.request.headers().allValues("ConsistencyLevel") shouldBe listOf("eventual")
     }
 
     @Test
     fun `henter navn - navnet trimmes`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueBrukere(MicrosoftGraphResponse(givenName = "", surname = "Behandler"))
+        val transport = FakeHttpTransport().apply {
+            leggIKøBrukere(MicrosoftGraphResponse(givenName = "", surname = "Behandler"))
         }
 
         runTest {
-            client(httpKlient).hentNavnForNavIdent(navIdent) shouldBe "Behandler".right()
+            client(transport).hentNavnForNavIdent(navIdent) shouldBe "Behandler".right()
         }
     }
 
     @Test
     fun `uventet status gir KallFeilet`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "feil") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "feil", contentType = "text/plain") }
 
         runTest {
-            val feil = client(httpKlient).hentNavnForNavIdent(navIdent).leftOrNull()
+            val feil = client(transport).hentNavnForNavIdent(navIdent).leftOrNull()
             feil.shouldBeInstanceOf<KanIkkeHenteNavnForNavIdent.KallFeilet>()
         }
     }
 
     @Test
     fun `ingen brukere i svaret gir FantIkkeEntydigBruker`() {
-        val httpKlient = HttpKlientFake().apply { enqueueBrukere() }
+        val transport = FakeHttpTransport().apply { leggIKøBrukere() }
 
         runTest {
-            val feil = client(httpKlient).hentNavnForNavIdent(navIdent).leftOrNull()
+            val feil = client(transport).hentNavnForNavIdent(navIdent).leftOrNull()
             feil.shouldBeInstanceOf<KanIkkeHenteNavnForNavIdent.FantIkkeEntydigBruker>().antallTreff shouldBe 0
         }
     }
 
     @Test
     fun `flere brukere i svaret gir FantIkkeEntydigBruker`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueBrukere(
+        val transport = FakeHttpTransport().apply {
+            leggIKøBrukere(
                 MicrosoftGraphResponse(givenName = "Saks", surname = "Behandler"),
                 MicrosoftGraphResponse(givenName = "Beslutter", surname = "Besluttersen"),
             )
         }
 
         runTest {
-            val feil = client(httpKlient).hentNavnForNavIdent(navIdent).leftOrNull()
+            val feil = client(transport).hentNavnForNavIdent(navIdent).leftOrNull()
             feil.shouldBeInstanceOf<KanIkkeHenteNavnForNavIdent.FantIkkeEntydigBruker>().antallTreff shouldBe 2
         }
     }
 
     @Test
     fun `blankt navn gir NavnetErBlankt`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueBrukere(MicrosoftGraphResponse(givenName = " ", surname = " "))
+        val transport = FakeHttpTransport().apply {
+            leggIKøBrukere(MicrosoftGraphResponse(givenName = " ", surname = " "))
         }
 
         runTest {
-            val feil = client(httpKlient).hentNavnForNavIdent(navIdent).leftOrNull()
+            val feil = client(transport).hentNavnForNavIdent(navIdent).leftOrNull()
             feil.shouldBeInstanceOf<KanIkkeHenteNavnForNavIdent.NavnetErBlankt>()
         }
     }
 
     @Test
     fun `hentNavnForNavIdentEllerKast - returnerer navnet ved suksess`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueBrukere(MicrosoftGraphResponse(givenName = "Saks", surname = "Behandler"))
+        val transport = FakeHttpTransport().apply {
+            leggIKøBrukere(MicrosoftGraphResponse(givenName = "Saks", surname = "Behandler"))
         }
 
         runTest {
-            client(httpKlient).hentNavnForNavIdentEllerKast(navIdent) shouldBe "Saks Behandler"
+            client(transport).hentNavnForNavIdentEllerKast(navIdent) shouldBe "Saks Behandler"
         }
     }
 
     @Test
     fun `hentNavnForNavIdentEllerKast - kaster med nøytral beskrivelse ved feil`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "rå responsbody") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "rå responsbody", contentType = "text/plain") }
 
         runTest {
             val exception = shouldThrow<IllegalStateException> {
-                client(httpKlient).hentNavnForNavIdentEllerKast(navIdent)
+                client(transport).hentNavnForNavIdentEllerKast(navIdent)
             }
             exception.message shouldBe "Kunne ikke hente navn for navIdent $navIdent: KallFeilet(UventetStatus)"
         }
@@ -162,11 +167,11 @@ internal class MicrosoftGraphApiClientTest {
 
     @Test
     fun `hentNavnForNavIdentEllerKast - kaster med antall treff når brukeren ikke er entydig`() {
-        val httpKlient = HttpKlientFake().apply { enqueueBrukere() }
+        val transport = FakeHttpTransport().apply { leggIKøBrukere() }
 
         runTest {
             val exception = shouldThrow<IllegalStateException> {
-                client(httpKlient).hentNavnForNavIdentEllerKast(navIdent)
+                client(transport).hentNavnForNavIdentEllerKast(navIdent)
             }
             exception.message shouldBe "Kunne ikke hente navn for navIdent $navIdent: FantIkkeEntydigBruker(antallTreff=0)"
         }
@@ -174,13 +179,13 @@ internal class MicrosoftGraphApiClientTest {
 
     @Test
     fun `hentNavnForNavIdentEllerKast - kaster når navnet er blankt`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueBrukere(MicrosoftGraphResponse(givenName = " ", surname = " "))
+        val transport = FakeHttpTransport().apply {
+            leggIKøBrukere(MicrosoftGraphResponse(givenName = " ", surname = " "))
         }
 
         runTest {
             val exception = shouldThrow<IllegalStateException> {
-                client(httpKlient).hentNavnForNavIdentEllerKast(navIdent)
+                client(transport).hentNavnForNavIdentEllerKast(navIdent)
             }
             exception.message shouldBe "Kunne ikke hente navn for navIdent $navIdent: NavnetErBlankt"
         }

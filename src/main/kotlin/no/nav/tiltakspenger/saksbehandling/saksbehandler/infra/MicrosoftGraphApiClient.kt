@@ -8,10 +8,15 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.encodedPath
 import io.ktor.http.toURI
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
-import no.nav.tiltakspenger.libs.httpklient.get
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Header
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.KanIkkeHenteNavnForNavIdent
@@ -38,24 +43,30 @@ class MicrosoftGraphApiClient(
     private val baseUrl: String,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 2.seconds,
-    private val timeout: Duration = 4.seconds,
+    timeout: Duration = 4.seconds,
     clock: Clock,
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = timeout
-        this.successStatus = { it == 200 }
-        this.authTokenProvider = authTokenProvider
-    },
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : NavIdentClient {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
 
     override suspend fun hentNavnForNavIdent(navIdent: String): Either<KanIkkeHenteNavnForNavIdent, String> {
         if (navIdent == AUTOMATISK_SAKSBEHANDLER_ID) {
             return "Automatisk saksbehandlet".right()
         }
-        return httpKlient.get<ListOfMicrosoftGraphResponse>(uri(navIdent)) {
-            // Kreves av Graph for søk med $count=true, se https://learn.microsoft.com/en-us/graph/aad-advanced-queries
-            header("ConsistencyLevel", "eventual")
-        }.mapLeft {
+        return httpKlient.getJson<ListOfMicrosoftGraphResponse>(
+            uri = uri(navIdent),
+            // ConsistencyLevel kreves av Graph for søk med $count=true, se https://learn.microsoft.com/en-us/graph/aad-advanced-queries
+            headere = listOf(Header("ConsistencyLevel", "eventual")),
+            godta = Statusregel.Eksakt(200),
+        ).mapLeft {
             KanIkkeHenteNavnForNavIdent.KallFeilet(it)
         }.flatMap { response ->
             response.tilNavn()
@@ -80,17 +91,23 @@ class MicrosoftGraphApiClient(
     /**
      * Denne oppretter en URI med en URLBuilder for at encodingen skal bli riktig for spesialtegn (apostrof ')
      */
-    private fun uri(navIdent: String): URI {
-        val urlBuilder = URLBuilder().apply {
-            protocol = if (Configuration.isNais()) URLProtocol.HTTPS else URLProtocol.HTTP
-            host = baseUrl
-            encodedPath = "/users"
-            parameters.append("\$select", "givenName,surname")
-            parameters.append("\$filter", "onPremisesSamAccountName eq '$navIdent'")
-            parameters.append("\$count", "true")
-        }
-        return urlBuilder.build().toURI()
+    private fun uri(navIdent: String): URI = graphUri(baseUrl = baseUrl, navIdent = navIdent, brukHttps = Configuration.isNais())
+}
+
+/**
+ * Bygger Graph-URI-en med en URLBuilder for at encodingen skal bli riktig for spesialtegn (apostrof ').
+ * Toppnivåfunksjon slik at begge protokollgrenene kan dekkes av tester uten å styre NAIS-miljødeteksjonen.
+ */
+internal fun graphUri(baseUrl: String, navIdent: String, brukHttps: Boolean): URI {
+    val urlBuilder = URLBuilder().apply {
+        protocol = if (brukHttps) URLProtocol.HTTPS else URLProtocol.HTTP
+        host = baseUrl
+        encodedPath = "/users"
+        parameters.append("\$select", "givenName,surname")
+        parameters.append("\$filter", "onPremisesSamAccountName eq '$navIdent'")
+        parameters.append("\$count", "true")
     }
+    return urlBuilder.build().toURI()
 }
 
 /**
