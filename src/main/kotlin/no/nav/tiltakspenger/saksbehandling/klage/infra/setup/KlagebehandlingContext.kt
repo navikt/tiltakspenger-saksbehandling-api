@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.setup
 
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
@@ -106,14 +106,11 @@ open class KlagebehandlingContext(
         KabalHttpClient(
             baseUrl = Configuration.kabalUrl,
             clock = clock,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean) =
-                    texasClient.getSystemToken(
-                        Configuration.kabalScope,
-                        IdentityProvider.AZUREAD,
-                        rewriteAudienceTarget = false,
-                    )
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.kabalScope,
+                rewriteAudienceTarget = false,
+            ),
         )
     }
 

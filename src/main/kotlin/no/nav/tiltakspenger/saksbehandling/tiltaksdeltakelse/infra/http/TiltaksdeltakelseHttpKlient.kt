@@ -3,10 +3,15 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.tiltak.TiltakshistorikkDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
@@ -27,27 +32,26 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og feillogging gjøres én gang i kallende service ([no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService], [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.TiltaksdeltakelseService]), som i tillegg har domenekonteksten.
  *
- * [httpKlient] bygges som default ut fra parametrene over ([clock], [authTokenProvider], [connectTimeout], [defaultTimeout]) slik at hele klientoppsettet kan leses ett sted.
- * Sender man inn en egen [httpKlient] (typisk `HttpKlientFake` i test), **ignoreres** de parametrene som kun brukes til å bygge default-klienten.
- *
- * @param clock Klokke som sendes videre til [HttpKlient]. Ignoreres hvis [httpKlient] sendes inn.
- * @param authTokenProvider Henter system-token mot tiltakspenger-tiltak. Ignoreres hvis [httpKlient] sendes inn.
- * @param connectTimeout Connect-timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
- * @param defaultTimeout Per-request timeout. tiltakspenger-tiltak gjør oppslag mot flere kilder, derav den høye defaulten (matcher den gamle ktor-klientens 60s).
+ * @param timeout Per-request timeout. tiltakspenger-tiltak gjør oppslag mot flere kilder, derav den høye defaulten (matcher den gamle ktor-klientens 60s).
+ * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class TiltaksdeltakelseHttpKlient(
     baseUrl: String,
     clock: Clock,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 5.seconds,
-    defaultTimeout: Duration = 60.seconds,
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = defaultTimeout
-        this.successStatus = { it == 200 }
-        this.authTokenProvider = authTokenProvider
-    },
+    timeout: Duration = 60.seconds,
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : TiltaksdeltakelseKlient {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
 
     companion object {
         const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
@@ -83,9 +87,13 @@ class TiltaksdeltakelseHttpKlient(
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
     ): Either<HttpKlientError, List<TiltakshistorikkDTO>> {
-        return httpKlient.post<List<TiltakshistorikkDTO>>(tiltakshistorikkUri, TiltakRequestDTO(fnr.verdi)) {
-            header(NAV_CALL_ID_HEADER, correlationId.value)
-        }.map { response ->
+        // tiltakspenger-tiltak svarer alltid 200 ved suksess; alt annet skal være feil (paritet med gammel successStatus).
+        return httpKlient.postJson<List<TiltakshistorikkDTO>>(
+            uri = tiltakshistorikkUri,
+            body = TiltakRequestDTO(fnr.verdi),
+            headere = listOf(NavHeadere.navCallId(correlationId.value)),
+            godta = Statusregel.Eksakt(200),
+        ).map { response ->
             response.body
                 .filter { it.harFomOgTomEllerRelevantStatus(tiltaksdeltakelserDetErSøktTiltakspengerFor) }
                 .filter { it.rettPaTiltakspenger() }

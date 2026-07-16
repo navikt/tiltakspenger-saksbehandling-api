@@ -10,10 +10,10 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.withWireMockServer
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.tilOversendtKlageTilKabalMetadata
@@ -45,9 +45,9 @@ class KabalHttpClientTest {
                     journalpostIdVedtak = JournalpostId("journalpost-vedtak-1"),
                 )
 
-                val response = resultat.shouldBeInstanceOf<Either.Right<HttpKlientResponse<String>>>().value
+                val response = resultat.shouldBeInstanceOf<Either.Right<HttpKlientResponse<Unit>>>().value
                 response.statusCode shouldBe 200
-                response.body shouldBe ""
+                response.body shouldBe Unit
                 val metadata = response.metadata.tilOversendtKlageTilKabalMetadata(clock = fixedClock)
                 metadata.statusKode shouldBe 200
                 metadata.response shouldBe ""
@@ -101,8 +101,8 @@ class KabalHttpClientTest {
     @Test
     fun `returnerer feil ved transportfeil`() {
         runTest {
-            val fakeHttpKlient = HttpKlientFake().apply {
-                enqueueTimeout(throwable = IllegalStateException("boom"))
+            val fakeTransport = FakeHttpTransport().apply {
+                leggIKøKast(IllegalStateException("boom"))
             }
             val kabalclient = KabalHttpClient(
                 baseUrl = "http://example.com",
@@ -110,7 +110,7 @@ class KabalHttpClientTest {
                 authTokenProvider = object : AuthTokenProvider {
                     override suspend fun hentToken(skipCache: Boolean) = ObjectMother.accessToken()
                 },
-                httpKlient = fakeHttpKlient,
+                transport = fakeTransport,
             )
 
             val klagebehandling = ObjectMother.opprettholdtKlagebehandlingKlarForOversendelse()

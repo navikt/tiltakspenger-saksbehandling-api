@@ -7,7 +7,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollFeil
@@ -20,13 +20,13 @@ import java.time.Instant
 
 class TilgangsmaskinHttpClientTest {
     private val texasClient = mockk<TexasClient>()
-    private val httpKlientFake = HttpKlientFake()
+    private val fakeTransport = FakeHttpTransport()
     private val client = TilgangsmaskinHttpClient(
         baseUrl = "https://tilgangsmaskin.test",
         scope = "scope",
         texasClient = texasClient,
         clock = Clock.systemUTC(),
-        httpKlient = httpKlientFake,
+        transport = fakeTransport,
     )
 
     @Test
@@ -38,7 +38,7 @@ class TilgangsmaskinHttpClientTest {
                 identityProvider = IdentityProvider.AZUREAD,
             )
         } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
-        httpKlientFake.enqueueStringResponse(body = "", statusCode = 204)
+        fakeTransport.leggIKøTomRespons(statusCode = 204)
 
         val result = client.harTilgangTilPerson(Fnr.fromString("01010199999"), "token")
 
@@ -54,8 +54,8 @@ class TilgangsmaskinHttpClientTest {
                 identityProvider = IdentityProvider.AZUREAD,
             )
         } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
-        httpKlientFake.enqueueStringResponse(
-            body = """
+        fakeTransport.leggIKøJson(
+            json = """
                 {
                   "type": "https://example.com/type",
                   "title": "AVVIST_STRENGT_FORTROLIG_ADRESSE",
@@ -91,8 +91,8 @@ class TilgangsmaskinHttpClientTest {
                 identityProvider = IdentityProvider.AZUREAD,
             )
         } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
-        httpKlientFake.enqueueResponse(
-            body = TilgangBulkResponseDto(
+        fakeTransport.leggIKøJson(
+            TilgangBulkResponseDto(
                 resultater = listOf(
                     TilgangBulkResponseDto.TilgangResponse(
                         brukerId = "01010199999",
@@ -111,7 +111,23 @@ class TilgangsmaskinHttpClientTest {
     }
 
     @Test
-    fun `bygger default HttpKlient når httpKlient ikke sendes inn`() {
+    fun `harTilgangTilPerson gir Uventet for andre feilstatuser`() = runTest {
+        coEvery {
+            texasClient.exchangeToken(
+                userToken = "token",
+                audienceTarget = "scope",
+                identityProvider = IdentityProvider.AZUREAD,
+            )
+        } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+        fakeTransport.leggIKøStatus(statusCode = 500, body = "intern serverfeil", contentType = "text/plain")
+
+        val result = client.harTilgangTilPerson(Fnr.fromString("01010199999"), "token")
+
+        result.fold({ it }, { throw AssertionError(it) }).shouldBeInstanceOf<TilgangskontrollFeil.Uventet>()
+    }
+
+    @Test
+    fun `bygger produksjonstransport når transport ikke sendes inn`() {
         TilgangsmaskinHttpClient(
             baseUrl = "https://tilgangsmaskin.test",
             scope = "scope",
@@ -145,7 +161,7 @@ class TilgangsmaskinHttpClientTest {
                 identityProvider = IdentityProvider.AZUREAD,
             )
         } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
-        httpKlientFake.enqueueUventetStatus(statusCode = 413, body = "For mange identer")
+        fakeTransport.leggIKøStatus(statusCode = 413, body = "For mange identer", contentType = "text/plain")
 
         val result = client.harTilgangTilPersoner(listOf(Fnr.fromString("01010199999")), "token")
 

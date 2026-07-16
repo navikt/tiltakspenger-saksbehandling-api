@@ -1,11 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
 
-import arrow.core.Either
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
-import no.nav.tiltakspenger.libs.json.objectMapper
-import tools.jackson.module.kotlin.readValue
-
 data class AvvistTilgangResponse(
     val type: String,
     val title: String,
@@ -49,24 +43,5 @@ data class AvvistTilgangResponse(
                 brukerIdent = brukerIdent,
             ),
         )
-    }
-
-    companion object {
-        fun tilAvvistTilgangsvurdering(
-            body: String,
-            statusCode: Int,
-            metadata: HttpKlientMetadata,
-        ): Either<HttpKlientError, Tilgangsvurdering.Avvist> =
-            Either
-                .catch { objectMapper.readValue<AvvistTilgangResponse>(body) }
-                .map { it.tilAvvistTilgangsvurdering() }
-                .mapLeft { throwable ->
-                    HttpKlientError.DeserializationError(
-                        throwable = throwable,
-                        body = body,
-                        statusCode = statusCode,
-                        metadata = metadata,
-                    )
-                }
     }
 }

@@ -29,7 +29,7 @@ internal class MeldekortApiHttpClientTest {
     private fun nyClient(baseUrl: String) = MeldekortApiHttpClient(
         baseUrl = baseUrl,
         clock = Clock.systemUTC(),
-        authTokenProvider = object : no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider {
+        authTokenProvider = object : no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider {
             override suspend fun hentToken(skipCache: Boolean) = ObjectMother.accessToken()
         },
     )

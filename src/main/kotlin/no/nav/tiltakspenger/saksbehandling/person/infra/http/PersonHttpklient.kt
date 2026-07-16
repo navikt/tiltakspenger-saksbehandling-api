@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.Personident
+import java.time.Clock
 
 /**
  * Klient mot PDL (persondataløsningen) for å hente personopplysninger, via personklienten i tiltakspenger-libs.
@@ -25,11 +26,13 @@ import no.nav.tiltakspenger.saksbehandling.person.Personident
  */
 class PersonHttpklient(
     endepunkt: String,
+    clock: Clock,
     private val getToken: suspend () -> AccessToken,
 ) : PersonKlient {
     private val personklient =
         FellesPersonklient.create(
             endepunkt = endepunkt,
+            clock = clock,
         )
 
     /**

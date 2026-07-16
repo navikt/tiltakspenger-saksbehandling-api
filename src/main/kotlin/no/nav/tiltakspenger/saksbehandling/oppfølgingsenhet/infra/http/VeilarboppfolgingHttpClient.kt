@@ -5,10 +5,15 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.BruktNavkontorKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteNavkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
@@ -39,21 +44,30 @@ class VeilarboppfolgingHttpClient(
     connectTimeout: Duration = 1.seconds,
     timeout: Duration = 1.seconds,
     clock: Clock,
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = timeout
-        this.successStatus = { it == 200 }
-        this.authTokenProvider = authTokenProvider
-    },
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
+
     private val uri = URI.create("$baseUrl/veilarboppfolging/api/v2/person/system/hent-oppfolgingsstatus")
 
     suspend fun hentOppfolgingsenhet(
         fnr: Fnr,
     ): Either<KanIkkeHenteNavkontor, NavkontorMedMetadata> {
-        return httpKlient.post<Response>(uri, Request(fnr.verdi)) {
-            header("Nav-Consumer-Id", "tiltakspenger-saksbehandling-api")
-        }.mapLeft { error ->
+        // Veilarboppfolging svarer alltid 200 ved suksess; alt annet skal være feil (paritet med gammel successStatus).
+        return httpKlient.postJson<Response>(
+            uri = uri,
+            body = Request(fnr.verdi),
+            headere = listOf(NavHeadere.navConsumerId("tiltakspenger-saksbehandling-api")),
+            godta = Statusregel.Eksakt(200),
+        ).mapLeft { error ->
             when (error) {
                 is HttpKlientError.UventetStatus -> KanIkkeHenteNavkontor.UventetHttpStatus(error)
 

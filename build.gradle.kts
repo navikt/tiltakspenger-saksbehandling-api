@@ -4,7 +4,7 @@ import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.2"
-val felleslibVersion = "0.0.869"
+val felleslibVersion = "0.0.882"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
@@ -36,7 +36,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:jobber:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:httpklient:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:meldekort-dtos:$felleslibVersion")
@@ -114,6 +114,7 @@ dependencies {
     testImplementation("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
+    testImplementation(testFixtures("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion"))
     testImplementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:persistering-test-common:$felleslibVersion")

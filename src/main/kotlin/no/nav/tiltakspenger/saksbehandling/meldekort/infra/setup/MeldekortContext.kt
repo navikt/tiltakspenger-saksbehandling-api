@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup
 
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -127,10 +126,10 @@ open class MeldekortContext(
         MeldekortApiHttpClient(
             baseUrl = Configuration.meldekortApiUrl,
             clock = clock,
-            authTokenProvider = object : AuthTokenProvider {
-                override suspend fun hentToken(skipCache: Boolean): no.nav.tiltakspenger.libs.common.AccessToken =
-                    texasClient.getSystemToken(Configuration.meldekortApiScope, IdentityProvider.AZUREAD)
-            },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.meldekortApiScope,
+            ),
         )
     }
     val sendTilMeldekortApiService by lazy {

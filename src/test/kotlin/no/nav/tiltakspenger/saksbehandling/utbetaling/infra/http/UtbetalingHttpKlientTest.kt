@@ -13,10 +13,9 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientFake
-import no.nav.tiltakspenger.libs.httpklient.HttpMethod
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -36,15 +35,15 @@ internal class UtbetalingHttpKlientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
     }
 
-    private fun client(httpKlient: HttpKlientFake) = UtbetalingHttpKlient(
+    private fun client(transport: FakeHttpTransport) = UtbetalingHttpKlient(
         baseUrl = baseUrl,
         authTokenProvider = authTokenProvider,
         clock = fixedClock,
-        httpKlient = httpKlient,
+        transport = transport,
     )
 
     @Test
-    fun `bygger default HttpKlient når httpKlient ikke sendes inn`() {
+    fun `bygger produksjonstransport når transport ikke sendes inn`() {
         UtbetalingHttpKlient(
             baseUrl = baseUrl,
             authTokenProvider = authTokenProvider,
@@ -54,33 +53,33 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `iverksett - 202 Accepted gir SendtUtbetaling`() {
-        val httpKlient = HttpKlientFake().apply { enqueueStringResponse(body = "mottatt", statusCode = 202) }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 202, body = "mottatt", contentType = "text/plain") }
         val utbetaling = ObjectMother.utbetaling()
         val correlationId = CorrelationId.generate()
 
         runTest {
-            val sendtUtbetaling = client(httpKlient).iverksett(utbetaling, null, correlationId).getOrNull().shouldNotBeNull()
+            val sendtUtbetaling = client(transport).iverksett(utbetaling, null, correlationId).getOrNull().shouldNotBeNull()
             sendtUtbetaling.request shouldBe utbetaling.toUtbetalingRequestDTO(null)
             sendtUtbetaling.response shouldBe "mottatt"
             sendtUtbetaling.responseStatus shouldBe 202
             sendtUtbetaling.alleredeMottattTidligere shouldBe false
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe "$baseUrl/api/iverksetting/v2"
-        request.headers["Nav-Call-Id"] shouldBe listOf(correlationId.value)
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/api/iverksetting/v2"
+        kall.request.headers().allValues("Nav-Call-Id") shouldBe listOf(correlationId.value)
     }
 
     @Test
     fun `iverksett - 409 med dedup-melding behandles som suksess`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueStringResponse(body = "Iverksettingen er allerede mottatt", statusCode = 409)
+        val transport = FakeHttpTransport().apply {
+            leggIKøStatus(statusCode = 409, body = "Iverksettingen er allerede mottatt", contentType = "text/plain")
         }
 
         runTest {
             val sendtUtbetaling =
-                client(httpKlient).iverksett(ObjectMother.utbetaling(), null, CorrelationId.generate()).getOrNull().shouldNotBeNull()
+                client(transport).iverksett(ObjectMother.utbetaling(), null, CorrelationId.generate()).getOrNull().shouldNotBeNull()
             sendtUtbetaling.responseStatus shouldBe 409
             sendtUtbetaling.alleredeMottattTidligere shouldBe true
         }
@@ -88,14 +87,14 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `iverksett - 409 uten dedup-melding gir KunneIkkeUtbetale med UventetStatus`() {
-        val httpKlient = HttpKlientFake().apply {
-            enqueueStringResponse(body = "en annen konflikt", statusCode = 409)
+        val transport = FakeHttpTransport().apply {
+            leggIKøStatus(statusCode = 409, body = "en annen konflikt", contentType = "text/plain")
         }
         val utbetaling = ObjectMother.utbetaling()
 
         runTest {
             val kunneIkkeUtbetale =
-                client(httpKlient).iverksett(utbetaling, null, CorrelationId.generate()).leftOrNull().shouldNotBeNull()
+                client(transport).iverksett(utbetaling, null, CorrelationId.generate()).leftOrNull().shouldNotBeNull()
             kunneIkkeUtbetale.request shouldBe utbetaling.toUtbetalingRequestDTO(null)
             kunneIkkeUtbetale.response shouldBe "en annen konflikt"
             kunneIkkeUtbetale.responseStatus shouldBe 409
@@ -105,12 +104,12 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `iverksett - 400 Bad Request gir KunneIkkeUtbetale med respons for notoritet`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 400, body = "ugyldig request") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 400, body = "ugyldig request", contentType = "text/plain") }
         val utbetaling = ObjectMother.utbetaling()
 
         runTest {
             val kunneIkkeUtbetale =
-                client(httpKlient).iverksett(utbetaling, null, CorrelationId.generate()).leftOrNull().shouldNotBeNull()
+                client(transport).iverksett(utbetaling, null, CorrelationId.generate()).leftOrNull().shouldNotBeNull()
             kunneIkkeUtbetale.request shouldBe utbetaling.toUtbetalingRequestDTO(null)
             kunneIkkeUtbetale.response shouldBe "ugyldig request"
             kunneIkkeUtbetale.responseStatus shouldBe 400
@@ -120,11 +119,11 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `iverksett - timeout gir KunneIkkeUtbetale uten responsstatus`() {
-        val httpKlient = HttpKlientFake().apply { enqueueTimeout() }
+        val transport = FakeHttpTransport().apply { leggIKøKast(java.net.http.HttpTimeoutException("simulert timeout")) }
 
         runTest {
             val kunneIkkeUtbetale =
-                client(httpKlient).iverksett(ObjectMother.utbetaling(), null, CorrelationId.generate()).leftOrNull().shouldNotBeNull()
+                client(transport).iverksett(ObjectMother.utbetaling(), null, CorrelationId.generate()).leftOrNull().shouldNotBeNull()
             kunneIkkeUtbetale.response shouldBe null
             kunneIkkeUtbetale.responseStatus shouldBe null
             kunneIkkeUtbetale.feil.shouldBeInstanceOf<HttpKlientError.Timeout>()
@@ -144,13 +143,13 @@ internal class UtbetalingHttpKlientTest {
 
         runTest {
             forventedeMappinger.forEach { (iverksettStatus, forventet) ->
-                val httpKlient = HttpKlientFake().apply { enqueueResponse(body = iverksettStatus) }
+                val transport = FakeHttpTransport().apply { leggIKøJson(iverksettStatus) }
 
-                client(httpKlient).hentUtbetalingsstatus(utbetaling) shouldBe forventet.right()
+                client(transport).hentUtbetalingsstatus(utbetaling) shouldBe forventet.right()
 
-                val request = httpKlient.requests.single()
-                request.method shouldBe HttpMethod.GET
-                request.uri.toString() shouldBe
+                val kall = transport.mottatteKall.single()
+                kall.metode shouldBe "GET"
+                kall.uri.toString() shouldBe
                     "$baseUrl/api/iverksetting/${utbetaling.saksnummer.verdi}/${utbetaling.utbetalingId.uuidPart()}/status"
             }
         }
@@ -158,11 +157,11 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `hentUtbetalingsstatus - feilstatus gir Left med HttpKlientError`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "feil") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "feil", contentType = "text/plain") }
 
         runTest {
             val feil =
-                client(httpKlient).hentUtbetalingsstatus(ObjectMother.utbetalingDetSkalHentesStatusFor()).leftOrNull().shouldNotBeNull()
+                client(transport).hentUtbetalingsstatus(ObjectMother.utbetalingDetSkalHentesStatusFor()).leftOrNull().shouldNotBeNull()
             feil.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 500
         }
     }
@@ -181,36 +180,36 @@ internal class UtbetalingHttpKlientTest {
               }
             }
         """.trimIndent()
-        val httpKlient = HttpKlientFake().apply { enqueueStringResponse(body = helvedResponse, statusCode = 200) }
+        val transport = FakeHttpTransport().apply { leggIKøJson(json = helvedResponse) }
 
         runTest {
-            simuler(httpKlient) shouldBe SimuleringMedMetadata(
+            simuler(transport) shouldBe SimuleringMedMetadata(
                 simulering = Simulering.IngenEndring(LocalDateTime.now(fixedClock)),
                 originalResponseBody = helvedResponse,
             ).right()
         }
 
-        val request = httpKlient.requests.single()
-        request.method shouldBe HttpMethod.POST
-        request.uri.toString() shouldBe "$baseUrl/api/simulering/v2"
+        val kall = transport.mottatteKall.single()
+        kall.metode shouldBe "POST"
+        kall.uri.toString() shouldBe "$baseUrl/api/simulering/v2"
     }
 
     @Test
     fun `simuler - 204 No Content gir IngenEndring`() {
-        val httpKlient = HttpKlientFake().apply { enqueueStringResponse(body = "", statusCode = 204) }
+        val transport = FakeHttpTransport().apply { leggIKøTomRespons(statusCode = 204) }
 
         runTest {
-            val simuleringMedMetadata = simuler(httpKlient).getOrNull().shouldNotBeNull()
+            val simuleringMedMetadata = simuler(transport).getOrNull().shouldNotBeNull()
             simuleringMedMetadata.simulering.shouldBeInstanceOf<Simulering.IngenEndring>()
         }
     }
 
     @Test
     fun `simuler - 503 Service Unavailable gir Stengt`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 503, body = "stengt") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 503, body = "stengt", contentType = "text/plain") }
 
         runTest {
-            simuler(httpKlient).leftOrNull()
+            simuler(transport).leftOrNull()
                 .shouldBeInstanceOf<KunneIkkeSimulere.Stengt>()
                 .feil.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 503
         }
@@ -218,10 +217,10 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `simuler - timeout gir Timeout`() {
-        val httpKlient = HttpKlientFake().apply { enqueueTimeout() }
+        val transport = FakeHttpTransport().apply { leggIKøKast(java.net.http.HttpTimeoutException("simulert timeout")) }
 
         runTest {
-            simuler(httpKlient).leftOrNull()
+            simuler(transport).leftOrNull()
                 .shouldBeInstanceOf<KunneIkkeSimulere.Timeout>()
                 .feil.shouldBeInstanceOf<HttpKlientError.Timeout>()
         }
@@ -229,26 +228,33 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `simuler - respons som ikke lar seg parse gir UkjentFeil med DeserializationError`() {
-        val httpKlient = HttpKlientFake().apply { enqueueStringResponse(body = "ikke json", statusCode = 200) }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 200, body = "ikke json") }
 
         runTest {
-            val feil = simuler(httpKlient).leftOrNull().shouldBeInstanceOf<KunneIkkeSimulere.UkjentFeil>().feil
+            val feil = simuler(transport).leftOrNull().shouldBeInstanceOf<KunneIkkeSimulere.UkjentFeil>().feil
             feil.shouldBeInstanceOf<HttpKlientError.DeserializationError>().body shouldBe "ikke json"
         }
     }
 
     @Test
     fun `simuler - annen feilstatus gir UkjentFeil`() {
-        val httpKlient = HttpKlientFake().apply { enqueueUventetStatus(statusCode = 500, body = "feil") }
+        val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 500, body = "feil", contentType = "text/plain") }
 
         runTest {
-            val feil = simuler(httpKlient).leftOrNull().shouldBeInstanceOf<KunneIkkeSimulere.UkjentFeil>().feil
+            val feil = simuler(transport).leftOrNull().shouldBeInstanceOf<KunneIkkeSimulere.UkjentFeil>().feil
             feil.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 500
         }
     }
 
-    private suspend fun simuler(httpKlient: HttpKlientFake): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
-        return client(httpKlient).simuler(
+    @Test
+    fun `simuleringstidspunkt bruker responstidspunktet når det finnes, ellers klokka`() {
+        val responsMottatt = LocalDateTime.now(fixedClock).minusMinutes(5)
+        UtbetalingHttpKlient.simuleringstidspunkt(responsMottatt, fixedClock) shouldBe responsMottatt
+        UtbetalingHttpKlient.simuleringstidspunkt(null, fixedClock) shouldBe LocalDateTime.now(fixedClock)
+    }
+
+    private suspend fun simuler(transport: FakeHttpTransport): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
+        return client(transport).simuler(
             sakId = SakId.random(),
             saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = fixedClock),
             behandlingId = MeldekortId.random(),

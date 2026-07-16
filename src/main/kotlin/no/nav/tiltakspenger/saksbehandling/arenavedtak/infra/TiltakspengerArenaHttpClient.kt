@@ -3,10 +3,15 @@ package no.nav.tiltakspenger.saksbehandling.arenavedtak.infra
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.SerialisertJson
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
@@ -29,15 +34,20 @@ class TiltakspengerArenaHttpClient(
     baseUrl: String,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 3.seconds,
-    private val timeout: Duration = 6.seconds,
+    timeout: Duration = 6.seconds,
     clock: Clock,
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = timeout
-        this.successStatus = { it == 200 }
-        this.authTokenProvider = authTokenProvider
-    },
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : TiltakspengerArenaClient {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
+
     private val uri = URI.create("$baseUrl/azure/tiltakspenger/vedtak")
 
     override suspend fun hentTiltakspengevedtakFraArena(
@@ -52,7 +62,11 @@ class TiltakspengerArenaHttpClient(
                 tom = periode.tilOgMed,
             ),
         )
-        return httpKlient.post<List<ArenaTPVedtakDto>>(uri, jsonPayload).map {
+        return httpKlient.postJson<List<ArenaTPVedtakDto>>(
+            uri = uri,
+            body = SerialisertJson(jsonPayload),
+            godta = Statusregel.Eksakt(200),
+        ).map {
             it.body.map(ArenaTPVedtakDto::toDomain)
         }
     }

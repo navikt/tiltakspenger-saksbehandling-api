@@ -4,10 +4,15 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
+import no.nav.tiltakspenger.libs.httpklient.tryMap
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorhistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk
@@ -47,19 +52,25 @@ class KontorhistorikkHttpklient(
     connectTimeout: Duration = 2.seconds,
     timeout: Duration = 3.seconds,
     clock: Clock,
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = timeout
-        this.successStatus = { it == 200 }
-        this.authTokenProvider = authTokenProvider
-    },
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
+
     private val uri = URI.create("$baseUrl/graphql")
 
     suspend fun hentKontorhistorikk(
         fnr: Fnr,
     ): Either<KanIkkeHenteKontorhistorikk, KontorhistorikkMedMetadata> {
-        return httpKlient.post<GraphQlResponse>(uri, lagGraphQlRequest(fnr.verdi)).mapLeft { error ->
+        // API-et svarer alltid 200 ved suksess (også GraphQL-feil kommer med 200); alt annet skal være feil.
+        return httpKlient.postJson<GraphQlResponse>(uri, lagGraphQlRequest(fnr.verdi), godta = Statusregel.Eksakt(200)).mapLeft { error ->
             when (error) {
                 is HttpKlientError.UventetStatus -> KanIkkeHenteKontorhistorikk.UventetHttpStatus(error)
 
@@ -72,20 +83,12 @@ class KontorhistorikkHttpklient(
             if (!response.body.errors.isNullOrEmpty()) {
                 return@flatMap KanIkkeHenteKontorhistorikk.GraphQlFeil(httpKlientMetadata = response.metadata).left()
             }
-            Either.catch {
+            // Body-en er gyldig JSON, men innholdet kan la seg ikke mappe til domenet (f.eks. et endretTidspunkt vi ikke klarer å tolke).
+            // tryMap pakker det som httpklient sin DeserializationError slik at throwable og metadata følger med til feillogging.
+            response.tryMap {
                 Kontorhistorikk((response.body.data?.kontorHistorikk ?: emptyList()).map { it.toDomene() })
-            }.mapLeft { throwable ->
-                // Body-en er gyldig JSON, men innholdet lot seg ikke mappe til domenet (f.eks. et
-                // endretTidspunkt vi ikke klarer å tolke). Vi pakker det som httpklient sin
-                // DeserializationError slik at throwable og metadata følger med til feillogging.
-                KanIkkeHenteKontorhistorikk.KallFeilet(
-                    httpKlientError = HttpKlientError.DeserializationError(
-                        throwable = throwable,
-                        body = response.rawResponseString ?: "",
-                        statusCode = response.statusCode,
-                        metadata = response.metadata,
-                    ),
-                )
+            }.mapLeft { deserialiseringsfeil ->
+                KanIkkeHenteKontorhistorikk.KallFeilet(httpKlientError = deserialiseringsfeil)
             }.map { kontorhistorikk ->
                 KontorhistorikkMedMetadata(
                     kontorhistorikk = kontorhistorikk,
@@ -116,7 +119,7 @@ private data class GraphQlRequest(
     val variables: Map<String, String>,
 )
 
-/** Kun ment brukt av testene utenfor denne fila (konstrueres direkte i `HttpKlientFake.enqueueResponse`). */
+/** Kun ment brukt av testene utenfor denne fila (serialiseres som fasit i `FakeHttpTransport.leggIKøJson`). */
 data class GraphQlResponse(
     val data: GraphQlData? = null,
     val errors: List<Map<String, Any?>>? = null,

@@ -5,12 +5,15 @@ import arrow.core.flatMap
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.AuthTokenProvider
-import no.nav.tiltakspenger.libs.httpklient.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.get
-import no.nav.tiltakspenger.libs.httpklient.patch
-import no.nav.tiltakspenger.libs.httpklient.post
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -34,15 +37,20 @@ class OppgaveHttpClient(
     baseUrl: String,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 2.seconds,
-    private val timeout: Duration = 5.seconds,
+    timeout: Duration = 5.seconds,
     private val clock: Clock,
-    private val httpKlient: HttpKlient = HttpKlient(clock = clock) {
-        this.connectTimeout = connectTimeout
-        this.defaultTimeout = timeout
-        this.successStatus = { it == 200 }
-        this.authTokenProvider = authTokenProvider
-    },
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : OppgaveKlient {
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            connectTimeout = connectTimeout,
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+        ),
+        transport = transport,
+    )
+
     private val logger = KotlinLogging.logger {}
 
     private val oppgaverUri = URI.create("$baseUrl/api/v1/oppgaver")
@@ -137,10 +145,13 @@ class OppgaveHttpClient(
         opprettOppgaveRequest: OpprettOppgaveRequest,
         callId: UUID,
     ): Either<HttpKlientError, OppgaveId> {
-        return httpKlient.post<OpprettOppgaveResponse>(oppgaverUri, opprettOppgaveRequest) {
-            header("X-Correlation-ID", callId.toString())
-            successStatus(201)
-        }.map { response ->
+        return httpKlient.postJson<OpprettOppgaveResponse>(
+            uri = oppgaverUri,
+            body = opprettOppgaveRequest,
+            headere = listOf(NavHeadere.xCorrelationId(callId.toString())),
+            // Oppgave-API-et svarer 201 Created ved opprettelse; alt annet skal være feil.
+            godta = Statusregel.Eksakt(201),
+        ).map { response ->
             val oppgaveId = OppgaveId(response.body.id.toString())
             logger.info { "Opprettet oppgave med id $oppgaveId for callId: $callId ${opprettOppgaveRequest.journalpostId?.let { ", journalpostId: $it" }}" }
             oppgaveId
@@ -152,18 +163,22 @@ class OppgaveHttpClient(
         oppgaveType: String,
         callId: UUID,
     ): Either<HttpKlientError, FinnOppgaveResponse> {
-        return httpKlient.get<FinnOppgaveResponse>(finnOppgaveUri(journalpostId, oppgaveType)) {
-            header("X-Correlation-ID", callId.toString())
-        }.map { it.body }
+        return httpKlient.getJson<FinnOppgaveResponse>(
+            uri = finnOppgaveUri(journalpostId, oppgaveType),
+            headere = listOf(NavHeadere.xCorrelationId(callId.toString())),
+            godta = Statusregel.Eksakt(200),
+        ).map { it.body }
     }
 
     private suspend fun getOppgave(
         oppgaveId: OppgaveId,
         callId: UUID,
     ): Either<HttpKlientError, Oppgave> {
-        return httpKlient.get<Oppgave>(URI.create("$oppgaverUri/$oppgaveId")) {
-            header("X-Correlation-ID", callId.toString())
-        }.map { it.body }
+        return httpKlient.getJson<Oppgave>(
+            uri = URI.create("$oppgaverUri/$oppgaveId"),
+            headere = listOf(NavHeadere.xCorrelationId(callId.toString())),
+            godta = Statusregel.Eksakt(200),
+        ).map { it.body }
     }
 
     private suspend fun ferdigstillOppgave(
@@ -174,9 +189,12 @@ class OppgaveHttpClient(
             versjon = oppgave.versjon,
             status = OppgaveStatus.FERDIGSTILT,
         )
-        return httpKlient.patch<Unit>(URI.create("$oppgaverUri/${oppgave.id}"), ferdigstillOppgaveRequest) {
-            header("X-Correlation-ID", callId.toString())
-        }.map { }
+        return httpKlient.patchJsonUtenSvar(
+            uri = URI.create("$oppgaverUri/${oppgave.id}"),
+            body = ferdigstillOppgaveRequest,
+            headere = listOf(NavHeadere.xCorrelationId(callId.toString())),
+            godta = Statusregel.Eksakt(200),
+        ).map { }
     }
 
     private fun finnOppgaveUri(journalpostId: JournalpostId, oppgaveType: String): URI {
