@@ -66,7 +66,7 @@ internal class OppgaveHttpClientTest {
         finnKall.metode shouldBe "GET"
         finnKall.uri.toString() shouldBe
             "$baseUrl/api/v1/oppgaver?tema=IND&oppgavetype=VURD_HENV&journalpostId=$journalpostId&statuskategori=AAPEN"
-        finnKall.request.headers().firstValue("X-Correlation-ID").get().shouldNotBeNull()
+        finnKall.request.headers().firstValue("X-Correlation-ID").orElse(null).shouldNotBeNull()
         opprettKall.metode shouldBe "POST"
         opprettKall.uri.toString() shouldBe "$baseUrl/api/v1/oppgaver"
     }

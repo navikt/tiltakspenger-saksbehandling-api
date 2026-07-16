@@ -79,6 +79,7 @@ class DokdistHttpClient(
         return httpKlient.postJson<DokdistResponse>(
             uri = uri,
             body = SerialisertJson(jsonPayload),
+            // Dokdist bruker «Nav-Callid»-varianten (uten bindestrek før Id); navCallId ville gitt det andre headernavnet «Nav-Call-Id».
             headere = listOf(NavHeadere.navCallid(correlationId.value)),
             godta = Statusregel.Eksakt(200, 409),
         ).map { DistribusjonId(it.body.bestillingsId) }

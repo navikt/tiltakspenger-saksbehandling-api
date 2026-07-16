@@ -42,6 +42,10 @@ jobs:
       - name: Build and run tests
         run: ./gradlew build --configuration-cache
         if: steps.metadata.outputs.package-ecosystem != 'github_actions'
+      # Merger direkte, uten --auto: main har ingen påkrevde sjekker, og da avviser GitHub auto-merge.
+      # Bygg og test har allerede kjørt grønt i steget over.
+      # Merge med GITHUB_TOKEN trigger ingen push-workflows på main, så det bygges ikke image og deployes ikke.
+      # Merger et menneske/agent PR-en selv (GitHub-knappen eller gh CLI), kjører build og deploy som normalt - da er noen på jobb og kan følge opp.
       - name: Auto-merge changes from Dependabot
         run: gh pr merge --squash "$PR_URL"
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch' && steps.metadata.outputs.package-ecosystem != 'github_actions'
