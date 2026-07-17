@@ -75,7 +75,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:12.10.0")
+    implementation("org.flywaydb:flyway-database-postgresql:12.11.0")
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.13")
     implementation("com.github.seratch:kotliquery:1.9.1")
