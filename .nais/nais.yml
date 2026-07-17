@@ -18,14 +18,23 @@ spec:
       memory: 1500Mi
   ingresses:
     - {{ ingress.url }}
+  # Prober følger felles mal, se «Delte konvensjoner» i navikt/tiltakspenger AGENTS.md. Avvik skal begrunnes med kommentar her.
+  startup:
+    path: /isalive
+    initialDelay: 5
+    periodSeconds: 5
+    failureThreshold: 60
+    timeout: 3
   liveness:
     path: /isalive
-    initialDelay: 15
+    periodSeconds: 10
+    failureThreshold: 3
+    timeout: 3
   readiness:
     path: /isready
-    initialDelay: 15
     periodSeconds: 5
     failureThreshold: 1
+    timeout: 3
   prometheus:
     enabled: true
     path: /metrics
