@@ -16,7 +16,7 @@ fun KanIkkeIverksetteUtbetaling.tilErrorJson(): Pair<HttpStatusCode, ErrorJson> 
             "støtter_ikke_justering",
         )
 
-        KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> HttpStatusCode.Conflict to ErrorJson(
+        is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> HttpStatusCode.Conflict to ErrorJson(
             "Kontrollsimuleringen har endringer sammenlignet med forrige simulering.",
             "simulering_endret",
         )

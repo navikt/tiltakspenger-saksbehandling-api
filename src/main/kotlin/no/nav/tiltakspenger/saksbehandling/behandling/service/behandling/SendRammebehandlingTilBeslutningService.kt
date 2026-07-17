@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
@@ -17,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
@@ -52,7 +54,7 @@ class SendRammebehandlingTilBeslutningService(
         }
 
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
-            logger.error { "Utbetaling på behandlingen har et resultat som ikke kan sendes til beslutning - ${kommando.behandlingId} / $it" }
+            it.logg(logger) { "Utbetaling på behandlingen har et resultat som ikke kan sendes til beslutning - ${behandlingMedUtbetalingskontroll.loggkontekst(kommando.correlationId)}" }
 
             rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
 

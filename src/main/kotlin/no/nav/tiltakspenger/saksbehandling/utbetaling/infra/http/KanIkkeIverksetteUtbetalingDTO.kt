@@ -14,7 +14,7 @@ fun KanIkkeIverksetteUtbetaling.tilKanIkkeIverksetteUtbetalingDTO(): KanIkkeIver
     return when (this) {
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> KanIkkeIverksetteUtbetalingDTO.SimuleringMangler
         KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> KanIkkeIverksetteUtbetalingDTO.JusteringStøttesIkke
-        KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> KanIkkeIverksetteUtbetalingDTO.SimuleringHarEndringer
+        is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer -> KanIkkeIverksetteUtbetalingDTO.SimuleringHarEndringer
         KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling -> KanIkkeIverksetteUtbetalingDTO.BehandlingstypeStøtterIkkeFeilutbetaling
         KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering -> KanIkkeIverksetteUtbetalingDTO.BehandlingstypeStøtterIkkeJustering
     }

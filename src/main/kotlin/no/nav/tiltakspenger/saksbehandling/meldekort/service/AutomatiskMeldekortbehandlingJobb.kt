@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
@@ -128,11 +129,7 @@ class AutomatiskMeldekortbehandlingJobb(
         if (skalPrøvePåNytt) {
             logger.info { "$logMsg - Denne vil prøves på nytt" }
         } else {
-            if (status.loggesSomError) {
-                logger.error { logMsg }
-            } else {
-                logger.info { logMsg }
-            }
+            logger.at(status.loggnivå) { message = logMsg }
 
             // Ved Left hopper vi over statusoppdateringen under, slik at meldekortet (og dermed
             // gosysoppgaven) prøves på nytt neste kjøring. Oppgaveopprettelsen har allerede logget.
@@ -182,20 +179,26 @@ class AutomatiskMeldekortbehandlingJobb(
         meldekortbehandling.validerKanIverksetteUtbetaling().onLeft {
             when (it) {
                 KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling -> {
-                    logger.error { "Behandling av brukers meldekort $meldekortId viser feilutbetaling i simuleringen" }
-                    return MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING.left()
+                    val status = MeldekortBehandletAutomatiskStatus.HAR_FEILUTBETALING
+                    logger.at(status.loggnivå) {
+                        message = "Behandling av brukers meldekort $meldekortId viser feilutbetaling i simuleringen - ${meldekortbehandling.loggkontekst()}"
+                    }
+                    return status.left()
                 }
 
                 KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
                 KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering,
                 -> {
-                    logger.error { "Behandling av brukers meldekort $meldekortId viser justeringer i simuleringen" }
-                    return MeldekortBehandletAutomatiskStatus.HAR_JUSTERING.left()
+                    val status = MeldekortBehandletAutomatiskStatus.HAR_JUSTERING
+                    logger.at(status.loggnivå) {
+                        message = "Behandling av brukers meldekort $meldekortId viser justeringer i simuleringen - ${meldekortbehandling.loggkontekst()}"
+                    }
+                    return status.left()
                 }
 
                 // TODO: ikke implemenert for meldekort ennå
                 KanIkkeIverksetteUtbetaling.SimuleringMangler,
-                KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer,
+                is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer,
                 -> Unit
             }
         }

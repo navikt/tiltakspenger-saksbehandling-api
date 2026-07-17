@@ -35,7 +35,9 @@ class ErrorEveryNLogger(
         if (current % n == 0) {
             logger.error { msg() }
         } else {
-            logger.at(defaultLevel) { msg() }
+            logger.at(defaultLevel) {
+                this.message = msg()
+            }
         }
     }
 

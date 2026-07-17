@@ -1,14 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.NonEmptyList
-import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.LocalDate
 import java.time.LocalDateTime
-
-private val logger = KotlinLogging.logger {}
 
 /**
  * En dry-run av en utbetaling.
@@ -179,61 +176,79 @@ enum class Posteringstype {
     MOTPOSTERING,
 }
 
-fun Simulering?.erLik(other: Simulering?): Boolean {
-    if (this == null && other == null) {
-        return true
+fun Simulering?.erLik(other: Simulering?): Boolean = this.finnUlikheter(other).isEmpty()
+
+/**
+ * Finner ulikhetene mellom simuleringen fra beregningen og kontrollsimuleringen.
+ * Returnerer en beskrivelse per ulikhet, eller en tom liste dersom simuleringene er like.
+ * I beskrivelsene er `beregnet` simuleringen saksbehandler/beslutter så på behandlingen, og `kontroll` er kontrollsimuleringen som kjøres rett før iverksetting.
+ * Sammenligner ikke enkeltposteringer, kun totalbeløpene for hver dag.
+ */
+fun Simulering?.finnUlikheter(kontrollsimulering: Simulering?): List<String> {
+    if (this == null && kontrollsimulering == null) {
+        return emptyList()
     }
 
-    if (this is Simulering.IngenEndring && other is Simulering.IngenEndring) {
-        return true
+    if (this is Simulering.IngenEndring && kontrollsimulering is Simulering.IngenEndring) {
+        return emptyList()
     }
 
-    if (this is Simulering.Endring && other is Simulering.Endring) {
-        if (this.simuleringPerMeldeperiode.size != other.simuleringPerMeldeperiode.size) {
-            logger.debug { "Simuleringene har ulikt antall meldeperioder - ${this.simuleringPerMeldeperiode.size} / ${other.simuleringPerMeldeperiode.size}" }
-            return false
+    if (this is Simulering.Endring && kontrollsimulering is Simulering.Endring) {
+        if (this.simuleringPerMeldeperiode.size != kontrollsimulering.simuleringPerMeldeperiode.size) {
+            return listOf("Ulikt antall meldeperioder: beregnet=${this.simuleringPerMeldeperiode.size}, kontroll=${kontrollsimulering.simuleringPerMeldeperiode.size}")
         }
 
-        return this.simuleringPerMeldeperiode.zip(other.simuleringPerMeldeperiode).all { (a, b) ->
-            a.erLik(b)
+        return this.simuleringPerMeldeperiode.toList().zip(kontrollsimulering.simuleringPerMeldeperiode).flatMap { (beregnet, kontroll) ->
+            beregnet.finnUlikheter(kontroll)
         }
     }
 
-    logger.debug { "Simuleringene har ulike klasse-instansieringer - ${this?.let { it::class.simpleName } ?: "null"} / ${other?.let { it::class.simpleName } ?: "null"}" }
-
-    return false
+    return listOf("Ulike simuleringstyper: beregnet=${this.beskriv()}, kontroll=${kontrollsimulering.beskriv()}")
 }
 
-private fun SimuleringForMeldeperiode.erLik(other: SimuleringForMeldeperiode): Boolean {
-    if (this.meldeperiode.id != other.meldeperiode.id) {
-        logger.debug { "Simuleringene har ulike meldeperioder - ${this.meldeperiode.id} / ${other.meldeperiode.id}" }
-        return false
+private fun Simulering?.beskriv(): String {
+    return when (this) {
+        null -> "mangler"
+        is Simulering.IngenEndring -> "ingen endring"
+        is Simulering.Endring -> "endring (totalPeriode=$totalPeriode, tidligereUtbetalt=$tidligereUtbetalt, nyUtbetaling=$nyUtbetaling, totalEtterbetaling=$totalEtterbetaling, totalFeilutbetaling=$totalFeilutbetaling, totalJustering=$totalJustering, totalTrekk=$totalTrekk)"
+    }
+}
+
+private fun SimuleringForMeldeperiode.finnUlikheter(kontroll: SimuleringForMeldeperiode): List<String> {
+    if (this.meldeperiode.id != kontroll.meldeperiode.id) {
+        return listOf("Ulike meldeperioder: beregnet=${this.meldeperiode.id}, kontroll=${kontroll.meldeperiode.id}")
     }
 
-    if (this.simuleringsdager.size != other.simuleringsdager.size) {
-        logger.debug { "Simuleringene har ulikt antall simuleringsdager - ${this.simuleringsdager.size} / ${other.simuleringsdager.size}" }
-        return false
+    if (this.simuleringsdager.size != kontroll.simuleringsdager.size) {
+        return listOf("Ulikt antall simuleringsdager for meldeperiode ${this.meldeperiode.id}: beregnet=${this.simuleringsdager.size}, kontroll=${kontroll.simuleringsdager.size}")
     }
 
-    return this.simuleringsdager.zip(other.simuleringsdager).all { (dagA, dagB) ->
-        dagA.erLik(dagB).also {
-            if (!it) {
-                logger.debug {
-                    "Simuleringene har ulikheter mellom simuleringsdager for meldeperiode ${this.meldeperiode.id}: $dagA / $dagB"
-                }
-            }
-        }
-    }
+    return this.simuleringsdager.toList().zip(kontroll.simuleringsdager)
+        .flatMap { (beregnetDag, kontrolldag) -> beregnetDag.finnUlikheter(kontrolldag) }
+        .map { "Meldeperiode ${this.meldeperiode.id} $it" }
 }
 
 // Sjekker ikke om posteringene er like, kun totalbeløpene for hver dag
-private fun Simuleringsdag.erLik(other: Simuleringsdag): Boolean {
-    return this.dato.isEqual(other.dato) &&
-        this.tidligereUtbetalt == other.tidligereUtbetalt &&
-        this.nyUtbetaling == other.nyUtbetaling &&
-        this.totalEtterbetaling == other.totalEtterbetaling &&
-        this.totalFeilutbetaling == other.totalFeilutbetaling &&
-        this.totalMotpostering == other.totalMotpostering &&
-        this.totalTrekk == other.totalTrekk &&
-        this.totalJustering == other.totalJustering
+private fun Simuleringsdag.finnUlikheter(kontrolldag: Simuleringsdag): List<String> {
+    if (!this.dato.isEqual(kontrolldag.dato)) {
+        return listOf("har ulike datoer: beregnet=${this.dato}, kontroll=${kontrolldag.dato}")
+    }
+
+    val ulikeFelter = listOf(
+        Triple("tidligereUtbetalt", tidligereUtbetalt, kontrolldag.tidligereUtbetalt),
+        Triple("nyUtbetaling", nyUtbetaling, kontrolldag.nyUtbetaling),
+        Triple("totalEtterbetaling", totalEtterbetaling, kontrolldag.totalEtterbetaling),
+        Triple("totalFeilutbetaling", totalFeilutbetaling, kontrolldag.totalFeilutbetaling),
+        Triple("totalMotpostering", totalMotpostering, kontrolldag.totalMotpostering),
+        Triple("totalTrekk", totalTrekk, kontrolldag.totalTrekk),
+        Triple("totalJustering", totalJustering, kontrolldag.totalJustering),
+    ).mapNotNull { (felt, beregnet, kontroll) ->
+        if (beregnet != kontroll) "$felt $beregnet->$kontroll" else null
+    }
+
+    return if (ulikeFelter.isEmpty()) {
+        emptyList()
+    } else {
+        listOf("$dato (beregnet->kontroll): ${ulikeFelter.joinToString(", ")}")
+    }
 }

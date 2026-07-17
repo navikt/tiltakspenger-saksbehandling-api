@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -32,6 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
@@ -75,7 +77,7 @@ class IverksettRammebehandlingService(
         }
 
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
-            logger.error { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - $rammebehandlingId / $it" }
+            it.logg(logger) { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${behandlingMedUtbetalingskontroll.loggkontekst(correlationId)}" }
             rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
             val oppdaterSak = sak.oppdaterRammebehandling(behandlingMedUtbetalingskontroll)
 
@@ -101,7 +103,7 @@ class IverksettRammebehandlingService(
         )
         val (oppdatertSak, vedtak, rammevedtakstatistikk) = sak.opprettRammevedtak(iverksattRammebehandling, clock)
             .getOrElse {
-                logger.error { "Kunne ikke opprette rammevedtak for behandling $rammebehandlingId: $it" }
+                logger.error { "Kunne ikke opprette rammevedtak: $it - ${iverksattRammebehandling.loggkontekst(correlationId)}" }
                 return KanIkkeIverksetteBehandling.OpprettVedtakFeil(it).left()
             }
 
@@ -109,11 +111,13 @@ class IverksettRammebehandlingService(
             is Revurdering -> oppdatertSak.iverksettRammebehandlingMedTidslinje(
                 rammevedtak = vedtak,
                 statistikkhendelser = (klagestatistikk + rammevedtakstatistikk),
+                correlationId = correlationId,
             ).getOrElse { return it.left() }
 
             is Søknadsbehandling -> oppdatertSak.iverksettSøknadsbehandling(
                 rammevedtak = vedtak,
                 statistikkhendelser = klagestatistikk + rammevedtakstatistikk,
+                correlationId = correlationId,
             ).getOrElse { return it.left() }
         }
 
@@ -123,11 +127,13 @@ class IverksettRammebehandlingService(
     private suspend fun Sak.iverksettSøknadsbehandling(
         rammevedtak: Rammevedtak,
         statistikkhendelser: Statistikkhendelser,
+        correlationId: CorrelationId,
     ): Either<KanIkkeIverksetteBehandling, Sak> {
         return when (rammevedtak.rammebehandlingsresultat) {
             is Søknadsbehandlingsresultat.Innvilgelse -> this.iverksettRammebehandlingMedTidslinje(
                 rammevedtak,
                 statistikkhendelser,
+                correlationId,
             )
 
             is Søknadsbehandlingsresultat.Avslag -> this.iverksettAvslag(rammevedtak, statistikkhendelser)
@@ -162,6 +168,7 @@ class IverksettRammebehandlingService(
     private suspend fun Sak.iverksettRammebehandlingMedTidslinje(
         rammevedtak: Rammevedtak,
         statistikkhendelser: Statistikkhendelser,
+        correlationId: CorrelationId,
     ): Either<KanIkkeIverksetteBehandling, Sak> {
         when (rammevedtak.rammebehandlingsresultat) {
             is Omgjøringsresultat.OmgjøringIkkeValgt,
@@ -179,7 +186,7 @@ class IverksettRammebehandlingService(
         // Denne skal ikke være mulig å treffe
         if (this.rammevedtaksliste.last().id != rammevedtak.id) {
             logger.error(RuntimeException("Trigger stacktrace for enklere debug")) {
-                "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${rammevedtak.id} skal være siste vedtak på ${this.id})"
+                "Vedtaket som iverksettes må være siste vedtak på saken (forventet at ${rammevedtak.id} skal være siste vedtak) - ${rammevedtak.rammebehandling.loggkontekst(correlationId)}"
             }
             return KanIkkeIverksetteBehandling.VedtakErIkkeSisteVedtakPåSaken.left()
         }
@@ -188,7 +195,7 @@ class IverksettRammebehandlingService(
 
         if (!sakOppdatertMedMeldeperioder.meldeperioderErGyldigeForHelg()) {
             logger.error(RuntimeException("Trigger stacktrace for enklere debug")) {
-                "Kan ikke iverksette rammebehandling med ugyldige meldeperioder for helg"
+                "Kan ikke iverksette rammebehandling med ugyldige meldeperioder for helg - ${rammevedtak.rammebehandling.loggkontekst(correlationId)}"
             }
             return KanIkkeIverksetteBehandling.UgyldigeMeldeperioderHelg.left()
         }
@@ -226,7 +233,7 @@ class IverksettRammebehandlingService(
             },
             onSuccess = {
                 if (rammevedtak.rammebehandling.utbetaling?.harFeilutbetaling() == true) {
-                    logger.warn { "Rammebehandling med feilutbetaling har blitt iverksatt - Behandling-id ${rammevedtak.rammebehandling.id} - vedtak-id: ${rammevedtak.id} - sak-id: ${rammevedtak.sakId}" }
+                    logger.warn { "Rammebehandling med feilutbetaling har blitt iverksatt - vedtakId: ${rammevedtak.id}, ${rammevedtak.rammebehandling.loggkontekst(correlationId)}" }
                 }
             },
         )

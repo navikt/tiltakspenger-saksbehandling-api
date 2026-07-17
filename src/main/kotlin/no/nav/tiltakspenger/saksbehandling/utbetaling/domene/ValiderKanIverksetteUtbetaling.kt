@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
+import io.github.oshai.kotlinlogging.KLogger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -32,8 +35,8 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
     val simulering = this.utbetaling?.simulering
     val kontrollSimulering = this.utbetalingskontroll?.simulering
 
-    if (!simulering.erLik(kontrollSimulering)) {
-        return KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer.left()
+    simulering.finnUlikheter(kontrollSimulering).toNonEmptyListOrNull()?.let {
+        return KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer(it).left()
     }
 
     // Hvis beregnet utbetaling er null (og kontrollen også var null), er alt ok
@@ -89,10 +92,40 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
     }
 }
 
-enum class KanIkkeIverksetteUtbetaling {
-    SimuleringMangler,
-    JusteringStøttesIkke,
-    KontrollSimuleringHarEndringer,
-    BehandlingstypeStøtterIkkeFeilutbetaling,
-    BehandlingstypeStøtterIkkeJustering,
+sealed interface KanIkkeIverksetteUtbetaling {
+    data object SimuleringMangler : KanIkkeIverksetteUtbetaling
+
+    data object JusteringStøttesIkke : KanIkkeIverksetteUtbetaling
+
+    data object BehandlingstypeStøtterIkkeFeilutbetaling : KanIkkeIverksetteUtbetaling
+
+    data object BehandlingstypeStøtterIkkeJustering : KanIkkeIverksetteUtbetaling
+
+    /**
+     * Kontrollsimuleringen avviker fra simuleringen på beregningen.
+     * Skjer typisk når en annen utbetaling på saken har blitt iverksatt eller effektuert mellom send til beslutter og iverksett.
+     * [ulikheter] beskriver hva som avviker, slik at én logglinje er nok til å se hva som faktisk endret seg.
+     */
+    data class KontrollSimuleringHarEndringer(val ulikheter: NonEmptyList<String>) : KanIkkeIverksetteUtbetaling {
+        override fun toString() = "KontrollSimuleringHarEndringer(${ulikheter.joinToString("; ")})"
+    }
+}
+
+/**
+ * [KanIkkeIverksetteUtbetaling.SimuleringMangler] tyder på feil hos oss og logges som error.
+ * De øvrige utfallene er forventede domeneutfall som saksbehandler får presentert og kan handle på, og logges derfor som warn.
+ * Linjen stemples alltid med `KanIkkeIverksetteUtbetaling.<utfall>`, slik at man kan søke på `KanIkkeIverksetteUtbetaling` for alle utfall og på f.eks. `KontrollSimuleringHarEndringer` for ett spesifikt.
+ */
+fun KanIkkeIverksetteUtbetaling.logg(logger: KLogger, melding: () -> Any?) {
+    val meldingMedUtfall = { "${melding()} - KanIkkeIverksetteUtbetaling.$this" }
+
+    when (this) {
+        KanIkkeIverksetteUtbetaling.SimuleringMangler -> logger.error(meldingMedUtfall)
+
+        is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer,
+        KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling,
+        KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering,
+        -> logger.warn(meldingMedUtfall)
+    }
 }

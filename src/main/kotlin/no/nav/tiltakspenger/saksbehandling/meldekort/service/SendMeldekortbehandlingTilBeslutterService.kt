@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
@@ -10,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import java.time.Clock
 
@@ -32,12 +34,12 @@ class SendMeldekortbehandlingTilBeslutterService(
         val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)!!
 
         if (!meldekortbehandling.erFullstendigUtfylt) {
-            logger.warn { "Meldeperiodene må være fullstendig utfylt før send til beslutning - sakId: ${sak.id}, meldekortId: ${kommando.meldekortId}" }
+            logger.warn { "Meldeperiodene må være fullstendig utfylt før send til beslutning - ${meldekortbehandling.loggkontekst(kommando.correlationId)}" }
             return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeFullstendigUtfylt.left()
         }
 
         if (!sak.harSisteMeldeperiodeVersjoner(kommando.meldekortId)) {
-            logger.warn { "Meldeperiodene må være siste versjon ved send til beslutning - sakId: ${sak.id}, meldekortId: ${kommando.meldekortId}" }
+            logger.warn { "Meldeperiodene må være siste versjon ved send til beslutning - ${meldekortbehandling.loggkontekst(kommando.correlationId)}" }
             return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeSisteVersjon.left()
         }
 
@@ -52,11 +54,12 @@ class SendMeldekortbehandlingTilBeslutterService(
                     return@onLeft
                 }
 
+                it.logg(logger) { "Utbetaling på meldekortbehandlingen har et resultat som ikke kan sendes til beslutter - ${meldekort.loggkontekst(kommando.correlationId)}" }
                 return KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
             }
 
             meldekortbehandlingRepo.oppdater(meldekort)
-            logger.info { "Meldekort med id ${meldekort.id} sendt til beslutter. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
+            logger.info { "Meldekortbehandling sendt til beslutter - ${meldekort.loggkontekst(kommando.correlationId)}" }
             Pair(oppdatertSak, meldekort)
         }
     }
