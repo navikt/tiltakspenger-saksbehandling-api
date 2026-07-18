@@ -198,7 +198,8 @@ internal class SammenligningVeilarboppfolgingKlientTest {
 
     @Test
     fun `andre Left enn ManglerOppfolgingsenhet faller IKKE tilbake på ny klient`() {
-        // Vi vil ikke skjule kall-/HTTP-/tjenestefeil ved å bytte til ny klient. Bare nullsvar (mangler).
+        // Vi vil ikke skjule kall-/HTTP-/tjenestefeil ved å bytte til ny klient.
+        // Bare nullsvar (mangler).
         val klient = klient(
             veilarbHttp = FakeHttpTransport().apply { leggIKøStatus(statusCode = 503, body = "fail", contentType = "text/plain") },
             kontorhistorikkHttp = kontorhistorikkHttpMedInnslag(dto()),

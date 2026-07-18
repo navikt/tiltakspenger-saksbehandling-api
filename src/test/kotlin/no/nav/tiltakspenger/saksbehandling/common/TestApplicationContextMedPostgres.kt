@@ -9,13 +9,12 @@ import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 
 /**
- * Postgres-versjon av [TestApplicationContext]. Arver alle context- og repo-konfigurasjoner
- * fra basisklassen, og bruker Postgres-bakte repoer via [PostgresSessionFactory].
+ * Postgres-versjon av [TestApplicationContext].
+ * Arver alle context- og repo-konfigurasjoner fra basisklassen, og bruker Postgres-bakte repoer via [PostgresSessionFactory].
  *
  * Setter kun opp Postgres-spesifikke ting — fake-klienter og hjelpemetoder kommer fra basisklassen.
  *
- * Klassen er `open` så enkelttester kan lage anonyme subklasser for å overstyre fake-klienter
- * eller injisere fake-repoer via `*RepoOverride`-hookene fra basisklassen.
+ * Klassen er `open` så enkelttester kan lage anonyme subklasser for å overstyre fake-klienter eller injisere fake-repoer via `*RepoOverride`-hookene fra basisklassen.
  */
 open class TestApplicationContextMedPostgres(
     override val sessionFactory: PostgresSessionFactory,

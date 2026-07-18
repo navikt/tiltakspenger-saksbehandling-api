@@ -231,7 +231,8 @@ class OppdaterMeldekortbehandlingRouteTest {
             opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = kjede1)!!
             opprettOgIverksettMeldekortbehandling(tac = tac, sakId = sak.id, kjedeId = kjede2)!!
 
-            // Korriger periode 1 og 3 (ikke-sammenhengende). Midterste periode er uendret.
+            // Korriger periode 1 og 3 (ikke-sammenhengende).
+            // Midterste periode er uendret.
             val (_, korrigering) = opprettOgOppdaterMeldekortbehandling(
                 tac = tac,
                 sakId = sak.id,
@@ -279,8 +280,7 @@ class OppdaterMeldekortbehandlingRouteTest {
 
         withTestApplicationContext(clock = clock) { tac ->
             // Søknadsbehandling dekker tirsdag 31.mars - søndag 12.april (1.april er onsdag)
-            // Revurderingen forlenger bakover til mandag 30.mars, slik at 30.mars og 31.mars
-            // går fra "ingen rett" til "har rett" og kjeden får en ny versjon.
+            // Revurderingen forlenger bakover til mandag 30.mars, slik at 30.mars og 31.mars går fra "ingen rett" til "har rett" og kjeden får en ny versjon.
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
                 søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1.april(2026) til 12.april(2026)),
@@ -290,8 +290,8 @@ class OppdaterMeldekortbehandlingRouteTest {
             val kjede = sak.meldeperiodeKjeder.first()
             kjede.size shouldBe 2 // versjon 1 (søknadsbehandling) og versjon 2 (revurdering)
 
-            // Bruker den utdaterte (første) versjonen av meldeperioden. Den har et annet
-            // girRett-mønster enn siste versjon, så valideringen i UtfyltMeldeperiode skal feile.
+            // Bruker den utdaterte (første) versjonen av meldeperioden.
+            // Den har et annet girRett-mønster enn siste versjon, så valideringen i UtfyltMeldeperiode skal feile.
             val utdatertMeldeperiode = kjede.first().tilOppdatertMeldeperiodeDTO()
 
             opprettOgOppdaterMeldekortbehandling(
@@ -315,8 +315,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                 innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
             )
 
-            // Bygger en gyldig DTO basert på sakens første meldeperiode, men setter en kjedeId
-            // som ikke finnes på saken.
+            // Bygger en gyldig DTO basert på sakens første meldeperiode, men setter en kjedeId som ikke finnes på saken.
             val gyldigDto = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode().tilOppdatertMeldeperiodeDTO()
             val ukjentKjede = gyldigDto.copy(kjedeId = "2099-01-05/2099-01-18")
 

@@ -97,8 +97,7 @@ fun Route.forhåndsvisBrevMeldekortbehandlingRoute(
                             behandlingId = meldekortId,
                         )
                         /*
-                            TODO - pdfgenrs: skift tilbake til kun call.respondBytes når det er verifisert at PDF
-                                fra pdfgenrs er ok
+                            TODO - pdfgenrs: skift tilbake til kun call.respondBytes når det er verifisert at PDF fra pdfgenrs er ok
                          */
                         if (it.second == null) {
                             call.respondBytes(it.first.pdf.getContent(), ContentType.Application.Pdf)

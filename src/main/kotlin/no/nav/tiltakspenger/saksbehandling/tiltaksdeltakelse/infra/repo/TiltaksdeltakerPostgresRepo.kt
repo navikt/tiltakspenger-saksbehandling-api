@@ -41,7 +41,8 @@ class TiltaksdeltakerPostgresRepo(
                 if (id != null) {
                     return@withSession id
                 } else {
-                    // TODO jah: Mulig race condition dersom 2 tråder prøver å lagre samme eksternId samtidig (den har en unik index). Foreslår å legge på ON CONFLICT (ekstern_id) DO NOTHING
+                    // TODO jah: Mulig race condition dersom 2 tråder prøver å lagre samme eksternId samtidig (den har en unik index).
+                    // Foreslår å legge på ON CONFLICT (ekstern_id) DO NOTHING
                     val id = TiltaksdeltakerId.random()
                     session.run(
                         sqlQuery(

@@ -6,8 +6,8 @@ import java.time.LocalDateTime
  * Brukes når vi mottar en tilbakekrevingshendelse fra Kafka som vi ikke klarer å deserialisere.
  * Lagres slik at vi kan undersøke hendelsen i ettertid, uten å blokkere konsumeringen av nye hendelser.
  *
- * Merk: Vi har ikke deserialisert kafka-meldingen, så vi vet ikke nødvendigvis verdiene for [eksternFagsakId] eller
- * det egentlige opprettet-tidspunktet. [opprettet] settes til når vi mottok hendelsen.
+ * Merk: Vi har ikke deserialisert kafka-meldingen, så vi vet ikke nødvendigvis verdiene for [eksternFagsakId] eller det egentlige opprettet-tidspunktet.
+ * [opprettet] settes til når vi mottok hendelsen.
  */
 data class TilbakekrevingUkjentHendelse(
     override val id: TilbakekrevinghendelseId,

@@ -44,7 +44,11 @@ enum class MeldekortDagStatus {
     FRAVÆR_STERKE_VELFERDSGRUNNER_ELLER_JOBBINTERVJU,
     FRAVÆR_ANNET,
 
-    /** Kun et "valg" for bruker; ikke saksbehandler. Bruker har ikke tatt stilling til denne dagen. Het tidligere IKKE_REGISTRERT og IKKE_UFYLT. */
+    /**
+     * Kun et "valg" for bruker; ikke saksbehandler.
+     * Bruker har ikke tatt stilling til denne dagen.
+     * Het tidligere IKKE_REGISTRERT og IKKE_UFYLT.
+     */
     IKKE_BESVART,
 
     IKKE_TILTAKSDAG,

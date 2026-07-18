@@ -55,8 +55,7 @@ data class TilbakekrevingPeriodeDTO(
 /**
  * Forsøker å deserialisere en Kafka-melding til en [Tilbakekrevingshendelse].
  *
- * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres - en [TilbakekrevingUkjentHendelse] dersom
- *  deserialiseringen feilet - eller null dersom hendelsen ikke skal lagres.
+ * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres - en [TilbakekrevingUkjentHendelse] dersom deserialiseringen feilet - eller null dersom hendelsen ikke skal lagres.
  */
 fun String.tilNyTilbakekrevingshendelse(id: TilbakekrevinghendelseId = TilbakekrevinghendelseId.random()): Tilbakekrevingshendelse? {
     return Either.catch {

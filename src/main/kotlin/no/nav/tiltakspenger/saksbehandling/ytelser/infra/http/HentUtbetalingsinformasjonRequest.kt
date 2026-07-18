@@ -6,7 +6,6 @@ data class HentUtbetalingsinformasjonRequest(
     // Se https://github.com/navikt/sokos-utbetaldata/tree/main?tab=readme-ov-file#utbetalingsoppslag
     val rolle: String = "RETTIGHETSHAVER",
     val periode: UtbetalingDto.UtbetalingsperiodeDto,
-    // periodetype kan være UTBETALINGSPERIODE eller YTELSESPERIODE, men ytelsesperiode er en veldig tung spørring
-    // som ikke anbefales å bruke
+    // periodetype kan være UTBETALINGSPERIODE eller YTELSESPERIODE, men ytelsesperiode er en veldig tung spørring som ikke anbefales å bruke
     val periodetype: String = "UTBETALINGSPERIODE",
 )

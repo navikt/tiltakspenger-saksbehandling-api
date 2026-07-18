@@ -41,9 +41,12 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
+ * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen.
+ * Dette har ingenting med vedtaksbrevet å gjøre.
  * @param periode Stansperiode eller innvilgelsesperiode (ikke nødvendigvis det samme som vedtaksperiode).
- * @param vedtaksdato Datoen vi bruker i brevet. Lagres samtidig som vi genererer og journalfører brevet. Vil være null fram til dette.
+ * @param vedtaksdato Datoen vi bruker i brevet.
+ * Lagres samtidig som vi genererer og journalfører brevet.
+ * Vil være null fram til dette.
  * @param omgjortAvRammevedtak Dersom dette vedtaket er erstattet helt eller delvis av ett eller flere senere vedtak.
  * @param omgjørRammevedtak Dersom dette vedtaket helt eller delvis omgjør ett eller flere tidligere vedtak.
  */
@@ -51,7 +54,8 @@ data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
     override val opprettet: LocalDateTime,
     override val sakId: SakId,
-    // TODO jah: Rename til vedtaksperiode og fjern fra basen. Denne bør heller reflektere behandlingen.
+    // TODO jah: Rename til vedtaksperiode og fjern fra basen.
+    // Denne bør heller reflektere behandlingen.
     override val periode: Periode,
     override val journalpostId: JournalpostId?,
     override val journalføringstidspunkt: LocalDateTime?,
@@ -154,7 +158,10 @@ data class Rammevedtak(
         }
     }
 
-    /** Merk at et vedtak fremdeles er gjeldende dersom det er delvis omgjort. Avslag anses ikke som gjeldende. */
+    /**
+     * Merk at et vedtak fremdeles er gjeldende dersom det er delvis omgjort.
+     * Avslag anses ikke som gjeldende.
+     */
     val erGjeldende: Boolean by lazy {
         gjeldendePerioder.isNotEmpty()
     }
@@ -203,7 +210,8 @@ data class Rammevedtak(
      *
      * Tenkt kalt under behandlingen for å avgjøre hvilke rammevedtak som vil bli omgjort.
      * Obs: Merk at en annen behandling kan ha omgjort det samme/de samme vedtakene etter at denne metoden er kalt, men før denne behandlingen iverksettes.
-     * @param vedtaksperiode til en ny behandling/vedtak som potensielt vil omgjøre dette vedtaket. Kan være en ren innvilgelse, et rent opphør eller en blanding.
+     * @param vedtaksperiode til en ny behandling/vedtak som potensielt vil omgjøre dette vedtaket.
+     * Kan være en ren innvilgelse, et rent opphør eller en blanding.
      * @return En tom liste dersom dette vedtaket ikke lenger gjelder eller [vedtaksperiode] ikke overlapper, ellers en liste over perioder som omgjøres.
      */
     fun finnPerioderSomOmgjøres(vedtaksperiode: Periode): Omgjøringsperioder {

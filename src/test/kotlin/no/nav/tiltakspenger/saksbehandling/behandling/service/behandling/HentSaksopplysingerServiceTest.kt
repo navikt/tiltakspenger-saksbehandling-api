@@ -413,7 +413,8 @@ internal class HentSaksopplysingerServiceTest {
                     TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak2.second, periode2.fraOgMed.atStartOfDay()),
                 ),
             )
-            // Simulerer at vi søknadsbehandler tiltak1. Tiltak2 overlapper og algoritmen vil da hente begge tiltakene.
+            // Simulerer at vi søknadsbehandler tiltak1.
+            // Tiltak2 overlapper og algoritmen vil da hente begge tiltakene.
             val aktuelleTiltaksdeltakelserForBehandlingen = listOf(
                 tiltak1.first.internDeltakelseId,
             )
@@ -538,7 +539,8 @@ internal class HentSaksopplysingerServiceTest {
 
     @Test
     fun `2 tiltak uten overlapp`() {
-        // Kommentar jah: Dette er ikke aktuelt for søknadsbehandling, men for revurering. Foreløpig behandler vi denne som om de overlapper, men bør på sikt endre det.
+        // Kommentar jah: Dette er ikke aktuelt for søknadsbehandling, men for revurering.
+        // Foreløpig behandler vi denne som om de overlapper, men bør på sikt endre det.
         return runBlocking {
             val fnr = Fnr.random()
             val correlationId = CorrelationId.generate()

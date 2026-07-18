@@ -103,8 +103,7 @@ class PdfgenHttpClient(
     private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
@@ -153,8 +152,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -200,8 +198,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -247,8 +244,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererMeldekortvedtakBrev(
         meldekortvedtak: Meldekortvedtak,
@@ -280,8 +276,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererMeldekortvedtakBrev(
         kommando: GenererMeldekortvedtakBrevKommando,
@@ -355,8 +350,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
@@ -389,8 +383,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -438,8 +431,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererAvslagsVedtaksbrev(
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -488,8 +480,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererAvslagsVedtaksbrev(
         vedtak: Rammevedtak,
@@ -520,8 +511,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererAvvisningsvedtak(
         saksnummer: Saksnummer,
@@ -613,8 +603,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererOpphørBrev(
         vedtak: Rammevedtak,
@@ -647,8 +636,7 @@ class PdfgenHttpClient(
     }
 
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     override suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,

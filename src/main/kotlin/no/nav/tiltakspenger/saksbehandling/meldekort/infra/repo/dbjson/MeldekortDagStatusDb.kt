@@ -14,7 +14,10 @@ enum class MeldekortDagStatusDb {
     /** Brukes foreløpig kun av bruker. */
     IKKE_BESVART,
 
-    /** Brukes kun av saksbehandler. Sammensvarer med 'ikke tiltaksdag'*/
+    /**
+     * Brukes kun av saksbehandler.
+     * Sammensvarer med 'ikke tiltaksdag'
+     */
     IKKE_TILTAKSDAG,
 
     IKKE_RETT_TIL_TILTAKSPENGER,

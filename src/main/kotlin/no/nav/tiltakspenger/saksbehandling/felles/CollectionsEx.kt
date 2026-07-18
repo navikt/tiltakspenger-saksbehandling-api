@@ -1,7 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
 /**
- * @return null, if the iterable is empty. If the iterable has more than one element, throws an [IllegalArgumentException]
+ * @return null, if the iterable is empty.
+ * If the iterable has more than one element, throws an [IllegalArgumentException]
  */
 inline fun <T> Iterable<T>.singleOrNullOrThrow(predicate: (T) -> Boolean): T? {
     val r = this.filter(predicate)

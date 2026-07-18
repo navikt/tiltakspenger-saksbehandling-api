@@ -12,7 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnnta
 import java.time.LocalDate
 
 /**
- * @param erKlagefristenOverholdt Hvis true, skal erUnntakForKlagefrist være null. Hvis false, må erUnntakForKlagefrist være satt.
+ * @param erKlagefristenOverholdt Hvis true, skal erUnntakForKlagefrist være null.
+ * Hvis false, må erUnntakForKlagefrist være satt.
  */
 data class OpprettKlagebehandlingKommando(
     val sakId: SakId,

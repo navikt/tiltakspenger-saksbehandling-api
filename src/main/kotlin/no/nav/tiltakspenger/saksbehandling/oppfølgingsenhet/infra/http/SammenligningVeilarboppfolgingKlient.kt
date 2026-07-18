@@ -36,14 +36,12 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.throwableForLogg
  *
  * Valgregel for hvilket svar som returneres:
  * - Gammel klient OK -> bruk gammel.
- * - Gammel klient feilet med [KanIkkeHenteNavkontor.ManglerOppfolgingsenhet] og ny klient ga
- *   et brukbart kontor ([Kontorhistorikk.nyesteAktuelleKontor]) -> bruk det fra ny.
+ * - Gammel klient feilet med [KanIkkeHenteNavkontor.ManglerOppfolgingsenhet] og ny klient ga et brukbart kontor ([Kontorhistorikk.nyesteAktuelleKontor]) -> bruk det fra ny.
  * - Ellers -> propagér feilen fra gammel klient.
  *
  * All logging for navkontor-oppslaget skjer her - klientene og [NavkontorService] logger ikke selv:
  * - Én error per klient som feiler (throwable og rå request/response kun til sikkerlogg).
- * - Feiler ingen av klientene sammenlignes svarene: error dersom ny klient ikke har et brukbart kontor
- *   eller svarene er ulike, info når vi faller tilbake på ny klient, og ingen logging ved likt svar.
+ * - Feiler ingen av klientene sammenlignes svarene: error dersom ny klient ikke har et brukbart kontor eller svarene er ulike, info når vi faller tilbake på ny klient, og ingen logging ved likt svar.
  */
 class SammenligningVeilarboppfolgingKlient(
     private val eksisterende: VeilarboppfolgingHttpClient,
@@ -67,9 +65,9 @@ class SammenligningVeilarboppfolgingKlient(
                         fnr = fnr,
                     )
                 }.getOrElse {
-                    // Skal ikke skje - kontrakten er å returnere Either. Either.catch slipper igjennom
-                    // CancellationException, som er ønskelig. All feillogging skjer i [loggUtfall];
-                    // stacktracen følger med dit via [KanIkkeHenteKontorhistorikk.throwableForLogg].
+                    // Skal ikke skje - kontrakten er å returnere Either.
+                    // Either.catch slipper igjennom CancellationException, som er ønskelig.
+                    // All feillogging skjer i [loggUtfall]; stacktracen følger med dit via [KanIkkeHenteKontorhistorikk.throwableForLogg].
                     KanIkkeHenteKontorhistorikk.UventetFeil(it).left()
                 }
             }
@@ -77,8 +75,7 @@ class SammenligningVeilarboppfolgingKlient(
             val eksisterendeResultat = eksisterendeDeferred.await()
             val nyttResultat = nyDeferred.await()
 
-            // Hent ut Klientkall fra både gammel og ny - uavhengig av om svaret var Left eller Right -
-            // slik at konsumenten kan lagre rådata fra begge tjenestene.
+            // Hent ut Klientkall fra både gammel og ny - uavhengig av om svaret var Left eller Right - slik at konsumenten kan lagre rådata fra begge tjenestene.
             val nyttKall: Klientkall? = nyttResultat.fold(
                 ifLeft = { it.kall },
                 ifRight = { it.kall },
@@ -129,13 +126,10 @@ class SammenligningVeilarboppfolgingKlient(
     /**
      * All logging for navkontor-oppslaget skjer her - én gang per klient som feiler.
      *
-     * [KanIkkeHenteNavkontor.ManglerOppfolgingsenhet] regnes ikke som klientfeil: det er et
-     * forventet nullsvar (bruker uten aktivt oppfølgingsnavkontor i gammel tjeneste) og nettopp
-     * tilfellet der vi faller tilbake på ny klient.
+     * [KanIkkeHenteNavkontor.ManglerOppfolgingsenhet] regnes ikke som klientfeil: det er et forventet nullsvar (bruker uten aktivt oppfølgingsnavkontor i gammel tjeneste) og nettopp tilfellet der vi faller tilbake på ny klient.
      *
-     * Feiler ingen av klientene sammenlignes svarene: error dersom ny klient ikke har et brukbart
-     * kontor eller svarene er ulike, info når vi faller tilbake på ny klient, og ingen logging ved
-     * likt svar. Navkontor/kontorId er stedslokaliserende persondata og logges kun til sikkerlogg.
+     * Feiler ingen av klientene sammenlignes svarene: error dersom ny klient ikke har et brukbart kontor eller svarene er ulike, info når vi faller tilbake på ny klient, og ingen logging ved likt svar.
+     * Navkontor/kontorId er stedslokaliserende persondata og logges kun til sikkerlogg.
      */
     private fun loggUtfall(
         eksisterendeResultat: Either<KanIkkeHenteNavkontor, NavkontorMedMetadata>,
@@ -174,9 +168,8 @@ class SammenligningVeilarboppfolgingKlient(
         // Ingen klientfeil: sammenlign svarene. `null` gammelt kontor betyr ManglerOppfolgingsenhet.
         val gammeltKontor = eksisterendeResultat.getOrNull()?.navkontor
 
-        // Eksisterende tjeneste gir Arena med fallback til geografisk tilknytning. Vi tar med
-        // ARBEIDSOPPFOLGING som førstevalg slik at sammenligningen fortsatt er meningsfull når nytt API
-        // begynner å levere ARBEIDSOPPFOLGING-innslag i prod.
+        // Eksisterende tjeneste gir Arena med fallback til geografisk tilknytning.
+        // Vi tar med ARBEIDSOPPFOLGING som førstevalg slik at sammenligningen fortsatt er meningsfull når nytt API begynner å levere ARBEIDSOPPFOLGING-innslag i prod.
         val nyttKontor = nyttResultat.getOrNull()!!.kontorhistorikk.nyesteAktuelleKontor()
 
         when {

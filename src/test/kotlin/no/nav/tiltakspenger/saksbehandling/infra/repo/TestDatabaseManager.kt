@@ -18,7 +18,8 @@ internal class TestDatabaseManager(
     val sessionFactory: SessionFactory get() = delegate.sessionFactory
 
     /**
-     * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
+     * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon.
+     * Brukes når man gjør operasjoner på tvers av saker.
      */
     fun withMigratedDbTestDataHelper(
         runIsolated: Boolean = false,

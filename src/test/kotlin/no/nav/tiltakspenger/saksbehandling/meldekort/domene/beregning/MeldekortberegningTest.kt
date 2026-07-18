@@ -582,9 +582,8 @@ internal class MeldekortberegningTest {
                     // Periode 2: opprinnelig full deltakelse
                     periodeMedFullDeltakelse(periode2),
 
-                    // Korriger periode 2 til sykedager. Reduksjonen avhenger av at
-                    // sykedagtelleren fra periode 1 - som IKKE beregnes på nytt her - spilles
-                    // av på nytt (tidligereMeldeperioder) for å sette riktig state.
+                    // Korriger periode 2 til sykedager.
+                    // Reduksjonen avhenger av at sykedagtelleren fra periode 1 - som IKKE beregnes på nytt her - spilles av på nytt (tidligereMeldeperioder) for å sette riktig state.
                     periodeMedStatuser(
                         periode2,
                         List(5) { Status.FRAVÆR_SYK },
@@ -597,9 +596,8 @@ internal class MeldekortberegningTest {
 
             val beregninger = meldekortbehandlinger.tilMeldeperiodeBeregninger(clock)
 
-            // Telleren fortsetter fra 5 (periode 1, kun 3 dager unna) -> alle 5 sykedagene i
-            // periode 2 blir redusert. Uten avspilling ville de 3 første vært uten reduksjon
-            // (full sats), altså sumAv(full = 8, redusert = 2).
+            // Telleren fortsetter fra 5 (periode 1, kun 3 dager unna) -> alle 5 sykedagene i periode 2 blir redusert.
+            // Uten avspilling ville de 3 første vært uten reduksjon (full sats), altså sumAv(full = 8, redusert = 2).
             beregninger.gjeldendeBeregningPerKjede[kjedeId(periode2)]!!.totalBeløp shouldBe
                 sumAv(full = 5, redusert = 5)
         }
@@ -630,10 +628,9 @@ internal class MeldekortberegningTest {
                         List(5) { Status.FRAVÆR_SYK },
                     ),
 
-                    // Periode 3 starter på førsteDag+28 med sykedager fra første dag. Første sykedag er
-                    // da 15 dager etter siste sykedag i periode 1, altså <= 16 dager -> telleren
-                    // videreføres over hullet (ingen nullstilling). Dette krever at periode 1 spilles
-                    // av på nytt (tidligereMeldeperioder) selv om den ligger på andre siden av hullet.
+                    // Periode 3 starter på førsteDag+28 med sykedager fra første dag.
+                    // Første sykedag er da 15 dager etter siste sykedag i periode 1, altså <= 16 dager -> telleren videreføres over hullet (ingen nullstilling).
+                    // Dette krever at periode 1 spilles av på nytt (tidligereMeldeperioder) selv om den ligger på andre siden av hullet.
                     periodeMedStatuser(
                         periode3,
                         List(5) { Status.FRAVÆR_SYK },

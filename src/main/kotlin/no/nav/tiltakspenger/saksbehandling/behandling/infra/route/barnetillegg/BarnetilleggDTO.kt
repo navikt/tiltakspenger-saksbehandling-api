@@ -45,6 +45,7 @@ fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
 )
 
 fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(): Periodisering<AntallBarn> {
-    // Vi ønsker ikke fylle hull med 0 på dette tidspunktet. Det gjøres av domenet siden man skal bruke innvilgelsesperiode på behandlingen dersom den er satt.
+    // Vi ønsker ikke fylle hull med 0 på dette tidspunktet.
+    // Det gjøres av domenet siden man skal bruke innvilgelsesperiode på behandlingen dersom den er satt.
     return this.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }.tilPeriodisering()
 }

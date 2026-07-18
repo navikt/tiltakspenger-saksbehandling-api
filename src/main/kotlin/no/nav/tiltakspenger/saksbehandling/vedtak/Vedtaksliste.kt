@@ -58,9 +58,8 @@ data class Vedtaksliste(
     }
 
     /**
-     * Tidspunktet for det sist opprettede vedtaket på saken (ramme- eller meldekortvedtak),
-     * eller `null` dersom det ikke finnes noen slike vedtak. Klagevedtak er ikke inkludert,
-     * ettersom de ikke skal flagge saken for ny sending til meldekort-api.
+     * Tidspunktet for det sist opprettede vedtaket på saken (ramme- eller meldekortvedtak), eller `null` dersom det ikke finnes noen slike vedtak.
+     * Klagevedtak er ikke inkludert, ettersom de ikke skal flagge saken for ny sending til meldekort-api.
      */
     val nyesteRammeEllerMeldekortvedtakOpprettet: LocalDateTime? =
         listOfNotNull(

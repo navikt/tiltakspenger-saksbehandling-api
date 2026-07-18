@@ -32,7 +32,8 @@ data class MeldeperiodeKjeder(
             require(a.kjedeId != b.kjedeId) {
                 "Meldeperiodekjedene kan ikke ha samme kjedeId - ${a.kjedeId} og ${b.kjedeId} (sak ${a.sakId})"
             }
-            // 2 kjeder kan ikke ha samme meldeperiode. Og de må være sortert på periode.
+            // 2 kjeder kan ikke ha samme meldeperiode.
+            // Og de må være sortert på periode.
             require(a.periode.tilOgMed < b.periode.fraOgMed) {
                 "Meldeperiodekjedene må være sortert på periode - ${a.kjedeId} og ${b.kjedeId} var i feil rekkefølge (sak ${a.sakId})"
             }
@@ -57,7 +58,10 @@ data class MeldeperiodeKjeder(
         this.filter { !it.siste.ingenDagerGirRett }
     }
 
-    /** Henter siste versjon av en meldeperiode. Perioden må matche 1-1 med en meldeperiode. */
+    /**
+     * Henter siste versjon av en meldeperiode.
+     * Perioden må matche 1-1 med en meldeperiode.
+     */
     fun hentMeldeperiode(periode: Periode): Meldeperiode? {
         return meldeperiodeKjeder.singleOrNullOrThrow {
             it.periode == periode

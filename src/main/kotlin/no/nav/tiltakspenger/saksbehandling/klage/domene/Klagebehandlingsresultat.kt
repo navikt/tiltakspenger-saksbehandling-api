@@ -134,7 +134,8 @@ sealed interface Klagebehandlingsresultat {
 
     /**
      * Grunnen til at dette er et imperativ verb, er at selve klagebehandlingen utfører ikke omgjøringen; det er den følgende behandlingen som gjør.
-     * @param behandlingId Genereres av systemet når klagen omgjøres til en ny behandling. Vil være null ved f.eks. medhold på klage om tilbakekreving.
+     * @param behandlingId Genereres av systemet når klagen omgjøres til en ny behandling.
+     * Vil være null ved f.eks. medhold på klage om tilbakekreving.
      */
     data class Omgjør(
         val årsak: KlageOmgjøringsårsak,
@@ -169,7 +170,10 @@ sealed interface Klagebehandlingsresultat {
             )
         }
 
-        /** Brukes av frontend. Man kan ikke iverksette klagebehandlingen*/
+        /**
+         * Brukes av frontend.
+         * Man kan ikke iverksette klagebehandlingen
+         */
         override fun kanIverksetteVedtak(status: Klagebehandlingsstatus): Boolean? {
             if (status != UNDER_BEHANDLING || behandlingId.isEmpty()) return false
             return null
@@ -199,8 +203,11 @@ sealed interface Klagebehandlingsresultat {
     }
 
     /**
-     * @param iverksattOpprettholdelseTidspunkt Tidspunktet saksbehandler effektuerte/iverksatte opprettholdelsen. Brevteksten må være ferdigutfylt. Innstillingsbrevet journalføres/distribueres og klagen oversendes til klageinstansen etter dette.
-     * @param oversendtKlageinstansenTidspunkt Tidspunktet klagebehandlingen faktisk ble oversendt til Kabal. Dette settes når vi får bekreftelse fra Kabal om at klagebehandlingen er mottatt.
+     * @param iverksattOpprettholdelseTidspunkt Tidspunktet saksbehandler effektuerte/iverksatte opprettholdelsen.
+     * Brevteksten må være ferdigutfylt.
+     * Innstillingsbrevet journalføres/distribueres og klagen oversendes til klageinstansen etter dette.
+     * @param oversendtKlageinstansenTidspunkt Tidspunktet klagebehandlingen faktisk ble oversendt til Kabal.
+     * Dette settes når vi får bekreftelse fra Kabal om at klagebehandlingen er mottatt.
      */
     data class Opprettholdt(
         val hjemler: Klagehjemler,

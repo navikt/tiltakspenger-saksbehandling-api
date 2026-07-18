@@ -12,10 +12,12 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehand
 import java.time.Clock
 
 /**
- * Gjelder kun saksbehandler. Dersom en beslutter vil sette en omgjøring til klage på vent, må dette gjøres fra omgjøringsbehandlingen.
+ * Gjelder kun saksbehandler.
+ * Dersom en beslutter vil sette en omgjøring til klage på vent, må dette gjøres fra omgjøringsbehandlingen.
  * @param sjekkSaksbehandler om vi skal validere at saksbehandleren som utfører operasjonen er den samme som står på klagebehandlingen
  *  Merk - Fordi klagebhenadling ikke har noe forhold til beslutter - vil funksjonen kunne få inn en kommando med beslutter som saksbehandler.
- *      Beslutter skal få lov til å sette en behandling på vent.  Dette må da gjøres fra behandlings-eieren av klagebehandling.
+ *      Beslutter skal få lov til å sette en behandling på vent.
+ *      Dette må da gjøres fra behandlings-eieren av klagebehandling.
  */
 fun Klagebehandling.settPåVentOgNullstillSaksbehandler(
     kommando: SettKlagebehandlingPåVentKommando,

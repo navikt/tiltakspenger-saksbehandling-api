@@ -10,8 +10,7 @@ const val TEMA_TILTAKSPENGER: String = "IND"
 const val ENDRET_TILTAKSDELTAKELSE_BESKRIVELSE = "Det har skjedd en endring i tiltaksdeltakelsen som kan påvirke tiltakspengeytelsen"
 
 /**
- *  Ettersom vi ikke setter tildeltEnhetsnr tildeles oppgaven automatisk
- *  til riktig enhet basert på andre parametre
+ *  Ettersom vi ikke setter tildeltEnhetsnr tildeles oppgaven automatisk til riktig enhet basert på andre parametre
  * */
 data class OpprettOppgaveRequest(
     val personident: String,

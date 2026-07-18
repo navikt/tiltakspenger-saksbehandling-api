@@ -53,6 +53,7 @@ class OppsummeringGeneratorTest {
     @Test
     fun `enkel YTELSE for en meldeperiode`() {
         // Meldeperiode mandag 14. oktober til søndag 27. oktober 2024
+        //
         // language=json
         val helvedResponse = """
             {
@@ -338,7 +339,8 @@ class OppsummeringGeneratorTest {
     @Test
     fun `feilutbetaling `() {
         /**
-         * Endret en dag i første meldeperiode fra deltatt uten lønn til syk bruker. Så vi får påfølgende endringer på de på følgende periodene
+         * Endret en dag i første meldeperiode fra deltatt uten lønn til syk bruker.
+         * Så vi får påfølgende endringer på de på følgende periodene
          *
          * Meldeperiode:
          *   28.10.2024 - 10-11-2024 (endret fra 100% til 100% -> ingen endring)
@@ -347,7 +349,9 @@ class OppsummeringGeneratorTest {
          *   25.11.2024 - 08.12.2024 2281 -> 2067 (214 kroner/75%->0% av 285)
          *
          * Dette er en buggy simulering/utbetaling pga. bug ved bruk av kode 7.
-         * Fra dev. Deltatt 10 ukedager i første vedtak. Korrigerer 2. og 3. desember til deltatt med lønn (fra 100% ->0%)
+         * Fra dev.
+         * Deltatt 10 ukedager i første vedtak.
+         * Korrigerer 2. og 3. desember til deltatt med lønn (fra 100% ->0%)
          * Forventer minus 570 (2*285) kroner til feilkonto.
          *
          * Vi hadde forventet at det var tidligere utbetalt 1425 kroner i perioden 2. desember til 6. desember. (285*5).
@@ -980,11 +984,13 @@ class OppsummeringGeneratorTest {
         """.trimIndent()
 
         /**
+         * ```
          * meldeperiode_01K4D0CG8082WB763PCXTPRGDC	2025-02-24/2025-03-09	1	sak_01K4CP67JTCP6TBYJFRTRSHKJW	2025-09-05 15:17:21.536 +0200	2025-02-24	2025-03-09	9	{"2025-02-24": false, "2025-02-25": false, "2025-02-26": false, "2025-02-27": false, "2025-02-28": false, "2025-03-01": true, "2025-03-02": true, "2025-03-03": true, "2025-03-04": true, "2025-03-05": true, "2025-03-06": true, "2025-03-07": true, "2025-03-08": true, "2025-03-09": true}	{"perioderTilVedtakId": [{"periode": {"fraOgMed": "2025-03-01", "tilOgMed": "2025-03-09"}, "vedtakId": "vedtak_01K4D0CG6X51KAG4TXS4YNYDN9"}]}
          * meldeperiode_01K4D0CG80AHPET3JKS7PSZJ6Z	2025-03-10/2025-03-23	1	sak_01K4CP67JTCP6TBYJFRTRSHKJW	2025-09-05 15:17:21.536 +0200	2025-03-10	2025-03-23	10	{"2025-03-10": true, "2025-03-11": true, "2025-03-12": true, "2025-03-13": true, "2025-03-14": true, "2025-03-15": true, "2025-03-16": true, "2025-03-17": true, "2025-03-18": true, "2025-03-19": true, "2025-03-20": true, "2025-03-21": true, "2025-03-22": true, "2025-03-23": true}	{"perioderTilVedtakId": [{"periode": {"fraOgMed": "2025-03-10", "tilOgMed": "2025-03-23"}, "vedtakId": "vedtak_01K4D0CG6X51KAG4TXS4YNYDN9"}]}
          * meldeperiode_01K4D0CG804169TB4VM9X93FZ2	2025-03-24/2025-04-06	1	sak_01K4CP67JTCP6TBYJFRTRSHKJW	2025-09-05 15:17:21.536 +0200	2025-03-24	2025-04-06	10	{"2025-03-24": true, "2025-03-25": true, "2025-03-26": true, "2025-03-27": true, "2025-03-28": true, "2025-03-29": true, "2025-03-30": true, "2025-03-31": true, "2025-04-01": true, "2025-04-02": true, "2025-04-03": true, "2025-04-04": true, "2025-04-05": true, "2025-04-06": true}	{"perioderTilVedtakId": [{"periode": {"fraOgMed": "2025-03-24", "tilOgMed": "2025-04-06"}, "vedtakId": "vedtak_01K4D0CG6X51KAG4TXS4YNYDN9"}]}
          * meldeperiode_01K4D0CG80CW76QRHJF9WTWHAR	2025-04-07/2025-04-20	1	sak_01K4CP67JTCP6TBYJFRTRSHKJW	2025-09-05 15:17:21.536 +0200	2025-04-07	2025-04-20	10	{"2025-04-07": true, "2025-04-08": true, "2025-04-09": true, "2025-04-10": true, "2025-04-11": true, "2025-04-12": true, "2025-04-13": true, "2025-04-14": true, "2025-04-15": true, "2025-04-16": true, "2025-04-17": true, "2025-04-18": true, "2025-04-19": true, "2025-04-20": true}	{"perioderTilVedtakId": [{"periode": {"fraOgMed": "2025-04-07", "tilOgMed": "2025-04-20"}, "vedtakId": "vedtak_01K4D0CG6X51KAG4TXS4YNYDN9"}]}
          * meldeperiode_01K4D0CG80PE0PHKKM49PRM546	2025-04-21/2025-05-04	1	sak_01K4CP67JTCP6TBYJFRTRSHKJW	2025-09-05 15:17:21.536 +0200	2025-04-21	2025-05-04	10	{"2025-04-21": true, "2025-04-22": true, "2025-04-23": true, "2025-04-24": true, "2025-04-25": true, "2025-04-26": true, "2025-04-27": true, "2025-04-28": true, "2025-04-29": true, "2025-04-30": true, "2025-05-01": true, "2025-05-02": true, "2025-05-03": true, "2025-05-04": true}	{"perioderTilVedtakId": [{"periode": {"fraOgMed": "2025-04-21", "tilOgMed": "2025-05-04"}, "vedtakId": "vedtak_01K4D0CG6X51KAG4TXS4YNYDN9"}]}
+         * ```
          */
         val periode1 = 24.februar(2025) til 9.mars(2025)
         val periode2 = 10 til 23.mars(2025)

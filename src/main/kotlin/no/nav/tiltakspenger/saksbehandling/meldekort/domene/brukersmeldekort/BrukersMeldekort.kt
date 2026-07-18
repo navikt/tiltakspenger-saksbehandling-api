@@ -24,7 +24,8 @@ import java.time.LocalDateTime
  * @param id Unik identifikator for denne utfyllingen/innsendingen.
  * @param meldeperiode En gitt versjon av meldeperioden, slik som den var da bruker sendte inn meldekortet.
  * @param mottatt Tidspunktet mottatt fra bruker
- * @param dager Et innslag per dag i meldeperioden. Må være sortert.
+ * @param dager Et innslag per dag i meldeperioden.
+ * Må være sortert.
  * @param behandletAutomatiskStatus Status for automatisk behandling. null dersom meldekortet er flagget for automatisk behandling, men jobben for behandling ikke har kjørt ennå
  */
 data class BrukersMeldekort(
@@ -123,7 +124,8 @@ data class BrukersMeldekort(
 
 /**
  * Dette er en spesialsering av [MeldekortDagStatus].
- * Denne skal kun inneholde de statusene bruker kan fylle ut. Brukes i [BrukersMeldekort]
+ * Denne skal kun inneholde de statusene bruker kan fylle ut.
+ * Brukes i [BrukersMeldekort]
  */
 enum class InnmeldtStatus {
     DELTATT_UTEN_LØNN_I_TILTAKET,

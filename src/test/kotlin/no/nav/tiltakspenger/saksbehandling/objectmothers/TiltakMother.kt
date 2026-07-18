@@ -95,11 +95,13 @@ interface TiltakMother {
 
     fun tiltaksdeltakelse(
         periode: Periode = 1.januar(2023) til 31.mars(2023),
-        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
+        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer.
+        // Så vi benytter en enkel statisk id her.
         eksternTiltaksdeltakelseId: String = DEFAULT_TILTAK_DELTAKELSE_EKSTERN_ID,
         typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
-        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer. Så vi benytter en enkel statisk id her.
+        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer.
+        // Så vi benytter en enkel statisk id her.
         eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
         fom: LocalDate = periode.fraOgMed,
         tom: LocalDate = periode.tilOgMed,

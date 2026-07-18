@@ -7,7 +7,8 @@ import no.nav.tiltakspenger.libs.common.Ulid
 sealed interface BeregningKilde {
     val id: Ulid
 
-    /** @param id Id for meldekort-behandlingen som utløste denne beregningen. Denne kan være ulik [MeldeperiodeBeregning.meldekortId] for beregninger som er et resultat av en korrigering som påvirket en påfølgende meldeperiode.
+    /** @param id Id for meldekort-behandlingen som utløste denne beregningen.
+     * Denne kan være ulik [MeldeperiodeBeregning.meldekortId] for beregninger som er et resultat av en korrigering som påvirket en påfølgende meldeperiode.
      * */
     data class BeregningKildeMeldekort(override val id: MeldekortId) : BeregningKilde
 

@@ -56,8 +56,8 @@ interface OppdaterMeldekortbehandlingBuilder {
 
     /**
      * 1. Oppretter sak, søknad og iverksetter en innvilget søknadsbehandling.
-     * 2. Oppretter meldekortbehandling for sakens første meldeperiode. (UNDER_BEHANDLING)
-     * 3. Oppdaterer meldekortbehandlingen. (UNDER_BEHANDLING)
+     * 2. Oppretter meldekortbehandling for sakens første meldeperiode. `(UNDER_BEHANDLING)`
+     * 3. Oppdaterer meldekortbehandlingen. `(UNDER_BEHANDLING)`
      */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
         tac: TestApplicationContext,

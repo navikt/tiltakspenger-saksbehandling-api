@@ -20,9 +20,8 @@ interface NavkontorKlient {
 }
 
 /**
- * Et utvendig kall mot en av navkontor-klientene. Lagres som varchar JSON slik at vi i ettertid
- * kan spore eksakt hva vi sendte og mottok - tilsvarende det vi gjør for andre eksterne klienter
- * (se f.eks. journalføring og utbetaling).
+ * Et utvendig kall mot en av navkontor-klientene.
+ * Lagres som varchar JSON slik at vi i ettertid kan spore eksakt hva vi sendte og mottok - tilsvarende det vi gjør for andre eksterne klienter (se f.eks. journalføring og utbetaling).
  *
  * - [request] er kroppen vi sendte (alltid satt - vi vet hva vi prøvde å sende selv om kallet feilet).
  * - [response] er rå responsbody fra tjenesten, eller `null` dersom vi aldri fikk svar
@@ -73,8 +72,7 @@ enum class BruktNavkontorKlient {
 /**
  * Mulige feil ved henting av navkontor (oppfølgingsenhet).
  * Konsumenten kan lagre rådata uavhengig av om kallet gikk bra eller ikke:
- * [veilarboppfolgingKall] avledes fra httpklient sin metadata, mens [kontorhistorikkKall] settes av
- * sammenligningsklienten i etterkant (se [medKontorhistorikkKall]) og er derfor konstruktørparameter.
+ * [veilarboppfolgingKall] avledes fra httpklient sin metadata, mens [kontorhistorikkKall] settes av sammenligningsklienten i etterkant (se [medKontorhistorikkKall]) og er derfor konstruktørparameter.
  */
 sealed interface KanIkkeHenteNavkontor {
     val veilarboppfolgingKall: Klientkall?
@@ -87,7 +85,10 @@ sealed interface KanIkkeHenteNavkontor {
      */
     val httpKlientError: HttpKlientError?
 
-    /** Selve HTTP-kallet feilet (timeout/IO/feil ved token-henting/deserialisering osv.). Se [httpKlientError] for detaljer. */
+    /**
+     * Selve HTTP-kallet feilet (timeout/IO/feil ved token-henting/deserialisering osv.).
+     * Se [httpKlientError] for detaljer.
+     */
     data class KallFeilet(
         override val httpKlientError: HttpKlientError,
         override val kontorhistorikkKall: Klientkall? = null,
@@ -120,10 +121,8 @@ sealed interface KanIkkeHenteNavkontor {
 /**
  * Nøytral, ikke-sensitiv beskrivelse av feilen for bruk i vanlig logg og exception-meldinger.
  *
- * Feiltypene bærer [Klientkall]/[HttpKlientError] med rå request/response, og en default `toString()`
- * ville derfor lekke persondata (fnr i requesten, stedslokaliserende navkontor i responsen) til vanlig
- * logg. Vi tar kun med feiltypen, HTTP-status og httpklient-varianten (ikke sensitivt) - rådata hører
- * hjemme i sikkerlogg.
+ * Feiltypene bærer [Klientkall]/[HttpKlientError] med rå request/response, og en default `toString()` ville derfor lekke persondata (fnr i requesten, stedslokaliserende navkontor i responsen) til vanlig logg.
+ * Vi tar kun med feiltypen, HTTP-status og httpklient-varianten (ikke sensitivt) - rådata hører hjemme i sikkerlogg.
  */
 internal fun KanIkkeHenteNavkontor.beskrivelse(): String = when (this) {
     is KanIkkeHenteNavkontor.KallFeilet -> "KallFeilet(${httpKlientError::class.simpleName})"

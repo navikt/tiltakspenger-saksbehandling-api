@@ -76,8 +76,9 @@ class SendRevurderingTilBeslutningTest {
     @Test
     fun `kan sende revurdering stans til beslutning når meldeperiode kun har rett i helg men sak kan sende inn helg`() {
         withTestApplicationContext { tac ->
-            // Default innvilgelse starter søndag 1. januar 2023. Stans fra dagen etter gjør at kun søndagen beholder rett,
-            // dvs. en meldeperiode med rett kun i helg. Det er likevel gyldig når saken kan sende inn helg.
+            // Default innvilgelse starter søndag 1. januar 2023.
+            // Stans fra dagen etter gjør at kun søndagen beholder rett, dvs. en meldeperiode med rett kun i helg.
+            // Det er likevel gyldig når saken kan sende inn helg.
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
             tac.sakContext.sakRepo.oppdaterKanSendeInnHelgForMeldekort(sak.id, true)
@@ -109,8 +110,9 @@ class SendRevurderingTilBeslutningTest {
     @Test
     fun `kan ikke oppdatere revurdering stans når meldeperiode kun har rett i helg`() {
         withTestApplicationContext { tac ->
-            // Default innvilgelse starter søndag 1. januar 2023. Stans fra dagen etter gjør at kun søndagen beholder rett,
-            // dvs. en meldeperiode med rett kun i helg. Saken kan ikke sende inn helg, så oppdateringen skal avvises.
+            // Default innvilgelse starter søndag 1. januar 2023.
+            // Stans fra dagen etter gjør at kun søndagen beholder rett, dvs. en meldeperiode med rett kun i helg.
+            // Saken kan ikke sende inn helg, så oppdateringen skal avvises.
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
 
             val stansFraOgMed = sak.førsteDagSomGirRett!!.plusDays(1)

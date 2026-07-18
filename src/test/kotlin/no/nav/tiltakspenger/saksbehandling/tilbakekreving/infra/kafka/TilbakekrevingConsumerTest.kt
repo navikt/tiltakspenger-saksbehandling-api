@@ -430,6 +430,7 @@ class TilbakekrevingConsumerTest {
         withTestApplicationContext { tac ->
             val key = "test-key-ukjent"
             // Gyldig JSON, men ikke en kjent hendelsestype/skjema
+            //
             //language=json
             val value = """
                 {

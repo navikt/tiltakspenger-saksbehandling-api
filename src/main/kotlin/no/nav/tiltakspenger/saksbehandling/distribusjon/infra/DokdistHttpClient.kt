@@ -44,11 +44,16 @@ internal data class DokdistResponse(
  * [httpKlient] bygges som default ut fra parametrene over ([clock], [authTokenProvider], [connectTimeout], [defaultTimeout], [successStatus]) slik at hele klientoppsettet kan leses ett sted.
  * Sender man inn en egen [httpKlient] (typisk `HttpKlientFake` i test), **ignoreres** de parametrene som kun brukes til å bygge default-klienten.
  *
- * @param clock Klokke som sendes videre til [HttpKlient]. Ignoreres hvis [httpKlient] sendes inn.
- * @param authTokenProvider Henter system-token mot dokdist. Ignoreres hvis [httpKlient] sendes inn.
- * @param connectTimeout Connect-timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
- * @param defaultTimeout Per-request timeout for default-klienten. Ignoreres hvis [httpKlient] sendes inn.
- * @param successStatus Predikat for hvilke HTTP-statuser som regnes som suksess i default-klienten. Ignoreres hvis [httpKlient] sendes inn.
+ * @param clock Klokke som sendes videre til [HttpKlient].
+ * Ignoreres hvis [httpKlient] sendes inn.
+ * @param authTokenProvider Henter system-token mot dokdist.
+ * Ignoreres hvis [httpKlient] sendes inn.
+ * @param connectTimeout Connect-timeout for default-klienten.
+ * Ignoreres hvis [httpKlient] sendes inn.
+ * @param defaultTimeout Per-request timeout for default-klienten.
+ * Ignoreres hvis [httpKlient] sendes inn.
+ * @param successStatus Predikat for hvilke HTTP-statuser som regnes som suksess i default-klienten.
+ * Ignoreres hvis [httpKlient] sendes inn.
  */
 class DokdistHttpClient(
     baseUrl: String,

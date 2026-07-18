@@ -17,17 +17,23 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
  * Omgjør det tidligere vedtaket helt eller delvis.
  * Den nye vedtaksperioden kan være større, mindre eller samme som tidligere, men må overlappe med det tidligere vedtaket.
  * Dersom den er større, må den overskytende delen være innvilgelse.
- * Kan føre til en innvilgelse, delvis innvilgelse eller opphør. Ved delvis innvilgelse vil den resterende implisitt ikke gi rett.
- * Tanken er at så lenge behandlingen er under behandling, kan innvilgelsesperioden være større enn tiltaksdeltakelsen (for å støtte at den har krympet uten å måtte resette store deler av behandlingen. Tanken er at saksbehandler kan gjøre det selv).
+ * Kan føre til en innvilgelse, delvis innvilgelse eller opphør.
+ * Ved delvis innvilgelse vil den resterende implisitt ikke gi rett.
+ * Tanken er at så lenge behandlingen er under behandling, kan innvilgelsesperioden være større enn tiltaksdeltakelsen (for å støtte at den har krympet uten å måtte resette store deler av behandlingen.
+ * Tanken er at saksbehandler kan gjøre det selv).
  *
  * @param vedtaksperiode Tilsvarer den nye vedtaksperioden.
- * @param innvilgelsesperioder Perioder som kun inneholder dager med rett. Må være delperiode(r) av [vedtaksperiode].
+ * @param innvilgelsesperioder Perioder som kun inneholder dager med rett.
+ * Må være delperiode(r) av [vedtaksperiode].
  */
 sealed interface Omgjøringsresultat : Revurderingsresultat {
 
     // Per 27. nov 2025 krever vi at en omgjøringsbehandling omgjør ett enkelt vedtak, men vi har ikke noen begrensning på å utvide omgjøringen, slik at den omgjør flere vedtak.
     // Tanken med dette feltet er de tilfellene man har spesifikt valgt å omgjøre et spesifikt vedtak i sin helhet.
-    // TODO jah: Anders, hva gjør vi? Legger tilbake omgjørVedtakId? Det føles forvirrende. Skal vi heller sperre for at den kan omgjøre flere vedtak?
+    // TODO jah: Anders, hva gjør vi?
+    // Legger tilbake omgjørVedtakId?
+    // Det føles forvirrende.
+    // Skal vi heller sperre for at den kan omgjøre flere vedtak?
     val omgjortVedtak: Omgjøringsperiode get() = omgjørRammevedtak.single()
 
     data class OmgjøringInnvilgelse(

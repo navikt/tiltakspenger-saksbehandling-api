@@ -105,9 +105,8 @@ class BehandleTilbakekrevingHendelserJobb(
     }
 
     /**
-     * For en hendelse som tidligere ikke kunne deserialiseres - forsøk på nytt. Hvis det går bra,
-     * oppdaterer vi raden i databasen til den korrekte hendelse-typen, slik at den blir behandlet
-     * normalt ved neste jobbkjøring.
+     * For en hendelse som tidligere ikke kunne deserialiseres - forsøk på nytt.
+     * Hvis det går bra, oppdaterer vi raden i databasen til den korrekte hendelse-typen, slik at den blir behandlet normalt ved neste jobbkjøring.
      */
     private fun TilbakekrevingUkjentHendelse.håndter(): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
         val hendelseId = this.id

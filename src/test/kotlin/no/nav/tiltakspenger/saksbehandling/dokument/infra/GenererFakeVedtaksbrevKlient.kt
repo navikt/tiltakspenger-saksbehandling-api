@@ -35,8 +35,7 @@ class GenererFakeVedtaksbrevKlient :
     GenererVedtaksbrevForOpphørKlient,
     GenererKlagebrevKlient {
     /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF
-            pdfgenrs er ok
+        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
      */
     private val response: Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> by lazy {
         Pair(PdfOgJson(PdfA("pdf".toByteArray()), "{}"), null).right()

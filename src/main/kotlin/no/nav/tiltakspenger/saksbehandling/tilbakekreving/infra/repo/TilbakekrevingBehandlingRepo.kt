@@ -17,21 +17,39 @@ interface TilbakekrevingBehandlingRepo {
 
     fun hentForUtbetalingId(utbetalingId: UtbetalingId, sessionContext: SessionContext? = null): List<TilbakekrevingBehandling>
 
-    /** Ta behandling som saksbehandler. Oppdaterer kun dersom saksbehandler_ident er null og status er TIL_BEHANDLING. */
+    /**
+     * Ta behandling som saksbehandler.
+     * Oppdaterer kun dersom saksbehandler_ident er null og status er TIL_BEHANDLING.
+     */
     fun taBehandlingSaksbehandler(tilbakekrevingBehandling: TilbakekrevingBehandling, sessionContext: SessionContext? = null): Boolean
 
-    /** Ta behandling som beslutter. Oppdaterer kun dersom beslutter_ident er null og status er TIL_GODKJENNING. */
+    /**
+     * Ta behandling som beslutter.
+     * Oppdaterer kun dersom beslutter_ident er null og status er TIL_GODKJENNING.
+     */
     fun taBehandlingBeslutter(tilbakekrevingBehandling: TilbakekrevingBehandling, sessionContext: SessionContext? = null): Boolean
 
-    /** Overta fra en annen saksbehandler. Oppdaterer kun dersom nåværende saksbehandler matcher [nåværendeSaksbehandler]. */
+    /**
+     * Overta fra en annen saksbehandler.
+     * Oppdaterer kun dersom nåværende saksbehandler matcher [nåværendeSaksbehandler].
+     */
     fun overtaSaksbehandler(tilbakekrevingBehandling: TilbakekrevingBehandling, nåværendeSaksbehandler: String, sessionContext: SessionContext? = null): Boolean
 
-    /** Overta fra en annen beslutter. Oppdaterer kun dersom nåværende beslutter matcher [nåværendeBeslutter]. */
+    /**
+     * Overta fra en annen beslutter.
+     * Oppdaterer kun dersom nåværende beslutter matcher [nåværendeBeslutter].
+     */
     fun overtaBeslutter(tilbakekrevingBehandling: TilbakekrevingBehandling, nåværendeBeslutter: String, sessionContext: SessionContext? = null): Boolean
 
-    /** Legg tilbake som saksbehandler. Oppdaterer kun dersom saksbehandler_ident matcher og status er UNDER_BEHANDLING. */
+    /**
+     * Legg tilbake som saksbehandler.
+     * Oppdaterer kun dersom saksbehandler_ident matcher og status er UNDER_BEHANDLING.
+     */
     fun leggTilbakeSaksbehandler(tilbakekrevingBehandling: TilbakekrevingBehandling, nåværendeSaksbehandler: String, sessionContext: SessionContext? = null): Boolean
 
-    /** Legg tilbake som beslutter. Oppdaterer kun dersom beslutter_ident matcher og status er UNDER_GODKJENNING. */
+    /**
+     * Legg tilbake som beslutter.
+     * Oppdaterer kun dersom beslutter_ident matcher og status er UNDER_GODKJENNING.
+     */
     fun leggTilbakeBeslutter(tilbakekrevingBehandling: TilbakekrevingBehandling, nåværendeBeslutter: String, sessionContext: SessionContext? = null): Boolean
 }

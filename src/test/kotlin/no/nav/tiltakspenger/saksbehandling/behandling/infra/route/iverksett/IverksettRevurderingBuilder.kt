@@ -40,7 +40,8 @@ import java.time.LocalDate
 
 interface IverksettRevurderingBuilder {
     /**
-     * Oppretter kun ny sak hvis sakId er null. Oppretter alltid ny søknad med søknadsbehandling.
+     * Oppretter kun ny sak hvis sakId er null.
+     * Oppretter alltid ny søknad med søknadsbehandling.
      *
      * @param fnr ignoreres hvis sakId er satt
      * */
@@ -103,7 +104,8 @@ interface IverksettRevurderingBuilder {
     }
 
     /**
-     * Oppretter kun ny sak hvis sakId er null. Oppretter alltid ny søknad med søknadsbehandling.
+     * Oppretter kun ny sak hvis sakId er null.
+     * Oppretter alltid ny søknad med søknadsbehandling.
      *
      * @param fnr ignoreres hvis sakId er satt
      * */
@@ -164,7 +166,8 @@ interface IverksettRevurderingBuilder {
     }
 
     /**
-     * Oppretter kun ny sak hvis sakId er null. Oppretter alltid ny søknad med søknadsbehandling.
+     * Oppretter kun ny sak hvis sakId er null.
+     * Oppretter alltid ny søknad med søknadsbehandling.
      *
      * @param fnr ignoreres hvis sakId er satt
      * */

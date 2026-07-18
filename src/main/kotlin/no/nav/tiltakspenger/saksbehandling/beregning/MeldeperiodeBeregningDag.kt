@@ -287,7 +287,9 @@ sealed interface MeldeperiodeBeregningDag {
      * Gjelder for disse tilfellene:
      * 1. Første del av første meldekort i en sak.
      * 1. Siste del av siste meldekort i en sak.
-     * 1. Andre dager bruker ikke får melde pga. vilkårsvurderingen. Delvis innvilget. Dette vil ikke gjelde MVP.
+     * 1. Andre dager bruker ikke får melde pga. vilkårsvurderingen.
+     * Delvis innvilget.
+     * Dette vil ikke gjelde MVP.
      */
     data class IkkeRettTilTiltakspenger(override val dato: LocalDate) : MeldeperiodeBeregningDag {
         override val tiltakstype = null

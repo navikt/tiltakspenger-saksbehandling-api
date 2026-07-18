@@ -66,7 +66,8 @@ data class Rammevedtaksliste(
      * Vedtakstidslinjen tar kun for seg vedtak som kan påvirke en utbetaling (innvilgelse/opphør/stans) og skal aldri inkludere [Søknadsbehandlingsresultat.Avslag].
      * Dersom man ønsker å opphøre en tidligere innvilget periode, skal man bruke opphør eller stans, aldri avslag.
      *
-     * Et tenkt eksempel: Bruker søker på 2 tiltak, som har lik periode. Det første gir rett til tiltakspenger, det andre ikke.
+     * Et tenkt eksempel: Bruker søker på 2 tiltak, som har lik periode.
+     * Det første gir rett til tiltakspenger, det andre ikke.
      * Dersom man innvilger tiltak 1 og avslår tiltak 2 i den rekkefølgen, hvis man inkluderte avslag i tidslinjen, ville avslaget opphørt innvilgelsen; som den absolutt ikke må gjøre i dette tilfellet.
      * Men det er fremdeles riktig og gi bruker avslag på tiltak 2.
      *
@@ -74,10 +75,19 @@ data class Rammevedtaksliste(
      */
     val tidslinje: Periodisering<Rammevedtak> by lazy { vedtakUtenAvslag.toTidslinje() }
 
-    /** Nåtilstand. Sakens totale vedtaksperioder. Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltakelsesperioder. Avslag og delvis avslag vil ikke være med her. */
+    /**
+     * Nåtilstand.
+     * Sakens totale vedtaksperioder.
+     * Vil kunne ha hull dersom det f.eks. er opphold mellom 2 tiltaksdeltakelsesperioder.
+     * Avslag og delvis avslag vil ikke være med her.
+     */
     val vedtaksperioder: List<Periode> by lazy { tidslinje.perioder }
 
-    /** Nåtilstand. De periodene som gir rett til tiltakspenger. Kan ha hull. */
+    /**
+     * Nåtilstand.
+     * De periodene som gir rett til tiltakspenger.
+     * Kan ha hull.
+     */
     val innvilgetTidslinje: Periodisering<Rammevedtak> by lazy {
         tidslinje.filter {
             it.verdi.rammebehandlingsresultat is Rammebehandlingsresultat.Innvilgelse
@@ -91,10 +101,16 @@ data class Rammevedtaksliste(
         }.tilPeriodisering()
     }
 
-    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */
+    /**
+     * Nåtilstand.
+     * Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen.
+     */
     val førsteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.perioder.minOfOrNull { it.fraOgMed } }
 
-    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    /**
+     * Nåtilstand.
+     * Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen.
+     */
     val sisteDagSomGirRett: LocalDate? by lazy { innvilgelsesperioder.perioder.maxOfOrNull { it.tilOgMed } }
 
     /**
@@ -136,7 +152,9 @@ data class Rammevedtaksliste(
     }
 
     /**
-     * Tidslinje for antall barn. Første og siste periode vil være 1 eller flere. Kan inneholde hull med 0 barn.
+     * Tidslinje for antall barn.
+     * Første og siste periode vil være 1 eller flere.
+     * Kan inneholde hull med 0 barn.
      * Tar utgangspunkt i [innvilgetTidslinje]
      */
     val barnetilleggsperioder: Periodisering<AntallBarn> by lazy {

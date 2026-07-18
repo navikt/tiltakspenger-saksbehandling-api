@@ -47,7 +47,10 @@ data class KlagebehandlingDTO(
 )
 
 data class KlageFormkravDTO(
-    /** Vil være null hvis bruker ikke har klaget på et vedtak. Formkravene vil ikke være oppfylt*/
+    /**
+     * Vil være null hvis bruker ikke har klaget på et vedtak.
+     * Formkravene vil ikke være oppfylt
+     */
     val vedtakDetKlagesPå: String?,
     val behandlingDetKlagesPå: String?,
     val erKlagerPartISaken: Boolean,

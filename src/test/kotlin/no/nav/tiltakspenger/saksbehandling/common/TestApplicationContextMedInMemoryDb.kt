@@ -26,13 +26,12 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeR
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 
 /**
- * In-memory-versjon av [TestApplicationContext]. Arver alle context-konfigurasjoner og fake-klienter
- * fra basisklassen, og overstyrer `*RepoOverride`-hookene med fake-repoer.
+ * In-memory-versjon av [TestApplicationContext].
+ * Arver alle context-konfigurasjoner og fake-klienter fra basisklassen, og overstyrer `*RepoOverride`-hookene med fake-repoer.
  *
  * Inneholder ingen DB/Postgres-referanser.
  *
- * Klassen er `open` så enkelttester kan lage anonyme subklasser for å overstyre fake-klienter
- * eller fake-repoer der det trengs spesialoppførsel (f.eks. spy, custom returverdier).
+ * Klassen er `open` så enkelttester kan lage anonyme subklasser for å overstyre fake-klienter eller fake-repoer der det trengs spesialoppførsel (f.eks. spy, custom returverdier).
  */
 open class TestApplicationContextMedInMemoryDb(
     override val sessionFactory: TestSessionFactory = TestSessionFactory(),

@@ -1,7 +1,8 @@
 tiltakspenger-saksbehandling-api
 ================
 
-Håndterer vedtak om [tiltakspenger](https://www.nav.no/no/person/arbeid/oppfolging-og-tiltak-for-a-komme-i-jobb/stonader-ved-tiltak). Backend for [tiltakspenger-saksbehandling](https://github.com/navikt/tiltakspenger-saksbehandling).
+Håndterer vedtak om [tiltakspenger](https://www.nav.no/no/person/arbeid/oppfolging-og-tiltak-for-a-komme-i-jobb/stonader-ved-tiltak).
+Backend for [tiltakspenger-saksbehandling](https://github.com/navikt/tiltakspenger-saksbehandling).
 
 En del av satsningen ["Flere i arbeid – P4"](https://memu.no/artikler/stor-satsing-skal-fornye-navs-utdaterte-it-losninger-og-digitale-verktoy/)
 
@@ -15,9 +16,11 @@ En del av satsningen ["Flere i arbeid – P4"](https://memu.no/artikler/stor-sat
 
 ## Lokal kjøring
 
-Appen kan kjøres opp lokalt med `main`-funksjonen i ([LokalMain.kt](https://github.com/navikt/tiltakspenger-saksbehandling-api/blob/main/src/test/kotlin/no/nav/tiltakspenger/LokalMain.kt)). Denne bruker mocks for de fleste tjenester, og krever kun en lokal database kjørende i tillegg.
+Appen kan kjøres opp lokalt med `main`-funksjonen i ([LokalMain.kt](https://github.com/navikt/tiltakspenger-saksbehandling-api/blob/main/src/test/kotlin/no/nav/tiltakspenger/LokalMain.kt)).
+Denne bruker mocks for de fleste tjenester, og krever kun en lokal database kjørende i tillegg.
   
-Databasen kan startes med docker-compose i [meta-repoet for tiltakspenger](https://github.com/navikt/tiltakspenger). Se README der for fremgangsmåte og import av data.
+Databasen kan startes med docker-compose i [meta-repoet for tiltakspenger](https://github.com/navikt/tiltakspenger).
+Se README der for fremgangsmåte og import av data.
 
 
 ## Spørringer mot database
@@ -41,7 +44,8 @@ Eventuelt med [Cloud SQL Studio](https://console.cloud.google.com/sql/instances/
 
 ## Synlighet
 
-Dette er et enmodulrepo, så vi bruker ikke `internal` på Kotlin-deklarasjoner. Standardvalgene er:
+Dette er et enmodulrepo, så vi bruker ikke `internal` på Kotlin-deklarasjoner.
+Standardvalgene er:
 
 - `private` for hjelpere som kun brukes innenfor en fil/klasse
 - `public` (default) for deklarasjoner som er ment å brukes fra resten av modulen

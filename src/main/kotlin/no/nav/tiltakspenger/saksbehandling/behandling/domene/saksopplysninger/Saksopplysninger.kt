@@ -14,7 +14,9 @@ import java.time.LocalDateTime
  *
  * En [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling] vil ha en referanse til [Saksopplysninger].
  *
- * @param periode perioden det er hentet saksopplysninger for. Bør henge sammen med tiltaksdeltakelsesperioden. Er null dersom tiltaksdeltakelsesperioden er null.
+ * @param periode perioden det er hentet saksopplysninger for.
+ * Bør henge sammen med tiltaksdeltakelsesperioden.
+ * Er null dersom tiltaksdeltakelsesperioden er null.
  */
 data class Saksopplysninger(
     val fødselsdato: LocalDate,

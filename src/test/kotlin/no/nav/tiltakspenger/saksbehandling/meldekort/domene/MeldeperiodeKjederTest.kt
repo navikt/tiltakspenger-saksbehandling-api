@@ -441,8 +441,8 @@ class MeldeperiodeKjederTest {
     @Test
     fun `maks antall dager kappes når innvilgelsesperioden bare delvis dekker meldeperioden`() {
         val sakId = SakId.random()
-        // 2. januar 2023 er en mandag. Innvilger kun mandag og tirsdag, altså 2 dager med rett
-        // i en meldeperiode som strekker seg 2. - 15. januar.
+        // 2. januar 2023 er en mandag.
+        // Innvilger kun mandag og tirsdag, altså 2 dager med rett i en meldeperiode som strekker seg 2. - 15. januar.
         val innvilgelsesperiode = Periode(2.januar(2023), 3.januar(2023))
         val kjeder = MeldeperiodeKjeder(emptyList())
         val innvilgelseVedtak = ObjectMother.nyRammevedtakInnvilgelse(

@@ -7,10 +7,16 @@ enum class Klagebehandlingsstatus {
     /** En saksbehandler står på behandlingen. */
     UNDER_BEHANDLING,
 
-    /** Klagebehandlingen er avsluttet. Dette er en en endelig tilstand.*/
+    /**
+     * Klagebehandlingen er avsluttet.
+     * Dette er en en endelig tilstand.
+     */
     AVBRUTT,
 
-    /** Andre ord som iverksatt og ferdigstilt brukes også. Kan brukes både ved avvisning og medhold, men også etter klageinstansens avgjørelse */
+    /**
+     * Andre ord som iverksatt og ferdigstilt brukes også.
+     * Kan brukes både ved avvisning og medhold, men også etter klageinstansens avgjørelse
+     */
     VEDTATT,
 
     /**
@@ -33,9 +39,12 @@ enum class Klagebehandlingsstatus {
     /**
      * Vi har mottatt et svar fra klageinstansen.
      * Basert på hendelsestypen, har vi 3 mulige scenarioer:
-     * 1. Klagebehandlingen er allerede ferdigstilt uten at førsteinstansen skal utføre flere handlinger. Saksbehandler bekrefter at de har mottatt svaret og ferdigstiller behandlingen.
+     * 1. Klagebehandlingen er allerede ferdigstilt uten at førsteinstansen skal utføre flere handlinger.
+     * Saksbehandler bekrefter at de har mottatt svaret og ferdigstiller behandlingen.
      * 2. Vedtaket fra klageinstansen krever videre behandling i førsteinstansen, en omgjøring.
-     * 3. RETUR. Innstillingsbrevet er ikke godt nok utredet. Saksbehandler må sende mer informasjon til klageinstansen, setter behandlingen tilbake til [OVERSENDT] og vi avventer en ny hendelse.
+     * 3. RETUR.
+     * Innstillingsbrevet er ikke godt nok utredet.
+     * Saksbehandler må sende mer informasjon til klageinstansen, setter behandlingen tilbake til [OVERSENDT] og vi avventer en ny hendelse.
      */
     MOTTATT_FRA_KLAGEINSTANS,
 

@@ -17,7 +17,7 @@ class SafJournalpostFakeClient(
         journalpostId: JournalpostId,
     ): Journalpost? {
         // Bare for å kunne trigge de forskjellige tilstandene ved lokal kjøring
-        // fnr her er det som brukes for den ene søknaden som finnes lokalt
+        // `fnr` her er det som brukes for den ene søknaden som finnes lokalt
         if (journalpostId.toString() == "12345") {
             return Journalpost(
                 avsenderMottaker = AvsenderMottaker(

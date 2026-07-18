@@ -46,7 +46,8 @@ enum class TiltakDeltakerstatus(
 
     /**
      * Brukes både ved løpende inntak og kurs.
-     * Feilregistrering. Brukeren skal ikke delta på tiltaket.
+     * Feilregistrering.
+     * Brukeren skal ikke delta på tiltaket.
      */
     Feilregistrert(false),
 

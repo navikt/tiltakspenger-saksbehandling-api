@@ -8,14 +8,19 @@ sealed interface Tilgangsvurdering {
     /**
      * En avvist tilgangsvurdering fra tilgangsmaskinen.
      *
-     * [årsak] og [begrunnelse] er de eneste feltene som brukes i domenelogikken
-     * (mapping til tilgangsnektårsak og feilmelding til saksbehandler). Øvrig
-     * kontekst ligger i [metadata] og skal kun brukes til logging/notoritet.
+     * [årsak] og [begrunnelse] er de eneste feltene som brukes i domenelogikken (mapping til tilgangsnektårsak og feilmelding til saksbehandler).
+     * Øvrig kontekst ligger i [metadata] og skal kun brukes til logging/notoritet.
      */
     data class Avvist(
-        /** Kategorisert årsak til avvisningen. Styrer hvilken [no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak] saksbehandleren får. */
+        /**
+         * Kategorisert årsak til avvisningen.
+         * Styrer hvilken [no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak] saksbehandleren får.
+         */
         val årsak: TilgangsvurderingAvvistÅrsak,
-        /** Menneskelesbar begrunnelse fra tilgangsmaskinen. Vises til saksbehandleren i feilmeldingen. */
+        /**
+         * Menneskelesbar begrunnelse fra tilgangsmaskinen.
+         * Vises til saksbehandleren i feilmeldingen.
+         */
         val begrunnelse: String,
         val metadata: AvvistMetadata,
     ) : Tilgangsvurdering

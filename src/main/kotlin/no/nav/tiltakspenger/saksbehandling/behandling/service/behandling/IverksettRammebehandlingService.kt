@@ -220,7 +220,8 @@ class IverksettRammebehandlingService(
                     sessionContext = tx,
                 )
                 meldeperiodeRepo.lagre(oppdaterteMeldeperioder, tx)
-                // Merk at simuleringen vil nulles ut her. Gjelder kun åpne meldekortbehandlinger.
+                // Merk at simuleringen vil nulles ut her.
+                // Gjelder kun åpne meldekortbehandlinger.
                 oppdaterteMeldekort.forEach { meldekortbehandlingRepo.oppdater(it, null, tx) }
 
                 tidligereVedtak.forEach {

@@ -21,7 +21,8 @@ import java.time.LocalDate
 import kotlin.collections.fold
 
 /**
- * @param forrigeUtbetalingJson Forrige utbetaling vi sendte til helved. Siden vi må sende alle utbetalinger på nytt, må vi sende med alle utbetalinger vi har sendt tidligere.
+ * @param forrigeUtbetalingJson Forrige utbetaling vi sendte til helved.
+ * Siden vi må sende alle utbetalinger på nytt, må vi sende med alle utbetalinger vi har sendt tidligere.
  */
 fun VedtattUtbetaling.toUtbetalingRequestDTO(
     forrigeUtbetalingJson: String?,
@@ -30,7 +31,9 @@ fun VedtattUtbetaling.toUtbetalingRequestDTO(
         sakId = saksnummer.toString(),
         // Brukes som dedupliseringsnøkkel av helved dersom iverksettingId er null.
         behandlingId = id.uuidPart(),
-        // Dersom en vedtaksløsning har behov for å sende flere utbetalinger per behandling/vedtak, kan dette feltet brukes for å skille de. Denne blir brukt som delytelseId mot OS/UR. Se slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724136342664969
+        // Dersom en vedtaksløsning har behov for å sende flere utbetalinger per behandling/vedtak, kan dette feltet brukes for å skille de.
+        // Denne blir brukt som delytelseId mot OS/UR.
+        // Se slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724136342664969
         iverksettingId = null,
         personident = Personident(verdi = fnr.verdi),
         vedtak =
@@ -149,7 +152,8 @@ private fun MeldeperiodeTilOppdrag.BeregnetDag.genererUtbetalingsperiode(
         return null
     }
 
-    // For å utbetale helgedager må vi bruke Satstype.DAGLIG_INKL_HELG. Denne er ikke stabil per nå.
+    // For å utbetale helgedager må vi bruke Satstype.DAGLIG_INKL_HELG.
+    // Denne er ikke stabil per nå.
     if (this.dato.erHelg()) {
         throw IllegalArgumentException("Helgedager kan ikke ha et beregnet beløp, ettersom det ikke vil bli utbetalt - dato: ${this.dato}")
     }

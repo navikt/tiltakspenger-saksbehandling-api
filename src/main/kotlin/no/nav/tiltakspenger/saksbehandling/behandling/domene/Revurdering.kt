@@ -96,7 +96,8 @@ data class Revurdering(
     }
 
     /**
-     * Sier noe om tilstanden til behandlingen. Er den klar til å sendes til beslutter og/eller iverksettes?
+     * Sier noe om tilstanden til behandlingen.
+     * Er den klar til å sendes til beslutter og/eller iverksettes?
      * Dette er uavhengig av [status], som sier noe om hvor i prosessen behandlingen er.
      */
     override fun erFerdigutfylt(): Boolean {

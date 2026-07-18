@@ -14,7 +14,8 @@ import java.time.LocalDateTime
 interface MeldekortbehandlingRepo {
 
     /**
-     * @param simuleringMedMetadata Vi tar inn denne separat, slik at vi slipper ha metadata i Meldekortbehandling (domenemodellen). Det er kun den "tolkede" simuleringen som hentes ut igjen, mens metadataen hentes ikke ut igjen; kun tenkt brukt til debug/notoritet.
+     * @param simuleringMedMetadata Vi tar inn denne separat, slik at vi slipper ha metadata i Meldekortbehandling (domenemodellen).
+     * Det er kun den "tolkede" simuleringen som hentes ut igjen, mens metadataen hentes ikke ut igjen; kun tenkt brukt til debug/notoritet.
      */
     fun lagre(
         meldekortbehandling: Meldekortbehandling,

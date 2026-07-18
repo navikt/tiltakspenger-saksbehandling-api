@@ -81,7 +81,8 @@ class RammebehandlingPostgresRepo(
     }
 
     /**
-     * Denne returnerer ikke [Rammebehandlinger] siden vi ikke har avklart om en person kan ha flere saker. I så fall vil dette bli en liste med [Rammebehandlinger].
+     * Denne returnerer ikke [Rammebehandlinger] siden vi ikke har avklart om en person kan ha flere saker.
+     * I så fall vil dette bli en liste med [Rammebehandlinger].
      */
     override fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling> {
         return sessionFactory.withSession { session ->
@@ -140,7 +141,8 @@ class RammebehandlingPostgresRepo(
     }
 
     /**
-     * Oppdaterer behandlingsstatus, og saksbehandler bare dersom den er null. Skal du endre saksbehandler bruk [overtaSaksbehandler]
+     * Oppdaterer behandlingsstatus, og saksbehandler bare dersom den er null.
+     * Skal du endre saksbehandler bruk [overtaSaksbehandler]
      */
     override fun taBehandlingSaksbehandler(
         rammebehandling: Rammebehandling,
@@ -170,7 +172,8 @@ class RammebehandlingPostgresRepo(
     }
 
     /**
-     * Oppdaterer behandlingsstatus, og beslutter bare dersom den er null. Skal du endre beslutter bruk [overtaSaksbehandler]
+     * Oppdaterer behandlingsstatus, og beslutter bare dersom den er null.
+     * Skal du endre beslutter bruk [overtaSaksbehandler]
      */
     override fun taBehandlingBeslutter(
         rammebehandling: Rammebehandling,

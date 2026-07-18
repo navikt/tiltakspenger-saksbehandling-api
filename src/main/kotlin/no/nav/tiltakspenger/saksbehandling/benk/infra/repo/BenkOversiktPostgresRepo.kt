@@ -305,8 +305,8 @@ class BenkOversiktPostgresRepo(
 
             val behandlingssammendrag = rows.map { it.behandlingssammendrag }
             val totalAntall = rows.firstOrNull()?.totalAntall ?: 0
-            // Når filtreringen ikke matcher noen rader, mister vi totalAntallUfiltrert (window-funksjonen
-            // gir bare verdier på rader som passerer WHERE). Da kjører vi en billig fallback-spørring.
+            // Når filtreringen ikke matcher noen rader, mister vi totalAntallUfiltrert (window-funksjonen gir bare verdier på rader som passerer WHERE).
+            // Da kjører vi en billig fallback-spørring.
             val totalAntallUfiltrert = rows.firstOrNull()?.totalAntallUfiltrert
                 ?: hentTotalAntallUfiltrert(session)
 

@@ -58,7 +58,8 @@ import kotlin.time.Duration.Companion.seconds
  * @param authTokenProvider Henter system-token mot helved.
  * @param statusTimeout Timeout for statusoppslag.
  * @param iverksettTimeout Timeout for iverksetting.
- * @param simuleringTimeout Timeout for simulering. Simulering mot Oppdrag kan være treg, derav den høye defaulten.
+ * @param simuleringTimeout Timeout for simulering.
+ * Simulering mot Oppdrag kan være treg, derav den høye defaulten.
  * @param transport Nettverks-sømmen; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class UtbetalingHttpKlient(
@@ -87,7 +88,8 @@ class UtbetalingHttpKlient(
         return iverksettKlient.postJsonUtenSvar(
             uri = iverksettUri,
             body = SerialisertJson(jsonPayload),
-            // Dette er kun for vår del, open telemetry vil kunne være et alternativ. Slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724072054018589
+            // Dette er kun for vår del, open telemetry vil kunne være et alternativ.
+            // Slack tråd: https://nav-it.slack.com/archives/C06SJTR2X3L/p1724072054018589
             headere = listOf(NavHeadere.navCallId(correlationId.value)),
             godta = Statusregel.Eksakt(202),
         ).fold(
@@ -102,7 +104,8 @@ class UtbetalingHttpKlient(
             ifLeft = { feil ->
                 when {
                     // 409 er et domeneutfall (dedup) som utledes fra feiltypen, ikke en suksess-status.
-                    // TODO post-mvp jah: På sikt er dette en litt skjør sjekk som kan føre til at vi må endre denne sjekken dersom helved forandrer meldingen. Vi har bestilt et ønske fra helved om at vi får en json-respons med en kontraktsfestet kode, evt. at de garanterer at 409 kun brukes til dedupformål.
+                    // TODO post-mvp jah: På sikt er dette en litt skjør sjekk som kan føre til at vi må endre denne sjekken dersom helved forandrer meldingen.
+                    // Vi har bestilt et ønske fra helved om at vi får en json-respons med en kontraktsfestet kode, evt. at de garanterer at 409 kun brukes til dedupformål.
                     feil.harStatus(409) && feil is HttpKlientError.UventetStatus && feil.body.contains("Iverksettingen er allerede mottatt") -> SendtUtbetaling(
                         request = jsonPayload,
                         response = feil.body,

@@ -69,7 +69,9 @@ class DelautomatiskBehandlingService(
                 // Den automatiske jobben oppdaterer saksopplysningene selv.
                 hentSaksopplysninger = null,
             ).getOrThrow()
-            // I alle tilfeller der den automatiske jobben gjenopptar en behandling, vil den enten sette den til manuell eller sende til beslutning. I begge tilfeller persisteres behandlingen, så vi trenger ikke gjøre det her. Hvis vi vil gjøre det her, bør vi gjøre det i en transaksjon.
+            // I alle tilfeller der den automatiske jobben gjenopptar en behandling, vil den enten sette den til manuell eller sende til beslutning.
+            // I begge tilfeller persisteres behandlingen, så vi trenger ikke gjøre det her.
+            // Hvis vi vil gjøre det her, bør vi gjøre det i en transaksjon.
             (gjenopptattBehandling as Søknadsbehandling) to statistikkhendelser
         } else {
             behandling to Statistikkhendelser.empty()
@@ -153,7 +155,8 @@ class DelautomatiskBehandlingService(
             correlationId = correlationId,
             fritekstTilVedtaksbrev = null,
             begrunnelseVilkårsvurdering = null,
-            // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her. For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltakelse.
+            // Kommentar jah: Det føles litt vondt og gjenbruke denne kommandoen for det tilfellet her.
+            // For automatisk behandling krever vi at det er 1 søknad for 1 tiltak og saksopplysningene bare har funnet en tiltaksdeltakelse.
             innvilgelsesperioder = listOf(
                 PeriodeMedVerdi(
                     verdi = InnvilgelsesperiodeKommando(

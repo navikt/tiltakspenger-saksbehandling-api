@@ -13,7 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehand
 import java.time.Clock
 
 /**
- * Gjelder kun saksbehandler. Dersom en beslutter vil legge tilbake over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
+ * Gjelder kun saksbehandler.
+ * Dersom en beslutter vil legge tilbake over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
  */
 fun Klagebehandling.leggTilbake(
     kommando: LeggTilbakeKlagebehandlingKommando,

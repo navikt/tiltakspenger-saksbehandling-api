@@ -104,6 +104,7 @@ data class MeldekortbehandlingManuell(
         }
 
 //        TODO abn: Sjekk at ingen meldekortbehandlinger i prod vil feile før denne enables
+//
 //        require(erFullstendigUtfylt) {
 //            "Alle meldeperioder i behandlingen må være fullstendig utfylt for manuelle meldekortbehandlinger (id: $id / sakId: $sakId)"
 //        }

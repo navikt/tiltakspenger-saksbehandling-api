@@ -16,10 +16,8 @@ sealed interface KunneIkkeBehandlePersonhendelse {
 
     /**
      * Adressebeskyttelse-hendelse med en gradering vi ikke håndterer.
-     * Vi bryr oss kun om kode 6 (STRENGT_FORTROLIG og STRENGT_FORTROLIG_UTLAND) — det er den
-     * eneste graderingen som påvirker hvordan vi rapporterer saken til statistikk og som
-     * krever skjermings-/oppgavebehov. FORTROLIG (kode 7) og UGRADERT trigger ingen handling
-     * hos oss og forkastes her.
+     * Vi bryr oss kun om kode 6 (STRENGT_FORTROLIG og STRENGT_FORTROLIG_UTLAND) — det er den eneste graderingen som påvirker hvordan vi rapporterer saken til statistikk og som krever skjermings-/oppgavebehov.
+     * FORTROLIG (kode 7) og UGRADERT trigger ingen handling hos oss og forkastes her.
      */
     data object AdressebeskyttelseErIkkeKode6 : KunneIkkeBehandlePersonhendelse
 

@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 
 /**
- * En samling av alle behandlinger innenfor en gitt sak. Listen er tom når vi oppretter saken og før vi oppretter den
- * første behandlingen.
+ * En samling av alle behandlinger innenfor en gitt sak.
+ * Listen er tom når vi oppretter saken og før vi oppretter den første behandlingen.
  * Garanterer at første elementet er en søknadsbehandling og de resterende revurderinger.
  */
 data class Rammebehandlinger(

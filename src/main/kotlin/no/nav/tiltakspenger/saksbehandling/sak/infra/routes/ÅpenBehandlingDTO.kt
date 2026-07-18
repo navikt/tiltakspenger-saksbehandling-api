@@ -155,8 +155,7 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
 
 /**
  *  Returnerer søknader som ikke har en tilknyttet søknadsbehandling
- *  Normalt skal det opprettes søknadsbehandlinger automatisk for nye søknader
- *  men vi tar med denne for å liste ut evt. søknader der dette har feilet
+ *  Normalt skal det opprettes søknadsbehandlinger automatisk for nye søknader men vi tar med denne for å liste ut evt. søknader der dette har feilet
  *  */
 private fun Sak.tilSøknaderUtenBehandling(): List<SøknadUtenBehandlingDTO> {
     return this.søknader

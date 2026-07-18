@@ -61,7 +61,8 @@ import java.time.LocalDateTime
 const val DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE: Int = 10
 
 /**
- * En rammebehandling fører til et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak]. Dette er en vurderingen av søknaden og inngangsvilkårene - om en bruker har rett til tiltangspenger i en gitt periode.
+ * En rammebehandling fører til et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
+ * Dette er en vurderingen av søknaden og inngangsvilkårene - om en bruker har rett til tiltangspenger i en gitt periode.
  * Dette gjelder både søknadsbehandling (innvilgelse og avslag) og revurdering (endring og omgjøring, inkl. stans/opphør, innvilgelse/forlengelse)
  * Se [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling] for behandling av meldekort innenfor et [no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak].
  */
@@ -533,8 +534,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     /**
      * Sjekker om [utøvendeBeslutter] har BESLUTTER-rollen og at det er beslutteren som har saken.
-     * Hvis saken har blitt behandlet automatisk fjernes automatisk saksbehandler og flagget som sier at
-     * den har blitt behandlet automatisk ved underkjenning.
+     * Hvis saken har blitt behandlet automatisk fjernes automatisk saksbehandler og flagget som sier at den har blitt behandlet automatisk ved underkjenning.
      */
     fun underkjenn(
         utøvendeBeslutter: Saksbehandler,
@@ -755,7 +755,8 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             AVBRUTT -> {
                 requireNotNull(avbrutt)
                 require(klagebehandling?.behandlingId?.contains(id) != true) {
-                    // Merk at vi beholder koblingen til klagebehandlingen ved avbrutt rammebehandling for historikkens skyld (men ikke omvendt). Hvis dette biter oss senere, kan vi fjerne koblingen.
+                    // Merk at vi beholder koblingen til klagebehandlingen ved avbrutt rammebehandling for historikkens skyld (men ikke omvendt).
+                    // Hvis dette biter oss senere, kan vi fjerne koblingen.
                     "En klagebehandling skal ikke peke på en avbrutt rammebehandling. I de tilfellene ønsker vi nok et annet resultat på klagebehandlingen, eller å knytte den til en ny rammebehandling. sakId: ${this.sakId}, saksnummer: ${this.saksnummer}, rammebehandlingId: ${this.id}, klagebehandlingId: ${this.klagebehandling?.id}"
                 }
             }

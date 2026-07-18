@@ -82,14 +82,20 @@ object OppsummeringGenerator {
     private fun beregnMotposteringer(posteringer: PosteringerForDag): Int =
         posteringer.summerPosteringer(Posteringstype.MOTPOSTERING)
 
-    /** TREK i OS/UR. Kommer som positive posteringer. */
+    /**
+     * TREK i OS/UR.
+     * Kommer som positive posteringer.
+     */
     private fun beregnTrekk(posteringer: PosteringerForDag): Int =
         posteringer.summerBarePositivePosteringer(Posteringstype.TREKK)
 
     /**
-     * Dersom den er negativ for denne dagen, vil den redusere etterbetalingen. Vi får et innslag per positive justering på andre dager.
-     * Dersom den er positiv for denne dagen, vil dagen være justert istedenfor at den fører til feilubetaling. Utregning: tidligere utbetalt = ny utbetaling + justering.
-     * Dette gjelder FEILUTBETALING kombinert med KLASSEKODE_JUSTERING. Dette er "motregninger" som må sees på tvers av dager.
+     * Dersom den er negativ for denne dagen, vil den redusere etterbetalingen.
+     * Vi får et innslag per positive justering på andre dager.
+     * Dersom den er positiv for denne dagen, vil dagen være justert istedenfor at den fører til feilubetaling.
+     * Utregning: tidligere utbetalt = ny utbetaling + justering.
+     * Dette gjelder FEILUTBETALING kombinert med KLASSEKODE_JUSTERING.
+     * Dette er "motregninger" som må sees på tvers av dager.
      * Disse vil komme uten en MOTP.
      */
     private fun beregnJustering(posteringer: PosteringerForDag): Int =

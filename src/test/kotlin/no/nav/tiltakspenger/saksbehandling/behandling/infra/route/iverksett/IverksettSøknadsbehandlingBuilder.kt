@@ -25,7 +25,8 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 interface IverksettSøknadsbehandlingBuilder {
     /**
-     * Oppretter kun ny sak hvis sakId er null. Oppretter alltid ny søknad med søknadsbehandling.
+     * Oppretter kun ny sak hvis sakId er null.
+     * Oppretter alltid ny søknad med søknadsbehandling.
      *
      * @param fnr ignoreres hvis sakId er satt
      * @param resultat Innvilgelse eller avslag.

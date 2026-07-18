@@ -73,10 +73,16 @@ data class Sak(
         vedtaksliste.meldeperiodeBeregninger
     }
 
-    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen. */
+    /**
+     * Nåtilstand.
+     * Tar utgangspunkt i tidslinja på saken og henter den første innvilget dagen.
+     */
     val førsteDagSomGirRett = rammevedtaksliste.førsteDagSomGirRett
 
-    /** Nåtilstand. Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen. */
+    /**
+     * Nåtilstand.
+     * Tar utgangspunkt i tidslinja på saken og henter den siste innvilget dagen.
+     */
     val sisteDagSomGirRett = rammevedtaksliste.sisteDagSomGirRett
 
     val revurderinger = rammebehandlinger.revurderinger
@@ -87,9 +93,8 @@ data class Sak(
     val harFørstegangsvedtak: Boolean by lazy { this.vedtaksliste.harFørstegangsvedtak }
 
     /**
-     * Tidspunktet for det sist opprettede ramme- eller meldekortvedtaket på saken, eller `null`
-     * dersom saken ikke har noen slike vedtak ennå. Brukes blant annet til å avgjøre om saken
-     * må sendes til meldekort-api på nytt fordi det har kommet nye vedtak siden forrige sending.
+     * Tidspunktet for det sist opprettede ramme- eller meldekortvedtaket på saken, eller `null` dersom saken ikke har noen slike vedtak ennå.
+     * Brukes blant annet til å avgjøre om saken må sendes til meldekort-api på nytt fordi det har kommet nye vedtak siden forrige sending.
      */
     val nyesteRammeEllerMeldekortvedtakOpprettet: LocalDateTime? =
         vedtaksliste.nyesteRammeEllerMeldekortvedtakOpprettet

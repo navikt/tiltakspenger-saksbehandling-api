@@ -52,9 +52,8 @@ sealed interface Søknad {
     val behandlingsarsak: Behandlingsarsak?
 
     /**
-     * Fritekstfelt for at saksbehandler kan skrive inn hvilket tiltak søknaden gjelder for ved manuelt registrerte søknader,
-     * hvor man ikke har kunne velge et relevant tiltak. Enten fordi man ikke fikk treff på tiltaket når søknaden
-     * ble registrert eller fordi tiltaket ikke gir rett til tiltakspenger.
+     * Fritekstfelt for at saksbehandler kan skrive inn hvilket tiltak søknaden gjelder for ved manuelt registrerte søknader, hvor man ikke har kunne velge et relevant tiltak.
+     * Enten fordi man ikke fikk treff på tiltaket når søknaden ble registrert eller fordi tiltaket ikke gir rett til tiltakspenger.
      */
     val manueltSattTiltak: String?
 
@@ -239,7 +238,9 @@ sealed interface Søknad {
 }
 
 /**
- * @param id mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api). Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?). Kalles ekstern_id i databasen.
+ * @param id mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api).
+ * Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?).
+ * Kalles ekstern_id i databasen.
  * @param typeKode f.eks. JOBBK, GRUPPEAMO, INDOPPFAG, ARBTREN ([TiltakResponsDTO.TiltakTypeDTO])
  * @param typeNavn f.eks. Jobbklubb, Arbeidsmarkedsopplæring (gruppe), Oppfølging, Arbeidstrening
  */

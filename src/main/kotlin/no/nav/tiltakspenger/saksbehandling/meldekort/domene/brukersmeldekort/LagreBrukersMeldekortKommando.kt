@@ -11,13 +11,15 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * Command-delen av CQRS. Denne klassen representerer et meldekort som bruker har fylt ut.
+ * Command-delen av CQRS.
+ * Denne klassen representerer et meldekort som bruker har fylt ut.
  * Skal ikke brukes til lesing av data.
  *
  * Merk at vi ikke validerer disse dataene før vi lagrer de, siden vi stoler på at meldekort-api har gjort det.
  *
  * @param id Unik id (ULID/UUID) for dette meldekortet
- * @param meldeperiodeId En unik versjon av meldeperioden. Alternativ til å sende kjedeId+versjon.
+ * @param meldeperiodeId En unik versjon av meldeperioden.
+ * Alternativ til å sende kjedeId+versjon.
  */
 data class LagreBrukersMeldekortKommando(
     val id: MeldekortId,

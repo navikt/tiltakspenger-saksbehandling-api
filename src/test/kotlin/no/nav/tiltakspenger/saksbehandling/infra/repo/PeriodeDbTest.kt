@@ -12,7 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-// Tester for egendefinert postgres type periode_datoer. Se V200__periode_type.sql
+// Tester for egendefinert postgres type periode_datoer.
+// Se V200__periode_type.sql
 class PeriodeDbTest {
 
     private fun withPeriodeTestTabell(test: (Session) -> Unit) {

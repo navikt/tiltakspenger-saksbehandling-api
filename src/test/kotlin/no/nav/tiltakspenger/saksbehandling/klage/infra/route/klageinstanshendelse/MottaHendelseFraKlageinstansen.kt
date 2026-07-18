@@ -9,7 +9,8 @@ import java.util.UUID
 /**
  * simulerer at Klageinstansen har mottatt klagen, og sender en hendelse tilbake til saksbehandlingstjenesten.
  *
- * @param hendelse - String som representerer hendelsen fra klageinstansen. Du kan bruke [GenerererKlageinstanshendelse] for å generere hendelse
+ * @param hendelse - String som representerer hendelsen fra klageinstansen.
+ * Du kan bruke [GenerererKlageinstanshendelse] for å generere hendelse
  */
 fun TestApplicationContext.mottaHendelseFraKlageinstansen(
     hendelse: String,

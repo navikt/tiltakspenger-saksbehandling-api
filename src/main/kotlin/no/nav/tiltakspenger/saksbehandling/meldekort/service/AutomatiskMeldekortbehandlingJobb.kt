@@ -131,8 +131,8 @@ class AutomatiskMeldekortbehandlingJobb(
         } else {
             logger.at(status.loggnivå) { message = logMsg }
 
-            // Ved Left hopper vi over statusoppdateringen under, slik at meldekortet (og dermed
-            // gosysoppgaven) prøves på nytt neste kjøring. Oppgaveopprettelsen har allerede logget.
+            // Ved Left hopper vi over statusoppdateringen under, slik at meldekortet (og dermed gosysoppgaven) prøves på nytt neste kjøring.
+            // Oppgaveopprettelsen har allerede logget.
             meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker()
                 .getOrElse { return }
         }

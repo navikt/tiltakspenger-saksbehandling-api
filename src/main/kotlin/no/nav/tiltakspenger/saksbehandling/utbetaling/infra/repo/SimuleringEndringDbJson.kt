@@ -63,7 +63,8 @@ data class SimuleringEndringDbJson(
         // Disse feltene ble lagt til 16. september 2025. Får vurdere og migrere de senere eller bare defaulte til 0. Vi har ikke fått noen simuleringer med typene TREKK eller JUSTERING enda.
         val totalTrekk: Int = 0,
         val totalJustering: Int = 0,
-        // Denne ble lagt til 30. sept. Defaulten er ikke nødvendigvis korrekt, dersom dagen har både positive og negative justeringer som nuller ut hverandre
+        // Denne ble lagt til 30. sept.
+        // Defaulten er ikke nødvendigvis korrekt, dersom dagen har både positive og negative justeringer som nuller ut hverandre
         val harJustering: Boolean = totalJustering < 0,
         val posteringsdag: PosteringerForDag,
     )

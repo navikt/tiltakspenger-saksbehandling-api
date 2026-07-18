@@ -16,7 +16,8 @@ import java.time.LocalDateTime
 
 /**
  * @param behandlingId meldekortbehandlingId eller rammebehandlingId.
- * @param simuleringstidspunkt er tidspunktet simuleringen ble utført. Kan være null hvis simulering ikke er utført, eller simuleringen ble utført før vi la på dette feltet.
+ * @param simuleringstidspunkt er tidspunktet simuleringen ble utført.
+ * Kan være null hvis simulering ikke er utført, eller simuleringen ble utført før vi la på dette feltet.
  * @param simuleringsdato kommer fra Økonomisystemet.
  * @param simuleringTotalBeløp kommer fra Økonomisystemet.
  */

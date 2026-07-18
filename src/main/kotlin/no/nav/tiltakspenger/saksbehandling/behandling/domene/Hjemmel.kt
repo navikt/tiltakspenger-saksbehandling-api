@@ -114,7 +114,10 @@ sealed interface Hjemmel {
             override val paragraf = Paragraf("2")
         }
 
-        /** Disse kommer i følge Kabalteamet alltid i par. Vi modellerer det inn mtp. klagebehandling */
+        /**
+         * Disse kommer i følge Kabalteamet alltid i par.
+         * Vi modellerer det inn mtp. klagebehandling
+         */
         data object FORELDELSESLOVEN_2_OG_3 : ForeldelseslovenHjemmel, KlageForeldelsesloven {
             override val paragraf = Paragraf("2 og 3")
         }
@@ -171,7 +174,10 @@ sealed interface Hjemmel {
             override val paragraf = Paragraf("18")
         }
 
-        /** Disse kommer i følge Kabalteamet alltid i par. Vi modellerer det inn mtp. klagebehandling */
+        /**
+         * Disse kommer i følge Kabalteamet alltid i par.
+         * Vi modellerer det inn mtp. klagebehandling
+         */
         data object FORVALTNINGSLOVEN_18_OG_19 : ForvaltningslovenHjemmel, KlageForvaltningsloven {
             override val paragraf = Paragraf("18 og 19")
         }

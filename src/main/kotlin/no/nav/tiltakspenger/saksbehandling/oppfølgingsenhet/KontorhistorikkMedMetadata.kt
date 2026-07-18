@@ -5,8 +5,7 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.throwableOrNull
 
 /**
- * Kontorhistorikk pakket sammen med rå request/response slik at konsumenten kan lagre rådata
- * tilsvarende det vi gjør for andre eksterne klienter.
+ * Kontorhistorikk pakket sammen med rå request/response slik at konsumenten kan lagre rådata tilsvarende det vi gjør for andre eksterne klienter.
  */
 data class KontorhistorikkMedMetadata(
     val kontorhistorikk: Kontorhistorikk,
@@ -16,8 +15,8 @@ data class KontorhistorikkMedMetadata(
 )
 
 /**
- * Mulige feil ved henting av kontorhistorikk. Vi skiller på typer slik at konsumenter kan reagere ulikt
- * (f.eks. på timeout vs. en gjennomgående tjenestefeil) hvis det blir aktuelt senere.
+ * Mulige feil ved henting av kontorhistorikk.
+ * Vi skiller på typer slik at konsumenter kan reagere ulikt (f.eks. på timeout vs. en gjennomgående tjenestefeil) hvis det blir aktuelt senere.
  *
  * [kall] er rå request/response slik vi sendte og mottok, avledet fra httpklient sin metadata.
  * Kun [UventetFeil] mangler det; på andre feilstier kan [Klientkall.response] / [Klientkall.httpStatus] være `null` (f.eks. når vi aldri fikk svar).
@@ -32,7 +31,10 @@ sealed interface KanIkkeHenteKontorhistorikk {
      */
     val httpKlientError: HttpKlientError?
 
-    /** Selve HTTP-kallet feilet (timeout/IO/feil ved token-henting/deserialisering osv.). Se [httpKlientError] for detaljer. */
+    /**
+     * Selve HTTP-kallet feilet (timeout/IO/feil ved token-henting/deserialisering osv.).
+     * Se [httpKlientError] for detaljer.
+     */
     data class KallFeilet(
         override val httpKlientError: HttpKlientError,
     ) : KanIkkeHenteKontorhistorikk {

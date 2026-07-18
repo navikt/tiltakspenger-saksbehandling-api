@@ -32,7 +32,8 @@ sealed interface Rammebehandlingsresultat {
     val omgjørRammevedtak: OmgjørRammevedtak
 
     /**
-     * Sier noe om tilstanden til resultatet. Om det er klart for å sendes til beslutter og/eller iverksettes.
+     * Sier noe om tilstanden til resultatet.
+     * Om det er klart for å sendes til beslutter og/eller iverksettes.
      *
      * @param saksopplysninger Kan være null dersom søker ikke har søkt på et tiltak [no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad], gir kun mening ved avslag.
      */
@@ -112,7 +113,8 @@ fun skalNullstilleResultatVedNyeSaksopplysninger(
         (
             valgteTiltaksdeltakelser.sortedBy { it.internDeltakelseId }
                 .zip(nyeSaksopplysninger.tiltaksdeltakelser.sortedBy { it.internDeltakelseId }) { forrige, nye ->
-                    // Vi nullstiller resultatet og vedtaksperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet. Nullstiller også dersom periodene har endret seg.
+                    // Vi nullstiller resultatet og vedtaksperioden dersom det har kommet nye tiltaksdeltakelser eller noen er fjernet.
+                    // Nullstiller også dersom periodene har endret seg.
                     forrige.internDeltakelseId != nye.internDeltakelseId ||
                         forrige.deltakelseFraOgMed != nye.deltakelseFraOgMed ||
                         forrige.deltakelseTilOgMed != nye.deltakelseTilOgMed

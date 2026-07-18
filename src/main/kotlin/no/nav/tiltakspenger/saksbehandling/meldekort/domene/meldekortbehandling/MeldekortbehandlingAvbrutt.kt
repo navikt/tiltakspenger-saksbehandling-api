@@ -15,8 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.LocalDateTime
 
 /**
- * En meldekortbehandling som er avbrutt av saksbehandler,
- * eller automatisk som følge av at meldeperiodene som behandles ikke lengre gir rett til tiltakspenger.
+ * En meldekortbehandling som er avbrutt av saksbehandler, eller automatisk som følge av at meldeperiodene som behandles ikke lengre gir rett til tiltakspenger.
  *
  * En avbrutt meldekortbehandling fører til at meldekort fra bruker på det tidspunktet ansees som "behandlet".
  * (TODO: bedre/mer eksplisitt måte å behandle meldekort fra bruker)

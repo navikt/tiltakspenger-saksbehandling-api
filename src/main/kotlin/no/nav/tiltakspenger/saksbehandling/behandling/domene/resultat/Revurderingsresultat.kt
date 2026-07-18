@@ -21,7 +21,8 @@ sealed interface Revurderingsresultat : Rammebehandlingsresultat {
      *
      * [vedtaksperiode] og [stansperiode] vil være 1-1 ved denne revurderingstypen. [innvilgelsesperioder] vil alltid være null.
      *
-     * @param harValgtStansFraFørsteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett. Vil være null når man oppretter stansen.
+     * @param harValgtStansFraFørsteDagSomGirRett Dersom saksbehandler har valgt at det skal stanses fra første dag som gir rett.
+     * Vil være null når man oppretter stansen.
      */
     data class Stans(
         val valgtHjemmel: NonEmptySet<HjemmelForStans>?,

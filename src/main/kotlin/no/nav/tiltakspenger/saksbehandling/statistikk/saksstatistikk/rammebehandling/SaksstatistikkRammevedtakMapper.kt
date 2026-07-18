@@ -25,7 +25,8 @@ fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
             sakId = behandling.sakId.toString(),
             saksnummer = behandling.saksnummer.toString(),
             behandlingId = behandling.id.toString(),
-            // TODO jah: Denne vil vel kunne være en liste? Vi kan legge den på senere.
+            // TODO jah: Denne vil vel kunne være en liste?
+            // Vi kan legge den på senere.
             relatertBehandlingId = null,
             fnr = behandling.fnr.verdi,
             mottattTidspunkt = if (erSøknadsbehandling) behandling.søknad.opprettet else behandling.opprettet,
@@ -36,7 +37,8 @@ fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
             utbetaltTidspunkt = null,
             tekniskTidspunkt = nå(clock),
             søknadsformat = behandling.getSoknadsformat(),
-            // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet. Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
+            // TODO jah: Hva gjør vi ved revurdering/stans i dette tilfellet.
+            // Skal vi sende søknadsbehandling sin første innvilget fraOgMed eller null?
             forventetOppstartTidspunkt = if (erSøknadsbehandling) behandling.vedtaksperiode?.fraOgMed else null,
             behandlingType = if (erSøknadsbehandling) StatistikkBehandlingType.SØKNADSBEHANDLING else StatistikkBehandlingType.REVURDERING,
             behandlingStatus = StatistikkBehandlingStatus.FERDIG_BEHANDLET,

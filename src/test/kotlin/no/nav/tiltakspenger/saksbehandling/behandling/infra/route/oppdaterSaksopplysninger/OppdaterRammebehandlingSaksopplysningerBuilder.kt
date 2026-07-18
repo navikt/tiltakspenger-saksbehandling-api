@@ -24,7 +24,10 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
  */
 interface OppdaterRammebehandlingSaksopplysningerBuilder {
 
-    /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */
+    /**
+     * Forventer at det allerede finnes en behandling.
+     * Denne fungerer både for saksbehandler og beslutter.
+     */
     suspend fun ApplicationTestBuilder.oppdaterSaksopplysningerForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,

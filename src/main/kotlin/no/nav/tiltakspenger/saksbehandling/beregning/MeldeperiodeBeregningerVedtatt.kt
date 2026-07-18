@@ -65,8 +65,7 @@ data class MeldeperiodeBeregningerVedtatt private constructor(
     }
 
     /**
-     * Henter forrige beregning på [kjedeId] før [beregningId], eller siste gjeldende beregning på kjeden dersom
-     * beregningen med [beregningId] ikke finnes.
+     * Henter forrige beregning på [kjedeId] før [beregningId], eller siste gjeldende beregning på kjeden dersom beregningen med [beregningId] ikke finnes.
      */
     fun hentForrigeBeregningEllerSiste(
         beregningId: BeregningId,

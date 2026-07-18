@@ -42,7 +42,8 @@ class IverksettMeldekortbehandlingRouteTest {
             // Vedtaksperiode 1.april (onsdag) - 26.april (søndag).
             // 2 barn => barnetillegg 56 kr per barn per deltatt dag.
             //
-            // Kjede 1 (30.mars - 12.april): 30. og 31.mars uten rett. Resten med rett.
+            // Kjede 1 (30.mars - 12.april): 30. og 31.mars uten rett.
+            // Resten med rett.
             //   Ukedager med rett: 1, 2, 3.april (3) + 6, 7, 8, 9, 10.april (5) = 8 dager
             //   => 8 dager DELTATT (under maks på 10)
             // Kjede 2 (13.april - 26.april): alle 14 dager med rett.

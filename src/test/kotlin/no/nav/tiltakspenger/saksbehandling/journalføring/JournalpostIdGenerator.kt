@@ -8,7 +8,8 @@ interface JournalpostIdGenerator {
 }
 
 /**
- * Trådsikker. Dersom tester deler database, bør de bruke en felles statisk versjon av denne.
+ * Trådsikker.
+ * Dersom tester deler database, bør de bruke en felles statisk versjon av denne.
  */
 class JournalpostIdGeneratorSerial(
     første: Long = 1,

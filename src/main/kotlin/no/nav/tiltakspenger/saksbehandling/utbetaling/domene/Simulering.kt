@@ -113,7 +113,8 @@ data class Simuleringsdag(
 
     /**
      * Simuleringen vil ha en positiv feilutbetaling dersom Utsjekk mottar eksplisitte posteringer for feilutbetaling fra OS.
-     * Dette feltet er summen av disse posteringene. Vedtaksløsningene kan anta at det vil komme et kravgrunnlag for tilbakekreving hvis simuleringen viser en positiv feilutbetaling.
+     * Dette feltet er summen av disse posteringene.
+     * Vedtaksløsningene kan anta at det vil komme et kravgrunnlag for tilbakekreving hvis simuleringen viser en positiv feilutbetaling.
      * Feilutbetalingen vil alltid være ikke-negativ.
      */
     val totalFeilutbetaling: Int,
@@ -121,7 +122,10 @@ data class Simuleringsdag(
     /** Denne skal være lik negativ total feilutbetaling */
     val totalMotpostering: Int,
 
-    /** F.eks. trekk fra namsmannen. Kommentar jah: Usikker på om denne vil vise omposteringer eller om det kun er justering som tar for seg det. */
+    /**
+     * F.eks. trekk fra namsmannen.
+     * Kommentar jah: Usikker på om denne vil vise omposteringer eller om det kun er justering som tar for seg det.
+     */
     val totalTrekk: Int,
     /** Hvis denne dagen er negativt justert (typisk ompostert til en annen dag) */
     val totalJustering: Int,
@@ -153,12 +157,15 @@ data class PosteringerForDag(
  */
 data class PosteringForDag(
     val dato: LocalDate,
-    // Kommentar jah: Vi kan beholde den som en String enn så lenge. Fyll inn javadoc etterhvert som vi oppdager de. Se også tilleggstønader: https://github.com/navikt/tilleggsstonader-sak/blob/main/src/main/kotlin/no/nav/tilleggsstonader/sak/utbetaling/simulering/kontrakt/SimuleringResponseDto.kt#L42
+    // Kommentar jah: Vi kan beholde den som en String enn så lenge.
+    // Fyll inn javadoc etterhvert som vi oppdager de.
+    // Se også tilleggstønader: https://github.com/navikt/tilleggsstonader-sak/blob/main/src/main/kotlin/no/nav/tilleggsstonader/sak/utbetaling/simulering/kontrakt/SimuleringResponseDto.kt#L42
     // Eksempel: TILTAKSPENGER
     val fagområde: String,
     val beløp: Int,
     val type: Posteringstype,
-    // Kommentar jah: Fyll ut eksempler etterhvert som vi oppdager de. Denne vil nok gjenspeile det vi sender inn i simuleringen, i hvert fall for de linjene som angår oss.
+    // Kommentar jah: Fyll ut eksempler etterhvert som vi oppdager de.
+    // Denne vil nok gjenspeile det vi sender inn i simuleringen, i hvert fall for de linjene som angår oss.
     // Eksempel: TPTPATT, TPTPGRAMO, TPBTGRAMO,KL_KODE_FEIL_ARBYT,KL_KODE_JUST_ARBYT,TBMOTOBS,TPBTAAGR,TPBTAF,TPBTOPPFAGR,TPTPAAG,TPTPAFT,TPTPOPPFAG
     val klassekode: String,
 )

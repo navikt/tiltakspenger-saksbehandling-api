@@ -65,7 +65,8 @@ fun genererStønadsstatistikkForRammevedtak(
 
             vedtakId = vedtak.id.toString(),
             vedtaksType = "Ny Rettighet",
-            // TODO post-mvp: Denne skal kanskje egentlig være datoen fra brevet. Ta en prat med statistikk.
+            // TODO post-mvp: Denne skal kanskje egentlig være datoen fra brevet.
+            // Ta en prat med statistikk.
             vedtakDato = vedtak.opprettet.toLocalDate(),
 
             barnetillegg = barnetillegg,

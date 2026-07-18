@@ -416,7 +416,8 @@ interface BehandlingMother : MotherOfAllMothers {
     }
 
     /**
-     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode]. Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
+     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode].
+     * Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
      */
     fun nyVedtattSøknadsbehandling(
         id: RammebehandlingId = RammebehandlingId.random(),

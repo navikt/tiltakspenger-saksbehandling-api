@@ -138,7 +138,8 @@ class OppdaterRammebehandlingService(
                 loggkontekst = "sakId: ${rammebehandling.sakId}, saksnummer: ${this.saksnummer.verdi}, rammebehandlingId: ${rammebehandling.id}",
             )
             val simuleringMedMetadata = simulerService.simulerSøknadsbehandlingEllerRevurdering(
-                // Merk at behandlingen vi sender inn her er som den kom fra basen. Kanskje vi heller bare skal sende inn od, sakId, fnr og saksnummer?
+                // Merk at behandlingen vi sender inn her er som den kom fra basen.
+                // Kanskje vi heller bare skal sende inn od, sakId, fnr og saksnummer?
                 behandling = rammebehandling,
                 beregning = it,
                 forrigeUtbetaling = this.utbetalinger.lastOrNull(),

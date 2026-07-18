@@ -5,10 +5,14 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import java.time.LocalDate
 
 /**
- * @param vedtakDetKlagesPå Id til vedtaket som klages på. Kan være null hvis klagen ikke gjelder et spesifikt vedtak, i så fall vil det bli en avvisning.
- * @param innsendingsdato Datoen klagen formelt ble overlevert til Nav. Et eksempel er dagen man postet brevet. Denne datoen brukes for å vurdere om klagefristen er overholdt.
+ * @param vedtakDetKlagesPå Id til vedtaket som klages på.
+ * Kan være null hvis klagen ikke gjelder et spesifikt vedtak, i så fall vil det bli en avvisning.
+ * @param innsendingsdato Datoen klagen formelt ble overlevert til Nav.
+ * Et eksempel er dagen man postet brevet.
+ * Denne datoen brukes for å vurdere om klagefristen er overholdt.
  * Se også: https://lovdata.no/lov/1967-02-10/§29 til og med §33
- * @param behandlingDetKlagesPå behandlingen som er knyttet til [vedtakDetKlagesPå]. Lagt til for å slippe å joine når vi sender statistikk.
+ * @param behandlingDetKlagesPå behandlingen som er knyttet til [vedtakDetKlagesPå].
+ * Lagt til for å slippe å joine når vi sender statistikk.
  */
 data class KlageFormkrav(
     val vedtakDetKlagesPå: VedtakId?,

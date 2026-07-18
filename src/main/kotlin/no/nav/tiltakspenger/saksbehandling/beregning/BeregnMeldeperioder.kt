@@ -232,8 +232,8 @@ private data class BeregnMeldeperioder(
  *  Samme regler gjelder for sykt barn eller barnepasser
  *
  *  Se Rundskriv om tiltakspenger til § 10 – Reduksjon av ytelse på grunn av fravær
- *  https://lovdata.no/nav/rundskriv/r76-13-02
- *  https://confluence.adeo.no/spaces/POAO/pages/553634914/Tiltakspengeforskriften+%C2%A7+10+-+reduksjon+pga+frav%C3%A6r
+ *  - https://lovdata.no/nav/rundskriv/r76-13-02
+ *  - https://confluence.adeo.no/spaces/POAO/pages/553634914/Tiltakspengeforskriften+%C2%A7+10+-+reduksjon+pga+frav%C3%A6r
  * */
 private class SykedagerPeriode {
     private var sisteSykedag: LocalDate? = null
@@ -349,7 +349,8 @@ fun Sak.beregnOpphør(
  * Beregner en behandling der vedtaksperiode er helt eller delvis innvilget.
  *
  * @param behandlingId Søknadsbehandling eller revurdering.
- * @param vedtaksperiode Hele vedtaksperioden for behandlingen. Kan være en kombinasjon av innvilgelse/avslag og/eller innvilgelse/opphør.
+ * @param vedtaksperiode Hele vedtaksperioden for behandlingen.
+ * Kan være en kombinasjon av innvilgelse/avslag og/eller innvilgelse/opphør.
  * Dersom deler av vedtaksperioden ikke overlapper med [innvilgelsesperioder], gir disse periodene ikke tiltakspenger (delvis avslag)
  */
 fun Sak.beregnInnvilgelse(

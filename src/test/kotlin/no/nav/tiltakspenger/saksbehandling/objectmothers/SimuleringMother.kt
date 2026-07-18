@@ -139,9 +139,11 @@ fun Sak.genererSimuleringFraBeregning(
                                 dato = it.dato,
                                 fagområde = "TILTAKSPENGER",
                                 beløp = it.nyttTotalbeløp,
-                                // Kommentar jah: Holden denne enkel enn så lenge. Kan utvide med mer logikk ala. https://github.com/navikt/helved-utbetaling/blob/main/dokumentasjon/simulering.md når vi trenger det.
+                                // Kommentar jah: Holden denne enkel enn så lenge.
+                                // Kan utvide med mer logikk ala. https://github.com/navikt/helved-utbetaling/blob/main/dokumentasjon/simulering.md når vi trenger det.
                                 type = if (erFeilutbetaling) Posteringstype.FEILUTBETALING else Posteringstype.YTELSE,
-                                // Kommentar jah: Holder denne fake enn så lenge. Kan utvides med en riktigere klassekode når vi trenger det.
+                                // Kommentar jah: Holder denne fake enn så lenge.
+                                // Kan utvides med en riktigere klassekode når vi trenger det.
                                 klassekode = "test_klassekode",
                             ),
                         ),

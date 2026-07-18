@@ -67,7 +67,8 @@ class StatistikkMeldekortPostgresRepo {
         }
 
         /**
-         * Kun for test. I produksjon leses denne tabellen kun av eksterne konsumenter.
+         * Kun for test.
+         * I produksjon leses denne tabellen kun av eksterne konsumenter.
          */
         @TestOnly
         fun hentForMeldekortbehandlingId(

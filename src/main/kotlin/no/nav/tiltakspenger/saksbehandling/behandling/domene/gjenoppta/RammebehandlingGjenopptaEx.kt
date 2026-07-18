@@ -29,7 +29,8 @@ import java.time.Clock
 
 /**
  * Kan kun gjenoppta en behandling som er satt på vent.
- * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null. Merk at det vi ikke henter saksopplysninger på nytt hvis den er sendt til beslutning.
+ * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null.
+ * Merk at det vi ikke henter saksopplysninger på nytt hvis den er sendt til beslutning.
  */
 suspend fun Rammebehandling.gjenoppta(
     kommando: GjenopptaRammebehandlingKommando,

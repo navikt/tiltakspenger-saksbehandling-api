@@ -10,7 +10,9 @@ sealed interface KunneIkkeSimulere {
     data class UkjentFeil(val feil: HttpKlientError) : KunneIkkeSimulere
 
     /**
-     * OS har åpningstider. Typisk mandag til fredag fra 6 til 21. Men det hender den er stengt på helligdager og vedlikeholdsdager også.
+     * OS har åpningstider.
+     * Typisk mandag til fredag fra 6 til 21.
+     * Men det hender den er stengt på helligdager og vedlikeholdsdager også.
      */
     data class Stengt(val feil: HttpKlientError) : KunneIkkeSimulere
 

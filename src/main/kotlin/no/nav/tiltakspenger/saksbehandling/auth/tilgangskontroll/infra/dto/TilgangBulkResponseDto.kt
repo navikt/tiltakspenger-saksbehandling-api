@@ -5,8 +5,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 /**
  * Wire-DTO for 207-svaret fra tilgangsmaskinens bulk-endepunkt (`/api/v1/bulk/obo`).
  *
- * Lever kun i infra: klienten deserialiserer hit og mapper til domenevennlig
- * [tilTilgangPerFnr] før noe krysser porten. Domenet skal aldri se HTTP-statuser herfra.
+ * Lever kun i infra: klienten deserialiserer hit og mapper til domenevennlig [tilTilgangPerFnr] før noe krysser porten.
+ * Domenet skal aldri se HTTP-statuser herfra.
  */
 data class TilgangBulkResponseDto(
     val resultater: List<TilgangResponse>,

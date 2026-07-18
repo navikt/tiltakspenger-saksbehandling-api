@@ -35,8 +35,8 @@ data class SammenligningAvBeregninger(
     }
 
     /**
-     * Holder på forrige og gjeldende verdi for en gitt type. Gjeldende verdi er enten nåværende tilstand
-     * eller verdien som ble gjeldende etter en endring
+     * Holder på forrige og gjeldende verdi for en gitt type.
+     * Gjeldende verdi er enten nåværende tilstand eller verdien som ble gjeldende etter en endring
      */
     data class ForrigeOgGjeldende<T>(
         val forrige: T?,

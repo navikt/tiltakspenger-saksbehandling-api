@@ -37,8 +37,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Brukes i første iterasjon for sammenligning mot gammel klient ([VeilarboppfolgingHttpClient]), og kun av [SammenligningVeilarboppfolgingKlient].
  *
- * Vi henter kun feltene vi har dekning for å bruke (behandlingskatalog), og returnerer alle innslag uten
- * å filtrere - domenet ([Kontorhistorikk]) avgjør hvilket innslag som skal brukes til hva.
+ * Vi henter kun feltene vi har dekning for å bruke (behandlingskatalog), og returnerer alle innslag uten å filtrere - domenet ([Kontorhistorikk]) avgjør hvilket innslag som skal brukes til hva.
  *
  * Feillogging skjer ikke her, men i [SammenligningVeilarboppfolgingKlient], som har domenekonteksten (loggkontekst med sakId/saksnummer/...).
  * Klienten bærer derfor httpklient sine rå typer videre til domenet: [HttpKlientError] på feilstiene ([KanIkkeHenteKontorhistorikk.httpKlientError]) og [no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata] ellers.
@@ -142,10 +141,8 @@ data class KontorhistorikkDto(
             kontorId = kontorId,
             kontorNavn = kontorNavn,
             kontorType = kontorType.toDomene(),
-            // APIet serialiserer `ZonedDateTime.toString()` (f.eks. "2024-05-01T10:15:30+02:00[Europe/Oslo]"
-            // eller "2024-05-01T08:15:30Z[UTC]" hvis serveren kjører i UTC). Vi konverterer alltid til
-            // Europe/Oslo for å få samme "vegg-klokke"-tidspunkt som resten av appen bruker, og deretter
-            // til [LocalDateTime] som domenet vårt forventer.
+            // APIet serialiserer `ZonedDateTime.toString()` (f.eks. "2024-05-01T10:15:30+02:00[Europe/Oslo]" eller "2024-05-01T08:15:30Z[UTC]" hvis serveren kjører i UTC).
+            // Vi konverterer alltid til Europe/Oslo for å få samme "vegg-klokke"-tidspunkt som resten av appen bruker, og deretter til [LocalDateTime] som domenet vårt forventer.
             endretTidspunkt = ZonedDateTime.parse(endretTidspunkt)
                 .withZoneSameInstant(zoneIdOslo)
                 .toLocalDateTime(),

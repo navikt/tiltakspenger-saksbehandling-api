@@ -258,7 +258,8 @@ internal class KontorhistorikkHttpklientTest {
 
     @Test
     fun `konverterer endretTidspunkt fra UTC til Europe-Oslo wall-clock`() {
-        // Sommertid: 08-00 UTC = 10-00 Oslo. Vintertid: 08-00 UTC = 09-00 Oslo.
+        // Sommertid: 08-00 UTC = 10-00 Oslo.
+        // Vintertid: 08-00 UTC = 09-00 Oslo.
         val transport = httpKlientMedInnslag(
             listOf(
                 dto(kontorId = "sommer", endretTidspunkt = "2024-07-01T08:00:00Z[UTC]"),
@@ -276,9 +277,8 @@ internal class KontorhistorikkHttpklientTest {
     }
 
     /**
-     * Verifiserer at vi takler ISO-8601-varianter et "vanlig" API kan finne på å returnere. Alle inputene
-     * her representerer det samme øyeblikket (08:00 UTC = 10:00 Oslo i sommertid), så vi forventer samme
-     * vegg-klokke-tidspunkt i Oslo uansett serialiseringsstil.
+     * Verifiserer at vi takler ISO-8601-varianter et "vanlig" API kan finne på å returnere.
+     * Alle inputene her representerer det samme øyeblikket (08:00 UTC = 10:00 Oslo i sommertid), så vi forventer samme vegg-klokke-tidspunkt i Oslo uansett serialiseringsstil.
      */
     @Test
     fun `parser ulike ISO-8601 sone-varianter til samme Oslo-wall-clock`() {
@@ -332,9 +332,8 @@ internal class KontorhistorikkHttpklientTest {
     }
 
     /**
-     * Et tidsstempel uten sone/offset (ren `LocalDateTime`) er tvetydig – vi vet ikke hva avsender
-     * mente. Vi velger eksplisitt å feile heller enn å gjette på Europe/Oslo, slik at vi ikke ender
-     * opp med stille feil dersom APIet endrer kontrakt.
+     * Et tidsstempel uten sone/offset (ren `LocalDateTime`) er tvetydig – vi vet ikke hva avsender mente.
+     * Vi velger eksplisitt å feile heller enn å gjette på Europe/Oslo, slik at vi ikke ender opp med stille feil dersom APIet endrer kontrakt.
      */
     @Test
     fun `tidsstempel uten sone gir Left KallFeilet`() {

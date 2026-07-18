@@ -143,7 +143,8 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     )
 
     return simuler(meldekortBehandletAutomatisk, navkontor).mapLeft {
-        // Simuleringsklienten logger feil selv. I førsteomgang ønsker vi ikke stoppe den automatiske utbetalingen selv om simuleringen feiler.
+        // Simuleringsklienten logger feil selv.
+        // I førsteomgang ønsker vi ikke stoppe den automatiske utbetalingen selv om simuleringen feiler.
         return Pair(meldekortBehandletAutomatisk, null).right()
     }.map { Pair(meldekortBehandletAutomatisk.copy(simulering = it.simulering), it) }
 }

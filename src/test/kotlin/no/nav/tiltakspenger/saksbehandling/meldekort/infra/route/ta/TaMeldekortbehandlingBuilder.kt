@@ -48,7 +48,8 @@ import org.json.JSONObject
 interface TaMeldekortbehandlingBuilder {
 
     /**
-     * For saksbehandler. Er aldri til beslutning.
+     * For saksbehandler.
+     * Er aldri til beslutning.
      *
      * 1. Iverksetter en søknadsbehandling
      * 2. Oppretter en meldekortbehandling med saksbehandler 1 (UNDER_BEHANDLING)
@@ -162,7 +163,8 @@ interface TaMeldekortbehandlingBuilder {
     /**
      * Fungerer både for saksbehandler og beslutter avhengig av hvilken status meldekortbehandlingen har før den tas.
      *
-     * @return Dersom status går fra KLAR_TIL_BEHANDLING til UNDER_BEHANDLING returneres [MeldekortUnderBehandling]. Dersom status går fra KLAR_TIL_BESLUTNING til UNDER_BESLUTNING returneres [MeldekortbehandlingManuell]
+     * @return Dersom status går fra KLAR_TIL_BEHANDLING til UNDER_BEHANDLING returneres [MeldekortUnderBehandling].
+     * Dersom status går fra KLAR_TIL_BESLUTNING til UNDER_BESLUTNING returneres [MeldekortbehandlingManuell]
      */
     suspend fun ApplicationTestBuilder.taMeldekortbehanding(
         tac: TestApplicationContext,

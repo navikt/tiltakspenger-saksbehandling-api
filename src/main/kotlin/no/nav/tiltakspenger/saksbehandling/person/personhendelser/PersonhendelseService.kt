@@ -31,10 +31,9 @@ class PersonhendelseService(
         personhendelse: Personhendelse,
     ): Either<KunneIkkeBehandlePersonhendelse, Unit> {
         try {
-            // pdl.leesah-v1 inneholder mange opplysningstyper vi ikke bryr oss om
-            // (NAVN_V1, FOLKEREGISTERIDENTIFIKATOR_V1, BOSTEDSADRESSE_V1, ...). Vi siler
-            // dem ut her, før vi går mot DB-en, og lar bare de typene vi faktisk håndterer
-            // passere. Enum-en [Opplysningstype] inneholder per design kun de støttede typene.
+            // pdl.leesah-v1 inneholder mange opplysningstyper vi ikke bryr oss om (NAVN_V1, FOLKEREGISTERIDENTIFIKATOR_V1, BOSTEDSADRESSE_V1, ...).
+            // Vi siler dem ut her, før vi går mot DB-en, og lar bare de typene vi faktisk håndterer passere.
+            // Enum-en [Opplysningstype] inneholder per design kun de støttede typene.
             when (personhendelse.opplysningstype) {
                 Opplysningstype.DOEDSFALL_V1.name,
                 Opplysningstype.ADRESSEBESKYTTELSE_V1.name,
@@ -64,9 +63,8 @@ class PersonhendelseService(
                 }
             }
 
-            // personidenter er en liste av identer (fnr, d-nummer, aktørId — historiske og aktive)
-            // som alle peker på samme person. Vi vet ikke formatet på de enkelte identene fra
-            // leesah, så vi sender alle strengene rett til DB-en og matcher mot sak.fnr.
+            // personidenter er en liste av identer (fnr, d-nummer, aktørId — historiske og aktive) som alle peker på samme person.
+            // Vi vet ikke formatet på de enkelte identene fra leesah, så vi sender alle strengene rett til DB-en og matcher mot sak.fnr.
             val personidenter = personhendelse.personidenter.map { it.trim() }.toNonEmptyListOrNull()
                 ?: run {
                     // Forventer ikke at dette skjer i praksis.
@@ -80,7 +78,9 @@ class PersonhendelseService(
                 }
             try {
                 val lagredeHendelser = personhendelseRepository.hent(sakId)
-                // TODO jah: Dette blir ikke riktig. Det er greit å deduppe på hendelseId, men her forkaster vi potensielt viktig informasjon. Dette må gjøres om litt mer helhetlig.
+                // TODO jah: Dette blir ikke riktig.
+                // Det er greit å deduppe på hendelseId, men her forkaster vi potensielt viktig informasjon.
+                // Dette må gjøres om litt mer helhetlig.
                 if (lagredeHendelser.find { it.opplysningstype.name == personhendelse.opplysningstype } != null) {
                     log.info { "Har allerede lagret hendelse av samme type for fnr, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
                     return KunneIkkeBehandlePersonhendelse.HendelseAlleredeLagret.left()
@@ -91,7 +91,8 @@ class PersonhendelseService(
                         log.info { "Har ikke kode 6, hendelsesId ${personhendelse.hendelseId}, ignorerer" }
                         return KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
                     }
-                    // TODO jah: Dette bør ikke skje samtidig som vi mottar en hendelse. a) lagre b) side-effekter. Mangler og en transaksjon.
+                    // TODO jah: Dette bør ikke skje samtidig som vi mottar en hendelse. a) lagre b) side-effekter.
+                    // Mangler og en transaksjon.
                     oppdaterStatistikk(sakId, personhendelse)
                 }
                 personhendelseRepository.lagre(personhendelse.toPersonhendelseDb(fnr, sakId))

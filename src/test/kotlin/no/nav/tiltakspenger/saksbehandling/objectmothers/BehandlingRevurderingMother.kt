@@ -222,7 +222,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     /**
-     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode]. Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
+     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode].
+     * Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
      */
     fun nyRevurderingInnvilgelseKlarTilBeslutning(
         clock: Clock = this.clock,
@@ -292,7 +293,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
     }
 
     /**
-     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode]. Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
+     * @param innvilgelsesperioder vil default utledes fra [saksopplysningsperiode].
+     * Hvis du overstyrer denne, bør du også overstyre [saksopplysningsperiode].
      */
     fun nyVedtattRevurderingInnvilgelse(
         clock: Clock = this.clock,
@@ -432,7 +434,8 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             vedtattInnvilgetSøknadsbehandling = omgjørRammevedtak,
             hentSaksopplysninger = hentSaksopplysninger,
         ).let {
-            // TODO abn: Dette er ikke veldig praktisk. Må skrive om en del her for å støtte alle typer omgjøring også.
+            // TODO abn: Dette er ikke veldig praktisk.
+            // Må skrive om en del her for å støtte alle typer omgjøring også.
             it.oppdaterOmgjøring(
                 kommando = OppdaterOmgjøringKommando.OmgjøringInnvilgelse(
                     sakId = sakId,

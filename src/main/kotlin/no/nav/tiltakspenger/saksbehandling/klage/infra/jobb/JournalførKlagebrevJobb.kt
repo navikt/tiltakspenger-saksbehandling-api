@@ -67,8 +67,8 @@ class JournalførKlagebrevJobb(
 
                     /*
                         TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-avvis pdf er ok
-                            Akkurat nå bryr vi oss ikke om journalpostId'en etc. Så lenge vi finner saken igjen i gosys
-                            så bare manuelt sjekker vi at ting er ok.
+                            Akkurat nå bryr vi oss ikke om journalpostId'en etc.
+                            Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
                      */
                     pdfOgJson.second?.let {
                         journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
@@ -133,8 +133,8 @@ class JournalførKlagebrevJobb(
                     )
                     /*
                         TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-innstilling pdf er ok
-                            Akkurat nå bryr vi oss ikke om journalpostId'en etc. Så lenge vi finner saken igjen i gosys
-                            så bare manuelt sjekker vi at ting er ok.
+                            Akkurat nå bryr vi oss ikke om journalpostId'en etc.
+                            Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
                      */
                     pdfOgJson.second?.let {
                         journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(

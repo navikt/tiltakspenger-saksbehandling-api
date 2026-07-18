@@ -74,7 +74,8 @@ internal class TestDataHelper(
 private val dbManager: TestDatabaseManager by lazy { TestDatabaseManager() }
 
 /**
- * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
+ * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon.
+ * Brukes når man gjør operasjoner på tvers av saker.
  */
 internal fun withMigratedDb(
     runIsolated: Boolean = false,

@@ -52,8 +52,7 @@ data class Innvilgelsesperioder(
     }
 
     /**
-     * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med [perioder]
-     * eller null dersom ingen overlapper
+     * @return [Innvilgelsesperioder] med oppdaterte perioder som overlapper med [perioder] eller null dersom ingen overlapper
      * */
     fun krymp(perioder: List<Periode>): Innvilgelsesperioder? {
         val nyeInnvilgelsesperioder = periodisering.perioderMedVerdi.toList().flatMap {
@@ -75,8 +74,7 @@ data class Innvilgelsesperioder(
     }
 
     /**
-     * @return [Innvilgelsesperioder] med oppdaterte tiltaksdeltakelser, for innvilgelsesperioder som overlapper med perioder fra [tiltaksdeltakelser]
-     * eller null dersom ingen overlapper
+     * @return [Innvilgelsesperioder] med oppdaterte tiltaksdeltakelser, for innvilgelsesperioder som overlapper med perioder fra [tiltaksdeltakelser] eller null dersom ingen overlapper
      * */
     fun oppdaterTiltaksdeltakelser(tiltaksdeltakelser: Tiltaksdeltakelser): Innvilgelsesperioder? {
         val nyeInnvilgelsesperioder = periodisering.perioderMedVerdi.mapNotNull {

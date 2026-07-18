@@ -79,9 +79,9 @@ enum class CefFieldName(
     BERORT_BRUKER_ID("duid"),
 
     /**
-     * Reservert til bruk for "Behandling". Det er godkjent med både behandlingsUuid
-     * og behandlingsId, men førstnevnte er foretrukket. Denne skal unikt identifisere
-     * behandlingen.
+     * Reservert til bruk for "Behandling".
+     * Det er godkjent med både behandlingsUuid og behandlingsId, men førstnevnte er foretrukket.
+     * Denne skal unikt identifisere behandlingen.
      */
     BEHANDLING_VERDI("flexString2"),
 
@@ -117,11 +117,13 @@ data class CefField(
 /**
  * Logger til auditlogg på formatet
  *
+ * ```
  * CEF:0|tiltakspenger-saksbehandling-api|auditLog|1.0|audit:access|tiltakspenger-saksbehandling-api audit log|INFO|
  * end=1618308696856 suid=X123456 duid=01010199999
  * flexString1Label=Decision flexString1=Permit
  * flexString2Label=behandlingId flexString2=2dc4c100-395a-4e25-b1e9-6ea52f49b9e1
  * sproc=40e4608e-7157-415d-86c2-697f4c3c7358
+ * ```
  */
 object AuditLogger {
     private const val APPLICATION_NAME = "tiltakspenger-saksbehandling-api"
@@ -146,7 +148,8 @@ object AuditLogger {
          */
         val deviceVendor = "Tiltaksgjennomforing"
         /*
-        Dette er også ønske fra Team Auditlog. At 'deviceProduct' er applikasjonsnavnet.
+        Dette er også ønske fra Team Auditlog.
+        At 'deviceProduct' er applikasjonsnavnet.
         https://nav-it.slack.com/archives/C014576K5TQ/p1726490122242699?thread_ts=1726042802.693829&cid=C014576K5TQ
          */
         val deviceProduct = APPLICATION_NAME
@@ -155,11 +158,13 @@ object AuditLogger {
          */
         val deviceVersion = "1.0"
         /*
-        The text representing the type of the event. For example audit:access, audit:edit
+        The text representing the type of the event.
+        For example audit:access, audit:edit
          */
         val deviceEventClassId = logEvent.action.value
         /*
-        The description of the event. For example 'ABAC sporingslogg' or 'Database query'
+        The description of the event.
+        For example 'ABAC sporingslogg' or 'Database query'
          */
         val name = "$APPLICATION_NAME audit log"
         /*

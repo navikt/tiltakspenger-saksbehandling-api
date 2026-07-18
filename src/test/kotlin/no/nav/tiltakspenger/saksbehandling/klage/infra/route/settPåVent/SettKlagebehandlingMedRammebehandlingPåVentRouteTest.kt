@@ -88,6 +88,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
             )!!
             val klagebehandling = oppdatertRammebehandlingMedKlagebehandling.klagebehandling!!
             // TODO: sjekk noe her, men trenger kanskje ikke sjekke hele saken
+//
 //            json.toString().shouldEqualJsonIgnoringTimestamps(
 //                """
 //                    "HELE SAKEN GOES HERE"

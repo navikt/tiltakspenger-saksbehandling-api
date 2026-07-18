@@ -72,13 +72,13 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFa
 /**
  * Felles basisklasse for [TestApplicationContextMedInMemoryDb] og [TestApplicationContextMedPostgres].
  *
- * Erstatter alle eksterne klienter med fakes. Subklassene velger kun hvilken type repo som brukes:
+ * Erstatter alle eksterne klienter med fakes.
+ * Subklassene velger kun hvilken type repo som brukes:
  * - Postgres-versjonen arver alle default Postgres-repoer fra [ApplicationContext]/de respektive Context-klassene.
  * - InMemory-versjonen overstyrer `*RepoOverride`-hookene med fake-repoer.
  *
  * ## Bruk i tester
- * Foretrukket inngang er via [withTestApplicationContext] / [withTestApplicationContextAndPostgres]
- * i `TestApplicationContextEx.kt`, som setter opp Ktor-test-server og rydder opp etter seg.
+ * Foretrukket inngang er via [withTestApplicationContext] / [withTestApplicationContextAndPostgres] i `TestApplicationContextEx.kt`, som setter opp Ktor-test-server og rydder opp etter seg.
  *
  * Typiske operasjoner på `tac` (= TestApplicationContext) i en test:
  * - `tac.leggTilPerson(fnr, person, tiltaksdeltakelse)` — registrer en person i alle relevante fakes
@@ -205,8 +205,8 @@ sealed class TestApplicationContext(
     protected open val tilbakekrevingBehandlingRepoOverride: TilbakekrevingBehandlingRepo? = null
 
     // ====== Context-overstyringer ======
-    // Eksterne klienter overstyres med fakes. Repos kommer fra repo-override-hookene over,
-    // og faller tilbake til Context-ens default (Postgres-bakt) hvis hooken er null.
+    // Eksterne klienter overstyres med fakes.
+    // Repos kommer fra repo-override-hookene over, og faller tilbake til Context-ens default (Postgres-bakt) hvis hooken er null.
 
     override val personContext by lazy {
         object : PersonContext(sessionFactory, texasClient, clock) {
@@ -448,8 +448,7 @@ sealed class TestApplicationContext(
     }
 
     /**
-     * Knytter et JWT-token til en gitt [Bruker] i [TexasClientFake], slik at autentiserte HTTP-kall
-     * fra testen blir gjenkjent som brukeren.
+     * Knytter et JWT-token til en gitt [Bruker] i [TexasClientFake], slik at autentiserte HTTP-kall fra testen blir gjenkjent som brukeren.
      */
     fun leggTilBruker(token: String, bruker: Bruker<*, *>) {
         (texasClient as TexasClientFake).leggTilBruker(token, bruker)

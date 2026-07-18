@@ -1105,9 +1105,11 @@ private fun Meldeperiodebehandling.tilOppdatertMeldeperiode(): OppdatertMeldeper
 }
 
 /**
- * @param meldeperiode Perioden meldekortet skal gjelde for. Må være 14 dager, starte på en mandag og slutte på en søndag.
+ * @param meldeperiode Perioden meldekortet skal gjelde for.
+ * Må være 14 dager, starte på en mandag og slutte på en søndag.
  * @return Meldekortdager for meldeperioden
- * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er IKKE_RETT_TIL_TILTAKSPENGER er den per definisjon utfylt. Dette har vi ikke støtte for i MVP.
+ * @throws IllegalStateException Dersom alle dagene i en meldekortperiode er IKKE_RETT_TIL_TILTAKSPENGER er den per definisjon utfylt.
+ * Dette har vi ikke støtte for i MVP.
  */
 private fun genererMeldekortdagerFraMeldeperiode(
     meldeperiode: Meldeperiode,

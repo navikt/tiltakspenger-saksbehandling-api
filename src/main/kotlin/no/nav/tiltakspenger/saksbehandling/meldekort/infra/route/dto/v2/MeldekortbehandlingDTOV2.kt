@@ -59,7 +59,10 @@ data class MeldekortbehandlingDTOV2(
     val utbetalingsstatus: UtbetalingsstatusDTO,
     /** Sammenhengende totalperiode på tvers av alle [meldeperioder]. */
     val periode: PeriodeDTO,
-    /** Én eller flere meldeperioder. Sortert kronologisk på fra-og-med. */
+    /**
+     * Én eller flere meldeperioder.
+     * Sortert kronologisk på fra-og-med.
+     */
     val meldeperioder: List<MeldeperiodebehandlingDTO>,
     val avbrutt: AvbruttDTO?,
     val simulertBeregning: SimulertBeregningDTO?,

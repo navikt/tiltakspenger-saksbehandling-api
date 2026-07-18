@@ -3,7 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.distribusjon
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Trådsikker. Dersom tester deler database, bør de bruke en felles statisk versjon av denne.
+ * Trådsikker.
+ * Dersom tester deler database, bør de bruke en felles statisk versjon av denne.
  */
 class DistribusjonIdGenerator(
     første: Long = 1,

@@ -17,6 +17,7 @@ class SettRammebehandlingPåVentRouteTest {
         withTestApplicationContext { tac ->
             val (_, _, søknadsbehandling, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
             // TODO: sjekk noe her, men trenger kanskje ikke sjekke hele saken
+//
 //            json.toString().shouldEqualJsonIgnoringTimestamps(
 //                """
 //                    "HELE SAKEN GOES HERE"

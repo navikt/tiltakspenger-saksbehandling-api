@@ -7,8 +7,8 @@ class NavkontorService(
     private val navkontorKlient: NavkontorKlient,
 ) {
     /**
-     * Returnerer [Navkontor] for bakoverkompatibilitet. Klienten returnerer rik metadata
-     * ([NavkontorMedMetadata]) som vi senere vil ønske å lagre - se [hentNavkontorMedMetadata].
+     * Returnerer [Navkontor] for bakoverkompatibilitet.
+     * Klienten returnerer rik metadata ([NavkontorMedMetadata]) som vi senere vil ønske å lagre - se [hentNavkontorMedMetadata].
      * Kaster [IllegalStateException] dersom klienten ikke klarte å hente navkontor.
      *
      * Logger ikke selv - all logging for navkontor-oppslag skjer i sammenligningsklienten, som får
@@ -23,8 +23,7 @@ class NavkontorService(
             loggkontekst = loggkontekst,
         ).fold(
             ifLeft = { feil ->
-                // Kun beskrivelse() i meldingen - feilens toString() bærer rå request/respons med persondata,
-                // og exception-meldinger havner i vanlig logg hos konsumentene.
+                // Kun beskrivelse() i meldingen - feilens toString() bærer rå request/respons med persondata, og exception-meldinger havner i vanlig logg hos konsumentene.
                 error("Kunne ikke hente navkontor: ${feil.beskrivelse()}")
             },
             ifRight = { it.navkontor },

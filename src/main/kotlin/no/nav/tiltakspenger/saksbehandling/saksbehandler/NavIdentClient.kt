@@ -18,7 +18,10 @@ interface NavIdentClient {
 
 /** Mulige feil ved henting av navn for en navIdent fra Microsoft Graph. */
 sealed interface KanIkkeHenteNavnForNavIdent {
-    /** Selve HTTP-kallet feilet (timeout/IO/feil ved token-henting/uventet status/deserialisering osv.). Se [httpKlientError] for detaljer. */
+    /**
+     * Selve HTTP-kallet feilet (timeout/IO/feil ved token-henting/uventet status/deserialisering osv.).
+     * Se [httpKlientError] for detaljer.
+     */
     data class KallFeilet(
         val httpKlientError: HttpKlientError,
     ) : KanIkkeHenteNavnForNavIdent

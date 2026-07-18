@@ -6,13 +6,17 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * Representerer en iverksetting. Se funksjonell dokumentasjon på [utsjekk-docs](https://navikt.github.io/utsjekk-docs/for_konsumenter/utbetaling/iverksetting)
+ * Representerer en iverksetting.
+ * Se funksjonell dokumentasjon på [utsjekk-docs](https://navikt.github.io/utsjekk-docs/for_konsumenter/utbetaling/iverksetting)
  * @property sakId Id på saken i saksbehandlingsløsningen.
  * @property behandlingId Id på behandlingen i saksbehandlingsløsningen.
- * @property iverksettingId Id som unikt identifiserer iverksettingen. Brukes når konsument iverksetter flere ganger for samme behandling.
+ * @property iverksettingId Id som unikt identifiserer iverksettingen.
+ * Brukes når konsument iverksetter flere ganger for samme behandling.
  * @property personident Naturlig ident for personen iverksettingen gjelder.
- * @property vedtak Data knyttet til vedtaket. Se no.nav.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto.
- * @property forrigeIverksetting Id på forrige iverksetting på saken. Settes kun når saken har eksisterende iverksettinger.
+ * @property vedtak Data knyttet til vedtaket.
+ * Se no.nav.utsjekk.kontrakter.iverksett.VedtaksdetaljerV2Dto.
+ * @property forrigeIverksetting Id på forrige iverksetting på saken.
+ * Settes kun når saken har eksisterende iverksettinger.
  */
 data class IverksettV2Dto(
     val sakId: String,
@@ -45,11 +49,13 @@ data class VedtaksdetaljerV2Dto(
 /**
  * Data for en enkelt utbetalingsperiode.
  * @property beløp Beløpet som skal utbetales iht. satstypen.
- * @property satstype Benevningen som avgjør hva totalbeløpet for perioden blir. Denne varierer fra ytelse til ytelse iht.
- * det konkrete ytelsesregelverket. Eksempelvis er alle meldepliktsytelser dagytelser og må sende satstype DAGLIG.
+ * @property satstype Benevningen som avgjør hva totalbeløpet for perioden blir.
+ * Denne varierer fra ytelse til ytelse iht. det konkrete ytelsesregelverket.
+ * Eksempelvis er alle meldepliktsytelser dagytelser og må sende satstype DAGLIG.
  * @property fraOgMedDato Fra og med-dato for utbetalingsperioden.
  * @property tilOgMedDato Til og med-dato for utbetalingsperioden.
- * @property stønadsdata Ekstra data om utbetalingsperioden. Varierer fra ytelse til ytelse, se de konkrete klassene for detaljer.
+ * @property stønadsdata Ekstra data om utbetalingsperioden.
+ * Varierer fra ytelse til ytelse, se de konkrete klassene for detaljer.
  */
 data class UtbetalingV2Dto(
     val beløp: UInt,
@@ -63,7 +69,8 @@ data class UtbetalingV2Dto(
  * Identifiserer forrige iverksetting, brukes når nåværende iverksetting ikke er første iverksetting på saken.
  * Dersom nåværende iverksetting har både behandlingsid og iverksettingsid satt, må også forrige iverksetting ha begge felter satt.
  * @property behandlingId behandlingsid for forrige iverksetting
- * @property iverksettingId iverksettingsid for forrige iverksetting. Brukes når konsument iverksetter flere ganger for samme behandling.
+ * @property iverksettingId iverksettingsid for forrige iverksetting.
+ * Brukes når konsument iverksetter flere ganger for samme behandling.
  */
 data class ForrigeIverksettingV2Dto(
     val behandlingId: String,

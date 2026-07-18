@@ -448,8 +448,7 @@ internal class IverksettRevurderingTest {
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurdering.id)
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
 
-            // Klokke satt før søknadsbehandlingsvedtaket sitt opprettet-tidspunkt, slik at det nye
-            // revurderingsvedtaket ikke ville blitt det «siste» vedtaket dersom listen ble sortert på opprettet.
+            // Klokke satt før søknadsbehandlingsvedtaket sitt opprettet-tidspunkt, slik at det nye revurderingsvedtaket ikke ville blitt det «siste» vedtaket dersom listen ble sortert på opprettet.
             val klokkeFørSøknadsbehandlingsvedtaket = fixedClockAt(1.april(2025))
             val søknadsvedtakOpprettet = rammevedtakSøknadsbehandling.opprettet
             require(nå(klokkeFørSøknadsbehandlingsvedtaket).isBefore(søknadsvedtakOpprettet)) {
@@ -503,8 +502,7 @@ internal class IverksettRevurderingTest {
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurderingA.id)
             taBehandling(tac, sak.id, revurderingA.id, saksbehandler = ObjectMother.beslutter())
 
-            // Starter revurdering før første er iverksatt; den vil dermed være basert på en
-            // sak-tilstand som ikke inkluderer revurderingA sin omgjøring av søknadsbehandlingen.
+            // Starter revurdering før første er iverksatt; den vil dermed være basert på en sak-tilstand som ikke inkluderer revurderingA sin omgjøring av søknadsbehandlingen.
             val (_, revurderingB) = startRevurderingInnvilgelse(tac, sak.id)!!
             oppdaterRevurderingInnvilgelse(
                 tac = tac,

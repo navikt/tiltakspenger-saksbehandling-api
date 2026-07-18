@@ -52,13 +52,15 @@ internal class MeldekortberegningKaranteneTest {
         // 20. var 16 dagen med sykdom og siste dag med 75% fra nå er det karantene i 16 dager + dager man er syk.
         DagMedForventning(21.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
         DagMedForventning(22.februar(2024), FRAVÆR_SYK, YtelsenFallerBort),
-        // Fremdeles 16 dager karantene. Trekker kun fra ikke-sykedager.
+        // Fremdeles 16 dager karantene.
+        // Trekker kun fra ikke-sykedager.
         DagMedForventning(23.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
         DagMedForventning(24.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
         DagMedForventning(25.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
     )
 
-    // 13 dager igjen av karantenen. Merk at helgene også vil minske karantenen.
+    // 13 dager igjen av karantenen.
+    // Merk at helgene også vil minske karantenen.
     private val meldekort3 = nonEmptyListOf(
         DagMedForventning(26.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),
         DagMedForventning(27.februar(2024), IKKE_TILTAKSDAG, YtelsenFallerBort),

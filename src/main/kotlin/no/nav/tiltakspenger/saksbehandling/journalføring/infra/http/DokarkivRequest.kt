@@ -20,14 +20,18 @@ internal data class DokarkivRequest(
      */
     val tema: String = "IND",
     /**
-     * Kanalen som ble brukt ved innsending eller distribusjon. F.eks. NAV_NO, ALTINN eller EESSI.
-     * Se Mottakskanal og Utsendingskanal for gyldige verdier for henholdsvis inngående og utgående dokumenter. Kanal skal ikke settes for notater.
+     * Kanalen som ble brukt ved innsending eller distribusjon.
+     * F.eks. NAV_NO, ALTINN eller EESSI.
+     * Se Mottakskanal og Utsendingskanal for gyldige verdier for henholdsvis inngående og utgående dokumenter.
+     * Kanal skal ikke settes for notater.
      */
     val kanal: Distribusjonskanal?,
     /**
      * NAV-enheten som har journalført forsendelsen.
-     * Dersom forsoekFerdigstill=true skal enhet alltid settes. Dersom  det ikke er noen Nav-enhet involvert (f.eks. ved automatisk journalføring), skal enhet være '9999'.
-     * Dersom foersoekFerdigstill=false bør journalførendeEnhet kun settes dersom oppgavene skal rutes på en annen måte enn Norg-reglene tilsier. Hvis enhet er blank, havner oppgavene på enheten som ligger i Norg-regelsettet.
+     * Dersom forsoekFerdigstill=true skal enhet alltid settes.
+     * Dersom  det ikke er noen Nav-enhet involvert (f.eks. ved automatisk journalføring), skal enhet være '9999'.
+     * Dersom foersoekFerdigstill=false bør journalførendeEnhet kun settes dersom oppgavene skal rutes på en annen måte enn Norg-reglene tilsier.
+     * Hvis enhet er blank, havner oppgavene på enheten som ligger i Norg-regelsettet.
      */
     val journalfoerendeEnhet: String = "9999",
     val avsenderMottaker: AvsenderMottaker?,
@@ -53,9 +57,12 @@ internal data class DokarkivRequest(
     }
 
     /**
-     * INNGAAENDE brukes for dokumentasjon som NAV har mottatt fra en ekstern part. Dette kan være søknader, ettersendelser av dokumentasjon til sak eller meldinger fra arbeidsgivere.
-     * UTGAAENDE brukes for dokumentasjon som NAV har produsert og sendt ut til en ekstern part. Dette kan for eksempel være informasjons- eller vedtaksbrev til privatpersoner eller organisasjoner.
-     * NOTAT brukes for dokumentasjon som NAV har produsert selv og uten mål om å distribuere dette ut av NAV. Eksempler på dette er forvaltningsnotater og referater fra telefonsamtaler med brukere.
+     * INNGAAENDE brukes for dokumentasjon som NAV har mottatt fra en ekstern part.
+     * Dette kan være søknader, ettersendelser av dokumentasjon til sak eller meldinger fra arbeidsgivere.
+     * UTGAAENDE brukes for dokumentasjon som NAV har produsert og sendt ut til en ekstern part.
+     * Dette kan for eksempel være informasjons- eller vedtaksbrev til privatpersoner eller organisasjoner.
+     * NOTAT brukes for dokumentasjon som NAV har produsert selv og uten mål om å distribuere dette ut av NAV.
+     * Eksempler på dette er forvaltningsnotater og referater fra telefonsamtaler med brukere.
      */
     enum class JournalPostType {
         INNGAAENDE,
@@ -127,8 +134,10 @@ internal data class DokarkivRequest(
             val fagsakId: String,
             val fagsaksystem: String = "TILTAKSPENGER",
             /**
-             * FAGSAK vil si at dokumentene tilhører en sak i et fagsystem. Dersom FAGSAK velges, må fagsakid og fagsaksystem oppgis.
-             * GENERELL_SAK skal kun brukes for dokumenter som ikke tilhører en konkret fagsak i et fagsystem. Generell sak kan ses på som brukerens "mappe" på et gitt tema.
+             * FAGSAK vil si at dokumentene tilhører en sak i et fagsystem.
+             * Dersom FAGSAK velges, må fagsakid og fagsaksystem oppgis.
+             * GENERELL_SAK skal kun brukes for dokumenter som ikke tilhører en konkret fagsak i et fagsystem.
+             * Generell sak kan ses på som brukerens "mappe" på et gitt tema.
              */
             val sakstype: String = "FAGSAK",
         ) : DokarkivSak()
@@ -146,9 +155,11 @@ internal data class DokarkivRequest(
          */
         val tittel: String,
         /**
-         * Kode som sier noe om dokumentets innhold og oppbygning. Brevkode bør settes for alle journalposttyper, og brukes blant annet for statistikk.
+         * Kode som sier noe om dokumentets innhold og oppbygning.
+         * Brevkode bør settes for alle journalposttyper, og brukes blant annet for statistikk.
          * For inngående dokumenter kan brevkoden for eksempel være en NAV-skjemaID f.eks. "NAV 14-05.09" eller en SED-id.
-         * For utgående dokumenter og notater er det systemet som produserer dokumentet som bestemmer hva brevkoden skal være. Om fagsystemet har "malkoder" kan man gjerne bruke disse som brevkode.
+         * For utgående dokumenter og notater er det systemet som produserer dokumentet som bestemmer hva brevkoden skal være.
+         * Om fagsystemet har "malkoder" kan man gjerne bruke disse som brevkode.
          */
         val brevkode: String,
         val dokumentvarianter: List<DokumentVariant>,
@@ -167,14 +178,18 @@ internal data class DokarkivRequest(
             abstract val fysiskDokument: String
 
             /**
-             * Typen variant som arkiveres. Se Variantformat for en oversikt over gyldige verdier.
-             * ARKIV-varianten vil være den som vises frem til bruker i Gosys og på nav.no. Alle dokumenter som arkiveres må ha én variant med variantformat ARKIV. Variantformat ARKIV skal ha filtype PDF eller PDFA (helst)
+             * Typen variant som arkiveres.
+             * Se Variantformat for en oversikt over gyldige verdier.
+             * ARKIV-varianten vil være den som vises frem til bruker i Gosys og på nav.no.
+             * Alle dokumenter som arkiveres må ha én variant med variantformat ARKIV.
+             * Variantformat ARKIV skal ha filtype PDF eller PDFA (helst)
              * ORIGINAL skal brukes for dokumentvariant i maskinlesbart format (for eksempel XML og JSON) som brukes for automatisk saksbehandling
              */
             abstract val variantformat: String
 
             /**
-             * Navnet filen skal ha i arkivet. Brukes for sporingsformål ved arkivering av skannede dokumenter.
+             * Navnet filen skal ha i arkivet.
+             * Brukes for sporingsformål ved arkivering av skannede dokumenter.
              */
             abstract val filnavn: String
 

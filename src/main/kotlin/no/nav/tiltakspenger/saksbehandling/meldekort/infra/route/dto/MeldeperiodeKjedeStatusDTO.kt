@@ -62,8 +62,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
         }
     }
 
-    /** Kan starte behandling dersom perioden er klar til utfylling og forrige behandling er godkjent,
-     *  eller dette er første meldeperiode
+    /** Kan starte behandling dersom perioden er klar til utfylling og forrige behandling er godkjent, eller dette er første meldeperiode
      */
     val kanBehandles =
         meldeperiode.erKlarTilUtfylling(clock) && (forrigeKjede == null || forrigeKjede.siste.ingenDagerGirRett || forrigeBehandling?.erGodkjent == true)

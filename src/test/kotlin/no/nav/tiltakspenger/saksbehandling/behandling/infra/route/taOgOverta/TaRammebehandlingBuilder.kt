@@ -23,7 +23,10 @@ import org.json.JSONObject
 
 interface TaRammebehandlingBuilder {
 
-    /** Forventer at det allerede finnes en behandling. Denne fungerer både for saksbehandler og beslutter. */
+    /**
+     * Forventer at det allerede finnes en behandling.
+     * Denne fungerer både for saksbehandler og beslutter.
+     */
     suspend fun ApplicationTestBuilder.taBehandling(
         tac: TestApplicationContext,
         sakId: SakId,

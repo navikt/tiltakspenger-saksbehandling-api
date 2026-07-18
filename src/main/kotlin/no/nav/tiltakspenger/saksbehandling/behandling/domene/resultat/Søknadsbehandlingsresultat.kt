@@ -32,7 +32,8 @@ sealed interface Søknadsbehandlingsresultat : Rammebehandlingsresultat {
         override val omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty
 
         /**
-         * True dersom [avslagsgrunner] ikke er tom. Vi må støtte at [avslagsperiode] er null for særdeles mangelfulle søknader.
+         * True dersom [avslagsgrunner] ikke er tom.
+         * Vi må støtte at [avslagsperiode] er null for særdeles mangelfulle søknader.
          * Må kunne avslå en søknad selv om det ikke er søkt på et tiltak.
          */
         override fun erFerdigutfylt(saksopplysninger: Saksopplysninger): Boolean = avslagsgrunner.isNotEmpty()

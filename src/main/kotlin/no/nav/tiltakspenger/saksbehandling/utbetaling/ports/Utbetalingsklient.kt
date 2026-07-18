@@ -51,7 +51,9 @@ sealed interface UtbetalingResponse {
 }
 
 /**
- * @param request Payloaden vi selv bygde og sendte til helved. Ikke noe [feil] vet om, derfor eget felt. Persisteres for notoritet.
+ * @param request Payloaden vi selv bygde og sendte til helved.
+ * Ikke noe [feil] vet om, derfor eget felt.
+ * Persisteres for notoritet.
  * @param feil Underliggende HTTP-feil fra httpklient. [response] og [responseStatus] utledes herfra (persisteres for notoritet); brukes også til feillogging i kallende service.
  */
 class KunneIkkeUtbetale(

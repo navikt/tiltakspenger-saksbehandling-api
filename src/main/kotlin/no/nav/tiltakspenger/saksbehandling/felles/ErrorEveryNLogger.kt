@@ -5,7 +5,8 @@ import io.github.oshai.kotlinlogging.Level
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- *  Logger med error-level for hvert [n]'te log-kall. Logger ellers med [defaultLevel]
+ *  Logger med error-level for hvert [n]'te log-kall.
+ *  Logger ellers med [defaultLevel]
  *
  *  Kan benyttes i de tilfeller der vi kun ønsker å logge feil/få varsler ved gjentatte feil.
  *  */

@@ -241,8 +241,8 @@ class EndretTiltaksdeltakerJobb(
         endring: TiltaksdeltakerEndring.Forlengelse,
     ): RevurderingSomSkalOpprettes? {
         // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
-        // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene
-        // der det finnes flere vedtak, og et annet vedtak enn det siste forlenges. Dette skjer sannsynligvis veldig sjelden (aldri?)
+        // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene der det finnes flere vedtak, og et annet vedtak enn det siste forlenges.
+        // Dette skjer sannsynligvis veldig sjelden (aldri?)
         if (sisteDagSomGirRett != null && endring.nySluttdato <= sisteDagSomGirRett) {
             return null
         }
@@ -275,8 +275,7 @@ class EndretTiltaksdeltakerJobb(
     }
 
     companion object {
-        // Vi legger til en liten forsinkelse for behandling av hendelser
-        // i tilfelle det kommer flere hendelser for samme deltakelse i løpet av kort tid
+        // Vi legger til en liten forsinkelse for behandling av hendelser i tilfelle det kommer flere hendelser for samme deltakelse i løpet av kort tid
         private const val MINUTTER_FORSINKELSE: Long = 15L
     }
 }

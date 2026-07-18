@@ -81,8 +81,8 @@ private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(
     return simuleringPerMeldeperiode.any { meldeperiode ->
         /*
           Dersom meldeperioden går over to måneder, må vi sjekke dagene på hver side av månedsskiftet separat
-          Dette ettersom oppdrag kun justerer innenfor samme kalendermåned. På tvers av måneder blir det
-          feilutbetaling + etterbetaling for hver måned istedenfor justering
+          Dette ettersom oppdrag kun justerer innenfor samme kalendermåned.
+          På tvers av måneder blir det feilutbetaling + etterbetaling for hver måned istedenfor justering
          */
         meldeperiode.harJustering && meldeperiode.simuleringsdager
             .groupBy { it.dato.month }.values

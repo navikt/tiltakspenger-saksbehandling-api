@@ -12,9 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
 
-/** @property korrigeringFraTidligerePeriode Korrigering på en tidligere meldeperiodekjede, som har påvirket denne kjeden,
- *  og er nyere enn siste meldekortbehandling på denne kjeden. Dvs en korrigering som har overstyrt
- *  beregningen for perioden til denne kjeden. */
+/** @property korrigeringFraTidligerePeriode Korrigering på en tidligere meldeperiodekjede, som har påvirket denne kjeden, og er nyere enn siste meldekortbehandling på denne kjeden.
+ *  Dvs en korrigering som har overstyrt beregningen for perioden til denne kjeden. */
 data class MeldeperiodeKjedeDTO(
     val id: String,
     val periode: PeriodeDTO,

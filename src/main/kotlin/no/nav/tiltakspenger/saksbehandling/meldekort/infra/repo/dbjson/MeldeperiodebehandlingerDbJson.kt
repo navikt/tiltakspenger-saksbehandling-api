@@ -18,8 +18,7 @@ import java.time.LocalDate
 /**
  * JSON-representasjon av én [Meldeperiodebehandling] i kolonnen `meldekortbehandling.meldeperioder`.
  *
- * Domenet håndhever foreløpig at vi kun har én meldeperiodebehandling per meldekortbehandling,
- * men kolonnen lagres som en jsonb-array slik at vi kan utvide til flere uten ny migrering.
+ * Domenet håndhever foreløpig at vi kun har én meldeperiodebehandling per meldekortbehandling, men kolonnen lagres som en jsonb-array slik at vi kan utvide til flere uten ny migrering.
  */
 private data class MeldeperiodebehandlingDbJson(
     val meldeperiodeId: String,

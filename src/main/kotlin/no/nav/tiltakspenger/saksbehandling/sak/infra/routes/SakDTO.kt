@@ -31,8 +31,10 @@ import java.time.LocalDate
 /**
  * @property førsteDagSomGirRett Dersom vi ikke har en innvilget gjeldende periode, vil denne være null.
  * @property sisteDagSomGirRett Dersom vi ikke har en innvilget gjeldende periode, vil denne være null.
- * @property tidslinje Tidslinje med alle gjeldende rammevedtak. Avslag er aldri gjeldende.
- * @property innvilgetTidslinje Tidslinje med alle gjeldende innvilgede rammevedtak. Avslag, stans og rene opphør er aldri innvilgede.
+ * @property tidslinje Tidslinje med alle gjeldende rammevedtak.
+ * Avslag er aldri gjeldende.
+ * @property innvilgetTidslinje Tidslinje med alle gjeldende innvilgede rammevedtak.
+ * Avslag, stans og rene opphør er aldri innvilgede.
  */
 data class SakDTO(
     val saksnummer: String,

@@ -131,7 +131,8 @@ private fun SimuleringResponseDTO.tilPosteringerPerDag(): Map<LocalDate, Posteri
                     PosteringForDag(
                         dato = dato,
                         fagområde = postering.fagområde,
-                        // Vi forventer egentlig et heltall her. Siden vi kun sender heltall per dag og ikke dealer med skatt.
+                        // Vi forventer egentlig et heltall her.
+                        // Siden vi kun sender heltall per dag og ikke dealer med skatt.
                         beløp = (postering.beløp.toDouble() / antallDager).roundToInt(),
                         type = postering.typeToDomain(),
                         klassekode = postering.klassekode,

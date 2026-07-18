@@ -24,7 +24,8 @@ sealed interface Rammevedtakskommando {
 
     /**
      * For at man skal kunne stanse, må vi ha et eller flere gjeldende innvilgede rammevedtak.
-     * Saksbehandler kan kun velge stans fra og med dato. Saken stanses alltid ut hele den gjeldende innvilgede vedtaksperioden.
+     * Saksbehandler kan kun velge stans fra og med dato.
+     * Saken stanses alltid ut hele den gjeldende innvilgede vedtaksperioden.
      */
     data class Stans(
         val tidligsteFraOgMedDato: LocalDate,

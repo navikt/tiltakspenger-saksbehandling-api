@@ -42,10 +42,13 @@ class HentSaksopplysingerService(
      * Tiltakspenger er alltid begrenset av tiltaksdeltakelsen(e) det er søkt på.
      * Derfor begrenser tiltaksdeltakelsesperioden(e) behandlingsgrunnlaget vårt.
      * Vi trenger kun vilkårsvurdere andre vilkår innenfor tiltaksdeltakelsen(e) sin(e) periode(r).
-     * Vi gjør et unntak for Sokos' utbetaldata, siden denne måneden ikke nødvendigvis er utbetalt enda. Derfor henter vi for en noe utvidet periode her.
+     * Vi gjør et unntak for Sokos' utbetaldata, siden denne måneden ikke nødvendigvis er utbetalt enda.
+     * Derfor henter vi for en noe utvidet periode her.
      *
-     * @param tiltaksdeltakelserDetErSøktTiltakspengerFor Alle søknader. Merk at flere søknader kan gjelde samme tiltaksdeltakelse, mens periodene kan være endret.
-     * @param aktuelleTiltaksdeltakelserForBehandlingen For søknadsbehandling vil det være den tiltaksdeltakelsen det er søkt for. Husk og sett [inkluderOverlappendeTiltaksdeltakelserDetErSøktOm] til true dersom vi skal hente saksopplysninger for tiltaksdeltakelser som overlapper denne.
+     * @param tiltaksdeltakelserDetErSøktTiltakspengerFor Alle søknader.
+     * Merk at flere søknader kan gjelde samme tiltaksdeltakelse, mens periodene kan være endret.
+     * @param aktuelleTiltaksdeltakelserForBehandlingen For søknadsbehandling vil det være den tiltaksdeltakelsen det er søkt for.
+     * Husk og sett [inkluderOverlappendeTiltaksdeltakelserDetErSøktOm] til true dersom vi skal hente saksopplysninger for tiltaksdeltakelser som overlapper denne.
      * @param inkluderOverlappendeTiltaksdeltakelserDetErSøktOm Typisk bare brukt ved søknadsbehandling når det er søkt om mer enn 1 tiltaksdeltakelse.
      */
     suspend fun hentSaksopplysningerFraRegistre(
@@ -75,7 +78,8 @@ class HentSaksopplysingerService(
                 behandlingId = behandlingId,
             ),
         )
-        // TODO jah: På sikt bør vi hente per periode i listen og ikke den totale perioden. Dette er mest aktuelt ved revurdering av to eller flere tiltaksdeltakelser som ikke overlapper.
+        // TODO jah: På sikt bør vi hente per periode i listen og ikke den totale perioden.
+        //  Dette er mest aktuelt ved revurdering av to eller flere tiltaksdeltakelser som ikke overlapper.
         //  TODO 2 jah + Bente: Vi bør nok også krympe perioden basert på kravtidspunktet, slik at vi ikke henter for langt tilbake i tid.
         val saksopplysningsperiode = aktuelleTiltaksdeltakelser.totalPeriode
 
@@ -125,7 +129,8 @@ class HentSaksopplysingerService(
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
         ).getOrElse { feil ->
-            // Tiltaksdeltakelsene er selve behandlingsgrunnlaget — uten dem kan vi ikke bygge saksopplysninger, i motsetning til ytelser/arenavedtak som kan falle tilbake til tom liste. Kontrakten videre oppover er fortsatt throw-basert.
+            // Tiltaksdeltakelsene er selve behandlingsgrunnlaget — uten dem kan vi ikke bygge saksopplysninger, i motsetning til ytelser/arenavedtak som kan falle tilbake til tom liste.
+            // Kontrakten videre oppover er fortsatt throw-basert.
             feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakspenger-tiltak", loggkontekst)
             throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakspenger-tiltak. $loggkontekst")
         }
@@ -180,7 +185,9 @@ class HentSaksopplysingerService(
         saksnummer: Saksnummer? = null,
         behandlingId: RammebehandlingId? = null,
     ): Ytelser {
-        // Gjør et unntak for sokosperioden, siden måneden ikke nødvendigvis er utbetalt enda, henter vi fra 1. forrige måned. Vi henter også hele inneværende måned (men ikke lenger enn dagens dato, siden det er en begrensing de har). Klienten fikser det sistnevnte.
+        // Gjør et unntak for sokosperioden, siden måneden ikke nødvendigvis er utbetalt enda, henter vi fra 1. forrige måned.
+        // Vi henter også hele inneværende måned (men ikke lenger enn dagens dato, siden det er en begrensing de har).
+        // Klienten fikser det sistnevnte.
         val utbetaldataFraOgMed = saksopplysningsperiode.fraOgMed.minusMonths(1).withDayOfMonth(1)
         // Utbetaldata støtter senest dagens dato.
         val utbetaldataTilOgMed = saksopplysningsperiode.tilOgMed.let {

@@ -145,8 +145,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             førsteBehandling.status shouldBe TilbakekrevingBehandlingsstatus.OPPRETTET
 
             // Send en oppdatering med samme tilbakeBehandlingId men ny status og beløp.
-            // Vi bygger denne som rå JSON fordi fake-produseren alltid genererer en ny
-            // tilbakeBehandlingId, og vi vil verifisere at en eksisterende behandling oppdateres.
+            // Vi bygger denne som rå JSON fordi fake-produseren alltid genererer en ny tilbakeBehandlingId, og vi vil verifisere at en eksisterende behandling oppdateres.
             val tilbakeBehandlingId = førsteBehandling.tilbakeBehandlingId
             val eksternBehandlingId = opphørVedtak.behandlingId
 

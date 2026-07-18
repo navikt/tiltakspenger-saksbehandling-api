@@ -29,7 +29,10 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import org.json.JSONObject
 
 interface BehandleSøknadPåNyttBuilder {
-    /** Forventer at det finnes en avslått søknadsbehandling for søknaden. Oppretter ny søknadsbehandling */
+    /**
+     * Forventer at det finnes en avslått søknadsbehandling for søknaden.
+     * Oppretter ny søknadsbehandling
+     */
     suspend fun ApplicationTestBuilder.behandleSøknadPåNytt(
         tac: TestApplicationContext,
         sak: Sak,

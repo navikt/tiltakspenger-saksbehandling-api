@@ -15,8 +15,10 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
  * En «logghendelse» er her paret [logger].error (uten personopplysninger) + [Sikkerlogg].error (med rå request/respons), i tråd med resten av kodebasen.
  *
  * @param logger Kallerens egen logger, slik at logglinja får kallerens navnrom.
- * @param operasjon Kort beskrivelse av hva som feilet, f.eks. `"sending til datadeling"`. Ulike klient/service-par kan sende sin egen.
- * @param kontekst Domenekontekst som bare kalleren har, f.eks. `"Sak abc, saksnummer 123"`. Bygg strengen slik det gir mening for den konkrete feilsituasjonen.
+ * @param operasjon Kort beskrivelse av hva som feilet, f.eks. `"sending til datadeling"`.
+ * Ulike klient/service-par kan sende sin egen.
+ * @param kontekst Domenekontekst som bare kalleren har, f.eks. `"Sak abc, saksnummer 123"`.
+ * Bygg strengen slik det gir mening for den konkrete feilsituasjonen.
  */
 fun HttpKlientError.loggFeil(
     logger: KLogger,

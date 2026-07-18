@@ -14,8 +14,10 @@ import java.time.LocalDateTime
  *  [status] Status på behandlingen fra tilbakeløsningen
  *  [statusIntern] Vår interne status, som tar hensyn til om behandlingen er tildelt saksbehandler eller beslutter
  *  [url] URL til behandlingen i ekstern saksbehandlingsløsning for tilbakekreving
- *  [saksbehandler] Saksbehandler som har tatt behandlingen i vårt system. Håndheves ikke mot tilbakeløsningen, er kun ment for å hjelpe saksbehandlere med å fordele oppgaver
- *  [beslutter] Beslutter som har tatt behandlingen i vårt system. Håndheves ikke mot tilbakeløsningen, er kun ment for å hjelpe saksbehandlere med å fordele oppgaver
+ *  [saksbehandler] Saksbehandler som har tatt behandlingen i vårt system.
+ *  Håndheves ikke mot tilbakeløsningen, er kun ment for å hjelpe saksbehandlere med å fordele oppgaver
+ *  [beslutter] Beslutter som har tatt behandlingen i vårt system.
+ *  Håndheves ikke mot tilbakeløsningen, er kun ment for å hjelpe saksbehandlere med å fordele oppgaver
  * */
 data class TilbakekrevingBehandling(
     val id: TilbakekrevingId,

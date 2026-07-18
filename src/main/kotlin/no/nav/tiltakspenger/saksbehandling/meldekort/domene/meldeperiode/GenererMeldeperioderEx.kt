@@ -106,8 +106,7 @@ fun Sak.genererMeldeperioderForValidering(
                 // Meldeperioden er i sin helhet utenfor behandlingens vedtaksperiode -> bruk vedtakene fra saken
                 vedtakIderFraSak as IkkeTomPeriodisering
             } else {
-                // Overskriver den delen som overlapper behandlingen med den nye (midlertidige) vedtakId-en,
-                // og beholder eventuelle vedtak fra saken for resten av perioden.
+                // Overskriver den delen som overlapper behandlingen med den nye (midlertidige) vedtakId-en, og beholder eventuelle vedtak fra saken for resten av perioden.
                 vedtakIderFraSak.setVerdiForDelperiode(VedtakId.random(), overlappMedBehandling)
             }
         },
@@ -190,8 +189,7 @@ private fun MeldeperiodeKjeder.genererPerioder(
 }
 
 /**
- *  @return 14-dagers periode som inneholder [dato] og som er i fase med eksisterende meldeperioder på saken,
- *  eller ny periode fra forrige mandag dersom det ikke finnes eksisterende meldeperioder
+ *  @return 14-dagers periode som inneholder [dato] og som er i fase med eksisterende meldeperioder på saken, eller ny periode fra forrige mandag dersom det ikke finnes eksisterende meldeperioder
  *
  * */
 fun MeldeperiodeKjeder.finnNærmesteMeldeperiode(dato: LocalDate): Either<GenererMeldeperioderFeil, Periode> {
@@ -225,7 +223,8 @@ private fun MeldeperiodeKjeder.oppdaterEllerLeggTilNy(meldeperiode: Meldeperiode
     val kjede = hentMeldeperiodeKjedeForPeriode(meldeperiode.periode)
         ?: return run {
             if (meldeperiode.ingenDagerGirRett) {
-                // Det finnes ikke noen kjeder fra før, og meldeperioden gir heller ikke noen rett til de dagene. Så vi legger ikke til noe
+                // Det finnes ikke noen kjeder fra før, og meldeperioden gir heller ikke noen rett til de dagene.
+                // Så vi legger ikke til noe
                 this to null
             } else {
                 MeldeperiodeKjeder(

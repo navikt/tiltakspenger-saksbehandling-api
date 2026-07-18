@@ -17,14 +17,10 @@ import org.junit.jupiter.api.Test
 import java.time.Clock
 
 /**
- * Verifiserer at [genererMeldeperioderForValidering] (kjøres på en ikke-vedtatt behandling) og
- * [genererMeldeperioderOgOppdaterKjeder] (kjøres på saken etter at behandlingen er iverksatt) produserer
- * de samme meldeperiodene.
+ * Verifiserer at [genererMeldeperioderForValidering] (kjøres på en ikke-vedtatt behandling) og [genererMeldeperioderOgOppdaterKjeder] (kjøres på saken etter at behandlingen er iverksatt) produserer de samme meldeperiodene.
  *
- * De eneste forventede forskjellene er vedtak-id-ene: under validering brukes en tilfeldig [VedtakId] for
- * behandlingens periode, mens den faktiske genereringen bruker vedtak-id-en til det iverksatte rammevedtaket.
- * [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode.erLik] ignorerer derfor
- * `rammevedtak` (samt `id`, `versjon` og `opprettet`) og brukes til selve sammenligningen.
+ * De eneste forventede forskjellene er vedtak-id-ene: under validering brukes en tilfeldig [VedtakId] for behandlingens periode, mens den faktiske genereringen bruker vedtak-id-en til det iverksatte rammevedtaket.
+ * [no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode.erLik] ignorerer derfor `rammevedtak` (samt `id`, `versjon` og `opprettet`) og brukes til selve sammenligningen.
  */
 class GenererMeldeperioderSammenligningTest {
 

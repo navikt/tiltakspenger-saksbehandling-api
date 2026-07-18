@@ -3,8 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.route
 import java.io.ByteArrayOutputStream
 
 /*
-    TODO - pdfgenrs: fjern når det er verifisert at PDF fra pdfgenrs er ok og vi ikke lenger sender to PDF-er
-        ved forhåndsvisning.
+    TODO - pdfgenrs: fjern når det er verifisert at PDF fra pdfgenrs er ok og vi ikke lenger sender to PDF-er ved forhåndsvisning.
  */
 internal fun buildMultipartBody(vararg pdfs: ByteArray): ByteArray {
     val boundary = "pdf-boundary"

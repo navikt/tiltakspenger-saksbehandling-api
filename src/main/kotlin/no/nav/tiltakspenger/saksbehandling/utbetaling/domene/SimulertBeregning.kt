@@ -21,9 +21,12 @@ import java.time.LocalDateTime
  * Denne datamodellen utledes fra beregning og simulering og persisteres ikke direkte til databasen.
  *
  * @param beregningskilde gir mulighet til å utlede hvilken rammebehandling eller meldekortbehandling som utløste denne beregningen.
- * @param simuleringstidspunkt er tidspunktet simuleringen ble utført. Kan være null hvis simulering ikke er utført, eller simuleringen ble utført før vi la på dette feltet.
- * @param simuleringsdato kommer fra Økonomisystemet. Null dersom simuleringen ga ingen endring.
- * @param simuleringTotalBeløp kommer fra Økonomisystemet. Null dersom simuleringen ga ingen endring.
+ * @param simuleringstidspunkt er tidspunktet simuleringen ble utført.
+ * Kan være null hvis simulering ikke er utført, eller simuleringen ble utført før vi la på dette feltet.
+ * @param simuleringsdato kommer fra Økonomisystemet.
+ * Null dersom simuleringen ga ingen endring.
+ * @param simuleringTotalBeløp kommer fra Økonomisystemet.
+ * Null dersom simuleringen ga ingen endring.
  */
 data class SimulertBeregning(
     val beregningskilde: BeregningKilde,
@@ -90,7 +93,11 @@ data class SimulertBeregning(
          * En dag i en simulering, som kobler sammen data fra både simuleringen og beregningen.
          * @param forrigeBeregningsdag er null dersom vi ikke tidligere har beregnet denne dagen.
          * @param beregningsdag er null dersom vi ikke har en ny beregning, men har fått en endring i simuleringen
-         * @property beregningEndring Merk at dette kun er endringen fra vår forrige beregning, men ikke nødvendigvis utbetalt enda. Oppdrag simulerer kun mot det som er sent til UR. Hvis vi sender en utbetaling til oppdrag beregnes den ikke før på kvelden. Siste utbetaling vil overskrive overlappende perioder. Eksempel: vi utbetaler 1000 kr og samme dag stanser vi den dagen, da vil simuleringen si "ingen endring", mens beregningsendringen vil si -1000 kr.
+         * @property beregningEndring Merk at dette kun er endringen fra vår forrige beregning, men ikke nødvendigvis utbetalt enda.
+         * Oppdrag simulerer kun mot det som er sent til UR.
+         * Hvis vi sender en utbetaling til oppdrag beregnes den ikke før på kvelden.
+         * Siste utbetaling vil overskrive overlappende perioder.
+         * Eksempel: vi utbetaler 1000 kr og samme dag stanser vi den dagen, da vil simuleringen si "ingen endring", mens beregningsendringen vil si -1000 kr.
          */
         data class SimulertBeregningDag(
             val dato: LocalDate,
@@ -134,7 +141,8 @@ data class SimulertBeregning(
         /**
          * @param beregning Beregningen for behandlingen.
          * @param eksisterendeBeregninger Alle vedtatte beregninger (rammevedtak+meldekortvedtak)
-         * @param simulering Simuleringen knyttet til utbetalingen. Kan inneholde mer enn [beregning].
+         * @param simulering Simuleringen knyttet til utbetalingen.
+         * Kan inneholde mer enn [beregning].
          */
         fun create(
             beregning: Beregning,
@@ -208,8 +216,7 @@ data class SimulertBeregning(
 }
 
 /**
- *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden),
- *  betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
+ *  Dersom beregningen vi prøvde å finne forrige beregning til ikke finnes (men det finnes andre beregninger på kjeden), betyr det at denne beregningen ikke er iverksatt ennå, og forrige beregning er den gjeldende/sist iverksatte beregningen
  * */
 fun MeldeperiodeBeregningerVedtatt.hentForrigeBeregningForSimulering(meldeperiodeBeregning: MeldeperiodeBeregning): MeldeperiodeBeregning? {
     return hentForrigeBeregningEllerSiste(

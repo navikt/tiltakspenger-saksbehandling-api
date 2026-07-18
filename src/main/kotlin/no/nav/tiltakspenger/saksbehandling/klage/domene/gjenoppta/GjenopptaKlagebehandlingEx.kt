@@ -14,7 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.klagebehand
 import java.time.Clock
 
 /**
- * Gjelder kun saksbehandler. Dersom en beslutter vil legge tilbake over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
+ * Gjelder kun saksbehandler.
+ * Dersom en beslutter vil legge tilbake over en klagebehandling til omgjøring, må dette gjøres fra omgjøringsbehandlingen.
  * Har samme logikk som for rammebehandling og meldekortbehandling, som er at du kan gjenoppta fra en annen saksbehandler uten å tildele den til deg selv først.
  */
 fun Klagebehandling.gjenopptaKlagebehandling(

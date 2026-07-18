@@ -9,25 +9,46 @@ data class SaksstatistikkDTO(
     val sakId: String,
     val saksnummer: String,
     val behandlingId: String,
-    /** Hvis behandlingen har oppstått med bakgrunn i en annen, skal den foregående behandlingen refereres til her. Når det gjelder klage skal denne vise til påklaget behandling. */
+    /**
+     * Hvis behandlingen har oppstått med bakgrunn i en annen, skal den foregående behandlingen refereres til her.
+     * Når det gjelder klage skal denne vise til påklaget behandling.
+     */
     val relatertBehandlingId: String?,
     val fnr: String,
-    // TODO jah: Her skriver de at de ikke ønsker millisekunder. Men vi lagrer den med millisekunder. Bør vi gjøre en avsjekk med team statistikk sak? Bør gå over alle stedet vi bruker tidspunkt/LocalDateTime.
-    /** Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid. Denne verdien må være før eller samtidig som registrertTidspunkt. Dette feltet må være utfylt bør behandlingen avsluttes. Tidligere meldinger må re-sendes ved oppdatering av dette feltet. */
+    // TODO jah: Her skriver de at de ikke ønsker millisekunder.
+    // Men vi lagrer den med millisekunder.
+    // Bør vi gjøre en avsjekk med team statistikk sak?
+    // Bør gå over alle stedet vi bruker tidspunkt/LocalDateTime.
+    /**
+     * Tidspunktet da behandlingen oppstår (eks. søknad mottas).
+     * Dette er starten på beregning av saksbehandlingstid.
+     * Denne verdien må være før eller samtidig som registrertTidspunkt.
+     * Dette feltet må være utfylt bør behandlingen avsluttes.
+     * Tidligere meldinger må re-sendes ved oppdatering av dette feltet.
+     */
     val mottattTidspunkt: LocalDateTime,
-    /** Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottatt tid. */
+    /**
+     * Tidspunkt da behandlingen første gang ble registrert i fagsystemet.
+     * Ved digitale søknader bør denne være tilnærmet lik mottatt tid.
+     */
     val registrertTidspunkt: LocalDateTime,
     /** Tidspunkt når behandlinge ble avsluttet, enten avbrutt, henlagt, vedtak innvilget/avslått osv. */
     val ferdigBehandletTidspunkt: LocalDateTime?,
-    /** TODO jah: Jeg finner ikke denne i confluence-siden til navdvh. Gir det mening og ta den vekk og heller bruke [ferdigBehandletTidspunkt] */
+    /**
+     * TODO jah: Jeg finner ikke denne i confluence-siden til navdvh.
+     * Gir det mening og ta den vekk og heller bruke [ferdigBehandletTidspunkt]
+     */
     val vedtakTidspunkt: LocalDateTime?,
-    /** Også kalt funksjonell tid. Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrert tid. */
+    /**
+     * Også kalt funksjonell tid.
+     * Tidspunkt for siste endring på behandlingen.
+     * Ved første melding vil denne være lik registrert tid.
+     */
     val endretTidspunkt: LocalDateTime,
     /** Tidspunkt for første utbetaling av ytelse. */
     val utbetaltTidspunkt: LocalDateTime?,
     /**
-     * Formatet er ikke strukturert på noe vis per nå, bruker derfor verdiene som ble diskutert frem på slack
-     * https://nav-it.slack.com/archives/C066TB6TFEH/p1765541455556029?thread_ts=1765190061.367509&cid=C066TB6TFEH
+     * Formatet er ikke strukturert på noe vis per nå, bruker derfor verdiene som ble diskutert frem på slack https://nav-it.slack.com/archives/C066TB6TFEH/p1765541455556029?thread_ts=1765190061.367509&cid=C066TB6TFEH
      */
     val søknadsformat: StatistikkFormat,
 

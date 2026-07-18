@@ -12,7 +12,10 @@ enum class Utbetalingsstatus {
     /** Sendt til økonomisystemet, venter på svar */
     SendtTilOppdrag,
 
-    /** Feilkvittering fra økonomisystemet. Kan være enten teknisk eller funksjonell feil. */
+    /**
+     * Feilkvittering fra økonomisystemet.
+     * Kan være enten teknisk eller funksjonell feil.
+     */
     FeiletMotOppdrag,
 
     /** Kvittert OK fra økonomisystemet og ferdigstilt. */

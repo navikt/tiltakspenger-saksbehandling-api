@@ -27,7 +27,10 @@ data class TiltaksdeltakelserDetErSøktTiltakspengerFor(
     /** Intern tiltaksdeltakerId. */
     val ider: List<TiltaksdeltakerId> by lazy { value.map { it.søknadstiltak.tiltaksdeltakerId }.distinct() }
 
-    /** Ekstern tiltaksdeltakelse-id. Uavhengig av kildesystem. */
+    /**
+     * Ekstern tiltaksdeltakelse-id.
+     * Uavhengig av kildesystem.
+     */
     val eksterneIder: List<String> by lazy { value.map { it.søknadstiltak.id }.distinct() }
 
     companion object {

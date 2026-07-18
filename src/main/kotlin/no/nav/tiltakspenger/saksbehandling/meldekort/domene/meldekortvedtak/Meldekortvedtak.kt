@@ -22,7 +22,8 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 /**
- * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen. Dette har ingenting med vedtaksbrevet å gjøre.
+ * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen.
+ * Dette har ingenting med vedtaksbrevet å gjøre.
  * */
 data class Meldekortvedtak(
     override val id: VedtakId,

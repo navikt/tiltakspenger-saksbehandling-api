@@ -13,8 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.Statist
 import java.time.LocalDate
 import java.util.UUID
 
-// Team Spenn (DVH) bruker denne tabellen, samt statistikk_utbetaling. De har beskrevet
-// behovet sitt her: https://confluence.adeo.no/display/DVH/Datamodell+for+tiltakspenger
+// Team Spenn (DVH) bruker denne tabellen, samt statistikk_utbetaling.
+// De har beskrevet behovet sitt her: https://confluence.adeo.no/display/DVH/Datamodell+for+tiltakspenger
 data class StatistikkStønadDTO(
     // tilfeldig id
     val id: UUID,
@@ -26,7 +26,10 @@ data class StatistikkStønadDTO(
     val resultat: VedtakStatistikkResultat,
     val sakDato: LocalDate,
 
-    // For søknadsbehandling+forlengelse (ren innvilgelse), vil de tilsvare innvilgelsesperiode. For omgjøring, vil de tilsvare omgjøringsperioden (innvilgelse + implisitt opphør/ikke rett). For stans vil de tilsvare stansperiode. For opphør vil de tilsvare opphørsperiode.
+    // For søknadsbehandling+forlengelse (ren innvilgelse), vil de tilsvare innvilgelsesperiode.
+    // For omgjøring, vil de tilsvare omgjøringsperioden (innvilgelse + implisitt opphør/ikke rett).
+    // For stans vil de tilsvare stansperiode.
+    // For opphør vil de tilsvare opphørsperiode.
     // Selv om det på lang sikt kan tenkes at vi støtter omgjøringer av vedtak med hull (forskjellige ikke-overlappende tiltak o.l), så innfører vi ikke denne om til en liste den 2025-10-20.
     val vedtaksperiodeFraOgMed: LocalDate,
     val vedtaksperiodeTilOgMed: LocalDate,

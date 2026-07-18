@@ -12,7 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 
 /**
- * * @param barnetillegg  Kan inneholde hull, men kan ikke være tom. Må valideres basert på innsendt [innvilgelsesperioder].
+ * * @param barnetillegg  Kan inneholde hull, men kan ikke være tom.
+ * Må valideres basert på innsendt [innvilgelsesperioder].
  */
 data class ForhåndsvisVedtaksbrevForSøknadsbehandlingInnvilgelseKommando(
     override val sakId: SakId,

@@ -7,7 +7,10 @@ enum class Rammebehandlingsstatus {
     /** Det står ikke en saksbehandler på behandlingen */
     KLAR_TIL_BEHANDLING,
 
-    /** En saksbehandler står på behandlingen. Kan også være underkjent. */
+    /**
+     * En saksbehandler står på behandlingen.
+     * Kan også være underkjent.
+     */
     UNDER_BEHANDLING,
 
     /** Saksbehandler har sendt til beslutning, men ingen beslutter er knyttet til behandlingen enda */
@@ -16,7 +19,10 @@ enum class Rammebehandlingsstatus {
     /** En beslutter har tatt behandlingen. */
     UNDER_BESLUTNING,
 
-    /** En avsluttet, besluttet behandling. Brukes litt om hverandre med IVERKSATT. */
+    /**
+     * En avsluttet, besluttet behandling.
+     * Brukes litt om hverandre med IVERKSATT.
+     */
     VEDTATT,
 
     /** En saksbehandler har valgt at behandlingen ikke skal behandles videre */

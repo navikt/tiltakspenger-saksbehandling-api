@@ -1,18 +1,17 @@
 Resending av rader til Team Sak (DVH)
 ================
 
-Vi deler data med Team Sak (DVH) ved å inserte nye rader i tabellen `statistikk_sak`. Se DTO-klassen `no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO` 
-for lenke til grensesnitt. Selve delingen skjer via BigQuery. 
+Vi deler data med Team Sak (DVH) ved å inserte nye rader i tabellen `statistikk_sak`.
+Se DTO-klassen `no.nav.tiltakspenger.saksbehandling.statistikk.behandling.StatistikkSakDTO` for lenke til grensesnitt.
+Selve delingen skjer via BigQuery.
 
-DVH fanger kun opp nye rader i tabellen, ikke oppdateringer, så endringer som man ønsker at DVH skal få med seg må
-komme som nye rader. DVH bruker kombinasjonen `behandlingid` + `endrettidspunkt` for å identifisere en hendelse, så
-ved f.eks. teknisk patching av data må man inserte en ny rad med samme `behandlingid` + `endrettidspunkt` og endringene
-man ønsker å gjøre pr rad som skal patches. Husk å oppdatere `teknisktidspunkt`. 
+DVH fanger kun opp nye rader i tabellen, ikke oppdateringer, så endringer som man ønsker at DVH skal få med seg må komme som nye rader.
+DVH bruker kombinasjonen `behandlingid` + `endrettidspunkt` for å identifisere en hendelse, så ved f.eks. teknisk patching av data må man inserte en ny rad med samme `behandlingid` + `endrettidspunkt` og endringene man ønsker å gjøre pr rad som skal patches.
+Husk å oppdatere `teknisktidspunkt`.
 
 Dokumentasjon: https://confluence.adeo.no/spaces/DVH/pages/459904637/Funksjonell+tid+teknisk+tid+og+lastet+tids+rolle+i+modell
 
-Vi har ikke noe ferdig funksjonalitet for resending, men denne SQL-en er ganske effektiv og har blitt brukt for resending og patch 
-av behandlinger der `soknadsformat` og `behandlingtype` måtte endres: 
+Vi har ikke noe ferdig funksjonalitet for resending, men denne SQL-en er ganske effektiv og har blitt brukt for resending og patch av behandlinger der `soknadsformat` og `behandlingtype` måtte endres:
 
 ```
 INSERT INTO statistikk_sak (

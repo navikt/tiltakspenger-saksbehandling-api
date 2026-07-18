@@ -78,7 +78,8 @@ class RammebehandlingService(
     }
 
     /**
-     * Denne gjør ingen tilgangskontroll. Ansvaret ligger hos kalleren.
+     * Denne gjør ingen tilgangskontroll.
+     * Ansvaret ligger hos kalleren.
      */
     suspend fun lagreMedStatistikk(
         behandling: Rammebehandling,

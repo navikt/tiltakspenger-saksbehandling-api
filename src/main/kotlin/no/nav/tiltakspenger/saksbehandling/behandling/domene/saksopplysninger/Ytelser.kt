@@ -7,7 +7,11 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import java.time.LocalDateTime
 
 sealed interface Ytelser : List<Ytelse> {
-    /** Perioden vi har bedt om data for. Merk at for Utbetaldata kan man ikke spørre om lengre enn dagens dato. Kun satt dersom vi har gjort et oppslag. */
+    /**
+     * Perioden vi har bedt om data for.
+     * Merk at for Utbetaldata kan man ikke spørre om lengre enn dagens dato.
+     * Kun satt dersom vi har gjort et oppslag.
+     */
     val oppslagsperiode: Periode?
 
     /** Kun satt dersom vi har gjort et oppslag. */
@@ -33,7 +37,10 @@ sealed interface Ytelser : List<Ytelse> {
         override val value = emptyList<Ytelse>()
     }
 
-    /** Vi hadde ikke behandlingsgrunnlag for å slå opp ytelser. Typisk at vi ikke har en tiltaksdeltakelsesperiode enda. */
+    /**
+     * Vi hadde ikke behandlingsgrunnlag for å slå opp ytelser.
+     * Typisk at vi ikke har en tiltaksdeltakelsesperiode enda.
+     */
     object IkkeBehandlingsgrunnlag : Ytelser, List<Ytelse> by emptyList() {
         override val oppslagsperiode = null
         override val value = emptyList<Ytelse>()

@@ -55,7 +55,8 @@ fun withTestApplicationContextAndPostgres(
 }
 
 /**
- * @param clock Merk at vi ikke kan behandle et meldekort før vi har passert meldekortets første dag. Derfor er det viktig at [clock] er satt til en dato etter den første meldekortdagen i testene som bruker denne.
+ * @param clock Merk at vi ikke kan behandle et meldekort før vi har passert meldekortets første dag.
+ * Derfor er det viktig at [clock] er satt til en dato etter den første meldekortdagen i testene som bruker denne.
  */
 fun withTestApplicationContext(
     additionalConfig: Application.() -> Unit = {},

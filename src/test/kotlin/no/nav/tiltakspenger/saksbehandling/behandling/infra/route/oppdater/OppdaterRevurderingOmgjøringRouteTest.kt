@@ -85,7 +85,8 @@ class OppdaterRevurderingOmgjøringRouteTest {
             // Forventer at saksopplysningene er oppdatert, mens resultatet er ubesudlet.
             oppdatertRevurdering.saksopplysninger.tiltaksdeltakelser.single() shouldBe avbruttTiltaksdeltakelse
             val resultat = oppdatertRevurdering.resultat as OmgjøringInnvilgelse
-            // Kommentar jah: Beklager for alt todomain-greiene. Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
+            // Kommentar jah: Beklager for alt todomain-greiene.
+            // Her bør det expectes på eksplisitte verdier uten å bruke domenekode for mapping.
             resultat.barnetillegg shouldBe barnetillegg
             resultat.antallDagerPerMeldeperiode shouldBe innvilgelsesperioder.antallDagerPerMeldeperiode
             resultat.valgteTiltaksdeltakelser shouldBe listOf(
@@ -131,7 +132,8 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 innvilgelsesperioder = innvilgelsesperioder(omgjortPeriode.plusTilOgMed(1)),
                 behandlingId = omgjøring.id,
                 vedtaksperiode = omgjortPeriode,
-                // Vil feile på [Sak.beregnRammebehandling]. Vi sjekker også i oppdater-funksjonen for revurdering omgjøring.
+                // Vil feile på [Sak.beregnRammebehandling].
+                // Vi sjekker også i oppdater-funksjonen for revurdering omgjøring.
                 forventetStatus = HttpStatusCode.InternalServerError,
             ).also {
                 it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id

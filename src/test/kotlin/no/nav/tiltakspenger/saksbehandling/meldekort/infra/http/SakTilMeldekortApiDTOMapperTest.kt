@@ -21,23 +21,18 @@ import org.junit.jupiter.api.TestFactory
 import java.time.Clock
 
 /**
- * Verifiserer mappingen via det offentlige inngangspunktet [Sak.tilMeldekortApiDTO] heller enn
- * å teste private hjelpere direkte. Dekker uttømmende alle [InnmeldtStatus]- og
- * [ReduksjonAvYtelsePåGrunnAvFravær]-verdier slik at en ny dag-/reduksjon-type ikke kan legges
- * til uten at den blir mappet riktig over kontrakten mot meldekort-api.
+ * Verifiserer mappingen via det offentlige inngangspunktet [Sak.tilMeldekortApiDTO] heller enn å teste private hjelpere direkte.
+ * Dekker uttømmende alle [InnmeldtStatus]- og [ReduksjonAvYtelsePåGrunnAvFravær]-verdier slik at en ny dag-/reduksjon-type ikke kan legges til uten at den blir mappet riktig over kontrakten mot meldekort-api.
  */
 class SakTilMeldekortApiDTOMapperTest {
 
     @TestFactory
     fun `Sak#tilMeldekortApiDTO mapper hver dag-status til riktig Status og Reduksjon i DTO`(): List<DynamicTest> {
         // Dager uten rett mappes alltid til IKKE_RETT_TIL_TILTAKSPENGER, uavhengig av brukers status.
-        // IKKE_RETT_TIL_TILTAKSPENGER kan ikke settes av bruker på en dag med rett, så den dekkes via
-        // ikke-rett dagene i meldeperioden (se sjekken nederst i testen).
+        // IKKE_RETT_TIL_TILTAKSPENGER kan ikke settes av bruker på en dag med rett, så den dekkes via ikke-rett dagene i meldeperioden (se sjekken nederst i testen).
         //
-        // For ikke-syk dag-typer er reduksjonen konstant per type, og verifiseres her. De to syk-
-        // tilfellene (FRAVÆR_SYK, FRAVÆR_SYKT_BARN) kan ha alle tre reduksjonsverdier avhengig av
-        // arbeidsgiverperioden, men her bygger vi beregningen med default IngenReduksjon — den
-        // fulle variasjonen dekkes av den andre testen under.
+        // For ikke-syk dag-typer er reduksjonen konstant per type, og verifiseres her.
+        // De to syk-tilfellene (FRAVÆR_SYK, FRAVÆR_SYKT_BARN) kan ha alle tre reduksjonsverdier avhengig av arbeidsgiverperioden, men her bygger vi beregningen med default IngenReduksjon — den fulle variasjonen dekkes av den andre testen under.
         val cases: List<Triple<InnmeldtStatus, Status, Reduksjon>> = listOf(
             Triple(InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET, Status.DELTATT_UTEN_LØNN_I_TILTAKET, Reduksjon.INGEN_REDUKSJON),
             Triple(InnmeldtStatus.DELTATT_MED_LØNN_I_TILTAKET, Status.DELTATT_MED_LØNN_I_TILTAKET, Reduksjon.YTELSEN_FALLER_BORT),
@@ -90,14 +85,13 @@ class SakTilMeldekortApiDTOMapperTest {
 
     @TestFactory
     fun `Sak#tilMeldekortApiDTO mapper Reduksjon for syk bruker og sykt barn til riktig Reduksjon i DTO`(): List<DynamicTest> {
-        // De to syk-tilfellene (FRAVÆR_SYK = bruker selv, FRAVÆR_SYKT_BARN = sykt barn / barnepasser)
-        // kan i prinsippet føre til alle tre reduksjonsverdier. Typisk forløp:
+        // De to syk-tilfellene (FRAVÆR_SYK = bruker selv, FRAVÆR_SYKT_BARN = sykt barn / barnepasser) kan i prinsippet føre til alle tre reduksjonsverdier.
+        // Typisk forløp:
         //   - INGEN_REDUKSJON de første 3 dagene (egenmelding)
         //   - REDUKSJON i de neste 13 dagene
         //   - YTELSEN_FALLER_BORT når arbeidsgiverperioden er over
-        // Domenemodellen passer på dette regelverket; selve DTO-en er "dum" og skal bare propagere
-        // verdien som beregningen har satt på dagen. Her verifiserer vi nettopp at DTO-mappingen er
-        // tro mot beregningens reduksjon, krysset over begge syk-tilfeller × alle reduksjonsverdier.
+        // Domenemodellen passer på dette regelverket; selve DTO-en er "dum" og skal bare propagere verdien som beregningen har satt på dagen.
+        // Her verifiserer vi nettopp at DTO-mappingen er tro mot beregningens reduksjon, krysset over begge syk-tilfeller × alle reduksjonsverdier.
         val sykTilfeller = listOf(InnmeldtStatus.FRAVÆR_SYK, InnmeldtStatus.FRAVÆR_SYKT_BARN)
         val reduksjonsverdier: List<Pair<ReduksjonAvYtelsePåGrunnAvFravær, Reduksjon>> = listOf(
             ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon to Reduksjon.INGEN_REDUKSJON,
@@ -126,8 +120,7 @@ class SakTilMeldekortApiDTOMapperTest {
 
                     dagerDto.forEach { dag ->
                         val harRett = meldeperiode.girRett[dag.dato] == true
-                        // Kun rett-dagene har syk-status; no-rett-dager blir IkkeRettTilTiltakspenger
-                        // som alltid har IngenReduksjon.
+                        // Kun rett-dagene har syk-status; no-rett-dager blir IkkeRettTilTiltakspenger som alltid har IngenReduksjon.
                         if (harRett) {
                             dag.reduksjon shouldBe forventet
                         }
@@ -143,20 +136,17 @@ class SakTilMeldekortApiDTOMapperTest {
     }
 
     /**
-     * Bygger en [Sak] med ett iverksatt meldekortvedtak hvor alle dager med rett har [statusPåRettDager]
-     * og hvor reduksjonen i beregningen er [reduksjon]. Bygger via de samme domene-byggerne som
-     * produksjonsflyten, slik at testen verifiserer hele kjeden fram til [Sak.tilMeldekortApiDTO].
+     * Bygger en [Sak] med ett iverksatt meldekortvedtak hvor alle dager med rett har [statusPåRettDager] og hvor reduksjonen i beregningen er [reduksjon].
+     * Bygger via de samme domene-byggerne som produksjonsflyten, slik at testen verifiserer hele kjeden fram til [Sak.tilMeldekortApiDTO].
      */
     private fun Sak.medMeldekortvedtak(
         meldeperiode: Meldeperiode,
         statusPåRettDager: InnmeldtStatus,
         reduksjon: ReduksjonAvYtelsePåGrunnAvFravær = ReduksjonAvYtelsePåGrunnAvFravær.IngenReduksjon,
     ): Sak {
-        // Forhåndsallokerer meldekort-id'en, ellers vil beregningen og meldekortbehandlingen havne
-        // på hver sin id og bryte invariansen i Meldekortvedtak.
+        // Forhåndsallokerer meldekort-id'en, ellers vil beregningen og meldekortbehandlingen havne på hver sin id og bryte invariansen i Meldekortvedtak.
         val meldekortId = MeldekortId.random()
-        // Behandlinger og vedtak må ha distinkte opprettet-tidspunkt, så vi tikker klokka forbi
-        // rammebehandlingens / rammevedtakets tidspunkt.
+        // Behandlinger og vedtak må ha distinkte opprettet-tidspunkt, så vi tikker klokka forbi rammebehandlingens / rammevedtakets tidspunkt.
         val senereKlokke: Clock = Clock.fixed(fixedClock.instant().plusSeconds(2), fixedClock.zone)
         val brukersMk = brukersMeldekort(
             sakId = id,
@@ -174,8 +164,7 @@ class SakTilMeldekortApiDTOMapperTest {
             sakId = id,
             saksnummer = saksnummer,
             fnr = fnr,
-            // Må være etter rammebehandlingens opprettet-tidspunkt for å tilfredsstille invariansen
-            // i Behandlinger om at to behandlinger ikke kan ha samme opprettet-tidspunkt.
+            // Må være etter rammebehandlingens opprettet-tidspunkt for å tilfredsstille invariansen i Behandlinger om at to behandlinger ikke kan ha samme opprettet-tidspunkt.
             opprettet = nå(senereKlokke),
             meldeperiode = meldeperiode,
             brukersMeldekort = brukersMk,

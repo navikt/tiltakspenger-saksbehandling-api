@@ -9,7 +9,12 @@ enum class UtbetalingsstatusDTO {
     /** Kan være fordi jobben ikke har kjørt enda, eller fordi forrige utbetaling ikke er OK, eller fordi helved ikke aksepterer utbetalingen. */
     IKKE_SENDT_TIL_HELVED,
 
-    /** Vi har fått 202 Accepted fra helved. De vil prøve sende den til Oppdrag. Hvis Oppdrag er stengt kan det gå en stund til de mottar kvittering. Hos de vil denne da få statusen IKKE_PÅBEGYNT. */
+    /**
+     * Vi har fått 202 Accepted fra helved.
+     * De vil prøve sende den til Oppdrag.
+     * Hvis Oppdrag er stengt kan det gå en stund til de mottar kvittering.
+     * Hos de vil denne da få statusen IKKE_PÅBEGYNT.
+     */
     SENDT_TIL_HELVED,
 
     /** Helved har sendt utbetalingen til Oppdrag og venter på kvittering.Hvis Oppdrag er stengt kan det gå en stund til de mottar kvittering. */
@@ -21,7 +26,10 @@ enum class UtbetalingsstatusDTO {
     /** OK-kvittering fra Oppdrag */
     OK,
 
-    /** Kvitteringen fra oppdrag hadde en feil-status. I disse tilfellene må sannsynligvis helved eller en utvikler i fagsystemet følge opp. */
+    /**
+     * Kvitteringen fra oppdrag hadde en feil-status.
+     * I disse tilfellene må sannsynligvis helved eller en utvikler i fagsystemet følge opp.
+     */
     FEILET_MOT_OPPDRAG,
 
     AVBRUTT,

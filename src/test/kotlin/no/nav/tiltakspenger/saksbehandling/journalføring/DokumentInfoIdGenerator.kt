@@ -9,7 +9,8 @@ interface DokumentInfoIdGeneratorGenerator {
 }
 
 /**
- * Trådsikker. Dersom tester deler database, bør de bruke en felles statisk versjon av denne.
+ * Trådsikker.
+ * Dersom tester deler database, bør de bruke en felles statisk versjon av denne.
  */
 class DokumentInfoIdGeneratorSerial(
     første: Long = 1,

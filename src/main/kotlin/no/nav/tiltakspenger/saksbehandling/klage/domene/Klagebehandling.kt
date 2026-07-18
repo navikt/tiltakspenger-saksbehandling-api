@@ -34,7 +34,8 @@ import java.time.LocalDateTime
 
 /**
  * Representerer registrering og vurdering av en klage på et vedtak om tiltakspenger.
- * En klagebehandling har ingen beslutter, da klager avgjøres av en saksbehandler alene. Hvis det fører til medhold, vil en beslutter måtte beslutte selve revurderingen.
+ * En klagebehandling har ingen beslutter, da klager avgjøres av en saksbehandler alene.
+ * Hvis det fører til medhold, vil en beslutter måtte beslutte selve revurderingen.
  * @param klagensJournalpostId Journalposten som inneholder klagen.
  * @param klagensJournalpostOpprettet Tidspunktet [klagensJournalpostId] ble opprettet.
  */
@@ -104,7 +105,8 @@ data class Klagebehandling(
     /**
      * Siden vi i alle tilfeller genererer brevet på nytt, må vi skille på om vi skal akseptere forhåndsvisningens parametre eller ikke.
      * Etter vi har passert et visst punkt i behandlingen, skal ikke saksbehandler kunne påvirke innholdet i brevet lenger.
-     * Per tidspunkt har vi bare 2 brev i klagebehandlingen: avvisningsbrev og innstillingsbrev. Så vi kan gjenbruke denne variabelen frem til en behandling har mer enn 1 brev.
+     * Per tidspunkt har vi bare 2 brev i klagebehandlingen: avvisningsbrev og innstillingsbrev.
+     * Så vi kan gjenbruke denne variabelen frem til en behandling har mer enn 1 brev.
      */
     fun skalGenerereBrevKunFraBehandling(): Boolean = resultat?.skalGenerereBrevKunFraBehandling(status) == true
 
