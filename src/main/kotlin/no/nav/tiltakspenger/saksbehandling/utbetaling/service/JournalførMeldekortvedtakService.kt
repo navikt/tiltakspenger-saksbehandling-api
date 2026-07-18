@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
@@ -100,17 +101,23 @@ class JournalførMeldekortvedtakService(
                         meldekortvedtak = meldekortvedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
-                    ).first
+                    ).getOrElse {
+                        it.loggFeil(log, "journalføring av meldekortvedtaksbrev", "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}")
+                        return@forEach
+                    }.journalpostId
                     /*
                         TODO - pdfgenrs: fjern journalføringen av pdfgenrs-pdf'en når det er verifisert at pdf'en er ok.
                             Vi journalfører den kun for å manuelt kunne sjekke at pdfgenrs genererer riktig pdf i dev.
+                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
                      */
                     pdfOgJsonPdfgenrs?.let {
                         journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
                             meldekortvedtak = meldekortvedtak,
                             pdfOgJson = it,
                             correlationId = correlationId,
-                        )
+                        ).onLeft { feil ->
+                            feil.loggFeil(log, "journalføring av pdfgenrs-meldekortvedtaksbrev (kun dev-sammenligning)", "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}")
+                        }
                     }
                     log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
                     meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))

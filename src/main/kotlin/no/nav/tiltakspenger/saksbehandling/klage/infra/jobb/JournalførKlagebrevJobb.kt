@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
@@ -67,19 +68,25 @@ class JournalførKlagebrevJobb(
                         klagevedtak = vedtak,
                         pdfOgJson = pdfOgJson.first,
                         correlationId = correlationId,
-                    )
+                    ).getOrElse {
+                        it.loggFeil(log, "journalføring av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
+                        return@forEach
+                    }
 
                     /*
                         TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-avvis pdf er ok
                             Akkurat nå bryr vi oss ikke om journalpostId'en etc.
                             Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
+                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
                      */
                     pdfOgJson.second?.let {
                         journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
                             klagevedtak = vedtak,
                             pdfOgJson = it,
                             correlationId = correlationId,
-                        )
+                        ).onLeft { feil ->
+                            feil.loggFeil(log, "journalføring av pdfgenrs-avvisningsbrev (kun dev-sammenligning)", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
+                        }
                     }
                     log.info { "Vedtaksbrev journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                     klagevedtakRepo.markerJournalført(
@@ -137,18 +144,24 @@ class JournalførKlagebrevJobb(
                         klagebehandling = klagebehandling,
                         pdfOgJson = pdfOgJson.first,
                         correlationId = correlationId,
-                    )
+                    ).getOrElse {
+                        it.loggFeil(log, "journalføring av innstillingsbrev", loggkontekst)
+                        return@forEach
+                    }
                     /*
                         TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-innstilling pdf er ok
                             Akkurat nå bryr vi oss ikke om journalpostId'en etc.
                             Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
+                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
                      */
                     pdfOgJson.second?.let {
                         journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
                             klagebehandling = klagebehandling,
-                            pdfOgJson = pdfOgJson.first,
+                            pdfOgJson = it,
                             correlationId = correlationId,
-                        )
+                        ).onLeft { feil ->
+                            feil.loggFeil(log, "journalføring av pdfgenrs-innstillingsbrev (kun dev-sammenligning)", loggkontekst)
+                        }
                     }
                     val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
                         brevdato = LocalDate.now(clock),

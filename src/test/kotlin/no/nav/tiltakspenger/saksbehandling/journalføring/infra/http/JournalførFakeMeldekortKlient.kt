@@ -3,6 +3,8 @@
 package no.nav.tiltakspenger.saksbehandling.journalføring.infra.http
 
 import arrow.atomic.Atomic
+import arrow.core.Either
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
@@ -11,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.journalføring.KunneIkkeJournalføre
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 
@@ -32,11 +35,13 @@ class JournalførFakeMeldekortKlient(
         meldekortvedtak: Meldekortvedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): Pair<JournalpostId, JournalførBrevMetadata> {
-        return (
-            data.get()[meldekortvedtak.id] ?: journalpostIdGenerator.generer().also {
+    ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
+        return JournalførteDokumenter(
+            journalpostId = data.get()[meldekortvedtak.id] ?: journalpostIdGenerator.generer().also {
                 data.get().putIfAbsent(meldekortvedtak.id, it)
-            }
-            ) to journalførBrevMetadata
+            },
+            dokumentInfoIder = null,
+            metadata = journalførBrevMetadata,
+        ).right()
     }
 }
