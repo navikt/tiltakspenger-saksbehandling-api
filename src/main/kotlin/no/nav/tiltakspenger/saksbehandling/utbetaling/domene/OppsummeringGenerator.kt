@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 import kotlin.collections.filter
 import kotlin.math.abs
 
@@ -29,7 +29,7 @@ object OppsummeringGenerator {
         return Simulering.Endring(
             datoBeregnet = datoBeregnet,
             totalBeløp = totalBeløp,
-            simuleringstidspunkt = LocalDateTime.now(clock),
+            simuleringstidspunkt = nå(clock),
             simuleringPerMeldeperiode = aktuelleMeldeperioder.mapNotNull { meldeperiode ->
                 val simuleringsdager = meldeperiode.periode.tilDager().mapNotNull { dato ->
                     posteringerPerDag[dato]?.let { posteringerForDag ->

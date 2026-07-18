@@ -110,7 +110,7 @@ class BehandleTilbakekrevingHendelserJobb(
      */
     private fun TilbakekrevingUkjentHendelse.håndter(): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
         val hendelseId = this.id
-        val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(hendelseId)
+        val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(clock, hendelseId)
 
         if (oppdatertHendelse == null || oppdatertHendelse is TilbakekrevingUkjentHendelse) {
             logger.warn { "Ukjent tilbakekreving-hendelse $hendelseId kunne fortsatt ikke deserialiseres - hopper over" }

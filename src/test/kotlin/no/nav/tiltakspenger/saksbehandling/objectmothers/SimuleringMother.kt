@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -73,7 +74,7 @@ interface SimuleringMother {
             ),
         ),
         clock: Clock = fixedClock,
-        simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),
+        simuleringstidspunkt: LocalDateTime = nå(clock),
     ): Simulering.Endring {
         return Simulering.Endring(
             datoBeregnet = periode.tilOgMed,
@@ -109,7 +110,7 @@ fun Sak.genererSimuleringFraBeregning(
     beregning: Beregning,
     meldeperiodeKjeder: MeldeperiodeKjeder = this.meldeperiodeKjeder,
     clock: Clock = fixedClock,
-    simuleringstidspunkt: LocalDateTime = LocalDateTime.now(clock),
+    simuleringstidspunkt: LocalDateTime = nå(clock),
 ): SimuleringMedMetadata {
     val simuleringForMeldeperioder = beregning.beregninger.mapNotNull { beregningEtter ->
         val beregningFør = this.meldeperiodeBeregninger.hentForrigeBeregningForSimulering(beregningEtter)

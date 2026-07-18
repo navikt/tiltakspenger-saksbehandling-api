@@ -23,12 +23,7 @@ data class IverksettV2Dto(
     val behandlingId: String,
     val iverksettingId: String? = null,
     val personident: Personident,
-    val vedtak: VedtaksdetaljerV2Dto =
-        VedtaksdetaljerV2Dto(
-            vedtakstidspunkt = LocalDateTime.now(),
-            saksbehandlerId = "",
-            beslutterId = "",
-        ),
+    val vedtak: VedtaksdetaljerV2Dto,
     val forrigeIverksetting: ForrigeIverksettingV2Dto? = null,
 )
 

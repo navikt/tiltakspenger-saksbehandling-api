@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
@@ -24,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class BenkOversiktServiceTest {
 
@@ -42,8 +42,8 @@ class BenkOversiktServiceTest {
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
                 saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "9000"),
-                startet = LocalDateTime.now(fixedClock),
-                kravtidspunkt = LocalDateTime.now(fixedClock),
+                startet = nå(fixedClock),
+                kravtidspunkt = nå(fixedClock),
                 behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
                 status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                 saksbehandler = "saksbehandler 1",
@@ -60,8 +60,8 @@ class BenkOversiktServiceTest {
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
                 saksnummer = Saksnummer.genererSaknummer(LocalDate.now(fixedClock), "9001"),
-                startet = LocalDateTime.now(fixedClock),
-                kravtidspunkt = LocalDateTime.now(fixedClock),
+                startet = nå(fixedClock),
+                kravtidspunkt = nå(fixedClock),
                 behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
                 status = BehandlingssammendragStatus.UNDER_BEHANDLING,
                 saksbehandler = saksbehandler.navIdent,

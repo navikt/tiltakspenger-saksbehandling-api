@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
@@ -9,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.meldeperiode
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class SimuleringFinnUlikheterTest {
     private val periode = Periode(13.januar(2025), 26.januar(2025))
@@ -36,7 +36,7 @@ class SimuleringFinnUlikheterTest {
                     ),
                 ),
             ),
-            simuleringstidspunkt = LocalDateTime.now(clock),
+            simuleringstidspunkt = nå(clock),
         )
     }
 

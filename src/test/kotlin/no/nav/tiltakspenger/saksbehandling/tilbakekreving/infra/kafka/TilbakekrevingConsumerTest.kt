@@ -36,7 +36,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -83,7 +83,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -136,7 +136,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -184,7 +184,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             // infosvar skal ikke persistes
@@ -201,7 +201,7 @@ class TilbakekrevingConsumerTest {
                 key = "test-key",
                 value = null,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -230,7 +230,7 @@ class TilbakekrevingConsumerTest {
                 key = "key-1",
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             // Andre kall med samme kravgrunnlagReferanse - skal ikke persiste
@@ -238,7 +238,7 @@ class TilbakekrevingConsumerTest {
                 key = "key-2",
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -267,7 +267,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -320,7 +320,7 @@ class TilbakekrevingConsumerTest {
                     key = key,
                     value = value,
                     tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                    clock = tac.clock,
                 )
 
                 val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -356,7 +356,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -406,7 +406,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -443,7 +443,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
@@ -474,7 +474,7 @@ class TilbakekrevingConsumerTest {
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
-
+                clock = tac.clock,
             )
 
             val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()

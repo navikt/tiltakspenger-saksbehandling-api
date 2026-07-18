@@ -1,12 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.journalpost.infra
 
+import arrow.core.Either
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentDokumentCommand
 import java.time.Clock
-import java.time.LocalDateTime
 
 class SafJournalpostFakeClient(
     private val clock: Clock,
@@ -15,7 +18,9 @@ class SafJournalpostFakeClient(
 
     override suspend fun hentJournalpost(
         journalpostId: JournalpostId,
-    ): Journalpost? {
+    ): Either<KanIkkeHenteJournalpost, Journalpost?> = hentJournalpostEllerNull(journalpostId).right()
+
+    private fun hentJournalpostEllerNull(journalpostId: JournalpostId): Journalpost? {
         // Bare for å kunne trigge de forskjellige tilstandene ved lokal kjøring
         // `fnr` her er det som brukes for den ene søknaden som finnes lokalt
         if (journalpostId.toString() == "12345") {
@@ -24,7 +29,7 @@ class SafJournalpostFakeClient(
                     id = "12345678911",
                     type = "FNR",
                 ),
-                datoOpprettet = LocalDateTime.now(clock).toString(),
+                datoOpprettet = nå(clock).toString(),
                 bruker = Bruker(
                     id = "12345678911",
                     type = "FNR",
@@ -40,7 +45,7 @@ class SafJournalpostFakeClient(
                     id = fnr,
                     type = "FNR",
                 ),
-                datoOpprettet = LocalDateTime.now(clock).toString(),
+                datoOpprettet = nå(clock).toString(),
                 bruker = Bruker(
                     id = fnr,
                     type = "FNR",
@@ -54,7 +59,7 @@ class SafJournalpostFakeClient(
                     id = it.verdi,
                     type = "FNR",
                 ),
-                datoOpprettet = LocalDateTime.now(clock).toString(),
+                datoOpprettet = nå(clock).toString(),
                 bruker = Bruker(
                     id = it.verdi,
                     type = "FNR",
@@ -78,8 +83,8 @@ class SafJournalpostFakeClient(
                 %EOF
         """.trimIndent()
 
-    override suspend fun hentDokument(command: HentDokumentCommand): PdfA {
-        return PdfA(pdf.toByteArray())
+    override suspend fun hentDokument(command: HentDokumentCommand): Either<HttpKlientError, PdfA> {
+        return PdfA(pdf.toByteArray()).right()
     }
 
     fun addJournalpost(journalpostId: JournalpostId, fnr: Fnr) {

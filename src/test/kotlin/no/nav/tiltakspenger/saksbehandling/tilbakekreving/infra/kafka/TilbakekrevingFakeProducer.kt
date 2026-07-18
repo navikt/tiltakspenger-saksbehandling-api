@@ -60,6 +60,7 @@ class TilbakekrevingFakeProducer(
                     ),
                 ),
                 tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+                clock = clock,
             )
         }
     }
@@ -110,6 +111,7 @@ class TilbakekrevingFakeProducer(
             this.fnr.verdi,
             serialize(behandlingEndretDTO),
             tilbakekrevingHendelseRepo,
+            clock,
         )
     }
 }

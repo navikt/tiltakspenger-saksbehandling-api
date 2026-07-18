@@ -4,7 +4,7 @@ import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.2"
-val felleslibVersion = "0.0.20260717183327"
+val felleslibVersion = "0.0.20260718174757"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
@@ -98,7 +98,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     // Delte arkitekturregler; drar inn konsist transitivt (api-avhengighet). Egen versjon inntil felleslibVersion bumpes.
-    testImplementation("com.github.navikt.tiltakspenger-libs:konsist-regler:0.0.895")
+    testImplementation("com.github.navikt.tiltakspenger-libs:konsist-regler:$felleslibVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
@@ -276,6 +276,7 @@ kover {
                         "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient",
                         "no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient",
+                        "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",
                         "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",

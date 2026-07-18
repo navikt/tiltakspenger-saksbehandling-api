@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.felles
 
 import no.nav.tiltakspenger.libs.common.backoff.shouldRetry
+import no.nav.tiltakspenger.libs.common.nå
 import java.time.Clock
 import java.time.LocalDateTime
 import kotlin.time.Duration
@@ -21,7 +22,7 @@ data class Forsøkshistorikk(
     }
 
     fun inkrementer(delays: List<Duration> = DEFAULT_DELAY_LIST, clock: Clock): Forsøkshistorikk {
-        val nå = LocalDateTime.now(clock)
+        val nå = nå(clock)
         val oppdatertAntallForsøk = antallForsøk + 1
         val (_, nesteForsøk) = nå.shouldRetry(
             count = oppdatertAntallForsøk,
@@ -44,7 +45,7 @@ data class Forsøkshistorikk(
             delayTable: Map<Long, Duration> = DEFAULT_DELAY_TABLE,
             clock: Clock,
         ): Forsøkshistorikk {
-            val nå = LocalDateTime.now(clock)
+            val nå = nå(clock)
             val forrigeForsøk = forrigeForsøk
             val nesteForsøk = forrigeForsøk?.shouldRetry(antallForsøk, clock, delayTable)?.second ?: nå
             return Forsøkshistorikk(

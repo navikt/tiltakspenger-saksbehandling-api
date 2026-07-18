@@ -6,6 +6,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -14,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class MeldekortbehandlingManuellTest {
     @Test
@@ -23,7 +23,7 @@ class MeldekortbehandlingManuellTest {
             status = MeldekortbehandlingStatus.UNDER_BESLUTNING,
             iverksattTidspunkt = null,
             beslutter = ObjectMother.saksbehandler().navIdent,
-            opprettet = LocalDateTime.now(fixedClock),
+            opprettet = nå(fixedClock),
             begrunnelse = Begrunnelse.create("asdf"),
         )
 
@@ -39,7 +39,7 @@ class MeldekortbehandlingManuellTest {
             status = Attesteringsstatus.SENDT_TILBAKE,
             begrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
             beslutter = ObjectMother.saksbehandler().navIdent,
-            tidspunkt = LocalDateTime.now(fixedClock),
+            tidspunkt = nå(fixedClock),
         )
 
         actual.getOrFail().let {

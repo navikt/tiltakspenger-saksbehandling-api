@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeAvbryteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
@@ -20,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import java.time.Clock
-import java.time.LocalDateTime
 
 class AvbrytSøknadOgBehandlingService(
     private val sakService: SakService,
@@ -33,7 +33,7 @@ class AvbrytSøknadOgBehandlingService(
 
     suspend fun avbrytSøknadOgBehandling(command: AvbrytRammebehandlingKommando): Either<KunneIkkeAvbryteBehandling, Sak> {
         val sak = sakService.hentForSaksnummer(command.saksnummer)
-        val avbruttTidspunkt = LocalDateTime.now(clock)
+        val avbruttTidspunkt = nå(clock)
         val (oppdatertSak, avbruttSøknad, avbruttBehandling) = sak.avbrytSøknadOgBehandling(
             command = command,
             avbruttTidspunkt = avbruttTidspunkt,

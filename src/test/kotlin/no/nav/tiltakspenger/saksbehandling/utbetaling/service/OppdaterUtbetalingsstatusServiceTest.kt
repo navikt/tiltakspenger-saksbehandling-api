@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
@@ -15,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class OppdaterUtbetalingsstatusServiceTest {
     private val utbetalingRepo = mockk<UtbetalingRepo>()
@@ -33,7 +33,7 @@ class OppdaterUtbetalingsstatusServiceTest {
         val utbetaling = ObjectMother.utbetalingDetSkalHentesStatusFor(
             forsøkshistorikk = Forsøkshistorikk.opprett(
                 antallForsøk = 10,
-                forrigeForsøk = LocalDateTime.now(fixedClock).minusHours(25),
+                forrigeForsøk = nå(fixedClock).minusHours(25),
                 clock = fixedClock,
             ),
         )

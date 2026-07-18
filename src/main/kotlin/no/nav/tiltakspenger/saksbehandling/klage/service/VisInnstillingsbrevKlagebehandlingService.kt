@@ -2,10 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
@@ -20,6 +21,8 @@ class VisInnstillingsbrevKlagebehandlingService(
     private val klagebehandlingRepo: KlagebehandlingRepo,
     private val clock: Clock,
 ) {
+    private val log = KotlinLogging.logger {}
+
     suspend fun hentDokument(
         command: VisInnstillingsbrevKlagebehandlingCommand,
     ): Either<KunneIkkeViseInnstillingsbrev, PdfA> {
@@ -37,12 +40,17 @@ class VisInnstillingsbrevKlagebehandlingService(
                 saksbehandlerToken = command.saksbehandlerToken,
                 correlationId = command.correlationId,
             ),
-        ).right()
+        ).mapLeft {
+            it.loggFeil(log, "henting av innstillingsbrev fra SAF", "SakId: ${command.sakId}, klagebehandlingId: ${command.klagebehandlingId}, journalpostId: $journalpostIdInnstillingsbrev, dokumentInfoId: ${command.dokumentInfoId}")
+            KunneIkkeViseInnstillingsbrev.KunneIkkeHenteDokument
+        }
     }
 }
 
 sealed interface KunneIkkeViseInnstillingsbrev {
     data object KlagenErIkkeJournalført : KunneIkkeViseInnstillingsbrev
+
+    data object KunneIkkeHenteDokument : KunneIkkeViseInnstillingsbrev
 }
 
 data class VisInnstillingsbrevKlagebehandlingCommand(

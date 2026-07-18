@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
@@ -12,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 import kotlin.math.roundToInt
 
 /**
@@ -95,7 +95,7 @@ internal fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
 ): Simulering {
     return this.let { res ->
         if (res.detaljer.perioder.isEmpty()) {
-            return Simulering.IngenEndring(LocalDateTime.now(clock))
+            return Simulering.IngenEndring(nå(clock))
         }
         check(Fnr.fromString(res.detaljer.gjelderId) == meldeperiodeKjeder.fnr) {
             "Simulering sin gjelderId er ulik behandlingens fnr. sakId: ${meldeperiodeKjeder.sakId}, saksnummer: ${meldeperiodeKjeder.saksnummer}"

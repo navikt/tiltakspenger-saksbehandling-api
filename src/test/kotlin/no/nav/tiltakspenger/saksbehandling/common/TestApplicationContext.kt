@@ -414,6 +414,7 @@ sealed class TestApplicationContext(
         TilbakekrevingConsumer(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            clock = clock,
             log = null,
         )
     }

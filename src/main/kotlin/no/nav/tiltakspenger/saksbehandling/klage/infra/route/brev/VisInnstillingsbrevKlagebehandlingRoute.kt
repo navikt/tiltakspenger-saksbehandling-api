@@ -79,4 +79,9 @@ fun KunneIkkeViseInnstillingsbrev.tilStatusOgErrorJson(): Pair<HttpStatusCode, E
         melding = "Klagen er ikke journalført, og det finnes derfor ikke noe innstillingsbrev å vise",
         kode = "klage_ikke_journalført",
     )
+
+    KunneIkkeViseInnstillingsbrev.KunneIkkeHenteDokument -> HttpStatusCode.InternalServerError to ErrorJson(
+        melding = "Kunne ikke hente innstillingsbrevet fra arkivet",
+        kode = "kunne_ikke_hente_dokument",
+    )
 }

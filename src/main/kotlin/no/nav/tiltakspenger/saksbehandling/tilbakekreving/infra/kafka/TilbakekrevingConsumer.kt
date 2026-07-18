@@ -12,11 +12,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
+import java.time.Clock
 
 private val logger = KotlinLogging.logger { }
 
 class TilbakekrevingConsumer(
     private val tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
+    private val clock: Clock,
     topic: String,
     groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v4",
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
@@ -36,7 +38,7 @@ class TilbakekrevingConsumer(
     )
 
     override suspend fun consume(key: String, value: String?) {
-        consume(key, value, tilbakekrevingHendelseRepo)
+        consume(key, value, tilbakekrevingHendelseRepo, clock)
     }
 
     override fun run() = consumer.run()
@@ -47,6 +49,7 @@ class TilbakekrevingConsumer(
             key: String,
             value: String?,
             tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
+            clock: Clock,
         ) {
             // OBS: Merk at key er fødselsnummer, så det skal ikke logges.
             if (value == null) {
@@ -54,7 +57,7 @@ class TilbakekrevingConsumer(
                 return
             }
 
-            val hendelse = value.tilNyTilbakekrevingshendelse()
+            val hendelse = value.tilNyTilbakekrevingshendelse(clock)
 
             if (hendelse == null) {
                 logger.debug { "Mottatt tilbakekrevingshendelse som vi tp-sak har produsert, hendelsen forkastes." }

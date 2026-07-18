@@ -5,6 +5,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
@@ -23,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverk
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class AutomatiskMeldekortbehandlingJobbTest {
@@ -290,7 +290,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     clock = clock,
                 )
 
-                val forrigeForsøk = LocalDateTime.now(clock)
+                val forrigeForsøk = nå(clock)
                 val brukersMeldekort = ObjectMother.brukersMeldekort(
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
@@ -329,7 +329,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     clock = clock,
                 )
 
-                val forrigeForsøk = LocalDateTime.now(clock)
+                val forrigeForsøk = nå(clock)
                 val brukersMeldekort = ObjectMother.brukersMeldekort(
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
@@ -372,7 +372,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     clock = clock,
                 )
 
-                val forrigeForsøk = LocalDateTime.now(clock)
+                val forrigeForsøk = nå(clock)
                 val brukersMeldekort = ObjectMother.brukersMeldekort(
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
@@ -438,7 +438,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 lagretDuplikat.behandlesAutomatisk shouldBe false
 
                 // Selv langt frem i tid (godt over maxDelay) skal den ikke retries
-                service.behandleBrukersMeldekort(clock = fixedClockAt(LocalDateTime.now(clock).plusHours(1)))
+                service.behandleBrukersMeldekort(clock = fixedClockAt(nå(clock).plusHours(1)))
                 meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
             }
         }
@@ -452,7 +452,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
                 val automatiskMeldekortbehandlingJobb =
                     tac.meldekortContext.automatiskMeldekortbehandlingJobb
-                val nå = LocalDateTime.now(clock)
+                val nå = nå(clock)
 
                 val sak =
                     tac.søknadsbehandlingIverksattMedMeldeperioder(
@@ -492,7 +492,7 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 )
 
                 // Bruker andre kjede slik at behandlingen faller tilbake på en retry-bar status (MÅ_BEHANDLE_FØRSTE_KJEDE)
-                val mottatt = LocalDateTime.now(clock)
+                val mottatt = nå(clock)
                 val brukersMeldekort = ObjectMother.brukersMeldekort(
                     sakId = sak.id,
                     meldeperiode = sak.meldeperiodeKjeder[1].hentSisteMeldeperiode(),

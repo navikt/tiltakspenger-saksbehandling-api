@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -26,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class HentSaksopplysingerService(
     private val hentPersonopplysninger: suspend (fnr: Fnr) -> EnkelPerson,
@@ -62,7 +62,7 @@ class HentSaksopplysingerService(
         saksnummer: Saksnummer? = null,
         behandlingId: RammebehandlingId? = null,
     ): Saksopplysninger {
-        val oppslagstidspunkt = LocalDateTime.now(clock)
+        val oppslagstidspunkt = nå(clock)
 
         val aktuelleTiltaksdeltakelser = hentAktuelleTiltaksdeltakelser(
             fnr = fnr,
@@ -222,7 +222,7 @@ class HentSaksopplysingerService(
         return Ytelser.fromList(
             ytelser = ytelser,
             oppslagsperiode = utbetaldataPeriode,
-            oppslagstidspunkt = LocalDateTime.now(clock),
+            oppslagstidspunkt = nå(clock),
         )
     }
 
@@ -257,7 +257,7 @@ class HentSaksopplysingerService(
         return TiltakspengevedtakFraArena.fromList(
             arenaTpVedtak = arenaTpVedtak,
             oppslagsperiode = saksopplysningsperiode,
-            oppslagstidspunkt = LocalDateTime.now(clock),
+            oppslagstidspunkt = nå(clock),
         )
     }
 }

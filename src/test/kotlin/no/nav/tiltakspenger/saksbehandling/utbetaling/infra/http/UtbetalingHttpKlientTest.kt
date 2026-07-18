@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -26,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.IverksettStatus
 import org.junit.jupiter.api.Test
 import java.time.Instant
-import java.time.LocalDateTime
 
 internal class UtbetalingHttpKlientTest {
     private val baseUrl = "http://helved.test"
@@ -184,7 +184,7 @@ internal class UtbetalingHttpKlientTest {
 
         runTest {
             simuler(transport) shouldBe SimuleringMedMetadata(
-                simulering = Simulering.IngenEndring(LocalDateTime.now(fixedClock)),
+                simulering = Simulering.IngenEndring(nå(fixedClock)),
                 originalResponseBody = helvedResponse,
             ).right()
         }
@@ -248,9 +248,9 @@ internal class UtbetalingHttpKlientTest {
 
     @Test
     fun `simuleringstidspunkt bruker responstidspunktet når det finnes, ellers klokka`() {
-        val responsMottatt = LocalDateTime.now(fixedClock).minusMinutes(5)
+        val responsMottatt = nå(fixedClock).minusMinutes(5)
         UtbetalingHttpKlient.simuleringstidspunkt(responsMottatt, fixedClock) shouldBe responsMottatt
-        UtbetalingHttpKlient.simuleringstidspunkt(null, fixedClock) shouldBe LocalDateTime.now(fixedClock)
+        UtbetalingHttpKlient.simuleringstidspunkt(null, fixedClock) shouldBe nå(fixedClock)
     }
 
     private suspend fun simuler(transport: FakeHttpTransport): Either<KunneIkkeSimulere, SimuleringMedMetadata> {

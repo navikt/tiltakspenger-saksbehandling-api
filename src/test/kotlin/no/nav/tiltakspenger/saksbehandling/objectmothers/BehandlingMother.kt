@@ -492,7 +492,7 @@ interface BehandlingMother : MotherOfAllMothers {
         clock: Clock = fixedClock,
         avbruttAv: Saksbehandler = saksbehandler(),
         begrunnelse: String = "fordi",
-        tidspunkt: LocalDateTime = LocalDateTime.now(clock),
+        tidspunkt: LocalDateTime = nå(clock),
         hentSaksopplysninger: (Periode) -> Saksopplysninger = {
             saksopplysninger(
                 fom = it.fraOgMed,

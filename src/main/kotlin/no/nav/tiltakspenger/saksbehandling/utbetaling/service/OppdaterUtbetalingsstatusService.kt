@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
@@ -9,7 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import java.time.Clock
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 /**
@@ -53,7 +53,7 @@ class OppdaterUtbetalingsstatusService(
                 } else if (!it.erOK() &&
                     ChronoUnit.DAYS.between(
                         utbetaling.sendtTilUtbetalingstidspunkt,
-                        LocalDateTime.now(clock),
+                        nå(clock),
                     ) >= 3
                 ) {
                     // Vi gir en varsling til utviklerne hvis vi ikke har fått OK ila. 3 dager.

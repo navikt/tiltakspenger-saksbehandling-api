@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.desember
@@ -37,7 +38,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtaksliste
 import no.nav.tiltakspenger.saksbehandling.vedtak.Vedtaksliste
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class SakTest {
 
@@ -159,7 +159,7 @@ class SakTest {
         )
         val v1 = Rammevedtak(
             id = VedtakId.random(),
-            opprettet = LocalDateTime.now(fixedClock),
+            opprettet = nå(fixedClock),
             sakId = sakId,
             periode = vedtaksperiode,
             journalpostId = null,
@@ -198,7 +198,7 @@ class SakTest {
         )
         val v2 = Rammevedtak(
             id = VedtakId.random(),
-            opprettet = LocalDateTime.now(enUkeEtterFixedClock),
+            opprettet = nå(enUkeEtterFixedClock),
             sakId = sakId,
             periode = andreVedtaksPeriode,
             journalpostId = null,

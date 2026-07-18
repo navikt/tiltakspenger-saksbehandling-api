@@ -5,6 +5,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -13,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class MeldekortvedtakDTOTest {
 
@@ -28,7 +28,7 @@ class MeldekortvedtakDTOTest {
             meldekortbehandling = ObjectMother.meldekortBehandletManuelt(
                 id = meldekortId,
             ),
-            opprettet = LocalDateTime.now(fixedClock),
+            opprettet = nå(fixedClock),
         )
         val tiltaksdeltakelser = listOf(ObjectMother.tiltaksdeltakelse())
 

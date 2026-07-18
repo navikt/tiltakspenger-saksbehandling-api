@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.statistikk.GenererUtbetalingsstatistikk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
@@ -51,8 +52,8 @@ fun VedtattUtbetaling.tilStatistikk(clock: Clock): GenererUtbetalingsstatistikk 
             gyldigTilDatoPostering = this.periode.tilOgMed,
             utbetalingId = this.id.uuidPart(),
             vedtakId = listOf(this.vedtakId.toString()),
-            opprettet = LocalDateTime.now(clock),
-            sistEndret = LocalDateTime.now(clock),
+            opprettet = nå(clock),
+            sistEndret = nå(clock),
             brukerId = this.fnr.verdi,
             meldeperioder = this.beregning.beregninger.toList().map {
                 it.toStatistikkMeldeperiode()

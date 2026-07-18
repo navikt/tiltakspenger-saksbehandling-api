@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -21,7 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 private typealias DatoOgBeløp = Pair<LocalDate, Int>
 
@@ -65,7 +65,7 @@ class ValiderKanIverksetteUtbetalingTest {
                     },
                 )
             },
-            simuleringstidspunkt = LocalDateTime.now(clock),
+            simuleringstidspunkt = nå(clock),
         )
     }
 

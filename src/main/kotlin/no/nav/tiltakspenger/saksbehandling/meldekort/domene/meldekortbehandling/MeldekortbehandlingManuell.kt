@@ -133,7 +133,7 @@ data class MeldekortbehandlingManuell(
                 status = Attesteringsstatus.GODKJENT,
                 begrunnelse = null,
                 beslutter = beslutter.navIdent,
-                tidspunkt = LocalDateTime.now(clock),
+                tidspunkt = nå(clock),
             ),
         )
 
@@ -207,7 +207,7 @@ data class MeldekortbehandlingManuell(
                 status = Attesteringsstatus.SENDT_TILBAKE,
                 begrunnelse = besluttersBegrunnelse,
                 beslutter = beslutter.navIdent,
-                tidspunkt = LocalDateTime.now(clock),
+                tidspunkt = nå(clock),
             ),
         )
 

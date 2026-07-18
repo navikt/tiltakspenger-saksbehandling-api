@@ -39,7 +39,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * Gir deg mulighet til å lage en revurdering på en eksisterende sak uten å lage ny søknad + vedtak (Disse må da eksistere på saken som sendes inn)
@@ -243,7 +242,7 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
     val avbruttRevurdering = opprettetRevurdering.avbryt(
         avbruttAv = avbruttAv,
         begrunnelse = begrunnelse.toNonBlankString(),
-        tidspunkt = LocalDateTime.now(clock),
+        tidspunkt = nå(clock),
         skalAvbryteSøknad = false,
     ).getOrFail()
 

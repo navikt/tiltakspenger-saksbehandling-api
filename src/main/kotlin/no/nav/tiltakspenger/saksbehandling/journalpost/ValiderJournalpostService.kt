@@ -1,10 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.journalpost
 
+import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.Journalpost
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.KanIkkeHenteJournalpost
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.beskrivelse
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.route.ValiderJournalpostResponse
 import no.nav.tiltakspenger.saksbehandling.person.Identtype
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
@@ -20,7 +25,11 @@ class ValiderJournalpostService(
         fnr: Fnr,
         journalpostId: JournalpostId,
     ): ValiderJournalpostResponse {
-        val journalpost = safJournalpostClient.hentJournalpost(journalpostId)
+        val journalpost = safJournalpostClient.hentJournalpost(journalpostId).getOrElse { feil ->
+            // TODO jah: Unngå dobbel logging
+            feil.logg(journalpostId)
+            throw IllegalStateException("Kunne ikke hente journalpost fra SAF for journalpostId $journalpostId: ${feil.beskrivelse()}")
+        }
         if (journalpost == null) {
             logger.warn { "Fant ikke journalpost med id $journalpostId" }
             return ValiderJournalpostResponse(
@@ -62,6 +71,24 @@ class ValiderJournalpostService(
                 hentFnrFraPdl(bruker.id, journalpostId)
             } else {
                 null
+            }
+        }
+    }
+
+    /**
+     * Én logghendelse per feilsituasjon: vanlig logg uten rådata + sikkerlogg med rå request/respons.
+     */
+    private fun KanIkkeHenteJournalpost.logg(journalpostId: JournalpostId) {
+        when (this) {
+            is KanIkkeHenteJournalpost.KallFeilet -> httpKlientError.loggFeil(
+                logger = logger,
+                operasjon = "henting av journalpost fra SAF",
+                kontekst = "journalpostId: $journalpostId",
+            )
+
+            is KanIkkeHenteJournalpost.GraphQLFeil -> {
+                logger.error { "SAF svarte med GraphQL-feil ved henting av journalpost $journalpostId: feilkoder=$feilkoder. Se sikkerlogg for detaljer." }
+                Sikkerlogg.error { "SAF svarte med GraphQL-feil ved henting av journalpost $journalpostId: feilkoder=$feilkoder. response: ${httpKlientMetadata.rawResponseString}" }
             }
         }
     }

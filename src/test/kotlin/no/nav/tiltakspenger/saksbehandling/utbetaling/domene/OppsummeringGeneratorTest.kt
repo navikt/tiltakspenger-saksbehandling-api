@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
@@ -26,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.SimuleringRespo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toSimuleringFraHelvedResponse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class OppsummeringGeneratorTest {
 
@@ -46,7 +46,7 @@ class OppsummeringGeneratorTest {
         """.trimIndent()
         val meldeperiodeKjeder = MeldeperiodeKjeder(emptyList())
         deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, fixedClock) shouldBe Simulering.IngenEndring(
-            simuleringstidspunkt = LocalDateTime.now(fixedClock),
+            simuleringstidspunkt = nå(fixedClock),
         )
     }
 
@@ -332,7 +332,7 @@ class OppsummeringGeneratorTest {
             ),
             datoBeregnet = LocalDate.parse("2025-05-12"),
             totalBeløp = 2280,
-            simuleringstidspunkt = LocalDateTime.now(fixedClock),
+            simuleringstidspunkt = nå(fixedClock),
         )
     }
 
@@ -570,7 +570,7 @@ class OppsummeringGeneratorTest {
         deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) shouldBe Simulering.Endring(
             totalBeløp = 0,
             datoBeregnet = 16.mai(2025),
-            simuleringstidspunkt = LocalDateTime.now(fixedClock),
+            simuleringstidspunkt = nå(fixedClock),
             simuleringPerMeldeperiode = nonEmptyListOf(
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiode2,

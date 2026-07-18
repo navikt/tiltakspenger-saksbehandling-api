@@ -4,13 +4,14 @@ import arrow.core.Either
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
+import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,7 +58,10 @@ data class TilbakekrevingPeriodeDTO(
  *
  * @return [Tilbakekrevingshendelse] dersom hendelsen skal lagres - en [TilbakekrevingUkjentHendelse] dersom deserialiseringen feilet - eller null dersom hendelsen ikke skal lagres.
  */
-fun String.tilNyTilbakekrevingshendelse(id: TilbakekrevinghendelseId = TilbakekrevinghendelseId.random()): Tilbakekrevingshendelse? {
+fun String.tilNyTilbakekrevingshendelse(
+    clock: Clock,
+    id: TilbakekrevinghendelseId = TilbakekrevinghendelseId.random(),
+): Tilbakekrevingshendelse? {
     return Either.catch {
         deserialize<TilbakekrevingshendelseDTO>(this).tilHendelseForLagring(id)
     }.fold(
@@ -67,7 +71,7 @@ fun String.tilNyTilbakekrevingshendelse(id: TilbakekrevinghendelseId = Tilbakekr
             }
             TilbakekrevingUkjentHendelse(
                 id = id,
-                opprettet = LocalDateTime.now(),
+                opprettet = nå(clock),
                 value = this,
             )
         },

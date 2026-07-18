@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -20,7 +21,7 @@ interface SaksopplysningerMother {
         tiltaksdeltakelse: List<Tiltaksdeltakelse> = listOf(ObjectMother.tiltaksdeltakelse(fom = fom, tom = tom)),
         oppslagsperiode: Periode = Periode(fom, tom),
         clock: Clock = ObjectMother.clock,
-        oppslagstidspunkt: LocalDateTime = LocalDateTime.now(clock),
+        oppslagstidspunkt: LocalDateTime = nå(clock),
         ytelser: Ytelser = Ytelser.fromList(emptyList(), oppslagsperiode, oppslagstidspunkt),
         tiltakspengevedtakFraArena: TiltakspengevedtakFraArena = TiltakspengevedtakFraArena.fromList(
             emptyList(),

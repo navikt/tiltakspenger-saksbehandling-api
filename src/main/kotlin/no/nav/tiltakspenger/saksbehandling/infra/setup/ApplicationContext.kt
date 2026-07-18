@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
-import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
@@ -26,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
-import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClientImpl
+import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.KlageinstansKlagehendelseConsumer
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
@@ -170,22 +169,16 @@ open class ApplicationContext(
     }
 
     open val safJournalpostClient: SafJournalpostClient by lazy {
-        SafJournalpostClientImpl(
+        SafJournalpostHttpClient(
             baseUrl = Configuration.safUrl,
-            getToken = {
-                texasClient.getSystemToken(
-                    audienceTarget = Configuration.safScope,
-                    identityProvider = IdentityProvider.AZUREAD,
-                    rewriteAudienceTarget = false,
-                )
-            },
-            getOboToken = {
-                texasClient.exchangeToken(
-                    userToken = it,
-                    audienceTarget = Configuration.safScope,
-                    identityProvider = IdentityProvider.AZUREAD,
-                )
-            },
+            safScope = Configuration.safScope,
+            texasClient = texasClient,
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.safScope,
+                rewriteAudienceTarget = false,
+            ),
+            clock = clock,
         )
     }
 
@@ -527,6 +520,7 @@ open class ApplicationContext(
         TilbakekrevingConsumer(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            clock = clock,
         )
     }
 

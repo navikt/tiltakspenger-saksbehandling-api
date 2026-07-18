@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -36,7 +37,6 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import java.time.Clock
-import java.time.LocalDateTime
 
 internal fun TestDataHelper.persisterBrukersMeldekort(
     sak: Sak? = null,
@@ -68,7 +68,7 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
 
     val brukersMeldekort = ObjectMother.brukersMeldekort(
         id = MeldekortId.random(),
-        mottatt = LocalDateTime.now(clock),
+        mottatt = nå(clock),
         sakId = generertSak.id,
         meldeperiode = valgtMeldeperiode,
         behandlesAutomatisk = behandlesAutomatisk,
@@ -150,7 +150,7 @@ internal fun TestDataHelper.persisterAvsluttetMeldekortbehandling(
             saksbehandler = saksbehandler,
             correlationId = CorrelationId.generate(),
         ),
-        tidspunkt = LocalDateTime.now(clock),
+        tidspunkt = nå(clock),
     ).getOrFail()
 
     this.meldekortRepo.oppdater(avbruttMeldekortbehandling, null, null)

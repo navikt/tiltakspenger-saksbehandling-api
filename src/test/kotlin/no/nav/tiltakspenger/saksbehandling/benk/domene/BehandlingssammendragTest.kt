@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.mai
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 class BehandlingssammendragTest {
 
@@ -20,8 +20,8 @@ class BehandlingssammendragTest {
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
                 saksnummer = Saksnummer.genererSaknummer(1.mai(2025), "0001"),
-                startet = LocalDateTime.now(fixedClock),
-                kravtidspunkt = LocalDateTime.now(fixedClock),
+                startet = nå(fixedClock),
+                kravtidspunkt = nå(fixedClock),
                 behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = "saksbehandler",
@@ -41,7 +41,7 @@ class BehandlingssammendragTest {
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
                 saksnummer = Saksnummer.genererSaknummer(1.mai(2025), "9001"),
-                startet = LocalDateTime.now(fixedClock),
+                startet = nå(fixedClock),
                 kravtidspunkt = null,
                 behandlingstype = BehandlingssammendragType.SØKNADSBEHANDLING,
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
@@ -65,8 +65,8 @@ class BehandlingssammendragTest {
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
                 saksnummer = Saksnummer.genererSaknummer(1.mai(2025), "9001"),
-                startet = LocalDateTime.now(fixedClock),
-                kravtidspunkt = LocalDateTime.now(fixedClock),
+                startet = nå(fixedClock),
+                kravtidspunkt = nå(fixedClock),
                 behandlingstype = BehandlingssammendragType.REVURDERING,
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                 saksbehandler = "saksbehandler",
@@ -86,7 +86,7 @@ class BehandlingssammendragTest {
                 sakId = SakId.random(),
                 fnr = Fnr.random(),
                 saksnummer = Saksnummer.genererSaknummer(1.mai(2025), "9001"),
-                startet = LocalDateTime.now(fixedClock),
+                startet = nå(fixedClock),
                 kravtidspunkt = null,
                 behandlingstype = BehandlingssammendragType.REVURDERING,
                 status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,

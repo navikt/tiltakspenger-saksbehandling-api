@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
@@ -38,7 +39,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
 
 /**
  * Tester klienten mot `FakeHttpTransport` slik at hele den reelle `HttpKlient`-pipelinen kjører (statusregel, Accept-header, binær dekoding, metadata).
@@ -164,7 +164,7 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererMeldekortvedtakBrev for vedtak treffer utbetalingsvedtak`() {
-        val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = LocalDateTime.now(fixedClock))
+        val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = nå(fixedClock))
         verifiserBeggeModi("utbetalingsvedtak") {
             it.genererMeldekortvedtakBrev(
                 meldekortvedtak = meldekortvedtak,
@@ -187,7 +187,7 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererMeldekortvedtakBrevV2 for vedtak treffer meldekortvedtak`() {
-        val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = LocalDateTime.now(fixedClock))
+        val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = nå(fixedClock))
         verifiserBeggeModi("meldekortvedtak") {
             it.genererMeldekortvedtakBrevV2(
                 meldekortvedtak = meldekortvedtak,
@@ -379,7 +379,7 @@ internal class PdfgenHttpClientTest {
             meldekortbehandling = ObjectMother.meldekortBehandletManuelt(
                 id = meldekortId,
             ),
-            opprettet = LocalDateTime.now(fixedClock),
+            opprettet = nå(fixedClock),
         )
         runTest {
             val actual = nyKlient(transportMedPdf(antallSvar = 2), isLocalOrDev = true).genererMeldekortvedtakBrev(
