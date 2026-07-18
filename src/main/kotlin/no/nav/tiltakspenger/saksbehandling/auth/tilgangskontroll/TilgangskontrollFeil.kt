@@ -16,7 +16,7 @@ sealed interface TilgangskontrollFeil {
     /**
      * Uventet feil i kallet mot tilgangsmaskinen (transport, auth, uventet status, deserialisering).
      *
-     * [underliggende] beholdes utelukkende for logging via `HttpKlientErrorLogging.loggFeil`.
+     * [underliggende] beholdes utelukkende for logging via [no.nav.tiltakspenger.libs.httpklient.loggFeil].
      * Ikke ta domenebeslutninger basert på innholdet her.
      */
     data class Uventet(val underliggende: HttpKlientError) : TilgangskontrollFeil

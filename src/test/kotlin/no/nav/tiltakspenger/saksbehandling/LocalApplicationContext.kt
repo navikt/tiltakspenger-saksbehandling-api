@@ -86,6 +86,7 @@ class LocalApplicationContext(
             baseUrl = Configuration.pdfgenUrl,
             basePdfgenrsUrl = Configuration.pdfgenrsUrl,
             isLocalOrDev = true,
+            clock = clock,
         )
     } else {
         null

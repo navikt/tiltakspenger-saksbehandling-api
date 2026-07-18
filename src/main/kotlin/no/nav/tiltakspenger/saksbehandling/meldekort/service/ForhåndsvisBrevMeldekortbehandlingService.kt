@@ -3,11 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.toNonEmptyListOrThrow
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
@@ -30,6 +32,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
     val clock: Clock,
     val brukMeldekortvedtakBrevV2: Boolean,
 ) {
+    private val log = KotlinLogging.logger {}
 
     suspend fun forhåndsvisBrev(kommando: ForhåndsvisBrevMeldekortbehandlingKommando): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, Pair<PdfOgJson, PdfOgJson?>> {
         val meldekortbehandling = meldekortbehandlingRepo.hent(kommando.meldekortbehandlingId)
@@ -117,6 +120,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
         }.mapLeft {
+            it.feil.loggFeil(log, "generering av forhåndsvisning av meldekortvedtaksbrev", "SakId: ${meldekortbehandling.sakId}, saksnummer: ${meldekortbehandling.saksnummer}, meldekortbehandlingId: ${meldekortbehandling.id}")
             KunneIkkeForhåndsviseBrevMeldekortbehandling.FeilVedGenereringAvPdf(it)
         }
     }

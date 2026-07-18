@@ -48,6 +48,7 @@ open class DokumentContext(
             baseUrl = Configuration.pdfgenUrl,
             basePdfgenrsUrl = Configuration.pdfgenrsUrl,
             isLocalOrDev = !Configuration.isProd(),
+            clock = clock,
         )
     }
     open val genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient by lazy { pdfgen }

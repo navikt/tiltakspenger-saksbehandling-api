@@ -46,7 +46,6 @@ class TiltaksdeltakelseHttpKlient(
     private val httpKlient: HttpKlient = HttpKlient(
         clock = clock,
         config = HttpKlientConfig(
-            connectTimeout = connectTimeout,
             timeout = timeout,
             auth = KlientAuth.System(authTokenProvider),
         ),

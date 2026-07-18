@@ -5,9 +5,9 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
-import no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil
 import java.time.Clock
 
 class DistribuerRammevedtaksbrevService(

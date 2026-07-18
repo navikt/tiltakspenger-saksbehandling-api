@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
+import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
@@ -21,6 +23,8 @@ class ForhåndsvisBrevKlagebehandlingService(
     private val clock: Clock,
     private val genererKlagebrevKlient: GenererKlagebrevKlient,
 ) {
+    private val log = KotlinLogging.logger {}
+
     suspend fun forhåndsvisBrev(
         kommando: KlagebehandlingBrevKommando,
     ): Either<KanIkkeForhåndsviseBrev, Pair<PdfA, PdfA?>> {
@@ -56,6 +60,7 @@ class ForhåndsvisBrevKlagebehandlingService(
         ).map {
             Pair(it.first.pdf, it.second?.pdf)
         }.mapLeft {
+            it.feil.loggFeil(log, "generering av forhåndsvisning av klagebrev", "SakId: ${kommando.sakId}, klagebehandlingId: ${kommando.klagebehandlingId}")
             KanIkkeForhåndsviseBrev.FeilMotPdfgen
         }
     }

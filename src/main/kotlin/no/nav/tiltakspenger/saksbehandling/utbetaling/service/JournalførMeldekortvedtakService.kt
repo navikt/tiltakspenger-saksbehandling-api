@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
@@ -90,7 +91,10 @@ class JournalførMeldekortvedtakService(
                                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                                 sammenligning = sammenligning,
                             )
-                        }.getOrElse { return@forEach }
+                        }.getOrElse {
+                            it.feil.loggFeil(log, "generering av vedtaksbrev for meldekortvedtak", "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}")
+                            return@forEach
+                        }
                     log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
                         meldekortvedtak = meldekortvedtak,

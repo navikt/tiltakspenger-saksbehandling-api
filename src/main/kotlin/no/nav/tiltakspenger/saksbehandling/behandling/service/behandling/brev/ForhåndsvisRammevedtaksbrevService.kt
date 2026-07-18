@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev
 
 import arrow.core.Either
+import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -35,6 +37,8 @@ class ForhåndsvisRammevedtaksbrevService(
     private val navIdentClient: NavIdentClient,
     private val clock: Clock,
 ) {
+    private val log = KotlinLogging.logger {}
+
     /*
         TODO - pdfgenrs: skift tilbake til PdfA når det er verifisert at PDF fra pdfgenrs er ok
      */
@@ -111,7 +115,11 @@ class ForhåndsvisRammevedtaksbrevService(
                 }
             }
         }.fold(
-            ifLeft = { throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it") },
+            ifLeft = {
+                // TODO jah: Unngå dobbel logging.
+                it.feil.loggFeil(log, "generering av forhåndsvisning av vedtaksbrev", "SakId: ${kommando.sakId}, behandlingId: ${kommando.behandlingId}")
+                throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it")
+            },
             ifRight = { Pair(it.first.pdf, it.second?.pdf) },
         )
     }

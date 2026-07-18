@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -80,7 +81,10 @@ class JournalførRammevedtakService(
                         )
 
                         is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
-                    }.getOrElse { return@forEach }
+                    }.getOrElse {
+                        it.feil.loggFeil(log, "generering av vedtaksbrev", "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}")
+                        return@forEach
+                    }
 
                     log.info { "Vedtaksbrev generert for vedtak ${vedtak.id}" }
                     val journalpostId = journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(

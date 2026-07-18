@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
@@ -56,7 +57,10 @@ class JournalførKlagebrevJobb(
                         is Klagebehandlingsresultat.Omgjør, is Klagebehandlingsresultat.Opprettholdt -> throw IllegalStateException(
                             "Ugyldig resultat (${vedtak.resultat::class.simpleName} ved journalføring av klagevedtak. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
                         )
-                    }.getOrElse { return@forEach }
+                    }.getOrElse {
+                        it.feil.loggFeil(log, "generering av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
+                        return@forEach
+                    }
 
                     log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
                     val (journalpostId, _, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
@@ -123,7 +127,10 @@ class JournalførKlagebrevJobb(
                         hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
                         innsendingsdato = klagebehandling.formkrav.innsendingsdato,
                         clock = clock,
-                    ).getOrElse { return@forEach }
+                    ).getOrElse {
+                        it.feil.loggFeil(log, "generering av innstillingsbrev", loggkontekst)
+                        return@forEach
+                    }
 
                     log.info { "Innstillingsbrev generert. $loggkontekst" }
                     val (journalpostId, dokumentInfoId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(

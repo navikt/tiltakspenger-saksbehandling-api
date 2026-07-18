@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 /**
  * Venstresiden er [HttpKlientError] fra `tiltakspenger-libs:httpklient`.
  * Vi gjenbruker feiltypen fra libs i stedet for en egen domenefeil fordi konsumenten ([SendTilDatadelingService]) kun bryr seg om Right vs. Left, og fordi feiltypen selv bærer all HTTP-kontekst (status, rå request/respons, throwable) som trengs for logging.
- * Selve feilloggingen gjøres én gang av konsumenten via [no.nav.tiltakspenger.saksbehandling.infra.http.loggFeil], som kombinerer HTTP-konteksten fra feiltypen med domenekonteksten konsumenten har.
+ * Selve feilloggingen gjøres én gang av konsumenten via [no.nav.tiltakspenger.libs.httpklient.loggFeil], som kombinerer HTTP-konteksten fra feiltypen med domenekonteksten konsumenten har.
  */
 interface DatadelingClient {
 

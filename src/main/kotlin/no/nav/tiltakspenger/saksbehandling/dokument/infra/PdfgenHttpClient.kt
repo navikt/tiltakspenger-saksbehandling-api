@@ -3,17 +3,19 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import arrow.core.Either
 import arrow.core.NonEmptySet
 import arrow.core.flatMap
-import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.SerialisertJson
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -41,15 +43,11 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevFor
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
-import kotlin.time.toJavaDuration
 
 /**
  * Har ansvar for å konvertere domene til JSON som sendes til https://github.com/navikt/tiltakspenger-pdfgen for å generere PDF.
@@ -59,13 +57,22 @@ import kotlin.time.toJavaDuration
  * API-spec: -
  * Slack: #tiltakspenger-værsågod (eget team)
  * Teamkatalog: https://teamkatalogen.nav.no/team/15bca3d2-2584-4167-85ba-faab1f1cfb53
+ *
+ * pdfgen er en intern tjeneste uten autentisering, derfor [KlientAuth.Ingen].
+ *
+ * Klienten logger ikke feil selv: den bærer HTTP-konteksten videre via [KunneIkkeGenererePdf], og feillogging gjøres én gang i kallende service/jobb via [no.nav.tiltakspenger.libs.httpklient.loggFeil].
+ * Unntaket er en midlertidig info-linje i [runParallel] som sammenligner responstiden til pdfgen og pdfgenrs; den fjernes sammen med pdfgenrs-verifiseringen.
+ *
+ * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class PdfgenHttpClient(
     baseUrl: String,
     basePdfgenrsUrl: String,
-    connectTimeout: Duration = 1.seconds,
     private val isLocalOrDev: Boolean,
-    private val timeout: Duration = 20.seconds,
+    clock: Clock,
+    connectTimeout: Duration = 1.seconds,
+    timeout: Duration = 20.seconds,
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : GenererVedtaksbrevForInnvilgelseKlient,
     GenererVedtaksbrevForMeldekortKlient,
     GenererVedtaksbrevForStansKlient,
@@ -75,12 +82,14 @@ class PdfgenHttpClient(
 
     private val log = KotlinLogging.logger {}
 
-    private val client =
-        HttpClient
-            .newBuilder()
-            .connectTimeout(connectTimeout.toJavaDuration())
-            .followRedirects(HttpClient.Redirect.NEVER)
-            .build()
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            timeout = timeout,
+            auth = KlientAuth.Ingen,
+        ),
+        transport = transport,
+    )
 
     private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val pdfgenrsVedtakInnvilgelseUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
@@ -129,7 +138,6 @@ class PdfgenHttpClient(
                 )
             }
         }
-        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}"
         val uri = when (vedtak.rammebehandling) {
             is Revurdering -> revurderingInnvilgelseUri
             is Søknadsbehandling -> vedtakInnvilgelseUri
@@ -138,7 +146,6 @@ class PdfgenHttpClient(
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = uri,
                 pdfgenrsUri = when (vedtak.rammebehandling) {
                     is Revurdering -> pdfgenrsRevurderingInnvilgelseUri
@@ -146,7 +153,7 @@ class PdfgenHttpClient(
                 },
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = uri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = uri)
                 .map { it to null }
         }
     }
@@ -182,17 +189,15 @@ class PdfgenHttpClient(
                 barnetillegg = barnetilleggsperioder,
             )
         }
-        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = vedtakInnvilgelseUri,
                 pdfgenrsUri = pdfgenrsVedtakInnvilgelseUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = vedtakInnvilgelseUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = vedtakInnvilgelseUri)
                 .map { it to null }
         }
     }
@@ -228,17 +233,15 @@ class PdfgenHttpClient(
                 vedtaksdato = vedtaksdato,
             )
         }
-        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = revurderingInnvilgelseUri,
                 pdfgenrsUri = pdfgenrsRevurderingInnvilgelseUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = revurderingInnvilgelseUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = revurderingInnvilgelseUri)
                 .map { it to null }
         }
     }
@@ -259,18 +262,15 @@ class PdfgenHttpClient(
                 sammenligning,
             )
         }
-        val errorContext =
-            "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = meldekortvedtakUri,
                 pdfgenrsUri = meldekortvedtakRsUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakUri)
                 .map { it to null }
         }
     }
@@ -283,18 +283,15 @@ class PdfgenHttpClient(
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         val jsonPayload = suspend { kommando.tilJsonRequest(hentSaksbehandlersNavn) }
-        val errorContext =
-            "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = meldekortvedtakUri,
                 pdfgenrsUri = meldekortvedtakRsUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakUri)
                 .map { it to null }
         }
     }
@@ -312,18 +309,15 @@ class PdfgenHttpClient(
                 sammenligning,
             )
         }
-        val errorContext =
-            "SakId: ${meldekortvedtak.sakId}, saksnummer: ${meldekortvedtak.saksnummer}, vedtakId: ${meldekortvedtak.id}"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = meldekortvedtakV2Uri,
                 pdfgenrsUri = meldekortvedtakV2RsUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakV2Uri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakV2Uri)
                 .map { it to null }
         }
     }
@@ -333,18 +327,15 @@ class PdfgenHttpClient(
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         val jsonPayload = suspend { kommando.tilJsonRequestV2(hentSaksbehandlersNavn) }
-        val errorContext =
-            "SakId: ${kommando.sakId}, saksnummer: ${kommando.saksnummer}, meldekortbehandlingId: ${kommando.meldekortbehandlingId}"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = meldekortvedtakV2Uri,
                 pdfgenrsUri = meldekortvedtakV2RsUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = meldekortvedtakV2Uri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakV2Uri)
                 .map { it to null }
         }
     }
@@ -367,17 +358,15 @@ class PdfgenHttpClient(
                 harStansetBarnetillegg = harStansetBarnetillegg,
             )
         }
-        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = stansvedtakUri,
                 pdfgenrsUri = pdfgenrsStansvedtakUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = stansvedtakUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = stansvedtakUri)
                 .map { it to null }
         }
     }
@@ -415,17 +404,15 @@ class PdfgenHttpClient(
                 harStansetBarnetillegg = harStansetBarnetillegg,
             )
         }
-        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = stansvedtakUri,
                 pdfgenrsUri = pdfgenrsStansvedtakUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = stansvedtakUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = stansvedtakUri)
                 .map { it to null }
         }
     }
@@ -464,17 +451,15 @@ class PdfgenHttpClient(
                 datoForUtsending = datoForUtsending,
             )
         }
-        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = vedtakAvslagUri,
                 pdfgenrsUri = pdfgenrsVedtakAvslagUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = vedtakAvslagUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = vedtakAvslagUri)
                 .map { it to null }
         }
     }
@@ -495,17 +480,15 @@ class PdfgenHttpClient(
                 datoForUtsending = datoForUtsending,
             )
         }
-        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = vedtakAvslagUri,
                 pdfgenrsUri = pdfgenrsVedtakAvslagUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = vedtakAvslagUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = vedtakAvslagUri)
                 .map { it to null }
         }
     }
@@ -523,41 +506,28 @@ class PdfgenHttpClient(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+        val jsonPayload = suspend {
+            BrevKlageAvvisningDTO.create(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = vedtaksdato,
+                tilleggstekst = tilleggstekst,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                fnr = fnr,
+            )
+        }
+
         return if (isLocalOrDev) {
             runParallel(
-                jsonPayload = {
-                    BrevKlageAvvisningDTO.create(
-                        hentBrukersNavn = hentBrukersNavn,
-                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                        datoForUtsending = vedtaksdato,
-                        tilleggstekst = tilleggstekst,
-                        saksbehandlerNavIdent = saksbehandlerNavIdent,
-                        saksnummer = saksnummer,
-                        forhåndsvisning = forhåndsvisning,
-                        fnr = fnr,
-                    )
-                },
-                errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
+                jsonPayload = jsonPayload,
                 pdfgenUri = klageAvvisUri,
                 pdfgenrsUri = pdfgenrsKlageAvvisUri,
             )
         } else {
-            pdfgenRequest(
-                jsonPayload = {
-                    BrevKlageAvvisningDTO.create(
-                        hentBrukersNavn = hentBrukersNavn,
-                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                        datoForUtsending = vedtaksdato,
-                        tilleggstekst = tilleggstekst,
-                        saksbehandlerNavIdent = saksbehandlerNavIdent,
-                        saksnummer = saksnummer,
-                        forhåndsvisning = forhåndsvisning,
-                        fnr = fnr,
-                    )
-                },
-                errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning",
-                uri = klageAvvisUri,
-            ).map { it to null }
+            pdfgenRequest(jsonPayload = jsonPayload, uri = klageAvvisUri)
+                .map { it to null }
         }
     }
 
@@ -587,17 +557,15 @@ class PdfgenHttpClient(
                 innsendingsdato = innsendingsdato,
             )
         }
-        val errorContext = "Saksnummer: $saksnummer, Forhåndsvisning: $forhåndsvisning"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = klageInnstillingUrl,
                 pdfgenrsUri = pdfgenrsKlageInnstillingUrl,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = klageInnstillingUrl)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = klageInnstillingUrl)
                 .map { it to null }
         }
     }
@@ -620,17 +588,15 @@ class PdfgenHttpClient(
                 vedtaksdato = vedtaksdato,
             )
         }
-        val errorContext = "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = opphørUri,
                 pdfgenrsUri = pdfgenrsOpphørUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = opphørUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = opphørUri)
                 .map { it to null }
         }
     }
@@ -668,61 +634,51 @@ class PdfgenHttpClient(
                 tilleggstekst = tilleggstekst,
             )
         }
-        val errorContext = "SakId: $sakId, saksnummer: $saksnummer"
 
         return if (isLocalOrDev) {
             runParallel(
                 jsonPayload = jsonPayload,
-                errorContext = errorContext,
                 pdfgenUri = opphørUri,
                 pdfgenrsUri = pdfgenrsOpphørUri,
             )
         } else {
-            pdfgenRequest(jsonPayload = jsonPayload, errorContext = errorContext, uri = opphørUri)
+            pdfgenRequest(jsonPayload = jsonPayload, uri = opphørUri)
                 .map { it to null }
         }
     }
 
+    /**
+     * Payloaden bygges før HTTP-kallet, og feil derfra (f.eks. navneoppslag som kaster) propagerer som exceptions akkurat som før migreringen.
+     * Payloaden serialiseres av kallerne og sendes verbatim ([SerialisertJson]) fordi nøyaktig samme JSON persisteres sammen med PDF-en ([PdfOgJson]).
+     */
     private suspend fun pdfgenRequest(
         jsonPayload: suspend () -> String,
-        errorContext: String,
         uri: URI,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return withContext(Dispatchers.IO) {
-            val payload = jsonPayload()
-            Either.catch {
-                val request = createPdfgenRequest(payload, uri)
-                val httpResponse = client.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray()).await()
-                val jsonResponse = httpResponse.body()
-                val status = httpResponse.statusCode()
-                if (status != 200) {
-                    log.error { "Feil ved kall til pdfgen. $errorContext. Status: $status. uri: $uri. Se sikkerlogg for detaljer." }
-                    Sikkerlogg.error { "Feil ved kall til pdfgen. $errorContext. uri: $uri. jsonResponse: $jsonResponse. jsonPayload: $payload." }
-                    return@withContext KunneIkkeGenererePdf.left()
-                }
-
-                PdfOgJson(PdfA(jsonResponse), payload)
-            }.mapLeft {
-                // Either.catch slipper igjennom CancellationException som er ønskelig.
-                log.error(it) { "Feil ved kall til pdfgen. $errorContext. Se sikkerlogg for detaljer." }
-                Sikkerlogg.error(it) { "Feil ved kall til pdfgen. $errorContext. jsonPayload: $payload, uri: $uri" }
-                KunneIkkeGenererePdf
-            }
-        }
+        val payload = jsonPayload()
+        return httpKlient.postJsonMotPdf(
+            uri = uri,
+            body = SerialisertJson(payload),
+            godta = Statusregel.Eksakt(200),
+        ).map { PdfOgJson(PdfA(it.body), payload) }
+            .mapLeft { KunneIkkeGenererePdf(it) }
     }
 
+    /**
+     * Kaller pdfgen og pdfgenrs i parallell (kun local/dev) slik at PDF-ene kan sammenlignes manuelt.
+     * Feiler én av dem, feiler hele kallet; feiler begge, er det pdfgen-feilen som propageres til kallerens feillogging.
+     */
     private suspend fun runParallel(
         jsonPayload: suspend () -> String,
-        errorContext: String,
         pdfgenUri: URI,
         pdfgenrsUri: URI,
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
         return coroutineScope {
             val pdfgenDeferred = async {
-                measureTimedValue { pdfgenRequest(jsonPayload, errorContext, pdfgenUri) }
+                measureTimedValue { pdfgenRequest(jsonPayload, pdfgenUri) }
             }
             val pdfgenrsDeferred = async {
-                measureTimedValue { pdfgenRequest(jsonPayload, errorContext, pdfgenrsUri) }
+                measureTimedValue { pdfgenRequest(jsonPayload, pdfgenrsUri) }
             }
 
             val (pdfgenResult, pdfgenDuration) = pdfgenDeferred.await()
@@ -736,19 +692,5 @@ class PdfgenHttpClient(
                 }
             }
         }
-    }
-
-    private fun createPdfgenRequest(
-        jsonPayload: String,
-        uri: URI,
-    ): HttpRequest? {
-        return HttpRequest
-            .newBuilder()
-            .uri(uri)
-            .timeout(timeout.toJavaDuration())
-            .header("Accept", "application/pdf")
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-            .build()
     }
 }
