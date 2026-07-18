@@ -1,0 +1,25 @@
+name: Lint workflows
+
+on:
+  pull_request:
+    paths:
+      - '.github/**'
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/**'
+
+# Minste privilegium: toppnivået nullstiller alle token-rettigheter, hver jobb deklarerer eksplisitt det den trenger.
+permissions: {}
+
+jobs:
+  lint:
+    # Delt workflow i metarepoet: actionlint (blokkerende) + zizmor.
+    # Konvensjoner: https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+    permissions:
+      contents: read
+    uses: navikt/tiltakspenger/.github/workflows/lint-workflows.yml@main
+    with:
+      # Foreløpig ikke-blokkerende: repoets øvrige workflows er ennå ikke ryddet for zizmor-funn (jf. navikt/tiltakspenger#31).
+      # Skru til true når funnene er fikset eller nedfelt med begrunnelse i .github/zizmor.yml.
+      zizmor-blokkerende: false

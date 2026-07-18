@@ -4,58 +4,27 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
+# Minste privilegium: toppnivået nullstiller alle token-rettigheter, hver jobb deklarerer eksplisitt det den trenger.
+permissions: {}
+
+# Rebaser Dependabot mens en tidligere kjøring fortsatt bygger, feiler den gamle kjøringen på --match-head-commit og gir falskt feilvarsel.
+# Kansellering løser det: ny kjøring på samme PR avbryter den gamle, og kansellerte kjøringer regnes ikke som failure().
+# Må stå i calleren - en delt workflow lager ingen egen run, så concurrency på toppnivå der ignoreres.
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   dependabot:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
-    env:
-      PR_SHA: ${{ github.event.pull_request.head.sha }}
-      WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.0
-      - name: Fetch dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Notify Slack on new major version
-        if: steps.metadata.outputs.update-type == 'version-update:semver-major' && steps.metadata.outputs.package-ecosystem != 'github_actions' && github.event.action != 'synchronize'
-        run: |
-          curl -X POST --data-urlencode "payload={ \"attachments\": [{ \"pretext\": \"[${{ github.event.repository.name }}] Ny major dependency versjon!\", \"color\": \"info\", \"fields\": [ { \"title\": \"Commit\", \"value\": \"<https://github.com/${{ github.repository }}/commit/$PR_SHA|$PR_SHA>\", \"short\": false }, { \"title\": \"Dependency\", \"value\": \"$DEPENDENCY_NAME $VERSION_CHANGE\", \"short\": false } ] }] }" $WEBHOOK_URL
-        env:
-          DEPENDENCY_NAME: ${{ steps.metadata.outputs.dependency-names }}
-          VERSION_CHANGE: "${{ steps.metadata.outputs.previous-version }} -> ${{ steps.metadata.outputs.new-version }}"
-      - name: Set up Java
-        uses: actions/setup-java@v5.5.0
-        with:
-          distribution: 'temurin'
-          java-version: 25
-        if: steps.metadata.outputs.package-ecosystem != 'github_actions'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.2.0
-        if: steps.metadata.outputs.package-ecosystem != 'github_actions'
-      - name: Build and run tests
-        run: ./gradlew build --configuration-cache
-        if: steps.metadata.outputs.package-ecosystem != 'github_actions'
-      # Merger direkte, uten --auto: main har ingen påkrevde sjekker, og da avviser GitHub auto-merge.
-      # Bygg og test har allerede kjørt grønt i steget over.
-      # Merge med GITHUB_TOKEN trigger ingen push-workflows på main, så det bygges ikke image og deployes ikke.
-      # Merger et menneske/agent PR-en selv (GitHub-knappen eller gh CLI), kjører build og deploy som normalt - da er noen på jobb og kan følge opp.
-      - name: Auto-merge changes from Dependabot
-        run: gh pr merge --squash "$PR_URL"
-        if: steps.metadata.outputs.update-type == 'version-update:semver-patch' && steps.metadata.outputs.package-ecosystem != 'github_actions'
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Notify Slack in case of merge failure
-        if: failure() && steps.metadata.outputs.update-type != 'version-update:semver-major' && github.event.action != 'synchronize'
-        run: |
-          curl -X POST --data-urlencode "payload={ \"attachments\": [{ \"pretext\": \"[${{ github.event.repository.name }}] Dependabot auto-merge feilet :cry:\", \"color\": \"danger\", \"fields\": [ { \"title\": \"Commit\", \"value\": \"<https://github.com/${{ github.repository }}/commit/$PR_SHA|$PR_SHA>\", \"short\": false }, { \"title\": \"Dependency\", \"value\": \"$DEPENDENCY_NAME $VERSION_CHANGE\", \"short\": false } ] }] }" $WEBHOOK_URL
-        env:
-          DEPENDENCY_NAME: ${{ steps.metadata.outputs.dependency-names }}
-          VERSION_CHANGE: "${{ steps.metadata.outputs.previous-version }} -> ${{ steps.metadata.outputs.new-version }}"
+    # Selve logikken bor i den delte workflowen i metarepoet, se navikt/tiltakspenger#31.
+    # Konvensjoner og caller-eksempel: https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+    # contents: write for å merge PR-en, pull-requests: write for gh pr merge.
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: navikt/tiltakspenger/.github/workflows/dependabot-auto-merge.yml@main
+    # Send kun det den delte workflowen trenger - `secrets: inherit` ville eksponert alle Dependabot-secrets (også org-delte) for metarepoets workflow.
+    secrets:
+      SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
+    with:
+      java-version: '25'
