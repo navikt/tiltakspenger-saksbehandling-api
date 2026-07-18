@@ -31,20 +31,26 @@ on:
       - 'LICENSE'
       - 'lint_and_build.sh'
 
+# Minste privilegium: toppnivået nullstiller alle token-rettigheter, hver jobb deklarerer eksplisitt det den trenger.
+permissions: {}
+
+# Delte workflows i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
 jobs:
   build:
     name: Test and build
-    uses: ./.github/workflows/.test-and-build.yml
+    uses: navikt/tiltakspenger/.github/workflows/test-og-bygg-gradle.yml@main
     permissions:
       contents: read
       id-token: write
+    with:
+      java-version: '25'
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
 
   deploy-dev:
     name: Deploy to NAIS (dev)
     needs: build
-    uses: ./.github/workflows/.deploy-to-nais.yml
+    uses: navikt/tiltakspenger/.github/workflows/deploy-nais.yml@main
     permissions:
       contents: read
       id-token: write
@@ -55,7 +61,7 @@ jobs:
   deploy-prod:
     name: Deploy to NAIS (prod)
     needs: build
-    uses: ./.github/workflows/.deploy-to-nais.yml
+    uses: navikt/tiltakspenger/.github/workflows/deploy-nais.yml@main
     permissions:
       contents: read
       id-token: write

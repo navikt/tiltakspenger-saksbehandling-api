@@ -14,12 +14,11 @@ permissions: {}
 
 jobs:
   lint:
-    # Delt workflow i metarepoet: actionlint (blokkerende) + zizmor.
+    # Delt workflow i metarepoet: actionlint + zizmor (begge blokkerende).
     # Konvensjoner: https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
     permissions:
       contents: read
     uses: navikt/tiltakspenger/.github/workflows/lint-workflows.yml@main
     with:
-      # Foreløpig ikke-blokkerende: repoets øvrige workflows er ennå ikke ryddet for zizmor-funn (jf. navikt/tiltakspenger#31).
-      # Skru til true når funnene er fikset eller nedfelt med begrunnelse i .github/zizmor.yml.
-      zizmor-blokkerende: false
+      # Unntakene er nedfelt med begrunnelse i .github/zizmor.yml - nye funn skal derfor feile bygget.
+      zizmor-blokkerende: true
