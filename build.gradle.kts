@@ -111,7 +111,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinxCoroutinesVersion")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
-    testImplementation("io.github.serpro69:kotlin-faker:1.16.1")
+    testImplementation("io.github.serpro69:kotlin-faker:1.16.2")
     testImplementation("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
