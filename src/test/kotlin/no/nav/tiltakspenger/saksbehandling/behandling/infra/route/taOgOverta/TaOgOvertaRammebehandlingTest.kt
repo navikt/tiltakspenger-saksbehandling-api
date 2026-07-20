@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta
 
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -11,6 +12,33 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehan
 import org.junit.jupiter.api.Test
 
 internal class TaOgOvertaRammebehandlingTest {
+
+    @Test
+    fun `kan ikke ta behandling som allerede har saksbehandler`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            taBehandling(
+                tac,
+                sak.id,
+                behandling.id,
+                saksbehandler = ObjectMother.saksbehandler(navIdent = "Z999999"),
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetBody = """
+                    {
+                        "melding": "Behandlingen har allerede en saksbehandler.",
+                        "kode": "behandlingen_har_allerede_en_saksbehandler"
+                    }
+                """,
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "Z12345"
+            }
+        }
+    }
+
     @Test
     fun `saksbehandler kan overta behandling`() {
         withTestApplicationContext { tac ->

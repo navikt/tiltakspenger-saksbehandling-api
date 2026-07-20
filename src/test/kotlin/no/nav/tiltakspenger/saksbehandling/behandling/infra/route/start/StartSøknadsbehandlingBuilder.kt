@@ -137,7 +137,7 @@ interface StartSøknadsbehandlingBuilder {
             sakId = sak.id,
             behandlingId = behandling.id,
             saksbehandler = saksbehandler,
-        )
+        )!!
 
         return Triple(oppdaterSak, søknad, behandlingOppdatert as Søknadsbehandling)
     }

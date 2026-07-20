@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRamme
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.toStatusAndErrorJson
 
 private const val TA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/ta"
@@ -40,8 +41,14 @@ fun Route.taRammebehandlingRoute(
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 taBehandlingService.taBehandling(sakId, behandlingId, saksbehandler).fold(
-                    ifLeft = {
-                        call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
+                    ifLeft = { feil ->
+                        call.loggOgSvarFeil(
+                            logger = logger,
+                            operasjon = "Ta rammebehandling",
+                            feil = feil,
+                            statusOgErrorJson = feil.tilStatusOgErrorJson(),
+                            kontekst = "sakId=$sakId, behandlingId=$behandlingId",
+                        )
                     },
                     ifRight = {
                         auditService.logMedRammebehandlingId(
@@ -61,7 +68,7 @@ fun Route.taRammebehandlingRoute(
 }
 
 fun KunneIkkeTaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+    is KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen er i en tilstand som ikke tillater å ta behandlingen.",
         "behandlingen_er_i_en_tilstand_som_ikke_tillater_å_ta_behandling",
     )

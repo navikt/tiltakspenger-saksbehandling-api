@@ -58,7 +58,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
-            )
+            )!!
             val klagebehandling = oppdatertRammebehandling.klagebehandling!!
             json.getString("klagebehandlingId")
                 .shouldBe(rammebehandlingMedKlagebehandling.klagebehandling!!.id.toString())
@@ -118,7 +118,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
                 saksbehandler = saksbehandler,
-            )
+            )!!
 
             rammebehandlingJson.get("saksbehandler") shouldBe null
             rammebehandlingJson.getString("status") shouldBe "KLAR_TIL_BEHANDLING"

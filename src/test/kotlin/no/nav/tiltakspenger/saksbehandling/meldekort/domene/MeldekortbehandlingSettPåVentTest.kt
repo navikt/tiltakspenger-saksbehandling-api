@@ -28,7 +28,7 @@ class MeldekortbehandlingSettPåVentTest {
     @Test
     fun `setter meldekortbehandling under behandling på vent`() {
         val saksbehandler = ObjectMother.saksbehandler()
-        val frist = LocalDate.now().plusDays(1)
+        val frist = LocalDate.now(fixedClock).plusDays(1)
         val meldekortbehandling = ObjectMother.meldekortUnderBehandling(
             saksbehandler = saksbehandler.navIdent,
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,

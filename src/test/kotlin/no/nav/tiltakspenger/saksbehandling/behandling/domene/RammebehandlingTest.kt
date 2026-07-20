@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
@@ -199,7 +200,7 @@ class RammebehandlingTest {
         fun `kaster exception dersom man prøver å sette behandling (klar til behandling) på vent`() {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
-                .leggTilbakeRammebehandling(saksbehandler = saksbehandler, clock = clock).first
+                .leggTilbakeRammebehandling(saksbehandler = saksbehandler, clock = clock).getOrFail().first
 
             shouldThrow<IllegalStateException> {
                 val kommando = SettRammebehandlingPåVentKommando(

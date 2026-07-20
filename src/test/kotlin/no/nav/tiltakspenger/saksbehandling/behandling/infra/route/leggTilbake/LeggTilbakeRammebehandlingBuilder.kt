@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.leggTilbake
 
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
@@ -23,12 +24,17 @@ import org.json.JSONObject
 
 interface LeggTilbakeRammebehandlingBuilder {
 
+    /**
+     * Returnerer null dersom responsen ikke er 200 OK.
+     */
     suspend fun ApplicationTestBuilder.leggTilbakeRammebehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson> {
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetBody: String? = null,
+    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -45,8 +51,10 @@ interface LeggTilbakeRammebehandlingBuilder {
             withClue(
                 "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
             ) {
-                status shouldBe HttpStatusCode.OK
+                if (forventetStatus != null) status shouldBe forventetStatus
+                if (forventetBody != null) bodyAsText shouldEqualJson forventetBody
             }
+            if (status != HttpStatusCode.OK) return null
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
             return Triple(sak, behandling, JSONObject(bodyAsText))

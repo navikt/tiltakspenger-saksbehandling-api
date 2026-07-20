@@ -1,19 +1,20 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake
 
 import arrow.core.Either
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.KanIkkeLeggeTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.AktivTilknyttetBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentAktivTilknyttetBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppdaterKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.leggTilbake.KanIkkeLeggeTilbakeMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import java.time.Clock
@@ -21,8 +22,8 @@ import java.time.Clock
 suspend fun Sak.leggTilbakeKlagebehandling(
     kommando: LeggTilbakeKlagebehandlingKommando,
     clock: Clock,
-    leggTilbakeRammebehandling: suspend (SakId, RammebehandlingId, Saksbehandler) -> Pair<Sak, Rammebehandling>,
-    leggTilbakeMeldekortbehandling: (SakId, MeldekortId, Saksbehandler) -> Pair<Sak, Meldekortbehandling>,
+    leggTilbakeRammebehandling: suspend (SakId, RammebehandlingId, Saksbehandler) -> Either<KanIkkeLeggeTilbakeRammebehandling, Pair<Sak, Rammebehandling>>,
+    leggTilbakeMeldekortbehandling: (SakId, MeldekortId, Saksbehandler) -> Either<KanIkkeLeggeTilbakeMeldekortbehandling, Pair<Sak, Meldekortbehandling>>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeLeggeTilbakeKlagebehandling, Triple<Sak, Klagebehandling, AttesterbarBehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
@@ -31,13 +32,15 @@ suspend fun Sak.leggTilbakeKlagebehandling(
                 kommando.sakId,
                 tilknyttetBehandling.rammebehandling.id,
                 kommando.saksbehandler,
-            ).let { Triple(it.first, it.second.klagebehandling!!, it.second) }.right()
+            ).mapLeft { KanIkkeLeggeTilbakeKlagebehandling.FeilVedRammebehandling(it) }
+                .map { Triple(it.first, it.second.klagebehandling!!, it.second) }
 
             is AktivTilknyttetBehandling.Meldekort -> return leggTilbakeMeldekortbehandling(
                 kommando.sakId,
                 tilknyttetBehandling.meldekortbehandling.id,
                 kommando.saksbehandler,
-            ).let { Triple(it.first, it.second.klagebehandling!!, it.second) }.right()
+            ).mapLeft { KanIkkeLeggeTilbakeKlagebehandling.FeilVedMeldekortbehandling(it) }
+                .map { Triple(it.first, it.second.klagebehandling!!, it.second) }
 
             null -> Unit
         }

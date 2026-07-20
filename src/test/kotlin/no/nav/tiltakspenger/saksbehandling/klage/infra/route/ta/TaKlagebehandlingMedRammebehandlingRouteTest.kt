@@ -89,7 +89,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
                 saksbehandler = nySaksbehandler,
-            )
+            )!!
 
             rammebehandlingJson.getString("saksbehandler") shouldBe nySaksbehandler.navIdent
             rammebehandlingJson.getString("status") shouldBe "UNDER_BEHANDLING"

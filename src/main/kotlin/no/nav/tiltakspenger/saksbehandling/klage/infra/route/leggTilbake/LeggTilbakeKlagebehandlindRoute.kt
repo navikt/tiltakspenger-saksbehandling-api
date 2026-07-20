@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilStatusOgErrorJson
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.KanIkkeLegge
 import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.LeggTilbakeKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.toStatusAndErrorJson
 import no.nav.tiltakspenger.saksbehandling.klage.service.LeggTilbakeKlagebehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.tilStatusOgErrorJson
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
@@ -87,5 +89,9 @@ fun KanIkkeLeggeTilbakeKlagebehandling.toStatusAndErrorJson(): Pair<HttpStatusCo
                 this.forventetSaksbehandler,
             ),
         )
+
+        is KanIkkeLeggeTilbakeKlagebehandling.FeilVedRammebehandling -> this.underliggende.tilStatusOgErrorJson()
+
+        is KanIkkeLeggeTilbakeKlagebehandling.FeilVedMeldekortbehandling -> this.underliggende.tilStatusOgErrorJson()
     }
 }

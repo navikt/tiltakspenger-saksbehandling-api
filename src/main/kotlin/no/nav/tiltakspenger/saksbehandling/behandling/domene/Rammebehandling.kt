@@ -42,8 +42,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOmgj�
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOpprettholdelseKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettOmgjøring
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettOpprettholdelse
-import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.LeggTilbakeKlagebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.klage.domene.leggTilbake.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.OvertaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.overta.overta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando
@@ -143,91 +141,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     fun erFerdigutfylt(): Boolean
 
-    fun leggTilbakeRammebehandling(
-        saksbehandler: Saksbehandler,
-        clock: Clock,
-    ): Pair<Rammebehandling, Statistikkhendelser> {
-        return when (status) {
-            UNDER_BEHANDLING -> {
-                krevSaksbehandlerRolle(saksbehandler)
-                require(this.saksbehandler == saksbehandler.navIdent) {
-                    "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen"
-                }
-                val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.leggTilbake(
-                    LeggTilbakeKlagebehandlingKommando(
-                        sakId = sakId,
-                        klagebehandlingId = klagebehandling!!.id,
-                        saksbehandler = saksbehandler,
-                    ),
-                    tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
-                    clock = clock,
-                )?.getOrElse {
-                    throw IllegalStateException("Kunne ikke legge tilbake klagebehandling når rammebehandling legges tilbake: $it")
-                } ?: (null to Statistikkhendelser.empty())
-                val oppdatertRammebehandling = when (this) {
-                    is Søknadsbehandling -> {
-                        this.copy(
-                            saksbehandler = null,
-                            status = KLAR_TIL_BEHANDLING,
-                            sistEndret = nå(clock),
-                            klagebehandling = oppdatertKlagebehandling,
-                        )
-                    }
-
-                    is Revurdering -> this.copy(
-                        saksbehandler = null,
-                        status = KLAR_TIL_BEHANDLING,
-                        sistEndret = nå(clock),
-                        klagebehandling = oppdatertKlagebehandling,
-                    )
-                }
-                val statistikkhendelser = klagestatistikk.leggTil(
-                    oppdatertRammebehandling.genererSaksstatistikk(
-                        StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER,
-                    ),
-                )
-                oppdatertRammebehandling to statistikkhendelser
-            }
-
-            UNDER_BESLUTNING -> {
-                krevBeslutterRolle(saksbehandler)
-                require(this.beslutter == saksbehandler.navIdent) {
-                    "Kan bare legge tilbake behandling dersom saksbehandler selv er på behandlingen"
-                }
-
-                val oppdatertRammebehandling = when (this) {
-                    is Søknadsbehandling -> this.copy(
-                        beslutter = null,
-                        status = KLAR_TIL_BESLUTNING,
-                        sistEndret = nå(clock),
-                    )
-
-                    is Revurdering -> this.copy(
-                        beslutter = null,
-                        status = KLAR_TIL_BESLUTNING,
-                        sistEndret = nå(clock),
-                    )
-                }
-                val statistikkhendelser = Statistikkhendelser(
-                    oppdatertRammebehandling.genererSaksstatistikk(
-                        StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER,
-                    ),
-                )
-                oppdatertRammebehandling to statistikkhendelser
-            }
-
-            KLAR_TIL_BESLUTNING -> throw IllegalStateException("Kan ikke legge tilbake behandling som er klar til beslutning")
-
-            KLAR_TIL_BEHANDLING -> throw IllegalStateException("Kan ikke legge tilbake behandling som ikke er påbegynt")
-
-            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> {
-                throw IllegalArgumentException(
-                    "Kan ikke legge tilbake behandling når behandlingen er ${this.status}. Utøvende saksbehandler: $saksbehandler. Saksbehandler på behandling: ${this.saksbehandler}",
-                )
-            }
-        }
-    }
-
     /** Saksbehandler/beslutter tar behandlingen. */
     fun taBehandling(
         saksbehandler: Saksbehandler,
@@ -302,7 +215,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
             UNDER_BESLUTNING -> KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()
 
-            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling.left()
+            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling(status).left()
         }
     }
 

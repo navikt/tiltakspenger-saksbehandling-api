@@ -77,7 +77,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
             sakId = sak.id,
             behandlingId = rammebehandling.id,
             saksbehandler = saksbehandler,
-        )
+        )!!
 
         return Tuple5(
             sakMedLagtTilbakeRammebehandling,

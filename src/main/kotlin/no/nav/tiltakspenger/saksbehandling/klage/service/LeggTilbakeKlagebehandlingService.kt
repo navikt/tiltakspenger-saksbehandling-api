@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
@@ -34,17 +33,7 @@ class LeggTilbakeKlagebehandlingService(
             kommando = kommando,
             clock = clock,
             leggTilbakeRammebehandling = leggTilbakeRammebehandlingService::leggTilbakeRammebehandling,
-            leggTilbakeMeldekortbehandling = { sakId, meldekortId, saksbehandlerSomLeggerTilbake ->
-                leggTilbakeMeldekortbehandlingService.leggTilbakeMeldekortbehandling(
-                    sakId,
-                    meldekortId,
-                    saksbehandlerSomLeggerTilbake,
-                ).getOrElse {
-                    throw IllegalStateException(
-                        "Kunne ikke legge tilbake meldekortbehandling $meldekortId tilknyttet klagebehandling ${kommando.klagebehandlingId}: $it",
-                    )
-                }
-            },
+            leggTilbakeMeldekortbehandling = leggTilbakeMeldekortbehandlingService::leggTilbakeMeldekortbehandling,
             lagre = ::lagreKlagebehandlingOgStatistikk,
         )
     }

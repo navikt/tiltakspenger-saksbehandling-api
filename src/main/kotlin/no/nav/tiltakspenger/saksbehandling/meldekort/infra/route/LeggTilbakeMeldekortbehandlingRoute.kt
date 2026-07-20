@@ -1,12 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.server.application.ApplicationCall
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
-import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
@@ -46,7 +45,7 @@ fun Route.leggTilbakeMeldekortbehandlingRoute(
                     meldekortId = meldekortId,
                     saksbehandler = saksbehandler,
                 ).fold(
-                    { call.respondLeggTilbakeError(it) },
+                    { call.respondJson(statusAndValue = it.tilStatusOgErrorJson()) },
                     { (sak) ->
                         auditService.logMedMeldekortId(
                             meldekortId = meldekortId,
@@ -66,33 +65,29 @@ fun Route.leggTilbakeMeldekortbehandlingRoute(
     }
 }
 
-private suspend fun ApplicationCall.respondLeggTilbakeError(
-    feil: KanIkkeLeggeTilbakeMeldekortbehandling,
-) {
-    when (feil) {
-        is KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreSaksbehandler -> respond403Forbidden(
-            melding = "Du må være saksbehandler for å legge tilbake denne meldekortbehandlingen.",
-            kode = "maa_vaere_saksbehandler",
-        )
+fun KanIkkeLeggeTilbakeMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være saksbehandler for å legge tilbake denne meldekortbehandlingen.",
+        "maa_vaere_saksbehandler",
+    )
 
-        is KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet -> respond403Forbidden(
-            melding = "Du må være saksbehandleren som er tildelt meldekortbehandlingen for å legge den tilbake.",
-            kode = "maa_vaere_saksbehandler_for_meldekortet",
-        )
+    KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være saksbehandleren som er tildelt meldekortbehandlingen for å legge den tilbake.",
+        "maa_vaere_saksbehandler_for_meldekortet",
+    )
 
-        is KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreBeslutter -> respond403Forbidden(
-            melding = "Du må være beslutter for å legge tilbake denne meldekortbehandlingen.",
-            kode = "maa_vaere_beslutter",
-        )
+    KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være beslutter for å legge tilbake denne meldekortbehandlingen.",
+        "maa_vaere_beslutter",
+    )
 
-        is KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreBeslutterForMeldekortet -> respond403Forbidden(
-            melding = "Du må være beslutteren som er tildelt meldekortbehandlingen for å legge den tilbake.",
-            kode = "maa_vaere_beslutter_for_meldekortet",
-        )
+    KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreBeslutterForMeldekortet -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være beslutteren som er tildelt meldekortbehandlingen for å legge den tilbake.",
+        "maa_vaere_beslutter_for_meldekortet",
+    )
 
-        is KanIkkeLeggeTilbakeMeldekortbehandling.UgyldigStatus -> respond400BadRequest(
-            melding = "Kan ikke legge tilbake meldekortbehandling med status ${feil.status}.",
-            kode = "ugyldig_status_for_legg_tilbake",
-        )
-    }
+    is KanIkkeLeggeTilbakeMeldekortbehandling.UgyldigStatus -> HttpStatusCode.BadRequest to ErrorJson(
+        "Kan ikke legge tilbake meldekortbehandling med status ${this.status}.",
+        "ugyldig_status_for_legg_tilbake",
+    )
 }
