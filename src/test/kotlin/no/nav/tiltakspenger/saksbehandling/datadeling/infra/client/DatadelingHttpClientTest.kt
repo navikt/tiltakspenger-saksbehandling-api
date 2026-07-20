@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -22,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import org.junit.jupiter.api.Test
 import java.time.Instant
-import java.time.LocalDateTime
 
 /**
  * Enhetstest for [DatadelingHttpClient] med `FakeHttpTransport` — hele den reelle pipelinen kjører.
@@ -172,8 +172,8 @@ internal class DatadelingHttpClientTest {
             id = SakId.random(),
             fnr = Fnr.random(),
             saksnummer = Saksnummer.genererSaknummer(clock = ObjectMother.clock, løpenr = "1001"),
-            sistEndret = LocalDateTime.now(),
-            opprettet = LocalDateTime.now(),
+            sistEndret = nå(ObjectMother.clock),
+            opprettet = nå(ObjectMother.clock),
         )
 
         runTest {

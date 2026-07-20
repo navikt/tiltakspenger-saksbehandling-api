@@ -66,10 +66,6 @@ dependencies {
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
 
     // Http
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-apache5:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging:$ktorVersion")
     implementation("io.ktor:ktor-http:$ktorVersion")
 
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
@@ -276,6 +272,7 @@ kover {
                         "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient",
                         "no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient",
+                        "no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
                         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",

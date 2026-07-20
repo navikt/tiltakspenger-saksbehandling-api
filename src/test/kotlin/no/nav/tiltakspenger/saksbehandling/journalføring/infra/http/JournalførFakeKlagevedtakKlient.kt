@@ -3,6 +3,8 @@
 package no.nav.tiltakspenger.saksbehandling.journalføring.infra.http
 
 import arrow.atomic.Atomic
+import arrow.core.Either
+import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Ulid
@@ -13,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGenerato
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
+import no.nav.tiltakspenger.saksbehandling.journalføring.KunneIkkeJournalføre
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
@@ -39,7 +42,7 @@ class JournalførFakeKlagevedtakKlient(
         klagevedtak: Klagevedtak,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): JournalførteDokumenter {
+    ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
         return JournalførteDokumenter(
             journalpostId = journalpostIdData.get()[klagevedtak.id] ?: journalpostIdGenerator.generer().also {
                 journalpostIdData.get().putIfAbsent(klagevedtak.id, it)
@@ -52,14 +55,14 @@ class JournalførFakeKlagevedtakKlient(
                     dokumentInfoIdData.get().putIfAbsent(klagevedtak.id, it.toList())
                 },
             metadata = journalførBrevMetadata,
-        )
+        ).right()
     }
 
     override suspend fun journalførInnstillingsbrevForOpprettholdtKlagebehandling(
         klagebehandling: Klagebehandling,
         pdfOgJson: PdfOgJson,
         correlationId: CorrelationId,
-    ): JournalførteDokumenter {
+    ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
         return JournalførteDokumenter(
             journalpostId = journalpostIdData.get()[klagebehandling.id] ?: journalpostIdGenerator.generer().also {
                 journalpostIdData.get().putIfAbsent(klagebehandling.id, it)
@@ -72,6 +75,6 @@ class JournalførFakeKlagevedtakKlient(
                     dokumentInfoIdData.get().putIfAbsent(klagebehandling.id, it.toList())
                 },
             metadata = journalførBrevMetadata,
-        )
+        ).right()
     }
 }

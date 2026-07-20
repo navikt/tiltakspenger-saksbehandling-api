@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra.setup
 
-import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
@@ -27,7 +26,10 @@ open class DokumentContext(
         DokarkivHttpClient(
             baseUrl = Configuration.dokarkivUrl,
             clock = clock,
-            getToken = { texasClient.getSystemToken(Configuration.dokarkivScope, IdentityProvider.AZUREAD) },
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.dokarkivScope,
+            ),
         )
     }
     open val dokumentdistribusjonsklient: Dokumentdistribusjonsklient by lazy {

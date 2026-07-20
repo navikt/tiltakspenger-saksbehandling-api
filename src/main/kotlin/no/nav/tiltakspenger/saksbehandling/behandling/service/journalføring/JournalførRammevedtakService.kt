@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -91,17 +92,23 @@ class JournalførRammevedtakService(
                         vedtak = vedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
-                    ).first
+                    ).getOrElse {
+                        it.loggFeil(log, "journalføring av vedtaksbrev", "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}")
+                        return@forEach
+                    }.journalpostId
                     /*
                         TODO - pdfgenrs: fjern journalføringen av pdfgenrs-pdf'en når det er verifisert at pdf'en er ok.
                             Vi journalfører den kun for å manuelt kunne sjekke at pdfgenrs genererer riktig pdf i dev.
+                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
                      */
                     pdfOgJsonPdfgenrs?.let {
                         journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
                             vedtak = vedtak,
                             pdfOgJson = it,
                             correlationId = correlationId,
-                        )
+                        ).onLeft { feil ->
+                            feil.loggFeil(log, "journalføring av pdfgenrs-vedtaksbrev (kun dev-sammenligning)", "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}")
+                        }
                     }
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
