@@ -61,14 +61,13 @@ internal class BehandleSøknadPåNyttTest {
             behandling.status shouldBe Rammebehandlingsstatus.VEDTATT
             behandling.resultat is Søknadsbehandlingsresultat.Avslag
 
-            val responskode = this.startBehandlingAvSøknadPåNyttForSøknadId(
+            this.startBehandlingAvSøknadPåNyttForSøknadId(
                 tac = tac,
                 sakId = sak.id,
                 søknadId = søknad.id,
                 saksbehandler = ObjectMother.beslutter(),
+                forventetStatus = HttpStatusCode.Forbidden,
             )
-
-            responskode shouldBe HttpStatusCode.Forbidden
         }
     }
 
@@ -97,14 +96,13 @@ internal class BehandleSøknadPåNyttTest {
                 ),
             )
 
-            val responskode = this.startBehandlingAvSøknadPåNyttForSøknadId(
+            this.startBehandlingAvSøknadPåNyttForSøknadId(
                 tac = tac,
                 sakId = sak.id,
                 søknadId = søknad.id,
                 saksbehandler = ObjectMother.saksbehandler(),
+                forventetStatus = HttpStatusCode.Forbidden,
             )
-
-            responskode shouldBe HttpStatusCode.Forbidden
         }
     }
 }

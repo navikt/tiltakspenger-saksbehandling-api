@@ -15,13 +15,14 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.KanIkkeLeggeTilbakeRammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake.toStatusAndErrorJson
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val LEGG_TILBAKE_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/legg-tilbake"
 
@@ -29,6 +30,7 @@ fun Route.leggTilbakeRammebehandlingRoute(
     auditService: AuditService,
     leggTilbakeBehandlingService: LeggTilbakeRammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post(LEGG_TILBAKE_BEHANDLING_PATH) {
@@ -63,7 +65,7 @@ fun Route.leggTilbakeRammebehandlingRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.toSakDTO(saksbehandler = saksbehandler, clock = clock))
                     },
                 )
             }

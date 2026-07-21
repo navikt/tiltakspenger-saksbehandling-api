@@ -196,7 +196,7 @@ class KabalKlagehendelserConsumerTest {
 
     private fun forventetNyOmgjøringskravbehandlingAvsluttetHendelse(
         klagehendelseId: KlagehendelseId,
-        utfall: `OmgjøringskravbehandlingAvsluttetUtfall`,
+        utfall: OmgjøringskravbehandlingAvsluttetUtfall,
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         sakId: SakId? = null,
         klagebehandlingId: KlagebehandlingId? = null,

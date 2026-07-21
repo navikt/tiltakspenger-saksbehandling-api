@@ -1,21 +1,19 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
 import arrow.core.Tuple5
-import io.kotest.assertions.withClue
-import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
@@ -90,10 +88,14 @@ interface OpprettMeldekortbehandlingBuilder {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         val kjedeId = "${kjedeId.fraOgMed}%2F${kjedeId.tilOgMed}"
-        defaultRequest(
+        val response = defaultRequestWithAssertions(
             HttpMethod.Post,
             "/sak/$sakId/meldeperiode/$kjedeId/opprettBehandling",
             jwt = jwt,
+            forventet = ForventetRespons(
+                status = forventetStatus,
+                contentType = ContentType.parse("application/json; charset=UTF-8"),
+            ),
         ) {
             setBody(
                 """
@@ -102,34 +104,27 @@ interface OpprettMeldekortbehandlingBuilder {
                 }
                 """.trimIndent(),
             )
-        }.apply {
-            val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                status shouldBe forventetStatus
-                if (medJsonBody != null) {
-                    medJsonBody(bodyAsText)
-                }
-            }
-
-            if (status != HttpStatusCode.OK) {
-                return null
-            }
-
-            val jsonObject: MeldekortbehandlingDTOV2Json = objectMapper.readTree(bodyAsText)
-            val meldekortbehandlingId = MeldekortId.fromString(jsonObject.get("id").asString())
-
-            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val meldekortbehandling =
-                tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandlingId) as MeldekortUnderBehandling
-
-            return Triple(
-                oppdatertSak,
-                meldekortbehandling,
-                jsonObject,
-            )
         }
+        val bodyAsText = response.bodyAsText()
+        if (medJsonBody != null) {
+            medJsonBody(bodyAsText)
+        }
+
+        if (response.status != HttpStatusCode.OK) {
+            return null
+        }
+
+        val jsonObject: MeldekortbehandlingDTOV2Json = objectMapper.readTree(bodyAsText)
+        val meldekortbehandlingId = MeldekortId.fromString(jsonObject.get("id").asString())
+
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val meldekortbehandling =
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandlingId) as MeldekortUnderBehandling
+
+        return Triple(
+            oppdatertSak,
+            meldekortbehandling,
+            jsonObject,
+        )
     }
 }

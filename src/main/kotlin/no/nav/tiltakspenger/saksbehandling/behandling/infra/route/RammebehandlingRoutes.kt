@@ -51,7 +51,7 @@ fun Route.rammebehandlingRoutes(
     taRammebehandlingRoute(auditService, taBehandlingService, tilgangskontrollService)
     underkjennRammebehandlingRoute(auditService, behandlingService, tilgangskontrollService)
     overtaRammebehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService)
-    leggTilbakeRammebehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService)
+    leggTilbakeRammebehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService, clock)
     oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService, clock)
     gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService)

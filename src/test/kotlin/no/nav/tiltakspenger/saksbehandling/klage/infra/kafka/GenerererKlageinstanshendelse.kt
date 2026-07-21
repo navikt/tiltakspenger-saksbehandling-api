@@ -4,7 +4,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.kafka
 
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.BehandlingFeilregistrert.KlagehendelseFeilregistrertType
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall
-import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.`OmgjøringskravbehandlingAvsluttet`.`OmgjøringskravbehandlingAvsluttetUtfall`
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall
 
 /** Se https://github.com/navikt/kabal-api/blob/main/docs/schema/behandling-events.json for fasit. */
 object GenerererKlageinstanshendelse {
@@ -43,7 +43,7 @@ object GenerererKlageinstanshendelse {
         kabalReferanse: String = "c0aef33a-da01-4262-ab55-1bbdde157e8a",
         avsluttetTidspunkt: String = "2025-01-01T01:02:03.456789",
         journalpostReferanser: List<String> = listOf("123", "456"),
-        utfall: `OmgjøringskravbehandlingAvsluttetUtfall` = `OmgjøringskravbehandlingAvsluttetUtfall`.MEDHOLD_ETTER_FVL_35,
+        utfall: OmgjøringskravbehandlingAvsluttetUtfall = OmgjøringskravbehandlingAvsluttetUtfall.MEDHOLD_ETTER_FVL_35,
     ): String {
         //language=JSON
         return """

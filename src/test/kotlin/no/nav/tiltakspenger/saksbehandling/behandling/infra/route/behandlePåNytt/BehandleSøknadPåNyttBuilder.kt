@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt
 
 import arrow.core.Tuple4
-import io.kotest.assertions.withClue
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
@@ -17,7 +15,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -53,21 +52,18 @@ interface BehandleSøknadPåNyttBuilder {
     ): Pair<Rammebehandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
         tac.leggTilBruker(jwt, ObjectMother.saksbehandler())
-        defaultRequest(
+        val response = defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/soknad/$søknadId/behandling/ny-behandling")
             },
             jwt = jwt,
-        ).apply {
-            val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {}
-            val behandlingId = RammebehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
-            return tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) to bodyAsText
-        }
+            forventet = ForventetRespons(status = HttpStatusCode.OK),
+        )
+        val bodyAsText = response.bodyAsText()
+        val behandlingId = RammebehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
+        return tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) to bodyAsText
     }
 
     suspend fun ApplicationTestBuilder.startBehandlingAvSøknadPåNyttForSøknadId(
@@ -75,18 +71,18 @@ interface BehandleSøknadPåNyttBuilder {
         sakId: SakId,
         søknadId: SøknadId,
         saksbehandler: Saksbehandler,
-    ): HttpStatusCode {
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+    ) {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/soknad/$søknadId/behandling/ny-behandling")
             },
             jwt = jwt,
-        ).apply {
-            return status
-        }
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
+        )
     }
 }

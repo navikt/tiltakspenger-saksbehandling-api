@@ -29,8 +29,10 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandlingId,
-            )!!.also { (_, _, json) ->
-                json.getString("saksbehandler") shouldBe "null"
+            )!!.also { (_, _, sakJson) ->
+                val behandlingJson = sakJson.get("behandlinger").single { it.get("id").asText() == behandlingId.toString() }
+                behandlingJson.get("saksbehandler").isNull shouldBe true
+                behandlingJson.get("status").asText() shouldBe "KLAR_TIL_BEHANDLING"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                     it.saksbehandler shouldBe null
@@ -52,8 +54,9 @@ class LeggTilbakeRammebehandlingRouteTest {
                     it.beslutter shouldBe "B12345"
                 }
             }
-            leggTilbakeRammebehandling(tac, sak.id, behandlingId, ObjectMother.beslutter())!!.also { (_, _, jsonBody) ->
-                jsonBody.getString("beslutter") shouldBe "null"
+            leggTilbakeRammebehandling(tac, sak.id, behandlingId, ObjectMother.beslutter())!!.also { (_, _, sakJson) ->
+                val behandlingJson = sakJson.get("behandlinger").single { it.get("id").asText() == behandlingId.toString() }
+                behandlingJson.get("beslutter").isNull shouldBe true
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
                     it.beslutter shouldBe null

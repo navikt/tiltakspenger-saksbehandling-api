@@ -10,15 +10,15 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import org.json.JSONObject
 
 interface LeggTilbakeRammebehandlingBuilder {
 
@@ -32,7 +32,7 @@ interface LeggTilbakeRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetBody: String? = null,
-    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
+    ): Triple<Sak, Rammebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -51,6 +51,6 @@ interface LeggTilbakeRammebehandlingBuilder {
         if (response.status != HttpStatusCode.OK) return null
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
-        return Triple(sak, behandling, JSONObject(response.bodyAsText()))
+        return Triple(sak, behandling, objectMapper.readTree(response.bodyAsText()))
     }
 }

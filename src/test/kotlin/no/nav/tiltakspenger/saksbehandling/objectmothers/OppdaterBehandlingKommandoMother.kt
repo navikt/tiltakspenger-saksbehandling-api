@@ -114,7 +114,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { FritekstTilVedtaksbrev.createOrThrow(it) },
-            `begrunnelseVilkårsvurdering` = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
+            begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
             innvilgelsesperioder = innvilgelsesperioder.tilPeriodisering(),
             barnetillegg = barnetillegg,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,

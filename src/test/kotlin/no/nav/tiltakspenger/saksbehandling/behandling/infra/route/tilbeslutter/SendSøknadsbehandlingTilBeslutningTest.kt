@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -16,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningReturnerRespons
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import org.junit.jupiter.api.Test
 
@@ -37,7 +35,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.beslutter shouldBe null
             }
 
-            `sendSøknadsbehandlingTilBeslutningForBehandlingId`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 behandlingId,
@@ -72,19 +70,18 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.beslutter shouldBe null
             }
 
-            val response = `sendSøknadsbehandlingTilBeslutningReturnerRespons`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 behandlingId,
                 saksbehandler(navIdent = "Z999999"),
-            )
-
-            response.status shouldBe HttpStatusCode.BadRequest
-            response.bodyAsText() shouldBe objectMapper.writeValueAsString(
-                Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
-                    saksbehandler.navIdent,
+                forventetStatus = HttpStatusCode.BadRequest,
+                forventetJsonBody = objectMapper.writeValueAsString(
+                    Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
+                        saksbehandler.navIdent,
+                    ),
                 ),
-            )
+            ) shouldBe null
         }
     }
 
@@ -99,7 +96,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
 
             val behandlingId = behandling.id
 
-            `oppdaterSøknadsbehandlingIkkeValgt`(
+            oppdaterSøknadsbehandlingIkkeValgt(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandlingId,
@@ -111,14 +108,13 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 it.resultat.shouldBeNull()
             }
 
-            `sendSøknadsbehandlingTilBeslutningReturnerRespons`(
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(
                 tac,
                 sak.id,
                 behandlingId,
                 saksbehandler,
-            ).also {
-                it.status shouldBe HttpStatusCode.InternalServerError
-            }
+                forventetStatus = HttpStatusCode.InternalServerError,
+            ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING

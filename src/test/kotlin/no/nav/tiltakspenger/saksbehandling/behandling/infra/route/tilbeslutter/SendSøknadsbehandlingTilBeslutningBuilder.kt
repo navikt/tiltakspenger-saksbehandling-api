@@ -1,14 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
 import arrow.core.Tuple4
-import io.kotest.assertions.withClue
-import io.kotest.matchers.shouldBe
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
@@ -17,8 +13,8 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -76,52 +72,38 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 sakId = sakId,
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
-            ),
+            )!!,
         )
     }
 
-    /** Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING` */
+    /**
+     * Forventer at det allerede finnes en behandling med status `UNDER_BEHANDLING`.
+     * Returnerer null dersom responsen ikke er 200 OK.
+     */
     suspend fun ApplicationTestBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): String {
+        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventetJsonBody: String? = null,
+    ): String? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequestWithAssertions(
+        val response = defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
             jwt = jwt,
-            forventet = ForventetRespons(status = HttpStatusCode.OK),
-        ).apply {
-            val bodyAsText = this.bodyAsText()
-            return bodyAsText
-        }
-    }
-
-    suspend fun ApplicationTestBuilder.sendSøknadsbehandlingTilBeslutningReturnerRespons(
-        tac: TestApplicationContext,
-        sakId: SakId,
-        behandlingId: RammebehandlingId,
-        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): HttpResponse {
-        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
-            saksbehandler = saksbehandler,
-        )
-        tac.leggTilBruker(jwt, saksbehandler)
-        return defaultRequest(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
+            forventet = forventetStatus?.let { status ->
+                ForventetRespons(status = status, body = forventetJsonBody?.let { ForventetBody.Json(it) })
             },
-            jwt = jwt,
         )
+        if (response.status != HttpStatusCode.OK) return null
+        return response.bodyAsText()
     }
 }

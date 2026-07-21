@@ -1,20 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.motta
 
-import io.kotest.assertions.withClue
-import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -53,13 +51,14 @@ interface MottaMeldekortBuilder {
         )
         tac.leggTilBruker(jwt, ObjectMother.systembrukerLagreMeldekort())
 
-        defaultRequest(
+        val response = defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/meldekort/motta")
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = forventetStatus),
         ) {
             val dagerJson = dager.entries.joinToString(separator = ",\n") { (dato, status) ->
                 """    "$dato": "$status""""
@@ -78,27 +77,19 @@ interface MottaMeldekortBuilder {
             """.trimIndent()
 
             setBody(body)
-        }.apply {
-            val bodyAsText = this.bodyAsText()
-
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe forventetStatus
-
-                if (medJsonBody != null) {
-                    medJsonBody(bodyAsText)
-                }
-            }
-
-            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val brukersMeldekort = tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(id)
-
-            return Triple(
-                oppdatertSak,
-                brukersMeldekort,
-                bodyAsText,
-            )
         }
+        val bodyAsText = response.bodyAsText()
+        if (medJsonBody != null) {
+            medJsonBody(bodyAsText)
+        }
+
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val brukersMeldekort = tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(id)
+
+        return Triple(
+            oppdatertSak,
+            brukersMeldekort,
+            bodyAsText,
+        )
     }
 }

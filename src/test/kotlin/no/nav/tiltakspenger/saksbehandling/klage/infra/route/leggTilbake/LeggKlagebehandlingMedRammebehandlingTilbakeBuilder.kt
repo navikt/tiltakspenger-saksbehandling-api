@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
-import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -65,7 +65,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
         forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
         forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
-    ): Tuple5<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson, KlagebehandlingDTOJson>? {
+    ): Tuple5<Sak, Rammebehandling, Klagebehandling, SakDTOJson, KlagebehandlingDTOJson>? {
         val (sak, rammebehandling, klagebehandling, _, klagebehandlingJson) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
             tac = tac,
             type = type,

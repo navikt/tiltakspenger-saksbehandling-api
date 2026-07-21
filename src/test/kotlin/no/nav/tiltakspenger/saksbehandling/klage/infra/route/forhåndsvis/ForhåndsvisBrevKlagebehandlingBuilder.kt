@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis
 
 import arrow.core.Tuple4
-import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
@@ -9,7 +8,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
@@ -17,7 +15,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -110,13 +109,16 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
     ): PdfA? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        val response = defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/klage/$klagebehandlingId/forhandsvis")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { status ->
+                ForventetRespons(status = status, contentType = forventetContenttype)
+            },
         ) {
             val tekstTilVedtaksbrevListe = tekstTilVedtaksbrev.joinToString(separator = ",") {
                 """
@@ -135,23 +137,9 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 """.trimIndent(),
             )
         }
-            .apply {
-                val pdfBytes = PdfA(bodyAsBytes())
-                withClue(
-                    "Response details:\n" +
-                        "Status: ${this.status}\n" +
-                        "Content-Type: ${this.contentType()}\n",
-                ) {
-                    if (forventetStatus != null) {
-                        status shouldBe forventetStatus
-                        if (forventetContenttype != null) {
-                            contentType() shouldBe forventetContenttype
-                        }
-                    }
-                    if (forventetPdf != null) pdfBytes shouldBe forventetPdf
-                }
-                if (status != HttpStatusCode.OK) return null
-                return pdfBytes
-            }
+        val pdfBytes = PdfA(response.bodyAsBytes())
+        if (forventetPdf != null) pdfBytes shouldBe forventetPdf
+        if (response.status != HttpStatusCode.OK) return null
+        return pdfBytes
     }
 }

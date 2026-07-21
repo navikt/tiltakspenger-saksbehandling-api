@@ -164,7 +164,7 @@ interface StartSøknadsbehandlingBuilder {
             clock = clock,
         )
 
-        val (oppdatertSak, oppdatertBehandling) = `oppdaterSøknadsbehandlingInnvilgelse`(
+        val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingInnvilgelse(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,
@@ -195,7 +195,7 @@ interface StartSøknadsbehandlingBuilder {
             clock = clock,
         )
 
-        val (oppdatertSak, oppdatertBehandling) = `oppdaterSøknadsbehandlingAvslag`(
+        val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingAvslag(
             tac = tac,
             sakId = sak.id,
             behandlingId = behandling.id,

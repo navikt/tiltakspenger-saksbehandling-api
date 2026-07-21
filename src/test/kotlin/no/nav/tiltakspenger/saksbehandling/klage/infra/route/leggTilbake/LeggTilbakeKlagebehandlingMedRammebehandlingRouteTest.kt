@@ -53,17 +53,19 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
-            val (_, oppdatertRammebehandling, json) = this.leggTilbakeRammebehandling(
+            val (_, oppdatertRammebehandling, sakJson) = this.leggTilbakeRammebehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
             val klagebehandling = oppdatertRammebehandling.klagebehandling!!
-            json.getString("klagebehandlingId")
+            val behandlingJson = sakJson.get("behandlinger")
+                .single { it.get("id").asText() == rammebehandlingMedKlagebehandling.id.toString() }
+            behandlingJson.get("klagebehandlingId").asText()
                 .shouldBe(rammebehandlingMedKlagebehandling.klagebehandling!!.id.toString())
-            json.getString("status").shouldBe("KLAR_TIL_BEHANDLING")
-            json.getString("saksbehandler").shouldBe("null")
+            behandlingJson.get("status").asText().shouldBe("KLAR_TIL_BEHANDLING")
+            behandlingJson.get("saksbehandler").isNull.shouldBe(true)
             klagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
             klagebehandling.saksbehandler shouldBe null
         }
@@ -113,15 +115,17 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            val (_, rammebehandlingLagtTilbake, rammebehandlingJson) = leggTilbakeRammebehandling(
+            val (_, rammebehandlingLagtTilbake, sakJson) = leggTilbakeRammebehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
                 saksbehandler = saksbehandler,
             )!!
 
-            rammebehandlingJson.get("saksbehandler") shouldBe null
-            rammebehandlingJson.getString("status") shouldBe "KLAR_TIL_BEHANDLING"
+            val behandlingJson = sakJson.get("behandlinger")
+                .single { it.get("id").asText() == rammebehandling.id.toString() }
+            behandlingJson.get("saksbehandler").isNull shouldBe true
+            behandlingJson.get("status").asText() shouldBe "KLAR_TIL_BEHANDLING"
 
             rammebehandlingLagtTilbake.klagebehandling!!.saksbehandler shouldBe rammebehandling.saksbehandler
             rammebehandlingLagtTilbake.klagebehandling!!.status shouldBe Klagebehandlingsstatus.FERDIGSTILT

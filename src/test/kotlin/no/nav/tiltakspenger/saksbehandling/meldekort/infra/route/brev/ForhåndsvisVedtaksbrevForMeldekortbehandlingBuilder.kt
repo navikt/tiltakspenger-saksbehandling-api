@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.brev
 
 import arrow.core.Tuple5
-import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsBytes
@@ -9,14 +8,14 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
@@ -82,13 +81,16 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
         )
         tac.leggTilBruker(jwt, saksbehandler)
         val meldeperioderIBody = buildMeldeperioderBody(tac = tac, sakId = sakId, meldekortId = meldekortId, meldeperioder = meldeperioder)
-        defaultRequest(
+        val response = defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/meldekortbehandling/$meldekortId/forhandsvis")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { status ->
+                ForventetRespons(status = status, contentType = ContentType.parse("application/pdf"))
+            },
         ) {
             this.setBody(
                 """
@@ -98,27 +100,18 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
                     }
                 """.trimIndent(),
             )
-        }.apply {
-            val pdfBytes = PdfA(bodyAsBytes())
-            withClue(
-                "Response details:\n" +
-                    "Status: ${this.status}\n" +
-                    "Content-Type: ${this.contentType()}\n",
-            ) {
-                if (forventetStatus != null) status shouldBe forventetStatus
-                contentType() shouldBe ContentType.parse("application/pdf")
-                if (forventetPdf != null) pdfBytes shouldBe forventetPdf
-            }
-            if (status != HttpStatusCode.OK) return null
-            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val meldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
-            meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
-
-            return Triple(
-                oppdatertSak,
-                meldekortbehandling,
-                pdfBytes,
-            )
         }
+        val pdfBytes = PdfA(response.bodyAsBytes())
+        if (forventetPdf != null) pdfBytes shouldBe forventetPdf
+        if (response.status != HttpStatusCode.OK) return null
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val meldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
+        meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+
+        return Triple(
+            oppdatertSak,
+            meldekortbehandling,
+            pdfBytes,
+        )
     }
 }

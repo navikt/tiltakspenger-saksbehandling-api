@@ -1,10 +1,10 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import kotlinx.kover.gradle.plugin.dsl.AggregationType
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.2"
-val felleslibVersion = "0.0.20260720192919"
+val felleslibVersion = "0.0.20260721053009"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
