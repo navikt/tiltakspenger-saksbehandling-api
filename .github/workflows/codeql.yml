@@ -21,5 +21,3 @@ jobs:
       contents: read
       security-events: write
     uses: navikt/tiltakspenger/.github/workflows/codeql-gradle.yml@main
-    with:
-      java-version: '25'

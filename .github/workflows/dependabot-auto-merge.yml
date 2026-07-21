@@ -26,5 +26,3 @@ jobs:
     # Send kun det den delte workflowen trenger - `secrets: inherit` ville eksponert alle Dependabot-secrets (også org-delte) for metarepoets workflow.
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
-    with:
-      java-version: '25'

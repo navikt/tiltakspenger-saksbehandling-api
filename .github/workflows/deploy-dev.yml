@@ -14,8 +14,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    with:
-      java-version: '25'
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
 

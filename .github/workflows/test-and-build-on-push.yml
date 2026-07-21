@@ -1,9 +1,26 @@
 name: Test/build on feature branch push
 
+# Fork-PR-er: pushes i forks trigger aldri workflows i base-repoet, derfor pull_request-trigger i tillegg.
+# Delt workflow skipper selv interne PR-events (dekkes av push-triggeren) og Dependabot-pushes (testes av auto-merge).
 on:
   push:
     branches-ignore:
       - main
+    paths-ignore:
+      - '**.md'
+      - '.gitattributes'
+      - '.gitHooks/**'
+      - '.gitignore'
+      - '.idea/**'
+      - '.nais/alerts.yml'
+      - 'clean_lint_and_build.sh'
+      - 'CODEOWNERS'
+      - 'doc/**'
+      - 'docker-compose/**'
+      - 'docs/**'
+      - 'LICENSE'
+      - 'lint_and_build.sh'
+  pull_request:
     paths-ignore:
       - '**.md'
       - '.gitattributes'
@@ -26,15 +43,12 @@ jobs:
   build:
     name: Test and build
     # Delt workflow i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
-    # Dependabot-brancher testes av auto-merge-workflowen; dobbel kjøring her er bare støy.
-    if: github.actor != 'dependabot[bot]'
     uses: navikt/tiltakspenger/.github/workflows/test-og-bygg-gradle.yml@main
     # id-token: write kreves av den delte workflowens byggejobb (OIDC mot nais) selv når image-bygget er skrudd av.
     permissions:
       contents: read
       id-token: write
     with:
-      java-version: '25'
       bygg-image: false
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}

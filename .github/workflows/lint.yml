@@ -19,6 +19,3 @@ jobs:
     permissions:
       contents: read
     uses: navikt/tiltakspenger/.github/workflows/lint-workflows.yml@main
-    with:
-      # Unntakene er nedfelt med begrunnelse i .github/zizmor.yml - nye funn skal derfor feile bygget.
-      zizmor-blokkerende: true
