@@ -9,8 +9,10 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.klagebehandlingJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
+import no.nav.tiltakspenger.saksbehandling.infra.route.shouldHaSisteVentestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
@@ -79,7 +81,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 tac = tac,
                 saksbehandlerKlagebehandling = saksbehandler,
             )!!
-            val (_, _, oppdatertRammebehandlingMedKlagebehandling, _) = settRammebehandlingPåVent(
+            val (_, _, oppdatertRammebehandlingMedKlagebehandling, sakJson) = settRammebehandlingPåVent(
                 tac = tac,
                 sakId = sak.id,
                 rammebehandlingId = rammebehandlingMedKlagebehandling.id,
@@ -87,13 +89,28 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 frist = null,
             )!!
             val klagebehandling = oppdatertRammebehandlingMedKlagebehandling.klagebehandling!!
-            // TODO: sjekk noe her, men trenger kanskje ikke sjekke hele saken
-//
-//            json.toString().shouldEqualJsonIgnoringTimestamps(
-//                """
-//                    "HELE SAKEN GOES HERE"
-//                """.trimIndent(),
-//            )
+            sakJson.rammebehandlingJson(oppdatertRammebehandlingMedKlagebehandling.id).also { behandlingJson ->
+                behandlingJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+                behandlingJson.get("saksbehandler").isNull shouldBe true
+                behandlingJson.shouldHaSisteVentestatus(
+                    sattPåVentAv = "saksbehandlerKlagebehandling",
+                    begrunnelse = "Begrunnelse for å sette rammebehandling på vent",
+                    status = "UNDER_BEHANDLING",
+                    frist = null,
+                    forventetAntallHendelser = 1,
+                )
+            }
+            sakJson.klagebehandlingJson(klagebehandling.id).also { klageJson ->
+                klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+                klageJson.get("saksbehandler").isNull shouldBe true
+                klageJson.shouldHaSisteVentestatus(
+                    sattPåVentAv = "saksbehandlerKlagebehandling",
+                    begrunnelse = "Begrunnelse for å sette rammebehandling på vent",
+                    status = "UNDER_BEHANDLING",
+                    frist = null,
+                    forventetAntallHendelser = 1,
+                )
+            }
             klagebehandling.status shouldBe Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
             klagebehandling.saksbehandler shouldBe null
             klagebehandling.ventestatus.shouldBeEqualToIgnoringLocalDateTime(
@@ -131,21 +148,14 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            val rammebehandlingPåVentJson = sakJson.get("behandlinger").last()
-            val klagebehandlingJson = sakJson.get("klageBehandlinger").single()
+            val klagebehandlingJson = sakJson.klagebehandlingJson(rammebehandling.klagebehandling!!.id)
 
-            rammebehandlingPåVentJson.get("ventestatus").toString().shouldEqualJsonIgnoringTimestamps(
-                """[
-                 {
-                        "sattPåVentAv": "saksbehandlerKlagebehandling",
-                        "tidspunkt": "TIMESTAMP",
-                        "begrunnelse": "Begrunnelse for å sette rammebehandling på vent",
-                        "erSattPåVent": true,
-                        "frist": null,
-                        "status": "UNDER_BEHANDLING"
-                    }
-                ]
-                """.trimIndent(),
+            sakJson.rammebehandlingJson(rammebehandling.id).shouldHaSisteVentestatus(
+                sattPåVentAv = "saksbehandlerKlagebehandling",
+                begrunnelse = "Begrunnelse for å sette rammebehandling på vent",
+                status = "UNDER_BEHANDLING",
+                frist = null,
+                forventetAntallHendelser = 1,
             )
 
             klagebehandlingJson.toString().shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
@@ -213,31 +223,29 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 ),
             )
 
-            val rammebehandlingJson = sakJson.get("behandlinger").last()
-            rammebehandlingJson.get("status").asString() shouldBe "KLAR_TIL_BESLUTNING"
-            rammebehandlingJson.get("saksbehandler").asString() shouldBe saksbehandler.navIdent
-            rammebehandlingJson.get("beslutter").isNull shouldBe true
-            val rammebehandlingVentestatusArray = rammebehandlingJson.get("ventestatus")
-            rammebehandlingVentestatusArray.size() shouldBe 1
-            rammebehandlingVentestatusArray[0].also { hendelse ->
-                hendelse.get("sattPåVentAv").asString() shouldBe beslutter.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette rammebehandling på vent"
-                hendelse.get("erSattPåVent").asBoolean() shouldBe true
-                hendelse.get("status").asString() shouldBe "UNDER_BESLUTNING"
-                hendelse.get("frist").asString() shouldBe "2025-01-14"
+            sakJson.rammebehandlingJson(oppdatertRammebehandling.id).also { behandlingJson ->
+                behandlingJson.get("status").asString() shouldBe "KLAR_TIL_BESLUTNING"
+                behandlingJson.get("saksbehandler").asString() shouldBe saksbehandler.navIdent
+                behandlingJson.get("beslutter").isNull shouldBe true
+                behandlingJson.shouldHaSisteVentestatus(
+                    sattPåVentAv = beslutter.navIdent,
+                    begrunnelse = "begrunnelse for å sette rammebehandling på vent",
+                    status = "UNDER_BESLUTNING",
+                    frist = 14.januar(2025),
+                    forventetAntallHendelser = 1,
+                )
             }
 
-            val klageJson = sakJson.get("klageBehandlinger").first()
-            klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
-            klageJson.get("saksbehandler").isNull shouldBe true
-            val klageVentestatusArray = klageJson.get("ventestatus")
-            klageVentestatusArray.size() shouldBe 1
-            klageVentestatusArray[0].also { hendelse ->
-                hendelse.get("sattPåVentAv").asString() shouldBe beslutter.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette rammebehandling på vent"
-                hendelse.get("erSattPåVent").asBoolean() shouldBe true
-                hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
-                hendelse.get("frist").asString() shouldBe "2025-01-14"
+            sakJson.klagebehandlingJson(oppdatertKlagebehandling.id).also { klageJson ->
+                klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
+                klageJson.get("saksbehandler").isNull shouldBe true
+                klageJson.shouldHaSisteVentestatus(
+                    sattPåVentAv = beslutter.navIdent,
+                    begrunnelse = "begrunnelse for å sette rammebehandling på vent",
+                    status = "UNDER_BEHANDLING",
+                    frist = 14.januar(2025),
+                    forventetAntallHendelser = 1,
+                )
             }
         }
     }
