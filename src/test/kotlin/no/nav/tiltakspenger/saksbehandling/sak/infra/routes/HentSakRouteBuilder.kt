@@ -13,7 +13,9 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.json.JSONObject
@@ -38,20 +40,16 @@ interface HentSakRouteBuilder {
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
         ) { setBody("""{"fnr":"$id"}""") }.apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe forventetStatus
-            }
             if (status != HttpStatusCode.OK) return null
             return JSONObject(bodyAsText)
         }
@@ -70,20 +68,16 @@ interface HentSakRouteBuilder {
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Get,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/${saksnummer.verdi}")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
         ).apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe forventetStatus
-            }
             if (status != HttpStatusCode.OK) return null
             return JSONObject(bodyAsText)
         }

@@ -14,7 +14,9 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
@@ -42,22 +44,18 @@ interface OvertaRammebehandlingBuilder {
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/overta")
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = HttpStatusCode.OK),
         ) {
             this.setBody("""{"overtarFra":"$overtarFra"}""")
         }.apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe HttpStatusCode.OK
-            }
 
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)

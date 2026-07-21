@@ -17,7 +17,9 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
@@ -89,20 +91,16 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = HttpStatusCode.OK),
         ).apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe HttpStatusCode.OK
-            }
             return bodyAsText
         }
     }

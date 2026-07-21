@@ -16,7 +16,10 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -110,22 +113,22 @@ interface LeggTilbakeMeldekortbehandlingBuilder {
             saksbehandler = saksbehandlerEllerBeslutter,
         )
         tac.leggTilBruker(jwt, saksbehandlerEllerBeslutter)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/meldekort/$meldekortId/legg-tilbake")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { status ->
+                ForventetRespons(
+                    status = status,
+                    body = forventetJsonBody?.let { ForventetBody.Json(it) },
+                    contentType = ContentType.parse("application/json; charset=UTF-8"),
+                )
+            },
         ).apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe forventetStatus
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                if (forventetJsonBody != null) bodyAsText.shouldEqualJson(forventetJsonBody)
-            }
             if (status != HttpStatusCode.OK) return null
             val jsonObject = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

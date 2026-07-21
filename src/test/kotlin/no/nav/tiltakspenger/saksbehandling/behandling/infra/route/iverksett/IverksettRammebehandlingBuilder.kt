@@ -14,7 +14,9 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
@@ -42,20 +44,16 @@ interface IverksettRammebehandlingBuilder {
             saksbehandler = beslutter,
         )
         tac.leggTilBruker(jwt, beslutter)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/iverksett")
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = forventetStatus),
         ).apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe forventetStatus
-            }
             if (medJsonBody != null) {
                 medJsonBody(bodyAsText)
             }

@@ -13,7 +13,8 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -44,17 +45,16 @@ class OlderMottaSøknadTest {
                 roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
             )
             tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
-            defaultRequest(
+            defaultRequestWithAssertions(
                 HttpMethod.Post,
                 url {
                     protocol = URLProtocol.HTTPS
                     path(SØKNAD_PATH)
                 },
                 jwt = jwt,
+                forventet = ForventetRespons(status = HttpStatusCode.OK),
             ) {
                 setBody(søknadBodyV3(søknadId, sak.saksnummer))
-            }.apply {
-                status shouldBe HttpStatusCode.OK
             }
 
             val internTiltaksdeltakerId = tac.tiltakContext.tiltaksdeltakerRepo.hentInternId("123")

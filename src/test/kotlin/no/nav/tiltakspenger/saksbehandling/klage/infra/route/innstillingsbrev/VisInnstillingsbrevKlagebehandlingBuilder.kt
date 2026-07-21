@@ -14,7 +14,9 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -62,20 +64,16 @@ interface VisInnstillingsbrevKlagebehandlingBuilder {
     ): Triple<Sak, Klagebehandling, ByteArray>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Get,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/klage/$klagebehandlingId/innstillingsbrev/$dokumentInfoId")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
         ).apply {
             val pdf = this.bodyAsBytes()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n",
-            ) {
-                if (forventetStatus != null) status shouldBe forventetStatus
-            }
 
             if (status != HttpStatusCode.OK) return null
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

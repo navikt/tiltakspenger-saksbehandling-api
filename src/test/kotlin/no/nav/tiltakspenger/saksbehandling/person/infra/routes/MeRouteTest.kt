@@ -1,19 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.routes
 
-import io.kotest.assertions.withClue
-import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.util.url
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
@@ -53,27 +51,22 @@ class MeRouteTest {
         )
         runTest {
             withTestApplicationContext(texasClient = texasClient) {
-                defaultRequest(
+                defaultRequestWithAssertions(
                     HttpMethod.Get,
                     url {
                         protocol = URLProtocol.HTTPS
                         path(SAKSBEHANDLER_PATH)
                     },
+                    forventet = ForventetRespons(
+                        status = HttpStatusCode.OK,
+                        contentType = ContentType.parse("application/json; charset=UTF-8"),
+                    ),
                 ).apply {
-                    withClue(
-                        "Response details:\n" +
-                            "Status: ${this.status}\n" +
-                            "Content-Type: ${this.contentType()}\n" +
-                            "Body: ${this.bodyAsText()}\n",
-                    ) {
-                        status shouldBe HttpStatusCode.OK
-                        contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-                        JSONAssert.assertEquals(
-                            saksbehandlerMock,
-                            bodyAsText(),
-                            JSONCompareMode.LENIENT,
-                        )
-                    }
+                    JSONAssert.assertEquals(
+                        saksbehandlerMock,
+                        bodyAsText(),
+                        JSONCompareMode.LENIENT,
+                    )
                 }
             }
         }
@@ -95,15 +88,14 @@ class MeRouteTest {
         )
         runTest {
             withTestApplicationContext {
-                defaultRequest(
+                defaultRequestWithAssertions(
                     HttpMethod.Get,
                     url {
                         protocol = URLProtocol.HTTPS
                         path(SAKSBEHANDLER_PATH)
                     },
-                ).apply {
-                    status shouldBe HttpStatusCode.Unauthorized
-                }
+                    forventet = ForventetRespons(status = HttpStatusCode.Unauthorized),
+                )
             }
         }
     }
@@ -122,15 +114,14 @@ class MeRouteTest {
         )
         runTest {
             withTestApplicationContext(texasClient = texasClient) {
-                defaultRequest(
+                defaultRequestWithAssertions(
                     HttpMethod.Get,
                     url {
                         protocol = URLProtocol.HTTPS
                         path(SAKSBEHANDLER_PATH)
                     },
-                ).apply {
-                    status shouldBe HttpStatusCode.Forbidden
-                }
+                    forventet = ForventetRespons(status = HttpStatusCode.Forbidden),
+                )
             }
         }
     }

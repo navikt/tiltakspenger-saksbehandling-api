@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route
 
-import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
 import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.util.url
@@ -15,7 +13,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -130,29 +129,21 @@ interface TilbakekrevingBehandlingBuilder {
     ): Triple<Sak, TilbakekrevingBehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/tildel")
-            },
-            jwt = jwt,
-        ).apply {
-            val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" +
-                    "Status: ${this.status}\n" +
-                    "Content-Type: ${this.contentType()}\n" +
-                    "Body: $bodyAsText\n",
-            ) {
-                if (forventetStatus != null) status shouldBe forventetStatus
-            }
-            if (status != HttpStatusCode.OK) return null
-            val sakDTOJson: SakDTOJson = objectMapper.readTree(bodyAsText)
-            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val oppdatertBehandling = oppdatertSak.tilbakekrevinger.single { it.id == tilbakekrevingId }
-            return Triple(oppdatertSak, oppdatertBehandling, sakDTOJson)
+        val uri = url {
+            protocol = URLProtocol.HTTPS
+            path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/tildel")
         }
+        val response = defaultRequestWithAssertions(
+            HttpMethod.Post,
+            uri,
+            jwt = jwt,
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
+        )
+        if (response.status != HttpStatusCode.OK) return null
+        val sakDTOJson: SakDTOJson = objectMapper.readTree(response.bodyAsText())
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val oppdatertBehandling = oppdatertSak.tilbakekrevinger.single { it.id == tilbakekrevingId }
+        return Triple(oppdatertSak, oppdatertBehandling, sakDTOJson)
     }
 
     /**
@@ -168,29 +159,21 @@ interface TilbakekrevingBehandlingBuilder {
     ): Triple<Sak, TilbakekrevingBehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/overta")
-            },
-            jwt = jwt,
-        ).apply {
-            val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" +
-                    "Status: ${this.status}\n" +
-                    "Content-Type: ${this.contentType()}\n" +
-                    "Body: $bodyAsText\n",
-            ) {
-                if (forventetStatus != null) status shouldBe forventetStatus
-            }
-            if (status != HttpStatusCode.OK) return null
-            val sakDTOJson: SakDTOJson = objectMapper.readTree(bodyAsText)
-            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val oppdatertBehandling = oppdatertSak.tilbakekrevinger.single { it.id == tilbakekrevingId }
-            return Triple(oppdatertSak, oppdatertBehandling, sakDTOJson)
+        val uri = url {
+            protocol = URLProtocol.HTTPS
+            path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/overta")
         }
+        val response = defaultRequestWithAssertions(
+            HttpMethod.Post,
+            uri,
+            jwt = jwt,
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
+        )
+        if (response.status != HttpStatusCode.OK) return null
+        val sakDTOJson: SakDTOJson = objectMapper.readTree(response.bodyAsText())
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val oppdatertBehandling = oppdatertSak.tilbakekrevinger.single { it.id == tilbakekrevingId }
+        return Triple(oppdatertSak, oppdatertBehandling, sakDTOJson)
     }
 
     /**
@@ -206,28 +189,20 @@ interface TilbakekrevingBehandlingBuilder {
     ): Triple<Sak, TilbakekrevingBehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/legg-tilbake")
-            },
-            jwt = jwt,
-        ).apply {
-            val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" +
-                    "Status: ${this.status}\n" +
-                    "Content-Type: ${this.contentType()}\n" +
-                    "Body: $bodyAsText\n",
-            ) {
-                if (forventetStatus != null) status shouldBe forventetStatus
-            }
-            if (status != HttpStatusCode.OK) return null
-            val sakDTOJson: SakDTOJson = objectMapper.readTree(bodyAsText)
-            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-            val oppdatertBehandling = oppdatertSak.tilbakekrevinger.single { it.id == tilbakekrevingId }
-            return Triple(oppdatertSak, oppdatertBehandling, sakDTOJson)
+        val uri = url {
+            protocol = URLProtocol.HTTPS
+            path("/sak/$sakId/tilbakekreving/$tilbakekrevingId/legg-tilbake")
         }
+        val response = defaultRequestWithAssertions(
+            HttpMethod.Post,
+            uri,
+            jwt = jwt,
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
+        )
+        if (response.status != HttpStatusCode.OK) return null
+        val sakDTOJson: SakDTOJson = objectMapper.readTree(response.bodyAsText())
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val oppdatertBehandling = oppdatertSak.tilbakekrevinger.single { it.id == tilbakekrevingId }
+        return Triple(oppdatertSak, oppdatertBehandling, sakDTOJson)
     }
 }

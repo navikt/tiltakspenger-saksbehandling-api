@@ -19,7 +19,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
@@ -124,13 +127,20 @@ interface SettMeldekortbehandlingPåVentBuilder {
         )
         tac.leggTilBruker(jwt, saksbehandlerEllerBeslutter)
         val fristJson = frist?.let { "\"$it\"" } ?: "null"
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/meldekort/$meldekortId/vent")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { status ->
+                ForventetRespons(
+                    status = status,
+                    body = forventetJsonBody?.let { ForventetBody.Json(it) },
+                    contentType = ContentType.parse("application/json; charset=UTF-8"),
+                )
+            },
         ) {
             setBody(
                 """
@@ -142,13 +152,6 @@ interface SettMeldekortbehandlingPåVentBuilder {
             )
         }.apply {
             val bodyAsText = bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe forventetStatus
-                if (forventetJsonBody != null) bodyAsText.shouldEqualJson(forventetJsonBody)
-                contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            }
             if (status != HttpStatusCode.OK) return null
             val jsonObject: SakDTOJson = objectMapper.readTree(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

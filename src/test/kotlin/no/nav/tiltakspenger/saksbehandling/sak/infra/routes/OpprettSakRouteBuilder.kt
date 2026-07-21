@@ -15,7 +15,9 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.json.JSONObject
@@ -32,20 +34,16 @@ interface OpprettSakRouteBuilder {
             roles = listOf("hent_eller_opprett_sak"),
         )
         tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSak())
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/saksnummer")
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = HttpStatusCode.OK),
         ) { setBody("""{"fnr":"${fnr.verdi}"}""") }.apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe HttpStatusCode.OK
-            }
             return Saksnummer(
                 JSONObject(bodyAsText).getString(
                     "saksnummer",
@@ -66,20 +64,16 @@ interface OpprettSakRouteBuilder {
     ): Saksnummer? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Put,
             url {
                 protocol = URLProtocol.HTTPS
                 path(SAK_PATH)
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = forventetStatus),
         ) { setBody("""{"fnr":"${fnr.verdi}"}""") }.apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe forventetStatus
-            }
             if (status != HttpStatusCode.OK) {
                 return null
             }

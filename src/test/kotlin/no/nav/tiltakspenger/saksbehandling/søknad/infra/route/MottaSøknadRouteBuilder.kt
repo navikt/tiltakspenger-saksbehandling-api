@@ -16,7 +16,9 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -80,13 +82,14 @@ interface MottaSøknadRouteBuilder {
             roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
         )
         tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/soknad")
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = HttpStatusCode.OK),
         ) {
             setBody(
                 createRequest(
@@ -99,11 +102,6 @@ interface MottaSøknadRouteBuilder {
             )
         }.apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                status shouldBe HttpStatusCode.OK
-            }
             bodyAsText shouldBe "OK"
 
             val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(

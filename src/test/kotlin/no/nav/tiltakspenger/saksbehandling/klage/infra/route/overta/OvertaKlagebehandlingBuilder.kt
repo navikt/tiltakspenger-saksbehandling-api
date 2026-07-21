@@ -17,7 +17,9 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
@@ -89,13 +91,14 @@ interface OvertaKlagebehandlingBuilder {
     ): Triple<Sak, Klagebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Patch,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/klage/$klagebehandlingId/overta")
             },
             jwt = jwt,
+            forventet = forventetStatus?.let { ForventetRespons(status = it) },
         ) {
             setBody(
                 //language=JSON
@@ -107,11 +110,6 @@ interface OvertaKlagebehandlingBuilder {
             )
         }.apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                "Response details:\n" + "Status: ${this.status}\n" + "Content-Type: ${this.contentType()}\n" + "Body: $bodyAsText\n",
-            ) {
-                if (forventetStatus != null) status shouldBe forventetStatus
-            }
 
             if (forventetJsonBody != null) {
                 bodyAsText.shouldEqualJson(forventetJsonBody)

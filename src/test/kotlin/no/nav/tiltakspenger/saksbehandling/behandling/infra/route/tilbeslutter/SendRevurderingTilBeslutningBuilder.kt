@@ -14,7 +14,9 @@ import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequest
+import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -123,25 +125,16 @@ interface SendRevurderingTilBeslutningBuilder {
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequest(
+        defaultRequestWithAssertions(
             HttpMethod.Post,
             url {
                 protocol = URLProtocol.HTTPS
                 path("/sak/$sakId/behandling/$behandlingId/sendtilbeslutning")
             },
             jwt = jwt,
+            forventet = ForventetRespons(status = forventetStatus),
         ).apply {
             val bodyAsText = this.bodyAsText()
-            withClue(
-                """
-                    Response details:
-                    Status: ${this.status}
-                    Content-Type: ${this.contentType()}
-                    Body: $bodyAsText
-                """.trimMargin(),
-            ) {
-                status shouldBe forventetStatus
-            }
             return bodyAsText
         }
     }
