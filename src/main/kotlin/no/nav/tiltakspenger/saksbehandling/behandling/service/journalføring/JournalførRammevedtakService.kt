@@ -83,7 +83,11 @@ class JournalførRammevedtakService(
 
                         is Rammebehandlingsresultat.IkkeValgt -> vedtak.rammebehandlingsresultat.vedtakError()
                     }.getOrElse {
-                        it.feil.loggFeil(log, "generering av vedtaksbrev", "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}")
+                        it.feil.loggFeil(
+                            log,
+                            "generering av vedtaksbrev",
+                            "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+                        )
                         return@forEach
                     }
 
@@ -93,7 +97,11 @@ class JournalførRammevedtakService(
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     ).getOrElse {
-                        it.loggFeil(log, "journalføring av vedtaksbrev", "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}")
+                        it.loggFeil(
+                            log,
+                            "journalføring av vedtaksbrev",
+                            "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+                        )
                         return@forEach
                     }.journalpostId
                     /*
@@ -107,11 +115,25 @@ class JournalførRammevedtakService(
                             pdfOgJson = it,
                             correlationId = correlationId,
                         ).onLeft { feil ->
-                            feil.loggFeil(log, "journalføring av pdfgenrs-vedtaksbrev (kun dev-sammenligning)", "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}")
+                            feil.loggFeil(
+                                log,
+                                "journalføring av pdfgenrs-vedtaksbrev (kun dev-sammenligning)",
+                                "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
+                            )
                         }
                     }
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
+                    when (vedtak.rammebehandlingsresultat) {
+                        is Søknadsbehandlingsresultat.Avslag -> {
+                            log.info { "PDFGENRS-PROD: journalførtbrev $journalpostId, SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}, behandlingId: ${vedtak.behandlingId}" }
+                        }
+
+                        is Rammebehandlingsresultat.Innvilgelse,
+                        is Revurderingsresultat.Stans,
+                        is Omgjøringsresultat.OmgjøringOpphør,
+                        -> Unit
+                    }
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }
                     errorEveryNLogger.reset()
                 }.onLeft {
