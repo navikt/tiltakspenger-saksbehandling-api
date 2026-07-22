@@ -243,37 +243,40 @@ internal class PdfgenHttpClientTest {
     }
 
     @Test
-    fun `genererAvslagsVedtaksbrev for parametre treffer vedtakAvslag`() {
-        verifiserBeggeModi("vedtakAvslag") {
-            it.genererAvslagsVedtaksbrev(
-                hentBrukersNavn = hentBrukersNavn,
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-                fnr = Fnr.random(),
-                saksbehandlerNavIdent = "Z123456",
-                beslutterNavIdent = null,
-                avslagsperiode = 1.januar(2025) til 31.januar(2025),
-                saksnummer = saksnummer,
-                sakId = SakId.random(),
-                tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
-                forhåndsvisning = true,
-                harSøktBarnetillegg = false,
-                datoForUtsending = 2.januar(2025),
-            )
-        }
+    suspend fun `genererAvslagsVedtaksbrev for parametre treffer vedtakAvslag`() {
+        val prodTransport = transportMedPdf(antallSvar = 1)
+        val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererAvslagsVedtaksbrev(
+            hentBrukersNavn = hentBrukersNavn,
+            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
+            fnr = Fnr.random(),
+            saksbehandlerNavIdent = "Z123456",
+            beslutterNavIdent = null,
+            avslagsperiode = 1.januar(2025) til 31.januar(2025),
+            saksnummer = saksnummer,
+            sakId = SakId.random(),
+            tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
+            forhåndsvisning = true,
+            harSøktBarnetillegg = false,
+            datoForUtsending = 2.januar(2025),
+        )
+        prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
+        prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakAvslag")
     }
 
     @Test
-    fun `genererAvslagsVedtaksbrev for vedtak treffer vedtakAvslag`() {
+    suspend fun `genererAvslagsVedtaksbrev for vedtak treffer vedtakAvslag`() {
         val vedtak = ObjectMother.nyRammevedtakAvslag()
-        verifiserBeggeModi("vedtakAvslag") {
-            it.genererAvslagsVedtaksbrev(
-                vedtak = vedtak,
-                datoForUtsending = 2.januar(2023),
-                hentBrukersNavn = hentBrukersNavn,
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            )
-        }
+        val prodTransport = transportMedPdf(antallSvar = 1)
+        val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererAvslagsVedtaksbrev(
+            vedtak = vedtak,
+            datoForUtsending = 2.januar(2023),
+            hentBrukersNavn = hentBrukersNavn,
+            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+        )
+
+        prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
+        prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakAvslag")
     }
 
     @Test

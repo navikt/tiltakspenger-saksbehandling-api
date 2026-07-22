@@ -122,8 +122,8 @@ class GenererFakeVedtaksbrevKlient :
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.map { it.first }
     }
 
     override suspend fun genererAvslagsVedtaksbrev(
@@ -131,8 +131,8 @@ class GenererFakeVedtaksbrevKlient :
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.map { it.first }
     }
 
     override suspend fun genererAvvisningsvedtak(

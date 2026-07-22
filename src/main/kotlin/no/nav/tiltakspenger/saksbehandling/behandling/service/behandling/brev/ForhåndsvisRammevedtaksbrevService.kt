@@ -69,7 +69,7 @@ class ForhåndsvisRammevedtaksbrevService(
                         sak = sak,
                         behandling = behandling,
                         avslagsperiode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
-                    )
+                    ).map { it to null }
                 }
             }
 
@@ -235,7 +235,7 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         behandling: Søknadsbehandling,
         avslagsperiode: Periode,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererVedtaksbrevForAvslagKlient.genererAvslagsVedtaksbrev(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,

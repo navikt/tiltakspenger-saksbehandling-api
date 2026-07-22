@@ -71,7 +71,7 @@ class JournalførRammevedtakService(
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        )
+                        ).map { it to null }
 
                         is Omgjøringsresultat.OmgjøringOpphør -> genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
                             vedtak = vedtak,

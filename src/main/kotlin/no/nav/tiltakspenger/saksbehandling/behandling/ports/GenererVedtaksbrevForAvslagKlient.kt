@@ -29,12 +29,12 @@ interface GenererVedtaksbrevForAvslagKlient {
         forhåndsvisning: Boolean,
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererAvslagsVedtaksbrev(
         vedtak: Rammevedtak,
         datoForUtsending: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }
