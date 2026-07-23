@@ -20,6 +20,8 @@ on:
       - '**.md'
       - '.gitattributes'
       - '.gitHooks/**'
+      # CI-endringer deployer ikke - de verifiseres av branch-gaten og metarepoets lint (beslutning i navikt/tiltakspenger#39).
+      - '.github/**'
       - '.gitignore'
       - '.idea/**'
       - '.nais/alerts.yml'
