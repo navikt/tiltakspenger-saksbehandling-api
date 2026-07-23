@@ -36,7 +36,7 @@ interface GenererVedtaksbrevForInnvilgelseKlient {
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,

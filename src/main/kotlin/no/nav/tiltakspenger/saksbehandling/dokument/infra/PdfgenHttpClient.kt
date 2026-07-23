@@ -112,9 +112,6 @@ class PdfgenHttpClient(
     private val klageInnstillingUrl = URI.create("$baseUrl/api/v1/genpdf/tpts/klageInnstilling")
     private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
@@ -122,46 +119,38 @@ class PdfgenHttpClient(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        val jsonPayload = suspend {
-            when (vedtak.rammebehandling) {
-                is Revurdering -> vedtak.tilRevurderingInnvilgetBrev(
+        return when (vedtak.rammebehandling) {
+            is Revurdering -> {
+                val json = vedtak.tilRevurderingInnvilgetBrev(
                     hentBrukersNavn = hentBrukersNavn,
                     hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                     vedtaksdato = vedtaksdato,
                     tilleggstekst = tilleggstekst,
                 )
 
-                is Søknadsbehandling -> vedtak.tilInnvilgetSøknadsbrev(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    vedtaksdato = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                )
+                if (isLocalOrDev) {
+                    runParallel(
+                        jsonPayload = { json },
+                        pdfgenUri = revurderingInnvilgelseUri,
+                        pdfgenrsUri = pdfgenrsRevurderingInnvilgelseUri,
+                    )
+                } else {
+                    pdfgenRequest(jsonPayload = { json }, uri = revurderingInnvilgelseUri).map { it to null }
+                }
             }
-        }
-        val uri = when (vedtak.rammebehandling) {
-            is Revurdering -> revurderingInnvilgelseUri
-            is Søknadsbehandling -> vedtakInnvilgelseUri
-        }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = uri,
-                pdfgenrsUri = when (vedtak.rammebehandling) {
-                    is Revurdering -> pdfgenrsRevurderingInnvilgelseUri
-                    is Søknadsbehandling -> pdfgenrsVedtakInnvilgelseUri
-                },
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = uri)
-                .map { it to null }
+            is Søknadsbehandling -> {
+                val json = vedtak.tilInnvilgetSøknadsbrev(
+                    hentBrukersNavn = hentBrukersNavn,
+                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                    vedtaksdato = vedtaksdato,
+                    tilleggstekst = tilleggstekst,
+                )
+                pdfgenRequest(jsonPayload = { json }, uri = pdfgenrsVedtakInnvilgelseUri).map { it to null }
+            }
         }
     }
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -174,7 +163,7 @@ class PdfgenHttpClient(
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             genererInnvilgetSøknadsbrev(
                 hentBrukersNavn = hentBrukersNavn,
@@ -191,16 +180,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = vedtakInnvilgelseUri,
-                pdfgenrsUri = pdfgenrsVedtakInnvilgelseUri,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = vedtakInnvilgelseUri)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakInnvilgelseUri)
     }
 
     /*

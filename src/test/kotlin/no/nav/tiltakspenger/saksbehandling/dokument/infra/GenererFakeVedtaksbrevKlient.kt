@@ -63,8 +63,8 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.map { it.first }
     }
 
     override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(

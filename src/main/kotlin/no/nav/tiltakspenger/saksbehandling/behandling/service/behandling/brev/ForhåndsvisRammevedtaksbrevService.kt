@@ -62,7 +62,7 @@ class ForhåndsvisRammevedtaksbrevService(
                         } else {
                             behandling.innvilgelsesperioder!!
                         },
-                    )
+                    ).map { it to null }
 
                     is ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando -> genererSøknadsbehandlingAvslagsbrev(
                         kommando = k,
@@ -258,7 +258,7 @@ class ForhåndsvisRammevedtaksbrevService(
         sak: Sak,
         behandling: Søknadsbehandling,
         innvilgelsesperioder: Innvilgelsesperioder,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererInnvilgelsesbrevClient.genererInnvilgetSøknadBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,

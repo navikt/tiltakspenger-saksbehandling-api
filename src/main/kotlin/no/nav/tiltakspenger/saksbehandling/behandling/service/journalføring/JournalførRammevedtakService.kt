@@ -124,16 +124,32 @@ class JournalførRammevedtakService(
                     }
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
+
+                    /*
+                     * TODO - fjern denne logg blokken når alle brev er verifisert OK
+                     */
                     when (vedtak.rammebehandlingsresultat) {
+                        is Rammebehandlingsresultat.Innvilgelse -> {
+                            when (vedtak.rammebehandlingsresultat) {
+                                is Søknadsbehandlingsresultat.Innvilgelse -> {
+                                    log.info { "PDFGENRS-PROD: journalførtbrev $journalpostId, SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}, behandlingId: ${vedtak.behandlingId}" }
+                                }
+
+                                is Omgjøringsresultat.OmgjøringInnvilgelse,
+                                is Revurderingsresultat.Innvilgelse,
+                                -> Unit
+                            }
+                        }
+
                         is Søknadsbehandlingsresultat.Avslag -> {
                             log.info { "PDFGENRS-PROD: journalførtbrev $journalpostId, SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}, behandlingId: ${vedtak.behandlingId}" }
                         }
 
-                        is Rammebehandlingsresultat.Innvilgelse,
                         is Revurderingsresultat.Stans,
                         is Omgjøringsresultat.OmgjøringOpphør,
                         -> Unit
                     }
+
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }
                     errorEveryNLogger.reset()
                 }.onLeft {

@@ -92,15 +92,21 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererInnvilgetVedtakBrev for søknadsbehandling treffer vedtakInnvilgelse`() {
-        val vedtak = ObjectMother.nyRammevedtakInnvilgelse()
-        verifiserBeggeModi("vedtakInnvilgelse") {
-            it.genererInnvilgetVedtakBrev(
+        runTest {
+            val vedtak = ObjectMother.nyRammevedtakInnvilgelse()
+            val prodTransport = transportMedPdf(antallSvar = 1)
+            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetVedtakBrev(
                 vedtak = vedtak,
                 vedtaksdato = 2.januar(2023),
                 tilleggstekst = null,
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
+
+            prodResultat.getOrFail().first.pdf.getContent().toList() shouldBe pdfBytes.toList()
+            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakInnvilgelse")
+
+            prodResultat.getOrFail().second shouldBe null
         }
     }
 
@@ -126,8 +132,9 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererInnvilgetSøknadBrevForhåndsvisning treffer vedtakInnvilgelse`() {
-        verifiserBeggeModi("vedtakInnvilgelse") {
-            it.genererInnvilgetSøknadBrevForhåndsvisning(
+        runTest {
+            val prodTransport = transportMedPdf(antallSvar = 1)
+            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetSøknadBrevForhåndsvisning(
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                 vedtaksdato = 2.januar(2025),
@@ -140,6 +147,9 @@ internal class PdfgenHttpClientTest {
                 barnetilleggsperioder = null,
                 tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
             )
+
+            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
+            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakInnvilgelse")
         }
     }
 
