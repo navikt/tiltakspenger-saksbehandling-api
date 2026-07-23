@@ -1,0 +1,30 @@
+name: Dependency submission
+
+# Sender avhengighetsgrafen fra main til GitHub slik at Dependabot også ser transitive avhengigheter.
+# Delte workflows i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+
+on:
+  push:
+    branches: [main]
+    # Grafen endres bare når byggoppsettet endres; workflow-fila selv er med slik at første push etter utrulling sender inn.
+    paths:
+      - '**/*.gradle.kts'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - '.github/workflows/dependency-submission.yml'
+
+# Minste privilegium: toppnivået nullstiller alle token-rettigheter, hver jobb deklarerer eksplisitt det den trenger.
+permissions: {}
+
+# Ved raske påfølgende pushes er kun grafen fra nyeste commit interessant.
+concurrency:
+  group: dependency-submission
+  cancel-in-progress: true
+
+jobs:
+  dependency-submission:
+    name: Generer og send inn avhengighetsgraf
+    # contents: write er for dependency submission-API-et; jobben pusher aldri kode.
+    permissions:
+      contents: write
+    uses: navikt/tiltakspenger/.github/workflows/dependency-submission-gradle.yml@main
