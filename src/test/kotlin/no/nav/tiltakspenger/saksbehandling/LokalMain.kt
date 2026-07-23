@@ -26,6 +26,7 @@ fun main() {
     val localApplicationContext = LocalApplicationContext(usePdfGen = true, clock)
     start(
         log = log,
+        host = "127.0.0.1",
         isNais = false,
         clock = clock,
         applicationContext = localApplicationContext,
