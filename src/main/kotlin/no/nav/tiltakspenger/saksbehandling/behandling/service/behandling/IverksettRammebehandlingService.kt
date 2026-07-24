@@ -194,7 +194,7 @@ class IverksettRammebehandlingService(
         val (sakOppdatertMedMeldeperioder, oppdaterteMeldeperioder) = this.genererMeldeperioder(clock)
 
         if (!sakOppdatertMedMeldeperioder.meldeperioderErGyldigeForHelg()) {
-            logger.error(RuntimeException("Trigger stacktrace for enklere debug")) {
+            logger.info(RuntimeException("Trigger stacktrace for enklere debug")) {
                 "Kan ikke iverksette rammebehandling med ugyldige meldeperioder for helg - ${rammevedtak.rammebehandling.loggkontekst(correlationId)}"
             }
             return KanIkkeIverksetteBehandling.UgyldigeMeldeperioderHelg.left()
