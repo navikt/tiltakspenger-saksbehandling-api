@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.arkitektur
 
 import com.lemonappdev.konsist.api.Konsist
 import no.nav.tiltakspenger.libs.konsist.EnSetningPerLinje
+import no.nav.tiltakspenger.libs.konsist.IngenAndreHttpKlienter
 import no.nav.tiltakspenger.libs.konsist.IngenClockDefault
 import no.nav.tiltakspenger.libs.konsist.IngenJUnit4
 import no.nav.tiltakspenger.libs.konsist.IngenJackson2
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.libs.konsist.IngenJupiterAsserts
 import no.nav.tiltakspenger.libs.konsist.IngenLocalDateTimeNow
 import no.nav.tiltakspenger.libs.konsist.IngenLokaleJacksonMappere
 import no.nav.tiltakspenger.libs.konsist.IngenNowUtenClock
+import no.nav.tiltakspenger.libs.konsist.IngenRewriteAudienceTarget
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 
@@ -55,6 +57,29 @@ class FellesArkitekturKonsistTest {
         IngenClockDefault.assert(Konsist.scopeFromProduction())
     }
 
+    /**
+     * Produksjonskoden er fri for andre HTTP-klienter etter httpklient-migreringen, så regelen trenger ingen unntak her.
+     */
+    @Test
+    fun `ingen andre http-klienter enn libs httpklient i produksjonskode`() {
+        IngenAndreHttpKlienter.assertIngenKlienterIProduksjonskode(Konsist.scopeFromProduction())
+    }
+
+    /**
+     * Testkoden får bruke `testApplication`-klienten, som kjører i minnet uten sokkel, men ikke lage ekte nettverksklienter.
+     * Eksterne kall testes med produksjonsklienten over `FakeHttpTransport`, ikke med en klientmotor eller et fremmed klientbibliotek.
+     */
+    @Test
+    fun `ingen ekte http-klienter i testkode`() {
+        IngenAndreHttpKlienter.assertIngenKlienterITestkode(Konsist.scopeFromTest())
+    }
+
+    /** Fanger en klientavhengighet som er deklarert i byggfila, også før noen har tatt den i bruk. */
+    @Test
+    fun `ingen andre http-klienter deklarert i byggfila`() {
+        IngenAndreHttpKlienter.assertIngenKlientavhengigheter(repoRot())
+    }
+
     @Test
     fun `kdoc og kommentarer har maks en setning per linje`() {
         EnSetningPerLinje.assertFlereSetningerIKommentarer(Konsist.scopeFromProject())
@@ -73,6 +98,16 @@ class FellesArkitekturKonsistTest {
     @Test
     fun `markdown-filer brekker ikke en setning over flere linjer`() {
         EnSetningPerLinje.assertBrukneSetningerIMarkdown(repoRot())
+    }
+
+    /**
+     * `rewriteAudienceTarget` er utgått: `TexasHttpClient` utleder selv om target må skrives om, av formen på scope-verdien.
+     * Feil kombinasjon av flagg og scope-verdi ga `invalid_scope` fra Entra ID og tok ned søknad-api i produksjon to ganger, andre gang fordi wiringen ble flyttet til en ny fil og flagget ble med på flyttelasset.
+     * Regelen kjøres kun på produksjonskoden; test-fakes som implementerer `TexasClient` må beholde parameteret i signaturen så lenge det står i grensesnittet.
+     */
+    @Test
+    fun `ingen bruk av det utgåtte rewriteAudienceTarget-flagget`() {
+        IngenRewriteAudienceTarget.assert(Konsist.scopeFromProduction())
     }
 
     /** Enmodul-repo: testens arbeidskatalog er repo-rota. */

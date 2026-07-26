@@ -109,7 +109,6 @@ open class KlagebehandlingContext(
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
                 audienceTarget = Configuration.kabalScope,
-                rewriteAudienceTarget = false,
             ),
         )
     }

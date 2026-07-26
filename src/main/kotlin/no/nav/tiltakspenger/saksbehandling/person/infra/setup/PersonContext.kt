@@ -44,7 +44,6 @@ open class PersonContext(
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
                 audienceTarget = Configuration.microsoftScope,
-                rewriteAudienceTarget = false,
             ),
             clock = clock,
         )

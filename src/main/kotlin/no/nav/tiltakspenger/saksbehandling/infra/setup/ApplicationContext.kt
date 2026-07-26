@@ -176,7 +176,6 @@ open class ApplicationContext(
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
                 audienceTarget = Configuration.safScope,
-                rewriteAudienceTarget = false,
             ),
             clock = clock,
         )
