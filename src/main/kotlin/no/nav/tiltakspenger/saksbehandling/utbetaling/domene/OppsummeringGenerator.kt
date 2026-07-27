@@ -94,15 +94,19 @@ object OppsummeringGenerator {
      * Vi får et innslag per positive justering på andre dager.
      * Dersom den er positiv for denne dagen, vil dagen være justert istedenfor at den fører til feilubetaling.
      * Utregning: tidligere utbetalt = ny utbetaling + justering.
-     * Dette gjelder FEILUTBETALING kombinert med KLASSEKODE_JUSTERING.
      * Dette er "motregninger" som må sees på tvers av dager.
      * Disse vil komme uten en MOTP.
+     *
+     * Vi kjenner igjen justeringer på **klassekoden alene**, ikke på posteringstypen.
+     * Grunnen er at OS har sendt samme begrep under to ulike typer: som `FEILUTBETALING` med denne klassekoden, og som `JUSTERING` med denne klassekoden.
+     * Klassekoden har ligget fast i alt materiale vi har sett, posteringstypen har ikke det.
+     * Filtrerer vi på typen, mister vi justeringene stilltiende neste gang OS veksler -- og med dem `harJusteringPåTversAvMeldeperioderEllerMåneder`, som er vernet mot å justere uten hjemmel.
      */
     private fun beregnJustering(posteringer: PosteringerForDag): Int =
-        posteringer.summerPosteringer(Posteringstype.JUSTERING, KLASSEKODE_JUSTERING)
+        posteringer.summerPosteringer(KLASSEKODE_JUSTERING)
 
     private fun harJustering(posteringer: PosteringerForDag): Boolean =
-        posteringer.posteringer.any { it.type == Posteringstype.JUSTERING && it.klassekode == KLASSEKODE_JUSTERING }
+        posteringer.posteringer.any { it.klassekode == KLASSEKODE_JUSTERING }
 
     private fun PosteringerForDag.summerBarePositivePosteringer(type: Posteringstype): Int =
         this.posteringer.filter { it.beløp > 0 && it.type == type }.sumOf { it.beløp }
@@ -113,8 +117,8 @@ object OppsummeringGenerator {
     private fun PosteringerForDag.summerBarePositivePosteringer(type: Posteringstype, klassekode: String): Int =
         this.posteringer.filter { it.beløp > 0 && it.type == type && it.klassekode == klassekode }.sumOf { it.beløp }
 
-    private fun PosteringerForDag.summerPosteringer(type: Posteringstype, klassekode: String): Int =
-        this.posteringer.filter { it.type == type && it.klassekode == klassekode }.sumOf { it.beløp }
+    private fun PosteringerForDag.summerPosteringer(klassekode: String): Int =
+        this.posteringer.filter { it.klassekode == klassekode }.sumOf { it.beløp }
 
     private fun PosteringerForDag.summerPosteringer(type: Posteringstype): Int =
         this.posteringer.filter { it.type == type }.sumOf { it.beløp }
