@@ -31,7 +31,7 @@ import kotlin.time.Duration.Companion.seconds
  * Klienten er bevisst minimal: den gjør selve HTTP-kallet, og responsen brukes kun via metadataen (rå request/respons persisteres i `OversendtKlageTilKabalMetadata`).
  * Feillogging og hva som skal skje ved en avvist/feilet oversendelse ligger i [no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.OversendKlageTilKlageinstansJobb], sammen med resten av domenekonteksten.
  *
- * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class KabalHttpClient(
     baseUrl: String,

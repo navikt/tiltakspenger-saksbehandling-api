@@ -40,7 +40,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * `403` er et domeneutfall (avvist tilgang med strukturert body), ikke en teknisk feil: den er derfor ikke med i `godta`, men utledes fra feiltypen med [harStatus] og [bodySomJson] (teamkonvensjonen).
  *
- * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class TilgangsmaskinHttpClient(
     baseUrl: String,

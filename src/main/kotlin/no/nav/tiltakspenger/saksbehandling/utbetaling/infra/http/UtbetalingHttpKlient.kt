@@ -60,7 +60,7 @@ import kotlin.time.Duration.Companion.seconds
  * @param iverksettTimeout Timeout for iverksetting.
  * @param simuleringTimeout Timeout for simulering.
  * Simulering mot Oppdrag kan være treg, derav den høye defaulten.
- * @param transport Nettverks-sømmen; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class UtbetalingHttpKlient(
     private val baseUrl: String,

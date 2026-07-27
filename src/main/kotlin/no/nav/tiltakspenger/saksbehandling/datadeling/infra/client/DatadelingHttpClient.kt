@@ -37,7 +37,7 @@ import kotlin.time.Duration.Companion.seconds
  * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og den bærer all HTTP-kontekst (status, rå request/respons, throwable) via `metadata`.
  * Feilloggingen gjøres én gang av konsumenten ([no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService]), som i tillegg har domenekonteksten.
  *
- * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen (auth, statusregel, serialisering) kjører i test.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen (auth, statusregel, serialisering) kjører i test.
  */
 class DatadelingHttpClient(
     baseUrl: String,

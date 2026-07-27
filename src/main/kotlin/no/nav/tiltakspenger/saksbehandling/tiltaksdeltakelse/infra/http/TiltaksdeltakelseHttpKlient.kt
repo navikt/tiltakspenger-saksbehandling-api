@@ -33,7 +33,7 @@ import kotlin.time.Duration.Companion.seconds
  * Klienten logger bevisst ikke selv: den returnerer [HttpKlientError] uendret, og feillogging gjøres én gang i kallende service ([no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService], [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.TiltaksdeltakelseService]), som i tillegg har domenekonteksten.
  *
  * @param timeout Per-request timeout. tiltakspenger-tiltak gjør oppslag mot flere kilder, derav den høye defaulten (matcher den gamle ktor-klientens 60s).
- * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class TiltaksdeltakelseHttpKlient(
     baseUrl: String,

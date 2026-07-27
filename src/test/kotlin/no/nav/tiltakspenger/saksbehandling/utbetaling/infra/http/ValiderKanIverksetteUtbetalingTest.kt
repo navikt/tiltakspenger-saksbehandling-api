@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.shouldBe
-import java.time.LocalDate
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -20,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldep
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 private typealias DatoOgBeløp = Pair<LocalDate, Int>
 

@@ -63,7 +63,7 @@ import kotlin.time.measureTimedValue
  * Klienten logger ikke feil selv: den bærer HTTP-konteksten videre via [KunneIkkeGenererePdf], og feillogging gjøres én gang i kallende service/jobb via [no.nav.tiltakspenger.libs.httpklient.loggFeil].
  * Unntaket er en midlertidig info-linje i [runParallel] som sammenligner responstiden til pdfgen og pdfgenrs; den fjernes sammen med pdfgenrs-verifiseringen.
  *
- * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class PdfgenHttpClient(
     baseUrl: String,

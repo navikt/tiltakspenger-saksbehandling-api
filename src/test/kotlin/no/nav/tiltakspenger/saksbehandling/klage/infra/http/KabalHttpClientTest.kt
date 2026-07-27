@@ -52,7 +52,7 @@ class KabalHttpClientTest {
                 metadata.statusKode shouldBe 200
                 metadata.response shouldBe ""
                 metadata.oversendtTidspunkt shouldBe nå(fixedClock)
-                // request lagres som redaktert rå-request; body-en skal fortsatt være med.
+                // request lagres som maskert rå-request; body-en skal fortsatt være med.
                 response.rawRequestString shouldContain """"kildeReferanse":"${klagebehandling.id}""""
                 response.rawRequestString shouldContain "Authorization: ***"
             }
