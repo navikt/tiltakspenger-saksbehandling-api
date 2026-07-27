@@ -14,19 +14,18 @@ import org.junit.jupiter.api.Test
 internal class TrekkOgJusteringFraProdTest {
 
     /**
-     * Trekk kommer med begge fortegn, og bare det positive telles i dag.
+     * Trekk kommer med begge fortegn, og alle skal telle.
      *
      * I prod-uttrekket hadde saken tre positive og fire negative trekkposteringer.
      * De positive gikk alltid opp i 25 kr per dag; de negative var ujevne beløp.
-     * `beregnTrekk` summerer bare de positive, så `totalTrekk` blir 250 -- mens posteringene til sammen er -224.
+     * Tidligere summerte `beregnTrekk` bare de positive, så `totalTrekk` ble 250 -- mens posteringene til sammen er -224.
      *
-     * TODO jah: implementasjonen er feil, se #1735.
-     * Testen låser dagens oppførsel og må snus når fortegnet rettes.
-     * Vurder migrering: lagrede simuleringer har det gamle tallet, og en behandling som er simulert før og kontrollsimulert etter en slik endring vil se ulikheter og bli blokkert.
+     * Nå summerer vi begge fortegn, og saksbehandler ser at etterbetalingen på 224 spises i sin helhet av trekket.
+     * Se #1735.
      */
     @Test
-    fun `bare positive trekk telles, selv når summen av alle er negativ`() {
-        val simulering = simuleringForDager(
+    fun `alle trekk telles, uansett fortegn`() {
+        val posteringer = listOf(
             6.januar(2025) to listOf(trekk(-191, Klassekoder.TREKK_KREDITOR), trekk(125, Klassekoder.TREKK_KREDITOR)),
             13.januar(2025) to listOf(trekk(-34, Klassekoder.TREKK_KREDITOR), trekk(75, Klassekoder.TREKK_KREDITOR)),
             16.januar(2025) to listOf(
@@ -37,41 +36,40 @@ internal class TrekkOgJusteringFraProdTest {
                 trekk(50, Klassekoder.TREKK_KREDITOR),
             ),
         )
+        val simulering = simuleringForDager(*posteringer.toTypedArray())
 
         val dager = simulering.simuleringPerMeldeperiode.toList().flatMap { it.simuleringsdager.toList() }
 
         // Summen av alle trekkposteringene: -191 + 125 - 34 + 75 - 29 - 220 + 50 = -224.
-        dager.sumOf { dag ->
-            dag.posteringsdag.posteringer.filter { it.type == Posteringstype.TREKK }.sumOf { it.beløp }
-        } shouldBe -224
+        simulering.simuleringPerMeldeperiode.toList()
+            .flatMap { meldeperiode -> meldeperiode.posteringer.filter { it.type == Posteringstype.TREKK } }
+            .sumOf { it.beløp } shouldBe -224
 
-        // Men dette er tallet saksbehandler får se.
-        dager.sumOf { it.totalTrekk } shouldBe 250
+        // Og det er nå tallet saksbehandler får se.
+        dager.sumOf { it.totalTrekk } shouldBe -224
 
-        // Etterbetalingen på 224 spises i sin helhet av trekket, uten at noe i oppsummeringen viser det.
         dager.sumOf { it.totalEtterbetaling } shouldBe 224
     }
 
     /**
-     * En justering som går opp i null hos oppdragssystemet, gjør det ikke lenger etter vår avrunding.
+     * En justering som går opp i null hos oppdragssystemet, skal gjøre det hos oss også.
      *
      * Dette er formen fra prod: tre justeringer på 66, -41 og -25 som summerer til nøyaktig 0, fordelt på perioder på henholdsvis fem, tre og to dager.
-     * Ingen av dem går opp i antall dager, så hver av dem rundes:
+     * Ingen av dem går opp i antall dager.
      *
-     * - 66 over 5 dager blir 13 per dag, altså 65 -- ett for lite.
-     * - -41 over 3 dager blir -14 per dag, altså -42 -- ett for mye.
-     * - -25 over 2 dager blir -12 per dag, altså -24 -- ett for lite.
+     * Tidligere delte vi beløpet på antall dager og rundet av per dag, og da forsvant resten:
      *
-     * Summen ender på -1 i stedet for 0.
+     * - 66 over 5 dager ble 13 per dag, altså 65 -- ett for lite.
+     * - -41 over 3 dager ble -14 per dag, altså -42 -- ett for mye.
+     * - -25 over 2 dager ble -12 per dag, altså -24 -- ett for lite.
      *
-     * `harJusteringPåTversAvMeldeperioderEllerMåneder` sjekker om summen per måned innenfor meldeperioden er ulik null.
-     * Den ene kronen er nok til at vernet slår ut, og iverksetting blokkeres på en justering som er perfekt balansert innenfor én meldeperiode og én måned.
+     * Summen endte på -1, og `harJusteringPåTversAvMeldeperioderEllerMåneder` blokkerte en iverksetting som var perfekt balansert innenfor én meldeperiode og én måned.
      *
-     * TODO jah: dette er en falsk positiv, se #1734.
-     * Testen låser dagens oppførsel og må snus når fordelingen rettes.
+     * Nå summerer vernet posteringene i stedet for dagsverdiene, og den falske positiven er borte.
+     * Se #1734.
      */
     @Test
-    fun `balansert justering blokkeres av avrundingen`() {
+    fun `balansert justering blokkeres ikke lenger`() {
         val simulering = simuleringForPerioder(
             Periode(6.januar(2025), 10.januar(2025)) to listOf(ytelse(1490), justering(66)),
             Periode(13.januar(2025), 15.januar(2025)) to listOf(ytelse(894), justering(-41)),
@@ -79,11 +77,10 @@ internal class TrekkOgJusteringFraProdTest {
         )
 
         simulering.simuleringPerMeldeperiode.size shouldBe 1
-        // Kilden summerer til 66 - 41 - 25 = 0, men avrundingen per dag gir 65 - 42 - 24 = -1.
-        simulering.totalJustering shouldBe -1
+        // Kilden summerer til 66 - 41 - 25 = 0, og det gjør dagsverdiene våre nå også.
+        simulering.totalJustering shouldBe 0
 
-        simulering.validerKanIverksetteUtbetaling()
-            .leftOrNull() shouldBe KanIkkeIverksetteUtbetaling.JusteringStøttesIkke
+        simulering.validerKanIverksetteUtbetaling().isRight() shouldBe true
     }
 
     /** Samme justeringer, men lagt på perioder som går opp -- da blir summen null og alt går bra. */
@@ -101,22 +98,24 @@ internal class TrekkOgJusteringFraProdTest {
     }
 
     /**
-     * Trekk går sjelden opp i antall dager -- 58 % av flerdagers trekk i prod gjør det ikke.
+     * Trekk går sjelden opp i antall dager -- 46 % av flerdagers trekk i prod gjør det ikke.
      *
-     * TODO jah: fordelingen er en tilnærming for trekk, se #1734.
+     * Posteringen beholder derfor sin egen periode og sitt eget beløp.
+     * Dagsverdiene er utledet til visning, og fordelingen legger resten ut slik at summen av dagene er nøyaktig lik posteringen.
+     * Se #1734.
      */
     @Test
-    fun `trekk fordelt over flere dager rundes av per dag`() {
-        val dager = simulerPeriode(
-            Periode(6.januar(2025), 10.januar(2025)),
-            ytelse(1490),
-            trekk(-191, Klassekoder.TREKK_KREDITOR),
-        )
+    fun `trekk fordelt over flere dager mister ikke resten`() {
+        val periode = Periode(6.januar(2025), 10.januar(2025))
+        val dager = simulerPeriode(periode, ytelse(1490), trekk(-191, Klassekoder.TREKK_KREDITOR))
 
         dager.size shouldBe 5
-        // -191 / 5 = -38,2 som rundes til -38 per dag, altså -190 til sammen.
-        dager.sumOf { dag ->
-            dag.posteringsdag.posteringer.filter { it.type == Posteringstype.TREKK }.sumOf { it.beløp }
-        } shouldBe -190
+        // Posteringen er bevart slik oppdragssystemet ga den.
+        posteringerForPeriode(periode, ytelse(1490), trekk(-191, Klassekoder.TREKK_KREDITOR))
+            .single { it.type == Posteringstype.TREKK }.beløp shouldBe -191
+
+        // -191 / 5 gir -39, -38, -38, -38, -38, som summerer nøyaktig til -191.
+        dager.sumOf { it.totalTrekk } shouldBe -191
+        dager.map { it.totalTrekk } shouldBe listOf(-39, -38, -38, -38, -38)
     }
 }

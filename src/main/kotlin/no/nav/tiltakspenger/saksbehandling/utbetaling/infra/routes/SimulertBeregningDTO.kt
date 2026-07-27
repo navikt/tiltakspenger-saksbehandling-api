@@ -60,24 +60,7 @@ data class SimulertBeregningDTO(
             val status: MeldekortDagStatusDTO?,
             val beregning: BeregningerSummertDTO?,
             val simulerteBeløp: SimulerteBeløp?,
-            val posteringer: List<PosteringForDagDTO>?,
         )
-    }
-
-    data class PosteringForDagDTO(
-        val fagområde: String,
-        val beløp: Int,
-        val type: PosteringstypeDTO,
-        val klassekode: String,
-    )
-
-    enum class PosteringstypeDTO {
-        YTELSE,
-        FEILUTBETALING,
-        FORSKUDSSKATT,
-        JUSTERING,
-        TREKK,
-        MOTPOSTERING,
     }
 
     enum class SimuleringResultatDTO {
@@ -144,16 +127,6 @@ fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningMeldeper
                 ),
             )
         },
-        posteringer = this.simuleringsdag?.let {
-            it.posteringsdag.posteringer.map { postering ->
-                SimulertBeregningDTO.PosteringForDagDTO(
-                    fagområde = postering.fagområde,
-                    beløp = postering.beløp,
-                    type = postering.type.tilDTO(),
-                    klassekode = postering.klassekode,
-                )
-            }
-        },
     )
 }
 
@@ -183,17 +156,6 @@ private fun SimulertBeregning.BeregningBeløp.tilBeregningerSummertDTO(forrigeBe
             nå = this.barnetillegg,
         ),
     )
-}
-
-private fun Posteringstype.tilDTO(): SimulertBeregningDTO.PosteringstypeDTO {
-    return when (this) {
-        Posteringstype.YTELSE -> SimulertBeregningDTO.PosteringstypeDTO.YTELSE
-        Posteringstype.FEILUTBETALING -> SimulertBeregningDTO.PosteringstypeDTO.FEILUTBETALING
-        Posteringstype.FORSKUDSSKATT -> SimulertBeregningDTO.PosteringstypeDTO.FORSKUDSSKATT
-        Posteringstype.JUSTERING -> SimulertBeregningDTO.PosteringstypeDTO.JUSTERING
-        Posteringstype.TREKK -> SimulertBeregningDTO.PosteringstypeDTO.TREKK
-        Posteringstype.MOTPOSTERING -> SimulertBeregningDTO.PosteringstypeDTO.MOTPOSTERING
-    }
 }
 
 private fun SimulertBeregning.SimuleringResultat.tilDTO(): SimulertBeregningDTO.SimuleringResultatDTO {

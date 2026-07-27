@@ -67,8 +67,9 @@ internal class OppsummeringGeneratorYtelseTest {
         val dag = simulerDag(ytelse(408), annetFagområde(9999))
 
         dag.nyUtbetaling shouldBe 408
-        dag.posteringsdag.posteringer.size shouldBe 1
-        dag.posteringsdag.posteringer.single().fagområde shouldBe FAGOMRÅDE_TILTAKSPENGER
+        val posteringer = posteringerForDag(ytelse(408), annetFagområde(9999))
+        posteringer.size shouldBe 1
+        posteringer.single().fagområde shouldBe FAGOMRÅDE_TILTAKSPENGER
     }
 
     @Test
@@ -80,20 +81,19 @@ internal class OppsummeringGeneratorYtelseTest {
     }
 
     /**
-     * Fordelingen runder av per dag, så summen av dagene trenger ikke bli det beløpet OS sendte.
+     * Fordelingen mister ikke resten, så summen av dagene er alltid nøyaktig beløpet OS sendte.
      *
-     * 101 kroner over to dager blir 50,5 per dag, som rundes opp til 51 begge dager -- til sammen 102.
-     * Dette er kilden til avvikene på én og to kroner mellom `simulering` og `simulering_metadata` som vi fant i dev-uttrekket.
-     * Testen låser dagens oppførsel, den påstår ikke at den er ønsket.
-     *
-     * TODO jah: se #1734 om å modellere posteringene nærmere kilden.
+     * 101 kroner over to dager blir 50,5 per dag.
+     * Tidligere rundet vi hver dag for seg og fikk 51 + 51 = 102, som var kilden til avvikene på én og to kroner mellom `simulering` og `simulering_metadata` i dev-uttrekket.
+     * Nå legges resten på den første dagen i stedet, og summen går opp.
+     * Se #1734.
      */
     @Test
-    fun `avrunding per dag kan gi en annen sum enn beløpet fra OS`() {
+    fun `fordelingen per dag summerer til beløpet fra OS`() {
         val dager = simulerPeriode(Periode(6.januar(2025), 7.januar(2025)), ytelse(101))
 
-        dager.map { it.nyUtbetaling } shouldBe listOf(51, 51)
-        dager.sumOf { it.nyUtbetaling } shouldBe 102
+        dager.map { it.nyUtbetaling } shouldBe listOf(51, 50)
+        dager.sumOf { it.nyUtbetaling } shouldBe 101
     }
 
     @Test

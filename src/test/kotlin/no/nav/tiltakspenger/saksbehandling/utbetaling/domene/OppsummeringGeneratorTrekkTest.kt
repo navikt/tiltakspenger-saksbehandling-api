@@ -16,29 +16,25 @@ import org.junit.jupiter.api.Test
  * - su-se-bakover, `simulering-trek-deler-opp-en-måned-i-to.xml`: trekk på `-20285.00` per måned
  *
  * **I alle 14 trekkposteringene jeg har funnet er beløpet negativt.**
- * Det står i motstrid til kommentaren på `beregnTrekk` ("Kommer som positive posteringer") og til implementasjonen, som bare summerer de positive.
- * Testene under låser dagens oppførsel og viser konsekvensen.
+ * Det samme bildet gjelder i prod: 3 214 av 3 482 trekkposteringer er negative.
+ * `beregnTrekk` summerer derfor uansett fortegn, slik at feltet viser beløpet som faktisk trekkes.
  */
 internal class OppsummeringGeneratorTrekkTest {
 
     /**
-     * Slik et ekte trekk ser ut -- og det havner ikke i `totalTrekk`.
+     * Slik et ekte trekk ser ut, og det skal telle med i `totalTrekk`.
      *
      * Dette er formen fra helveds `sim-trekk.xml`, med negativt beløp.
-     * `beregnTrekk` summerer bare positive posteringer, så resultatet blir 0 og `harTrekk` false.
-     * Testen påstår ikke at dette er riktig; den dokumenterer at vi i dag ikke ville fanget opp et trekk fra OS i det hele tatt.
-     *
-     * TODO jah: implementasjonen er feil, se #1735.
-     * 92 % av trekkposteringene i prod er negative, og 132 av 214 saker har utelukkende negative trekk.
+     * Tidligere summerte vi bare positive posteringer, og da ble dette trekket usynlig for saksbehandler.
+     * Se #1735.
      */
     @Test
-    fun `negativt trekk fra OS gir null totalTrekk`() {
+    fun `negativt trekk fra OS telles med`() {
         val dag = simulerDag(ytelse(700), trekk(-112, klassekode = Klassekoder.TREKK_BIDRAG))
 
-        dag.totalTrekk shouldBe 0
-        dag.harTrekk shouldBe false
-        // Posteringen er bevart, så informasjonen er ikke tapt -- den er bare ikke summert.
-        dag.posteringsdag.posteringer.size shouldBe 2
+        dag.totalTrekk shouldBe -112
+        dag.harTrekk shouldBe true
+        posteringerForDag(ytelse(700), trekk(-112, klassekode = Klassekoder.TREKK_BIDRAG)).size shouldBe 2
     }
 
     @Test
@@ -57,15 +53,25 @@ internal class OppsummeringGeneratorTrekkTest {
     }
 
     /**
-     * Blandede fortegn: bare den positive delen teller.
+     * Blandede fortegn summeres netto.
      *
-     * TODO jah: se #1735.
+     * De positive trekkposteringene ser ut til å være reverseringer av tidligere trekk.
+     * Nettosummen er da det som faktisk trekkes fra utbetalingen.
      */
     @Test
-    fun `negativt trekk trekkes ikke fra det positive`() {
+    fun `negativt trekk trekkes fra det positive`() {
         val dag = simulerDag(ytelse(408), trekk(100), trekk(-40))
 
-        dag.totalTrekk shouldBe 100
+        dag.totalTrekk shouldBe 60
+    }
+
+    /** Går trekk og reversering nøyaktig opp mot hverandre, er det ikke noe trekk igjen å vise. */
+    @Test
+    fun `trekk som nulles ut av en reversering gir null`() {
+        val dag = simulerDag(ytelse(408), trekk(100), trekk(-100))
+
+        dag.totalTrekk shouldBe 0
+        dag.harTrekk shouldBe false
     }
 
     /**
@@ -127,6 +133,6 @@ internal class OppsummeringGeneratorTrekkTest {
         dag.totalTrekk shouldBe 0
         dag.totalFeilutbetaling shouldBe 0
         dag.totalMotpostering shouldBe 0
-        dag.posteringsdag.posteringer.size shouldBe 2
+        posteringerForDag(ytelse(408), forskudsskatt(-100)).size shouldBe 2
     }
 }

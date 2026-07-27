@@ -76,18 +76,24 @@ fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbeta
     }
 }
 
-// Vi har ikke lov til å justere utbetalinger på tvers av meldeperioder
+/**
+ * Vi har ikke lov til å justere utbetalinger på tvers av meldeperioder.
+ *
+ * Dersom meldeperioden går over to måneder, må vi vurdere hver side av månedsskiftet for seg.
+ * Det er fordi oppdrag kun justerer innenfor samme kalendermåned.
+ * På tvers av måneder blir det feilutbetaling + etterbetaling for hver måned i stedet for justering.
+ *
+ * Summeringen skjer på posteringene, ikke på dagsverdiene.
+ * Grunnen er at en justering kan ha et beløp som ikke går opp i antall dager i perioden sin.
+ * Summerte vi dagsverdiene, ville avrundingen kunne gi en sum ulik null for et justeringssett som balanserer perfekt hos oppdragssystemet -- og da ville vernet blokkert en iverksetting som skulle gått gjennom.
+ */
 private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(): Boolean {
     return simuleringPerMeldeperiode.any { meldeperiode ->
-        /*
-          Dersom meldeperioden går over to måneder, må vi sjekke dagene på hver side av månedsskiftet separat
-          Dette ettersom oppdrag kun justerer innenfor samme kalendermåned.
-          På tvers av måneder blir det feilutbetaling + etterbetaling for hver måned istedenfor justering
-         */
-        meldeperiode.harJustering && meldeperiode.simuleringsdager
-            .groupBy { it.dato.month }.values
-            .any { dagerForMåned ->
-                dagerForMåned.sumOf { it.totalJustering } != 0
+        meldeperiode.harJustering && meldeperiode.posteringer
+            .filter { it.erJustering }
+            .groupBy { it.periode.fraOgMed.month }.values
+            .any { justeringerForMåned ->
+                justeringerForMåned.sumOf { it.beløp } != 0
             }
     }
 }

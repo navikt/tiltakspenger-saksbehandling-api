@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.abs
 
 /**
  * En dry-run av en utbetaling.
@@ -74,6 +75,12 @@ sealed interface Simulering {
 data class SimuleringForMeldeperiode(
     val meldeperiode: Meldeperiode,
     val simuleringsdager: NonEmptyList<Simuleringsdag>,
+
+    /**
+     * Posteringene slik oppdragssystemet leverte dem, med sine egne perioder.
+     * Dette er kilden dagsverdiene i [simuleringsdager] er utledet fra.
+     */
+    val posteringer: NonEmptyList<Postering>,
 ) {
     val tidligereUtbetalt: Int = simuleringsdager.sumOf { it.tidligereUtbetalt }
     val nyUtbetaling: Int = simuleringsdager.sumOf { it.nyUtbetaling }
@@ -130,9 +137,6 @@ data class Simuleringsdag(
     /** Hvis denne dagen er negativt justert (typisk ompostert til en annen dag) */
     val totalJustering: Int,
     val harJustering: Boolean,
-
-    /** Detaljene som ligger bak oppsummeringen. */
-    val posteringsdag: PosteringerForDag,
 ) {
     @Suppress("unused")
     val harFeilutbetaling: Boolean by lazy { totalFeilutbetaling > 0 }
@@ -140,23 +144,25 @@ data class Simuleringsdag(
     @Suppress("unused")
     val harEtterbetaling: Boolean by lazy { totalEtterbetaling > 0 }
 
+    /**
+     * Trekk kommer med begge fortegn, og de aller fleste er negative.
+     * Derfor holder det ikke å sjekke om beløpet er positivt.
+     */
     @Suppress("unused")
-    val harTrekk: Boolean by lazy { totalTrekk > 0 }
+    val harTrekk: Boolean by lazy { totalTrekk != 0 }
 }
 
 /**
- * OS leverer en sammenhengende periode med en eller flere posteringer, som vi splitter opp i dager.
+ * En postering slik oppdragssystemet leverte den, med sin egen periode.
+ * Beløpet gjelder hele perioden under ett, ikke per dag.
+ *
+ * For ytelsesposteringer går beløpet opp i antall dager, fordi vi selv sender hele kroner per dag og OS slår sammen dager med samme dagsbeløp.
+ * For motregning -- feilutbetaling, motpostering, justering og trekk -- gjør det ofte ikke det.
+ * Da har OS balansert dager mot hverandre, beløpet svarer bare til deler av perioden det er stemplet med, og det finnes ingen dagsfordeling å gjenskape.
+ * Derfor beholder vi perioden slik den kom, og utleder dagsverdier kun til visning.
  */
-data class PosteringerForDag(
-    val dato: LocalDate,
-    val posteringer: NonEmptyList<PosteringForDag>,
-)
-
-/**
- * Slik vi fikk detaljene fra helved, men splittet opp i dager innenfor en meldeperiode.
- */
-data class PosteringForDag(
-    val dato: LocalDate,
+data class Postering(
+    val periode: Periode,
     // Kommentar jah: Vi kan beholde den som en String enn så lenge.
     // Fyll inn javadoc etterhvert som vi oppdager de.
     // Se også tilleggstønader: https://github.com/navikt/tilleggsstonader-sak/blob/main/src/main/kotlin/no/nav/tilleggsstonader/sak/utbetaling/simulering/kontrakt/SimuleringResponseDto.kt#L42
@@ -168,11 +174,37 @@ data class PosteringForDag(
     // Denne vil nok gjenspeile det vi sender inn i simuleringen, i hvert fall for de linjene som angår oss.
     // Eksempel: TPTPATT, TPTPGRAMO, TPBTGRAMO,KL_KODE_FEIL_ARBYT,KL_KODE_JUST_ARBYT,TBMOTOBS,TPBTAAGR,TPBTAF,TPBTOPPFAGR,TPTPAAG,TPTPAFT,TPTPOPPFAG
     val klassekode: String,
-)
+) {
+    /**
+     * Justeringer gjenkjennes på klassekoden alene, ikke på posteringstypen.
+     * OS har sendt samme begrep både som `FEILUTBETALING` og som `JUSTERING` med denne klassekoden, mens klassekoden har ligget fast i alt materiale vi har sett.
+     */
+    val erJustering: Boolean = klassekode == OppsummeringGenerator.KLASSEKODE_JUSTERING
+
+    /**
+     * Fordeler beløpet på dagene i perioden uten å miste resten.
+     * Går beløpet opp i antall dager, får hver dag like mye.
+     * Gjør det ikke det, legges resten ut på de første dagene med én krone hver, slik at summen av dagene alltid er nøyaktig lik [beløp].
+     *
+     * Hvilke dager som får den ekstra krona er vilkårlig -- kilden sier ingenting om det.
+     * Det er likevel trygt, fordi en postering alltid ligger innenfor én meldeperiode.
+     * Valget kan derfor aldri flytte beløp mellom meldeperioder, og summen per meldeperiode blir den samme uansett.
+     */
+    fun beløpPerDag(): Map<LocalDate, Int> {
+        val dager = periode.tilDager()
+        val beløpPerDag = beløp / dager.size
+        val rest = beløp % dager.size
+        val ekstra = if (rest < 0) -1 else 1
+        return dager.mapIndexed { index, dato ->
+            dato to if (index < abs(rest)) beløpPerDag + ekstra else beløpPerDag
+        }.toMap()
+    }
+}
 
 /**
  * Ved førstegangsutbetaling vil man i utgangspunktet kun få en postering av typen YTELSE, men det finnes mange unntak.
- * Kopiert fra https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringDomain.kt#L44
+ * Kopiert fra `domain.PosteringType`, som er enumen helved serialiserer inn i posteringene de sender oss.
+ * Se [SimuleringModels.kt](https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringModels.kt).
  */
 enum class Posteringstype {
     YTELSE,

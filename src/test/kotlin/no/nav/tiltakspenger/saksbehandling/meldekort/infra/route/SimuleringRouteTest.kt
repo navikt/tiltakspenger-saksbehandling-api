@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.simulertBeregningForEnesteMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.verifiserPosteringerForDag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.verifiserSimuleringsoppsummering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.verifiserSimulerteBeløp
 import no.nav.tiltakspenger.saksbehandling.utbetaling.verifiserSimulerteBeløpForDag
@@ -60,22 +59,8 @@ internal class SimuleringRouteTest {
                     """.trimIndent(),
                 )
 
-                // Posteringene er uendret fra responsen helved ville sendt.
-                //language=json
-                simulertBeregning.verifiserPosteringerForDag(
-                    dato = 1.april(2025),
-                    forventet = """
-                    [
-                      {
-                        "fagområde": "TILTAKSPENGER",
-                        "klassekode": "TPTPAFT",
-                        "beløp": 298,
-                        "type": "YTELSE"
-                      }
-                    ]
-                    """.trimIndent(),
-                )
-
+                // Posteringene ligger ikke lenger per dag i API-et.
+                // De henger på meldeperioden med perioden oppdragssystemet ga dem, og dekkes av SimuleringDbJsonTest.
                 //language=json
                 simulertBeregning.verifiserSimulerteBeløpForDag(
                     dato = 1.april(2025),

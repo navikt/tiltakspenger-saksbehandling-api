@@ -177,6 +177,6 @@ internal class OppsummeringGeneratorJusteringTest {
         medJustering.totalJustering shouldBe 200
         medJustering.harJustering shouldBe true
         utenJustering.totalJustering shouldBe 0
-        medJustering.posteringsdag.posteringer.size shouldBe 2
+        posteringerForDag(ytelse(400), feilutbetalingMedJusteringsklassekode(200)).size shouldBe 2
     }
 }

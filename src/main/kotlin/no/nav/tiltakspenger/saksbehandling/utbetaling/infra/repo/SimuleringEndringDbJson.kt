@@ -1,12 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
+import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.PeriodeDbJson
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Postering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
@@ -50,6 +53,15 @@ data class SimuleringEndringDbJson(
     data class SimuleringForMeldeperiode(
         val meldeperiodeId: String,
         val simuleringsdager: List<Simuleringsdag>,
+
+        /**
+         * Posteringene med perioden oppdragssystemet ga dem.
+         * Feltet ble innført da vi sluttet å splitte posteringene opp i dager, se #1734.
+         *
+         * Rader skrevet før det mangler feltet, og posteringene ligger da under [Simuleringsdag.posteringsdag] i stedet.
+         * Tilstedeværelsen av dette feltet er det som skiller de to formene -- vi trenger ikke noe versjonsnummer.
+         */
+        val posteringer: List<Postering>? = null,
     )
 
     data class Simuleringsdag(
@@ -66,7 +78,15 @@ data class SimuleringEndringDbJson(
         // Denne ble lagt til 30. sept.
         // Defaulten er ikke nødvendigvis korrekt, dersom dagen har både positive og negative justeringer som nuller ut hverandre
         val harJustering: Boolean = totalJustering < 0,
-        val posteringsdag: PosteringerForDag,
+
+        /**
+         * Den gamle formen, der hver postering var splittet opp i én rad per dag.
+         * Erstattet av [SimuleringForMeldeperiode.posteringer], og skrives ikke lenger.
+         *
+         * Feltet leses fortsatt, slik at behandlinger som ble simulert før endringen viser nøyaktig de tallene saksbehandler så den gangen.
+         * Vi regner dem bevisst ikke om -- det ville endret tall på lukkede behandlinger i ettertid.
+         */
+        val posteringsdag: PosteringerForDag? = null,
     )
 
     data class PosteringerForDag(
@@ -76,6 +96,14 @@ data class SimuleringEndringDbJson(
 
     data class PosteringForDag(
         val dato: LocalDate,
+        val fagområde: String,
+        val beløp: Int,
+        val type: PosteringstypeDbType,
+        val klassekode: String,
+    )
+
+    data class Postering(
+        val periode: PeriodeDbJson,
         val fagområde: String,
         val beløp: Int,
         val type: PosteringstypeDbType,
@@ -102,47 +130,72 @@ data class SimuleringEndringDbJson(
             }
         }
     }
+}
 
-    fun toEndring(
-        meldeperiodeKjeder: MeldeperiodeKjeder,
-        simuleringstidspunkt: LocalDateTime,
-    ): Simulering.Endring {
-        return Simulering.Endring(
-            datoBeregnet = this.datoBeregnet,
-            totalBeløp = this.totalBeløp,
-            simuleringstidspunkt = simuleringstidspunkt,
-            simuleringPerMeldeperiode = this.perMeldeperiode.map {
-                SimuleringForMeldeperiode(
-                    meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(MeldeperiodeId.fromString(it.meldeperiodeId))!!,
-                    simuleringsdager = it.simuleringsdager.map { dag ->
-                        Simuleringsdag(
-                            dato = dag.dato,
-                            tidligereUtbetalt = dag.tidligereUtbetalt,
-                            nyUtbetaling = dag.nyUtbetaling,
-                            totalEtterbetaling = dag.totalEtterbetaling,
-                            totalFeilutbetaling = dag.totalFeilutbetaling,
-                            totalMotpostering = dag.totalMotpostering,
-                            totalTrekk = dag.totalTrekk,
-                            totalJustering = dag.totalJustering,
-                            harJustering = dag.harJustering,
-                            posteringsdag = PosteringerForDag(
-                                dato = dag.dato,
-                                posteringer = dag.posteringsdag.posteringer.map { posteringForDag ->
-                                    PosteringForDag(
-                                        dato = posteringForDag.dato,
-                                        fagområde = posteringForDag.fagområde,
-                                        beløp = posteringForDag.beløp,
-                                        type = posteringForDag.type.toDomain(),
-                                        klassekode = posteringForDag.klassekode,
-                                    )
-                                }.toNonEmptyListOrNull()!!,
-                            ),
-                        )
-                    }.toNonEmptyListOrNull()!!,
-                )
-            }.toNonEmptyListOrNull()!!,
-        )
+/**
+ * Ligger på toppnivå, ikke inne i [SimuleringEndringDbJson].
+ * Grunnen er at de nestede db-typene har samme navn som domenetypene og ville skygget for dem inne i klassekroppen.
+ */
+private fun SimuleringEndringDbJson.toEndring(
+    meldeperiodeKjeder: MeldeperiodeKjeder,
+    simuleringstidspunkt: LocalDateTime,
+): Simulering.Endring {
+    return Simulering.Endring(
+        datoBeregnet = this.datoBeregnet,
+        totalBeløp = this.totalBeløp,
+        simuleringstidspunkt = simuleringstidspunkt,
+        simuleringPerMeldeperiode = this.perMeldeperiode.map {
+            SimuleringForMeldeperiode(
+                meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(MeldeperiodeId.fromString(it.meldeperiodeId))!!,
+                simuleringsdager = it.simuleringsdager.map { dag ->
+                    Simuleringsdag(
+                        dato = dag.dato,
+                        tidligereUtbetalt = dag.tidligereUtbetalt,
+                        nyUtbetaling = dag.nyUtbetaling,
+                        totalEtterbetaling = dag.totalEtterbetaling,
+                        totalFeilutbetaling = dag.totalFeilutbetaling,
+                        totalMotpostering = dag.totalMotpostering,
+                        totalTrekk = dag.totalTrekk,
+                        totalJustering = dag.totalJustering,
+                        harJustering = dag.harJustering,
+                    )
+                }.toNonEmptyListOrNull()!!,
+                posteringer = it.tilPosteringer(),
+            )
+        }.toNonEmptyListOrNull()!!,
+    )
+}
+
+/**
+ * Leser posteringene fra begge formene raden kan ha.
+ *
+ * Er `posteringer` satt, er raden skrevet etter at vi sluttet å splitte posteringene opp i dager, og periodene er de oppdragssystemet ga oss.
+ * Mangler feltet, er raden eldre, og hver dagspostering leses som en postering på én dag.
+ * Det er ingen rekonstruksjon -- det er nøyaktig det raden inneholder.
+ */
+private fun SimuleringEndringDbJson.SimuleringForMeldeperiode.tilPosteringer(): NonEmptyList<Postering> {
+    posteringer?.let { lagredePosteringer ->
+        return lagredePosteringer.map { postering ->
+            Postering(
+                periode = postering.periode.toDomain(),
+                fagområde = postering.fagområde,
+                beløp = postering.beløp,
+                type = postering.type.toDomain(),
+                klassekode = postering.klassekode,
+            )
+        }.toNonEmptyListOrNull()!!
     }
+    return simuleringsdager.flatMap { dag ->
+        dag.posteringsdag!!.posteringer.map { posteringForDag ->
+            Postering(
+                periode = Periode(posteringForDag.dato, posteringForDag.dato),
+                fagområde = posteringForDag.fagområde,
+                beløp = posteringForDag.beløp,
+                type = posteringForDag.type.toDomain(),
+                klassekode = posteringForDag.klassekode,
+            )
+        }
+    }.toNonEmptyListOrNull()!!
 }
 
 fun SimuleringMedMetadata.toSimuleringDbJson(): SimuleringDbJson {
@@ -204,18 +257,15 @@ private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
                         totalTrekk = dag.totalTrekk,
                         totalJustering = dag.totalJustering,
                         harJustering = dag.harJustering,
-                        posteringsdag = SimuleringEndringDbJson.PosteringerForDag(
-                            dato = dag.posteringsdag.dato,
-                            posteringer = dag.posteringsdag.posteringer.toList().map { postering ->
-                                SimuleringEndringDbJson.PosteringForDag(
-                                    dato = postering.dato,
-                                    fagområde = postering.fagområde,
-                                    beløp = postering.beløp,
-                                    type = postering.type.toDbType(),
-                                    klassekode = postering.klassekode,
-                                )
-                            },
-                        ),
+                    )
+                },
+                posteringer = it.posteringer.toList().map { postering ->
+                    SimuleringEndringDbJson.Postering(
+                        periode = postering.periode.toDbJson(),
+                        fagområde = postering.fagområde,
+                        beløp = postering.beløp,
+                        type = postering.type.toDbType(),
+                        klassekode = postering.klassekode,
                     )
                 },
             )

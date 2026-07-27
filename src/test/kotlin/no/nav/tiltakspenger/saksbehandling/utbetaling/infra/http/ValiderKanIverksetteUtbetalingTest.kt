@@ -1,27 +1,25 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.shouldBe
+import java.time.LocalDate
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.meldeperiode
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Postering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 private typealias DatoOgBeløp = Pair<LocalDate, Int>
 
@@ -49,18 +47,15 @@ class ValiderKanIverksetteUtbetalingTest {
                             totalJustering = beløp,
                             totalMotpostering = 0,
                             harJustering = true,
-                            posteringsdag = PosteringerForDag(
-                                dato = dato,
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = dato,
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = beløp,
-                                        type = Posteringstype.JUSTERING,
-                                        klassekode = "test_klassekode",
-                                    ),
-                                ),
-                            ),
+                        )
+                    },
+                    posteringer = justering.toNonEmptyListOrThrow().map { (dato, beløp) ->
+                        Postering(
+                            periode = Periode(dato, dato),
+                            fagområde = "TILTAKSPENGER",
+                            beløp = beløp,
+                            type = Posteringstype.JUSTERING,
+                            klassekode = OppsummeringGenerator.KLASSEKODE_JUSTERING,
                         )
                     },
                 )

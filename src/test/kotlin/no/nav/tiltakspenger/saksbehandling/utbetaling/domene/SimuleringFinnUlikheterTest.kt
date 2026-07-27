@@ -34,6 +34,15 @@ class SimuleringFinnUlikheterTest {
                             nyUtbetaling = nyUtbetaling,
                         ),
                     ),
+                    posteringer = nonEmptyListOf(
+                        Postering(
+                            periode = Periode(dato, dato),
+                            fagområde = "TILTAKSPENGER",
+                            beløp = nyUtbetaling,
+                            type = Posteringstype.YTELSE,
+                            klassekode = "test_klassekode",
+                        ),
+                    ),
                 ),
             ),
             simuleringstidspunkt = nå(clock),
@@ -55,18 +64,6 @@ class SimuleringFinnUlikheterTest {
             totalTrekk = 0,
             totalJustering = 0,
             harJustering = false,
-            posteringsdag = PosteringerForDag(
-                dato = dato,
-                posteringer = nonEmptyListOf(
-                    PosteringForDag(
-                        dato = dato,
-                        fagområde = "TILTAKSPENGER",
-                        beløp = nyUtbetaling,
-                        type = Posteringstype.YTELSE,
-                        klassekode = "test_klassekode",
-                    ),
-                ),
-            ),
         )
     }
 

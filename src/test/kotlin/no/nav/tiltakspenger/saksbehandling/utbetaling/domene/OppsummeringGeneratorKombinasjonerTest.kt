@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import org.junit.jupiter.api.Test
@@ -112,12 +115,33 @@ internal class OppsummeringGeneratorKombinasjonerTest {
         (simulering is Simulering.IngenEndring) shouldBe true
     }
 
-    /** Dager utenfor meldeperioden faller ut av oppsummeringen. */
+    /**
+     * En postering som strekker seg ut over meldeperioden er en tilstand vi ikke kan tolke.
+     *
+     * Vi sender utbetalingslinjene per meldeperiodekjede, og oppdragssystemet arver de grensene.
+     * I to uttrekk fra prod og dev lå samtlige 1285 posteringer innenfor én meldeperiode.
+     *
+     * Skulle det likevel skje -- for eksempel om oppdrag går fra kalendermåned til 14 dagers frekvens -- måtte vi gjettet hvor mye av beløpet som hører til hvilken side.
+     * Da feiler vi heller høylytt enn å vise summer som er stille feil.
+     */
     @Test
-    fun `bare dager som ligger i en meldeperiode kommer med`() {
-        val dager = simulerPeriode(Periode(4.januar(2025), 7.januar(2025)), ytelse(400))
+    fun `postering som går utover meldeperioden feiler`() {
+        // Meldeperioden starter mandag 6. januar, så 4. og 5. januar ligger utenfor.
+        shouldThrow<IllegalArgumentException> {
+            simulerPeriode(Periode(4.januar(2025), 7.januar(2025)), ytelse(400))
+        }.message shouldContain "går utover meldeperioden"
+    }
 
-        // Meldeperioden starter mandag 6. januar, så 4. og 5. januar faller utenfor.
-        dager.map { it.dato } shouldBe listOf(6.januar(2025), 7.januar(2025))
+    /**
+     * Justeringer må i tillegg ligge innenfor én kalendermåned.
+     *
+     * Hjemmelsvernet grupperer justeringer per måned, fordi oppdrag kun justerer innenfor måneden.
+     * Spenner en justering over et månedsskifte, finnes det ingen måned å tilordne beløpet.
+     */
+    @Test
+    fun `justering som går over et månedsskifte feiler`() {
+        shouldThrow<IllegalArgumentException> {
+            simulerPeriode(Periode(27.januar(2025), 2.februar(2025)), ytelse(700), justering(-70))
+        }.message shouldContain "går over et månedsskifte"
     }
 }

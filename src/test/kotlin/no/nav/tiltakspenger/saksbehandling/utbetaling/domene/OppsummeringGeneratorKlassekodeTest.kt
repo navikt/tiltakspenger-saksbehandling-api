@@ -89,9 +89,7 @@ internal class OppsummeringGeneratorKlassekodeTest {
 
     @Test
     fun `klassekoden bevares i posteringene`() {
-        val dag = simulerDag(ytelse(408, klassekode = "TPTPGRVGSHOY"))
-
-        dag.posteringsdag.posteringer.single().klassekode shouldBe "TPTPGRVGSHOY"
+        posteringerForDag(ytelse(408, klassekode = "TPTPGRVGSHOY")).single().klassekode shouldBe "TPTPGRVGSHOY"
     }
 
     /**

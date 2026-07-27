@@ -41,16 +41,6 @@ fun JSONObject.verifiserSimuleringsoppsummering(
     getString("simuleringsdato") shouldBe forventetSimuleringsdato.toString()
 }
 
-/**
- * Verifiserer posteringene for én dag.
- *
- * Posteringene er det vi fikk fra helved, uendret gjennom hele kjeden.
- * Det er her en klassekode eller en posteringstype som ikke overlever mappingen ville dukket opp.
- */
-fun JSONObject.verifiserPosteringerForDag(dato: LocalDate, @Language("JSON") forventet: String) {
-    hentDag(dato).getJSONArray("posteringer").toString().shouldEqualJsonIgnoringTimestamps(forventet)
-}
-
 /** Verifiserer de simulerte beløpene for én dag. */
 fun JSONObject.verifiserSimulerteBeløpForDag(dato: LocalDate, @Language("JSON") forventet: String) {
     hentDag(dato).getJSONObject("simulerteBeløp").toString().shouldEqualJsonIgnoringTimestamps(forventet)

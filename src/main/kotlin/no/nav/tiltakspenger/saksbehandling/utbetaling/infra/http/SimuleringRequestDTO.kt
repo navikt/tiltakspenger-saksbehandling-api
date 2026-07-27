@@ -11,8 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.UtbetalingV2Dto
 
 /**
- * Kommentar jah: Ser ikke simuleringstypene i kontrakter: https://github.com/navikt/utsjekk-kontrakter/
- * Se også: https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringDto.kt#L81
+ * Speiler `api.SimuleringRequest`, som er typen helved deserialiserer det vi sender inn til.
+ * Se [SimuleringModels.kt](https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringModels.kt).
  */
 private data class SimuleringRequestDTO(
     val sakId: String,

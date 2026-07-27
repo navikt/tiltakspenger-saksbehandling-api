@@ -1,32 +1,32 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Postering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import java.time.Clock
 import java.time.LocalDate
-import kotlin.math.roundToInt
 
 /**
- * Kommentar jah: Ser ikke simuleringstypene i kontrakter: https://github.com/navikt/utsjekk-kontrakter/
- * Se også: https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringDto.kt#L90
+ * Speiler `api.SimuleringRespons`, som er typen helved serialiserer og sender oss.
+ * Alle typene under ligger i [SimuleringModels.kt](https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringModels.kt).
+ *
+ * Den fila har tre objekter, og bare to av dem er på tråden mot oss.
+ * `api` er konvolutten helved eksponerer, og `domain` er den interne modellen -- men den er `@Serializable` og ligger inne i `detaljer`, så den er like mye en del av kontrakten vår.
+ * `client` er helveds egne DTO-er mot oppdragssystemet og treffer oss aldri.
+ * Derfor peker konvolutten og oppsummeringene på `api`, mens detaljene peker på `domain`.
  */
 internal data class SimuleringResponseDTO(
     val oppsummeringer: List<OppsummeringForPeriode>,
     val detaljer: SimuleringDetaljer,
 ) {
 
-    /**
-     * Se også: Se også: https://github.com/navikt/helved-utbetaling/blob/main/apps/utsjekk/main/utsjekk/simulering/SimuleringDto.kt#L95
-     */
+    /** Speiler `api.OppsummeringForPeriode`. */
     data class OppsummeringForPeriode(
         val fom: LocalDate,
         val tom: LocalDate,
@@ -36,12 +36,14 @@ internal data class SimuleringResponseDTO(
         val totalFeilutbetaling: Int,
     )
 
+    /** Speiler `domain.SimuleringDetaljer`, som er typen `api.SimuleringRespons.detaljer` har. */
     data class SimuleringDetaljer(
         val gjelderId: String,
         val datoBeregnet: LocalDate,
         val totalBeløp: Int,
         val perioder: List<PosteringerForPeriode>,
     ) {
+        /** Speiler `domain.Periode`. */
         data class PosteringerForPeriode(
             val fom: LocalDate,
             val tom: LocalDate,
@@ -54,6 +56,13 @@ internal data class SimuleringResponseDTO(
 
             val periode: Periode = Periode(fom, tom)
 
+            /**
+             * Speiler `domain.Postering`.
+             *
+             * Merk at `fagområde` og `type` er enumer hos helved -- `domain.Fagområde` og `domain.PosteringType` -- mens vi tar imot dem som `String`.
+             * Det er med vilje: en ny verdi fra oppdragssystemet skal ikke få deserialiseringen til å ryke.
+             * `type` oversettes til [Posteringstype] i [typeToDomain], som feiler eksplisitt på ukjente verdier.
+             */
             data class Postering(
                 val fagområde: String,
                 val sakId: String,
@@ -107,7 +116,7 @@ internal fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
                 }
             }
         OppsummeringGenerator.lagOppsummering(
-            posteringerPerDag = res.tilPosteringerPerDag(),
+            posteringer = res.tilPosteringer(),
             meldeperiodeKjeder = meldeperiodeKjeder,
             datoBeregnet = res.detaljer.datoBeregnet,
             totalBeløp = res.detaljer.totalBeløp,
@@ -117,49 +126,30 @@ internal fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
 }
 
 /**
- * Splitter posteringene opp i dager, ved å fordele beløpet jevnt over dagene i posteringens periode.
+ * Plukker ut posteringene som gjelder tiltakspenger, med perioden oppdragssystemet stemplet dem med.
  *
- * Fordelingen er eksakt for ytelsesposteringer.
- * Beregningen vår opererer i hele kroner per dag, og OS slår sammen sammenhengende dager med samme dagsbeløp.
- * Beløpet går derfor opp i antall dager, og divisjonen gir dagsatsen tilbake.
+ * Vi splitter dem bevisst ikke opp i dager her.
+ * For ytelsesposteringer ville en dagsplitt vært eksakt, siden vi selv sender hele kroner per dag og OS slår sammen sammenhengende dager med samme dagsbeløp.
+ * For motregning -- FEILUTBETALING, MOTPOSTERING, JUSTERING og TREKK -- ville den vært en tilnærming, fordi beløpet ofte bare dekker en del av perioden det er stemplet med.
+ * Et uttrekk fra dev viste for eksempel en reduksjon på fire like dager splittet i én justering på tre dagers verdi og én feilutbetaling på én dags verdi, begge stemplet med hele firedagersperioden.
  *
- * For FEILUTBETALING, MOTPOSTERING og JUSTERING er den derimot en **tilnærming**.
- * Disse er resultatet av at OS motregner på tvers av dager, og beløpet svarer ofte til bare en del av perioden det er stemplet med.
- * Et uttrekk fra dev viste for eksempel en reduksjon på fire like dager splittet i én justering på tre dagers verdi og én feilutbetaling på én dags verdi -- begge stemplet med hele firedagersperioden.
- * Da finnes det ingen dagsfordeling å gjenskape, og avrundingen per dag kan gjøre at summen av dagene avviker med noen kroner fra beløpet OS sendte.
- *
- * Avviket var lite i uttrekket (14 av 5182 posteringer, maks to kroner), men det slår inn på sammenligningen mot kontrollsimuleringen og på summene per meldeperiode.
- * Se issue om å modellere posteringene nærmere kilden.
+ * Dagsverdier utledes derfor først i [OppsummeringGenerator], og kun til visning.
+ * Se [Postering.beløpPerDag].
  */
-private fun SimuleringResponseDTO.tilPosteringerPerDag(): Map<LocalDate, PosteringerForDag> {
+private fun SimuleringResponseDTO.tilPosteringer(): List<Postering> {
     return this.detaljer.perioder.flatMap { posteringerForPeriode ->
-        val periode = posteringerForPeriode.periode
-        val antallDager = periode.antallDager
-        periode.tilDager().map { dato ->
-            PosteringerForDag(
-                dato = dato,
-                posteringer = posteringerForPeriode.posteringer.mapNotNull { postering ->
-                    if (postering.fagområde != "TILTAKSPENGER") {
-                        // Fjerner alle posteringer som ikke er tiltakspenger.
-                        return@mapNotNull null
-                    }
-                    PosteringForDag(
-                        dato = dato,
-                        fagområde = postering.fagområde,
-                        // Vi forventer egentlig et heltall her.
-                        // Siden vi kun sender heltall per dag og ikke dealer med skatt.
-                        beløp = (postering.beløp.toDouble() / antallDager).roundToInt(),
-                        type = postering.typeToDomain(),
-                        klassekode = postering.klassekode,
-                    )
-                }.toNonEmptyListOrNull()!!,
+        posteringerForPeriode.posteringer.mapNotNull { postering ->
+            if (postering.fagområde != "TILTAKSPENGER") {
+                // Fjerner alle posteringer som ikke er tiltakspenger.
+                return@mapNotNull null
+            }
+            Postering(
+                periode = postering.periode,
+                fagområde = postering.fagområde,
+                beløp = postering.beløp,
+                type = postering.typeToDomain(),
+                klassekode = postering.klassekode,
             )
         }
-    }.sortedBy { it.dato }.also {
-        it.zipWithNext { a, b ->
-            require(a.dato < b.dato) {
-                "Forventer at posteringsdagene er i stigende rekkefølge og ikke har duplikater: ${a.dato} > ${b.dato}"
-            }
-        }
-    }.associateBy { it.dato }
+    }
 }

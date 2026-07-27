@@ -136,7 +136,8 @@ class OppsummeringGeneratorTest {
             ),
         )
         val clock = fixedClock
-        deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) shouldBe Simulering.Endring(
+        (deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) as Simulering.Endring)
+            .medPlassholderPosteringer() shouldBe Simulering.Endring(
             simuleringPerMeldeperiode = nonEmptyListOf(
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(meldeperiode.id)!!,
@@ -151,18 +152,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-14"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-14"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                         Simuleringsdag(
                             dato = LocalDate.parse("2024-10-15"),
@@ -174,18 +163,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-15"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-15"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                         Simuleringsdag(
                             dato = LocalDate.parse("2024-10-16"),
@@ -197,18 +174,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-16"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-16"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                         Simuleringsdag(
                             dato = LocalDate.parse("2024-10-17"),
@@ -220,18 +185,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-17"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-17"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                         Simuleringsdag(
                             dato = LocalDate.parse("2024-10-21"),
@@ -243,18 +196,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-21"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-21"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                         Simuleringsdag(
                             dato = LocalDate.parse("2024-10-22"),
@@ -266,18 +207,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-22"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-22"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                         Simuleringsdag(
                             dato = LocalDate.parse("2024-10-24"),
@@ -289,18 +218,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-24"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-24"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                         Simuleringsdag(
                             dato = LocalDate.parse("2024-10-25"),
@@ -312,20 +229,9 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 0,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = LocalDate.parse("2024-10-25"),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = LocalDate.parse("2024-10-25"),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPATT",
-                                    ),
-                                ),
-                            ),
                         ),
                     ),
+                    posteringer = plassholderPosteringer,
                 ),
             ),
             datoBeregnet = LocalDate.parse("2025-05-12"),
@@ -562,7 +468,8 @@ class OppsummeringGeneratorTest {
             ),
         )
         val clock = fixedClock
-        deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) shouldBe Simulering.Endring(
+        (deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) as Simulering.Endring)
+            .medPlassholderPosteringer() shouldBe Simulering.Endring(
             totalBeløp = 0,
             datoBeregnet = 16.mai(2025),
             simuleringstidspunkt = nå(fixedClock),
@@ -580,46 +487,6 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 71,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = 11.november(2024),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = 11.november(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 71,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPGRAMO",
-                                    ),
-                                    PosteringForDag(
-                                        dato = 11.november(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 214,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPGRAMO",
-                                    ),
-                                    PosteringForDag(
-                                        dato = 11.november(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 71,
-                                        type = Posteringstype.FEILUTBETALING,
-                                        klassekode = "KL_KODE_FEIL_ARBYT",
-                                    ),
-                                    PosteringForDag(
-                                        dato = 11.november(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 71,
-                                        type = Posteringstype.MOTPOSTERING,
-                                        klassekode = "TBMOTOBS",
-                                    ),
-                                    PosteringForDag(
-                                        dato = 11.november(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = -285,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPGRAMO",
-                                    ),
-                                ),
-                            ),
                         ),
 
                     ).plus(
@@ -634,25 +501,6 @@ class OppsummeringGeneratorTest {
                                 totalJustering = 0,
                                 totalMotpostering = 0,
                                 harJustering = false,
-                                posteringsdag = PosteringerForDag(
-                                    dato = dato,
-                                    posteringer = nonEmptyListOf(
-                                        PosteringForDag(
-                                            dato = dato,
-                                            fagområde = "TILTAKSPENGER",
-                                            beløp = 214,
-                                            type = Posteringstype.YTELSE,
-                                            klassekode = "TPTPGRAMO",
-                                        ),
-                                        PosteringForDag(
-                                            dato = dato,
-                                            fagområde = "TILTAKSPENGER",
-                                            beløp = -214,
-                                            type = Posteringstype.YTELSE,
-                                            klassekode = "TPTPGRAMO",
-                                        ),
-                                    ),
-                                ),
                             )
                         },
                     ).plus(
@@ -667,28 +515,10 @@ class OppsummeringGeneratorTest {
                                 totalJustering = 0,
                                 totalMotpostering = 0,
                                 harJustering = false,
-                                posteringsdag = PosteringerForDag(
-                                    dato = dato,
-                                    posteringer = nonEmptyListOf(
-                                        PosteringForDag(
-                                            dato = dato,
-                                            fagområde = "TILTAKSPENGER",
-                                            beløp = 214,
-                                            type = Posteringstype.YTELSE,
-                                            klassekode = "TPTPGRAMO",
-                                        ),
-                                        PosteringForDag(
-                                            dato = dato,
-                                            fagområde = "TILTAKSPENGER",
-                                            beløp = -214,
-                                            type = Posteringstype.YTELSE,
-                                            klassekode = "TPTPGRAMO",
-                                        ),
-                                    ),
-                                ),
                             )
                         },
                     ),
+                    posteringer = plassholderPosteringer,
                 ),
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiode3,
@@ -703,41 +533,9 @@ class OppsummeringGeneratorTest {
                             totalJustering = 0,
                             totalMotpostering = 214,
                             harJustering = false,
-                            posteringsdag = PosteringerForDag(
-                                dato = 5.desember(2024),
-                                posteringer = nonEmptyListOf(
-                                    PosteringForDag(
-                                        dato = 5.desember(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 214,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPGRAMO",
-                                    ),
-                                    PosteringForDag(
-                                        dato = 5.desember(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 214,
-                                        type = Posteringstype.FEILUTBETALING,
-                                        klassekode = "KL_KODE_FEIL_ARBYT",
-                                    ),
-                                    PosteringForDag(
-                                        dato = 5.desember(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = 214,
-                                        type = Posteringstype.MOTPOSTERING,
-                                        klassekode = "TBMOTOBS",
-                                    ),
-                                    PosteringForDag(
-                                        dato = 5.desember(2024),
-                                        fagområde = "TILTAKSPENGER",
-                                        beløp = -214,
-                                        type = Posteringstype.YTELSE,
-                                        klassekode = "TPTPGRAMO",
-                                    ),
-                                ),
-                            ),
                         ),
                     ),
+                    posteringer = plassholderPosteringer,
                 ),
             ),
         )
@@ -1045,7 +843,7 @@ class OppsummeringGeneratorTest {
         actual.totalBeløp shouldBe 3740
         actual.datoBeregnet shouldBe 16.september(2025)
         actual.simuleringPerMeldeperiode.size shouldBe 4
-        actual.simuleringPerMeldeperiode[0] shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[0].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
             meldeperiode = meldeperiode1,
             simuleringsdager = nonEmptyListOf(
                 Simuleringsdag(
@@ -1058,25 +856,6 @@ class OppsummeringGeneratorTest {
                     totalJustering = 0,
                     totalMotpostering = 0,
                     harJustering = false,
-                    posteringsdag = PosteringerForDag(
-                        dato = 3.mars(2025),
-                        posteringer = nonEmptyListOf(
-                            PosteringForDag(
-                                dato = 3.mars(2025),
-                                fagområde = "TILTAKSPENGER",
-                                beløp = 330,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                            PosteringForDag(
-                                dato = 3.mars(2025),
-                                fagområde = "TILTAKSPENGER",
-                                beløp = -220,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                        ),
-                    ),
                 ),
             ).plus(
                 (4.mars(2025) til 6.mars(2025)).tilDager().map { dato ->
@@ -1090,30 +869,12 @@ class OppsummeringGeneratorTest {
                         totalJustering = 0,
                         totalMotpostering = 0,
                         harJustering = false,
-                        posteringsdag = PosteringerForDag(
-                            dato = dato,
-                            posteringer = nonEmptyListOf(
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = 330,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = -220,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                            ),
-                        ),
                     )
                 },
             ),
+            posteringer = plassholderPosteringer,
         )
-        actual.simuleringPerMeldeperiode[1] shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[1].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
             meldeperiode = meldeperiode2,
             simuleringsdager = (10.mars(2025) til 14.mars(2025)).tilDager().map { dato ->
                 Simuleringsdag(
@@ -1126,25 +887,6 @@ class OppsummeringGeneratorTest {
                     totalJustering = 0,
                     totalMotpostering = 0,
                     harJustering = false,
-                    posteringsdag = PosteringerForDag(
-                        dato = dato,
-                        posteringer = nonEmptyListOf(
-                            PosteringForDag(
-                                dato = dato,
-                                fagområde = "TILTAKSPENGER",
-                                beløp = 330,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                            PosteringForDag(
-                                dato = dato,
-                                fagområde = "TILTAKSPENGER",
-                                beløp = -220,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                        ),
-                    ),
                 )
             }.toNonEmptyListOrNull()!!.plus(
                 (17.mars(2025) til 21.mars(2025)).tilDager().map { dato ->
@@ -1158,30 +900,12 @@ class OppsummeringGeneratorTest {
                         totalJustering = 0,
                         totalMotpostering = 0,
                         harJustering = false,
-                        posteringsdag = PosteringerForDag(
-                            dato = dato,
-                            posteringer = nonEmptyListOf(
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = 330,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = -220,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                            ),
-                        ),
                     )
                 },
             ),
+            posteringer = plassholderPosteringer,
         )
-        actual.simuleringPerMeldeperiode[2] shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[2].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
             meldeperiode = meldeperiode4,
             simuleringsdager = (7.april(2025) til 11.april(2025)).tilDager().map { dato ->
                 Simuleringsdag(
@@ -1194,25 +918,6 @@ class OppsummeringGeneratorTest {
                     totalJustering = 0,
                     totalMotpostering = 0,
                     harJustering = false,
-                    posteringsdag = PosteringerForDag(
-                        dato = dato,
-                        posteringer = nonEmptyListOf(
-                            PosteringForDag(
-                                dato = dato,
-                                fagområde = "TILTAKSPENGER",
-                                beløp = 330,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                            PosteringForDag(
-                                dato = dato,
-                                fagområde = "TILTAKSPENGER",
-                                beløp = -220,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                        ),
-                    ),
                 )
             }.toNonEmptyListOrNull()!!.plus(
                 (14.april(2025) til 18.april(2025)).tilDager().map { dato ->
@@ -1226,30 +931,12 @@ class OppsummeringGeneratorTest {
                         totalJustering = 0,
                         totalMotpostering = 0,
                         harJustering = false,
-                        posteringsdag = PosteringerForDag(
-                            dato = dato,
-                            posteringer = nonEmptyListOf(
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = 330,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = -220,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                            ),
-                        ),
                     )
                 },
             ),
+            posteringer = plassholderPosteringer,
         )
-        actual.simuleringPerMeldeperiode[3] shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[3].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
             meldeperiode = meldeperiode5,
             simuleringsdager = (21.april(2025) til 25.april(2025)).tilDager().map { dato ->
                 Simuleringsdag(
@@ -1262,25 +949,6 @@ class OppsummeringGeneratorTest {
                     totalJustering = 0,
                     totalMotpostering = 0,
                     harJustering = false,
-                    posteringsdag = PosteringerForDag(
-                        dato = dato,
-                        posteringer = nonEmptyListOf(
-                            PosteringForDag(
-                                dato = dato,
-                                fagområde = "TILTAKSPENGER",
-                                beløp = 330,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                            PosteringForDag(
-                                dato = dato,
-                                fagområde = "TILTAKSPENGER",
-                                beløp = -220,
-                                type = Posteringstype.YTELSE,
-                                klassekode = "TPBTOPPFAGR",
-                            ),
-                        ),
-                    ),
                 )
             }.toNonEmptyListOrNull()!!.plus(
                 (28.april(2025) til 30.april(2025)).tilDager().map { dato ->
@@ -1294,25 +962,6 @@ class OppsummeringGeneratorTest {
                         totalJustering = 0,
                         totalMotpostering = 0,
                         harJustering = false,
-                        posteringsdag = PosteringerForDag(
-                            dato = dato,
-                            posteringer = nonEmptyListOf(
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = 330,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = -220,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                            ),
-                        ),
                     )
                 },
             ).plus(
@@ -1327,28 +976,10 @@ class OppsummeringGeneratorTest {
                         totalJustering = 0,
                         totalMotpostering = 0,
                         harJustering = false,
-                        posteringsdag = PosteringerForDag(
-                            dato = dato,
-                            posteringer = nonEmptyListOf(
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = 330,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                                PosteringForDag(
-                                    dato = dato,
-                                    fagområde = "TILTAKSPENGER",
-                                    beløp = -220,
-                                    type = Posteringstype.YTELSE,
-                                    klassekode = "TPBTOPPFAGR",
-                                ),
-                            ),
-                        ),
                     )
                 },
             ),
+            posteringer = plassholderPosteringer,
         )
     }
 }

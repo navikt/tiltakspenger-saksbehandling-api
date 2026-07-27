@@ -18,8 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldepe
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Klassekoder
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerator
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringForDag
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.PosteringerForDag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Postering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
@@ -64,18 +63,15 @@ interface SimuleringMother {
                 totalJustering = 0,
                 totalMotpostering = 0,
                 harJustering = false,
-                posteringsdag = PosteringerForDag(
-                    dato = periode.fraOgMed,
-                    posteringer = nonEmptyListOf(
-                        PosteringForDag(
-                            dato = periode.fraOgMed,
-                            fagområde = "TILTAKSPENGER",
-                            beløp = 0,
-                            type = Posteringstype.YTELSE,
-                            klassekode = "test_klassekode",
-                        ),
-                    ),
-                ),
+            ),
+        ),
+        posteringer: NonEmptyList<Postering> = nonEmptyListOf(
+            Postering(
+                periode = Periode(periode.fraOgMed, periode.fraOgMed),
+                fagområde = "TILTAKSPENGER",
+                beløp = 0,
+                type = Posteringstype.YTELSE,
+                klassekode = "test_klassekode",
             ),
         ),
         clock: Clock = fixedClock,
@@ -88,6 +84,7 @@ interface SimuleringMother {
                 SimuleringForMeldeperiode(
                     meldeperiode = meldeperiode,
                     simuleringsdager = simuleringsdager,
+                    posteringer = posteringer,
                 ),
             ),
             simuleringstidspunkt = simuleringstidspunkt,

@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -215,6 +217,43 @@ internal fun simulerDag(vararg posteringer: Testpostering): Simuleringsdag =
 
 internal fun simulerDagPåDato(dato: LocalDate, vararg posteringer: Testpostering): Simuleringsdag =
     simulerPeriode(Periode(dato, dato), *posteringer).single()
+
+/**
+ * Posteringene som ble tatt vare på for én simulert dag, med periodene oppdragssystemet ga dem.
+ *
+ * Posteringene henger på meldeperioden, ikke på dagen, siden en postering kan dekke flere dager.
+ * Bruk denne når testen handler om hva vi bevarte fra kilden, og [simulerDag] når den handler om dagsaggregatene.
+ */
+internal fun posteringerForDag(vararg posteringer: Testpostering): List<Postering> =
+    posteringerForPeriode(Periode(Simuleringstestdata.førsteDag, Simuleringstestdata.førsteDag), *posteringer)
+
+/** Som [posteringerForDag], men for en periode som kan spenne over flere dager. */
+internal fun posteringerForPeriode(periode: Periode, vararg posteringer: Testpostering): List<Postering> =
+    simulering(periode, *posteringer).simuleringPerMeldeperiode.flatMap { it.posteringer }
+
+/**
+ * Plassholder for [SimuleringForMeldeperiode.posteringer] i tester som handler om dagsaggregatene.
+ *
+ * Posteringene er en tro kopi av responsen fra oppdragssystemet, med periodene den ga oss.
+ * I de store forventningstestene ville det å gjenta hele responsen i forventningen gjort et allerede stort oppsett dobbelt så stort, uten å fange noe utover at kopieringen virker.
+ * At posteringene bevares med riktig periode og beløp dekkes i stedet av [posteringerForPeriode]-testene.
+ */
+internal val plassholderPosteringer: NonEmptyList<Postering> = nonEmptyListOf(
+    Postering(
+        periode = Periode(Simuleringstestdata.førsteDag, Simuleringstestdata.førsteDag),
+        fagområde = FAGOMRÅDE_TILTAKSPENGER,
+        beløp = 0,
+        type = Posteringstype.YTELSE,
+        klassekode = "plassholder",
+    ),
+)
+
+/** Bytter ut posteringene med [plassholderPosteringer], slik at en forventning kan sammenlignes uten dem. */
+internal fun Simulering.Endring.medPlassholderPosteringer(): Simulering.Endring =
+    copy(simuleringPerMeldeperiode = simuleringPerMeldeperiode.map { it.medPlassholderPosteringer() })
+
+internal fun SimuleringForMeldeperiode.medPlassholderPosteringer(): SimuleringForMeldeperiode =
+    copy(posteringer = plassholderPosteringer)
 
 /**
  * Simulerer en sammenhengende periode med de gitte posteringene.
