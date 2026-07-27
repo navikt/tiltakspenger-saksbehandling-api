@@ -85,6 +85,8 @@ internal class OppsummeringGeneratorYtelseTest {
      * 101 kroner over to dager blir 50,5 per dag, som rundes opp til 51 begge dager -- til sammen 102.
      * Dette er kilden til avvikene på én og to kroner mellom `simulering` og `simulering_metadata` som vi fant i dev-uttrekket.
      * Testen låser dagens oppførsel, den påstår ikke at den er ønsket.
+     *
+     * TODO jah: se #1734 om å modellere posteringene nærmere kilden.
      */
     @Test
     fun `avrunding per dag kan gi en annen sum enn beløpet fra OS`() {

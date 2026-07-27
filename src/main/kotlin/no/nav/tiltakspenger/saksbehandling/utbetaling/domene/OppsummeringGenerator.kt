@@ -84,6 +84,13 @@ object OppsummeringGenerator {
 
     /**
      * TREK i OS/UR.
+     *
+     * TODO jah: implementasjonen er feil, se #1735.
+     * Kommentaren under stemmer ikke: i prod er 92 % av trekkposteringene negative, og 132 av 214 saker har utelukkende negative trekk.
+     * De positive ser ut til å være reverseringer.
+     * Vi summerer altså bare reverseringene, og `totalTrekk` blir 0 for de fleste sakene med trekk.
+     * Rettes dette, må migrering av lagrede simuleringer vurderes -- en behandling som er simulert før og kontrollsimulert etter endringen vil se ulikheter og bli blokkert ved iverksetting.
+     *
      * Kommer som positive posteringer.
      */
     private fun beregnTrekk(posteringer: PosteringerForDag): Int =

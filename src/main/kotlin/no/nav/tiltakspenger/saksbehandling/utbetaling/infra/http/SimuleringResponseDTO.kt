@@ -116,6 +116,21 @@ internal fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
     }
 }
 
+/**
+ * Splitter posteringene opp i dager, ved å fordele beløpet jevnt over dagene i posteringens periode.
+ *
+ * Fordelingen er eksakt for ytelsesposteringer.
+ * Beregningen vår opererer i hele kroner per dag, og OS slår sammen sammenhengende dager med samme dagsbeløp.
+ * Beløpet går derfor opp i antall dager, og divisjonen gir dagsatsen tilbake.
+ *
+ * For FEILUTBETALING, MOTPOSTERING og JUSTERING er den derimot en **tilnærming**.
+ * Disse er resultatet av at OS motregner på tvers av dager, og beløpet svarer ofte til bare en del av perioden det er stemplet med.
+ * Et uttrekk fra dev viste for eksempel en reduksjon på fire like dager splittet i én justering på tre dagers verdi og én feilutbetaling på én dags verdi -- begge stemplet med hele firedagersperioden.
+ * Da finnes det ingen dagsfordeling å gjenskape, og avrundingen per dag kan gjøre at summen av dagene avviker med noen kroner fra beløpet OS sendte.
+ *
+ * Avviket var lite i uttrekket (14 av 5182 posteringer, maks to kroner), men det slår inn på sammenligningen mot kontrollsimuleringen og på summene per meldeperiode.
+ * Se issue om å modellere posteringene nærmere kilden.
+ */
 private fun SimuleringResponseDTO.tilPosteringerPerDag(): Map<LocalDate, PosteringerForDag> {
     return this.detaljer.perioder.flatMap { posteringerForPeriode ->
         val periode = posteringerForPeriode.periode

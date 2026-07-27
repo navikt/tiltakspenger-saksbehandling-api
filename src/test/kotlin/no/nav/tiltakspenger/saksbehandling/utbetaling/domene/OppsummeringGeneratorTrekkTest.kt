@@ -27,6 +27,9 @@ internal class OppsummeringGeneratorTrekkTest {
      * Dette er formen fra helveds `sim-trekk.xml`, med negativt beløp.
      * `beregnTrekk` summerer bare positive posteringer, så resultatet blir 0 og `harTrekk` false.
      * Testen påstår ikke at dette er riktig; den dokumenterer at vi i dag ikke ville fanget opp et trekk fra OS i det hele tatt.
+     *
+     * TODO jah: implementasjonen er feil, se #1735.
+     * 92 % av trekkposteringene i prod er negative, og 132 av 214 saker har utelukkende negative trekk.
      */
     @Test
     fun `negativt trekk fra OS gir null totalTrekk`() {
@@ -48,12 +51,16 @@ internal class OppsummeringGeneratorTrekkTest {
 
     @Test
     fun `flere positive trekk på samme dag summeres`() {
-        val dag = simulerDag(ytelse(408), trekk(100), trekk(50, klassekode = Klassekoder.TREKK_AVDRAG))
+        val dag = simulerDag(ytelse(408), trekk(100), trekk(50, klassekode = Klassekoder.TREKK_KREDITOR))
 
         dag.totalTrekk shouldBe 150
     }
 
-    /** Blandede fortegn: bare den positive delen teller. */
+    /**
+     * Blandede fortegn: bare den positive delen teller.
+     *
+     * TODO jah: se #1735.
+     */
     @Test
     fun `negativt trekk trekkes ikke fra det positive`() {
         val dag = simulerDag(ytelse(408), trekk(100), trekk(-40))

@@ -125,9 +125,16 @@ object Klassekoder {
      * Klassekoden påvirker ikke utregningen; `beregnTrekk` filtrerer bare på posteringstype.
      * Fortegnet gjør derimot det -- se [OppsummeringGeneratorTrekkTest].
      */
-    const val TREKK_BIDRAG = "BSKTKRED"
+    const val TREKK_BIDRAG = "BIDRINTE"
 
-    const val TREKK_AVDRAG = "AVSUINTE"
+    const val TREKK_KREDITOR = "KREDKRED"
+
+    const val TREKK_SKATT = "PSKTSKAT"
+
+    const val TREKK_BARNEBIDRAG = "BSKTKRED"
+
+    /** Alle sju trekk-klassekodene observert i prod, i synkende hyppighet. */
+    val ALLE_TREKK = listOf(TREKK_KREDITOR, TREKK_SKATT, TREKK_BIDRAG, TREKK_BARNEBIDRAG, "FEISINTE", "GJELKRED", "TBTREKK")
 
     /**
      * Forskuddsskatt forekom ikke i dev.
@@ -237,6 +244,42 @@ internal fun simuleringResultat(periode: Periode, vararg posteringer: Testposter
 internal fun simuleringForDager(vararg dager: Pair<LocalDate, List<Testpostering>>): Simulering.Endring =
     deserialize<SimuleringResponseDTO>(byggFlerdagersResponsJson(dager.toList()))
         .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock) as Simulering.Endring
+
+/**
+ * Simulerer flere perioder, der hver periode kan spenne over flere dager.
+ *
+ * Dette er formen som trengs for å gjenskape motregning fra oppdragssystemet: et beløp stemplet med en periode på flere dager, som fordeles og avrundes per dag.
+ * Bruk [simuleringForDager] når hver postering hører til én bestemt dag.
+ */
+internal fun simuleringForPerioder(vararg perioder: Pair<Periode, List<Testpostering>>): Simulering.Endring =
+    deserialize<SimuleringResponseDTO>(byggFlerperiodeResponsJson(perioder.toList()))
+        .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock) as Simulering.Endring
+
+private fun byggFlerperiodeResponsJson(perioder: List<Pair<Periode, List<Testpostering>>>): String {
+    val perioderJson = perioder.sortedBy { it.first.fraOgMed }.joinToString(",") { (periode, posteringer) ->
+        val posteringerJson = posteringer.joinToString(",") {
+            """
+            {"fagområde":"${it.fagområde}","sakId":"${Simuleringstestdata.saksnummer.verdi}",
+             "fom":"${periode.fraOgMed}","tom":"${periode.tilOgMed}","beløp":${it.beløp},
+             "type":"${it.type}","klassekode":"${it.klassekode}"}
+            """.trimIndent()
+        }
+        """{"fom":"${periode.fraOgMed}","tom":"${periode.tilOgMed}","posteringer":[$posteringerJson]}"""
+    }
+
+    //language=json
+    return """
+    {
+      "oppsummeringer": [],
+      "detaljer": {
+        "gjelderId": "${Simuleringstestdata.fnr.verdi}",
+        "datoBeregnet": "${perioder.minOf { it.first.fraOgMed }}",
+        "totalBeløp": 0,
+        "perioder": [$perioderJson]
+      }
+    }
+    """.trimIndent()
+}
 
 private fun byggFlerdagersResponsJson(dager: List<Pair<LocalDate, List<Testpostering>>>): String {
     val perioder = dager.sortedBy { it.first }.joinToString(",") { (dato, posteringer) ->
