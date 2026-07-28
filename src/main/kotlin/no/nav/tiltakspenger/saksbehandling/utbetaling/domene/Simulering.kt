@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
 import kotlin.math.abs
 
 /**
@@ -47,7 +48,20 @@ sealed interface Simulering {
         }
 
         override val harFeilutbetaling: Boolean by lazy {
-            totalFeilutbetaling != 0
+            simuleringPerMeldeperiode.any { it.harFeilutbetaling }
+        }
+
+        /**
+         * Justeringene summert per kalendermåned på tvers av hele simuleringen, kun for månedene som ikke går opp i null.
+         * Tom betyr at justeringene bare flytter beløp innenfor månedene -- for eksempel når oppdrag omfordeler forskuddstrekk, som beregnes per måned.
+         */
+        val ubalanserteJusteringsmåneder: Map<YearMonth, Int> by lazy {
+            simuleringPerMeldeperiode
+                .flatMap { it.posteringer }
+                .filter { it.erJustering }
+                .groupBy { YearMonth.from(it.periode.fraOgMed) }
+                .mapValues { (_, justeringerForMåned) -> justeringerForMåned.sumOf { it.beløp } }
+                .filterValues { it != 0 }
         }
 
         override fun hentDag(dato: LocalDate): Simuleringsdag? {
@@ -89,9 +103,87 @@ data class SimuleringForMeldeperiode(
     val totalMotpostering: Int = simuleringsdager.sumOf { it.totalMotpostering }
     val totalTrekk: Int = simuleringsdager.sumOf { it.totalTrekk }
 
-    val harJustering: Boolean by lazy {
-        simuleringsdager.any { it.harJustering }
+    /**
+     * Fakta om hva simuleringen sier om denne meldeperioden.
+     * Både vernet i valideringen og flagget saksbehandler får se leser herfra, slik at de ikke kan drive fra hverandre.
+     */
+    val flagg: Simuleringsflagg by lazy {
+        Simuleringsflagg.fraPosteringer(
+            posteringer = posteringer,
+            harUbalansertJustering = harUbalansertJustering,
+        )
     }
+
+    /**
+     * Gjenkjennes på posteringene, ikke på dagsverdiene.
+     * For eldre lagrede rader er dagens `harJustering` utledet med en default som ikke alltid stemmer, mens klassekoden på posteringene ligger fast.
+     */
+    val harJustering: Boolean by lazy {
+        posteringer.any { it.erJustering }
+    }
+
+    /** Se [Simuleringsflagg.harFeilutbetaling] for hvorfor bare positive posteringer teller. */
+    val harFeilutbetaling: Boolean by lazy {
+        flagg.harFeilutbetaling
+    }
+
+    /**
+     * Tidligere utbetalt ytelse i meldeperioden reverseres.
+     * Sammen med en ubalansert justering betyr det at selve ytelsen er motregnet mot en annen meldeperiode -- ikke at trekk er omfordelt.
+     */
+    val harReversertYtelse: Boolean by lazy {
+        posteringer.any { it.type == Posteringstype.YTELSE && it.beløp < 0 }
+    }
+
+    /**
+     * Summen av justeringsposteringene per kalendermåned, for månedene der summen ikke går opp i null.
+     * Tom når justeringene balanserer.
+     *
+     * Oppdrag beregner per kalendermåned, så en justering som balanserer innenfor måneden er en omfordeling mellom dager vi kan leve med.
+     * Går den ikke opp, er beløpet flyttet ut av meldeperioden eller måneden, og det har vi ikke hjemmel til.
+     *
+     * Summeres på posteringene, ikke på dagsverdiene.
+     * En justering kan ha et beløp som ikke går opp i antall dager i perioden sin, og da ville avrundingen av dagsverdiene kunne gi en sum ulik null for et justeringssett som balanserer perfekt hos oppdragssystemet.
+     */
+    val ubalanserteJusteringsmåneder: Map<YearMonth, Int> by lazy {
+        posteringer
+            .filter { it.erJustering }
+            .groupBy { YearMonth.from(it.periode.fraOgMed) }
+            .mapValues { (_, justeringerForMåned) -> justeringerForMåned.sumOf { it.beløp } }
+            .filterValues { it != 0 }
+    }
+
+    /** Se [ubalanserteJusteringsmåneder]. */
+    val harUbalansertJustering: Boolean by lazy {
+        harJustering && ubalanserteJusteringsmåneder.isNotEmpty()
+    }
+}
+
+/**
+ * En postering kan ikke strekke seg utover meldeperioden den hører til.
+ *
+ * Grensen er vår egen, ikke oppdragssystemets: `Beregning.tilUtbetalingerDTO` bygger utbetalingslinjene per meldeperiodekjede, og oppdrag arver de grensene i svaret.
+ * Derfor er dette en invariant vi konstruerer, ikke en antakelse vi gjør om et system vi ikke styrer.
+ * Brytes den, er dagsverdiene vi utleder oppdiktet og summene per meldeperiode gale uten at noe synes.
+ *
+ * Sjekken kjøres på begge byggeveiene: [OppsummeringGenerator] svarer med typet feil når svaret fra oppdragssystemet bryter den, og lesing fra databasen feiler høylytt på en lagret rad som gjør det.
+ */
+fun Postering.utenforMeldeperiodenFeil(meldeperiode: Meldeperiode): Simuleringsfeil.PosteringUtenforMeldeperiode? {
+    if (meldeperiode.periode.inneholderHele(this.periode)) {
+        return null
+    }
+    return Simuleringsfeil.PosteringUtenforMeldeperiode(
+        meldeperiodeId = meldeperiode.id,
+        meldeperiode = meldeperiode.periode,
+        postering = this.periode,
+        klassekode = this.klassekode,
+        type = this.type,
+    )
+}
+
+/** Se [utenforMeldeperiodenFeil]. */
+fun SimuleringForMeldeperiode.finnPosteringUtenforMeldeperioden(): Simuleringsfeil.PosteringUtenforMeldeperiode? {
+    return posteringer.firstNotNullOfOrNull { it.utenforMeldeperiodenFeil(meldeperiode) }
 }
 
 data class Simuleringsdag(
@@ -221,7 +313,12 @@ fun Simulering?.erLik(other: Simulering?): Boolean = this.finnUlikheter(other).i
  * Finner ulikhetene mellom simuleringen fra beregningen og kontrollsimuleringen.
  * Returnerer en beskrivelse per ulikhet, eller en tom liste dersom simuleringene er like.
  * I beskrivelsene er `beregnet` simuleringen saksbehandler/beslutter så på behandlingen, og `kontroll` er kontrollsimuleringen som kjøres rett før iverksetting.
- * Sammenligner ikke enkeltposteringer, kun totalbeløpene for hver dag.
+ *
+ * Sammenligner posteringene, som er kildedataene fra oppdragssystemet.
+ * Dagsverdiene er utledet av posteringene til visning og kan ikke avvike uten at en postering avviker -- å sammenligne dem ville bare lagt avrundingsvalgene våre inn i sammenligningen.
+ *
+ * Eldre lagrede simuleringer har posteringene splittet opp per dag.
+ * Mot en fersk kontrollsimulering gir det forskjell i form uten forskjell i innhold, og det fanges her med vilje: tallene beslutter så på skal være tallene som iverksettes, og saksbehandler løser det med «Oppdater simulering».
  */
 fun Simulering?.finnUlikheter(kontrollsimulering: Simulering?): List<String> {
     if (this == null && kontrollsimulering == null) {
@@ -258,36 +355,35 @@ private fun SimuleringForMeldeperiode.finnUlikheter(kontroll: SimuleringForMelde
         return listOf("Ulike meldeperioder: beregnet=${this.meldeperiode.id}, kontroll=${kontroll.meldeperiode.id}")
     }
 
-    if (this.simuleringsdager.size != kontroll.simuleringsdager.size) {
-        return listOf("Ulikt antall simuleringsdager for meldeperiode ${this.meldeperiode.id}: beregnet=${this.simuleringsdager.size}, kontroll=${kontroll.simuleringsdager.size}")
+    val kunIBeregnet = this.posteringer.utenom(kontroll.posteringer)
+    val kunIKontroll = kontroll.posteringer.utenom(this.posteringer)
+
+    if (kunIBeregnet.isEmpty() && kunIKontroll.isEmpty()) {
+        return emptyList()
     }
 
-    return this.simuleringsdager.toList().zip(kontroll.simuleringsdager)
-        .flatMap { (beregnetDag, kontrolldag) -> beregnetDag.finnUlikheter(kontrolldag) }
-        .map { "Meldeperiode ${this.meldeperiode.id} $it" }
+    return listOf(
+        buildString {
+            append("Meldeperiode ${meldeperiode.id} har ulike posteringer.")
+            if (kunIBeregnet.isNotEmpty()) {
+                append(" Kun i beregnet: ${kunIBeregnet.joinToString { it.beskriv() }}.")
+            }
+            if (kunIKontroll.isNotEmpty()) {
+                append(" Kun i kontroll: ${kunIKontroll.joinToString { it.beskriv() }}.")
+            }
+        },
+    )
 }
 
-// Sjekker ikke om posteringene er like, kun totalbeløpene for hver dag
-private fun Simuleringsdag.finnUlikheter(kontrolldag: Simuleringsdag): List<String> {
-    if (!this.dato.isEqual(kontrolldag.dato)) {
-        return listOf("har ulike datoer: beregnet=${this.dato}, kontroll=${kontrolldag.dato}")
-    }
+/**
+ * Posteringene i denne listen som ikke har en make i [andre], der hver make bare kan brukes én gang.
+ * Rekkefølgen posteringene kom i fra oppdragssystemet er ikke en del av innholdet, så den sammenlignes ikke.
+ */
+private fun List<Postering>.utenom(andre: List<Postering>): List<Postering> {
+    val gjenstående = andre.toMutableList()
+    return filter { !gjenstående.remove(it) }
+}
 
-    val ulikeFelter = listOf(
-        Triple("tidligereUtbetalt", tidligereUtbetalt, kontrolldag.tidligereUtbetalt),
-        Triple("nyUtbetaling", nyUtbetaling, kontrolldag.nyUtbetaling),
-        Triple("totalEtterbetaling", totalEtterbetaling, kontrolldag.totalEtterbetaling),
-        Triple("totalFeilutbetaling", totalFeilutbetaling, kontrolldag.totalFeilutbetaling),
-        Triple("totalMotpostering", totalMotpostering, kontrolldag.totalMotpostering),
-        Triple("totalTrekk", totalTrekk, kontrolldag.totalTrekk),
-        Triple("totalJustering", totalJustering, kontrolldag.totalJustering),
-    ).mapNotNull { (felt, beregnet, kontroll) ->
-        if (beregnet != kontroll) "$felt $beregnet->$kontroll" else null
-    }
-
-    return if (ulikeFelter.isEmpty()) {
-        emptyList()
-    } else {
-        listOf("$dato (beregnet->kontroll): ${ulikeFelter.joinToString(", ")}")
-    }
+private fun Postering.beskriv(): String {
+    return "$type/$klassekode ${periode.fraOgMed}–${periode.tilOgMed} $beløp kr ($fagområde)"
 }

@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.DevSimuleringsscenario
 import no.nav.tiltakspenger.saksbehandling.objectmothers.genererSimuleringFraBeregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
@@ -74,6 +75,10 @@ class UtbetalingFakeKlient(
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         val sak = sakRepo.hentForSakId(sakId)!!
-        return sak.genererSimuleringFraBeregning(beregning = beregning, clock = clock).right()
+        return sak.genererSimuleringFraBeregning(
+            beregning = beregning,
+            clock = clock,
+            scenario = DevSimuleringsscenario.fraFnr(fnr),
+        ).right()
     }
 }

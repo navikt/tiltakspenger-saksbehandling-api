@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.feil.bodySomJson
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
+import no.nav.tiltakspenger.libs.httpklient.tryMap
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
@@ -85,7 +86,17 @@ class TilgangsmaskinHttpClient(
                     // Avvist tilgang er et domeneutfall som utledes fra feiltypen, ikke en teknisk feil.
                     feil.harStatus(403) && feil is HttpKlientError.UventetStatus ->
                         feil.bodySomJson<AvvistTilgangResponse>()
-                            .map { it.tilAvvistTilgangsvurdering() }
+                            .flatMap { avvist ->
+                                // Mappingen kaster på ukjent avvisningstype; fang det som typet feil med responsens metadata i stedet for en ukontrollert exception.
+                                Either.catch { avvist.tilAvvistTilgangsvurdering() }.mapLeft { e ->
+                                    HttpKlientError.DeserializationError(
+                                        throwable = e,
+                                        body = feil.body,
+                                        statusCode = feil.statusCode,
+                                        metadata = feil.metadata,
+                                    )
+                                }
+                            }
                             .onRight(::loggAvvist)
 
                     else -> feil.left()
@@ -103,7 +114,9 @@ class TilgangsmaskinHttpClient(
             body = fnrs.map { TilgangPersonRequestDto(brukerId = it.verdi) },
             bearerToken = oboToken,
             godta = Statusregel.Eksakt(207),
-        ).map { it.body.tilTilgangPerFnr() }
+        )
+            // Mappingen bygger Fnr fra svaret og kan kaste; tryMap gjør et ugyldig svar til typet feil med responsens metadata i stedet for en ukontrollert exception.
+            .flatMap { response -> response.tryMap { it.tilTilgangPerFnr() } }
     }.mapLeft(::tilTilgangskontrollFeil)
 
     private suspend fun exchangeToken(saksbehandlerToken: String): Either<HttpKlientError, AccessToken> {

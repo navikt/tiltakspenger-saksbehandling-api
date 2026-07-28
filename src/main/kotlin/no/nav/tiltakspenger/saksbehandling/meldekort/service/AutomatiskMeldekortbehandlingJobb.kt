@@ -186,7 +186,7 @@ class AutomatiskMeldekortbehandlingJobb(
                     return status.left()
                 }
 
-                KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
+                is KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
                 KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering,
                 -> {
                     val status = MeldekortBehandletAutomatiskStatus.HAR_JUSTERING

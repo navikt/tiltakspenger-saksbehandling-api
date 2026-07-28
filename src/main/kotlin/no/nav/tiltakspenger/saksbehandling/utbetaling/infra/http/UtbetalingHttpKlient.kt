@@ -168,16 +168,25 @@ class UtbetalingHttpKlient(
                         originalResponseBody = response.rawResponseString,
                     ).right()
                 } else {
-                    // Domene-mapping som kan feile (fnr-/saksnummer-sjekkene) blir en typet feil med responsens metadata.
+                    // Forventede kontraktbrudd kommer som typet Simuleringsfeil fra mappingen.
+                    // Uventede kast (f.eks. ukjent posteringstype etter en kontraktendring) fanges av tryMap og blir UkjentFeil med responsens metadata, ikke en ukontrollert exception.
                     response.tryMap {
-                        SimuleringMedMetadata(
-                            simulering = dto.toSimuleringFraHelvedResponse(
-                                meldeperiodeKjeder = meldeperiodeKjeder,
-                                clock = clock,
-                            ),
-                            originalResponseBody = response.rawResponseString,
+                        dto.toSimuleringFraHelvedResponse(
+                            meldeperiodeKjeder = meldeperiodeKjeder,
+                            clock = clock,
                         )
-                    }.mapLeft { KunneIkkeSimulere.UkjentFeil(it) }
+                    }
+                        .mapLeft { it.tilKunneIkkeSimulere() }
+                        .flatMap { tolket ->
+                            tolket
+                                .mapLeft { KunneIkkeSimulere.UgyldigSimulering(it) }
+                                .map { simulering ->
+                                    SimuleringMedMetadata(
+                                        simulering = simulering,
+                                        originalResponseBody = response.rawResponseString,
+                                    )
+                                }
+                        }
                 }
             }
     }
@@ -215,7 +224,7 @@ class UtbetalingHttpKlient(
     private fun HttpKlientError.tilKunneIkkeSimulere(): KunneIkkeSimulere = when (this) {
         is HttpKlientError.Timeout -> KunneIkkeSimulere.Timeout(this)
 
-        // OS har åpningstider; 503 betyr stengt/vedlikehold, ikke en feil hos oss.
+        // Kontrakten (openapi.yml i helved-utbetaling) definerer 503 som «OS/UR er midlertidig stengt»; ikke en feil hos oss.
         is HttpKlientError.UventetStatus if statusCode == 503 -> KunneIkkeSimulere.Stengt(this)
 
         else -> KunneIkkeSimulere.UkjentFeil(this)

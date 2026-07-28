@@ -72,6 +72,18 @@ data class SimulertBeregning(
     data class SimulertBeregningMeldeperiode(
         val kjedeId: MeldeperiodeKjedeId,
         val dager: Nel<SimulertBeregningDag>,
+
+        /**
+         * Hva simuleringen sier om denne meldeperioden, som fakta frontend kan vise på ulike måter.
+         * Se [Simuleringsflagg].
+         */
+        val flagg: Simuleringsflagg = Simuleringsflagg.ingenSimulering,
+
+        /**
+         * Posteringene fra oppdragssystemet som treffer meldeperioden, med kildens egne beløp og perioder.
+         * Dagene merkes med posteringene som dekker dem, men beløpene hører hjemme her -- på posteringsnivå finnes ingen dagsandel å dikte opp.
+         */
+        val posteringer: List<Postering> = emptyList(),
     ) {
         val simuleringsdager: NonEmptyList<Simuleringsdag>? by lazy {
             dager.mapNotNull { it.simuleringsdag }.toNonEmptyListOrNull()
@@ -104,6 +116,12 @@ data class SimulertBeregning(
             val beregningsdag: MeldeperiodeBeregningDag?,
             val forrigeBeregningsdag: MeldeperiodeBeregningDag?,
             val simuleringsdag: Simuleringsdag?,
+
+            /**
+             * Posteringene fra oppdragssystemet som dekker denne dagen, uten dagsandel.
+             * Se [Simuleringsmerke] for hvorfor perioden kan vises, men beløpet som regel ikke.
+             */
+            val merker: List<Simuleringsmerke> = emptyList(),
         ) {
             val beregning: BeregningBeløp? by lazy {
                 beregningsdag?.let {
@@ -151,11 +169,19 @@ data class SimulertBeregning(
         ): SimulertBeregning {
             val beregningKjedeIder: Set<MeldeperiodeKjedeId> = beregning.beregninger.map { it.kjedeId }.toSet()
 
+            val simuleringPerKjede: Map<MeldeperiodeKjedeId, SimuleringForMeldeperiode> =
+                (simulering as? Simulering.Endring)
+                    ?.simuleringPerMeldeperiode
+                    ?.associateBy { it.meldeperiode.kjedeId }
+                    ?: emptyMap()
+
             val fraMeldeperiodeBeregninger = beregning.beregninger.map { meldeperiodeBeregning ->
                 val kjedeId = meldeperiodeBeregning.kjedeId
 
                 val forrigeBeregning: MeldeperiodeBeregning? =
                     eksisterendeBeregninger.hentForrigeBeregningForSimulering(meldeperiodeBeregning)
+
+                val simuleringForKjede = simuleringPerKjede[kjedeId]
 
                 SimulertBeregningMeldeperiode(
                     kjedeId = kjedeId,
@@ -165,8 +191,11 @@ data class SimulertBeregning(
                             simuleringsdag = simulering?.hentDag(dag.dato),
                             beregningsdag = dag,
                             forrigeBeregningsdag = forrigeBeregning?.hentDag(dag.dato),
+                            merker = simuleringForKjede.merkerFor(dag.dato),
                         )
                     },
+                    flagg = simuleringForKjede?.flagg ?: Simuleringsflagg.ingenSimulering,
+                    posteringer = simuleringForKjede?.posteringer ?: emptyList(),
                 )
             }
 
@@ -177,15 +206,20 @@ data class SimulertBeregning(
                         .map { simuleringForMeldeperiode ->
                             SimulertBeregningMeldeperiode(
                                 kjedeId = simuleringForMeldeperiode.meldeperiode.kjedeId,
-                                dager = simuleringForMeldeperiode.simuleringsdager.map { dag ->
+                                // Alle dagene i meldeperioden, ikke bare de simuleringen har posteringer på.
+                                // Meldeperioden er alltid 14 dager fra mandag til søndag, og visningen skal være konsekvent med meldeperiodene som har beregning.
+                                dager = simuleringForMeldeperiode.meldeperiode.periode.tilDager().map { dato ->
                                     SimulertBeregningDag(
-                                        dato = dag.dato,
-                                        simuleringsdag = dag,
+                                        dato = dato,
+                                        simuleringsdag = simuleringForMeldeperiode.simuleringsdager.find { it.dato == dato },
                                         beregningsdag = null,
                                         // TODO jah: Dersom vi ønsker å populere denne riktig, mtp. at det kan komme til nyere vedtak etter denne, trenger vi et forhold til beregningtidspunkt, som mangler per nå.
                                         forrigeBeregningsdag = null,
+                                        merker = simuleringForMeldeperiode.merkerFor(dato),
                                     )
-                                },
+                                }.toNonEmptyListOrThrow(),
+                                flagg = simuleringForMeldeperiode.flagg,
+                                posteringer = simuleringForMeldeperiode.posteringer,
                             )
                         }
                 }
@@ -213,6 +247,17 @@ data class SimulertBeregning(
             )
         }
     }
+}
+
+/**
+ * Posteringene som dekker [dato], oversatt til merker uten dagsandel.
+ * Meldeperioder uten simulering gir en tom liste.
+ */
+private fun SimuleringForMeldeperiode?.merkerFor(dato: LocalDate): List<Simuleringsmerke> {
+    return this?.posteringer
+        ?.filter { it.periode.inneholder(dato) }
+        ?.map { it.tilSimuleringsmerke() }
+        ?: emptyList()
 }
 
 /**

@@ -20,5 +20,10 @@ fun KunneIkkeSimulere.tilSimuleringErrorJson(): Pair<HttpStatusCode, ErrorJson> 
             "Ukjent feil ved simulering",
             "ukjent_feil_ved_simulering",
         )
+
+        is KunneIkkeSimulere.UgyldigSimulering -> HttpStatusCode.BadGateway to ErrorJson(
+            this.feil.beskrivelse,
+            "kunne_ikke_tolke_simulering",
+        )
     }
 }

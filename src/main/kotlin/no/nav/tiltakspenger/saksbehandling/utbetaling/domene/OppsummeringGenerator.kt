@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.left
+import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -8,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldepe
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import java.time.Clock
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.math.abs
 
 /**
@@ -31,30 +35,41 @@ object OppsummeringGenerator {
         datoBeregnet: LocalDate,
         totalBeløp: Int,
         clock: Clock,
-    ): Simulering.Endring {
+    ): Either<Simuleringsfeil, Simulering.Endring> {
         val simuleringsperiode = Periode(
             fraOgMed = posteringer.minOf { it.periode.fraOgMed },
             tilOgMed = posteringer.maxOf { it.periode.tilOgMed },
         )
         // Merk at simuleringsperioden og meldeperiodene sin totale periode ikke trenger å være like.
         val aktuelleMeldeperioder = meldeperiodeKjeder.hentMeldeperioderForPeriode(simuleringsperiode)
+
+        val simuleringPerMeldeperiode = aktuelleMeldeperioder.mapNotNull { meldeperiode ->
+            val posteringerForMeldeperiode = posteringer
+                .filter { it.periode.overlapperMed(meldeperiode.periode) }
+                .toNonEmptyListOrNull() ?: return@mapNotNull null
+
+            posteringerForMeldeperiode.forEach { postering ->
+                postering.validerLiggerInnenfor(meldeperiode)?.let { return it.left() }
+            }
+
+            SimuleringForMeldeperiode(
+                meldeperiode = meldeperiode,
+                simuleringsdager = posteringerForMeldeperiode.tilSimuleringsdager(),
+                posteringer = posteringerForMeldeperiode,
+            )
+        }.toNonEmptyListOrNull()
+            ?: return Simuleringsfeil.IngenMeldeperioderTruffet(
+                sakId = meldeperiodeKjeder.sakId,
+                saksnummer = meldeperiodeKjeder.saksnummer,
+                simuleringsperiode = simuleringsperiode,
+            ).left()
+
         return Simulering.Endring(
             datoBeregnet = datoBeregnet,
             totalBeløp = totalBeløp,
             simuleringstidspunkt = nå(clock),
-            simuleringPerMeldeperiode = aktuelleMeldeperioder.mapNotNull { meldeperiode ->
-                val posteringerForMeldeperiode = posteringer
-                    .filter { it.periode.overlapperMed(meldeperiode.periode) }
-                    .onEach { it.validerLiggerInnenfor(meldeperiode) }
-                    .toNonEmptyListOrNull() ?: return@mapNotNull null
-
-                SimuleringForMeldeperiode(
-                    meldeperiode = meldeperiode,
-                    simuleringsdager = posteringerForMeldeperiode.tilSimuleringsdager(),
-                    posteringer = posteringerForMeldeperiode,
-                )
-            }.toNonEmptyListOrNull()!!,
-        )
+            simuleringPerMeldeperiode = simuleringPerMeldeperiode,
+        ).right()
     }
 
     /**
@@ -86,21 +101,28 @@ object OppsummeringGenerator {
     }
 
     /**
-     * Vi sender utbetalingslinjene per meldeperiodekjede, og oppdragssystemet arver de grensene.
-     * En postering skal derfor alltid ligge innenfor én meldeperiode.
-     * Justeringer skal i tillegg ligge innenfor én kalendermåned, siden oppdrag kun justerer innenfor måneden og hjemmelsvernet grupperer på måned.
+     * En postering må ligge innenfor meldeperioden, og en justering må i tillegg ligge innenfor én kalendermåned.
      *
-     * Holder ikke dette, er dagsverdiene vi utleder oppdiktet, og summene per meldeperiode og måned blir feil uten at noe synes.
-     * Da vil vi heller feile høylytt.
-     * Oppdragssystemet vurderer å gå fra kalendermåned til 14 dagers frekvens, og denne sjekken er det som gjør det skiftet synlig for oss.
+     * Oppdrag splitter i dag på månedsskiftet, så en justering kan ikke krysse det.
+     * Hjemmelsvernet bygger på nettopp det og grupperer justeringene per måned.
+     *
+     * Merk at måneden ikke er en hjemmel -- hjemmelen gjelder meldeperioder.
+     * Måneden er en observasjon om hvordan oppdrag periodiserer i dag, brukt som proxy.
+     * Oppdrag vurderer å gå fra kalendermåned til 14 dager tilpasset vår meldeperiode.
+     * Skjer det, vil en justering kunne krysse et månedsskifte innenfor én meldeperiode, og da er riktig respons å **fjerne månedsgrupperingen** fra `harUbalansertJustering` -- ikke å lempe på denne sjekken.
+     *
+     * Meldeperiodesjekken er delt med lesing fra databasen, se [finnPosteringUtenforMeldeperioden].
      */
-    private fun Postering.validerLiggerInnenfor(meldeperiode: Meldeperiode) {
-        require(meldeperiode.periode.inneholderHele(this.periode)) {
-            "Posteringen ${this.periode} går utover meldeperioden ${meldeperiode.periode}. Da kan vi ikke fordele beløpet på dager uten å gjette. Meldeperiode: ${meldeperiode.id}, klassekode: ${this.klassekode}, type: ${this.type}"
+    private fun Postering.validerLiggerInnenfor(meldeperiode: Meldeperiode): Simuleringsfeil? {
+        utenforMeldeperiodenFeil(meldeperiode)?.let { return it }
+        if (this.erJustering && YearMonth.from(this.periode.fraOgMed) != YearMonth.from(this.periode.tilOgMed)) {
+            return Simuleringsfeil.JusteringOverMånedsskifte(
+                meldeperiodeId = meldeperiode.id,
+                postering = this.periode,
+                klassekode = this.klassekode,
+            )
         }
-        require(!this.erJustering || this.periode.fraOgMed.month == this.periode.tilOgMed.month) {
-            "Justeringen ${this.periode} går over et månedsskifte. Hjemmelsvernet grupperer justeringer per måned, og da kan vi ikke avgjøre hvilken måned beløpet hører til. Meldeperiode: ${meldeperiode.id}, klassekode: ${this.klassekode}"
-        }
+        return null
     }
 
     private fun beregnTidligereUtbetalt(posteringer: List<Posteringsbeløp>): Int =
@@ -132,7 +154,7 @@ object OppsummeringGenerator {
      * TREK i OS/UR, for eksempel trekk fra namsmannen, kreditorer eller forskuddsskatt.
      *
      * Trekk kommer med begge fortegn, og de aller fleste er negative.
-     * I et prod-uttrekk var 3 214 av 3 482 trekkposteringer negative, og de positive ser ut til å være reverseringer av tidligere trekk.
+     * I et uttrekk var 3 214 av 3 482 trekkposteringer negative, og de positive ser ut til å være reverseringer av tidligere trekk.
      * Vi summerer derfor uansett fortegn, slik at feltet viser det beløpet som faktisk trekkes fra utbetalingen.
      */
     private fun beregnTrekk(posteringer: List<Posteringsbeløp>): Int =

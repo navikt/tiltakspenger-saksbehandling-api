@@ -111,6 +111,35 @@ class TilgangsmaskinHttpClientTest {
     }
 
     @Test
+    fun `harTilgangTilPerson gir Uventet for ukjent avvisningstype`() = runTest {
+        coEvery {
+            texasClient.exchangeToken(
+                userToken = "token",
+                audienceTarget = "scope",
+                identityProvider = IdentityProvider.AZUREAD,
+            )
+        } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+        fakeTransport.leggIKøJson(
+            json = """
+                {
+                  "type": "https://example.com/type",
+                  "title": "AVVIST_EN_NY_REGEL",
+                  "status": 403,
+                  "brukerIdent": "01010199999",
+                  "navIdent": "Z12345",
+                  "begrunnelse": "Ukjent regel"
+                }
+            """.trimIndent(),
+            statusCode = 403,
+        )
+
+        val result = client.harTilgangTilPerson(Fnr.fromString("01010199999"), "token")
+
+        result.fold({ it }, { throw AssertionError("Forventet Left, fikk $it") })
+            .shouldBeInstanceOf<TilgangskontrollFeil.Uventet>()
+    }
+
+    @Test
     fun `harTilgangTilPerson gir Uventet for andre feilstatuser`() = runTest {
         coEvery {
             texasClient.exchangeToken(

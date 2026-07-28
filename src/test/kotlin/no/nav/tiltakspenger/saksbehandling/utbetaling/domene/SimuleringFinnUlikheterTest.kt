@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -11,14 +13,35 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.meldeperio
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
+/**
+ * Kontrollsimuleringen sammenlignes med simuleringen beslutter så, på posteringene.
+ *
+ * Posteringene er kildedataene fra oppdragssystemet.
+ * Dagsverdiene er utledet av dem til visning og kan ikke avvike uten at en postering avviker, så de sammenlignes ikke.
+ */
 class SimuleringFinnUlikheterTest {
     private val periode = Periode(13.januar(2025), 26.januar(2025))
     private val meldeperiode = meldeperiode(periode = periode)
+
+    private fun postering(
+        fraOgMed: LocalDate = periode.fraOgMed,
+        tilOgMed: LocalDate = fraOgMed,
+        beløp: Int = 255,
+    ): Postering {
+        return Postering(
+            periode = Periode(fraOgMed, tilOgMed),
+            fagområde = "TILTAKSPENGER",
+            beløp = beløp,
+            type = Posteringstype.YTELSE,
+            klassekode = "test_klassekode",
+        )
+    }
 
     private fun simulering(
         meldeperiode: Meldeperiode = this.meldeperiode,
         tidligereUtbetalt: Int = 0,
         nyUtbetaling: Int = 255,
+        posteringer: NonEmptyList<Postering> = nonEmptyListOf(postering(beløp = nyUtbetaling)),
     ): Simulering.Endring {
         val dato = periode.fraOgMed
         return Simulering.Endring(
@@ -34,15 +57,7 @@ class SimuleringFinnUlikheterTest {
                             nyUtbetaling = nyUtbetaling,
                         ),
                     ),
-                    posteringer = nonEmptyListOf(
-                        Postering(
-                            periode = Periode(dato, dato),
-                            fagområde = "TILTAKSPENGER",
-                            beløp = nyUtbetaling,
-                            type = Posteringstype.YTELSE,
-                            klassekode = "test_klassekode",
-                        ),
-                    ),
+                    posteringer = posteringer,
                 ),
             ),
             simuleringstidspunkt = nå(clock),
@@ -74,6 +89,18 @@ class SimuleringFinnUlikheterTest {
         (null as Simulering?).finnUlikheter(null) shouldBe emptyList()
     }
 
+    /** Rekkefølgen posteringene kom i fra oppdragssystemet er ikke en del av innholdet. */
+    @Test
+    fun `posteringer i en annen rekkefølge er ikke en endring`() {
+        val a = postering(fraOgMed = 13.januar(2025), beløp = 255)
+        val b = postering(fraOgMed = 14.januar(2025), beløp = -255)
+
+        val beregnet = simulering(posteringer = nonEmptyListOf(a, b))
+        val kontroll = simulering(posteringer = nonEmptyListOf(b, a))
+
+        beregnet.finnUlikheter(kontroll) shouldBe emptyList()
+    }
+
     @Test
     fun `manglende simulering mot endring beskriver begge sider`() {
         val kontroll = simulering(tidligereUtbetalt = 0, nyUtbetaling = 255)
@@ -84,13 +111,40 @@ class SimuleringFinnUlikheterTest {
     }
 
     @Test
-    fun `endrede beløp beskrives per dag og felt`() {
+    fun `endrede posteringer beskrives med begge sider`() {
         val beregnet = simulering(tidligereUtbetalt = 0, nyUtbetaling = 255)
         val kontroll = simulering(tidligereUtbetalt = 255, nyUtbetaling = 510)
 
         beregnet.finnUlikheter(kontroll) shouldBe listOf(
-            "Meldeperiode ${meldeperiode.id} ${periode.fraOgMed} (beregnet->kontroll): tidligereUtbetalt 0->255, nyUtbetaling 255->510",
+            "Meldeperiode ${meldeperiode.id} har ulike posteringer." +
+                " Kun i beregnet: YTELSE/test_klassekode 2025-01-13–2025-01-13 255 kr (TILTAKSPENGER)." +
+                " Kun i kontroll: YTELSE/test_klassekode 2025-01-13–2025-01-13 510 kr (TILTAKSPENGER).",
         )
+    }
+
+    /**
+     * Eldre lagrede simuleringer har posteringene splittet opp per dag, mens en fersk kontrollsimulering har periodene fra oppdragssystemet.
+     * Samme innhold i ulik form regnes som en endring, med vilje: tallene beslutter så på skal være tallene som iverksettes, og saksbehandler løser det med «Oppdater simulering».
+     */
+    @Test
+    fun `dagsplittede posteringer fra en eldre lagret simulering er en endring mot dagens form`() {
+        val gammelForm = simulering(
+            posteringer = nonEmptyListOf(
+                postering(fraOgMed = 13.januar(2025), beløp = 255),
+                postering(fraOgMed = 14.januar(2025), beløp = 255),
+            ),
+        )
+        val nyForm = simulering(
+            posteringer = nonEmptyListOf(
+                postering(fraOgMed = 13.januar(2025), tilOgMed = 14.januar(2025), beløp = 510),
+            ),
+        )
+
+        val ulikheter = gammelForm.finnUlikheter(nyForm)
+
+        ulikheter.size shouldBe 1
+        ulikheter.single() shouldContain "Kun i beregnet"
+        ulikheter.single() shouldContain "Kun i kontroll"
     }
 
     @Test

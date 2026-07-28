@@ -11,8 +11,8 @@ fun KanIkkeIverksetteUtbetaling.tilErrorJson(): Pair<HttpStatusCode, ErrorJson> 
             "må_simuleres",
         )
 
-        KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
-            "Behandling med justering på tvers av måneder eller meldeperioder støttes ikke på nåværende tidspunkt.",
+        is KanIkkeIverksetteUtbetaling.JusteringStøttesIkke -> HttpStatusCode.BadRequest to ErrorJson(
+            this.beskrivelse,
             "støtter_ikke_justering",
         )
 

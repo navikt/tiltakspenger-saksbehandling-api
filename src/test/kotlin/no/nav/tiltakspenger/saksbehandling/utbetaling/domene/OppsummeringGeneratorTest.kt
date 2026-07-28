@@ -45,7 +45,7 @@ class OppsummeringGeneratorTest {
             }
         """.trimIndent()
         val meldeperiodeKjeder = MeldeperiodeKjeder(emptyList())
-        deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, fixedClock) shouldBe Simulering.IngenEndring(
+        deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, fixedClock).forventTolkbar() shouldBe Simulering.IngenEndring(
             simuleringstidspunkt = nå(fixedClock),
         )
     }
@@ -136,10 +136,10 @@ class OppsummeringGeneratorTest {
             ),
         )
         val clock = fixedClock
-        (deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) as Simulering.Endring)
+        (deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock).forventTolkbar() as Simulering.Endring)
             .medPlassholderPosteringer() shouldBe Simulering.Endring(
             simuleringPerMeldeperiode = nonEmptyListOf(
-                SimuleringForMeldeperiode(
+                simuleringForMeldeperiode(
                     meldeperiode = meldeperiodeKjeder.hentForMeldeperiodeId(meldeperiode.id)!!,
                     simuleringsdager = nonEmptyListOf(
                         Simuleringsdag(
@@ -231,7 +231,6 @@ class OppsummeringGeneratorTest {
                             harJustering = false,
                         ),
                     ),
-                    posteringer = plassholderPosteringer,
                 ),
             ),
             datoBeregnet = LocalDate.parse("2025-05-12"),
@@ -468,13 +467,13 @@ class OppsummeringGeneratorTest {
             ),
         )
         val clock = fixedClock
-        (deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) as Simulering.Endring)
+        (deserialize<SimuleringResponseDTO>(helvedResponse).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock).forventTolkbar() as Simulering.Endring)
             .medPlassholderPosteringer() shouldBe Simulering.Endring(
             totalBeløp = 0,
             datoBeregnet = 16.mai(2025),
             simuleringstidspunkt = nå(fixedClock),
             simuleringPerMeldeperiode = nonEmptyListOf(
-                SimuleringForMeldeperiode(
+                simuleringForMeldeperiode(
                     meldeperiode = meldeperiode2,
                     simuleringsdager = nonEmptyListOf(
                         Simuleringsdag(
@@ -518,9 +517,8 @@ class OppsummeringGeneratorTest {
                             )
                         },
                     ),
-                    posteringer = plassholderPosteringer,
                 ),
-                SimuleringForMeldeperiode(
+                simuleringForMeldeperiode(
                     meldeperiode = meldeperiode3,
                     simuleringsdager = nonEmptyListOf(
                         Simuleringsdag(
@@ -535,7 +533,6 @@ class OppsummeringGeneratorTest {
                             harJustering = false,
                         ),
                     ),
-                    posteringer = plassholderPosteringer,
                 ),
             ),
         )
@@ -839,11 +836,11 @@ class OppsummeringGeneratorTest {
             ),
         )
         val clock = fixedClock
-        val actual = deserialize<SimuleringResponseDTO>(jsonFraHelved).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock) as Simulering.Endring
+        val actual = deserialize<SimuleringResponseDTO>(jsonFraHelved).toSimuleringFraHelvedResponse(meldeperiodeKjeder, clock).forventTolkbar() as Simulering.Endring
         actual.totalBeløp shouldBe 3740
         actual.datoBeregnet shouldBe 16.september(2025)
         actual.simuleringPerMeldeperiode.size shouldBe 4
-        actual.simuleringPerMeldeperiode[0].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[0].medPlassholderPosteringer() shouldBe simuleringForMeldeperiode(
             meldeperiode = meldeperiode1,
             simuleringsdager = nonEmptyListOf(
                 Simuleringsdag(
@@ -872,9 +869,8 @@ class OppsummeringGeneratorTest {
                     )
                 },
             ),
-            posteringer = plassholderPosteringer,
         )
-        actual.simuleringPerMeldeperiode[1].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[1].medPlassholderPosteringer() shouldBe simuleringForMeldeperiode(
             meldeperiode = meldeperiode2,
             simuleringsdager = (10.mars(2025) til 14.mars(2025)).tilDager().map { dato ->
                 Simuleringsdag(
@@ -903,9 +899,8 @@ class OppsummeringGeneratorTest {
                     )
                 },
             ),
-            posteringer = plassholderPosteringer,
         )
-        actual.simuleringPerMeldeperiode[2].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[2].medPlassholderPosteringer() shouldBe simuleringForMeldeperiode(
             meldeperiode = meldeperiode4,
             simuleringsdager = (7.april(2025) til 11.april(2025)).tilDager().map { dato ->
                 Simuleringsdag(
@@ -934,9 +929,8 @@ class OppsummeringGeneratorTest {
                     )
                 },
             ),
-            posteringer = plassholderPosteringer,
         )
-        actual.simuleringPerMeldeperiode[3].medPlassholderPosteringer() shouldBe SimuleringForMeldeperiode(
+        actual.simuleringPerMeldeperiode[3].medPlassholderPosteringer() shouldBe simuleringForMeldeperiode(
             meldeperiode = meldeperiode5,
             simuleringsdager = (21.april(2025) til 25.april(2025)).tilDager().map { dato ->
                 Simuleringsdag(
@@ -979,7 +973,6 @@ class OppsummeringGeneratorTest {
                     )
                 },
             ),
-            posteringer = plassholderPosteringer,
         )
     }
 }

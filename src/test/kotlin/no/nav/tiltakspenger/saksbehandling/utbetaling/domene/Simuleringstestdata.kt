@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
@@ -12,6 +14,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjede
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -238,9 +241,9 @@ internal fun posteringerForPeriode(periode: Periode, vararg posteringer: Testpos
  * I de store forventningstestene ville det å gjenta hele responsen i forventningen gjort et allerede stort oppsett dobbelt så stort, uten å fange noe utover at kopieringen virker.
  * At posteringene bevares med riktig periode og beløp dekkes i stedet av [posteringerForPeriode]-testene.
  */
-internal val plassholderPosteringer: NonEmptyList<Postering> = nonEmptyListOf(
+internal fun plassholderPosteringerFor(meldeperiode: Meldeperiode): NonEmptyList<Postering> = nonEmptyListOf(
     Postering(
-        periode = Periode(Simuleringstestdata.førsteDag, Simuleringstestdata.førsteDag),
+        periode = Periode(meldeperiode.periode.fraOgMed, meldeperiode.periode.fraOgMed),
         fagområde = FAGOMRÅDE_TILTAKSPENGER,
         beløp = 0,
         type = Posteringstype.YTELSE,
@@ -248,12 +251,27 @@ internal val plassholderPosteringer: NonEmptyList<Postering> = nonEmptyListOf(
     ),
 )
 
-/** Bytter ut posteringene med [plassholderPosteringer], slik at en forventning kan sammenlignes uten dem. */
+/**
+ * Bygger en forventet [SimuleringForMeldeperiode] med plassholderposteringer.
+ *
+ * Posteringene må ligge innenfor meldeperioden, ellers avviser init-blokka dem.
+ * Derfor utledes plassholderen fra meldeperioden i stedet for å være en fast verdi.
+ */
+internal fun simuleringForMeldeperiode(
+    meldeperiode: Meldeperiode,
+    simuleringsdager: NonEmptyList<Simuleringsdag>,
+): SimuleringForMeldeperiode = SimuleringForMeldeperiode(
+    meldeperiode = meldeperiode,
+    simuleringsdager = simuleringsdager,
+    posteringer = plassholderPosteringerFor(meldeperiode),
+)
+
+/** Bytter ut posteringene med plassholdere, slik at en forventning kan sammenlignes uten dem. */
 internal fun Simulering.Endring.medPlassholderPosteringer(): Simulering.Endring =
     copy(simuleringPerMeldeperiode = simuleringPerMeldeperiode.map { it.medPlassholderPosteringer() })
 
 internal fun SimuleringForMeldeperiode.medPlassholderPosteringer(): SimuleringForMeldeperiode =
-    copy(posteringer = plassholderPosteringer)
+    copy(posteringer = plassholderPosteringerFor(meldeperiode))
 
 /**
  * Simulerer en sammenhengende periode med de gitte posteringene.
@@ -266,13 +284,24 @@ internal fun simulerPeriode(periode: Periode, vararg posteringer: Testpostering)
 
 /** Som [simulerPeriode], men gir hele simuleringen i stedet for bare dagene. */
 internal fun simulering(periode: Periode, vararg posteringer: Testpostering): Simulering.Endring =
-    byggRespons(periode, posteringer.toList())
-        .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock) as Simulering.Endring
+    simuleringResultat(periode, *posteringer) as Simulering.Endring
 
 /** Som [simulering], men uten å anta at resultatet er en endring. */
 internal fun simuleringResultat(periode: Periode, vararg posteringer: Testpostering): Simulering =
     byggRespons(periode, posteringer.toList())
         .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
+        .forventTolkbar()
+
+/** Som [simuleringResultat], men for tester som forventer at svaret ikke kan tolkes. */
+internal fun simuleringsfeil(periode: Periode, vararg posteringer: Testpostering): Simuleringsfeil =
+    byggRespons(periode, posteringer.toList())
+        .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
+        .swap()
+        .getOrElse { throw AssertionError("Forventet at simuleringen ikke kunne tolkes, men den ble tolket: $it") }
+
+/** Pakker ut simuleringen, med en lesbar testfeil dersom svaret ikke kunne tolkes. */
+internal fun Either<Simuleringsfeil, Simulering>.forventTolkbar(): Simulering =
+    getOrElse { throw AssertionError("Forventet at simuleringen kunne tolkes, men fikk: ${it.loggkontekst.melding}") }
 
 /**
  * Simulerer flere enkeltdager, som kan ligge i ulike meldeperioder.
@@ -282,7 +311,8 @@ internal fun simuleringResultat(periode: Periode, vararg posteringer: Testposter
  */
 internal fun simuleringForDager(vararg dager: Pair<LocalDate, List<Testpostering>>): Simulering.Endring =
     deserialize<SimuleringResponseDTO>(byggFlerdagersResponsJson(dager.toList()))
-        .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock) as Simulering.Endring
+        .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
+        .forventTolkbar() as Simulering.Endring
 
 /**
  * Simulerer flere perioder, der hver periode kan spenne over flere dager.
@@ -292,7 +322,8 @@ internal fun simuleringForDager(vararg dager: Pair<LocalDate, List<Testpostering
  */
 internal fun simuleringForPerioder(vararg perioder: Pair<Periode, List<Testpostering>>): Simulering.Endring =
     deserialize<SimuleringResponseDTO>(byggFlerperiodeResponsJson(perioder.toList()))
-        .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock) as Simulering.Endring
+        .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
+        .forventTolkbar() as Simulering.Endring
 
 private fun byggFlerperiodeResponsJson(perioder: List<Pair<Periode, List<Testpostering>>>): String {
     val perioderJson = perioder.sortedBy { it.first.fraOgMed }.joinToString(",") { (periode, posteringer) ->
