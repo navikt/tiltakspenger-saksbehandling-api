@@ -30,10 +30,13 @@ data class MeldeperiodeKjedeDTOV2(
     val brukersMeldekort: List<BrukersMeldekortDTO>,
     val brukersMeldekortStatus: BrukersMeldekortStatusDTO,
     val gjeldendeBeregning: MeldeperiodeBeregningDTO?,
+    val kanBehandles: Boolean,
 )
 
-fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKjedeDTOV2 {
+fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTOV2 {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
+
+    val sisteMeldeperiode = meldeperiodeKjede.siste
 
     val brukersMeldekort = this.brukersMeldekort
         .filter { it.kjedeId == kjedeId }
@@ -57,7 +60,7 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKje
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
             .perioderMedVerdi.toList().map { it.verdi.typeNavn }
             .distinct(),
-        sisteMeldeperiode = meldeperiodeKjede.siste.toMeldeperiodeDTO(),
+        sisteMeldeperiode = sisteMeldeperiode.toMeldeperiodeDTO(),
         meldekortbehandlingIder = meldekortbehandlinger.map { it.id.toString() },
         meldekortbehandlingStatus = meldekortbehandlinger.lastOrNull()?.status?.toStatusDTO(),
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
@@ -69,6 +72,7 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId): MeldeperiodeKje
         gjeldendeBeregning = meldeperiodeBeregninger
             .hentSisteForKjedeId(kjedeId)
             ?.tilMeldeperiodeBeregningDTO(),
+        kanBehandles = sisteMeldeperiode.erKlarTilUtfylling(clock),
     )
 }
 
@@ -78,6 +82,6 @@ fun Sak.tilMeldeperiodeKjederDTOV2(clock: Clock): List<MeldeperiodeKjedeDTOV2> {
             return@mapNotNull null
         }
 
-        this.tilMeldeperiodeKjedeDTOV2(it.kjedeId)
+        this.tilMeldeperiodeKjedeDTOV2(it.kjedeId, clock)
     }
 }
