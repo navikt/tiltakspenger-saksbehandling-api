@@ -34,7 +34,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
 ) {
     private val log = KotlinLogging.logger {}
 
-    suspend fun forhåndsvisBrev(kommando: ForhåndsvisBrevMeldekortbehandlingKommando): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, Pair<PdfOgJson, PdfOgJson?>> {
+    suspend fun forhåndsvisBrev(kommando: ForhåndsvisBrevMeldekortbehandlingKommando): Either<KunneIkkeForhåndsviseBrevMeldekortbehandling, PdfOgJson> {
         val meldekortbehandling = meldekortbehandlingRepo.hent(kommando.meldekortbehandlingId)
             ?: return KunneIkkeForhåndsviseBrevMeldekortbehandling.FantIkkeMeldekortbehandling.left()
 

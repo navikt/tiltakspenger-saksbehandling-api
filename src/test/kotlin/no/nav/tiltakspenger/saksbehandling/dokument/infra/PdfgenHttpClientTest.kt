@@ -90,6 +90,22 @@ internal class PdfgenHttpClientTest {
         )
     }
 
+    /**
+     * Kjører [kall] og asserter at kun pdfgenrs-endepunktet treffes, uavhengig av `isLocalOrDev`.
+     * Brukes for metoder som utelukkende genererer brev via pdfgenrs.
+     */
+    private fun verifiserKunPdfgenrs(
+        endepunkt: String,
+        kall: suspend (PdfgenHttpClient) -> Either<KunneIkkeGenererePdf, PdfOgJson>,
+    ) = runTest {
+        listOf(false, true).forEach { isLocalOrDev ->
+            val transport = transportMedPdf(antallSvar = 1)
+            val resultat = kall(nyKlient(transport, isLocalOrDev = isLocalOrDev)).getOrFail()
+            resultat.pdf.getContent().toList() shouldBe pdfBytes.toList()
+            transport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/$endepunkt")
+        }
+    }
+
     @Test
     fun `genererInnvilgetVedtakBrev for søknadsbehandling treffer vedtakInnvilgelse`() {
         runTest {
@@ -181,7 +197,7 @@ internal class PdfgenHttpClientTest {
     @Test
     fun `genererMeldekortvedtakBrev for vedtak treffer utbetalingsvedtak`() {
         val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = nå(fixedClock))
-        verifiserBeggeModi("utbetalingsvedtak") {
+        verifiserKunPdfgenrs("utbetalingsvedtak") {
             it.genererMeldekortvedtakBrev(
                 meldekortvedtak = meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
@@ -193,7 +209,7 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererMeldekortvedtakBrev for kommando treffer utbetalingsvedtak`() {
-        verifiserBeggeModi("utbetalingsvedtak") {
+        verifiserKunPdfgenrs("utbetalingsvedtak") {
             it.genererMeldekortvedtakBrev(
                 kommando = meldekortvedtakBrevKommando(),
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
@@ -204,7 +220,7 @@ internal class PdfgenHttpClientTest {
     @Test
     fun `genererMeldekortvedtakBrevV2 for vedtak treffer meldekortvedtak`() {
         val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = nå(fixedClock))
-        verifiserBeggeModi("meldekortvedtak") {
+        verifiserKunPdfgenrs("meldekortvedtak") {
             it.genererMeldekortvedtakBrevV2(
                 meldekortvedtak = meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
@@ -216,7 +232,7 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererMeldekortvedtakBrevV2 for kommando treffer meldekortvedtak`() {
-        verifiserBeggeModi("meldekortvedtak") {
+        verifiserKunPdfgenrs("meldekortvedtak") {
             it.genererMeldekortvedtakBrevV2(
                 kommando = meldekortvedtakBrevKommando(),
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
@@ -401,14 +417,14 @@ internal class PdfgenHttpClientTest {
             opprettet = nå(fixedClock),
         )
         runTest {
-            val actual = nyKlient(transportMedPdf(antallSvar = 2), isLocalOrDev = true).genererMeldekortvedtakBrev(
+            val actual = nyKlient(transportMedPdf(antallSvar = 1), isLocalOrDev = true).genererMeldekortvedtakBrev(
                 meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
                 sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
             ).getOrFail()
 
-            actual.first.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"6. januar 2025","tom":"19. januar 2025"},"saksbehandler":{"type":"MANUELL","navn":"Sak Behandler"},"beslutter":{"type":"MANUELL","navn":"Sak Behandler"},"tiltak":[{"tiltakstypenavn":"Arbeidsmarkedsoppfølging gruppe","tiltakstype":"GRUPPE_AMO"}],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[{"tittel":"Meldekort 6. januar 2025 - 19. januar 2025","differanseFraForrige":0,"harBarnetillegg":false,"dager":[]}],"totalDifferanse":0},"korrigering":false,"totaltBelop":2980,"brevTekst":null,"forhandsvisning":false}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"6. januar 2025","tom":"19. januar 2025"},"saksbehandler":{"type":"MANUELL","navn":"Sak Behandler"},"beslutter":{"type":"MANUELL","navn":"Sak Behandler"},"tiltak":[{"tiltakstypenavn":"Arbeidsmarkedsoppfølging gruppe","tiltakstype":"GRUPPE_AMO"}],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[{"tittel":"Meldekort 6. januar 2025 - 19. januar 2025","differanseFraForrige":0,"harBarnetillegg":false,"dager":[]}],"totalDifferanse":0},"korrigering":false,"totaltBelop":2980,"brevTekst":null,"forhandsvisning":false}"""
         }
     }
 
@@ -419,7 +435,7 @@ internal class PdfgenHttpClientTest {
         val saksnummer = Saksnummer.genererSaknummer(1.mai(2025), "4050")
 
         runTest {
-            val actual = nyKlient(transportMedPdf(antallSvar = 2), isLocalOrDev = true).genererMeldekortvedtakBrev(
+            val actual = nyKlient(transportMedPdf(antallSvar = 1), isLocalOrDev = true).genererMeldekortvedtakBrev(
                 kommando = meldekortvedtakBrevKommando(
                     saksnummer = saksnummer,
                     fnr = fnr,
@@ -428,7 +444,7 @@ internal class PdfgenHttpClientTest {
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
             ).getOrFail()
 
-            actual.first.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"1. mai 2025","tom":"7. mai 2025"},"saksbehandler":{"type":"MANUELL","navn":"Sak Behandler"},"beslutter":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[],"totalDifferanse":0},"korrigering":false,"totaltBelop":50,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"1. mai 2025","tom":"7. mai 2025"},"saksbehandler":{"type":"MANUELL","navn":"Sak Behandler"},"beslutter":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[],"totalDifferanse":0},"korrigering":false,"totaltBelop":50,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
         }
     }
 

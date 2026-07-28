@@ -19,15 +19,15 @@ class GenererFakeVedtaksbrevForMeldekortKlient : GenererVedtaksbrevForMeldekortK
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return (response to null).right()
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
     }
 
     override suspend fun genererMeldekortvedtakBrev(
         kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return (response to null).right()
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
     }
 
     override suspend fun genererMeldekortvedtakBrevV2(
@@ -35,14 +35,14 @@ class GenererFakeVedtaksbrevForMeldekortKlient : GenererVedtaksbrevForMeldekortK
         tiltaksdeltakelser: Tiltaksdeltakelser,
         hentSaksbehandlersNavn: suspend (String) -> String,
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return (response to null).right()
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
     }
 
     override suspend fun genererMeldekortvedtakBrevV2(
         kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return (response to null).right()
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.right()
     }
 }

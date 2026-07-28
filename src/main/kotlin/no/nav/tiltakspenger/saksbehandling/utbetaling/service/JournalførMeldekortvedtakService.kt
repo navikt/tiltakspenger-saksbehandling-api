@@ -77,7 +77,7 @@ class JournalførMeldekortvedtakService(
                             navIdentClient::hentNavnForNavIdentEllerKast
                         }
 
-                    val (pdfOgJson, pdfOgJsonPdfgenrs) =
+                    val pdfOgJson =
                         if (brukMeldekortvedtakBrevV2) {
                             genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrevV2(
                                 meldekortvedtak,
@@ -105,20 +105,6 @@ class JournalførMeldekortvedtakService(
                         it.loggFeil(log, "journalføring av meldekortvedtaksbrev", "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}")
                         return@forEach
                     }.journalpostId
-                    /*
-                        TODO - pdfgenrs: fjern journalføringen av pdfgenrs-pdf'en når det er verifisert at pdf'en er ok.
-                            Vi journalfører den kun for å manuelt kunne sjekke at pdfgenrs genererer riktig pdf i dev.
-                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
-                     */
-                    pdfOgJsonPdfgenrs?.let {
-                        journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
-                            meldekortvedtak = meldekortvedtak,
-                            pdfOgJson = it,
-                            correlationId = correlationId,
-                        ).onLeft { feil ->
-                            feil.loggFeil(log, "journalføring av pdfgenrs-meldekortvedtaksbrev (kun dev-sammenligning)", "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}")
-                        }
-                    }
                     log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
                     meldekortvedtakRepo.markerJournalført(meldekortvedtak.id, journalpostId, nå(clock))
                     log.info { "Meldekortvedtak markert som journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }
