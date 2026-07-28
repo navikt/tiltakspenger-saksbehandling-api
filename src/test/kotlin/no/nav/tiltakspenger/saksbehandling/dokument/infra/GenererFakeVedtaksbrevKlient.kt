@@ -47,8 +47,8 @@ class GenererFakeVedtaksbrevKlient :
         tilleggstekst: FritekstTilVedtaksbrev?,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return response.map { it.first }
     }
 
     override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
@@ -79,7 +79,7 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> = response
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response.map { it.first }
 
     override suspend fun genererStansBrev(
         vedtak: Rammevedtak,

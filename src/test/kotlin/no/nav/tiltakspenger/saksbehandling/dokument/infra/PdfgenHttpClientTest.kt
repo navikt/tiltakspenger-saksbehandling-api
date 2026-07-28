@@ -103,30 +103,32 @@ internal class PdfgenHttpClientTest {
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
 
-            prodResultat.getOrFail().first.pdf.getContent().toList() shouldBe pdfBytes.toList()
+            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
             prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakInnvilgelse")
-
-            prodResultat.getOrFail().second shouldBe null
         }
     }
 
     @Test
     fun `genererInnvilgetVedtakBrev for revurdering treffer revurderingInnvilgelse`() {
-        val behandling = ObjectMother.nyVedtattRevurderingInnvilgelse()
-        val vedtak = ObjectMother.nyttRammevedtak(
-            sakId = behandling.sakId,
-            fnr = behandling.fnr,
-            behandling = behandling,
-            periode = behandling.innvilgelsesperioder!!.totalPeriode,
-        )
-        verifiserBeggeModi("revurderingInnvilgelse") {
-            it.genererInnvilgetVedtakBrev(
+        runTest {
+            val behandling = ObjectMother.nyVedtattRevurderingInnvilgelse()
+            val vedtak = ObjectMother.nyttRammevedtak(
+                sakId = behandling.sakId,
+                fnr = behandling.fnr,
+                behandling = behandling,
+                periode = behandling.innvilgelsesperioder!!.totalPeriode,
+            )
+            val prodTransport = transportMedPdf(antallSvar = 1)
+            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetVedtakBrev(
                 vedtak = vedtak,
                 vedtaksdato = 2.januar(2023),
                 tilleggstekst = null,
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
+
+            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
+            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/revurderingInnvilgelse")
         }
     }
 
@@ -155,8 +157,9 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererInnvilgetRevurderingBrevForhåndsvisning treffer revurderingInnvilgelse`() {
-        verifiserBeggeModi("revurderingInnvilgelse") {
-            it.genererInnvilgetRevurderingBrevForhåndsvisning(
+        runTest {
+            val prodTransport = transportMedPdf(antallSvar = 1)
+            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetRevurderingBrevForhåndsvisning(
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                 vedtaksdato = 2.januar(2025),
@@ -169,6 +172,9 @@ internal class PdfgenHttpClientTest {
                 barnetilleggsperioder = null,
                 tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
             )
+
+            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
+            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/revurderingInnvilgelse")
         }
     }
 

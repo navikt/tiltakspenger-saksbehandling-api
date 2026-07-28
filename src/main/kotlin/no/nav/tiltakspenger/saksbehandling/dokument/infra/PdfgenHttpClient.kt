@@ -104,7 +104,6 @@ class PdfgenHttpClient(
     private val pdfgenrsStansvedtakUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/stansvedtak")
     private val opphørUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val pdfgenrsOpphørUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakOpphør")
-    private val revurderingInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val pdfgenrsRevurderingInnvilgelseUri =
         URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
@@ -118,7 +117,7 @@ class PdfgenHttpClient(
         tilleggstekst: FritekstTilVedtaksbrev?,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return when (vedtak.rammebehandling) {
             is Revurdering -> {
                 val json = vedtak.tilRevurderingInnvilgetBrev(
@@ -128,15 +127,7 @@ class PdfgenHttpClient(
                     tilleggstekst = tilleggstekst,
                 )
 
-                if (isLocalOrDev) {
-                    runParallel(
-                        jsonPayload = { json },
-                        pdfgenUri = revurderingInnvilgelseUri,
-                        pdfgenrsUri = pdfgenrsRevurderingInnvilgelseUri,
-                    )
-                } else {
-                    pdfgenRequest(jsonPayload = { json }, uri = revurderingInnvilgelseUri).map { it to null }
-                }
+                pdfgenRequest(jsonPayload = { json }, uri = pdfgenrsRevurderingInnvilgelseUri)
             }
 
             is Søknadsbehandling -> {
@@ -146,7 +137,7 @@ class PdfgenHttpClient(
                     vedtaksdato = vedtaksdato,
                     tilleggstekst = tilleggstekst,
                 )
-                pdfgenRequest(jsonPayload = { json }, uri = pdfgenrsVedtakInnvilgelseUri).map { it to null }
+                pdfgenRequest(jsonPayload = { json }, uri = pdfgenrsVedtakInnvilgelseUri)
             }
         }
     }
@@ -183,9 +174,6 @@ class PdfgenHttpClient(
         return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakInnvilgelseUri)
     }
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -198,7 +186,7 @@ class PdfgenHttpClient(
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             genererRevurderingInnvilgetBrev(
                 hentBrukersNavn = hentBrukersNavn,
@@ -215,16 +203,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = revurderingInnvilgelseUri,
-                pdfgenrsUri = pdfgenrsRevurderingInnvilgelseUri,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = revurderingInnvilgelseUri)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsRevurderingInnvilgelseUri)
     }
 
     /*

@@ -56,7 +56,7 @@ class JournalførRammevedtakService(
                             tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        )
+                        ).map { it to null }
 
                         is Revurderingsresultat.Stans -> genererVedtaksbrevForStansKlient.genererStansBrev(
                             vedtaksdato = vedtaksdato,

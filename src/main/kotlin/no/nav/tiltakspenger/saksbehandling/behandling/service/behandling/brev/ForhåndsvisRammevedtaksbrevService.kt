@@ -142,7 +142,7 @@ class ForhåndsvisRammevedtaksbrevService(
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             barnetilleggsperioder = kommando.barnetillegg,
-        )
+        ).map { it to null }
     }
 
     private suspend fun genererRevurderingStansbrev(
@@ -206,7 +206,7 @@ class ForhåndsvisRammevedtaksbrevService(
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetilleggsperioder = kommando.barnetillegg,
-        )
+        ).map { it to null }
     }
 
     private suspend fun genererOmgjøringOpphørBrev(
