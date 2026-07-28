@@ -6,10 +6,15 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KLogger
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 fun Meldekortbehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     // Ingenting å validere dersom det ikke finnes beregning
@@ -63,10 +68,26 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
 fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbetaling, Unit> {
     return when (this) {
         is Simulering.Endring -> {
-            if (harJusteringPåTversAvMeldeperioderEllerMåneder()) {
-                KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left()
-            } else {
-                Unit.right()
+            val ubalanserte = finnUbalanserteJusteringer()
+            when {
+                ubalanserte == null -> Unit.right()
+
+                /*
+                  Oppdrag omfordeler forskuddstrekk mellom utbetalingsperioder, med justeringer som regnskapsmessig motpost.
+                  Trekket beregnes per kalendermåned, så justeringene krysser meldeperiodegrensene -- men summerer til null innenfor måneden, og månedens utbetaling til bruker er uendret.
+                  Sett i dev 2026-07-24 på rene førstegangsutbetalinger uten korrigering (`TrekkMedJusteringFraDevTest`).
+                  Å sperre der stopper saken uten grunn.
+
+                  Tre vilkår må alle holde for å tillate, og da får saksbehandler advarsel i visningen i stedet for sperre:
+                  månedsbalansen må være i behold, det kan ikke være feilutbetaling (motregnings-/kravgrunnlagsklassen), og ingen av de ubalanserte meldeperiodene kan ha reversert ytelse.
+                  Det siste skiller trekkomfordeling fra flytting av ytelse: korrigeres en utbetalt dag bort i én meldeperiode og motregnes mot en økning i en annen, balanserer justeringene i måneden uten feilutbetaling -- men da er det selve ytelsen som er flyttet mellom meldeperioder, og det har vi ikke hjemmel til.
+                 */
+                ubalanserteJusteringsmåneder.isEmpty() &&
+                    !harFeilutbetaling &&
+                    simuleringPerMeldeperiode.none { it.harUbalansertJustering && it.harReversertYtelse }
+                -> Unit.right()
+
+                else -> KanIkkeIverksetteUtbetaling.JusteringStøttesIkke(ubalanserte).left()
             }
         }
 
@@ -83,25 +104,56 @@ fun Simulering?.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUtbeta
  * Det er fordi oppdrag kun justerer innenfor samme kalendermåned.
  * På tvers av måneder blir det feilutbetaling + etterbetaling for hver måned i stedet for justering.
  *
- * Summeringen skjer på posteringene, ikke på dagsverdiene.
- * Grunnen er at en justering kan ha et beløp som ikke går opp i antall dager i perioden sin.
- * Summerte vi dagsverdiene, ville avrundingen kunne gi en sum ulik null for et justeringssett som balanserer perfekt hos oppdragssystemet -- og da ville vernet blokkert en iverksetting som skulle gått gjennom.
+ * Selve summeringen ligger på [SimuleringForMeldeperiode.ubalanserteJusteringsmåneder], slik at vernet og flagget vi viser saksbehandler ikke kan drive fra hverandre.
  */
-private fun Simulering.Endring.harJusteringPåTversAvMeldeperioderEllerMåneder(): Boolean {
-    return simuleringPerMeldeperiode.any { meldeperiode ->
-        meldeperiode.harJustering && meldeperiode.posteringer
-            .filter { it.erJustering }
-            .groupBy { it.periode.fraOgMed.month }.values
-            .any { justeringerForMåned ->
-                justeringerForMåned.sumOf { it.beløp } != 0
-            }
-    }
+private fun Simulering.Endring.finnUbalanserteJusteringer(): NonEmptyList<KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.UbalansertJustering>? {
+    return simuleringPerMeldeperiode
+        .filter { it.harUbalansertJustering }
+        .map {
+            KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.UbalansertJustering(
+                meldeperiode = it.meldeperiode.periode,
+                beløpPerMåned = it.ubalanserteJusteringsmåneder,
+            )
+        }
+        .toNonEmptyListOrNull()
 }
 
 sealed interface KanIkkeIverksetteUtbetaling {
     data object SimuleringMangler : KanIkkeIverksetteUtbetaling
 
-    data object JusteringStøttesIkke : KanIkkeIverksetteUtbetaling
+    /**
+     * Justeringen i simuleringen balanserer ikke innenfor meldeperioden og kalendermåneden.
+     * [ubalanserte] sier hvilke meldeperioder og hvor mye, slik at saksbehandler får se hvor beløpet er flyttet i stedet for bare at noe «ikke støttes».
+     */
+    data class JusteringStøttesIkke(
+        val ubalanserte: NonEmptyList<UbalansertJustering>,
+    ) : KanIkkeIverksetteUtbetaling {
+
+        data class UbalansertJustering(
+            val meldeperiode: Periode,
+            /** Summen av justeringsposteringene per kalendermåned, kun for månedene som ikke går opp i null. */
+            val beløpPerMåned: Map<YearMonth, Int>,
+        ) {
+            fun beskriv(): String {
+                // Sortert på måned, slik at meldingen er stabil uansett hvordan map-et ble bygget.
+                val måneder = beløpPerMåned.entries.sortedBy { it.key }.joinToString { (måned, beløp) ->
+                    "${formaterBeløpMedFortegn(beløp)} i ${måned.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("nb"))}"
+                }
+                return "${meldeperiode.fraOgMed.format(kortDatoFormat)}–${meldeperiode.tilOgMed.format(kortDatoFormat)} ($måneder)"
+            }
+        }
+
+        /**
+         * PII-fri melding som kan vises til saksbehandler.
+         * Sier hvilke meldeperioder som ikke balanserer og med hvor mye, slik at det går an å forstå hva oppdragssystemet har gjort.
+         */
+        val beskrivelse: String
+            get() =
+                "Justeringen i simuleringen balanserer ikke innenfor meldeperioden og kalendermåneden: ${ubalanserte.joinToString { it.beskriv() }}. " +
+                    "Oppdragssystemet beregner per kalendermåned og har motregnet beløp på tvers av meldeperioder. Det har vi ikke hjemmel til, så utbetalingen kan ikke iverksettes."
+
+        override fun toString() = "JusteringStøttesIkke(${ubalanserte.joinToString { it.beskriv() }})"
+    }
 
     data object BehandlingstypeStøtterIkkeFeilutbetaling : KanIkkeIverksetteUtbetaling
 
@@ -129,9 +181,16 @@ fun KanIkkeIverksetteUtbetaling.logg(logger: KLogger, melding: () -> Any?) {
         KanIkkeIverksetteUtbetaling.SimuleringMangler -> logger.error(meldingMedUtfall)
 
         is KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer,
-        KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
+        is KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
         KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling,
         KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering,
         -> logger.warn(meldingMedUtfall)
     }
+}
+
+private val kortDatoFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
+/** «+715 kr» / «−440 kr» -- fortegnet er poenget når et beløp er flyttet mellom meldeperioder. */
+private fun formaterBeløpMedFortegn(beløp: Int): String {
+    return if (beløp < 0) "−${-beløp} kr" else "+$beløp kr"
 }

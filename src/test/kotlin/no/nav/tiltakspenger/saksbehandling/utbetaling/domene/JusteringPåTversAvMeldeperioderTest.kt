@@ -1,8 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.dato.januar
 import org.junit.jupiter.api.Test
+import java.time.YearMonth
 
 /**
  * Hjemmelsvernet mot justering på tvers av meldeperioder.
@@ -52,36 +55,82 @@ internal class JusteringPåTversAvMeldeperioderTest {
     }
 
     /**
-     * Kontrasten: samme justeringsbeløp, men den positive og den negative ligger i hver sin meldeperiode.
+     * Samme justeringsbeløp, men den positive og den negative ligger i hver sin meldeperiode -- formen alle de fem justeringssakene i dev-uttrekket hadde.
      *
-     * Da går ingen av meldeperiodene opp i null, og iverksetting blokkeres.
-     * Dette er formen alle de fem justeringssakene i dev-uttrekket hadde.
+     * Oppdrag omfordeler forskuddstrekk per kalendermåned, med justeringer som motpost på tvers av meldeperiodene.
+     * Balanserer justeringene i måneden og det ikke er feilutbetaling, er månedens utbetaling uendret -- da tillates de, og saksbehandler advares i visningen.
+     * Jf. dev-casen i [TrekkMedJusteringFraDevTest].
      */
     @Test
-    fun `justering som krysser meldeperiodegrensen blokkeres`() {
+    fun `justering som krysser meldeperiodegrensen tillates når den balanserer i kalendermåneden`() {
         val simulering = simuleringForDager(
             6.januar(2025) to listOf(ytelse(400), justering(106)),
             20.januar(2025) to listOf(ytelse(400), justering(-106)),
         )
 
         simulering.simuleringPerMeldeperiode.size shouldBe 2
-        // Justeringene nuller hverandre ut totalt, men ikke innenfor hver meldeperiode.
+        // Justeringene nuller hverandre ut i januar, men ikke innenfor hver meldeperiode.
         simulering.totalJustering shouldBe 0
+        simulering.simuleringPerMeldeperiode.all { it.harUbalansertJustering } shouldBe true
 
-        simulering.validerKanIverksetteUtbetaling()
-            .leftOrNull() shouldBe KanIkkeIverksetteUtbetaling.JusteringStøttesIkke
+        simulering.validerKanIverksetteUtbetaling().isRight() shouldBe true
     }
 
-    /** Vernet gjelder uansett hvilken posteringstype justeringen kommer under. */
+    /** Med feilutbetaling i simuleringen er vi i motregnings-/kravgrunnlagsklassen, og da sperres krysningen fortsatt. */
     @Test
-    fun `krysningen fanges også når justeringen kommer som feilutbetaling`() {
+    fun `justering på tvers sperres når simuleringen også har feilutbetaling`() {
+        val simulering = simuleringForDager(
+            6.januar(2025) to listOf(ytelse(400), justering(106)),
+            20.januar(2025) to listOf(ytelse(400), justering(-106), feilutbetaling(50), motpostering(-50)),
+        )
+
+        val feil = simulering.validerKanIverksetteUtbetaling()
+            .leftOrNull()
+            .shouldBeInstanceOf<KanIkkeIverksetteUtbetaling.JusteringStøttesIkke>()
+
+        feil.ubalanserte.map { it.beløpPerMåned } shouldBe listOf(
+            mapOf(YearMonth.of(2025, 1) to 106),
+            mapOf(YearMonth.of(2025, 1) to -106),
+        )
+        // Meldingen skal si hvor og hvor mye, slik at saksbehandler slipper å gjette.
+        feil.beskrivelse shouldContain "06.01.2025–19.01.2025 (+106 kr i januar)"
+        feil.beskrivelse shouldContain "20.01.2025–02.02.2025 (−106 kr i januar)"
+    }
+
+    /**
+     * Flytting av selve ytelsen skal fortsatt sperres, selv når justeringene balanserer i måneden uten feilutbetaling.
+     *
+     * Casen: en utbetalt dag korrigeres bort i første meldeperiode og en dag går fra annet fravær til deltatt i den andre.
+     * Oppdrag motregner innenfor måneden -- justeringene går opp i null -- men ytelsen er flyttet mellom meldeperiodene, og det har vi ikke hjemmel til.
+     * Kjennetegnet er den reverserte ytelsen (negativ YTELSE-postering) i meldeperioden med ubalansert justering.
+     */
+    @Test
+    fun `flyttet ytelse sperres selv når justeringene balanserer i måneden`() {
+        val simulering = simuleringForDager(
+            // Første meldeperiode: den utbetalte dagen reverseres, og justeringen dekker den i stedet for feilutbetaling.
+            6.januar(2025) to listOf(ytelse(-298), justering(298)),
+            // Andre meldeperiode: dagen som gikk fra annet fravær til deltatt.
+            20.januar(2025) to listOf(ytelse(298), justering(-298)),
+        )
+
+        simulering.ubalanserteJusteringsmåneder shouldBe emptyMap()
+        simulering.harFeilutbetaling shouldBe false
+        simulering.simuleringPerMeldeperiode.first().harReversertYtelse shouldBe true
+
+        simulering.validerKanIverksetteUtbetaling()
+            .leftOrNull()
+            .shouldBeInstanceOf<KanIkkeIverksetteUtbetaling.JusteringStøttesIkke>()
+    }
+
+    /** Regelen gjelder uansett hvilken posteringstype justeringen kommer under -- klassekoden avgjør. */
+    @Test
+    fun `balansert krysning tillates også når justeringen kommer som feilutbetaling med justeringsklassekode`() {
         val simulering = simuleringForDager(
             6.januar(2025) to listOf(ytelse(400), feilutbetalingMedJusteringsklassekode(106)),
             20.januar(2025) to listOf(ytelse(400), feilutbetalingMedJusteringsklassekode(-106)),
         )
 
-        simulering.validerKanIverksetteUtbetaling()
-            .leftOrNull() shouldBe KanIkkeIverksetteUtbetaling.JusteringStøttesIkke
+        simulering.validerKanIverksetteUtbetaling().isRight() shouldBe true
     }
 
     /** Og den balanserte varianten slipper gjennom med den formen også. */

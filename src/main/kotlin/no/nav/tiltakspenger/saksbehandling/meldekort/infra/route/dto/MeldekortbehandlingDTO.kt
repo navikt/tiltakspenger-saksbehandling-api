@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksett
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.KanIkkeIverksetteUtbetalingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.tilKanIkkeIverksetteUtbetalingDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.tilMeldingDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
@@ -53,6 +54,12 @@ data class MeldekortbehandlingDTO(
     val avbrutt: AvbruttDTO?,
     val simulertBeregning: SimulertBeregningDTO?,
     val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
+
+    /**
+     * Melding fra domenet som kan vises direkte til saksbehandler.
+     * Null når grunnen alene er dekkende.
+     */
+    val kanIkkeIverksetteUtbetalingMelding: String?,
     val tekstTilVedtaksbrev: String?,
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
@@ -69,6 +76,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         "Meldekortvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
     }
 
+    val kanIkkeIverksette = this.validerKanIverksetteUtbetaling().leftOrNull()
     return MeldekortbehandlingDTO(
         id = id.toString(),
         sakId = sakId.toString(),
@@ -92,8 +100,8 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         beregning = beregning?.tilMeldekortBeregningDTO(),
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
-        kanIkkeIverksetteUtbetaling = this.validerKanIverksetteUtbetaling().leftOrNull()
-            ?.tilKanIkkeIverksetteUtbetalingDTO(),
+        kanIkkeIverksetteUtbetaling = kanIkkeIverksette?.tilKanIkkeIverksetteUtbetalingDTO(),
+        kanIkkeIverksetteUtbetalingMelding = kanIkkeIverksette?.tilMeldingDTO(),
         tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
         tilbakekrevingId = tilbakekreving?.id?.toString(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,

@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.finnPosteringUtenforMeldeperioden
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -161,7 +162,15 @@ private fun SimuleringEndringDbJson.toEndring(
                     )
                 }.toNonEmptyListOrNull()!!,
                 posteringer = it.tilPosteringer(),
-            )
+            ).also { simuleringForMeldeperiode ->
+                /*
+                  En lagret rad kan være skrevet av en eldre versjon, eller manipulert.
+                  Skapeflyten svarer med typet feil på samme invariant; her finnes ingen saksbehandler å svare, så saken skal være utilgjengelig til en utvikler har sett på den.
+                 */
+                simuleringForMeldeperiode.finnPosteringUtenforMeldeperioden()?.let { feil ->
+                    throw IllegalArgumentException(feil.loggkontekst.melding)
+                }
+            }
         }.toNonEmptyListOrNull()!!,
     )
 }
@@ -186,7 +195,10 @@ private fun SimuleringEndringDbJson.SimuleringForMeldeperiode.tilPosteringer(): 
         }.toNonEmptyListOrNull()!!
     }
     return simuleringsdager.flatMap { dag ->
-        dag.posteringsdag!!.posteringer.map { posteringForDag ->
+        val posteringsdag = checkNotNull(dag.posteringsdag) {
+            "Simuleringsdagen ${dag.dato} har verken posteringer på meldeperioden eller posteringsdag på dagen, og kan ikke tolkes. Meldeperiode: $meldeperiodeId"
+        }
+        posteringsdag.posteringer.map { posteringForDag ->
             Postering(
                 periode = Periode(posteringForDag.dato, posteringForDag.dato),
                 fagområde = posteringForDag.fagområde,

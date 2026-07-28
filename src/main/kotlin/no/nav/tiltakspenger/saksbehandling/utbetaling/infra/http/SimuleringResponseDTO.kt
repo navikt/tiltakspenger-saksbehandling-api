@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
@@ -9,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.OppsummeringGenerat
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Postering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsfeil
 import java.time.Clock
 import java.time.LocalDate
 
@@ -101,28 +105,34 @@ internal data class SimuleringResponseDTO(
 internal fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
     meldeperiodeKjeder: MeldeperiodeKjeder,
     clock: Clock,
-): Simulering {
-    return this.let { res ->
-        if (res.detaljer.perioder.isEmpty()) {
-            return Simulering.IngenEndring(nå(clock))
-        }
-        check(Fnr.fromString(res.detaljer.gjelderId) == meldeperiodeKjeder.fnr) {
-            "Simulering sin gjelderId er ulik behandlingens fnr. sakId: ${meldeperiodeKjeder.sakId}, saksnummer: ${meldeperiodeKjeder.saksnummer}"
-        }
-        res.detaljer.perioder.flatMap { it.posteringer }.filter { it.fagområde == "TILTAKSPENGER" }
-            .map { Saksnummer(it.sakId) }.distinct().let {
-                check(it.size == 1 && it.first() == meldeperiodeKjeder.saksnummer) {
-                    "Simulering sin sakId: ${it.joinToString()} er ulik behandlingens saksnummer ${meldeperiodeKjeder.saksnummer}. sakId: ${meldeperiodeKjeder.sakId}, saksnummer: ${meldeperiodeKjeder.saksnummer}"
-                }
-            }
-        OppsummeringGenerator.lagOppsummering(
-            posteringer = res.tilPosteringer(),
-            meldeperiodeKjeder = meldeperiodeKjeder,
-            datoBeregnet = res.detaljer.datoBeregnet,
-            totalBeløp = res.detaljer.totalBeløp,
-            clock = clock,
-        )
+): Either<Simuleringsfeil, Simulering> {
+    if (detaljer.perioder.isEmpty()) {
+        return Simulering.IngenEndring(nå(clock)).right()
     }
+    if (Fnr.fromString(detaljer.gjelderId) != meldeperiodeKjeder.fnr) {
+        return Simuleringsfeil.GjelderAnnenPerson(
+            sakId = meldeperiodeKjeder.sakId,
+            saksnummer = meldeperiodeKjeder.saksnummer,
+        ).left()
+    }
+    val saksnummerISimulering = detaljer.perioder.flatMap { it.posteringer }
+        .filter { it.fagområde == "TILTAKSPENGER" }
+        .map { Saksnummer(it.sakId) }
+        .distinct()
+    if (saksnummerISimulering != listOf(meldeperiodeKjeder.saksnummer)) {
+        return Simuleringsfeil.GjelderAnnenSak(
+            sakId = meldeperiodeKjeder.sakId,
+            saksnummer = meldeperiodeKjeder.saksnummer,
+            saksnummerISimulering = saksnummerISimulering,
+        ).left()
+    }
+    return OppsummeringGenerator.lagOppsummering(
+        posteringer = tilPosteringer(),
+        meldeperiodeKjeder = meldeperiodeKjeder,
+        datoBeregnet = detaljer.datoBeregnet,
+        totalBeløp = detaljer.totalBeløp,
+        clock = clock,
+    )
 }
 
 /**

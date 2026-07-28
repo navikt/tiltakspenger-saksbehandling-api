@@ -18,6 +18,7 @@ fun nySøknadForFnr(
     deltakelsesperiode: Periode? = null,
     barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     applicationContext: ApplicationContext,
+    tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ): Saksnummer {
     val periode = deltakelsesperiode ?: 1.til(10.april(2025))
 
@@ -33,6 +34,14 @@ fun nySøknadForFnr(
             periode = periode,
             barnetillegg = barnetillegg,
         )
+
+        // Søknadstiltaket peker på tiltaksdeltakeren, så den må finnes før søknaden lagres.
+        tiltaksdeltakerRepo.lagre(
+            eksternId = søknad.tiltak.id,
+            id = søknad.tiltak.tiltaksdeltakerId,
+            tiltakstype = søknad.tiltak.typeKode,
+        )
+
         applicationContext.søknadContext.søknadService.nySøknad(
             søknad = søknad,
         )

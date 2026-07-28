@@ -6,9 +6,6 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
-import no.nav.tiltakspenger.libs.httpklient.loggFeil
-import no.nav.tiltakspenger.libs.httpklient.rawResponseString
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -18,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 
@@ -118,26 +116,8 @@ class SimulerService(
             forrigeUtbetalingId = forrigeUtbetaling?.id,
             meldeperiodeKjeder = meldeperiodeKjeder,
             kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
-        ).onLeft { loggSimuleringsfeil(it, sakId, saksnummer, behandlingId) }
-    }
-
-    private fun loggSimuleringsfeil(
-        feil: KunneIkkeSimulere,
-        sakId: SakId,
-        saksnummer: Saksnummer,
-        behandlingId: Ulid,
-    ) {
-        val kontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId"
-        when (feil) {
-            // Forventet utenfor åpningstidene til OS; ikke en feilsituasjon hos oss.
-            is KunneIkkeSimulere.Stengt -> {
-                logger.debug { "Simulering mot helved: 503 Service Unavailable. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. Se sikkerlogg for mer kontekst. $kontekst" }
-                Sikkerlogg.debug { "Simulering mot helved: 503 Service Unavailable. Dette kan skje dersom helved er nede for vedlikehold eller har midlertidige problemer. $kontekst, body: ${feil.feil.rawResponseString}" }
-            }
-
-            is KunneIkkeSimulere.Timeout -> feil.feil.loggFeil(logger, "simulering mot helved (timeout)", kontekst)
-
-            is KunneIkkeSimulere.UkjentFeil -> feil.feil.loggFeil(logger, "simulering mot helved", kontekst)
+        ).onLeft {
+            it.logg(logger, kontekst = "sakId: $sakId, saksnummer: ${saksnummer.verdi}, behandlingId: $behandlingId")
         }
     }
 }

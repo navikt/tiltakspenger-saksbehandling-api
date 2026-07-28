@@ -67,6 +67,7 @@ internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
                     applicationContext = applicationContext,
                     deltakelsesperiode = body.deltakelsesperiode?.toDomain(),
                     barnetillegg = barnetillegg,
+                    tiltaksdeltakerRepo = applicationContext.tiltakContext.tiltaksdeltakerRepo,
                 )
                 call.respondText(saksnummer.verdi)
             }

@@ -6,8 +6,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Beregninge
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortDagStatusDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Postering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Posteringstype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsdag
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsflagg
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simuleringsmerke
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimulertBeregning.SimulertBeregningMeldeperiode.SimulertBeregningDag
@@ -53,14 +56,83 @@ data class SimulertBeregningDTO(
         val dager: List<SimulertBeregningDag>,
         val simulerteBeløp: SimulerteBeløp?,
         val beregning: BeregningerSummertDTO,
+        val flagg: SimuleringsflaggDTO,
+
+        /**
+         * Posteringene fra oppdragssystemet som treffer meldeperioden, med kildens egne beløp og perioder.
+         * Dagenes merker sier hvilke dager som er dekket; beløpene per postering hører hjemme her.
+         */
+        val posteringer: List<SimuleringsposteringDTO>,
     ) {
 
         data class SimulertBeregningDag(
             val dato: LocalDate,
             val status: MeldekortDagStatusDTO?,
             val beregning: BeregningerSummertDTO?,
+
+            /**
+             * Dagsverdier utledet fra posteringene, med avrunding vi selv har valgt.
+             * Frontenden skal over på [merker] -- dagen skal si noe om simuleringsstatusen sin, ikke vise beløp kilden aldri har fordelt per dag.
+             * Feltet står til frontenden har sluttet å lese det, så gamle klienter ikke knekker mot ny backend.
+             */
             val simulerteBeløp: SimulerteBeløp?,
+            val merker: List<SimuleringsmerkeDTO>,
         )
+    }
+
+    /**
+     * Fakta om hva simuleringen sier, ikke en dom over hva som skal skje.
+     * Klienten avgjør hva som gir advarsel og hva som bare er informasjon.
+     */
+    data class SimuleringsflaggDTO(
+        val harJustering: Boolean,
+        val justeringGårOppINull: Boolean,
+        val justeringPåTversAvMeldeperiodeEllerMåned: Boolean,
+        val harFeilutbetaling: Boolean,
+        val harTrekk: Boolean,
+    )
+
+    /**
+     * Hva oppdragssystemet har å melde om én dag.
+     *
+     * @param beløp er satt kun når posteringen dekker nøyaktig én dag, og beløpet dermed er kildens eget.
+     * Er det null, finnes det ingen dagsandel -- vis [periodeFraOgMed]--[periodeTilOgMed] i stedet.
+     * @param erJustering utledes av klassekoden, ikke av [type], siden oppdragssystemet har sendt justeringer under flere typer.
+     * Utledningen bor i backend slik at frontenden slipper å kjenne klassekodene.
+     * @param erNegativt er posteringsbeløpets fortegn, som er kildedata også når [beløp] er null fordi posteringen dekker flere dager.
+     */
+    data class SimuleringsmerkeDTO(
+        val type: PosteringstypeDTO,
+        val periodeFraOgMed: LocalDate,
+        val periodeTilOgMed: LocalDate,
+        val klassekode: String,
+        val beløp: Int?,
+        val erJustering: Boolean,
+        val erNegativt: Boolean,
+    )
+
+    /**
+     * Én postering slik oppdragssystemet sendte den, knyttet til meldeperioden den treffer.
+     *
+     * @param beløp er alltid satt -- det er kildens eget beløp for posteringens periode, uten dagsfordeling.
+     * @param erJustering utledes av klassekoden, som for [SimuleringsmerkeDTO].
+     */
+    data class SimuleringsposteringDTO(
+        val type: PosteringstypeDTO,
+        val periodeFraOgMed: LocalDate,
+        val periodeTilOgMed: LocalDate,
+        val klassekode: String,
+        val beløp: Int,
+        val erJustering: Boolean,
+    )
+
+    enum class PosteringstypeDTO {
+        YTELSE,
+        FEILUTBETALING,
+        FORSKUDSSKATT,
+        JUSTERING,
+        TREKK,
+        MOTPOSTERING,
     }
 
     enum class SimuleringResultatDTO {
@@ -94,7 +166,53 @@ fun SimulertBeregningMeldeperiode.toDTO(): SimulertBeregningDTO.SimulertBeregnin
         dager = this.dager.map { it.toDTO() }.toList(),
         simulerteBeløp = this.simuleringsdager?.tilSimulerteBeløpDTO(),
         beregning = this.beregning.tilBeregningerSummertDTO(this.forrigeBeregning),
+        flagg = this.flagg.tilDTO(),
+        posteringer = this.posteringer.map { it.tilDTO() },
     )
+}
+
+private fun Simuleringsflagg.tilDTO(): SimulertBeregningDTO.SimuleringsflaggDTO {
+    return SimulertBeregningDTO.SimuleringsflaggDTO(
+        harJustering = this.harJustering,
+        justeringGårOppINull = this.justeringGårOppINull,
+        justeringPåTversAvMeldeperiodeEllerMåned = this.justeringPåTversAvMeldeperiodeEllerMåned,
+        harFeilutbetaling = this.harFeilutbetaling,
+        harTrekk = this.harTrekk,
+    )
+}
+
+private fun Postering.tilDTO(): SimulertBeregningDTO.SimuleringsposteringDTO {
+    return SimulertBeregningDTO.SimuleringsposteringDTO(
+        type = this.type.tilDTO(),
+        periodeFraOgMed = this.periode.fraOgMed,
+        periodeTilOgMed = this.periode.tilOgMed,
+        klassekode = this.klassekode,
+        beløp = this.beløp,
+        erJustering = this.erJustering,
+    )
+}
+
+private fun Simuleringsmerke.tilDTO(): SimulertBeregningDTO.SimuleringsmerkeDTO {
+    return SimulertBeregningDTO.SimuleringsmerkeDTO(
+        type = this.type.tilDTO(),
+        periodeFraOgMed = this.periode.fraOgMed,
+        periodeTilOgMed = this.periode.tilOgMed,
+        klassekode = this.klassekode,
+        beløp = this.beløp,
+        erJustering = this.erJustering,
+        erNegativt = this.erNegativt,
+    )
+}
+
+private fun Posteringstype.tilDTO(): SimulertBeregningDTO.PosteringstypeDTO {
+    return when (this) {
+        Posteringstype.YTELSE -> SimulertBeregningDTO.PosteringstypeDTO.YTELSE
+        Posteringstype.FEILUTBETALING -> SimulertBeregningDTO.PosteringstypeDTO.FEILUTBETALING
+        Posteringstype.FORSKUDSSKATT -> SimulertBeregningDTO.PosteringstypeDTO.FORSKUDSSKATT
+        Posteringstype.JUSTERING -> SimulertBeregningDTO.PosteringstypeDTO.JUSTERING
+        Posteringstype.TREKK -> SimulertBeregningDTO.PosteringstypeDTO.TREKK
+        Posteringstype.MOTPOSTERING -> SimulertBeregningDTO.PosteringstypeDTO.MOTPOSTERING
+    }
 }
 
 fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningMeldeperiode.SimulertBeregningDag {
@@ -127,6 +245,7 @@ fun SimulertBeregningDag.toDTO(): SimulertBeregningDTO.SimulertBeregningMeldeper
                 ),
             )
         },
+        merker = this.merker.map { it.tilDTO() },
     )
 }
 

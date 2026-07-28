@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -89,6 +91,37 @@ internal class SimuleringDbJsonTest {
         trekkpostering.beløp shouldBe -191
     }
 
+    /**
+     * En rad som mangler begge formene er en tilstand vi ikke kan tolke.
+     *
+     * Den skal ikke kunne oppstå: `posteringsdag` var påkrevd før vi innførte `posteringer`, så enhver rad dagens kode klarer å lese har minst én av dem.
+     * Men feltet er nullable nå, og da må feilen si hvilken sak og dag det gjelder.
+     * Uten det får den som feilsøker en NullPointerException uten spor.
+     */
+    @Test
+    fun `rad uten begge former feiler med hvilken dag og meldeperiode det gjelder`() {
+        shouldThrow<IllegalStateException> {
+            utenNoenPosteringerJson().toSimuleringFraDbJson(Simuleringstestdata.meldeperiodeKjeder)
+        }.message.let {
+            it shouldContain "2025-01-06"
+            it shouldContain meldeperiodeId
+        }
+    }
+
+    /**
+     * En lagret rad kan være skrevet av en tidligere versjon, eller manipulert.
+     * Invarianten om at posteringen ligger innenfor meldeperioden må derfor håndheves også på vei inn fra databasen, ikke bare når vi tar imot fra simuleringstjenesten.
+     *
+     * Saken blir da utilgjengelig til en utvikler har sett på den.
+     * Det er med vilje: alternativet er å vise summer per meldeperiode som er gale uten at noe synes.
+     */
+    @Test
+    fun `lagret postering som går utover meldeperioden feiler ved lesing`() {
+        shouldThrow<IllegalArgumentException> {
+            posteringUtoverMeldeperiodenJson().toSimuleringFraDbJson(Simuleringstestdata.meldeperiodeKjeder)
+        }.message shouldContain "går utover meldeperioden"
+    }
+
     /** Den nye formen skriver ikke lenger posteringer per dag. */
     @Test
     fun `ny form skriver posteringene på meldeperioden`() {
@@ -139,6 +172,77 @@ internal class SimuleringDbJsonTest {
                     }
                   ]
                 }
+              }
+            ]
+          }
+        ]
+      }
+    }
+    """.trimIndent()
+
+    /** Meldeperioden er 6.--19. januar, men posteringen er stemplet til 20. januar. */
+    //language=json
+    private fun posteringUtoverMeldeperiodenJson(): String = """
+    {
+      "type": "ENDRING",
+      "simuleringstidspunkt": "2025-01-06T12:00:00",
+      "simulering": {
+        "datoBeregnet": "2025-01-06",
+        "totalBeløp": 408,
+        "perMeldeperiode": [
+          {
+            "meldeperiodeId": "$meldeperiodeId",
+            "posteringer": [
+              {
+                "periode": { "fraOgMed": "2025-01-06", "tilOgMed": "2025-01-20" },
+                "fagområde": "TILTAKSPENGER",
+                "beløp": 408,
+                "type": "YTELSE",
+                "klassekode": "TPTPAFT"
+              }
+            ],
+            "simuleringsdager": [
+              {
+                "dato": "2025-01-06",
+                "tidligereUtbetalt": 0,
+                "nyUtbetaling": 408,
+                "totalEtterbetaling": 408,
+                "totalFeilutbetaling": 0,
+                "totalMotpostering": 0,
+                "totalTrekk": 0,
+                "totalJustering": 0,
+                "harJustering": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+    """.trimIndent()
+
+    /** Verken `posteringer` på meldeperioden eller `posteringsdag` på dagen. */
+    //language=json
+    private fun utenNoenPosteringerJson(): String = """
+    {
+      "type": "ENDRING",
+      "simuleringstidspunkt": "2025-01-06T12:00:00",
+      "simulering": {
+        "datoBeregnet": "2025-01-06",
+        "totalBeløp": 408,
+        "perMeldeperiode": [
+          {
+            "meldeperiodeId": "$meldeperiodeId",
+            "simuleringsdager": [
+              {
+                "dato": "2025-01-06",
+                "tidligereUtbetalt": 0,
+                "nyUtbetaling": 408,
+                "totalEtterbetaling": 408,
+                "totalFeilutbetaling": 0,
+                "totalMotpostering": 0,
+                "totalTrekk": 0,
+                "totalJustering": 0,
+                "harJustering": false
               }
             ]
           }

@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
-import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
@@ -94,8 +94,9 @@ class ValiderKanIverksetteUtbetalingTest {
         resultat.shouldBe(Unit.right())
     }
 
+    /** Balanserer justeringene i kalendermåneden og det ikke er feilutbetaling, er det oppdrag som omfordeler trekk -- tillates med advarsel i visningen. */
     @Test
-    fun `Skal ikke kunne iverksette utbetaling med justering på tvers av meldeperioder`() {
+    fun `Justering på tvers av meldeperioder tillates når den balanserer i kalendermåneden`() {
         val resultat = simuleringMedJusteringer(
             Pair(
                 periodeInnenforSammeMåned,
@@ -111,7 +112,7 @@ class ValiderKanIverksetteUtbetalingTest {
             ),
         ).validerKanIverksetteUtbetaling()
 
-        resultat.shouldBe(KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left())
+        resultat.shouldBe(Unit.right())
     }
 
     @Test
@@ -126,6 +127,6 @@ class ValiderKanIverksetteUtbetalingTest {
             ),
         ).validerKanIverksetteUtbetaling()
 
-        resultat.shouldBe(KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.left())
+        resultat.leftOrNull().shouldBeInstanceOf<KanIkkeIverksetteUtbetaling.JusteringStøttesIkke>()
     }
 }

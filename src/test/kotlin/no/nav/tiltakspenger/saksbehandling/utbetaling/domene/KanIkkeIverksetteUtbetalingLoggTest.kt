@@ -9,7 +9,10 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.periode.Periode
 import org.junit.jupiter.api.Test
+import java.time.YearMonth
 
 class KanIkkeIverksetteUtbetalingLoggTest {
 
@@ -44,7 +47,14 @@ class KanIkkeIverksetteUtbetalingLoggTest {
         val logger = mockk<KLogger>(relaxed = true)
 
         listOf(
-            KanIkkeIverksetteUtbetaling.JusteringStøttesIkke,
+            KanIkkeIverksetteUtbetaling.JusteringStøttesIkke(
+                nonEmptyListOf(
+                    KanIkkeIverksetteUtbetaling.JusteringStøttesIkke.UbalansertJustering(
+                        meldeperiode = Periode(6.januar(2025), 19.januar(2025)),
+                        beløpPerMåned = mapOf(YearMonth.of(2025, 1) to 106),
+                    ),
+                ),
+            ),
             KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeFeilutbetaling,
             KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering,
         ).forEach { it.logg(logger) { "kontekst" } }

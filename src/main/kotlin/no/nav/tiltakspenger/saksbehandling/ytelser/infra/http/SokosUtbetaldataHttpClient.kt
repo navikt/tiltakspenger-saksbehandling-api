@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
 import arrow.core.Either
+import arrow.core.flatMap
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
@@ -13,6 +14,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.SerialisertJson
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
+import no.nav.tiltakspenger.libs.httpklient.tryMap
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -76,7 +78,9 @@ class SokosUtbetaldataHttpClient(
             body = SerialisertJson(jsonPayload),
             headere = listOf(NavHeadere.navCallId(correlationId.toString())),
             godta = Statusregel.Eksakt(200),
-        ).map { it.body.tilYtelser() }
+        )
+            // Mappingen validerer perioder fra svaret (Periode-init); tryMap gjør et ugyldig svar til typet feil med responsens metadata i stedet for en ukontrollert exception.
+            .flatMap { response -> response.tryMap { it.tilYtelser() } }
     }
 
     private fun List<UtbetalingDto>.tilYtelser(): List<Ytelse> {
