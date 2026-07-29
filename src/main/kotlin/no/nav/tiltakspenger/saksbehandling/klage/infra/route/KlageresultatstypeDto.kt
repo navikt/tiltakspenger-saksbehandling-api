@@ -9,7 +9,7 @@ enum class KlageresultatstypeDto {
     ;
 
     companion object {
-        fun Klagebehandlingsresultat.toKlageresultatstypDto(): KlageresultatstypeDto = when (this) {
+        fun Klagebehandlingsresultat.toKlageresultatstypeDto(): KlageresultatstypeDto = when (this) {
             is Klagebehandlingsresultat.Avvist -> AVVIST
             is Klagebehandlingsresultat.Omgjør -> OMGJØR
             is Klagebehandlingsresultat.Opprettholdt -> OPPRETTHOLDT

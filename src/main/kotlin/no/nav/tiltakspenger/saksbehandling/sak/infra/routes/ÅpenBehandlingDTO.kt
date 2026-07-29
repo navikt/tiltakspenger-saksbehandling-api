@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknad
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.toBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto
-import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypDto
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
@@ -91,6 +91,7 @@ sealed interface ÅpenBehandlingDTO {
         override val type = ÅpenBehandlingTypeDTO.REVURDERING
     }
 
+    // TODO: split denne til separat håndtering av brukers meldekort og meldekortbehandlinger
     data class ÅpentMeldekortDTO(
         override val id: String,
         override val sakId: String,
@@ -152,7 +153,7 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
             opprettet = it.opprettet,
             status = it.status.toKlagestatustypeDto(),
             saksbehandler = it.saksbehandler,
-            resultat = it.resultat?.toKlageresultatstypDto(),
+            resultat = it.resultat?.toKlageresultatstypeDto(),
         )
     }
 
@@ -219,47 +220,31 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
     }
 }
 
-// Returnerer meldeperiodekjeder med en åpen meldekortbehandling, eller med et brukers meldekort som ikke har blitt behandlet
+// Returnerer meldeperiodekjeder med et brukers meldekort som ikke har blitt behandlet, samt en evt. åpen meldekortbehandling
 private fun Sak.tilÅpneMeldekortDTO(): List<ÅpentMeldekortDTO> {
     val sakId = this.id.toString()
     val saksnummer = this.saksnummer.toString()
 
-    return this.meldeperiodeKjeder.mapNotNull { kjede ->
+    val åpenMeldekortbehandling = this.meldekortbehandlinger.åpenMeldekortbehandling
+
+    // Meldekort fra bruker som ikke er behandlet eller under behandling
+    val åpneInnsendteMeldekort = this.meldeperiodeKjeder.mapNotNull { kjede ->
         val kjedeId = kjede.kjedeId
-        val periode = kjede.periode.toDTO()
 
-        meldekortbehandlinger.åpenMeldekortbehandling?.also {
-            if (it.kjedeIder.contains(kjedeId)) {
-                return@mapNotNull ÅpentMeldekortDTO(
-                    id = kjedeId.toString(),
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    periode = periode,
-                    meldekortbehandlingId = it.id.toString(),
-                    opprettet = it.opprettet,
-                    saksbehandler = it.saksbehandler,
-                    beslutter = it.beslutter,
-                    subtype = ÅpentMeldekortDTO.ÅpentMeldekortType.MELDEKORTBEHANDLING,
-                )
-            }
-        }
-
-        val brukersMeldekort = brukersMeldekort
-            .filter { it.kjedeId == kjedeId }
-
-        val sisteBrukersMeldekort = brukersMeldekort.maxByOrNull { it.mottatt }
-
-        if (sisteBrukersMeldekort == null) {
+        if (åpenMeldekortbehandling != null && åpenMeldekortbehandling.kjedeIder.contains(kjedeId)) {
             return@mapNotNull null
         }
+
+        val brukersMeldekortForKjede = this.brukersMeldekort.filter { it.kjedeId == kjedeId }
+
+        val sisteBrukersMeldekort = brukersMeldekortForKjede.maxByOrNull { it.mottatt } ?: return@mapNotNull null
 
         // Skal ikke fremheve meldekort hvis de venter på automatisk behandling
         if (sisteBrukersMeldekort.behandletAutomatiskStatus === MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING) {
             return@mapNotNull null
         }
 
-        val sisteBehandledeMeldekort =
-            meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId]?.lastOrNull()
+        val sisteBehandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId]?.lastOrNull()
 
         val harBehandletMeldekortet =
             sisteBehandledeMeldekort != null && sisteBehandledeMeldekort.sistEndret > sisteBrukersMeldekort.mottatt
@@ -268,7 +253,7 @@ private fun Sak.tilÅpneMeldekortDTO(): List<ÅpentMeldekortDTO> {
             return@mapNotNull null
         }
 
-        val harAvbruttBehandlingAvMeldekortet = meldekortbehandlinger.avbrutteMeldekortbehandlinger
+        val harAvbruttBehandlingAvMeldekortet = this.meldekortbehandlinger.avbrutteMeldekortbehandlinger
             .filter { it.kjedeIder.contains(kjedeId) }
             .any { it.avbrutt != null && it.avbrutt.tidspunkt > sisteBrukersMeldekort.mottatt }
 
@@ -277,20 +262,38 @@ private fun Sak.tilÅpneMeldekortDTO(): List<ÅpentMeldekortDTO> {
             return@mapNotNull null
         }
 
-        return@mapNotNull ÅpentMeldekortDTO(
+        ÅpentMeldekortDTO(
             id = kjedeId.toString(),
-            sakId = this.id.toString(),
-            saksnummer = this.saksnummer.toString(),
-            periode = periode,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            periode = kjede.periode.toDTO(),
             meldekortbehandlingId = null,
             opprettet = sisteBrukersMeldekort.mottatt,
             saksbehandler = null,
             beslutter = null,
-            subtype = if (brukersMeldekort.size == 1) {
+            subtype = if (brukersMeldekortForKjede.size == 1) {
                 ÅpentMeldekortDTO.ÅpentMeldekortType.INNSENDT_MELDEKORT
             } else {
                 ÅpentMeldekortDTO.ÅpentMeldekortType.KORRIGERT_MELDEKORT
             },
         )
     }
+
+    if (åpenMeldekortbehandling == null) {
+        return åpneInnsendteMeldekort
+    }
+
+    return åpneInnsendteMeldekort.plus(
+        ÅpentMeldekortDTO(
+            id = åpenMeldekortbehandling.id.toString(),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            periode = åpenMeldekortbehandling.periode.toDTO(),
+            meldekortbehandlingId = åpenMeldekortbehandling.id.toString(),
+            opprettet = åpenMeldekortbehandling.opprettet,
+            saksbehandler = åpenMeldekortbehandling.saksbehandler,
+            beslutter = åpenMeldekortbehandling.beslutter,
+            subtype = ÅpentMeldekortDTO.ÅpentMeldekortType.MELDEKORTBEHANDLING,
+        ),
+    )
 }
