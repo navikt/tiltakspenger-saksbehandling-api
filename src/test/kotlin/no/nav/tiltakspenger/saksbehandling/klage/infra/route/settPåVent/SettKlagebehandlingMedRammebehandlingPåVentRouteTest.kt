@@ -31,7 +31,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
     @Test
     fun `kan sette klagebehandling med rammebehandling på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent(
                 tac = tac,
             )!!
@@ -75,7 +75,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
     @Test
     fun `kan sette rammebehandling tilknyttet klage på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
@@ -133,7 +133,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
     @Test
     fun `en rammebehandling med klagebehandling ferdigstilt setter kun rammebehandlingen på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
@@ -175,7 +175,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
     @Test
     fun `beslutter kan sette rammebehandling med klagebehandling på vent fra UNDER_BESLUTNING`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val beslutter = ObjectMother.beslutter("beslutter")
             val (_, oppdatertRammebehandling, sakJson) =

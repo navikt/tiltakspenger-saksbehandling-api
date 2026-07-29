@@ -23,6 +23,7 @@ class UtbetalingRepoImplTest {
     @Test
     fun `kan lagre og hente utbetaling fra meldekortvedtak`() {
         val tidspunkt = nå(fixedClock)
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
@@ -45,7 +46,7 @@ class UtbetalingRepoImplTest {
 
     @Test
     fun `kan lagre feil ved utbetaling fra meldekortvedtak`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
@@ -69,7 +70,7 @@ class UtbetalingRepoImplTest {
 
     @Test
     fun utbetalingsstatus() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val (sak, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),

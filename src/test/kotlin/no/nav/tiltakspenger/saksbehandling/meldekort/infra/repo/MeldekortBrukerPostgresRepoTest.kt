@@ -59,6 +59,7 @@ class MeldekortBrukerPostgresRepoTest {
 
     @Test
     fun `Skal hente kun det neste (eldste) meldekortet for automatisk behandling per sak`() {
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 

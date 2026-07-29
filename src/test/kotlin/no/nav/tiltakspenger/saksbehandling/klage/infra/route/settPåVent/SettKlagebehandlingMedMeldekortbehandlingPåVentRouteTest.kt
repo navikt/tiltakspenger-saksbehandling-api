@@ -21,7 +21,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
     @Test
     fun `kan sette klagebehandling med meldekortbehandling på vent fra klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling, sakJson) = meldekortbehandlingMedKlageSattPåVentFraKlageRoute(
                 tac = tac,
@@ -68,7 +68,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
     @Test
     fun `kan sette klagebehandling med meldekortbehandling på vent fra meldekortbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling, sakJson) = meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute(
                 tac = tac,
@@ -115,7 +115,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
     @Test
     fun `saksbehandler kan sette meldekortbehandling med klagebehandling på vent fra UNDER_BEHANDLING`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling, sakJson) =
                 meldekortbehandlingMedKlagebehandlingSattPåVentFraMeldekortRoute(
@@ -191,7 +191,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
     @Test
     fun `beslutter kan sette meldekortbehandling med klagebehandling på vent fra UNDER_BESLUTNING`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val beslutter = ObjectMother.beslutter("beslutter")
             val (_, oppdatertMeldekortbehandling, sakJson) =

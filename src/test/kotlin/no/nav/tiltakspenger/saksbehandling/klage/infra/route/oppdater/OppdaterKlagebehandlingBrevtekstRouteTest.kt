@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 class OppdaterKlagebehandlingBrevtekstRouteTest {
     @Test
     fun `kan oppdatere klagebehandling - brevtekst`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling, json) = opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
                 tac = tac,
             )!!
@@ -36,7 +36,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
 
     @Test
     fun `kan oppdatere klagebehandling (opprettholdelse) - brevtekst`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammevedtak, klagebehandling, json) = opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
                 tac = tac,
             )!!
@@ -63,7 +63,7 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
     @Test
     fun `skal ikke kunne oppdatere brevtekst dersom klagebehandlingen er satt på vent, og saksbehandler er på behandlingen`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(runIsolated = true, clock = clock) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgVurderKlagebehandlingTilOpprettholdelse(tac)!!
 
             settKlagebehandlingPåVent(tac = tac, sakId = sak.id, klagebehandlingId = klagebehandling.id)

@@ -16,7 +16,7 @@ class LeggTilbakeKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan legge tilbake klagebehandling med meldekortbehandling fra klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, meldekortbehandlingLagtTilbake, _) = lagtTilbakeMeldekortbehandlingMedKlageFraKlageRoute(
                 tac = tac,
@@ -36,7 +36,7 @@ class LeggTilbakeKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan legge tilbake klagebehandling med meldekortbehandling fra meldekortbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, meldekortbehandlingLagtTilbake, _) = lagtTilbakeMeldekortbehandlingMedKlageFraMeldekortRoute(
                 tac = tac,

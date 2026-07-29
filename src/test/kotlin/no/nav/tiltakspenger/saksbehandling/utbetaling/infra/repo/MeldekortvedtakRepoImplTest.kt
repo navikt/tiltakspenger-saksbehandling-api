@@ -15,6 +15,7 @@ class MeldekortvedtakRepoImplTest {
     @Test
     fun `kan lagre og hente`() {
         val tidspunkt = nå(fixedClock)
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sak, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
@@ -38,6 +39,7 @@ class MeldekortvedtakRepoImplTest {
 
     @Test
     fun `skal ikke journalføre vedtak som ikke skal sendes brev for`() {
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),

@@ -51,8 +51,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `kan iverksette avvist klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        // TODO jah: Fjern runIsolated når vi har fikset at databasetester kan kjøre parallelt (tiltaksdeltakelse og fnr må være garantert unik per test)
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, klagevedtak, json) = opprettSakOgIverksettKlagebehandling(
                 tac = tac,
             )!!
@@ -109,7 +108,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette omgjøring fra klageroute`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
@@ -124,7 +123,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette avbrutt klagebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = avbruttKlagebehandlng(
                 tac = tac,
             )!!
@@ -148,7 +147,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette allerede iverksatt avvist klagebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagevedtak, _) = opprettSakOgIverksettKlagebehandling(
                 tac = tac,
             )!!
@@ -173,7 +172,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette - feil saksbehandler`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
                 tac = tac,
             )!!
@@ -198,7 +197,7 @@ class IverksettKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke iverksette avvist klagebehandling uten brevtekst`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(
                 tac = tac,
             )!!
@@ -223,7 +222,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `kan iverksette klagebehandling til omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -287,7 +286,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `iverksetter klagebehandling (opprettholdelse) med søknadsbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandling, klagebehandling) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 behandlingstype = "SØKNADSBEHANDLING_INNVILGELSE",
@@ -335,6 +334,7 @@ class IverksettKlagebehandlingRouteTest {
             iverksattRammebehandlingJson.toString().shouldBeSøknadsbehandlingDTO(
                 rammevedtakId = rammevedtak.id,
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 behandlingId = iverksattRammebehandling.id,
                 resultat = RammebehandlingResultatTypeDTO.INNVILGELSE,
                 søknadId = (iverksattRammebehandling as Søknadsbehandling).søknad.id,
@@ -356,7 +356,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `iverksetter klagebehandling (opprettholdelse) og revurdering innvilgelse`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandling, klagebehandling, _) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 behandlingstype = "REVURDERING_INNVILGELSE",
@@ -405,6 +405,7 @@ class IverksettKlagebehandlingRouteTest {
                 klagebehandlingId = klagebehandling.id,
                 rammevedtakId = rammevedtak.id,
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 behandlingId = iverksattRammebehandling.id,
                 resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE,
                 internDeltakelseId = iverksattRammebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
@@ -419,7 +420,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `iverksetter klagebehandling (opprettholdelse) og revurdering omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandling, klagebehandling) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 hendelseGenerering = { _, klagebehandling ->
@@ -468,6 +469,7 @@ class IverksettKlagebehandlingRouteTest {
                 omgjørVedtak = klagebehandling.formkrav.vedtakDetKlagesPå!!,
                 rammevedtakId = rammevedtak.id,
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 behandlingId = rammebehandling.id,
                 internDeltakelseId = rammebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                 eksternDeltagelseId = rammebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
@@ -481,7 +483,7 @@ class IverksettKlagebehandlingRouteTest {
     @Test
     fun `kan iverksette avvist klagebehandling der vedtaket er utbetalingsvedtak`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, meldekortvedtak, klagevedtak, klagevedtakJson) = iverksettMeldekortvedtakOgKlagebehandlingTilAvvisning(
                 tac = tac,
             )!!

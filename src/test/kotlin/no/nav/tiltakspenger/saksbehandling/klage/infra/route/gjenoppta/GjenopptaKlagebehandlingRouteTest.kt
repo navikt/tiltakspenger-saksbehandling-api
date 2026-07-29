@@ -12,7 +12,7 @@ class GjenopptaKlagebehandlingRouteTest {
     @Test
     fun `kan gjenoppta klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgGjenopptaKlagebehandling(
                 tac = tac,
             )!!

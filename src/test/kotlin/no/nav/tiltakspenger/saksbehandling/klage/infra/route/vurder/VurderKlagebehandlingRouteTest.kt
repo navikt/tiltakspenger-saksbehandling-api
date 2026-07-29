@@ -25,7 +25,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `kan omgjøre klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
@@ -48,7 +48,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `kan opprettholde klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
                 vurderingstype = Vurderingstype.OPPRETTHOLD,
@@ -78,7 +78,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `kan endre årsak og begrunnelse ved rammebehandling under behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -116,7 +116,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `kan ikke vurdere klage når rammebehandling er klar til beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -160,7 +160,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `kan ikke vurdere klage når rammebehandling er under beslutning`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -211,7 +211,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `kan ikke vurdere klage når rammebehandling er iverksatt`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandlingg, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -268,7 +268,7 @@ class VurderKlagebehandlingRouteTest {
     @Test
     fun `skal ikke kunne oppdatere vurdering når klagebehandlingen er satt på vent, og saksbehandler har tatt behandlingen`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!

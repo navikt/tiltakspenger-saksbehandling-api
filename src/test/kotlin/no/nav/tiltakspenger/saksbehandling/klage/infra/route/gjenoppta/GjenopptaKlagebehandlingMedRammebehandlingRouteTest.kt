@@ -28,7 +28,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan gjenoppta klagebehandling med rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = gjenopptattMeldekortbehandlingMedKlageFraKlageRoute(
                 tac = tac,
             )!!
@@ -108,7 +108,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan gjenoppta rammebehandling tilknyttet klage`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (sak, rammebehandlingMedKlagebehandling, _) = iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent(
                 tac = tac,

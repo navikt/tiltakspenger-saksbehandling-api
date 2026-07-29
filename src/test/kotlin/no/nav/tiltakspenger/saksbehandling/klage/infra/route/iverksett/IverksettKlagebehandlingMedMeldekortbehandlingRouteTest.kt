@@ -17,7 +17,7 @@ class IverksettKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan iverksette klagebehandling (opprettholdelse) med meldekortbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, meldekortvedtak, iverksattMeldekort, iverksattKlagebehandling) =
                 meldekortvedtakMedOpprettholdtKlage(tac = tac)!!
 
@@ -42,7 +42,7 @@ class IverksettKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan iverksette en meldekortbehandling på en klage som er blitt ferdigstilt`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (_, meldekortvedtak, iverksattMeldekort, iverksattKlagebehandling) =
                 meldekortvedtakMedFerdigstiltKlage(tac = tac)!!
 

@@ -12,7 +12,7 @@ class LeggTilbakeKlagebehandlingRouteTest {
     @Test
     fun `kan legge klagebehandlingen tilbake`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgLeggKlagebehandlingTilbake(
                 tac = tac,
             )!!

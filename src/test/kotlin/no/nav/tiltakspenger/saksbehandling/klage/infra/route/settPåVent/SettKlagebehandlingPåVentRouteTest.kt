@@ -24,7 +24,7 @@ class SettKlagebehandlingPåVentRouteTest {
     @Test
     fun `kan sette klagebehandling på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent(
                 tac = tac,
             )!!
@@ -46,7 +46,7 @@ class SettKlagebehandlingPåVentRouteTest {
     @Test
     fun `kan sette klagebehandling med status MOTTATT_FRA_KLAGEINSTANS på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, klagebehandling) = opprettSakOgMottaOppretholdtKlagebehandlingFraKa(
                 tac = tac,
             )!!
@@ -105,7 +105,7 @@ class SettKlagebehandlingPåVentRouteTest {
     @Test
     fun `kan ikke vurdere klagebehandling som er satt på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent(
                 tac = tac,
             )!!
@@ -136,7 +136,7 @@ class SettKlagebehandlingPåVentRouteTest {
     @Test
     fun `kan ta klagebehandling som er satt på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent(
                 tac = tac,
             )!!
@@ -154,7 +154,7 @@ class SettKlagebehandlingPåVentRouteTest {
     @Test
     fun `kan legge tilbake klagebehandling som er satt på vent når saksbehandler står på behandlingen`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (sak, rammebehandling, _) = iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent(
                 tac = tac,

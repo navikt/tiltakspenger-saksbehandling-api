@@ -13,7 +13,7 @@ class OpprettKlagebehandlingRouteTest {
     @Test
     fun `kan opprette klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val fnr = ObjectMother.gyldigFnr()
             val (sak, klagebehandling, json) = opprettSakOgKlagebehandlingTilAvvisning(tac = tac, fnr = fnr)!!
             json.toString().shouldBeKlagebehandlingDTO(

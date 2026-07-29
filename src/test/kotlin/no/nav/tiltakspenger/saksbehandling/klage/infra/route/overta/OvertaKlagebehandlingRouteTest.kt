@@ -13,7 +13,7 @@ class OvertaKlagebehandlingRouteTest {
     @Test
     fun `kan overta klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOvertaKlagebehandling(
                 tac = tac,
             )!!
@@ -32,7 +32,7 @@ class OvertaKlagebehandlingRouteTest {
     @Test
     fun `idempotent og overta klagebehandling fra seg selv`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar")
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOvertaKlagebehandling(
                 tac = tac,

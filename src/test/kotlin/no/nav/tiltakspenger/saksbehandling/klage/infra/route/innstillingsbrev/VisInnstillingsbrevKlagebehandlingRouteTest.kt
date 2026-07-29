@@ -12,7 +12,7 @@ class VisInnstillingsbrevKlagebehandlingRouteTest {
     @Test
     fun `kan se innstillingsbrev for klage`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             opprettSakOgVisinnstillingsbrevForKlagebehandling(tac = tac)!!
         }
     }

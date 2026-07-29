@@ -26,7 +26,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan avbryte rammebehandling hvor klagebehandlingen har flere rammebehandlinger tilknyttet hvor det finnes flere ulike klager og behandlinger`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, omgjøringsbehandling) = opprettetRevurderingForKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",

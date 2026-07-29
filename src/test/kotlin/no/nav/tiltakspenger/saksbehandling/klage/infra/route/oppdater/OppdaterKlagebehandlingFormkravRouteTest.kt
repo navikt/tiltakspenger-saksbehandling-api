@@ -26,7 +26,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     @Test
     fun `kan oppdatere klagebehandling - formkrav`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val fnr = ObjectMother.gyldigFnr()
             val (sak, klagebehandling, json) =
                 opprettSakOgOppdaterKlagebehandlingTilAvvisning(
@@ -58,7 +58,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     @Test
     fun `oppdatering av formkrav endrer ikke resultatet hvis resultat er omgjøring, og oppdatering er omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val fnr = ObjectMother.gyldigFnr()
             val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
                 tac = tac,
@@ -108,7 +108,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     @Test
     fun `kan ikke oppdatere formkrav til avvist dersom klage er omgjøring med rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetRevurderingForKlage(
                 tac = tac,
                 type = "REVURDERING_INNVILGELSE",
@@ -133,7 +133,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     @Test
     fun `kan oppdatere klagebehandling formkrav med meldekortvedtak`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2026)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, meldekortvedtak, klagebehandling, _) = iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning(
                 tac = tac,
             )!!
@@ -167,7 +167,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     @Test
     fun `skal ikke kunne oppdatere formkrav når klagebehandlingen er satt på vent og saksbehandler er på behandlingen`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, _, _, klagebehandling) = iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(tac)!!
 
             settKlagebehandlingPåVent(tac, sak.id, klagebehandling.id)

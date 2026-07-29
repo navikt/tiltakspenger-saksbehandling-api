@@ -20,7 +20,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan ta klagebehandling med rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling(
                 tac = tac,
             )!!
@@ -48,7 +48,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan ta rammebehandling som er tilknyttet ferdigstilt klagebehandling (fra klagebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val førsteSaksbehandler = ObjectMother.saksbehandler("førsteSaksbehandler")
             val (sak, rammebehandling) = ferdigstiltOppretholdKlagebehandlingMedRammebehandlingLagtTilbake(
                 tac = tac,
@@ -76,7 +76,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan ta rammebehandling som er tilknyttet ferdigstilt klagebehandling (fra rammebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val førsteSaksbehandler = ObjectMother.saksbehandler("førsteSaksbehandler")
             val (sak, rammebehandling) = ferdigstiltOppretholdKlagebehandlingMedRammebehandlingLagtTilbake(
                 tac = tac,

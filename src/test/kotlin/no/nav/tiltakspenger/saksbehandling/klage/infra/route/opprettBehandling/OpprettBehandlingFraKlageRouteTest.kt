@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test
 class OpprettBehandlingFraKlageRouteTest {
     @Test
     fun `kan opprette søknadsbehandling for klagebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -99,7 +99,7 @@ class OpprettBehandlingFraKlageRouteTest {
 
     @Test
     fun `kan opprette revurdering innvilgelse for klagebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = opprettetRevurderingForKlage(
                 tac = tac,
                 type = "REVURDERING_INNVILGELSE",
@@ -162,7 +162,7 @@ class OpprettBehandlingFraKlageRouteTest {
 
     @Test
     fun `kan opprette omgjøring for klagebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = opprettetRevurderingForKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
@@ -226,7 +226,7 @@ class OpprettBehandlingFraKlageRouteTest {
 
     @Test
     fun `kan ikke ha 2 åpne rammebehandlinger knyttet til samme klagebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -255,7 +255,7 @@ class OpprettBehandlingFraKlageRouteTest {
 
     @Test
     fun `kan opprette, og vedta rammebehandling for en ferdigstilt klagebehandling `() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, ferdigstiltKlagebehandling, _) = ferdigstiltOpprettholdtKlagebehandling(
                 tac = tac,
             )!!
@@ -305,7 +305,7 @@ class OpprettBehandlingFraKlageRouteTest {
 
     @Test
     fun `kan opprette N antall behandlinger på ferdigstilt klage, så lenge det kun er 1 åpen om gangen`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, ferdigstiltKlagebehandling, _) = ferdigstiltOpprettholdtKlagebehandling(
                 tac = tac,
             )!!
@@ -406,7 +406,7 @@ class OpprettBehandlingFraKlageRouteTest {
 
     @Test
     fun `Kan opprette meldekortbehandling for klagebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
                 tac = tac,
             )

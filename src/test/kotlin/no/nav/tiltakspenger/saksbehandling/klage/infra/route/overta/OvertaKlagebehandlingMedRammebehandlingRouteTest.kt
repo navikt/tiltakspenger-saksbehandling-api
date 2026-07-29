@@ -22,7 +22,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `overtar klagebehandlingen med rammebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedRammebehandling(
                 tac = tac,
             )!!
@@ -50,7 +50,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `overtar klagebehandlingen med status omgjøring_etter_klageinstans`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _, _) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
             )!!
@@ -118,7 +118,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan overta rammebehandling som er tilknyttet en ferdigstilt klagebehandling (gjort fra klagebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
@@ -154,7 +154,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan overta rammebehandling som er tilknyttet en ferdigstilt klagebehandling (gjort fra rammebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",

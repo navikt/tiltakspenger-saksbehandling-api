@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 fun String.shouldBeRevurderingDTO(
     ignorerTidspunkt: Boolean = true,
     sakId: SakId,
-    saksnummer: Saksnummer = Saksnummer("202501011001"),
+    saksnummer: Saksnummer,
     behandlingId: RammebehandlingId,
     klagebehandlingId: KlagebehandlingId? = null,
     omgjørVedtak: VedtakId? = null,
@@ -194,7 +194,7 @@ fun String.shouldBeRevurderingDTO(
 fun String.shouldBeSøknadsbehandlingDTO(
     ignorerTidspunkt: Boolean = true,
     sakId: SakId,
-    saksnummer: Saksnummer = Saksnummer("202501011001"),
+    saksnummer: Saksnummer,
     behandlingId: RammebehandlingId,
     klagebehandlingId: KlagebehandlingId? = null,
     rammevedtakId: VedtakId? = null,

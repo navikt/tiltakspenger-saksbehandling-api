@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 class ForhåndsvisBrevKlagebehandlingRouteTest {
     @Test
     fun `kan forhåndsvise klagebehandling til avvisning `() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             opprettSakOgForhåndsvisKlagebehandlingTilAvvisningsbrev(
                 tac = tac,
             )!!
@@ -19,7 +19,7 @@ class ForhåndsvisBrevKlagebehandlingRouteTest {
 
     @Test
     fun `kan forhåndsvise klagebehandling til opprettholdelse`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, klagebehandling) = opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
                 tac = tac,
             )!!
@@ -33,7 +33,7 @@ class ForhåndsvisBrevKlagebehandlingRouteTest {
 
     @Test
     fun `kan forhåndsvise klagebehandling til avvisning der vedtak er utbetalingsvedtak`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             iverksettMeldekortvedtakOgForhåndsvisKlagebehandlingTilAvvisningsbrev(
                 tac = tac,
             )!!

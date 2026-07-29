@@ -12,7 +12,7 @@ class OpprettholdKlagebehandlingRouteTest {
     @Test
     fun `kan opprettholde klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, klagebehandling, json) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val rammevedtakDetKlagesPå = sak.rammevedtaksliste.first()
             json.toString().shouldBeKlagebehandlingDTO(

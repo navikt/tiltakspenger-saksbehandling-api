@@ -21,7 +21,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan legge klagebehandling med rammebehandling tilbake`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandlingMedKlagebehandling, json) = iverksettSøknadsbehandlingOgLeggKlagebehandlingMedRammebehandlingTilbake(
                 tac = tac,
             )!!
@@ -47,7 +47,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan legge rammebehandling med klagebehandling tilbake`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
@@ -74,7 +74,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan legge rammebehandling med tilknyttet ferdigstilt klage tilbake (fra klagebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,
                 type = "REVURDERING_OMGJØRING",
@@ -108,7 +108,7 @@ class LeggTilbakeKlagebehandlingMedRammebehandlingRouteTest {
     @Test
     fun `kan legge rammebehandling med tilknyttet ferdigstilt klage tilbake (fra rammebehandling)`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerLeggeTilbake")
             val (sak, rammebehandling) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
                 tac = tac,

@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test
 class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `oppretter klage og deretter avbryter`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, json) = avbruttKlagebehandlng(
                 tac = tac,
             )!!
@@ -49,7 +49,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan avbryte hvis vi ikke har knyttet den til en rammebehandling enda`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, rammevedtak, klagebehandling, _) = iverksettSøknadsbehandlingOgVurderKlagebehandling(
                 tac = tac,
             )!!
@@ -78,7 +78,7 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan avbryte rammebehandling vi omgjør etter KA`() {
         val saksbehandler = ObjectMother.saksbehandler()
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _, _) = opprettetRammebehandlingMedOpprettholdtKlage(
                 tac = tac,
                 saksbehandler = saksbehandler,
@@ -98,7 +98,7 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling (søknadsbehandling)`() {
         val saksbehandler = ObjectMother.saksbehandler()
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedklagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
                 saksbehandlerSøknadsbehandling = saksbehandler,
@@ -138,7 +138,7 @@ class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `kan avbryte klagebehandling hvis vi har opprettet og avbrutt tilknyttet rammebehandling (revurdering)`() {
         val saksbehandler = ObjectMother.saksbehandler()
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedklagebehandling, _) = opprettetRevurderingForKlage(
                 tac = tac,
                 saksbehandlerSøknadsbehandling = saksbehandler,
@@ -178,7 +178,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke avbryte hvis åpen tilknyttet rammebehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -203,7 +203,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke avbryte vedtatt avvist klage`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagevedtak, _) = opprettSakOgIverksettKlagebehandling(tac = tac)!!
             val klagebehandling = klagevedtak.behandling
             avbrytKlagebehandlingForSak(
@@ -226,7 +226,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke avbryte avbrutt klage`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = avbruttKlagebehandlng(tac = tac)!!
             avbrytKlagebehandlingForSak(
                 tac = tac,
@@ -248,7 +248,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke avbryte vedtatt omgjort klage`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, rammebehandlingMedKlagebehandling, _) = opprettetSøknadsbehandlingForKlage(
                 tac = tac,
             )!!
@@ -299,7 +299,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan avbryte med status KLAGE_TRUKKET`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(tac = tac)!!
             val (_, _, json) = avbrytKlagebehandlingForSak(
                 tac = tac,
@@ -324,7 +324,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke avbryte med status ANNET uten begrunnelse`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(tac = tac)!!
             avbrytKlagebehandlingForSak(
                 tac = tac,
@@ -348,7 +348,7 @@ class AvbrytKlagebehandlingRouteTest {
 
     @Test
     fun `kan ikke avbryte med begrunnelse satt når status ikke er ANNET`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(tac = tac)!!
             avbrytKlagebehandlingForSak(
                 tac = tac,

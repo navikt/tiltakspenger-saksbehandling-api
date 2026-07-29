@@ -19,6 +19,7 @@ class RammevedtakPostgresRepoTest {
 
     @Test
     fun `henter vedtak for datadeling`() {
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak, _, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort()
             testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
@@ -31,6 +32,7 @@ class RammevedtakPostgresRepoTest {
 
     @Test
     fun `henter avslagsvedtak for datadeling`() {
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak) = testDataHelper.persisterRammevedtakAvslag()
             testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
@@ -43,7 +45,7 @@ class RammevedtakPostgresRepoTest {
 
     @Test
     fun `kan lagre rammevedtak med utbetaling`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val clock = TikkendeKlokke()
             val (sak) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(clock = clock)
             val innvilgelsesperiode = Periode(sak.førsteDagSomGirRett!!, sak.sisteDagSomGirRett!!)
@@ -83,6 +85,7 @@ class RammevedtakPostgresRepoTest {
 
     @Test
     fun `hentRammevedtakSomSkalJournalføres returnerer vedtak når skalSendeVedtaksbrev er true`() {
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = true)
             val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)
@@ -93,6 +96,7 @@ class RammevedtakPostgresRepoTest {
 
     @Test
     fun `hentRammevedtakSomSkalJournalføres returnerer ikke vedtak når skalSendeVedtaksbrev er false`() {
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
             val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)

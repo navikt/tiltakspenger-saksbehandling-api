@@ -16,7 +16,7 @@ class TaKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan ta klagebehandling med meldekortbehandling fra klagebehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val saksbehandlerSomTar = ObjectMother.saksbehandler("saksbehandlerSomTarKlagebehandling")
             val (_, meldekortbehandlingTatt, _) = tattMeldekortbehandlingMedKlageFraKlageRoute(
@@ -38,7 +38,7 @@ class TaKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan ta klagebehandling med meldekortbehandling fra meldekortbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val saksbehandlerSomTar = ObjectMother.saksbehandler("saksbehandlerSomTarMeldekort")
             val (_, meldekortbehandlingTatt, _) = tattMeldekortbehandlingMedKlageFraMeldekortRoute(

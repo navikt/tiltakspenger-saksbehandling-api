@@ -83,6 +83,7 @@ class SakPostgresRepoTest {
 
     @Test
     fun `Skal flagge saker med iverksatt behandling for sending til meldekort-api`() {
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val sakRepo = testDataHelper.sakRepo
 

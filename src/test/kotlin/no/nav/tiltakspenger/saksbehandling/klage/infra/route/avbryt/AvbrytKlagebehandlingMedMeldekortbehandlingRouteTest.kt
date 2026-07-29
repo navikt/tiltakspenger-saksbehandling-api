@@ -19,7 +19,7 @@ class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan avbryte klagebehandling med meldekortbehandling etter at meldekortbehandlingen er avbrutt`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
 
             val (_, avbruttMeldekortbehandling, avbruttKlagebehandling) =
@@ -36,7 +36,7 @@ class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan ikke avbryte klagebehandling når meldekortbehandling fortsatt er åpen`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
 
             val (sak, klagebehandling, _) =

@@ -23,7 +23,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan gjenoppta klagebehandling med meldekortbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling, json) = gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlageRoute(
                 tac = tac,
@@ -116,7 +116,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `kan gjenoppta meldekortbehandling tilknyttet klage`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling) = gjenopptattMeldekortbehandlngMedKlagebehandlingFraMeldekortbehandling(
                 tac = tac,
@@ -181,7 +181,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `saksbehandler kan gjenoppta meldekortbehandling med klagebehandling fra KLAR_TIL_BEHANDLING`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (_, oppdatertMeldekortbehandling) =
                 gjenopptattMeldekortbehandlingMedKlagebehandlingFraKlarTilBehanlingFraMeldekortRoute(
@@ -249,7 +249,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
     @Test
     fun `beslutter kan gjenoppta meldekortbehandling med klagebehandling fra KLAR_TIL_BESLUTNING`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val beslutter = ObjectMother.beslutter("beslutter")
             val (_, oppdatertMeldekortbehandling) =
