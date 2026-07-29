@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class TilgangskontrollServiceTest {
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
     private val sakService = mockk<SakService>()
     private val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)

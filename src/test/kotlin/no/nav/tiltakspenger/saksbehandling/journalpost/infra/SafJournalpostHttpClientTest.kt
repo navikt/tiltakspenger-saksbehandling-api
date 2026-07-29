@@ -30,6 +30,7 @@ import java.time.Instant
  */
 internal class SafJournalpostHttpClientTest {
 
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val texasClient = mockk<TexasClient>()
     private val systemTokenProvider = object : AuthTokenProvider {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("system-token", Instant.parse("2026-01-01T00:00:00Z"))

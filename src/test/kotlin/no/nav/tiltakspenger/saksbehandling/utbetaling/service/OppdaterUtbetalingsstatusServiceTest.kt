@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class OppdaterUtbetalingsstatusServiceTest {
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val utbetalingRepo = mockk<UtbetalingRepo>()
     private val utbetalingsklient = mockk<Utbetalingsklient>()
     private val sendUtbetalingerService =

@@ -33,6 +33,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class PersonhendelseJobbTest {
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val oppgaveKlient = mockk<OppgaveKlient>()
     private val oppgaveId = OppgaveId("50")
 
@@ -445,6 +446,7 @@ class PersonhendelseJobbTest {
     @Test
     @IsolatedDatabaseTest
     fun `opprettOppgaveForPersonhendelser - jobben plukker kun opp hendelser uten oppgave`() {
+        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -508,6 +510,7 @@ class PersonhendelseJobbTest {
     @Test
     @IsolatedDatabaseTest
     fun `opprydning - jobben plukker kun opp hendelser med oppgave som ikke nylig er sjekket`() {
+        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {

@@ -17,6 +17,15 @@ internal class TestDatabaseManager(
         idGeneratorsFactory = { IdGenerators() },
     )
 
+    init {
+        // Flyway-migreringene lager cluster-globale objekter med check-then-create (bl.a. publication og replication slot i V59).
+        // Vi initialiserer derfor begge skjemaene sekvensielt her, slik at migreringene aldri kjører samtidig i samme container under parallellkjøring.
+        isolatedTestLock.withLock {
+            delegate.sessionFactory
+            delegate.dataSource(runIsolated = true)
+        }
+    }
+
     val sessionFactory: SessionFactory get() = delegate.sessionFactory
 
     /**

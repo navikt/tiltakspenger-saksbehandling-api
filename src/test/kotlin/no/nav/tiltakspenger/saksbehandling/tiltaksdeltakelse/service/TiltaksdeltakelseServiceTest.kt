@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class TiltaksdeltakelseServiceTest {
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val sakService: SakService = mockk<SakService>()
     private val personService: PersonService = mockk<PersonService>()
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()

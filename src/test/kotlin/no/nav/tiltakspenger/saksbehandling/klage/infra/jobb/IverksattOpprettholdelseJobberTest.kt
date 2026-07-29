@@ -20,6 +20,7 @@ class IverksattOpprettholdelseJobberTest {
     @Test
     @IsolatedDatabaseTest
     fun `jobbene kjører som forventet`() {
+        // TODO: Kan flippes til runIsolated = false når klage-brevjobbene (journalfør/distribuer/oversend) får per-ID-varianter med lette ID-spørringer.
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val (_, klagebehandling, _) = opprettSakOgOpprettholdKlagebehandling(tac = tac, utførJobber = false)!!

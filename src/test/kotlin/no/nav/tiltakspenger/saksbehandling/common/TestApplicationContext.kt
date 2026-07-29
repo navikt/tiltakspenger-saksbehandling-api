@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.common
 import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
@@ -49,6 +50,7 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjerming
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
+import no.nav.tiltakspenger.saksbehandling.sak.delteSaksnummerGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
@@ -266,6 +268,9 @@ sealed class TestApplicationContext(
             profile = Profile.LOCAL,
             clock = clock,
         ) {
+            // Dato-baserte saksnummer (SaksnummerGenerator.Local) kolliderer under parallellkjøring, siden alle tester med samme klokkedato får samme startnummer og hentNesteSaksnummer gjør select-max-pluss-én uten lås.
+            // Den delte, atomiske generatoren gir globalt unike saksnummer, og dato-prefiks-spørringen i hentNesteSaksnummer treffer da aldri.
+            override val saksnummerGenerator: SaksnummerGenerator = delteSaksnummerGenerator
             override val sakRepo: SakRepo get() = sakRepoOverride ?: super.sakRepo
             override val benkOversiktRepo: BenkOversiktRepo
                 get() = benkOversiktRepoOverride ?: super.benkOversiktRepo

@@ -81,7 +81,9 @@ class LoggOgSvarFeilTest {
                 it.formattedMessage shouldContain "sakId=sak_123"
                 it.formattedMessage shouldNotContain "sikkerlogg"
             }
-            sikkerlogg.list.shouldBeEmpty()
+            // Merk: team-logs-logger er global, så vi filtrerer på egne meldinger siden andre tester kan logge dit i parallell.
+            // TODO jah: På sikt bør sikkerlogg settes opp i testapplicationcontext og aldri eksistere statisk (gjelder logger og)
+            sikkerlogg.list.filter { it.formattedMessage.contains("Testoperasjon") }.shouldBeEmpty()
         } finally {
             slippLogglinjer("LoggOgSvarFeilTest", vanligLogg)
             slippLogglinjer("team-logs-logger", sikkerlogg)
@@ -111,7 +113,7 @@ class LoggOgSvarFeilTest {
                 it.formattedMessage shouldContain "Se sikkerlogg for mer kontekst: https://console.cloud.google.com"
                 it.formattedMessage shouldNotContain "12345678901"
             }
-            sikkerlogg.list.single().also {
+            sikkerlogg.list.single { it.formattedMessage.contains("Testoperasjon") }.also {
                 it.level shouldBe Level.WARN
                 it.formattedMessage shouldContain "Testoperasjon feilet: fnr=12345678901"
                 it.formattedMessage shouldContain "sakId=sak_123"
@@ -146,7 +148,7 @@ class LoggOgSvarFeilTest {
                 it.formattedMessage shouldContain "Se sikkerlogg for mer kontekst"
                 it.formattedMessage shouldNotContain "12345678901"
             }
-            sikkerlogg.list.single().also {
+            sikkerlogg.list.single { it.formattedMessage.contains("Testoperasjon") }.also {
                 it.formattedMessage shouldContain "rå respons for fnr=12345678901"
                 it.throwableProxy!!.message shouldContain "{\"fnr\": \"12345678901\"}"
             }

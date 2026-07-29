@@ -19,6 +19,7 @@ import java.time.Clock
 import java.time.Instant
 
 class TilgangsmaskinHttpClientTest {
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val texasClient = mockk<TexasClient>()
     private val fakeTransport = FakeHttpTransport()
     private val client = TilgangsmaskinHttpClient(

@@ -103,10 +103,10 @@ interface OpprettholdKlagebehandlingBuilder {
 
             if (statusCode != 200) return null
             if (utførJobber) {
-                // Emulerer journalføring og distribuering av innstillingbrev + oversendelse til klageinstansen.
-                tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
-                tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
-                tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
+                // Emulerer journalføring og distribuering av innstillingbrev + oversendelse til klageinstansen, kun for denne klagebehandlingen/saken.
+                tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev(klagebehandlingId)
+                tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev(klagebehandlingId)
+                tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstansForSak(sakId)
             }
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())

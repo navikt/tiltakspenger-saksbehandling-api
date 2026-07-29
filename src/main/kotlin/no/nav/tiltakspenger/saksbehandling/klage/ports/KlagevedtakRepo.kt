@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.ports
 
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
@@ -27,5 +28,9 @@ interface KlagevedtakRepo {
 
     fun hentKlagevedtakSomSkalJournalføres(limit: Int = 10): List<Klagevedtak>
 
+    fun hentKlagevedtakSomSkalJournalføresForSakId(sakId: SakId): List<Klagevedtak>
+
     fun hentKlagevedtakSomSkalDistribueres(limit: Int = 10): List<VedtakSomSkalDistribueres>
+
+    fun hentKlagevedtakSomSkalDistribueresForSakId(sakId: SakId): List<VedtakSomSkalDistribueres>
 }

@@ -35,6 +35,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class IdenthendelseJobbTest {
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val kafkaProducer = mockk<Producer<String, String>>()
     private val identhendelseKafkaProducer = IdenthendelseKafkaProducer(kafkaProducer, "topic")
 
@@ -273,6 +274,7 @@ class IdenthendelseJobbTest {
     @Test
     @IsolatedDatabaseTest
     fun `behandleIdenthendelser - jobben plukker kun opp hendelser som ikke er ferdig behandlet`() {
+        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository

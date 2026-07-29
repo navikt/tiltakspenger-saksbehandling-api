@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -36,56 +37,60 @@ class OversendKlageTilKlageinstansJobb(
      */
     suspend fun oversendKlagerTilKlageinstans() {
         klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().forEach { sakId ->
-            Either.runCatching {
-                val sak: Sak = sakService.hentForSakId(sakId)
-                sak.hentKlagebehandlingerSomSkalOversendesKlageinstansen().forEach { klagebehandling ->
-                    val kontekstTilLog =
-                        "sakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}, klagebehandlingId: ${klagebehandling.id}"
-                    logger.info { "Prøver å oversende til Nav Klageinstans. $kontekstTilLog" }
+            oversendKlagerTilKlageinstansForSak(sakId)
+        }
+    }
 
-                    Either.runCatching {
-                        val journalpostIdVedtak = klagebehandling.formkrav.vedtakDetKlagesPå!!.let {
-                            sak.hentJournalpostIdForVedtakId(it)
-                        }
-                        kabalClient.oversend(klagebehandling, journalpostIdVedtak).onRight {
-                            val metadata = it.metadata.tilOversendtKlageTilKabalMetadata(clock = clock)
-                            val oppdatertKlagebehandling =
-                                klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(metadata.oversendtTidspunkt)
-                            val statistikkDTO = statistikkService.generer(
-                                Statistikkhendelser(
-                                    oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.OVERSENDT_KA),
-                                ),
+    suspend fun oversendKlagerTilKlageinstansForSak(sakId: SakId) {
+        Either.runCatching {
+            val sak: Sak = sakService.hentForSakId(sakId)
+            sak.hentKlagebehandlingerSomSkalOversendesKlageinstansen().forEach { klagebehandling ->
+                val kontekstTilLog =
+                    "sakId: ${klagebehandling.sakId}, saksnummer: ${klagebehandling.saksnummer}, klagebehandlingId: ${klagebehandling.id}"
+                logger.info { "Prøver å oversende til Nav Klageinstans. $kontekstTilLog" }
+
+                Either.runCatching {
+                    val journalpostIdVedtak = klagebehandling.formkrav.vedtakDetKlagesPå!!.let {
+                        sak.hentJournalpostIdForVedtakId(it)
+                    }
+                    kabalClient.oversend(klagebehandling, journalpostIdVedtak).onRight {
+                        val metadata = it.metadata.tilOversendtKlageTilKabalMetadata(clock = clock)
+                        val oppdatertKlagebehandling =
+                            klagebehandling.oppdaterOversendtKlageinstansenTidspunkt(metadata.oversendtTidspunkt)
+                        val statistikkDTO = statistikkService.generer(
+                            Statistikkhendelser(
+                                oppdatertKlagebehandling.genererSaksstatistikk(StatistikkhendelseType.OVERSENDT_KA),
+                            ),
+                        )
+                        sessionFactory.withTransactionContext { tx ->
+                            klagebehandlingRepo.markerOversendtTilKlageinstans(
+                                klagebehandling = oppdatertKlagebehandling,
+                                metadata = metadata,
+                                sessionContext = tx,
                             )
-                            sessionFactory.withTransactionContext { tx ->
-                                klagebehandlingRepo.markerOversendtTilKlageinstans(
-                                    klagebehandling = oppdatertKlagebehandling,
-                                    metadata = metadata,
-                                    sessionContext = tx,
-                                )
-                                statistikkService.lagre(statistikkDTO, tx)
-                            }
-                        }.onLeft { error ->
-                            error.loggFeil(logger, "oversendelse av klage til klageinstans", kontekstTilLog)
+                            statistikkService.lagre(statistikkDTO, tx)
+                        }
+                    }.onLeft { error ->
+                        error.loggFeil(logger, "oversendelse av klage til klageinstans", kontekstTilLog)
 
-                            if (error is HttpKlientError.ResponsMottatt && error.statusCode == 400) {
-                                // Kabal avviste klagen (bad request) — terminalt, klagen forsøkes ikke igjen.
-                                val metadata = error.tilOversendtKlageTilKabalMetadata(clock = clock)
-                                val oppdatertKlagebehandling =
-                                    klagebehandling.oppdaterOversendtKlageinstansFeilet(metadata.oversendtTidspunkt)
-                                klagebehandlingRepo.markerOversendtTilKlageinstans(oppdatertKlagebehandling, metadata)
-                            }
-                            // Andre feil: klagen står igjen og forsøkes på nytt ved neste kjøring.
+                        if (error is HttpKlientError.ResponsMottatt && error.statusCode == 400) {
+                            // Kabal avviste klagen (bad request) — terminalt, klagen forsøkes ikke igjen.
+                            val metadata = error.tilOversendtKlageTilKabalMetadata(clock = clock)
+                            val oppdatertKlagebehandling =
+                                klagebehandling.oppdaterOversendtKlageinstansFeilet(metadata.oversendtTidspunkt)
+                            klagebehandlingRepo.markerOversendtTilKlageinstans(oppdatertKlagebehandling, metadata)
                         }
-                    }.onFailure { e ->
-                        logger.error(e) {
-                            "Ukjent feil ved kjøring av oversendKlagerTilKlageinstans jobb. SakId: ${sak.id}, Saksnummer: ${sak.saksnummer}, KlagebehandlingId: ${klagebehandling.id}"
-                        }
+                        // Andre feil: klagen står igjen og forsøkes på nytt ved neste kjøring.
+                    }
+                }.onFailure { e ->
+                    logger.error(e) {
+                        "Ukjent feil ved kjøring av oversendKlagerTilKlageinstans jobb. SakId: ${sak.id}, Saksnummer: ${sak.saksnummer}, KlagebehandlingId: ${klagebehandling.id}"
                     }
                 }
-            }.onFailure { e ->
-                logger.error(e) {
-                    "Ukjent feil ved kjøring av oversendKlagerTilKlageinstans jobb. sakId: $sakId"
-                }
+            }
+        }.onFailure { e ->
+            logger.error(e) {
+                "Ukjent feil ved kjøring av oversendKlagerTilKlageinstans jobb. sakId: $sakId"
             }
         }
     }

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
@@ -11,7 +12,11 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
 import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
@@ -39,39 +44,57 @@ class JournalførKlagebrevJobb(
     suspend fun journalførAvvisningbrev() {
         Either.catch {
             klagevedtakRepo.hentKlagevedtakSomSkalJournalføres().forEach { vedtak ->
-                val correlationId = CorrelationId.generate()
-                log.info { "Journalfører vedtaksbrev for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
-                Either.catch {
-                    val vedtaksdato = LocalDate.now(clock)
-                    val pdfOgJson = when (vedtak.resultat) {
-                        is Klagebehandlingsresultat.Avvist -> genererKlagebrevKlient.genererAvvisningsvedtak(
-                            vedtaksdato = vedtaksdato,
-                            tilleggstekst = vedtak.behandling.brevtekst!!,
-                            hentBrukersNavn = personService::hentNavn,
-                            hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                            saksnummer = vedtak.saksnummer,
-                            fnr = vedtak.fnr,
-                            saksbehandlerNavIdent = vedtak.saksbehandler,
-                            forhåndsvisning = false,
-                        )
+                journalførAvvisningbrev(vedtak)
+            }
+        }.onLeft {
+            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av klage avvisningsbrev." }
+        }
+    }
 
-                        is Klagebehandlingsresultat.Omgjør, is Klagebehandlingsresultat.Opprettholdt -> throw IllegalStateException(
-                            "Ugyldig resultat (${vedtak.resultat::class.simpleName} ved journalføring av klagevedtak. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
-                        )
-                    }.getOrElse {
-                        it.feil.loggFeil(log, "generering av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
-                        return@forEach
-                    }
+    suspend fun journalførAvvisningbrevForSak(sakId: SakId) {
+        Either.catch {
+            klagevedtakRepo.hentKlagevedtakSomSkalJournalføresForSakId(sakId).forEach { vedtak ->
+                journalførAvvisningbrev(vedtak)
+            }
+        }.onLeft {
+            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av klage avvisningsbrev for sak $sakId." }
+        }
+    }
 
-                    log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
-                    val (journalpostId, _, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
-                        klagevedtak = vedtak,
-                        pdfOgJson = pdfOgJson.first,
-                        correlationId = correlationId,
-                    ).getOrElse {
-                        it.loggFeil(log, "journalføring av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
-                        return@forEach
-                    }
+    private suspend fun journalførAvvisningbrev(vedtak: Klagevedtak) {
+        val correlationId = CorrelationId.generate()
+        log.info { "Journalfører vedtaksbrev for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+        Either.catch {
+            val vedtaksdato = LocalDate.now(clock)
+            val pdfOgJson = when (vedtak.resultat) {
+                is Klagebehandlingsresultat.Avvist -> genererKlagebrevKlient.genererAvvisningsvedtak(
+                    vedtaksdato = vedtaksdato,
+                    tilleggstekst = vedtak.behandling.brevtekst!!,
+                    hentBrukersNavn = personService::hentNavn,
+                    hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                    saksnummer = vedtak.saksnummer,
+                    fnr = vedtak.fnr,
+                    saksbehandlerNavIdent = vedtak.saksbehandler,
+                    forhåndsvisning = false,
+                )
+
+                is Klagebehandlingsresultat.Omgjør, is Klagebehandlingsresultat.Opprettholdt -> throw IllegalStateException(
+                    "Ugyldig resultat (${vedtak.resultat::class.simpleName} ved journalføring av klagevedtak. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
+                )
+            }.getOrElse {
+                it.feil.loggFeil(log, "generering av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
+                return
+            }
+
+            log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+            val (journalpostId, _, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
+                klagevedtak = vedtak,
+                pdfOgJson = pdfOgJson.first,
+                correlationId = correlationId,
+            ).getOrElse {
+                it.loggFeil(log, "journalføring av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
+                return
+            }
 
                     /*
                         TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-avvis pdf er ok
@@ -79,111 +102,123 @@ class JournalførKlagebrevJobb(
                             Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
                             Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
                      */
-                    pdfOgJson.second?.let {
-                        journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
-                            klagevedtak = vedtak,
-                            pdfOgJson = it,
-                            correlationId = correlationId,
-                        ).onLeft { feil ->
-                            feil.loggFeil(log, "journalføring av pdfgenrs-avvisningsbrev (kun dev-sammenligning)", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
-                        }
-                    }
-                    log.info { "Vedtaksbrev journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
-                    klagevedtakRepo.markerJournalført(
-                        vedtak.id,
-                        vedtaksdato,
-                        metadata,
-                        journalpostId,
-                        nå(clock),
-                    )
-                    log.info { "Vedtaksbrev markert som journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
-                    errorEveryNLogger.reset()
-                }.onLeft {
-                    errorEveryNLogger.log(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }
+            pdfOgJson.second?.let {
+                journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
+                    klagevedtak = vedtak,
+                    pdfOgJson = it,
+                    correlationId = correlationId,
+                ).onLeft { feil ->
+                    feil.loggFeil(log, "journalføring av pdfgenrs-avvisningsbrev (kun dev-sammenligning)", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
                 }
             }
+            log.info { "Vedtaksbrev journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+            klagevedtakRepo.markerJournalført(
+                vedtak.id,
+                vedtaksdato,
+                metadata,
+                journalpostId,
+                nå(clock),
+            )
+            log.info { "Vedtaksbrev markert som journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
+            errorEveryNLogger.reset()
         }.onLeft {
-            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av klage avvisningsbrev." }
+            errorEveryNLogger.log(it) { "Feil ved journalføring av vedtaksbrev for vedtak ${vedtak.id}" }
         }
     }
 
     suspend fun journalførInnstillingsbrev() {
         Either.catch {
             klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().forEach { klagebehandling ->
-                val sakId = klagebehandling.sakId
-                val saksnummer = klagebehandling.saksnummer
-                val id = klagebehandling.id
-                val vedtakIdDetKlagesPå = klagebehandling.formkrav.vedtakDetKlagesPå!!
-                val vedtaksdatoOpprettet = rammevedtakRepo.hentForVedtakId(vedtakIdDetKlagesPå)?.opprettet
-                    ?: meldekortvedtakRepo.hentForVedtakId(vedtakIdDetKlagesPå)?.opprettet
-                    ?: throw IllegalStateException("Fant ikke vedtak med id $vedtakIdDetKlagesPå (verken rammevedtak eller meldekortvedtak). sakId: $sakId, klagebehandlingId: $id")
+                journalførInnstillingsbrev(klagebehandling)
+            }
+        }.onLeft {
+            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av innstillingsbrev." }
+        }
+    }
 
-                val loggkontekst = "sakId: $sakId, saksnummer: $saksnummer, klagebehandlingId: $id"
-                Either.catch {
-                    val correlationId = CorrelationId.generate()
+    suspend fun journalførInnstillingsbrev(klagebehandlingId: KlagebehandlingId) {
+        Either.catch {
+            val klagebehandling = klagebehandlingRepo.hentForKlagebehandlingId(klagebehandlingId) ?: return
+            if (klagebehandling.status != Klagebehandlingsstatus.OPPRETTHOLDT || klagebehandling.journalpostIdInnstillingsbrev != null) {
+                return
+            }
+            journalførInnstillingsbrev(klagebehandling)
+        }.onLeft {
+            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av innstillingsbrev for klagebehandling $klagebehandlingId." }
+        }
+    }
 
-                    log.info { "Genererer innstillingsbrev. $loggkontekst" }
-                    val pdfOgJson = genererKlagebrevKlient.genererInnstillingsbrev(
-                        saksnummer = saksnummer,
-                        fnr = klagebehandling.fnr,
-                        tilleggstekst = klagebehandling.brevtekst!!,
-                        saksbehandlerNavIdent = klagebehandling.saksbehandler!!,
-                        forhåndsvisning = false,
-                        vedtaksdato = vedtaksdatoOpprettet.toLocalDate(),
-                        hentBrukersNavn = personService::hentNavn,
-                        hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        innsendingsdato = klagebehandling.formkrav.innsendingsdato,
-                        clock = clock,
-                    ).getOrElse {
-                        it.feil.loggFeil(log, "generering av innstillingsbrev", loggkontekst)
-                        return@forEach
-                    }
+    private suspend fun journalførInnstillingsbrev(klagebehandling: Klagebehandling) {
+        val sakId = klagebehandling.sakId
+        val saksnummer = klagebehandling.saksnummer
+        val id = klagebehandling.id
+        val vedtakIdDetKlagesPå = klagebehandling.formkrav.vedtakDetKlagesPå!!
+        val vedtaksdatoOpprettet = rammevedtakRepo.hentForVedtakId(vedtakIdDetKlagesPå)?.opprettet
+            ?: meldekortvedtakRepo.hentForVedtakId(vedtakIdDetKlagesPå)?.opprettet
+            ?: throw IllegalStateException("Fant ikke vedtak med id $vedtakIdDetKlagesPå (verken rammevedtak eller meldekortvedtak). sakId: $sakId, klagebehandlingId: $id")
 
-                    log.info { "Innstillingsbrev generert. $loggkontekst" }
-                    val (journalpostId, dokumentInfoId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
-                        klagebehandling = klagebehandling,
-                        pdfOgJson = pdfOgJson.first,
-                        correlationId = correlationId,
-                    ).getOrElse {
-                        it.loggFeil(log, "journalføring av innstillingsbrev", loggkontekst)
-                        return@forEach
-                    }
+        val loggkontekst = "sakId: $sakId, saksnummer: $saksnummer, klagebehandlingId: $id"
+        Either.catch {
+            val correlationId = CorrelationId.generate()
+
+            log.info { "Genererer innstillingsbrev. $loggkontekst" }
+            val pdfOgJson = genererKlagebrevKlient.genererInnstillingsbrev(
+                saksnummer = saksnummer,
+                fnr = klagebehandling.fnr,
+                tilleggstekst = klagebehandling.brevtekst!!,
+                saksbehandlerNavIdent = klagebehandling.saksbehandler!!,
+                forhåndsvisning = false,
+                vedtaksdato = vedtaksdatoOpprettet.toLocalDate(),
+                hentBrukersNavn = personService::hentNavn,
+                hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
+                innsendingsdato = klagebehandling.formkrav.innsendingsdato,
+                clock = clock,
+            ).getOrElse {
+                it.feil.loggFeil(log, "generering av innstillingsbrev", loggkontekst)
+                return
+            }
+
+            log.info { "Innstillingsbrev generert. $loggkontekst" }
+            val (journalpostId, dokumentInfoId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
+                klagebehandling = klagebehandling,
+                pdfOgJson = pdfOgJson.first,
+                correlationId = correlationId,
+            ).getOrElse {
+                it.loggFeil(log, "journalføring av innstillingsbrev", loggkontekst)
+                return
+            }
                     /*
                         TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-innstilling pdf er ok
                             Akkurat nå bryr vi oss ikke om journalpostId'en etc.
                             Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
                             Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
                      */
-                    pdfOgJson.second?.let {
-                        journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
-                            klagebehandling = klagebehandling,
-                            pdfOgJson = it,
-                            correlationId = correlationId,
-                        ).onLeft { feil ->
-                            feil.loggFeil(log, "journalføring av pdfgenrs-innstillingsbrev (kun dev-sammenligning)", loggkontekst)
-                        }
-                    }
-                    val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
-                        brevdato = LocalDate.now(clock),
-                        journalpostId = journalpostId,
-                        dokumentInfoId = dokumentInfoId
-                            ?: throw IllegalStateException("Journalføring av innstillingsbrev med journalpostId $journalpostId returnerte ingen dokumentInfoId. $loggkontekst").also {
-                                Sikkerlogg.error {
-                                    "Journalføring av innstillingsbrev med journalpostId $journalpostId returnerte ingen dokumentInfoId. $loggkontekst, metadata: $metadata"
-                                }
-                            },
-                        tidspunkt = metadata.journalføringsTidspunkt,
-                    )
-                    log.info { "Innstillingsbrev journalført. Prøver å lagre. journalpostId: $journalpostId, $loggkontekst" }
-                    klagebehandlingRepo.markerInnstillingsbrevJournalført(oppdatertKlagebehandling, metadata)
-                    log.info { "Innstillingsbrev markert som journalført. journalpostId: $journalpostId, $loggkontekst" }
-                    errorEveryNLogger.reset()
-                }.onLeft {
-                    errorEveryNLogger.log(it) { "Feil ved journalføring av innstillingsbrev. $loggkontekst" }
+            pdfOgJson.second?.let {
+                journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
+                    klagebehandling = klagebehandling,
+                    pdfOgJson = it,
+                    correlationId = correlationId,
+                ).onLeft { feil ->
+                    feil.loggFeil(log, "journalføring av pdfgenrs-innstillingsbrev (kun dev-sammenligning)", loggkontekst)
                 }
             }
+            val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
+                brevdato = LocalDate.now(clock),
+                journalpostId = journalpostId,
+                dokumentInfoId = dokumentInfoId
+                    ?: throw IllegalStateException("Journalføring av innstillingsbrev med journalpostId $journalpostId returnerte ingen dokumentInfoId. $loggkontekst").also {
+                        Sikkerlogg.error {
+                            "Journalføring av innstillingsbrev med journalpostId $journalpostId returnerte ingen dokumentInfoId. $loggkontekst, metadata: $metadata"
+                        }
+                    },
+                tidspunkt = metadata.journalføringsTidspunkt,
+            )
+            log.info { "Innstillingsbrev journalført. Prøver å lagre. journalpostId: $journalpostId, $loggkontekst" }
+            klagebehandlingRepo.markerInnstillingsbrevJournalført(oppdatertKlagebehandling, metadata)
+            log.info { "Innstillingsbrev markert som journalført. journalpostId: $journalpostId, $loggkontekst" }
+            errorEveryNLogger.reset()
         }.onLeft {
-            errorEveryNLogger.log(it) { "Ukjent feil skjedde under journalføring av innstillingsbrev." }
+            errorEveryNLogger.log(it) { "Feil ved journalføring av innstillingsbrev. $loggkontekst" }
         }
     }
 }

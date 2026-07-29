@@ -22,6 +22,7 @@ class RammevedtakPostgresRepoTest {
     @IsolatedDatabaseTest
     fun `henter vedtak for datadeling`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
+        // TODO: Kan flippes til runIsolated = false når datadeling-jobben får per-ID-variant med lett ID-spørring, ved å scope assertions til egne vedtak.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak, _, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort()
             testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
@@ -36,6 +37,7 @@ class RammevedtakPostgresRepoTest {
     @IsolatedDatabaseTest
     fun `henter avslagsvedtak for datadeling`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
+        // TODO: Kan flippes til runIsolated = false når datadeling-jobben får per-ID-variant med lett ID-spørring, ved å scope assertions til egne vedtak.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak) = testDataHelper.persisterRammevedtakAvslag()
             testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
@@ -90,6 +92,7 @@ class RammevedtakPostgresRepoTest {
     @IsolatedDatabaseTest
     fun `hentRammevedtakSomSkalJournalføres returnerer vedtak når skalSendeVedtaksbrev er true`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
+        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på egne vedtak og høy limit.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, rammevedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = true)
             val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)
@@ -102,6 +105,7 @@ class RammevedtakPostgresRepoTest {
     @IsolatedDatabaseTest
     fun `hentRammevedtakSomSkalJournalføres returnerer ikke vedtak når skalSendeVedtaksbrev er false`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
+        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på egne vedtak og høy limit.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
             val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)

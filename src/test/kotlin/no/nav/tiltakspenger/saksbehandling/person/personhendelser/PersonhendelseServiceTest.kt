@@ -35,6 +35,7 @@ import java.time.Instant
 import java.time.LocalDate
 
 class PersonhendelseServiceTest {
+    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
     private val personKlient = mockk<PersonKlient>()
 
     @BeforeEach

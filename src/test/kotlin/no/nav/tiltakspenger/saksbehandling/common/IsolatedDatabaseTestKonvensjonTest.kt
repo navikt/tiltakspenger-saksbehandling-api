@@ -20,7 +20,7 @@ class IsolatedDatabaseTestKonvensjonTest {
 
         val brudd = testSourceRoot
             .walkTopDown()
-            .filter { it.isFile && it.extension == "kt" && it.name != "IsolatedDatabaseTest.kt" && it.name != "IsolatedDatabaseTestKonvensjonTest.kt" }
+            .filter { it.isFile && it.extension == "kt" && it.name != "IsolatedDatabaseTest.kt" && it.name != "IsolatedDatabaseTestKonvensjonTest.kt" && it.name != "TestDatabaseManager.kt" }
             .flatMap { fil ->
                 val linjer = fil.readLines()
                 linjer.withIndex()

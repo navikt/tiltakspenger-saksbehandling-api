@@ -99,9 +99,9 @@ interface IverksettKlagebehandlingBuilder {
             val bodyAsText = this.body
 
             if (statusCode != 200) return null
-            // Emulerer journalføring og distribuering av vedtaksbrev
-            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførAvvisningbrev()
-            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerAvvisningsbrev()
+            // Emulerer journalføring og distribuering av vedtaksbrev, kun for denne saken.
+            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførAvvisningbrevForSak(sakId)
+            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerAvvisningsbrevForSak(sakId)
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

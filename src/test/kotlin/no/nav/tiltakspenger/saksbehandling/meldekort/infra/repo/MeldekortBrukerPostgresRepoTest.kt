@@ -62,6 +62,7 @@ class MeldekortBrukerPostgresRepoTest {
     @IsolatedDatabaseTest
     fun `Skal hente kun det neste (eldste) meldekortet for automatisk behandling per sak`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
+        // TODO: Kan flippes til runIsolated = false når hentMeldekortSomSkalBehandlesAutomatisk får limit som parameter, ved å scope assertions til egne saker med høy limit.
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
@@ -95,8 +96,11 @@ class MeldekortBrukerPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `Skal ikke hente meldekort som allerede er behandlet`() {
-        withMigratedDb { testDataHelper ->
+        // Aggregert spørring på tvers av saker; må kjøre isolert.
+        // TODO: Kan flippes til runIsolated = false når hentMeldekortSomSkalBehandlesAutomatisk får limit som parameter, ved å scope assertions til egne saker med høy limit.
+        withMigratedDb(runIsolated = true) { testDataHelper ->
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
             val (sak) = testDataHelper.persisterIverksattSøknadsbehandling(

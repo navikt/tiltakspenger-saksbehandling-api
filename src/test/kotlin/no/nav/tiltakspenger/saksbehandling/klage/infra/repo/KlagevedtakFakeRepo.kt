@@ -72,11 +72,22 @@ class KlagevedtakFakeRepo : KlagevedtakRepo {
         return data.get().values.filter { it.journalpostId == null }.sortedBy { it.opprettet }.take(limit)
     }
 
+    override fun hentKlagevedtakSomSkalJournalføresForSakId(sakId: SakId): List<Klagevedtak> {
+        return hentKlagevedtakSomSkalJournalføres(limit = Int.MAX_VALUE).filter { it.sakId == sakId }
+    }
+
     override fun hentKlagevedtakSomSkalDistribueres(limit: Int): List<VedtakSomSkalDistribueres> {
         return data.get().values
             .filter { it.journalpostId != null && it.journalføringstidspunkt != null && it.distribusjonstidspunkt == null && it.distribusjonId == null }
             .sortedBy { it.journalføringstidspunkt }
             .take(limit)
+            .map { VedtakSomSkalDistribueres(it.id, it.journalpostId!!) }
+    }
+
+    override fun hentKlagevedtakSomSkalDistribueresForSakId(sakId: SakId): List<VedtakSomSkalDistribueres> {
+        return data.get().values
+            .filter { it.sakId == sakId && it.journalpostId != null && it.journalføringstidspunkt != null && it.distribusjonstidspunkt == null && it.distribusjonId == null }
+            .sortedBy { it.journalføringstidspunkt }
             .map { VedtakSomSkalDistribueres(it.id, it.journalpostId!!) }
     }
 }

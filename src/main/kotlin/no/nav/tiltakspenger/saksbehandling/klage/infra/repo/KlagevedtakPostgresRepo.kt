@@ -176,6 +176,52 @@ class KlagevedtakPostgresRepo(
         }
     }
 
+    override fun hentKlagevedtakSomSkalJournalføresForSakId(sakId: SakId): List<Klagevedtak> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    select
+                      k.*,
+                      s.fnr,
+                      s.saksnummer
+                    from klagevedtak k
+                    join sak s on s.id = k.sak_id
+                    where k.journalpost_id is null
+                      and k.sak_id = :sak_id
+                    order by k.opprettet
+                    """,
+                    "sak_id" to sakId.toString(),
+                ).map { fromRow(it, session) }.asList,
+            )
+        }
+    }
+
+    override fun hentKlagevedtakSomSkalDistribueresForSakId(sakId: SakId): List<VedtakSomSkalDistribueres> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                        select v.id,v.journalpost_id
+                        from klagevedtak v
+                        where v.journalpost_id is not null
+                        and v.journalføringstidspunkt is not null
+                        and v.distribusjonstidspunkt is null
+                        and v.distribusjon_id is null
+                        and v.sak_id = :sak_id
+                        order by v.opprettet
+                    """,
+                    "sak_id" to sakId.toString(),
+                ).map { row ->
+                    VedtakSomSkalDistribueres(
+                        id = VedtakId.fromString(row.string("id")),
+                        journalpostId = JournalpostId(row.string("journalpost_id")),
+                    )
+                }.asList,
+            )
+        }
+    }
+
     override fun hentKlagevedtakSomSkalDistribueres(limit: Int): List<VedtakSomSkalDistribueres> {
         return sessionFactory.withSession { session ->
             session.run(

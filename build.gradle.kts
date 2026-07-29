@@ -165,6 +165,11 @@ tasks {
         maxHeapSize = "2g"
         // https://phauer.com/2018/best-practices-unit-testing-kotlin/
         systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_class")
+        // Testklasser kjører parallelt, metoder i samme klasse sekvensielt (klasse-delte mocks m.m.).
+        // Tester markert med @IsolatedDatabaseTest serialiseres via ResourceLock.
+        systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+        systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
+        systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
         // https://github.com/mockito/mockito/issues/3037#issuecomment-1588199599
         jvmArgs("-XX:+EnableDynamicAgentLoading")
         testLogging {
