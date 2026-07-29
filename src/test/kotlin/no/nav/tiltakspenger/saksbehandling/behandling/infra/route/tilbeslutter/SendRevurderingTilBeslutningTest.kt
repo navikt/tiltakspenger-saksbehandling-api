@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -139,10 +140,12 @@ class SendRevurderingTilBeslutningTest {
             val søknadsbehandlingInnvilgelsesperiode = 1 til 10.april(2025)
             val revurderingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode.plusTilOgMed(14L)
 
+            // Én deltakelse som dekker begge periodene, slik at revurderingen gjelder samme deltakelse som innvilgelsen.
+            val tiltaksdeltakelse = tiltaksdeltakelse(1 til 24.april(2025))
             val (sak, _, rammevedtakSøknadsbehandling, jsonResponse) = sendRevurderingInnvilgelseTilBeslutning(
                 tac,
-                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelsesperiode),
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelsesperiode),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = søknadsbehandlingInnvilgelsesperiode, valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(periode = revurderingInnvilgelsesperiode, valgtTiltaksdeltakelse = tiltaksdeltakelse),
             )
             val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
 

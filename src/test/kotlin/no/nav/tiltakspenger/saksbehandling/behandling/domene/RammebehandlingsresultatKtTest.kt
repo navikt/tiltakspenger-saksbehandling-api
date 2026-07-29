@@ -15,11 +15,13 @@ class RammebehandlingsresultatKtTest {
     inner class NullstilleResultatVedSaksopplysninger {
         val periode = Periode(1.januar(2023), 31.mars(2023))
 
-        private val valgteTiltaksdeltakelser = listOf(ObjectMother.tiltaksdeltakelse())
+        private val valgtTiltaksdeltakelse = ObjectMother.tiltaksdeltakelse()
+        private val valgteTiltaksdeltakelser = listOf(valgtTiltaksdeltakelse)
 
         private val matchendeSaksopplysning = ObjectMother.saksopplysninger(
             fom = periode.fraOgMed,
             tom = periode.tilOgMed,
+            tiltaksdeltakelse = listOf(valgtTiltaksdeltakelse),
         )
         private val annenInternDeltakelseId = TiltaksdeltakerId.random()
         private val annenInternDeltakelseId2 = TiltaksdeltakerId.random()

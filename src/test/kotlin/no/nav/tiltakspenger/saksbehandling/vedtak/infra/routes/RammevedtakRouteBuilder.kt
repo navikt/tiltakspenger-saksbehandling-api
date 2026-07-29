@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammevedtakDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.objectmothers.DEFAULT_TILTAK_DELTAKELSE_INTERN_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.json.JSONObject
 
 /**
@@ -27,10 +27,12 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
     opprinneligInnvilgetPerioder: List<Periode> = listOf(opprinneligVedtaksperiode),
     gjeldendeInnvilgetPerioder: List<Periode> = gjeldendeVedtaksperioder,
     erGjeldende: Boolean = true,
+    // Må settes når [innvilgelsesperioder] ikke overstyres; default-malen trenger deltakelsens faktiske id.
+    internDeltakelseId: TiltaksdeltakerId? = null,
     innvilgelsesperioder: String = """
         [
             {
-                "internDeltakelseId": "$DEFAULT_TILTAK_DELTAKELSE_INTERN_ID",
+                "internDeltakelseId": "${requireNotNull(internDeltakelseId) { "internDeltakelseId må settes når innvilgelsesperioder ikke overstyres" }}",
                 "periode": {
                     "fraOgMed": "2023-01-01",
                     "tilOgMed": "2023-03-31"

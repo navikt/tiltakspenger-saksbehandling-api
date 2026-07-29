@@ -33,7 +33,8 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
+        // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
+        tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
     ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {

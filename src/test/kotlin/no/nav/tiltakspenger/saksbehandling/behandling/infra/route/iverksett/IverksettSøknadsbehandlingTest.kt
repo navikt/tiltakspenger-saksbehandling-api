@@ -101,6 +101,7 @@ class IverksettSøknadsbehandlingTest {
                 behandlingId = søknadsbehandling.id.toString(),
                 opprettet = "2025-01-01T01:02:20.456789",
                 opprinneligVedtaksperiode = vedtaksperiode(),
+                internDeltakelseId = rammevedtakSøknadsbehandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId,
             )
         }
     }

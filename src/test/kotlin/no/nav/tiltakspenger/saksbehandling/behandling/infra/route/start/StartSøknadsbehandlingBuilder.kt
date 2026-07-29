@@ -151,7 +151,8 @@ interface StartSøknadsbehandlingBuilder {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
+        // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
+        tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {

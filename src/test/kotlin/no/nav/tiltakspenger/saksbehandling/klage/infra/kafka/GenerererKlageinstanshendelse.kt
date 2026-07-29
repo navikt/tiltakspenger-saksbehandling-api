@@ -5,11 +5,12 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.kafka
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.BehandlingFeilregistrert.KlagehendelseFeilregistrertType
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse.OmgjøringskravbehandlingAvsluttet.OmgjøringskravbehandlingAvsluttetUtfall
+import java.util.UUID
 
 /** Se https://github.com/navikt/kabal-api/blob/main/docs/schema/behandling-events.json for fasit. */
 object GenerererKlageinstanshendelse {
     fun avsluttetJson(
-        eventId: String = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+        eventId: String = UUID.randomUUID().toString(),
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         kilde: String = "TILTAKSPENGER",
         kabalReferanse: String = "c0aef33a-da01-4262-ab55-1bbdde157e8a",
@@ -37,7 +38,7 @@ object GenerererKlageinstanshendelse {
     }
 
     fun omgjøringskravbehandlingAvsluttet(
-        eventId: String = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+        eventId: String = UUID.randomUUID().toString(),
         kildeReferanse: String = "1272760b-f9be-4ad8-99c4-d01823462784",
         kilde: String = "TILTAKSPENGER",
         kabalReferanse: String = "c0aef33a-da01-4262-ab55-1bbdde157e8a",
@@ -65,7 +66,7 @@ object GenerererKlageinstanshendelse {
     }
 
     fun behandlingFeilregistrert(
-        eventId: String = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+        eventId: String = UUID.randomUUID().toString(),
         kildeReferanse: String = "1272760b-f9be-4ad8-99c4-d01823462784",
         kilde: String = "TILTAKSPENGER",
         kabalReferanse: String = "c0aef33a-da01-4262-ab55-1bbdde157e8a",

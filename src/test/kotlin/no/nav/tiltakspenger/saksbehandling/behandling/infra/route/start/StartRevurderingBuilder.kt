@@ -41,7 +41,8 @@ interface StartRevurderingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
+        // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
+        tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
@@ -92,7 +93,9 @@ interface StartRevurderingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
-        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse? = tiltaksdeltakelse(søknadsbehandlingInnvilgelsesperioder.totalPeriode),
+        // Default: revurderingen gjelder samme deltakelse som innvilgelsen.
+        // Send inn en kopi med endret periode for å teste endret deltakelse.
+        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse? = søknadsbehandlingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         fnr: Fnr = Fnr.random(),
         sakId: SakId? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {

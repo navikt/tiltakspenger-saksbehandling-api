@@ -32,7 +32,7 @@ internal class OppdaterRammebehandlingSaksopplysningerTest {
                 fnr = sak.fnr,
                 person = personopplysningerForBrukerFraPdl,
                 tiltaksdeltakelse = Tiltaksdeltakelse(
-                    eksternDeltakelseId = "TA12345",
+                    eksternDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.value.first().eksternDeltakelseId,
                     gjennomføringId = null,
                     typeNavn = "Testnavn",
                     typeKode = TiltakstypeSomGirRettDTO.JOBBKLUBB,

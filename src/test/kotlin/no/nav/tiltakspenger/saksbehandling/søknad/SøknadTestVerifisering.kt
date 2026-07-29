@@ -8,7 +8,7 @@ fun String.shouldBeSøknadDTO(
     ignorerTidspunkt: Boolean = true,
     søknadId: SøknadId,
     journalpostId: String = "123456789",
-    tiltakId: String = "61328250-7d5d-4961-b70e-5cb727a34371",
+    tiltakId: String,
     tiltakFraOgMed: String = "2023-01-01",
     tiltakTilOgMed: String = "2023-03-31",
     tiltakTypeKode: String = "GRUPPEAMO",

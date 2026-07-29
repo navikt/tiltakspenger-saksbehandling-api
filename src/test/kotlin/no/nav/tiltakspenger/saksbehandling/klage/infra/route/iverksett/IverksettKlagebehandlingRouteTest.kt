@@ -343,6 +343,9 @@ class IverksettKlagebehandlingRouteTest {
                 attesteringer = listOf(
                     """{"begrunnelse": null, "endretAv": "B12345", "endretTidspunkt": "2025-01-01T01:03:04.456789", "status": "GODKJENT"}""",
                 ),
+                internDeltakelseId = iverksattRammebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                eksternDeltagelseId = iverksattRammebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                søknadTiltakId = iverksattRammebehandling.søknad.tiltak!!.id,
             )
 
             // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
@@ -404,6 +407,8 @@ class IverksettKlagebehandlingRouteTest {
                 sakId = sak.id,
                 behandlingId = iverksattRammebehandling.id,
                 resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE,
+                internDeltakelseId = iverksattRammebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                eksternDeltagelseId = iverksattRammebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             )
 
             // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage
@@ -464,6 +469,8 @@ class IverksettKlagebehandlingRouteTest {
                 rammevedtakId = rammevedtak.id,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
+                internDeltakelseId = rammebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                eksternDeltagelseId = rammebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             )
 
             // verifiserer at vi kan hente sak igjen uten at det blir kastet noen exception mellom behandling + klage

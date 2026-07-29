@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling
@@ -281,10 +282,12 @@ class OppdaterMeldekortbehandlingRouteTest {
         withTestApplicationContext(clock = clock) { tac ->
             // Søknadsbehandling dekker tirsdag 31.mars - søndag 12.april (1.april er onsdag)
             // Revurderingen forlenger bakover til mandag 30.mars, slik at 30.mars og 31.mars går fra "ingen rett" til "har rett" og kjeden får en ny versjon.
+            // Én deltakelse som dekker begge periodene, slik at revurderingen gjelder samme deltakelse som innvilgelsen.
+            val tiltaksdeltakelse = tiltaksdeltakelse(30.mars(2026) til 12.april(2026))
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1.april(2026) til 12.april(2026)),
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(30.mars(2026) til 12.april(2026)),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = 1.april(2026) til 12.april(2026), valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(periode = 30.mars(2026) til 12.april(2026), valgtTiltaksdeltakelse = tiltaksdeltakelse),
             )
 
             val kjede = sak.meldeperiodeKjeder.first()

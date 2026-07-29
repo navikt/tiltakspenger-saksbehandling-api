@@ -82,6 +82,8 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 iverksattTidspunkt = null,
                 vedtaksperiode = null,
                 status = "AVBRUTT",
+                internDeltakelseId = avbruttRammebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                eksternDeltagelseId = avbruttRammebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             )
 
             klagebehandlingJson.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(

@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.toBarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.InnvilgelsesperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilHjemmelForOpphørDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -47,7 +48,7 @@ interface OppdaterRammebehandlingBuilder {
               "resultat": "INNVILGELSE",
               ${
             innvilgelseJson(
-                innvilgelsesperioder,
+                innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
@@ -145,7 +146,7 @@ interface OppdaterRammebehandlingBuilder {
               "resultat": "REVURDERING_INNVILGELSE",
               ${
             innvilgelseJson(
-                innvilgelsesperioder,
+                innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
@@ -185,7 +186,7 @@ interface OppdaterRammebehandlingBuilder {
               "vedtaksperiode": ${serialize(vedtaksperiode.toDTO())},
               ${
             innvilgelseJson(
-                innvilgelsesperioder,
+                innvilgelsesperioder.tilDTOMedDeltakelseFra(tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)),
                 barnetillegg,
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
@@ -323,8 +324,31 @@ interface OppdaterRammebehandlingBuilder {
         }
     }
 
+    /**
+     * Bytter ut ukjente deltakelse-id-er i innvilgelsesperiodene med behandlingens faktiske.
+     * Kallstedene uttrykker hvilke perioder som innvilges; deltakelsen eies av flyten og har unik id per test.
+     * Jobber på DTO-nivå slik at serverens validering av periodene fortsatt nås av tester som tester den.
+     */
+    private fun Innvilgelsesperioder.tilDTOMedDeltakelseFra(behandling: Rammebehandling): List<InnvilgelsesperiodeDTO> {
+        val kjenteDeltakelser = behandling.saksopplysninger.tiltaksdeltakelser.value
+        return tilDTO().map { dto ->
+            if (kjenteDeltakelser.any { it.internDeltakelseId.toString() == dto.internDeltakelseId }) {
+                dto
+            } else {
+                val dekkende = kjenteDeltakelser.firstOrNull { deltakelse ->
+                    deltakelse.deltakelseFraOgMed != null &&
+                        deltakelse.deltakelseTilOgMed != null &&
+                        Periode(deltakelse.deltakelseFraOgMed, deltakelse.deltakelseTilOgMed).inneholderHele(dto.periode.toDomain())
+                }
+                val erstatning = dekkende ?: kjenteDeltakelser.firstOrNull()
+                // Uten kjente deltakelser lar vi dto-en stå, slik at serveren svarer med sin egen feil.
+                if (erstatning == null) dto else dto.copy(internDeltakelseId = erstatning.internDeltakelseId.toString())
+            }
+        }
+    }
+
     private fun innvilgelseJson(
-        innvilgelsesperioder: Innvilgelsesperioder,
+        innvilgelsesperioder: List<InnvilgelsesperiodeDTO>,
         barnetillegg: Barnetillegg,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
@@ -334,7 +358,7 @@ interface OppdaterRammebehandlingBuilder {
             "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
             "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
             "innvilgelsesperioder": [${
-            innvilgelsesperioder.tilDTO().joinToString(",") {
+            innvilgelsesperioder.joinToString(",") {
                 """
                             {
                                 "periode": ${serialize(it.periode)},

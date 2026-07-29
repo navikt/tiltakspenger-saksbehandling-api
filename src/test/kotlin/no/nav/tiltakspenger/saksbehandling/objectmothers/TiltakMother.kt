@@ -28,7 +28,8 @@ interface TiltakMother {
      * Dupliserer dene med [tiltaksdeltakelse] for å være bakoverkompabilitet med tester som bruker tac
      */
     fun tiltaksdeltakelseTac(
-        eksternTiltaksdeltakelseId: String = "TA12345",
+        // Unik per kall; `tiltaksdeltaker.ekstern_id` har unik indeks i basen.
+        eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Testnavn",
         eksternTiltaksgjennomføringsId: String? = null,
@@ -40,7 +41,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Tiltakskilde.Arena,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString(DEFAULT_TILTAK_DELTAKELSE_INTERN_ID),
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -95,13 +96,12 @@ interface TiltakMother {
 
     fun tiltaksdeltakelse(
         periode: Periode = 1.januar(2023) til 31.mars(2023),
-        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer.
-        // Så vi benytter en enkel statisk id her.
-        eksternTiltaksdeltakelseId: String = DEFAULT_TILTAK_DELTAKELSE_EKSTERN_ID,
+        // Unik per kall; `tiltaksdeltaker.ekstern_id` har unik indeks i basen.
+        // Skal to objekter representere samme deltakelse, må id-en sendes inn eksplisitt begge steder.
+        eksternTiltaksdeltakelseId: String = UUID.randomUUID().toString(),
         typeKode: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
         typeNavn: String = "Arbeidsmarkedsoppfølging gruppe",
-        // Det er litt vanskelig å konstant kontrollere tiltakelses-id'en fra høyere nivåer.
-        // Så vi benytter en enkel statisk id her.
+        // Denne er ikke unik i databasen og brukes ikke i domenelogikken, så den kan være statisk på tvers av alle deltakelser.
         eksternTiltaksgjennomføringsId: String = "358f6fe9-ebbe-4f7d-820f-2c0f04055c23",
         fom: LocalDate = periode.fraOgMed,
         tom: LocalDate = periode.tilOgMed,
@@ -111,7 +111,7 @@ interface TiltakMother {
         rettPåTiltakspenger: Boolean = true,
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
-        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.fromString(DEFAULT_TILTAK_DELTAKELSE_INTERN_ID),
+        internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     ): Tiltaksdeltakelse {
         return Tiltaksdeltakelse(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -219,7 +219,3 @@ fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerId = Ti
         tiltaksdeltakerId = tiltaksdeltakerId,
     )
 }
-
-const val DEFAULT_TILTAK_DELTAKELSE_EKSTERN_ID = "61328250-7d5d-4961-b70e-5cb727a34371"
-
-const val DEFAULT_TILTAK_DELTAKELSE_INTERN_ID = "tiltaksdeltaker_01KEYFWFRPZ9F0H446TF8HQFP0"

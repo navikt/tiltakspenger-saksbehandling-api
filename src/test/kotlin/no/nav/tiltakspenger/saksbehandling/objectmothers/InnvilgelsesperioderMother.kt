@@ -44,7 +44,12 @@ interface InnvilgelsesperioderMother {
     fun innvilgelsesperioder(
         vararg perioder: Periode,
     ): Innvilgelsesperioder {
-        return innvilgelsesperioder(perioder.toList().map { innvilgelsesperiode(it) })
+        // Én delt deltakelse over totalperioden; flere perioder på samme deltakelse er normaltilfellet (hull i innvilgelsen).
+        val valgtTiltaksdeltakelse = tiltaksdeltakelse(
+            fom = perioder.minOf { it.fraOgMed },
+            tom = perioder.maxOf { it.tilOgMed },
+        )
+        return innvilgelsesperioder(perioder.toList().map { innvilgelsesperiode(it, valgtTiltaksdeltakelse) })
     }
 
     fun innvilgelsesperioder(

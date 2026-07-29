@@ -224,7 +224,7 @@ interface BehandlingMother : MotherOfAllMothers {
                     behandlingId = id,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
-                    innvilgelsesperioder = innvilgelsesperioder,
+                    innvilgelsesperioder = innvilgelsesperioder.medDeltakelseFra(saksopplysninger),
                     barnetillegg = barnetillegg,
                     automatiskSaksbehandlet = automatiskBehandling,
                 )
@@ -982,4 +982,25 @@ fun Rammebehandling.tilBeslutning(
         ),
         clock = clock,
     ).getOrFail()
+}
+
+/**
+ * Binder innvilgelseskommandoene til saksopplysningenes faktiske tiltaksdeltakelse.
+ * Kallstedene uttrykker hvilke perioder som innvilges; deltakelsen eies av saksopplysningene og har unik id per test.
+ * Kommandoer som allerede peker på en deltakelse i saksopplysningene røres ikke.
+ */
+internal fun List<InnvilgelsesperiodeKommando>.medDeltakelseFra(saksopplysninger: Saksopplysninger): List<InnvilgelsesperiodeKommando> {
+    return map { kommando ->
+        if (saksopplysninger.tiltaksdeltakelser.any { it.internDeltakelseId == kommando.internDeltakelseId }) {
+            kommando
+        } else {
+            val dekkende = saksopplysninger.tiltaksdeltakelser.firstOrNull { deltakelse ->
+                deltakelse.deltakelseFraOgMed != null &&
+                    deltakelse.deltakelseTilOgMed != null &&
+                    Periode(deltakelse.deltakelseFraOgMed, deltakelse.deltakelseTilOgMed).inneholderHele(kommando.periode)
+            }
+            val erstatning = dekkende ?: saksopplysninger.tiltaksdeltakelser.firstOrNull()
+            if (erstatning == null) kommando else kommando.copy(internDeltakelseId = erstatning.internDeltakelseId)
+        }
+    }
 }

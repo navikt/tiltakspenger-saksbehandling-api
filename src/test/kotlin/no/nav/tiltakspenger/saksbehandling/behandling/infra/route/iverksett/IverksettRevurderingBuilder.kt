@@ -51,7 +51,8 @@ interface IverksettRevurderingBuilder {
         fnr: Fnr = Fnr.random(),
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
-        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(revurderingInnvilgelsesperioder.totalPeriode),
+        // Utledes fra periodene slik at revurderingen gjelder samme deltakelse som innvilgelsen; en frisk deltakelse ville fått ny id.
+        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         saksbehandler: Saksbehandler = saksbehandler(),
         beslutter: Saksbehandler = beslutter(),
         barnetilleggRevurdering: Barnetillegg = Barnetillegg.utenBarnetillegg(revurderingInnvilgelsesperioder.perioder),

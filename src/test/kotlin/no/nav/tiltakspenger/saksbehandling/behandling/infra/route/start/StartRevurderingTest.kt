@@ -91,10 +91,11 @@ internal class StartRevurderingTest {
     @Test
     fun `revurdering til omgjøring - tiltaksdeltakelse har krympet før start`() {
         withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(1 til 10.april(2025))
             val (sak, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(1 til 10.april(2025)),
-                oppdatertTiltaksdeltakelse = tiltaksdeltakelse(2 til 9.april(2025)),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = 1 til 10.april(2025), valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.copy(deltakelseFraOgMed = 2.april(2025), deltakelseTilOgMed = 9.april(2025)),
             )!!
             rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode shouldBe (1 til 10.april(2025))
             rammevedtakSøknadsbehandling.rammebehandling.innvilgelsesperioder!!.totalPeriode shouldBe (
@@ -156,10 +157,11 @@ internal class StartRevurderingTest {
     @Test
     fun `revurdering til omgjøring - tiltaksdeltakelse har økt før start`() {
         withTestApplicationContext { tac ->
+            val tiltaksdeltakelse = tiltaksdeltakelse(2 til 9.april(2025))
             val (sak, _, rammevedtakSøknadsbehandling, omgjøring) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(2 til 9.april(2025)),
-                oppdatertTiltaksdeltakelse = tiltaksdeltakelse(1 til 10.april(2025)),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = 2 til 9.april(2025), valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                oppdatertTiltaksdeltakelse = tiltaksdeltakelse.copy(deltakelseFraOgMed = 1.april(2025), deltakelseTilOgMed = 10.april(2025)),
             )!!
             rammevedtakSøknadsbehandling.rammebehandling.vedtaksperiode shouldBe (2 til 9.april(2025))
             rammevedtakSøknadsbehandling.rammebehandling.innvilgelsesperioder!!.totalPeriode shouldBe (

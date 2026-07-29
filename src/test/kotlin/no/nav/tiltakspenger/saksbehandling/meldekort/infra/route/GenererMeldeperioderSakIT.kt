@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
 import org.junit.jupiter.api.Test
@@ -51,10 +52,17 @@ class GenererMeldeperioderSakIT {
             val søknadsbehandlingInnvilgelse = Periode(1.april(2025), 13.april(2025))
             val revurderingInnvilgelse = søknadsbehandlingInnvilgelse.plusTilOgMed(28L)
 
+            // Én deltakelse som dekker begge periodene, slik at revurderingen gjelder samme deltakelse som innvilgelsen.
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                Periode(
+                    minOf(søknadsbehandlingInnvilgelse.fraOgMed, revurderingInnvilgelse.fraOgMed),
+                    maxOf(søknadsbehandlingInnvilgelse.tilOgMed, revurderingInnvilgelse.tilOgMed),
+                ),
+            )
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelse),
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelse),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = søknadsbehandlingInnvilgelse, valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(periode = revurderingInnvilgelse, valgtTiltaksdeltakelse = tiltaksdeltakelse),
             )
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 3
@@ -72,10 +80,17 @@ class GenererMeldeperioderSakIT {
             // 18. mars 2025 var en tirsdag, 13. april en søndag.
             val revurderingInnvilgelse = 18.mars(2025).til(13.april(2025))
 
+            // Én deltakelse som dekker begge periodene, slik at revurderingen gjelder samme deltakelse som innvilgelsen.
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                Periode(
+                    minOf(søknadsbehandlingInnvilgelse.fraOgMed, revurderingInnvilgelse.fraOgMed),
+                    maxOf(søknadsbehandlingInnvilgelse.tilOgMed, revurderingInnvilgelse.tilOgMed),
+                ),
+            )
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelse),
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelse),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = søknadsbehandlingInnvilgelse, valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(periode = revurderingInnvilgelse, valgtTiltaksdeltakelse = tiltaksdeltakelse),
             )
             sak.meldeperiodeKjeder.let {
                 it.size shouldBe 2
@@ -96,10 +111,17 @@ class GenererMeldeperioderSakIT {
             // Torsdag til søndag
             val revurderingInnvilgelse = Periode(17.april(2025), 20.april(2025))
 
+            // Én deltakelse som dekker begge periodene, slik at revurderingen gjelder samme deltakelse som innvilgelsen.
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                Periode(
+                    minOf(søknadsbehandlingInnvilgelse.fraOgMed, revurderingInnvilgelse.fraOgMed),
+                    maxOf(søknadsbehandlingInnvilgelse.tilOgMed, revurderingInnvilgelse.tilOgMed),
+                ),
+            )
             val (sak) = this.iverksettSøknadsbehandlingOgRevurderingInnvilgelse(
                 tac = tac,
-                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(søknadsbehandlingInnvilgelse),
-                revurderingInnvilgelsesperioder = innvilgelsesperioder(revurderingInnvilgelse),
+                søknadsbehandlingInnvilgelsesperioder = innvilgelsesperioder(periode = søknadsbehandlingInnvilgelse, valgtTiltaksdeltakelse = tiltaksdeltakelse),
+                revurderingInnvilgelsesperioder = innvilgelsesperioder(periode = revurderingInnvilgelse, valgtTiltaksdeltakelse = tiltaksdeltakelse),
             )
 
             sak.meldeperiodeKjeder.let {

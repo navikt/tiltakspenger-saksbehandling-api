@@ -331,9 +331,10 @@ class EndretTiltaksdeltakerJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             )
 
-            val tiltaksdeltakelseForlenget = tiltaksdeltakelse(
-                periode = forlengetDeltakelsesperiode,
-                internDeltakelseId = tiltaksdeltakerId,
+            // Samme deltakelse med forlenget periode; en frisk deltakelse ville fått ny ekstern-id.
+            val tiltaksdeltakelseForlenget = tiltaksdeltakelse.copy(
+                deltakelseFraOgMed = forlengetDeltakelsesperiode.fraOgMed,
+                deltakelseTilOgMed = forlengetDeltakelsesperiode.tilOgMed,
             )
 
             tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = tiltaksdeltakelseForlenget)

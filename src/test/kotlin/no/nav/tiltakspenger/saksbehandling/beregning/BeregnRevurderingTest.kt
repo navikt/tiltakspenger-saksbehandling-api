@@ -108,6 +108,7 @@ class BeregnRevurderingTest {
                 innvilgelsesperiodeKommando(
                     innvilgelsesperiode = innvilgelsesperiode,
                     antallDagerPerMeldeperiode = antallDagerPerMeldeperiode,
+                    tiltaksdeltakelse = revurdering.saksopplysninger.tiltaksdeltakelser.first(),
                 ),
             ),
             barnetillegg = barnetillegg,

@@ -36,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.VurderOppretthold
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.vurder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.util.UUID
 
 /**
  * Enkelt case der man kun trenger en sak for å opprette en klagebehandling til avvisning (knyttes ikke til et vedtak).
@@ -259,7 +260,7 @@ internal fun TestDataHelper.persisterKlagebehandlingMottattFraKA(
                 klagebehandlingId = klagebehandlingId,
                 opprettet = nå(clock),
                 sistEndret = nå(clock),
-                eksternKlagehendelseId = "eksternKlagehendelseId",
+                eksternKlagehendelseId = UUID.randomUUID().toString(),
                 avsluttetTidspunkt = nå(clock),
                 utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.STADFESTELSE,
                 journalpostreferanser = listOf(),
@@ -309,7 +310,7 @@ internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
                 klagebehandlingId = klagebehandlingId,
                 opprettet = nå(clock),
                 sistEndret = nå(clock),
-                eksternKlagehendelseId = "eksternKlagehendelseId",
+                eksternKlagehendelseId = UUID.randomUUID().toString(),
                 avsluttetTidspunkt = nå(clock),
                 utfall = Klageinstanshendelse.KlagebehandlingAvsluttet.KlagehendelseKlagebehandlingAvsluttetUtfall.STADFESTELSE,
                 journalpostreferanser = listOf(),

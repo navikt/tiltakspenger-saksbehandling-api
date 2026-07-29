@@ -263,7 +263,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksbehandler = saksbehandler,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
-            innvilgelsesperioder = innvilgelsesperioder,
+            innvilgelsesperioder = innvilgelsesperioder.medDeltakelseFra(saksopplysninger),
             barnetillegg = barnetillegg,
         )
 
@@ -342,7 +342,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             saksopplysningsperiode = saksopplysningsperiode,
             saksopplysninger = saksopplysninger,
             navkontor = navkontor,
-            innvilgelsesperioder = innvilgelsesperioder,
+            innvilgelsesperioder = innvilgelsesperioder.medDeltakelseFra(saksopplysninger),
             barnetillegg = barnetillegg,
             beregning = beregning,
             clock = clock,
@@ -444,7 +444,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     correlationId = CorrelationId.generate(),
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
-                    innvilgelsesperioder = listOf(innvilgelsesperiodeKommando(omgjøringInnvilgelsesperiode)).tilPeriodisering(),
+                    innvilgelsesperioder = listOf(innvilgelsesperiodeKommando(omgjøringInnvilgelsesperiode)).medDeltakelseFra(it.saksopplysninger).tilPeriodisering(),
                     barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperiode),
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,

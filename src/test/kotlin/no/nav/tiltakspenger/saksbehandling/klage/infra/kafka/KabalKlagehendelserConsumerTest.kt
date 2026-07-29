@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgOpprettholdKlagebehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import java.util.UUID
 
 class KabalKlagehendelserConsumerTest {
 
@@ -55,9 +56,10 @@ class KabalKlagehendelserConsumerTest {
             val klagehendelseRepo = tac.klagebehandlingContext.klagehendelseRepo
             val (sak, klagebehandling) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val kildeReferanse = klagebehandling.id.toString()
+            val eksternKlagehendelseId = UUID.randomUUID().toString()
             val klagehendelseId = KlageinstansKlagehendelseConsumer.consume(
                 key = "some-unused-uuid",
-                value = GenerererKlageinstanshendelse.avsluttetJson(utfall = utfall, kildeReferanse = kildeReferanse),
+                value = GenerererKlageinstanshendelse.avsluttetJson(eventId = eksternKlagehendelseId, utfall = utfall, kildeReferanse = kildeReferanse),
                 clock = tac.clock,
                 lagreNyHendelse = klagehendelseRepo::lagreNyHendelse,
             )!!
@@ -65,6 +67,7 @@ class KabalKlagehendelserConsumerTest {
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetNyKlagebehandlingAvsluttetHendelse(
                     klagehendelseId = klagehendelseId,
+                    eksternKlagehendelseId = eksternKlagehendelseId,
                     utfall = utfall,
                     kildeReferanse = kildeReferanse,
                 ),
@@ -73,6 +76,7 @@ class KabalKlagehendelserConsumerTest {
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetNyKlagebehandlingAvsluttetHendelse(
                     klagehendelseId = klagehendelseId,
+                    eksternKlagehendelseId = eksternKlagehendelseId,
                     utfall = utfall,
                     kildeReferanse = kildeReferanse,
                     sakId = sak.id,
@@ -88,7 +92,7 @@ class KabalKlagehendelserConsumerTest {
                                 klagehendelseId = klagehendelseId,
                                 opprettet = LocalDateTime.MIN,
                                 sistEndret = LocalDateTime.MIN,
-                                eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+                                eksternKlagehendelseId = eksternKlagehendelseId,
                                 avsluttetTidspunkt = LocalDateTime.MIN,
                                 utfall = utfall,
                                 journalpostreferanser = listOf(123, 456).map { JournalpostId(it.toString()) },
@@ -111,7 +115,7 @@ class KabalKlagehendelserConsumerTest {
                       "utfall": "$utfall",
                       "opprettet": "TIMESTAMP",
                       "sistEndret": "TIMESTAMP",
-                      "eksternKlagehendelseId": "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+                      "eksternKlagehendelseId": "$eksternKlagehendelseId",
                       "avsluttetTidspunkt": "TIMESTAMP",
                       "journalpostreferanser": ["123","456"],
                       "hendelsestype": "KLAGEBEHANDLING_AVSLUTTET"
@@ -123,6 +127,7 @@ class KabalKlagehendelserConsumerTest {
 
     private fun forventetNyKlagebehandlingAvsluttetHendelse(
         klagehendelseId: KlagehendelseId,
+        eksternKlagehendelseId: String,
         utfall: KlagehendelseKlagebehandlingAvsluttetUtfall,
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         sakId: SakId? = null,
@@ -131,9 +136,9 @@ class KabalKlagehendelserConsumerTest {
         klagehendelseId = klagehendelseId,
         opprettet = LocalDateTime.MIN,
         sistEndret = LocalDateTime.MIN,
-        eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+        eksternKlagehendelseId = eksternKlagehendelseId,
         key = "some-unused-uuid",
-        value = """{"type":"KLAGEBEHANDLING_AVSLUTTET","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"klagebehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
+        value = """{"type":"KLAGEBEHANDLING_AVSLUTTET","kilde":"TILTAKSPENGER","eventId":"$eksternKlagehendelseId","detaljer":{"klagebehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
         sakId = sakId,
         klagebehandlingId = klagebehandlingId,
     )
@@ -145,9 +150,11 @@ class KabalKlagehendelserConsumerTest {
             val klagehendelseRepo = tac.klagebehandlingContext.klagehendelseRepo
             val (sak, klagebehandling) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val kildeReferanse = klagebehandling.id.toString()
+            val eksternKlagehendelseId = UUID.randomUUID().toString()
             val klagehendelseId = KlageinstansKlagehendelseConsumer.consume(
                 key = "some-unused-uuid",
                 value = GenerererKlageinstanshendelse.omgjøringskravbehandlingAvsluttet(
+                    eventId = eksternKlagehendelseId,
                     utfall = utfall,
                     kildeReferanse = kildeReferanse,
                 ),
@@ -158,6 +165,7 @@ class KabalKlagehendelserConsumerTest {
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetNyOmgjøringskravbehandlingAvsluttetHendelse(
                     klagehendelseId = klagehendelseId,
+                    eksternKlagehendelseId = eksternKlagehendelseId,
                     utfall = utfall,
                     kildeReferanse = kildeReferanse,
                 ),
@@ -166,6 +174,7 @@ class KabalKlagehendelserConsumerTest {
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetNyOmgjøringskravbehandlingAvsluttetHendelse(
                     klagehendelseId = klagehendelseId,
+                    eksternKlagehendelseId = eksternKlagehendelseId,
                     utfall = utfall,
                     kildeReferanse = kildeReferanse,
                     sakId = sak.id,
@@ -181,7 +190,7 @@ class KabalKlagehendelserConsumerTest {
                                 klagehendelseId = klagehendelseId,
                                 opprettet = LocalDateTime.MIN,
                                 sistEndret = LocalDateTime.MIN,
-                                eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+                                eksternKlagehendelseId = eksternKlagehendelseId,
                                 avsluttetTidspunkt = LocalDateTime.MIN,
                                 utfall = utfall,
                                 journalpostreferanser = listOf(123, 456).map { JournalpostId(it.toString()) },
@@ -196,6 +205,7 @@ class KabalKlagehendelserConsumerTest {
 
     private fun forventetNyOmgjøringskravbehandlingAvsluttetHendelse(
         klagehendelseId: KlagehendelseId,
+        eksternKlagehendelseId: String,
         utfall: OmgjøringskravbehandlingAvsluttetUtfall,
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         sakId: SakId? = null,
@@ -204,9 +214,9 @@ class KabalKlagehendelserConsumerTest {
         klagehendelseId = klagehendelseId,
         opprettet = LocalDateTime.MIN,
         sistEndret = LocalDateTime.MIN,
-        eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+        eksternKlagehendelseId = eksternKlagehendelseId,
         key = "some-unused-uuid",
-        value = """{"type":"OMGJOERINGSKRAVBEHANDLING_AVSLUTTET","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"omgjoeringskravbehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
+        value = """{"type":"OMGJOERINGSKRAVBEHANDLING_AVSLUTTET","kilde":"TILTAKSPENGER","eventId":"$eksternKlagehendelseId","detaljer":{"omgjoeringskravbehandlingAvsluttet":{"utfall":"$utfall","avsluttet":"2025-01-01T01:02:03.456789","journalpostReferanser":[123,456]}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
         sakId = sakId,
         klagebehandlingId = klagebehandlingId,
     )
@@ -218,9 +228,11 @@ class KabalKlagehendelserConsumerTest {
             val klagehendelseRepo = tac.klagebehandlingContext.klagehendelseRepo
             val (sak, klagebehandling) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val kildeReferanse = klagebehandling.id.toString()
+            val eksternKlagehendelseId = UUID.randomUUID().toString()
             val klagehendelseId = KlageinstansKlagehendelseConsumer.consume(
                 key = "some-unused-uuid",
                 value = GenerererKlageinstanshendelse.behandlingFeilregistrert(
+                    eventId = eksternKlagehendelseId,
                     type = type,
                     kildeReferanse = kildeReferanse,
                 ),
@@ -231,6 +243,7 @@ class KabalKlagehendelserConsumerTest {
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetBehandlingFeilregistrertHendelse(
                     klagehendelseId = klagehendelseId,
+                    eksternKlagehendelseId = eksternKlagehendelseId,
                     type = type,
                     kildeReferanse = kildeReferanse,
                 ),
@@ -239,6 +252,7 @@ class KabalKlagehendelserConsumerTest {
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetBehandlingFeilregistrertHendelse(
                     klagehendelseId = klagehendelseId,
+                    eksternKlagehendelseId = eksternKlagehendelseId,
                     type = type,
                     kildeReferanse = kildeReferanse,
                     sakId = sak.id,
@@ -255,7 +269,7 @@ class KabalKlagehendelserConsumerTest {
                                 klagebehandlingId = klagebehandling.id,
                                 opprettet = LocalDateTime.MIN,
                                 sistEndret = LocalDateTime.MIN,
-                                eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+                                eksternKlagehendelseId = eksternKlagehendelseId,
                                 feilregistrertTidspunkt = LocalDateTime.MIN,
                                 årsak = "Årsaken til at behandlingen endte opp som feilregistrert.",
                                 navIdent = "Z123456",
@@ -270,6 +284,7 @@ class KabalKlagehendelserConsumerTest {
 
     private fun forventetBehandlingFeilregistrertHendelse(
         klagehendelseId: KlagehendelseId,
+        eksternKlagehendelseId: String,
         type: KlagehendelseFeilregistrertType,
         kildeReferanse: String = "klage_01KJ36CZA345ZM2QWMBVWH8NN8",
         sakId: SakId? = null,
@@ -278,9 +293,9 @@ class KabalKlagehendelserConsumerTest {
         klagehendelseId = klagehendelseId,
         opprettet = LocalDateTime.MIN,
         sistEndret = LocalDateTime.MIN,
-        eksternKlagehendelseId = "0f4ea0c2-8b44-4266-a1c3-801006b06280",
+        eksternKlagehendelseId = eksternKlagehendelseId,
         key = "some-unused-uuid",
-        value = """{"type":"BEHANDLING_FEILREGISTRERT","kilde":"TILTAKSPENGER","eventId":"0f4ea0c2-8b44-4266-a1c3-801006b06280","detaljer":{"behandlingFeilregistrert":{"type":"$type","reason":"Årsaken til at behandlingen endte opp som feilregistrert.","navIdent":"Z123456","feilregistrert":"2025-01-01T01:02:03.456789"}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
+        value = """{"type":"BEHANDLING_FEILREGISTRERT","kilde":"TILTAKSPENGER","eventId":"$eksternKlagehendelseId","detaljer":{"behandlingFeilregistrert":{"type":"$type","reason":"Årsaken til at behandlingen endte opp som feilregistrert.","navIdent":"Z123456","feilregistrert":"2025-01-01T01:02:03.456789"}},"kabalReferanse":"c0aef33a-da01-4262-ab55-1bbdde157e8a","kildeReferanse":"$kildeReferanse"}""",
         sakId = sakId,
         klagebehandlingId = klagebehandlingId,
     )

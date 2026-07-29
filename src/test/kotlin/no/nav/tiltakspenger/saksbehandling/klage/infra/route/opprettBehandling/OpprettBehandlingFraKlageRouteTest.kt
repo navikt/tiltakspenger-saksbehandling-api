@@ -90,6 +90,9 @@ class OpprettBehandlingFraKlageRouteTest {
                 vedtaksperiode = null,
                 innvilgelsesperiode = false,
                 barnetillegg = false,
+                internDeltakelseId = rammebehandlingMedKlagebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                eksternDeltagelseId = rammebehandlingMedKlagebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
+                søknadTiltakId = rammebehandlingMedKlagebehandling.søknad.tiltak!!.id,
             )
         }
     }
@@ -151,6 +154,8 @@ class OpprettBehandlingFraKlageRouteTest {
                 vedtaksperiode = null,
                 barnetillegg = false,
                 innvilgelsesperiode = false,
+                internDeltakelseId = rammebehandlingMedKlagebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                eksternDeltagelseId = rammebehandlingMedKlagebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             )
         }
     }
@@ -213,6 +218,8 @@ class OpprettBehandlingFraKlageRouteTest {
                 barnetillegg = false,
                 innvilgelsesperiode = false,
                 omgjørVedtak = sak.vedtaksliste.rammevedtaksliste.first().id,
+                internDeltakelseId = rammebehandlingMedKlagebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
+                eksternDeltagelseId = rammebehandlingMedKlagebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,
             )
         }
     }
