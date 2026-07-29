@@ -2,6 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
@@ -10,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.FnrGenerator
+import no.nav.tiltakspenger.saksbehandling.sak.delteSaksnummerGenerator
+import java.time.Clock
 import java.time.Instant
 import kotlin.time.Duration
 
@@ -23,7 +28,14 @@ private val fnrGenerator = FnrGenerator()
  * test-data instanser vi vil skal deles på tvers av test-interfacene våre
  */
 interface MotherOfAllMothers {
-    val clock get() = KlokkeMother.clock
+    /**
+     * Ny tikkende klokke per oppslag: ingen delt klokketilstand mellom tester.
+     * En test som trenger monotone tidsstempler på tvers av flere mother-kall må lage sin egen [no.nav.tiltakspenger.libs.common.TikkendeKlokke] og sende den inn.
+     */
+    val clock: Clock get() = TikkendeKlokke()
+
+    /** Nytt, unikt saksnummer per kall via [no.nav.tiltakspenger.saksbehandling.sak.delteSaksnummerGenerator]; saksnummer har unik indeks i sak-tabellen. */
+    fun nesteSaksnummer(): Saksnummer = delteSaksnummerGenerator.generer()
 }
 
 object ObjectMother :

@@ -8,6 +8,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -17,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
-import no.nav.tiltakspenger.saksbehandling.objectmothers.KlokkeMother.clock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortbehandlingOpprettet
 import org.junit.jupiter.api.Test
@@ -27,6 +28,7 @@ internal class OppdaterMeldekortServiceTest {
 
     @Test
     fun `En meldeperiode kan ikke være 1 dag`() {
+        val clock = TikkendeKlokke()
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
@@ -62,6 +64,7 @@ internal class OppdaterMeldekortServiceTest {
 
     @Test
     fun `innsendingsperioden kan ikke være før meldeperioden`() {
+        val clock = TikkendeKlokke()
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
@@ -111,6 +114,7 @@ internal class OppdaterMeldekortServiceTest {
 
     @Test
     fun `innsendingsperioden kan ikke være etter meldeperioden`() {
+        val clock = TikkendeKlokke()
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
@@ -161,6 +165,7 @@ internal class OppdaterMeldekortServiceTest {
 
     @Test
     fun `Kan ikke sende IKKE_RETT_TIL_TILTAKSPENGER på en innvilget dag`() {
+        val clock = TikkendeKlokke()
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
@@ -210,6 +215,7 @@ internal class OppdaterMeldekortServiceTest {
 
     @Test
     fun `Må sende IKKE_RETT_TIL_TILTAKSPENGER på en ikke-innvilget dag`() {
+        val clock = TikkendeKlokke()
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->
@@ -260,6 +266,7 @@ internal class OppdaterMeldekortServiceTest {
 
     @Test
     fun `IKKE_RETT_TIL_TILTAKSPENGER matcher 1 - 1`() {
+        val clock = TikkendeKlokke()
         val correlationId = CorrelationId.generate()
         runTest {
             withTestApplicationContext { tac ->

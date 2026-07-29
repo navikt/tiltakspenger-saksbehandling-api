@@ -17,16 +17,18 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meld
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface MeldekortvedtakMother : MotherOfAllMothers {
 
     fun meldekortvedtak(
+        clock: Clock = this.clock,
         id: VedtakId = VedtakId.random(),
         utbetalingId: UtbetalingId = UtbetalingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(LocalDate.now(clock), "1001"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(2.januar(2023), 15.januar(2023)),
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,

@@ -17,6 +17,7 @@ internal fun TestDataHelper.persisterSak(
     sakId: SakId = SakId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,

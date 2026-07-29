@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.beregning
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.desember
@@ -26,21 +27,23 @@ class BeregnRevurderingStansTest {
     // Starter på en tirsdag
     private val vedtaksperiode = Periode(31.desember(2024), 30.juni(2025))
 
-    private fun sakMedToMeldekortOgStans(): Pair<Sak, Revurdering> {
+    private fun sakMedToMeldekortOgStans(clock: TikkendeKlokke = TikkendeKlokke()): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
+            clock = clock,
             vedtaksperiode = vedtaksperiode,
             barnetillegg =
             barnetillegg(
                 periode = vedtaksperiode,
                 antallBarn = AntallBarn(1),
             ),
-        ).first.genererMeldeperioder(fixedClock)
+        ).first.genererMeldeperioder(clock)
 
         val førsteMeldeperiode = sak.meldeperiodeKjeder.first().periode
 
         val (sakMedMeldekortbehandlinger: Sak) = sak.leggTilMeldekortBehandletAutomatisk(
+            clock = clock,
             periode = førsteMeldeperiode,
-        ).first.leggTilMeldekortBehandletAutomatisk(periode = førsteMeldeperiode.plus14Dager())
+        ).first.leggTilMeldekortBehandletAutomatisk(clock = clock, periode = førsteMeldeperiode.plus14Dager())
 
         val revurdering = nyOpprettetRevurderingStans(
             sakId = sak.id,

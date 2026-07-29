@@ -35,7 +35,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
  */
 open class TestApplicationContextMedInMemoryDb(
     override val sessionFactory: TestSessionFactory = TestSessionFactory(),
-    clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
+    clock: TikkendeKlokke = TikkendeKlokke(),
     override val texasClient: TexasClient = TexasClientFake(clock),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     idGenerators: IdGenerators = IdGenerators(),

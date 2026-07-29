@@ -56,6 +56,7 @@ suspend fun TestApplicationContext.meldekortbehandlingKlarTilBeslutning(
     clock: Clock = this.clock,
 ): Pair<Sak, MeldekortbehandlingManuell> {
     val (_, opprettet) = oppdatertMeldekortbehandling(
+        clock = clock,
         sakId = sakId,
         kjedeId = kjedeId,
         saksbehandler = saksbehandler,

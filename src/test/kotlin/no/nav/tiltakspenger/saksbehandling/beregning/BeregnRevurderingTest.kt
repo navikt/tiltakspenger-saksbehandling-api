@@ -6,6 +6,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.desember
@@ -54,12 +55,14 @@ class BeregnRevurderingTest {
     private val sats2025 = Satser.sats(1.januar(2025))
 
     private fun sakMedRevurdering(
+        clock: TikkendeKlokke = TikkendeKlokke(),
         antallBarnFraSøknad: Int = 0,
         periodeForSøknadsbehandling: Periode = vedtaksperiodeSøknadsbehandling,
         periodeForRevurdering: Periode = vedtaksperiodeRevurdering,
         tiltakskodeForRevurdering: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
     ): Pair<Sak, Revurdering> {
         val (sak) = nySakMedVedtak(
+            clock = clock,
             vedtaksperiode = periodeForSøknadsbehandling,
             barnetillegg = if (antallBarnFraSøknad > 0) {
                 barnetillegg(
@@ -69,9 +72,10 @@ class BeregnRevurderingTest {
             } else {
                 Barnetillegg.utenBarnetillegg(periodeForSøknadsbehandling)
             },
-        ).first.genererMeldeperioder(fixedClock)
+        ).first.genererMeldeperioder(clock)
 
         val revurdering = nyOpprettetRevurderingInnvilgelse(
+            clock = clock,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             fnr = sak.fnr,
@@ -117,9 +121,11 @@ class BeregnRevurderingTest {
 
     @Test
     fun `Skal beregne etterbetaling for revurdering når en legger til barn`() {
-        val (sak, revurdering) = sakMedRevurdering()
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = sakMedRevurdering(clock = clock)
 
         val (sakMedMeldekortbehandlinger, meldekortbehandling) = sak.leggTilMeldekortBehandletAutomatisk(
+            clock = clock,
             periode = sak.meldeperiodeKjeder.first().periode,
         )
 
@@ -154,11 +160,14 @@ class BeregnRevurderingTest {
 
     @Test
     fun `Skal beregne tilbakekreving for revurdering når en fjerner barn`() {
+        val clock = TikkendeKlokke()
         val (sak, revurdering) = sakMedRevurdering(
+            clock = clock,
             antallBarnFraSøknad = 2,
         )
 
         val (sakMedMeldekortbehandlinger, meldekortbehandling) = sak.leggTilMeldekortBehandletAutomatisk(
+            clock = clock,
             periode = sak.meldeperiodeKjeder.first().periode,
         )
 
@@ -210,9 +219,11 @@ class BeregnRevurderingTest {
 
     @Test
     fun `Skal returnere ny beregning selv om det ikke er endringer på tidligere beregninger`() {
-        val (sak, revurdering) = sakMedRevurdering()
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = sakMedRevurdering(clock = clock)
 
         val (sakMedMeldekortbehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+            clock = clock,
             periode = sak.meldeperiodeKjeder.first().periode,
         )
 
@@ -231,16 +242,19 @@ class BeregnRevurderingTest {
 
     @Test
     fun `Skal ikke endre beregningen for dager før eller etter revurderingsperioden`() {
+        val clock = TikkendeKlokke()
         // Revurderer første meldeperiode, bortsett fra første og siste dag
         val førsteMeldeperiode = Periode(30.desember(2024), 12.januar(2025))
         val revurderingsperiode = førsteMeldeperiode.plusFraOgMed(1).minusTilOgMed(1)
 
         val (sak, revurdering) = sakMedRevurdering(
+            clock = clock,
             antallBarnFraSøknad = 1,
             periodeForRevurdering = revurderingsperiode,
         )
 
         val (sakMedMeldekortbehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+            clock = clock,
             periode = førsteMeldeperiode,
         )
 
@@ -274,18 +288,20 @@ class BeregnRevurderingTest {
 
     @Test
     fun `Skal ha en sammenhengende beregningsperiode, selv om ikke alle meldeperioder har endringer`() {
-        val (sak, revurdering) = sakMedRevurdering()
+        val clock = TikkendeKlokke()
+        val (sak, revurdering) = sakMedRevurdering(clock = clock)
 
         val førstePeriode = sak.meldeperiodeKjeder[0].periode
         val andrePeriode = sak.meldeperiodeKjeder[1].periode
         val tredjePeriode = sak.meldeperiodeKjeder[2].periode
 
         val (sakMedMeldekortbehandlinger) = sak.leggTilMeldekortBehandletAutomatisk(
+            clock = clock,
             periode = førstePeriode,
         ).let { (sak) ->
-            sak.leggTilMeldekortBehandletAutomatisk(periode = andrePeriode)
+            sak.leggTilMeldekortBehandletAutomatisk(clock = clock, periode = andrePeriode)
         }.let { (sak) ->
-            sak.leggTilMeldekortBehandletAutomatisk(periode = tredjePeriode)
+            sak.leggTilMeldekortBehandletAutomatisk(clock = clock, periode = tredjePeriode)
         }
 
         val beløpFørRevurdering =

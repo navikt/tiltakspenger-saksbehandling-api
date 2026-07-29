@@ -47,12 +47,12 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
 import java.time.LocalDate
 
-interface SakMother {
+interface SakMother : MotherOfAllMothers {
     fun nySak(
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
-        clock: Clock = KlokkeMother.clock,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        clock: Clock = this.clock,
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         søknader: List<Søknad> = emptyList(),
         behandlinger: Rammebehandlinger = Rammebehandlinger.empty(),
         kanSendeInnHelgForMeldekort: Boolean = false,
@@ -265,7 +265,7 @@ interface SakMother {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         clock: Clock = fixedClock,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         saksbehandler: Saksbehandler = saksbehandler(),
         vedtaksperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -321,7 +321,7 @@ interface SakMother {
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
         clock: Clock = fixedClock,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         saksbehandler: Saksbehandler = saksbehandler(),
         avslagsperiode: Periode = vedtaksperiode(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),

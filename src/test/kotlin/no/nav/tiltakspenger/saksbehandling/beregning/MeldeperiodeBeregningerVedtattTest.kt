@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtaksliste
@@ -24,15 +26,20 @@ class MeldeperiodeBeregningerVedtattTest {
 
         @Test
         fun `henter forrige`() {
+            val clock = TikkendeKlokke()
             val v1 = ObjectMother.meldekortvedtak(
+                clock = clock,
+                saksnummer = saksnummer,
                 sakId = sakId,
                 fnr = fnr,
-                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
+                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(clock = clock, sakId = sakId, saksnummer = saksnummer, fnr = fnr),
             )
             val v2 = ObjectMother.meldekortvedtak(
+                clock = clock,
+                saksnummer = saksnummer,
                 sakId = sakId,
                 fnr = fnr,
-                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
+                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(clock = clock, sakId = sakId, saksnummer = saksnummer, fnr = fnr),
             )
 
             val vedtaksliste = Vedtaksliste(
@@ -52,13 +59,16 @@ class MeldeperiodeBeregningerVedtattTest {
 
         @Test
         fun `henter siste`() {
+            val clock = TikkendeKlokke()
             val v1 = ObjectMother.meldekortvedtak(
+                clock = clock,
+                saksnummer = saksnummer,
                 sakId = sakId,
                 fnr = fnr,
-                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr),
+                meldekortbehandling = ObjectMother.meldekortBehandletManuelt(clock = clock, sakId = sakId, saksnummer = saksnummer, fnr = fnr),
             )
 
-            val behandling = ObjectMother.meldekortBehandletManuelt(sakId = sakId, fnr = fnr)
+            val behandling = ObjectMother.meldekortBehandletManuelt(clock = clock, sakId = sakId, saksnummer = saksnummer, fnr = fnr)
 
             val vedtaksliste = Vedtaksliste(
                 Rammevedtaksliste.empty(),

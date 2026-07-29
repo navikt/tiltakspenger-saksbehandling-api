@@ -56,12 +56,14 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     id: SøknadId = Søknad.randomId(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
     ),
     søknad: InnvilgbarSøknad =
         ObjectMother.nyInnvilgbarSøknad(
+            clock = this.clock,
             periode = tiltaksOgVedtaksperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -116,12 +118,14 @@ internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     id: SøknadId = Søknad.randomId(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
     ),
     søknad: InnvilgbarSøknad =
         ObjectMother.nyInnvilgbarSøknad(
+            clock = this.clock,
             periode = tiltaksOgVedtaksperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -171,12 +175,14 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
     journalpostId: String = Random.nextInt().toString(),
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
+        clock = this.clock,
         periode = tiltaksOgVedtaksperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -250,12 +256,14 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
+        clock = this.clock,
         periode = tiltaksOgVedtaksperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -354,12 +362,14 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
+        clock = this.clock,
         periode = tiltaksOgVedtaksperiode,
         journalpostId = journalpostId,
         personopplysninger =
@@ -419,6 +429,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     avbruttTidspunkt: LocalDateTime = 1.november(2024).atStartOfDay(),
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
@@ -426,6 +437,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad =
         ObjectMother.nyInnvilgbarSøknad(
+            clock = this.clock,
             periode = tiltaksOgVedtaksperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -478,6 +490,7 @@ internal fun TestDataHelper.persisterNySak(
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
 ): Sak {
     return ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
@@ -499,6 +512,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
@@ -506,6 +520,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     søknadId: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad =
         ObjectMother.nyInnvilgbarSøknad(
+            clock = this.clock,
             periode = tiltaksOgVedtaksperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -578,12 +593,14 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
     ),
     id: SøknadId = Søknad.randomId(),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
+        clock = this.clock,
         periode = tiltaksOgVedtaksperiode,
         journalpostId = journalpostId,
         personopplysninger = ObjectMother.personSøknad(fnr = fnr),
@@ -644,12 +661,14 @@ internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehand
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     id: SøknadId = Søknad.randomId(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
     ),
     søknad: InnvilgbarSøknad =
         ObjectMother.nyInnvilgbarSøknad(
+            clock = this.clock,
             periode = tiltaksOgVedtaksperiode,
             journalpostId = journalpostId,
             personopplysninger =
@@ -714,11 +733,13 @@ internal fun TestDataHelper.persisterRammevedtakAvslag(
     tiltaksOgVedtaksperiode: Periode = Periode(fraOgMed = deltakelseFom, tilOgMed = deltakelseTom),
     søknadId: SøknadId = Søknad.randomId(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
     ),
     søknad: InnvilgbarSøknad = ObjectMother.nyInnvilgbarSøknad(
+        clock = this.clock,
         periode = tiltaksOgVedtaksperiode,
         journalpostId = journalpostId,
         personopplysninger = ObjectMother.personSøknad(fnr = fnr),

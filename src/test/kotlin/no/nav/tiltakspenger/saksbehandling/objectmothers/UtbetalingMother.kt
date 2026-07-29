@@ -48,7 +48,7 @@ interface UtbetalingMother : MotherOfAllMothers {
         id: UtbetalingId = UtbetalingId.random(),
         vedtakId: VedtakId = VedtakId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         brukerNavkontor: Navkontor = navkontor(),
         opprettet: LocalDateTime = nå(clock),
@@ -119,7 +119,7 @@ interface UtbetalingMother : MotherOfAllMothers {
 
     fun utbetalingDetSkalHentesStatusFor(
         utbetalingId: UtbetalingId = UtbetalingId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         sakId: SakId = SakId.random(),
         opprettet: LocalDateTime = nå(clock),
         sendtTilUtbetalingstidspunkt: LocalDateTime = nå(fixedClock.plus(1, ChronoUnit.SECONDS)),

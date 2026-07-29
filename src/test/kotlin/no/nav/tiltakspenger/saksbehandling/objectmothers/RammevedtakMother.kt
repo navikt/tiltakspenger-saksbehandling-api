@@ -43,7 +43,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             sakId = sakId,
             saksopplysningsperiode = periode,
             innvilgelsesperioder = innvilgelsesperioder,
-            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+            saksnummer = ObjectMother.nesteSaksnummer(),
             fnr = fnr,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
@@ -78,6 +78,7 @@ interface RammevedtakMother : MotherOfAllMothers {
     )
 
     fun nyRammevedtakInnvilgelse(
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         id: VedtakId = VedtakId.random(),
         opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
@@ -94,7 +95,7 @@ interface RammevedtakMother : MotherOfAllMothers {
                 innvilgelsesperioder.last().periode.tilOgMed,
             ),
             innvilgelsesperioder = innvilgelsesperioder,
-            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+            saksnummer = saksnummer,
             fnr = fnr,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),
@@ -120,6 +121,7 @@ interface RammevedtakMother : MotherOfAllMothers {
     )
 
     fun nyRammevedtakAvslag(
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         id: VedtakId = VedtakId.random(),
         opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
@@ -128,7 +130,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         behandling: Rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
             sakId = sakId,
             saksopplysningsperiode = avslagsperiode,
-            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+            saksnummer = saksnummer,
             fnr = fnr,
             resultat = SøknadsbehandlingsresultatType.AVSLAG,
             avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
@@ -156,6 +158,7 @@ interface RammevedtakMother : MotherOfAllMothers {
     )
 
     fun nyRammevedtakStans(
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         id: VedtakId = VedtakId.random(),
         opprettet: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
@@ -165,7 +168,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         behandling: Rammebehandling = ObjectMother.nyVedtattRevurderingStans(
             sakId = sakId,
             vedtaksperiode = periode,
-            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+            saksnummer = saksnummer,
             fnr = fnr,
             førsteDagSomGirRett = periode.fraOgMed,
             sisteDagSomGirRett = periode.tilOgMed,
@@ -232,7 +235,7 @@ interface RammevedtakMother : MotherOfAllMothers {
             sakId = sakId,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
             omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
-            saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+            saksnummer = ObjectMother.nesteSaksnummer(),
             fnr = fnr,
         ),
         vedtaksdato: LocalDate = 2.januar(2023),

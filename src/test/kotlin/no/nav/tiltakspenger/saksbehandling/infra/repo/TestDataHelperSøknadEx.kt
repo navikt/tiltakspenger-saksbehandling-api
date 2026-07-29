@@ -17,11 +17,13 @@ internal fun TestDataHelper.persisterSakOgSøknad(
     deltakelseTom: LocalDate = 31.mars(2023),
     journalpostId: String = Random.nextInt().toString(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         fnr = fnr,
         saksnummer = this.saksnummerGenerator.generer(),
     ),
     søknad: Søknad =
         ObjectMother.nyInnvilgbarSøknad(
+            clock = this.clock,
             journalpostId = journalpostId,
             personopplysninger =
             ObjectMother.personSøknad(

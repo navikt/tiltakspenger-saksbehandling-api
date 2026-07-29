@@ -92,7 +92,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nyOpprettetSøknadsbehandling(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
@@ -124,7 +124,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nyOpprettetAutomatiskSøknadsbehandling(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
@@ -150,7 +150,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nyAutomatiskSøknadsbehandlingManuellBehandling(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
         hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
@@ -181,7 +181,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun oppdatertSøknadsbehandling(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
@@ -248,7 +248,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nySøknadsbehandlingKlarTilBeslutning(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
@@ -303,7 +303,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nySøknadsbehandlingUnderBeslutning(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         sendtTilBeslutning: LocalDateTime? = null,
@@ -357,7 +357,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nySøknadsbehandlingUnderkjent(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         sendtTilBeslutning: LocalDateTime? = null,
@@ -422,7 +422,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nyVedtattSøknadsbehandling(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         sendtTilBeslutning: LocalDateTime? = null,
@@ -486,7 +486,7 @@ interface BehandlingMother : MotherOfAllMothers {
     fun nyAvbruttSøknadsbehandling(
         id: RammebehandlingId = RammebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         clock: Clock = fixedClock,
@@ -945,6 +945,7 @@ suspend fun TestApplicationContext.andreMeldekortOpprettet(
 ): Sak {
     val tac = this
     val sak = førsteMeldekortIverksatt(
+        clock = clock,
         innvilgelsesperiode = periode,
         fnr = fnr,
         saksbehandler = saksbehandler,

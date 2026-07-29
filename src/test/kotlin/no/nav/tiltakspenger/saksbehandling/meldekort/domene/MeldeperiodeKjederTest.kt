@@ -164,11 +164,13 @@ class MeldeperiodeKjederTest {
     fun `genererer meldeperioder for et stansvedtak`() {
         val fnr = Fnr.random()
         val sakId = SakId.random()
+        val saksnummer = ObjectMother.nesteSaksnummer()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak =
             ObjectMother.nyRammevedtakInnvilgelse(
                 fnr = fnr,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(innvilgelsesperiode = periode),
                 ),
@@ -176,6 +178,7 @@ class MeldeperiodeKjederTest {
         val stansVedtak = ObjectMother.nyRammevedtakStans(
             fnr = fnr,
             sakId = sakId,
+            saksnummer = saksnummer,
             periode = periode,
             opprettet = nå(enUkeEtterFixedClock),
             omgjørRammevedtak = OmgjørRammevedtak(
@@ -215,11 +218,13 @@ class MeldeperiodeKjederTest {
     fun `genererer meldeperioder for innvilgelse, og deretter annulerer ved stans`() {
         val fnr = Fnr.random()
         val sakId = SakId.random()
+        val saksnummer = ObjectMother.nesteSaksnummer()
         val periode = Periode(2.januar(2023), 17.januar(2023))
         val innvilgelseVedtak =
             ObjectMother.nyRammevedtakInnvilgelse(
                 fnr = fnr,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 innvilgelsesperioder = listOf(
                     innvilgelsesperiodeKommando(
                         innvilgelsesperiode = periode,
@@ -249,6 +254,7 @@ class MeldeperiodeKjederTest {
         val stansVedtak = ObjectMother.nyRammevedtakStans(
             fnr = fnr,
             sakId = sakId,
+            saksnummer = saksnummer,
             periode = periode,
             opprettet = nå(
                 enUkeEtterFixedClock,

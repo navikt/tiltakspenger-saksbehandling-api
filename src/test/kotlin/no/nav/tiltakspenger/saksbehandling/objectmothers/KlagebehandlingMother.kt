@@ -55,7 +55,7 @@ interface KlagebehandlingMother : MotherOfAllMothers {
         clock: Clock = this.clock,
         id: KlagebehandlingId = KlagebehandlingId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(1.januar(2024), "1234"),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         opprettet: LocalDateTime = nå(clock),

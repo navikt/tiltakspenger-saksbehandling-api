@@ -48,6 +48,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
@@ -84,6 +85,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
@@ -139,6 +141,7 @@ internal fun TestDataHelper.persisterOpprettholdtKlagebehandling(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
@@ -198,6 +201,7 @@ internal fun TestDataHelper.persisterOversendtKlagebehandling(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
@@ -249,6 +253,7 @@ internal fun TestDataHelper.persisterKlagebehandlingMottattFraKA(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,
@@ -299,6 +304,7 @@ internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
     fnr: Fnr = Fnr.random(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     sak: Sak = ObjectMother.nySak(
+        clock = this.clock,
         sakId = sakId,
         fnr = fnr,
         saksnummer = saksnummer,

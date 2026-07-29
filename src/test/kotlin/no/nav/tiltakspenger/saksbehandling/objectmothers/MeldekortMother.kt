@@ -103,7 +103,7 @@ interface MeldekortMother : MotherOfAllMothers {
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         clock: Clock = fixedClock,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
@@ -162,7 +162,7 @@ interface MeldekortMother : MotherOfAllMothers {
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         clock: Clock = fixedClock,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
@@ -224,7 +224,7 @@ interface MeldekortMother : MotherOfAllMothers {
         clock: Clock = this.clock,
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         periode: Periode = Periode(6.januar(2025), 19.januar(2025)),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(periode),
@@ -297,7 +297,7 @@ interface MeldekortMother : MotherOfAllMothers {
         id: MeldekortId = MeldekortId.random(),
         sakId: SakId = SakId.random(),
         clock: Clock = fixedClock,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(clock),
         barnetilleggsPerioder: Periodisering<AntallBarn>? = null,
@@ -347,6 +347,7 @@ interface MeldekortMother : MotherOfAllMothers {
 
     fun Sak.leggTilMeldekortBehandletAutomatisk(
         periode: Periode,
+        clock: Clock = this@MeldekortMother.clock,
         opprettet: LocalDateTime = nå(clock),
         navkontor: Navkontor = ObjectMother.navkontor(),
         tiltakstype: TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
@@ -358,6 +359,7 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
     ): Pair<Sak, MeldekortBehandletAutomatisk> {
         val meldekortbehandling = meldekortBehandletAutomatisk(
+            clock = clock,
             sakId = id,
             saksnummer = saksnummer,
             fnr = fnr,
@@ -589,6 +591,7 @@ interface MeldekortMother : MotherOfAllMothers {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         sakId: SakId = SakId.random(),
         fnr: Fnr = Fnr.random(),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         meldeperioder: NonEmptyList<NonEmptyList<OppdatertMeldeperiode.OppdatertDag>>,
         navkontor: Navkontor = ObjectMother.navkontor(),
         barnetilleggsPerioder: Periodisering<AntallBarn> = Periodisering.empty(),
@@ -625,6 +628,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 meldekortId = kommandoer.first().meldekortId,
                 sakId = sakId,
                 fnr = fnr,
+                saksnummer = saksnummer,
                 kommando = kommandoer.first(),
                 kjedeId = MeldeperiodeKjedeId.fraPeriode(kommandoer.first().periode),
                 beslutter = beslutter,
@@ -635,6 +639,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 clock = clock,
                 kommando = kommando,
                 fnr = fnr,
+                saksnummer = saksnummer,
                 vedtaksperiode = vedtaksperiode,
                 barnetilleggsPerioder = barnetilleggsPerioder,
                 beslutter = beslutter,
@@ -650,7 +655,7 @@ interface MeldekortMother : MotherOfAllMothers {
         meldekortId: MeldekortId,
         sakId: SakId,
         clock: Clock = TikkendeKlokke(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(clock),
         status: MeldekortbehandlingStatus = MeldekortbehandlingStatus.UNDER_BEHANDLING,
@@ -669,6 +674,7 @@ interface MeldekortMother : MotherOfAllMothers {
         skalSendeVedtaksbrev: Boolean = true,
     ): Pair<Meldekortbehandlinger, MeldekortbehandlingManuell> {
         val meldeperiode = meldeperiode(
+            clock = clock,
             periode = kommando.periode,
             kjedeId = kjedeId,
             sakId = sakId,
@@ -776,7 +782,7 @@ interface MeldekortMother : MotherOfAllMothers {
         vedtaksperiode: Periode,
         fnr: Fnr,
         clock: Clock = TikkendeKlokke(),
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         kjedeId: MeldeperiodeKjedeId = MeldeperiodeKjedeId.fraPeriode(kommando.periode),
         navkontor: Navkontor = ObjectMother.navkontor(),
         opprettet: LocalDateTime = nå(clock),
@@ -794,6 +800,7 @@ interface MeldekortMother : MotherOfAllMothers {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
         val meldeperiode = meldeperiode(
+            clock = clock,
             periode = kommando.periode,
             kjedeId = kjedeId,
             sakId = sakId,
@@ -900,7 +907,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sakId: SakId = SakId.random(),
         versjon: HendelseVersjon = HendelseVersjon.ny(),
         clock: Clock = fixedClock,
-        saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = clock),
+        saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         opprettet: LocalDateTime = nå(clock),
         antallDagerForPeriode: Int = 10,
@@ -940,7 +947,7 @@ interface MeldekortMother : MotherOfAllMothers {
     @Suppress("unused")
     fun brukersMeldekort(
         id: MeldekortId = MeldekortId.random(),
-        clock: Clock = KlokkeMother.clock,
+        clock: Clock = this.clock,
         mottatt: LocalDateTime = nå(clock),
         sakId: SakId = SakId.random(),
         meldeperiode: Meldeperiode = meldeperiode(

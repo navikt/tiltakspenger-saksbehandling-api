@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
  */
 open class TestApplicationContextMedPostgres(
     override val sessionFactory: PostgresSessionFactory,
-    clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
+    clock: TikkendeKlokke = TikkendeKlokke(),
     override val texasClient: TexasClient = TexasClientFake(clock),
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     idGenerators: IdGenerators,

@@ -98,7 +98,7 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFa
  * `MedPostgres` trenger ingen endring — den arver Postgres-defaulten fra Context-klassen.
  */
 sealed class TestApplicationContext(
-    override val clock: TikkendeKlokke = TikkendeKlokke(fixedClock),
+    override val clock: TikkendeKlokke = TikkendeKlokke(),
     protected open val idGenerators: IdGenerators,
     open val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
 ) : ApplicationContext(

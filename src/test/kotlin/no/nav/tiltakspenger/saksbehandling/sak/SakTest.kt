@@ -149,6 +149,7 @@ class SakTest {
         val internDeltakelsesId = TiltaksdeltakerId.random()
         val sakId = SakId.random()
         val fnr = Fnr.random()
+        val saksnummer = ObjectMother.nesteSaksnummer()
 
         val vedtaksperiode = Periode(1.april(2025), 30.april(2025))
         val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(
@@ -167,6 +168,7 @@ class SakTest {
             utbetaling = null,
             rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
                 sakId = sakId,
+                saksnummer = saksnummer,
                 fnr = fnr,
                 saksopplysningsperiode = vedtaksperiode,
                 innvilgelsesperioder = listOf(
@@ -206,6 +208,7 @@ class SakTest {
             utbetaling = null,
             rammebehandling = ObjectMother.nyVedtattRevurderingInnvilgelse(
                 sakId = sakId,
+                saksnummer = saksnummer,
                 fnr = fnr,
                 saksopplysningsperiode = andreVedtaksPeriode,
                 innvilgelsesperioder = listOf(

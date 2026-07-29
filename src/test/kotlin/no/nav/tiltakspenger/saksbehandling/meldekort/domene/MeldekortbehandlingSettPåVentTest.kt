@@ -116,7 +116,7 @@ class MeldekortbehandlingSettPåVentTest {
 
     @Test
     fun `gjenopptar meldekortbehandling klar til behandling`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         val saksbehandler = ObjectMother.saksbehandler()
         val meldekortbehandlingUnderBehandling = ObjectMother.meldekortUnderBehandling(
             saksbehandler = saksbehandler.navIdent,
@@ -150,7 +150,7 @@ class MeldekortbehandlingSettPåVentTest {
 
     @Test
     fun `gjenopptar meldekortbehandling under behandling`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         val saksbehandler = ObjectMother.saksbehandler()
         val meldekortbehandling = ObjectMother.meldekortUnderBehandling(
             saksbehandler = saksbehandler.navIdent,
@@ -182,7 +182,7 @@ class MeldekortbehandlingSettPåVentTest {
 
     @Test
     fun `kan ikke gjenoppta meldekortbehandling under behandling med annen saksbehandler`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         val saksbehandler = ObjectMother.saksbehandler()
         val annenSaksbehandler = ObjectMother.saksbehandler(navIdent = "Z99999")
         val meldekortbehandling = ObjectMother.meldekortUnderBehandling(
@@ -211,7 +211,7 @@ class MeldekortbehandlingSettPåVentTest {
 
     @Test
     fun `gjenopptar meldekortbehandling klar til beslutning`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         val beslutter = ObjectMother.beslutter()
         val meldekortbehandlingUnderBeslutning = ObjectMother.meldekortBehandletManuelt(
             status = MeldekortbehandlingStatus.UNDER_BESLUTNING,
@@ -245,7 +245,7 @@ class MeldekortbehandlingSettPåVentTest {
 
     @Test
     fun `kan ikke gjenoppta avbrutt meldekortbehandling`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         val saksbehandler = ObjectMother.saksbehandler()
         val meldekortbehandling = ObjectMother.meldekortbehandlingAvbrutt(
             saksbehandler = saksbehandler.navIdent,
@@ -273,7 +273,7 @@ class MeldekortbehandlingSettPåVentTest {
 
     @Test
     fun `kan ikke gjenoppta automatisk behandlet meldekortbehandling`() {
-        val clock = TikkendeKlokke(fixedClock)
+        val clock = TikkendeKlokke()
         val saksbehandler = ObjectMother.saksbehandler()
         val meldekortbehandling = ObjectMother.meldekortBehandletAutomatisk()
 
