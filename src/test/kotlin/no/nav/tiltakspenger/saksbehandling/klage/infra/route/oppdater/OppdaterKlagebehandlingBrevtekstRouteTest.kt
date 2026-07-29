@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
@@ -19,14 +19,14 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
     @Test
     fun `kan oppdatere klagebehandling - brevtekst`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (_, behandling, json) = opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
+            val (sak, behandling, json) = opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
                 tac = tac,
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = behandling.sakId,
-                saksnummer = Saksnummer("202505011001"),
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = behandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 resultat = "AVVIST",
                 brevtekst = listOf("""{"tittel": "Avvisning av klage","tekst": "Din klage er dessverre avvist."}"""),
                 kanIverksetteVedtak = true,
@@ -37,14 +37,14 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
     @Test
     fun `kan oppdatere klagebehandling (opprettholdelse) - brevtekst`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (_, rammevedtak, klagebehandling, json) = opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
+            val (sak, rammevedtak, klagebehandling, json) = opprettSakOgOppdaterKlagebehandlingTilOpprettholdelseBrevtekst(
                 tac = tac,
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = klagebehandling.sakId,
-                saksnummer = Saksnummer("202505011001"),
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 resultat = "OPPRETTHOLDT",
                 vedtakDetKlagesPå = "${rammevedtak.id}",
                 behandlingDetKlagesPå = "${rammevedtak.behandlingId}",
@@ -74,11 +74,11 @@ class OppdaterKlagebehandlingBrevtekstRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
-                    //language=json
-                    """{"kode": "behandlingen_er_satt_på_vent", "melding": "Kan ikke oppdatere brevtekst fordi klagebehandlingen er satt på vent"}"""
-                },
+                forventet = ForventetRespons.json(
+                    400, //language=json
+                    """{"kode": "behandlingen_er_satt_på_vent", "melding": "Kan ikke oppdatere brevtekst fordi klagebehandlingen er satt på vent"}""",
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }

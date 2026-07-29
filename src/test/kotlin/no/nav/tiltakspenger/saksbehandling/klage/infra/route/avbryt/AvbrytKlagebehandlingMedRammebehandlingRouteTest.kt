@@ -89,7 +89,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = ferdigstiltOpprettholdtKlagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 vedtakDetKlagesPå = "${rammevedtak.id}",
                 behandlingDetKlagesPå = "${rammevedtak.behandlingId}",
                 behandlingId = emptyList(),

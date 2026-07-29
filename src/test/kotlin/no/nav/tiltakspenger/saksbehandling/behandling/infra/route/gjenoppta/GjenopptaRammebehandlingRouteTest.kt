@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenoppta
 
-import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -17,7 +16,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
                 sakId = sak.id,
                 klagebehandlingId = null,
                 søknadId = søknad.id,
-                saksnummer = Saksnummer("202505011001"),
+                saksnummer = sak.saksnummer,
                 iverksattTidspunkt = null,
                 vedtaksperiode = null,
                 saksbehandler = "Z12345",

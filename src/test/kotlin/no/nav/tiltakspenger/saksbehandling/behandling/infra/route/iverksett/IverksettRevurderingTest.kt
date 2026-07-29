@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
@@ -179,7 +179,7 @@ internal class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
                 beslutter = ObjectMother.saksbehandler(),
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -522,7 +522,7 @@ internal class IverksettRevurderingTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurderingB.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
                 medJsonBody = { it.harKode("ugyldig_omgjøring") },
             )
         }

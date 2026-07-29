@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.leggTilbake
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -30,9 +30,9 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandlingId,
             )!!.also { (_, _, sakJson) ->
-                val behandlingJson = sakJson.get("behandlinger").single { it.get("id").asText() == behandlingId.toString() }
+                val behandlingJson = sakJson.get("behandlinger").single { it.get("id").asString() == behandlingId.toString() }
                 behandlingJson.get("saksbehandler").isNull shouldBe true
-                behandlingJson.get("status").asText() shouldBe "KLAR_TIL_BEHANDLING"
+                behandlingJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                     it.saksbehandler shouldBe null
@@ -55,7 +55,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 }
             }
             leggTilbakeRammebehandling(tac, sak.id, behandlingId, ObjectMother.beslutter())!!.also { (_, _, sakJson) ->
-                val behandlingJson = sakJson.get("behandlinger").single { it.get("id").asText() == behandlingId.toString() }
+                val behandlingJson = sakJson.get("behandlinger").single { it.get("id").asString() == behandlingId.toString() }
                 behandlingJson.get("beslutter").isNull shouldBe true
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -74,7 +74,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandlingId,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
                 forventetBody = """
                     {
                         "melding": "Kan ikke legge tilbake behandling med status KLAR_TIL_BESLUTNING.",
@@ -97,7 +97,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
                 forventetBody = """
                     {
                         "melding": "Kan ikke legge tilbake behandling med status KLAR_TIL_BEHANDLING.",
@@ -118,7 +118,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandling.id,
                 saksbehandler = ObjectMother.saksbehandler(navIdent = "Z999999"),
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
                 forventetBody = """
                     {
                         "melding": "Du må være saksbehandleren som er tildelt behandlingen for å legge den tilbake.",
@@ -144,7 +144,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandling.id,
                 saksbehandler = ObjectMother.beslutter(),
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
                 forventetBody = """
                     {
                         "melding": "Du må være saksbehandler for å legge tilbake denne behandlingen.",
@@ -165,7 +165,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandlingId,
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
                 forventetBody = """
                     {
                         "melding": "Du må være beslutter for å legge tilbake denne behandlingen.",
@@ -187,7 +187,7 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandlingId,
                 saksbehandler = ObjectMother.beslutter(navIdent = "B99999"),
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
                 forventetBody = """
                     {
                         "melding": "Du må være beslutteren som er tildelt behandlingen for å legge den tilbake.",

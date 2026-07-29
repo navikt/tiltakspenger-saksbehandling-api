@@ -1,20 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta
 
 import arrow.core.Tuple5
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -44,8 +36,7 @@ interface OvertaMeldekortbehandlingBuilder {
         tac: TestApplicationContext,
         overtarFraSaksbehandler: Saksbehandler = ObjectMother.saksbehandler("overtarFraSaksbehandler"),
         saksbehandlerSomOvertar: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, SakDTOJson>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
             tac = tac,
@@ -58,8 +49,7 @@ interface OvertaMeldekortbehandlingBuilder {
             meldekortId = opprettetMeldekortbehandling.id,
             overtarFraSaksbehandlerEllerBeslutter = overtarFraSaksbehandler,
             saksbehandlerEllerBeslutterSomOvertar = saksbehandlerSomOvertar,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         return Tuple5(
             oppdatertSak,
@@ -82,8 +72,7 @@ interface OvertaMeldekortbehandlingBuilder {
         tac: TestApplicationContext,
         overtarFraBeslutter: Saksbehandler = ObjectMother.beslutter("overtarFraBeslutter"),
         beslutterSomOvertar: Saksbehandler = ObjectMother.beslutter("beslutterSomOvertar"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, SakDTOJson>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
             tac = tac,
@@ -96,8 +85,7 @@ interface OvertaMeldekortbehandlingBuilder {
             meldekortId = opprettetMeldekortbehandling.id,
             overtarFraSaksbehandlerEllerBeslutter = overtarFraBeslutter,
             saksbehandlerEllerBeslutterSomOvertar = beslutterSomOvertar,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         return Tuple5(
             oppdatertSak,
@@ -118,30 +106,19 @@ interface OvertaMeldekortbehandlingBuilder {
         meldekortId: MeldekortId,
         overtarFraSaksbehandlerEllerBeslutter: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter("overtarFraSaksbehandlerEllerBeslutter"),
         saksbehandlerEllerBeslutterSomOvertar: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter("saksbehandlerEllerBeslutterSomOvertar"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Meldekortbehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandlerEllerBeslutterSomOvertar)
         tac.leggTilBruker(jwt, saksbehandlerEllerBeslutterSomOvertar)
         defaultRequestWithAssertions(
-            HttpMethod.Patch,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/meldekort/$meldekortId/overta")
-            },
+            HttpMethod.PATCH,
+            "/sak/$sakId/meldekort/$meldekortId/overta",
             jwt = jwt,
-            forventet = forventetStatus?.let { status ->
-                ForventetRespons(
-                    status = status,
-                    body = forventetJsonBody?.let { ForventetBody.Json(it) },
-                    contentType = ContentType.parse("application/json; charset=UTF-8"),
-                )
-            },
-        ) {
-            this.setBody("""{"overtarFra":"${overtarFraSaksbehandlerEllerBeslutter.navIdent}"}""")
-        }.apply {
-            val bodyAsText = this.bodyAsText()
-            if (status != HttpStatusCode.OK) return null
+            forventet = forventet,
+            body = """{"overtarFra":"${overtarFraSaksbehandlerEllerBeslutter.navIdent}"}""",
+        ).apply {
+            val bodyAsText = this.body
+            if (statusCode != 200) return null
             val jsonObject: SakDTOJson = objectMapper.readTree(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(

@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater
 
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -44,7 +44,7 @@ class OppdaterMeldekortbehandlingRouteTest {
             this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
                 tac = tac,
                 vedtaksperiode = 1.januar(2030) til 31.januar(2030),
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
                 medJsonBody = {
                     it harKode "meldekortperioden_kan_ikke_være_frem_i_tid"
                 },
@@ -269,7 +269,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                 sakId = sak.id,
                 kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                 meldeperioder = listOf(sammeKjede, sammeKjede),
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -299,7 +299,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                 sakId = sak.id,
                 kjedeId = kjede.kjedeId,
                 meldeperioder = listOf(utdatertMeldeperiode),
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -324,7 +324,7 @@ class OppdaterMeldekortbehandlingRouteTest {
                 sakId = sak.id,
                 kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
                 meldeperioder = listOf(ukjentKjede),
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
         }
     }

@@ -1,16 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.motta
 
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
@@ -43,7 +37,8 @@ interface MottaMeldekortBuilder {
         dager: Map<LocalDate, BrukerutfyltMeldekortDTO.Status>,
         mottatt: LocalDateTime = nå(tac.clock),
         journalpostId: String = "1234",
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        // Ruta svarer tom 200 med text/plain (respondOk) ved suksess.
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "text/plain; charset=UTF-8"),
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
     ): Triple<Sak, BrukersMeldekort?, String> {
         val jwt = tac.jwtGenerator.createJwtForSystembruker(
@@ -51,34 +46,30 @@ interface MottaMeldekortBuilder {
         )
         tac.leggTilBruker(jwt, ObjectMother.systembrukerLagreMeldekort())
 
-        val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/meldekort/motta")
-            },
-            jwt = jwt,
-            forventet = ForventetRespons(status = forventetStatus),
-        ) {
-            val dagerJson = dager.entries.joinToString(separator = ",\n") { (dato, status) ->
-                """    "$dato": "$status""""
-            }
-
-            @Language("JSON")
-            val body = """
-                {
-                  "id": "$id",
-                  "meldeperiodeId": "$meldeperiodeId",
-                  "sakId": "$sakId",
-                  "mottatt": "$mottatt",
-                  "journalpostId": "$journalpostId",
-                  "dager": { $dagerJson }
-                }
-            """.trimIndent()
-
-            setBody(body)
+        val dagerJson = dager.entries.joinToString(separator = ",\n") { (dato, status) ->
+            """    "$dato": "$status""""
         }
-        val bodyAsText = response.bodyAsText()
+
+        @Language("JSON")
+        val body = """
+            {
+              "id": "$id",
+              "meldeperiodeId": "$meldeperiodeId",
+              "sakId": "$sakId",
+              "mottatt": "$mottatt",
+              "journalpostId": "$journalpostId",
+              "dager": { $dagerJson }
+            }
+        """.trimIndent()
+
+        val response = defaultRequestWithAssertions(
+            HttpMethod.POST,
+            "/meldekort/motta",
+            jwt = jwt,
+            forventet = forventet,
+            body = body,
+        )
+        val bodyAsText = response.body
         if (medJsonBody != null) {
             medJsonBody(bodyAsText)
         }

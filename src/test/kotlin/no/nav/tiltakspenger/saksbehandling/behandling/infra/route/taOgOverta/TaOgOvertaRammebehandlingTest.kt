@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -23,7 +23,7 @@ internal class TaOgOvertaRammebehandlingTest {
                 sak.id,
                 behandling.id,
                 saksbehandler = ObjectMother.saksbehandler(navIdent = "Z999999"),
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
                 forventetBody = """
                     {
                         "melding": "Behandlingen har allerede en saksbehandler.",

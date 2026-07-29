@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
@@ -39,7 +39,7 @@ class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
 
-            val (sak, klagebehandling, meldekortbehandling) =
+            val (sak, klagebehandling, _) =
                 opprettMeldekortbehandlingForKlage(tac = tac, saksbehandlerKlagebehandling = saksbehandler)
 
             avbrytKlagebehandlingForSak(
@@ -47,15 +47,16 @@ class AvbrytKlagebehandlingMedMeldekortbehandlingRouteTest {
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                     {
                         "melding": "Klagebehandlingen er knyttet til en annen behandling. Avslutt den andre behandlingen først.",
                         "kode": "knyttet_til_ikke_avbrutt_behandling"
                     }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }

@@ -1,9 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
-import io.ktor.http.HttpStatusCode
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -12,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.formkrav.KlagefristUnnta
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterKlagebehandlingFormkravForSakId
@@ -27,7 +27,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     fun `kan oppdatere klagebehandling - formkrav`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val fnr = Fnr.fromString("12345678912")
+            val fnr = ObjectMother.gyldigFnr()
             val (sak, klagebehandling, json) =
                 opprettSakOgOppdaterKlagebehandlingTilAvvisning(
                     tac = tac,
@@ -43,7 +43,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678912",
+                fnr = fnr.verdi,
                 journalpostId = "123456",
                 resultat = "AVVIST",
                 erKlagerPartISaken = false,
@@ -59,7 +59,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
     fun `oppdatering av formkrav endrer ikke resultatet hvis resultat er omgjøring, og oppdatering er omgjøring`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
-            val fnr = Fnr.fromString("12345678912")
+            val fnr = ObjectMother.gyldigFnr()
             val (sak, _, _, klagebehandling, _) = iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(
                 tac = tac,
                 fnr = fnr,
@@ -87,13 +87,12 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 erKlagenSignert = true,
                 erUnntakForKlagefrist = KlagefristUnntakSvarord.JA_KLAGER_KAN_IKKE_LASTES_FOR_Å_HA_SENDT_INN_ETTER_FRISTEN,
                 journalpostId = JournalpostId("123456"),
-
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678912",
+                fnr = fnr.verdi,
                 journalpostId = "123456",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
@@ -126,7 +125,7 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 erKlagefristenOverholdt = true,
                 erUnntakForKlagefrist = null,
                 erKlagenSignert = true,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -185,11 +184,11 @@ class OppdaterKlagebehandlingFormkravRouteTest {
                 erKlagefristenOverholdt = true,
                 erUnntakForKlagefrist = null,
                 erKlagenSignert = true,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
-                    //language=json
-                    """{"melding": "Kan ikke oppdatere formkrav fordi behandlingen er satt på vent", "kode": "behandlingen_er_satt_på_vent"}"""
-                },
+                forventet = ForventetRespons.json(
+                    400, //language=json
+                    """{"melding": "Kan ikke oppdatere formkrav fordi behandlingen er satt på vent", "kode": "behandlingen_er_satt_på_vent"}""",
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }

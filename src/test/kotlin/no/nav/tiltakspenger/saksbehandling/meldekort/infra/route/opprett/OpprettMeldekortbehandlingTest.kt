@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -89,7 +89,7 @@ class OpprettMeldekortbehandlingTest {
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = kjedeId,
-                forventetStatus = BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
                 medJsonBody = { it harKode "HAR_ÅPEN_BEHANDLING" },
             )
 
@@ -112,7 +112,7 @@ class OpprettMeldekortbehandlingTest {
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = andreKjedeId,
-                forventetStatus = BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
                 medJsonBody = { it harKode "MÅ_BEHANDLE_FØRSTE_KJEDE" },
             )
 

@@ -1,16 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -44,7 +38,7 @@ interface OppdaterRammebehandlingBuilder {
         skalSendeVedtaksbrev: Boolean = true,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
@@ -68,7 +62,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -79,7 +73,7 @@ interface OppdaterRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
@@ -96,7 +90,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -108,7 +102,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         avslagsgrunner: Set<Avslagsgrunnlag> = setOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
@@ -128,7 +122,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -141,7 +135,7 @@ interface OppdaterRammebehandlingBuilder {
         fritekstTilVedtaksbrev: String? = null,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
@@ -166,7 +160,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -181,7 +175,7 @@ interface OppdaterRammebehandlingBuilder {
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(vedtaksperiode),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
@@ -206,7 +200,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -220,7 +214,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
@@ -240,7 +234,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -250,7 +244,7 @@ interface OppdaterRammebehandlingBuilder {
         sakId: SakId,
         behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -264,7 +258,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -278,7 +272,7 @@ interface OppdaterRammebehandlingBuilder {
         stansFraOgMed: LocalDate? = null,
         harValgtStansFraFørsteDagSomGirRett: Boolean = stansFraOgMed == null,
         valgteHjemler: Set<HjemmelForStans> = setOf(HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
     ): Triple<Sak, Rammebehandling, String> {
@@ -300,7 +294,7 @@ interface OppdaterRammebehandlingBuilder {
             sakId = sakId,
             behandlingId = behandlingId,
             body = body,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             saksbehandler = saksbehandler,
         )
     }
@@ -310,23 +304,19 @@ interface OppdaterRammebehandlingBuilder {
         sakId: SakId,
         behandlingId: RammebehandlingId,
         body: String,
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/oppdater")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/behandling/$behandlingId/oppdater",
             jwt = jwt,
-            forventet = ForventetRespons(status = forventetStatus),
-        ) {
-            setBody(body)
-        }.apply {
-            val bodyAsText = this.bodyAsText()
+            forventet = forventet,
+            body = body,
+        ).apply {
+            val bodyAsText = this.body
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
             return Triple(sak, behandling, bodyAsText)

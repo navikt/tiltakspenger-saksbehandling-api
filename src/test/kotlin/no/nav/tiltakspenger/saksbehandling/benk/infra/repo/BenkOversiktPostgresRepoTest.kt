@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerComm
 import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.TilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper
@@ -1343,7 +1343,7 @@ class BenkOversiktPostgresRepoTest {
 
     @Test
     fun `kan sortere på startet`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
             val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
             val (sak2, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
@@ -1373,7 +1373,7 @@ class BenkOversiktPostgresRepoTest {
 
     @Test
     fun `kan sortere på sist endret`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
             val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
             val (sak2, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
@@ -1403,7 +1403,7 @@ class BenkOversiktPostgresRepoTest {
 
     @Test
     fun `kan sortere på frist`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
             val dagensDato = nå(tac.clock).toLocalDate()
             val (sak1, _, _, _) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = dagensDato.plusDays(2))!!
@@ -1420,14 +1420,15 @@ class BenkOversiktPostgresRepoTest {
                 ),
             )
 
+            // Stigende frist betyr nærmeste frist først; sak2 har kortest frist.
             actualAsc.let {
-                it.first().sakId shouldBe sak1.id
-                it.last().sakId shouldBe sak2.id
+                it.first().sakId shouldBe sak2.id
+                it.last().sakId shouldBe sak1.id
             }
 
             actualDesc.let {
-                it.first().sakId shouldBe sak2.id
-                it.last().sakId shouldBe sak1.id
+                it.first().sakId shouldBe sak1.id
+                it.last().sakId shouldBe sak2.id
             }
         }
     }

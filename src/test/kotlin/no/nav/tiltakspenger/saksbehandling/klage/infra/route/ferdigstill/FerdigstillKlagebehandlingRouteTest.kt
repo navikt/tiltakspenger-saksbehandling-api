@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ferdigstill
 
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -30,8 +30,9 @@ class FerdigstillKlagebehandlingRouteTest {
             val resultat = klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OPPRETTHOLDT",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
@@ -90,8 +91,9 @@ class FerdigstillKlagebehandlingRouteTest {
             val resultat = klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt
             json.toString().shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = resultat,
                 vedtakDetKlagesPå = sak.rammevedtaksliste.first().id.toString(),
@@ -134,8 +136,9 @@ class FerdigstillKlagebehandlingRouteTest {
 
             ferdigstiltklageJson.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 årsak = "PROSESSUELL_FEIL",
@@ -171,16 +174,16 @@ class FerdigstillKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = opprettetRammebehandling.klagebehandling!!.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
-                    //language=json
+                forventet = ForventetRespons.json(
+                    400, //language=json
                     """
                         {
                           "kode": "klagebehandling_er_knyttet_til_behandling",
                           "melding": "Klagebehandlingen er knyttet til en behandling og kan derfor ikke ferdigstilles. Behandlingen må enten avbrytes, eller vedtas"
                         }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }
@@ -197,16 +200,16 @@ class FerdigstillKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = rammebehandlingMedKlagebehandling.klagebehandling!!.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
-                    //language=json
+                forventet = ForventetRespons.json(
+                    400, //language=json
                     """
                         {
                           "kode": "klagebehandling_er_knyttet_til_behandling",
                           "melding": "Klagebehandlingen er knyttet til en behandling og kan derfor ikke ferdigstilles. Behandlingen må enten avbrytes, eller vedtas"
                         }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }
@@ -228,8 +231,9 @@ class FerdigstillKlagebehandlingRouteTest {
 
             ferdigstiltklageJson.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 årsak = "PROSESSUELL_FEIL",

@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
@@ -78,7 +78,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 vedtaksperiode = rammevedtakSøknadsbehandling.periode,
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
-                forventetStatus = HttpStatusCode.OK,
+                forventet = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
             )
 
             (oppdatertRevurdering as Revurdering).erFerdigutfylt() shouldBe true
@@ -134,7 +134,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 vedtaksperiode = omgjortPeriode,
                 // Vil feile på [Sak.beregnRammebehandling].
                 // Vi sjekker også i oppdater-funksjonen for revurdering omgjøring.
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ).also {
                 it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id
             }
@@ -207,7 +207,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 vedtaksperiode = førsteInnvilgelsesperiode,
                 innvilgelsesperioder = innvilgelsesperioder,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also {
                 it.second.omgjørRammevedtak.rammevedtakIDer.single() shouldBe søknadsbehandlingVedtak.id
 
@@ -260,7 +260,7 @@ class OppdaterRevurderingOmgjøringRouteTest {
                 behandlingId = nyOmgjøring.id,
                 innvilgelsesperioder = innvilgelsesperioder(revurdertPeriode),
                 vedtaksperiode = revurdertPeriode,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
 
             responseBody.shouldEqualJson(

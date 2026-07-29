@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.ta
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -48,7 +48,7 @@ class TaMeldekortbehandlingRouteTest {
                 sakId = rammevedtak.sakId,
                 meldekortId = meldekortbehandling.id,
                 saksbehandlerEllerBeslutter = annenSaksbehandler,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -69,7 +69,7 @@ class TaMeldekortbehandlingRouteTest {
                 sakId = rammevedtak.sakId,
                 meldekortId = meldekortbehandling.id,
                 saksbehandlerEllerBeslutter = saksbehandlerOgBeslutter,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -83,7 +83,7 @@ class TaMeldekortbehandlingRouteTest {
                 tac = tac,
                 sakId = rammevedtak.sakId,
                 meldekortId = MeldekortId.random(),
-                forventetStatus = HttpStatusCode.NotFound,
+                forventet = ForventetRespons(404, contentType = "application/json; charset=UTF-8"),
             )
         }
     }

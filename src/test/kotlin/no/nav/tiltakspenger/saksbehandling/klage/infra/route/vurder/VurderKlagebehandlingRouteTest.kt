@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder
 
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -31,8 +31,9 @@ class VurderKlagebehandlingRouteTest {
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
@@ -60,8 +61,9 @@ class VurderKlagebehandlingRouteTest {
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OPPRETTHOLDT",
                 kanIverksetteVedtak = null,
@@ -94,8 +96,9 @@ class VurderKlagebehandlingRouteTest {
             )!!
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${vedtakDetKlagesPå.id}",
@@ -140,15 +143,16 @@ class VurderKlagebehandlingRouteTest {
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
                 hjemler = null,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                       {
                          "melding": "Feil tilknyttet behandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: KLAR_TIL_BESLUTNING",
                          "kode": "feil_tilknyttet_behandlingsstatus"
                       }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }
@@ -190,15 +194,16 @@ class VurderKlagebehandlingRouteTest {
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
                 hjemler = null,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                       {
                          "melding": "Feil tilknyttet behandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: UNDER_BESLUTNING",
                          "kode": "feil_tilknyttet_behandlingsstatus"
                       }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }
@@ -246,15 +251,16 @@ class VurderKlagebehandlingRouteTest {
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
                 hjemler = null,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                       {
                         "melding": "Feil klagebehandlingsstatus. Forventet: [UNDER_BEHANDLING], faktisk: VEDTATT",
                         "kode": "feil_klagebehandlingsstatus"
                       }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }
@@ -280,11 +286,11 @@ class VurderKlagebehandlingRouteTest {
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
                 hjemler = null,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
-                    //language=json
-                    """{"kode": "klagebehandling_er_satt_på_vent", "melding": "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre."}"""
-                },
+                forventet = ForventetRespons.json(
+                    400, //language=json
+                    """{"kode": "klagebehandling_er_satt_på_vent", "melding": "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre."}""",
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }

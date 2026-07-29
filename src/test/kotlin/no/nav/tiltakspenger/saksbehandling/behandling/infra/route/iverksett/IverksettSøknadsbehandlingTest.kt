@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -133,7 +133,7 @@ class IverksettSøknadsbehandlingTest {
                 sak.id,
                 behandlingId,
                 ObjectMother.beslutter(navIdent = "B999999"),
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ) {
                 it harKode "behandling_eies_av_annen_saksbehandler"
             } shouldBe null
@@ -168,7 +168,7 @@ class IverksettSøknadsbehandlingTest {
                 sakId = sak.id,
                 behandlingId = behandlingId,
                 beslutter = saksbehandler,
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
             ) {
                 it harKode "tilgang_nektet_krev_rolle"
             } shouldBe null

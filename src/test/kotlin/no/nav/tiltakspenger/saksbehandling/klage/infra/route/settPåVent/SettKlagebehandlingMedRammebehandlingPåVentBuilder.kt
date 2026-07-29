@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
@@ -34,8 +33,7 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
         val (sak, rammebehandlingMedSøknadsbehandling, _) = this.opprettetSøknadsbehandlingForKlage(
             tac = tac,
@@ -48,8 +46,7 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
             sakId = sak.id,
             klagebehandlingId = rammebehandlingMedSøknadsbehandling.klagebehandling!!.id,
             saksbehandler = saksbehandlerKlagebehandling,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         val oppdatertRammebehandlingMedKlagebehandling =
             oppdatertSak.hentRammebehandling(rammebehandlingMedSøknadsbehandling.id)!!
@@ -67,7 +64,7 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         begrunnelse: String = "begrunnelse for å sette rammebehandling på vent",
         frist: LocalDate? = 14.januar(2025),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Rammebehandling, SakDTOJson>? {
         val (sak, rammebehandling, _) = opprettetSøknadsbehandlingForKlage(
             tac = tac,
@@ -102,7 +99,7 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
             saksbehandler = beslutter,
             begrunnelse = begrunnelse,
             frist = frist,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
         ) ?: return null
 
         return Triple(oppdatertSak, oppdatertRammebehandling, json)

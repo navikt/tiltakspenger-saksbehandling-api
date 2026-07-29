@@ -1,17 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.journalpost.infra.route
 
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
@@ -78,19 +72,14 @@ class ValiderJournalpostRouteTest {
         )
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/journalpost/valider")
-            },
+            HttpMethod.POST,
+            "/journalpost/valider",
             jwt = jwt,
-            forventet = ForventetRespons(status = HttpStatusCode.OK),
-        ) {
-            setBody(
-                serialize(ValiderJournalpostBody(fnr.verdi, journalpostId.toString())),
-            )
-        }.apply {
-            val bodyAsText = this.bodyAsText()
+            forventet = ForventetRespons(status = 200),
+            body =
+            serialize(ValiderJournalpostBody(fnr.verdi, journalpostId.toString())),
+        ).apply {
+            val bodyAsText = this.body
             return bodyAsText
         }
     }

@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.tilbeslutning
 import arrow.core.nonEmptySetOf
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
@@ -53,7 +52,7 @@ class SendBehandlingTilBeslutningServiceTest {
     fun `kan innvilge selv om det en behandling med periode som tilstøter eller overlapper`() {
         withTestApplicationContext { tac ->
             val saksbehandler = saksbehandler()
-            val fnr = Fnr.fromString("12345678911")
+            val fnr = ObjectMother.gyldigFnr()
 
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
                 tac = tac,

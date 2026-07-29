@@ -162,7 +162,7 @@ class BrevRevurderingStansDTOTest {
             valgteHjemler = valgteHjemler,
             harStansetBarnetillegg = harStansetBarnetillegg,
         )
-        return lesTre(brevJson).get("valgtHjemmelTekst").toList().map { it.asText() }
+        return lesTre(brevJson).get("valgtHjemmelTekst").toList().map { it.asString() }
     }
 
     /**

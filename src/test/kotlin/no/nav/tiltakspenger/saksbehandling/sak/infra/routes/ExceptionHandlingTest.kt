@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSaksbehandler
@@ -21,13 +21,16 @@ class ExceptionHandlingTest {
             ) { tac ->
                 hentEllerOpprettSakForSaksbehandler(
                     tac = tac,
-                    forventetJsonBody = """
+                    forventet = ForventetRespons.json(
+                        500,
+                        """
                         {
                           "melding": "Noe gikk galt på serversiden",
                           "kode": "server_feil"
                         }
-                    """.trimIndent(),
-                    forventetStatus = HttpStatusCode.InternalServerError,
+                        """.trimIndent(),
+                        "application/json; charset=UTF-8",
+                    ),
                 )
             }
         }

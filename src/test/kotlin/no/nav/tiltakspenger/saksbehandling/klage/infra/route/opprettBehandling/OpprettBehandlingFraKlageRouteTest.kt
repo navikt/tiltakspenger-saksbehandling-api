@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettBehandling
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.dato.februar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
@@ -79,7 +79,7 @@ class OpprettBehandlingFraKlageRouteTest {
             json.toString().shouldBeSøknadsbehandlingDTO(
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 sakId = sak.id,
-                saksnummer = Saksnummer("202505011001"),
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
                 søknadId = rammebehandlingMedKlagebehandling.søknad.id,
                 rammevedtakId = null,
@@ -141,7 +141,7 @@ class OpprettBehandlingFraKlageRouteTest {
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 status = "UNDER_BEHANDLING",
                 sakId = sak.id,
-                saksnummer = Saksnummer("202505011001"),
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
                 rammevedtakId = null,
                 resultat = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE,
@@ -202,7 +202,7 @@ class OpprettBehandlingFraKlageRouteTest {
                 behandlingId = rammebehandlingMedKlagebehandling.id,
                 status = "UNDER_BEHANDLING",
                 sakId = rammebehandlingMedKlagebehandling.sakId,
-                saksnummer = Saksnummer("202505011001"),
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
                 rammevedtakId = null,
                 resultat = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT,
@@ -232,15 +232,16 @@ class OpprettBehandlingFraKlageRouteTest {
                 søknadId = søknad.id,
                 vedtakIdSomOmgjøres = null,
                 type = "SØKNADSBEHANDLING_INNVILGELSE",
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                         {
                           "melding": "Det finnes allerede en åpen behandling ${rammebehandlingMedKlagebehandling.id} for denne klagebehandlingen.",
                           "kode": "finnes_åpen_behandling"
                         }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }
@@ -318,15 +319,16 @@ class OpprettBehandlingFraKlageRouteTest {
                 søknadId = null,
                 vedtakIdSomOmgjøres = ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå.toString(),
                 type = "REVURDERING_OMGJØRING",
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                         {
                           "melding": "Det finnes allerede en åpen behandling ${opprettetRammebehandling.id} for denne klagebehandlingen.",
                           "kode": "finnes_åpen_behandling"
                         }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
             val opprinneligvedtaksperiode = sak.vedtaksliste.rammevedtaksliste.single { it.id == ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå }
             oppdaterOmgjøringInnvilgelse(

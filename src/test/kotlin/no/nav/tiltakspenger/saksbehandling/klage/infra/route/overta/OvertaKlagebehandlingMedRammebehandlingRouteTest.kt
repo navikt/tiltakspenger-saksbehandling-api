@@ -31,7 +31,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerSomOvertarKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
@@ -75,7 +75,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = saksbehandlerSomOvertar.navIdent,
                 resultat = "OPPRETTHOLDT",
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",
@@ -139,6 +139,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             overtattRammebehandling.get("saksbehandler").asString() shouldBe nySaksbehandler.navIdent
             klagebehandling.toString().shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 fnr = sak.fnr.verdi,
                 klagebehandlingId = rammebehandling.klagebehandling!!.id,
                 resultat = rammebehandling.klagebehandling!!.resultat as Klagebehandlingsresultat.Opprettholdt,

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeTilbakekrevingBehandling
@@ -62,7 +62,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
                 saksbehandler = saksbehandler2,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
         }
     }
@@ -78,7 +78,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
                 sakId = sak.id,
                 tilbakekrevingId = behandling.id,
                 saksbehandler = saksbehandler,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
         }
     }

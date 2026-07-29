@@ -18,8 +18,9 @@ class GjenopptaKlagebehandlingRouteTest {
             )!!
             json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",

@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.iverksett
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeRevurderingDTO
@@ -77,7 +77,7 @@ class IverksettKlagebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 status = "VEDTATT",
                 resultat = "AVVIST",
                 iverksattTidspunkt = "TIMESTAMP",
@@ -117,8 +117,7 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = null,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
         }
     }
@@ -133,15 +132,16 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                      {
                         "melding": "Kan kun iverksette klagebehandling med status UNDER_BEHANDLING",
                         "kode": "må_ha_status_under_behandling"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -157,15 +157,16 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                      {
                         "melding": "Kan kun iverksette klagebehandling med status UNDER_BEHANDLING",
                         "kode": "må_ha_status_under_behandling"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -181,15 +182,16 @@ class IverksettKlagebehandlingRouteTest {
                 sakId = sak.id,
                 saksbehandler = ObjectMother.saksbehandler("annenSaksbehandler"),
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                      {
                         "melding": "Du kan ikke utføre handlinger på en behandling som ikke er tildelt deg. Behandlingen er tildelt saksbehandlerKlagebehandling",
                         "kode": "behandling_eies_av_annen_saksbehandler"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -204,15 +206,16 @@ class IverksettKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                      {
                         "melding": "Kan ikke iverksette klagebheandling uten brevtekst",
                         "kode": "mangler_brevtekst"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -479,6 +482,8 @@ class IverksettKlagebehandlingRouteTest {
             klagevedtakJson.toString().shouldBeKlagevedtakJson(
                 klagebehandlingId = klagevedtak.behandling.id,
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr.verdi,
                 vedtakDetKlagesPå = meldekortvedtak.id,
                 behandlingDetKlagesPå = klagevedtak.behandling.formkrav.behandlingDetKlagesPå!!,
             )

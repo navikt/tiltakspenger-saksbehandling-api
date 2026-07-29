@@ -1,19 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater
 
 import arrow.core.Tuple5
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
@@ -59,6 +53,7 @@ interface OppdaterMeldekortbehandlingBuilder {
      */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
         tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String? = null,
         tekstTilVedtaksbrev: String? = null,
@@ -74,11 +69,12 @@ interface OppdaterMeldekortbehandlingBuilder {
             valgtTiltaksdeltakelse = tiltaksdeltakelse,
             antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         medJsonBody: ((String) -> Unit)? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, meldekortUnderBehandling, _) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
             tac = tac,
+            fnr = fnr,
             saksbehandler = saksbehandler,
             vedtaksperiode = vedtaksperiode,
             tiltaksdeltakelse = tiltaksdeltakelse,
@@ -94,7 +90,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             medJsonBody = medJsonBody,
         ) ?: return null
 
@@ -120,7 +116,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         medJsonBody: ((String) -> Unit)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
         val (_, opprettetMeldekortbehandling, _) = opprettMeldekortbehandlingForSakId(
@@ -139,7 +135,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             meldeperioder = meldeperioder,
             begrunnelse = begrunnelse,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             medJsonBody = medJsonBody,
         )
     }
@@ -157,46 +153,38 @@ interface OppdaterMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         medJsonBody: ((String) -> Unit)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
+        val meldeperioderIBody = buildMeldeperioderBody(
+            tac = tac,
+            sakId = sakId,
+            meldekortId = meldekortId,
+            meldeperioder = meldeperioder,
+        )
         val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/meldekort/$meldekortId/oppdater")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/meldekort/$meldekortId/oppdater",
             jwt = jwt,
-            forventet = forventetStatus?.let { status ->
-                ForventetRespons(status = status, contentType = ContentType.parse("application/json; charset=UTF-8"))
-            },
-        ) {
-            val meldeperioderIBody = buildMeldeperioderBody(
-                tac = tac,
-                sakId = sakId,
-                meldekortId = meldekortId,
-                meldeperioder = meldeperioder,
-            )
-            this.setBody(
-                """
-                    {
-                    "begrunnelse":${if (begrunnelse != null) "\"$begrunnelse\"" else null},
-                    "tekstTilVedtaksbrev":${if (tekstTilVedtaksbrev != null) "\"$tekstTilVedtaksbrev\"" else null},
-                    "meldeperioder":$meldeperioderIBody,
-                    "skalSendeVedtaksbrev":$skalSendeVedtaksbrev
-                    }
-                """.trimIndent(),
-            )
-        }
-        val bodyAsText = response.bodyAsText()
+            forventet = forventet,
+            body = """
+                {
+                "begrunnelse":${if (begrunnelse != null) "\"$begrunnelse\"" else null},
+                "tekstTilVedtaksbrev":${if (tekstTilVedtaksbrev != null) "\"$tekstTilVedtaksbrev\"" else null},
+                "meldeperioder":$meldeperioderIBody,
+                "skalSendeVedtaksbrev":$skalSendeVedtaksbrev
+                }
+            """.trimIndent(),
+        )
+        val bodyAsText = response.body
         if (medJsonBody != null) {
             medJsonBody(bodyAsText)
         }
-        if (response.status != HttpStatusCode.OK) {
+        if (response.statusCode != 200) {
             return null
         }
 

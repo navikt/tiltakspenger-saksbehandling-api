@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.sendTilBeslutning
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortDagStatusDTO
@@ -57,7 +57,7 @@ internal class SendMeldekortbehandlingTilBeslutningRouteTest {
                     tac = tac,
                     sakId = sak.id,
                     meldekortId = meldekortbehandling.id,
-                    forventetStatus = HttpStatusCode.InternalServerError,
+                    forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
                 )
             }
         }
@@ -100,13 +100,16 @@ internal class SendMeldekortbehandlingTilBeslutningRouteTest {
                     tac = tac,
                     sakId = sak.id,
                     meldekortId = meldekortbehandling.id,
-                    forventetStatus = HttpStatusCode.BadRequest,
-                    forventetJsonBody = """
+                    forventet = ForventetRespons.json(
+                        400,
+                        """
                         {                                                
                           "kode": "meldeperiodene_er_ikke_utfylt",
                           "melding": "Meldeperiodene må være fullstendig utfylt for å kunne sende meldekortet til beslutter."
                          }
-                    """.trimIndent(),
+                        """.trimIndent(),
+                        "application/json; charset=UTF-8",
+                    ),
                 )
             }
         }

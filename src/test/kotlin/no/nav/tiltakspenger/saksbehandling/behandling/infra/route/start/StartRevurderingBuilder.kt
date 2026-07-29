@@ -1,21 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 
 import arrow.core.Tuple5
-import io.kotest.assertions.json.shouldEqualJson
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
@@ -35,7 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
-import org.intellij.lang.annotations.Language
 import org.json.JSONObject
 
 interface StartRevurderingBuilder {
@@ -50,8 +42,7 @@ interface StartRevurderingBuilder {
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(innvilgelsesperioder.totalPeriode),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
@@ -68,8 +59,7 @@ interface StartRevurderingBuilder {
             sakId = sak.id,
             type = RevurderingsresultatType.STANS,
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )!!
         return Tuple5(
             oppdatertSak,
@@ -85,16 +75,14 @@ interface StartRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         return startRevurderingForSakId(
             tac = tac,
             sakId = sakId,
             type = RevurderingsresultatType.STANS,
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )
     }
 
@@ -147,8 +135,7 @@ interface StartRevurderingBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         return startRevurderingForSakId(
             tac = tac,
@@ -156,8 +143,7 @@ interface StartRevurderingBuilder {
             type = RevurderingsresultatType.INNVILGELSE,
             saksbehandler = saksbehandler,
             rammevedtakIdSomOmgjøres = null,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )
     }
 
@@ -174,8 +160,7 @@ interface StartRevurderingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         søknadsbehandlingInnvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         oppdatertTiltaksdeltakelse: Tiltaksdeltakelse? = søknadsbehandlingInnvilgelsesperioder.periodisering.first().verdi.valgtTiltaksdeltakelse,
-        forventetStatusForStartRevurdering: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBodyForStartRevurdering: String? = null,
+        forventetForStartRevurdering: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, Revurdering, RammebehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling) = iverksettSøknadsbehandling(
             tac = tac,
@@ -193,8 +178,7 @@ interface StartRevurderingBuilder {
             sakId = sak.id,
             type = RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             rammevedtakIdSomOmgjøres = sak.rammevedtaksliste.single().id,
-            forventetStatus = forventetStatusForStartRevurdering,
-            forventetJsonBody = forventetJsonBodyForStartRevurdering,
+            forventet = forventetForStartRevurdering,
         ) ?: return null
 
         return Tuple5(
@@ -215,8 +199,7 @@ interface StartRevurderingBuilder {
         sakId: SakId,
         rammevedtakIdSomOmgjøres: VedtakId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        @Language("JSON") forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         return startRevurderingForSakId(
             tac = tac,
@@ -224,8 +207,7 @@ interface StartRevurderingBuilder {
             type = RevurderingsresultatType.OMGJØRING_INNVILGELSE,
             rammevedtakIdSomOmgjøres = rammevedtakIdSomOmgjøres,
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )
     }
 
@@ -236,36 +218,27 @@ interface StartRevurderingBuilder {
         type: RevurderingsresultatType,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         rammevedtakIdSomOmgjøres: VedtakId? = null,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/revurdering/start")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/revurdering/start",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
-        ) {
-            setBody(
-                """
+            forventet = forventet,
+            body =
+            """
                 {
                 "revurderingType": "${type.tilStartRevurderingTypeDTO()}", 
                 "rammevedtakIdSomOmgjøres": ${if (rammevedtakIdSomOmgjøres != null) """"$rammevedtakIdSomOmgjøres"""" else null}
                 }
-                """.trimIndent(),
-            )
-        }
+            """.trimIndent(),
+        )
             .apply {
-                val bodyAsText = this.bodyAsText()
+                val bodyAsText = this.body
 
-                if (forventetJsonBody != null) {
-                    bodyAsText.shouldEqualJson(forventetJsonBody)
-                }
-                if (status != HttpStatusCode.OK) return null
+                if (statusCode != 200) return null
                 val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
                 val revurderingId = RammebehandlingId.fromString(jsonObject.getString("id"))
                 val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

@@ -103,7 +103,6 @@ class BenkOversiktServiceTest {
                 ),
                 saksbehandlerToken = "secret tokenz",
                 saksbehandler = saksbehandler,
-
             )
 
             actual.behandlingssammendrag shouldBe listOf(bs1HarTilgang)

@@ -9,8 +9,15 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.Navn
+import no.nav.tiltakspenger.saksbehandling.sak.FnrGenerator
 import java.time.Instant
 import kotlin.time.Duration
+
+/**
+ * Delt instans slik at alle fnr fra [ObjectMother.gyldigFnr] er unike på tvers av hele testkjøringen.
+ * Skal ikke ha flere instanser; to generatorer med samme startverdi gir samme sekvens og dermed kollisjoner.
+ */
+private val fnrGenerator = FnrGenerator()
 
 /**
  * test-data instanser vi vil skal deles på tvers av test-interfacene våre
@@ -38,7 +45,12 @@ object ObjectMother :
     UtbetalingMother,
     OppdaterBehandlingKommandoMother,
     InnvilgelsesperioderMother {
-    fun gyldigFnr() = Fnr.fromString("12345678911")
+    /**
+     * Genererer et nytt, unikt fnr per kall (trådsikkert).
+     * Unikheten gjør at tester ikke deler person, og dermed kan kjøre mot samme skjema uten å rydde mellom seg.
+     * Fnr valideres ikke utover 11 siffer i testene; alt utenfor er faket.
+     */
+    fun gyldigFnr(): Fnr = fnrGenerator.generer()
 
     fun navn() = Navn("Fornavn", "Mellomnavn", "Etternavn")
 

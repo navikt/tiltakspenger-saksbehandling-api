@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent
 
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -32,7 +32,7 @@ class SettKlagebehandlingPåVentRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = null,
                 status = "KLAR_TIL_BEHANDLING",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
@@ -62,7 +62,7 @@ class SettKlagebehandlingPåVentRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = null,
                 status = "KLAR_TIL_BEHANDLING",
                 vedtakDetKlagesPå = "${klagebehandlingPåVent.formkrav.vedtakDetKlagesPå!!}",
@@ -119,15 +119,16 @@ class SettKlagebehandlingPåVentRouteTest {
                 årsak = KlageOmgjøringsårsak.ANNET,
                 vurderingstype = Vurderingstype.OMGJØR,
                 hjemler = null,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                     {
                       "melding": "Klagebehandlingen er satt på vent. Den må gjenopptas før den kan behandles videre.",
                       "kode": "klagebehandling_er_satt_på_vent"
                     }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }
@@ -145,7 +146,7 @@ class SettKlagebehandlingPåVentRouteTest {
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
                 saksbehandlerSomTar = ObjectMother.saksbehandler("annenSaksbehandler"),
-                forventetStatus = HttpStatusCode.OK,
+                forventet = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
             )
         }
     }

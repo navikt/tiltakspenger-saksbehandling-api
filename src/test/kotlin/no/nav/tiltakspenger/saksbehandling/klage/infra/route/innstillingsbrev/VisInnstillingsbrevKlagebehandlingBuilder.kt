@@ -1,16 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.innstillingsbrev
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.ktor.client.statement.bodyAsBytes
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -29,8 +23,7 @@ interface VisInnstillingsbrevKlagebehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/pdf"),
     ): Triple<Sak, Klagebehandling, ByteArray>? {
         val (sak, klagebehandling) = this.ferdigstiltOpprettholdtKlagebehandling(
             tac = tac,
@@ -44,8 +37,7 @@ interface VisInnstillingsbrevKlagebehandlingBuilder {
             klagebehandlingId = klagebehandling.id,
             dokumentInfoId = (klagebehandling.resultat as Klagebehandlingsresultat.Opprettholdt).dokumentInfoIder.single(),
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )
     }
 
@@ -55,23 +47,19 @@ interface VisInnstillingsbrevKlagebehandlingBuilder {
         klagebehandlingId: KlagebehandlingId,
         dokumentInfoId: DokumentInfoId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/pdf"),
     ): Triple<Sak, Klagebehandling, ByteArray>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Get,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/innstillingsbrev/$dokumentInfoId")
-            },
+            HttpMethod.GET,
+            "/sak/$sakId/klage/$klagebehandlingId/innstillingsbrev/$dokumentInfoId",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
+            forventet = forventet,
         ).apply {
-            val pdf = this.bodyAsBytes()
+            val pdf = this.bytes
 
-            if (status != HttpStatusCode.OK) return null
+            if (statusCode != 200) return null
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
 
             return Triple(

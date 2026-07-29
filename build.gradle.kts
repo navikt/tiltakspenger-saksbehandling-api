@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.3"
-val felleslibVersion = "0.0.20260726220745"
+val felleslibVersion = "0.0.20260727190913"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
@@ -98,7 +98,6 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.kotest:kotest-extensions:$kotestVersion")
@@ -112,8 +111,6 @@ dependencies {
     testImplementation("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
     testImplementation(testFixtures("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion"))
-    testImplementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
-    testImplementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:persistering-test-common:$felleslibVersion")
 }
 plugins {
@@ -164,6 +161,8 @@ tasks {
     test {
         // JUnit 5-støtte
         useJUnitPlatform()
+        // Gradles default på 512 MB holder ikke for suiten vår: den døde på «Java heap space» rundt test 750-850 av 1229.
+        maxHeapSize = "2g"
         // https://phauer.com/2018/best-practices-unit-testing-kotlin/
         systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_class")
         // https://github.com/mockito/mockito/issues/3037#issuecomment-1588199599

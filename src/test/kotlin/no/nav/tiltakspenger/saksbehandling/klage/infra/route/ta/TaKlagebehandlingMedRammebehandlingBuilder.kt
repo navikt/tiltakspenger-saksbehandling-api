@@ -1,9 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
@@ -34,8 +33,7 @@ interface TaKlagebehandlingMedRammebehandlingBuilder {
         erKlagefristenOverholdt: Boolean = true,
         erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
         erKlagenSignert: Boolean = true,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Rammebehandling, SakDTOJson>? {
         val (sak, rammebehandlingMedKlagebehandling, _) = this.iverksettSøknadsbehandlingOgLeggKlagebehandlingMedRammebehandlingTilbake(
             tac = tac,
@@ -49,8 +47,7 @@ interface TaKlagebehandlingMedRammebehandlingBuilder {
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
             saksbehandlerSomTar = saksbehandlerSomTarKlagebehandling,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         val oppdatertRammebehandlingMedKlagebehandling =
             oppdatertSak.hentRammebehandling(rammebehandlingMedKlagebehandling.id)!!

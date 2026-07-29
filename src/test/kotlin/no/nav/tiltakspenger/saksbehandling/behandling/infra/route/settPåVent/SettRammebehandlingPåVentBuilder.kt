@@ -1,22 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.settPåVent
 
 import arrow.core.Tuple4
-import io.kotest.assertions.json.CompareJsonOptions
-import io.kotest.assertions.json.shouldEqualJson
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -44,9 +36,8 @@ interface SettRammebehandlingPåVentBuilder {
         clock: Clock = fixedClock,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         frist: LocalDate = 1.januar(2026),
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
     ): Tuple4<Sak, Søknad, Rammebehandling?, SakDTOJson>? {
         val (sak, _, søknadsbehandling) = this.opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
@@ -58,9 +49,8 @@ interface SettRammebehandlingPåVentBuilder {
             tac = tac,
             rammebehandlingId = søknadsbehandling.id,
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
             frist = frist,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
             sakId = sak.id,
         )
     }
@@ -75,35 +65,26 @@ interface SettRammebehandlingPåVentBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "Begrunnelse for å sette rammebehandling på vent",
         frist: LocalDate? = null,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Søknad, Rammebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$rammebehandlingId/pause")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/behandling/$rammebehandlingId/pause",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
-        ) {
-            setBody(
-                """
+            forventet = forventet,
+            body =
+            """
                 {
                     "frist": "${frist?.let { "$it" } ?: ""}",
                     "begrunnelse": "$begrunnelse"
                 }
-                """.trimIndent(),
-            )
-        }.apply {
-            val bodyAsText = this.bodyAsText()
+            """.trimIndent(),
+        ).apply {
+            val bodyAsText = this.body
 
-            if (forventetJsonBody != null) {
-                bodyAsText.shouldEqualJson(forventetJsonBody)
-            }
-            if (status != HttpStatusCode.OK) return null
+            if (statusCode != 200) return null
             val sakJson: SakDTOJson = objectMapper.readTree(bodyAsText)
 
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

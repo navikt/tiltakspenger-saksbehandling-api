@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt
 
-import io.ktor.http.HttpStatusCode
-import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -41,7 +40,7 @@ class AvbrytRammebehandlingRouteTest {
                 sakId = sak.id,
                 klagebehandlingId = null,
                 søknadId = søknad.id,
-                saksnummer = Saksnummer("202505011001"),
+                saksnummer = sak.saksnummer,
                 iverksattTidspunkt = null,
                 vedtaksperiode = null,
                 saksbehandler = "Z12345",
@@ -71,15 +70,16 @@ class AvbrytRammebehandlingRouteTest {
                 saksnummer = sak.saksnummer,
                 sakId = sak.id,
                 rammebehandlingId = søknadsbehandling!!.id,
-                forventetStatus = HttpStatusCode.Conflict,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    409,
                     """
                     {
                       "melding": "Behandlingen er allerede avsluttet.",
                       "kode": "behandling_kan_ikke_avbrytes_i_tilstanden"
                     }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             )
         }
     }

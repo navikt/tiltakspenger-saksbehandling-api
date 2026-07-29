@@ -1,13 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt
 
 import arrow.core.Tuple4
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -15,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -53,15 +48,12 @@ interface BehandleSøknadPåNyttBuilder {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
         tac.leggTilBruker(jwt, ObjectMother.saksbehandler())
         val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/soknad/$søknadId/behandling/ny-behandling")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/soknad/$søknadId/behandling/ny-behandling",
             jwt = jwt,
-            forventet = ForventetRespons(status = HttpStatusCode.OK),
+            forventet = ForventetRespons(status = 200),
         )
-        val bodyAsText = response.bodyAsText()
+        val bodyAsText = response.body
         val behandlingId = RammebehandlingId.fromString(JSONObject(bodyAsText).getString("id"))
         return tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) to bodyAsText
     }
@@ -71,18 +63,15 @@ interface BehandleSøknadPåNyttBuilder {
         sakId: SakId,
         søknadId: SøknadId,
         saksbehandler: Saksbehandler,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ) {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler()
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/soknad/$søknadId/behandling/ny-behandling")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/soknad/$søknadId/behandling/ny-behandling",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
+            forventet = forventet,
         )
     }
 }

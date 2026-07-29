@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 
 data class IdGenerators(
     val saksnummerGenerator: SaksnummerGeneratorForTest = SaksnummerGeneratorForTest(),
-    val fnrGenerator: FnrGenerator = FnrGenerator(),
     val distribusjonIdGenerator: DistribusjonIdGenerator = DistribusjonIdGenerator(),
     val journalpostIdGenerator: JournalpostIdGeneratorSerial = JournalpostIdGeneratorSerial(),
     val dokumentInfoIdGeneratorSerial: DokumentInfoIdGeneratorSerial = DokumentInfoIdGeneratorSerial(),

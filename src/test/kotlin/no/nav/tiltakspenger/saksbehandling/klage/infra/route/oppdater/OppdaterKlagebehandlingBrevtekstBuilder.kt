@@ -1,20 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
 import arrow.core.Tuple4
-import io.kotest.assertions.json.CompareJsonOptions
 import io.kotest.assertions.json.shouldEqualJson
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -52,14 +45,12 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
                 tekst = NonBlankString.create("Din klage er dessverre avvist."),
             ),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val (sak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilAvvisning(
             tac = tac,
             saksbehandler = saksbehandler,
             fnr = fnr,
-
         ) ?: return null
         return oppdaterKlagebehandlingBrevtekstForSakId(
             tac = tac,
@@ -67,8 +58,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,
             brevtekst = brevtekst,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )
     }
 
@@ -90,8 +80,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
                 tekst = NonBlankString.create("<saksbehandler fyller ut>"),
             ),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Rammevedtak, Klagebehandling, KlagebehandlingDTOJson>? {
         val (sak, rammevedtak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilOpprettholdelse(
             tac = tac,
@@ -104,8 +93,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,
             brevtekst = brevtekst,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )!!
 
         return Tuple4(oppdatertSak, rammevedtak, oppdatertKlagebehandling, klagebehandlingJson)
@@ -130,8 +118,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
                 tekst = NonBlankString.create("<saksbehandler fyller ut>"),
             ),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, KlagebehandlingDTOJson>? {
         val (sak, meldekortvedtak, klagebehandling, _) = this.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilOpprettholdelse(
             tac = tac,
@@ -146,8 +133,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandlerKlagebehandling,
             brevtekst = brevtekst,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )!!
 
         return Tuple4(oppdatertSak, meldekortvedtak, oppdatertKlagebehandling, klagebehandlingJson)
@@ -163,8 +149,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
                 tekst = NonBlankString.create("Din klage er dessverre avvist."),
             ),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, KlagebehandlingDTOJson>? {
         val (sak, meldekortvedtak, klagebehandling, _) = this.iverksettMeldekortvedtakOgOpprettKlagebehandlingTilAvvisning(
             tac = tac,
@@ -178,8 +163,7 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,
             brevtekst = brevtekst,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )!!
 
         return Tuple4(oppdatertSak, meldekortvedtak, oppdatertKlagebehandling, klagebehandlingJson)
@@ -197,52 +181,41 @@ interface OppdaterKlagebehandlingBrevtekstBuilder {
                 tekst = NonBlankString.create("Din klage er dessverre avvist."),
             ),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        defaultRequestWithAssertions(
-            HttpMethod.Put,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/brevtekst")
-            },
-            jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
-        ) {
-            val tekstTilVedtaksbrevListe = brevtekst.joinToString(separator = ",") {
-                """
-                {
-                    "tittel": "${it.tittel.value}",
-                    "tekst": "${it.tekst.value}"
-                }
-                """.trimIndent()
+        val tekstTilVedtaksbrevListe = brevtekst.joinToString(separator = ",") {
+            """
+            {
+                "tittel": "${it.tittel.value}",
+                "tekst": "${it.tekst.value}"
             }
-            setBody(
-                //language=JSON
-                """
+            """.trimIndent()
+        }
+        defaultRequestWithAssertions(
+            HttpMethod.PUT,
+            "/sak/$sakId/klage/$klagebehandlingId/brevtekst",
+            jwt = jwt,
+            forventet = forventet,
+            //language=JSON
+            body = """
                 {
                     "tekstTilVedtaksbrev": [$tekstTilVedtaksbrevListe]
                 }
-                """.trimIndent(),
+            """.trimIndent(),
+        ).apply {
+            val bodyAsText = this.body
+
+            if (statusCode != 200) return null
+            val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
+            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
+            val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+            return Triple(
+                oppdatertSak,
+                oppdatertSak.hentKlagebehandling(klagebehandlingId),
+                jsonObject,
             )
         }
-            .apply {
-                val bodyAsText = this.bodyAsText()
-
-                if (forventetJsonBody != null) {
-                    bodyAsText.shouldEqualJson(forventetJsonBody)
-                }
-                if (status != HttpStatusCode.OK) return null
-                val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
-                val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
-                val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
-                return Triple(
-                    oppdatertSak,
-                    oppdatertSak.hentKlagebehandling(klagebehandlingId),
-                    jsonObject,
-                )
-            }
     }
 }

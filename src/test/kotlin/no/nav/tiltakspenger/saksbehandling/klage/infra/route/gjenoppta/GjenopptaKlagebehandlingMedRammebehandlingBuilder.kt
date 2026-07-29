@@ -1,9 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.gjenoppta
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
@@ -33,8 +32,7 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
         journalpostId: JournalpostId = JournalpostId("12345"),
         erKlagefristenOverholdt: Boolean = true,
         erUnntakForKlagefrist: KlagefristUnntakSvarord? = null,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
         val (sak, rammebehandlingMedSøknadsbehandling, _) = this.iverksettSøknadsbehandlingOgSettKlagebehandlingMedRammebehandlingPåVent(
             tac = tac,
@@ -48,8 +46,7 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandlerKlagebehandling,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         val oppdatertRammebehandling = oppdatertSak.åpneBehandlingerMedKlagebehandlingId(oppdatertKlagebehandling.id).first() as Rammebehandling
         val klagebehandlingJson = sakJson.get("klageBehandlinger").first()

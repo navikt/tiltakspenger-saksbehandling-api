@@ -19,8 +19,9 @@ class TaKlagebehandlingRouteTest {
             )!!
             json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerSomTar",
                 resultat = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
@@ -42,8 +43,9 @@ class TaKlagebehandlingRouteTest {
             )!!
             json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerSomOvertar",
                 resultat = null,
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",

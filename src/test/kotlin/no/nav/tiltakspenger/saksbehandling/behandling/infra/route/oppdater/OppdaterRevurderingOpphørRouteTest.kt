@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -177,7 +177,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = innvilgelsesperiode,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
                 response harKode "kan_ikke_omgjøre_flere_vedtak"
             }
@@ -187,7 +187,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = stansetPeriode,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
                 response harKode "må_omgjøre_angitt_vedtak"
             }
@@ -222,7 +222,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = stansetPeriode,
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
                 response harKode "vedtak_kan_ikke_opphøres_uten_gjeldende_innvilgelse"
             }
@@ -250,7 +250,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 1.februar(2025) til 28.februar(2025),
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
                 response harKode "ugyldig_periode_for_opphør"
             }
@@ -260,7 +260,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 31.januar(2025) til 28.februar(2025),
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
                 response harKode "ugyldig_periode_for_opphør"
                 response.shouldContain("Perioden som opphøres må slutte i en gjeldende innvilgelsesperiode")
@@ -271,7 +271,7 @@ class OppdaterRevurderingOpphørRouteTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 1.februar(2025) til 1.mars(2025),
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             ).also { (_, _, response) ->
                 response harKode "ugyldig_periode_for_opphør"
                 response.shouldContain("Perioden som opphøres må starte i en gjeldende innvilgelsesperiode")

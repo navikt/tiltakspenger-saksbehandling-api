@@ -1,18 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.kotest.assertions.json.shouldEqualJson
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -39,8 +31,7 @@ interface AvbrytKlagebehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val (sak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilAvvisning(
             tac = tac,
@@ -52,8 +43,7 @@ interface AvbrytKlagebehandlingBuilder {
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )
     }
 
@@ -68,29 +58,21 @@ interface AvbrytKlagebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         avbruttStatus: AvbruttKlagebehandlingStatus = AvbruttKlagebehandlingStatus.ANNET,
         begrunnelse: String? = "begrunnelse for avbryt klagebehandling",
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Klagebehandling, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         val begrunnelseJson = if (begrunnelse != null) "\"$begrunnelse\"" else "null"
         defaultRequestWithAssertions(
-            HttpMethod.Patch,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/avbryt")
-            },
+            HttpMethod.PATCH,
+            "/sak/$sakId/klage/$klagebehandlingId/avbryt",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
-        ) {
-            setBody("""{"status": "$avbruttStatus", "begrunnelse": $begrunnelseJson}""")
-        }.apply {
-            val bodyAsText = this.bodyAsText()
+            forventet = forventet,
+            body = """{"status": "$avbruttStatus", "begrunnelse": $begrunnelseJson}""",
+        ).apply {
+            val bodyAsText = this.body
 
-            if (forventetJsonBody != null) {
-                bodyAsText.shouldEqualJson(forventetJsonBody)
-            }
-            if (status != HttpStatusCode.OK) return null
+            if (statusCode != 200) return null
             val sakJson = objectMapper.readTree(bodyAsText)
 
             val klagebehandling: KlagebehandlingDTOJson = sakJson.get("klageBehandlinger").single {

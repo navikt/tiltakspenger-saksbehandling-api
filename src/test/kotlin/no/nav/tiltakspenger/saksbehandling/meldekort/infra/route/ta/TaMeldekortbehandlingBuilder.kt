@@ -1,18 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.ta
 
 import arrow.core.Tuple5
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -58,8 +53,7 @@ interface TaMeldekortbehandlingBuilder {
         tac: TestApplicationContext,
         saksbehandlerSomOppretterOgLeggerTilbake: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOppretterOgLeggerTilbake"),
         saksbehandlerSomTar: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling, _) = iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgLeggTilbake(
             tac = tac,
@@ -71,8 +65,7 @@ interface TaMeldekortbehandlingBuilder {
             sakId = rammevedtakSøknadsbehandling.sakId,
             meldekortId = opprettetMeldekortbehandling.id,
             saksbehandlerEllerBeslutter = saksbehandlerSomTar,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         return Tuple5(sak, søknad, rammevedtakSøknadsbehandling, tattMeldekort as MeldekortUnderBehandling, json)
     }
@@ -88,6 +81,7 @@ interface TaMeldekortbehandlingBuilder {
      */
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling(
         tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         vedtaksperiode: Periode = 1.til(10.april(2025)),
@@ -100,11 +94,11 @@ interface TaMeldekortbehandlingBuilder {
             valgtTiltaksdeltakelse = tiltaksdeltakelse,
             antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, MeldekortbehandlingDTOJson>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling, _) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(
             tac = tac,
+            fnr = fnr,
             saksbehandler = saksbehandler,
             vedtaksperiode = vedtaksperiode,
             tiltaksdeltakelse = tiltaksdeltakelse,
@@ -116,8 +110,7 @@ interface TaMeldekortbehandlingBuilder {
             sakId = rammevedtakSøknadsbehandling.sakId,
             meldekortId = opprettetMeldekortbehandling.id,
             saksbehandlerEllerBeslutter = beslutter,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         return Tuple5(sak, søknad, rammevedtakSøknadsbehandling, tattMeldekort as MeldekortbehandlingManuell, json)
     }
@@ -132,8 +125,7 @@ interface TaMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
         val (sakMedMeldekortbehandlingUnderBeslutning, meldekortbehandling) = opprettOgSendMeldekortbehandlingTilBeslutning(
             tac = tac,
@@ -144,8 +136,7 @@ interface TaMeldekortbehandlingBuilder {
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
 
         return taMeldekortbehanding(
@@ -153,8 +144,7 @@ interface TaMeldekortbehandlingBuilder {
             sakId = sakMedMeldekortbehandlingUnderBeslutning.id,
             meldekortId = meldekortbehandling.id,
             saksbehandlerEllerBeslutter = beslutter,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )
     }
 
@@ -169,30 +159,20 @@ interface TaMeldekortbehandlingBuilder {
         sakId: SakId,
         meldekortId: MeldekortId,
         saksbehandlerEllerBeslutter: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandlerEllerBeslutter,
         )
         tac.leggTilBruker(jwt, saksbehandlerEllerBeslutter)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/meldekort/$meldekortId/ta")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/meldekort/$meldekortId/ta",
             jwt = jwt,
-            forventet = forventetStatus?.let { status ->
-                ForventetRespons(
-                    status = status,
-                    body = forventetJsonBody?.let { ForventetBody.Json(it) },
-                    contentType = ContentType.parse("application/json; charset=UTF-8"),
-                )
-            },
+            forventet = forventet,
         ).apply {
-            val bodyAsText = this.bodyAsText()
-            if (status != HttpStatusCode.OK) return null
+            val bodyAsText = this.body
+            if (statusCode != 200) return null
             val jsonObject: MeldekortbehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(

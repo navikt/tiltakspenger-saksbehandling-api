@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
@@ -66,7 +66,7 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                forventetStatus = HttpStatusCode.OK,
+                forventet = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
             )
 
             JSONObject(responseBody).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
@@ -100,7 +100,7 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurdering.id,
-                forventetStatus = HttpStatusCode.OK,
+                forventet = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
             )
 
             JSONObject(responseBody).getString("status") shouldBe RammebehandlingsstatusDTO.KLAR_TIL_BESLUTNING.name
@@ -126,7 +126,7 @@ class SendRevurderingTilBeslutningTest {
                 valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = stansFraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             )
 
             responseBody harKode "ugyldige_meldeperioder_for_helg"
@@ -204,7 +204,7 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
 
             val behandling = tac.behandlingContext.rammebehandlingRepo.hent(omgjøring.id)
@@ -246,7 +246,7 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             )
 
             response harKode "simulering_endret"
@@ -256,7 +256,7 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             )
 
             retryResponse harKode "simulering_endret"
@@ -302,7 +302,7 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             )
 
             response harKode "simulering_endret"
@@ -343,7 +343,7 @@ class SendRevurderingTilBeslutningTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             )
 
             response harKode "simulering_endret"

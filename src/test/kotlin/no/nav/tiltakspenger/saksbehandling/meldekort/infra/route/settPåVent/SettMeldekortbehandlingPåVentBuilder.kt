@@ -1,21 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.settPåVent
 
 import arrow.core.Tuple5
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -41,8 +33,7 @@ interface SettMeldekortbehandlingPåVentBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         begrunnelse: String = "Begrunnelse for å sette meldekortbehandling på vent",
         frist: LocalDate? = 1.januar(2026),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, SakDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, meldekortbehandling, _) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
             tac = tac,
@@ -56,8 +47,7 @@ interface SettMeldekortbehandlingPåVentBuilder {
             saksbehandlerEllerBeslutter = saksbehandler,
             begrunnelse = begrunnelse,
             frist = frist,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
 
         return Tuple5(
@@ -75,8 +65,7 @@ interface SettMeldekortbehandlingPåVentBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         begrunnelse: String = "Begrunnelse for å sette meldekortbehandling på vent",
         frist: LocalDate? = 1.januar(2026),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortbehandlingManuell, SakDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
             tac = tac,
@@ -91,8 +80,7 @@ interface SettMeldekortbehandlingPåVentBuilder {
             saksbehandlerEllerBeslutter = beslutter,
             begrunnelse = begrunnelse,
             frist = frist,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
 
         return Tuple5(
@@ -114,8 +102,7 @@ interface SettMeldekortbehandlingPåVentBuilder {
         saksbehandlerEllerBeslutter: Saksbehandler = ObjectMother.saksbehandlerOgBeslutter("saksbehandlerOgBeslutter"),
         begrunnelse: String = "Begrunnelse for å sette meldekortbehandling på vent",
         frist: LocalDate? = 1.januar(2026),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Meldekortbehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandlerEllerBeslutter,
@@ -123,31 +110,20 @@ interface SettMeldekortbehandlingPåVentBuilder {
         tac.leggTilBruker(jwt, saksbehandlerEllerBeslutter)
         val fristJson = frist?.let { "\"$it\"" } ?: "null"
         defaultRequestWithAssertions(
-            HttpMethod.Patch,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/meldekort/$meldekortId/vent")
-            },
+            HttpMethod.PATCH,
+            "/sak/$sakId/meldekort/$meldekortId/vent",
             jwt = jwt,
-            forventet = forventetStatus?.let { status ->
-                ForventetRespons(
-                    status = status,
-                    body = forventetJsonBody?.let { ForventetBody.Json(it) },
-                    contentType = ContentType.parse("application/json; charset=UTF-8"),
-                )
-            },
-        ) {
-            setBody(
-                """
+            forventet = forventet,
+            body =
+            """
                     {
                       "begrunnelse": "$begrunnelse",
                       "frist": $fristJson
                     }
-                """.trimIndent(),
-            )
-        }.apply {
-            val bodyAsText = bodyAsText()
-            if (status != HttpStatusCode.OK) return null
+            """.trimIndent(),
+        ).apply {
+            val bodyAsText = body
+            if (statusCode != 200) return null
             val jsonObject: SakDTOJson = objectMapper.readTree(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(

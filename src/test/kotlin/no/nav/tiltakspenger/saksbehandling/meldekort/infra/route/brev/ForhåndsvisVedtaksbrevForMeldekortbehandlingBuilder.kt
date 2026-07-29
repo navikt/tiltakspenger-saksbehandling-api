@@ -2,18 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.brev
 
 import arrow.core.Tuple5
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsBytes
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -38,7 +31,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         tekstTilVedtaksbrev: String? = "Dette er et vedtaksbrev",
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/pdf"),
         forventetPdf: PdfA? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, PdfA>? {
         val (_, søknad, rammevedtakSøknadsbehandling, opprettetMeldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
@@ -51,7 +44,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
             saksbehandler = saksbehandler,
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             forventetPdf = forventetPdf,
         ) ?: return null
         return Tuple5(
@@ -73,7 +66,7 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         tekstTilVedtaksbrev: String? = "Dette er et vedtaksbrev",
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/pdf"),
         forventetPdf: PdfA? = null,
     ): Triple<Sak, MeldekortUnderBehandling, PdfA>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -82,28 +75,20 @@ interface ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder {
         tac.leggTilBruker(jwt, saksbehandler)
         val meldeperioderIBody = buildMeldeperioderBody(tac = tac, sakId = sakId, meldekortId = meldekortId, meldeperioder = meldeperioder)
         val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/meldekortbehandling/$meldekortId/forhandsvis")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/meldekortbehandling/$meldekortId/forhandsvis",
             jwt = jwt,
-            forventet = forventetStatus?.let { status ->
-                ForventetRespons(status = status, contentType = ContentType.parse("application/pdf"))
-            },
-        ) {
-            this.setBody(
-                """
+            forventet = forventet,
+            body = """
                     {
                     "tekstTilVedtaksbrev":${if (tekstTilVedtaksbrev != null) "\"$tekstTilVedtaksbrev\"" else null},
                     "meldeperioder":$meldeperioderIBody
                     }
-                """.trimIndent(),
-            )
-        }
-        val pdfBytes = PdfA(response.bodyAsBytes())
+            """.trimIndent(),
+        )
+        val pdfBytes = PdfA(response.bytes)
         if (forventetPdf != null) pdfBytes shouldBe forventetPdf
-        if (response.status != HttpStatusCode.OK) return null
+        if (response.statusCode != 200) return null
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val meldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
         meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING

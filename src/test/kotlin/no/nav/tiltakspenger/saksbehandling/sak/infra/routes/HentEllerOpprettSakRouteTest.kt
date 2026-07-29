@@ -2,15 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -33,16 +27,12 @@ class HentEllerOpprettSakRouteTest {
             )
             tac.leggTilBruker(jwt, systembruker)
             defaultRequestWithAssertions(
-                HttpMethod.Post,
-                url {
-                    protocol = URLProtocol.HTTPS
-                    path(SAKSNUMMER_PATH)
-                },
+                HttpMethod.POST,
+                SAKSNUMMER_PATH,
                 jwt = jwt,
-                forventet = ForventetRespons(status = HttpStatusCode.OK),
-            ) {
-                setBody(objectMapper.writeValueAsString(FnrDTO(ident.verdi)))
-            }
+                forventet = ForventetRespons(status = 200),
+                body = objectMapper.writeValueAsString(FnrDTO(ident.verdi)),
+            )
             tac.sakContext.sakRepo.hentForFnr(ident).saker shouldNotBe emptyList<Sak>()
         }
     }
@@ -57,17 +47,13 @@ class HentEllerOpprettSakRouteTest {
             )
             tac.leggTilBruker(jwt, systembruker)
             defaultRequestWithAssertions(
-                HttpMethod.Post,
-                url {
-                    protocol = URLProtocol.HTTPS
-                    path(SAKSNUMMER_PATH)
-                },
+                HttpMethod.POST,
+                SAKSNUMMER_PATH,
                 jwt = jwt,
-                forventet = ForventetRespons(status = HttpStatusCode.OK),
-            ) {
-                setBody(objectMapper.writeValueAsString(FnrDTO(ident.verdi)))
-            }.apply {
-                val response = objectMapper.readValue<SaksnummerResponse>(bodyAsText())
+                forventet = ForventetRespons(status = 200),
+                body = objectMapper.writeValueAsString(FnrDTO(ident.verdi)),
+            ).apply {
+                val response = objectMapper.readValue<SaksnummerResponse>(body)
                 response.saksnummer shouldBe sak.saksnummer.verdi
             }
         }
@@ -83,16 +69,12 @@ class HentEllerOpprettSakRouteTest {
             )
             tac.leggTilBruker(jwt, ObjectMother.systembrukerLagreMeldekort())
             defaultRequestWithAssertions(
-                HttpMethod.Post,
-                url {
-                    protocol = URLProtocol.HTTPS
-                    path(SAKSNUMMER_PATH)
-                },
+                HttpMethod.POST,
+                SAKSNUMMER_PATH,
                 jwt = jwt,
-                forventet = ForventetRespons(status = HttpStatusCode.Forbidden),
-            ) {
-                setBody(objectMapper.writeValueAsString(FnrDTO(ident.verdi)))
-            }
+                forventet = ForventetRespons(status = 403),
+                body = objectMapper.writeValueAsString(FnrDTO(ident.verdi)),
+            )
         }
     }
 }

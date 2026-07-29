@@ -1,16 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
 import arrow.core.Tuple4
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -32,7 +27,7 @@ interface IverksettRammebehandlingBuilder {
         sakId: SakId,
         behandlingId: RammebehandlingId,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         utførJobber: Boolean = true,
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
     ): Tuple4<Sak, Rammevedtak, Rammebehandling, RammebehandlingDTOJson>? {
@@ -41,19 +36,16 @@ interface IverksettRammebehandlingBuilder {
         )
         tac.leggTilBruker(jwt, beslutter)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/iverksett")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/behandling/$behandlingId/iverksett",
             jwt = jwt,
-            forventet = ForventetRespons(status = forventetStatus),
+            forventet = forventet,
         ).apply {
-            val bodyAsText = this.bodyAsText()
+            val bodyAsText = this.body
             if (medJsonBody != null) {
                 medJsonBody(bodyAsText)
             }
-            if (status != HttpStatusCode.OK) return null
+            if (statusCode != 200) return null
             if (utførJobber) {
                 // Emulerer jobbene som normalt ville blitt trigget av å sette behandling til IVERKSATT.
                 tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()

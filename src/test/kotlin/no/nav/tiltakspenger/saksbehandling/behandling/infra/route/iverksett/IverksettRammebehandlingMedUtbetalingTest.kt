@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett
 
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
@@ -66,7 +66,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             ) {
                 it harKode "simulering_endret"
             }
@@ -76,7 +76,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             ) {
                 it harKode "simulering_endret"
             }
@@ -135,7 +135,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             ) {
                 it harKode "simulering_endret"
             }
@@ -189,7 +189,7 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
-                forventetStatus = HttpStatusCode.Conflict,
+                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             ) {
                 it harKode "simulering_endret"
             }

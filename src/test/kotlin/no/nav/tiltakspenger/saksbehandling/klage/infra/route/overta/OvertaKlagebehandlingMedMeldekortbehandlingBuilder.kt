@@ -1,9 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
@@ -19,8 +18,7 @@ interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder {
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         overtarFra: Saksbehandler = saksbehandlerKlagebehandling,
         saksbehandlerSomOvertarKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
         val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
@@ -33,8 +31,7 @@ interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandlerSomOvertarKlagebehandling,
             overtarFra = overtarFra.navIdent,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         val oppdatertMeldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortbehandling.id) as MeldekortUnderBehandling
         return Triple(oppdatertSak, oppdatertMeldekortbehandling, json)
@@ -44,8 +41,7 @@ interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder {
         tac: TestApplicationContext,
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         saksbehandlerSomOvertarKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, MeldekortUnderBehandling, SakDTOJson>? {
         val (sak, _, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
@@ -58,8 +54,7 @@ interface OvertaKlagebehandlingMedMeldekortbehandlingBuilder {
             meldekortId = meldekortbehandling.id,
             overtarFraSaksbehandlerEllerBeslutter = saksbehandlerKlagebehandling,
             saksbehandlerEllerBeslutterSomOvertar = saksbehandlerSomOvertarKlagebehandling,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         return Triple(oppdatertSak, oppdatertMeldekortbehandling as MeldekortUnderBehandling, json)
     }

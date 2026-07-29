@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -75,11 +75,12 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 sak.id,
                 behandlingId,
                 saksbehandler(navIdent = "Z999999"),
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = objectMapper.writeValueAsString(
-                    Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
-                        saksbehandler.navIdent,
+                forventet = ForventetRespons.json(
+                    400,
+                    objectMapper.writeValueAsString(
+                        Standardfeil.behandlingenEiesAvAnnenSaksbehandler(saksbehandler.navIdent),
                     ),
+                    "application/json; charset=UTF-8",
                 ),
             ) shouldBe null
         }
@@ -113,7 +114,7 @@ class SendSøknadsbehandlingTilBeslutningTest {
                 sak.id,
                 behandlingId,
                 saksbehandler,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {

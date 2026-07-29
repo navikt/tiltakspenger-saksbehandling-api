@@ -1,10 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.leggTilbake
 
 import arrow.core.Tuple5
-import io.kotest.assertions.json.CompareJsonOptions
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
@@ -39,8 +38,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         journalpostId: JournalpostId = JournalpostId("12345"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Rammebehandling, KlagebehandlingDTOJson>? {
         val (sak, rammebehandlingMedKlagebehandling, _) = this.opprettetSøknadsbehandlingForKlage(
             tac = tac,
@@ -53,8 +51,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
             sakId = sak.id,
             klagebehandlingId = rammebehandlingMedKlagebehandling.klagebehandling!!.id,
             saksbehandler = saksbehandlerKlagebehandling,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         ) ?: return null
         return Triple(oppdatertSak, oppdatertSak.hentRammebehandling(rammebehandlingMedKlagebehandling.id)!!, json)
     }
@@ -63,8 +60,7 @@ interface LeggKlagebehandlingMedRammebehandlingTilbakeBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Rammebehandling, Klagebehandling, SakDTOJson, KlagebehandlingDTOJson>? {
         val (sak, rammebehandling, klagebehandling, _, klagebehandlingJson) = rammebehandlingMedFerdigstiltOpprettholdtKlage(
             tac = tac,

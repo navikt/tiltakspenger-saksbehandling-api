@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNy
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
@@ -66,7 +66,7 @@ internal class BehandleSøknadPåNyttTest {
                 sakId = sak.id,
                 søknadId = søknad.id,
                 saksbehandler = ObjectMother.beslutter(),
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -101,7 +101,7 @@ internal class BehandleSøknadPåNyttTest {
                 sakId = sak.id,
                 søknadId = søknad.id,
                 saksbehandler = ObjectMother.saksbehandler(),
-                forventetStatus = HttpStatusCode.Forbidden,
+                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
             )
         }
     }

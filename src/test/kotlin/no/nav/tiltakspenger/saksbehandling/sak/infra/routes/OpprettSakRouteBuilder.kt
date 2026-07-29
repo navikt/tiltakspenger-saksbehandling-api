@@ -1,19 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
-import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -33,15 +25,13 @@ interface OpprettSakRouteBuilder {
         )
         tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSak())
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/saksnummer")
-            },
+            HttpMethod.POST,
+            "/saksnummer",
             jwt = jwt,
-            forventet = ForventetRespons(status = HttpStatusCode.OK),
-        ) { setBody("""{"fnr":"${fnr.verdi}"}""") }.apply {
-            val bodyAsText = this.bodyAsText()
+            forventet = ForventetRespons(status = 200),
+            body = """{"fnr":"${fnr.verdi}"}""",
+        ).apply {
+            val bodyAsText = this.body
             return Saksnummer(
                 JSONObject(bodyAsText).getString(
                     "saksnummer",
@@ -57,28 +47,21 @@ interface OpprettSakRouteBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         fnr: Fnr = Fnr.random(),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
-        forventetJsonBody: String? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Saksnummer? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Put,
-            url {
-                protocol = URLProtocol.HTTPS
-                path(SAK_PATH)
-            },
+            HttpMethod.PUT,
+            SAK_PATH,
             jwt = jwt,
-            forventet = ForventetRespons(status = forventetStatus),
-        ) { setBody("""{"fnr":"${fnr.verdi}"}""") }.apply {
-            val bodyAsText = this.bodyAsText()
-            if (status != HttpStatusCode.OK) {
+            forventet = forventet,
+            body = """{"fnr":"${fnr.verdi}"}""",
+        ).apply {
+            val bodyAsText = this.body
+            if (statusCode != 200) {
                 return null
             }
-            if (forventetJsonBody != null) {
-                bodyAsText shouldBe forventetJsonBody
-            }
-            this.contentType()!! shouldBe "application/json; charset=UTF-8"
             return Saksnummer(
                 JSONObject(bodyAsText).getString(
                     "saksnummer",

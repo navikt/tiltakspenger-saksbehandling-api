@@ -167,7 +167,7 @@ class TilbakekrevingConsumerTest {
                     "hendelseOpprettet": "2024-01-15T10:30:00",
                     "mottaker": {
                         "type": "PERSON",
-                        "ident": "12345678911"
+                        "ident": "${sak.fnr.verdi}"
                     },
                     "revurdering": {
                         "behandlingId": "rev-123",

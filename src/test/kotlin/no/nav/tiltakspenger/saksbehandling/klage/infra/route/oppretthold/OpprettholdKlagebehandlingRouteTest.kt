@@ -19,7 +19,7 @@ class OpprettholdKlagebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 status = "OPPRETTHOLDT",
                 resultat = "OPPRETTHOLDT",
                 kanIverksetteVedtak = null,

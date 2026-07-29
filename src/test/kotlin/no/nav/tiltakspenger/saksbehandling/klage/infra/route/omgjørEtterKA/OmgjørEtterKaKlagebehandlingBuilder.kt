@@ -1,22 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.omgjørEtterKA
 
 import arrow.core.Tuple4
-import io.kotest.assertions.json.CompareJsonOptions
-import io.kotest.assertions.json.shouldEqualJson
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -51,8 +43,7 @@ interface OmgjørEtterKaKlagebehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         utførJobber: Boolean = true,
         hendelseGenerering: (
             sak: Sak,
@@ -92,8 +83,7 @@ interface OmgjørEtterKaKlagebehandlingBuilder {
             sakId = sak.id,
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
             behandlingstype = behandlingstype,
             søknadId = søknadId,
         )
@@ -107,39 +97,29 @@ interface OmgjørEtterKaKlagebehandlingBuilder {
         sakId: SakId,
         klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         behandlingstype: String = "REVURDERING_OMGJØRING",
         søknadId: SøknadId? = null,
     ): Tuple4<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/opprettBehandling")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/klage/$klagebehandlingId/opprettBehandling",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
-        ) {
+            forventet = forventet,
             //language=json
-            this.setBody(
-                """
+            body = """
                 {
                     "type": "$behandlingstype",
                     "søknadId": ${søknadId?.let { "\"$it\"" }},
                     "vedtakIdSomSkalOmgjøres": null,
                     "kjedeId": null
                 }
-                """.trimIndent(),
-            )
-        }
-        val bodyAsText = response.bodyAsText()
-        if (forventetJsonBody != null) {
-            bodyAsText.shouldEqualJson(forventetJsonBody)
-        }
-        if (response.status != HttpStatusCode.OK) return null
+            """.trimIndent(),
+        )
+        val bodyAsText = response.body
+        if (response.statusCode != 200) return null
         val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
         val behandlingId = RammebehandlingId.fromString(jsonObject.get("id").toString())
         val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

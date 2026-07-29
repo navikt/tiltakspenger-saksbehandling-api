@@ -2,17 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.request.setBody
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
@@ -46,16 +41,12 @@ class OlderMottaSøknadTest {
             )
             tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
             defaultRequestWithAssertions(
-                HttpMethod.Post,
-                url {
-                    protocol = URLProtocol.HTTPS
-                    path(SØKNAD_PATH)
-                },
+                HttpMethod.POST,
+                SØKNAD_PATH,
                 jwt = jwt,
-                forventet = ForventetRespons(status = HttpStatusCode.OK),
-            ) {
-                setBody(søknadBodyV3(søknadId, sak.saksnummer))
-            }
+                forventet = ForventetRespons(status = 200),
+                body = søknadBodyV3(søknadId, sak.saksnummer),
+            )
 
             val internTiltaksdeltakerId = tac.tiltakContext.tiltaksdeltakerRepo.hentInternId("123")
             internTiltaksdeltakerId shouldNotBe null

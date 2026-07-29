@@ -20,7 +20,7 @@ class LeggTilbakeKlagebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = null,
                 status = "KLAR_TIL_BEHANDLING",
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",

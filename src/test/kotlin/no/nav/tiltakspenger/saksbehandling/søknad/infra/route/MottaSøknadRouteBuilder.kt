@@ -1,19 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -79,25 +73,20 @@ interface MottaSøknadRouteBuilder {
         )
         tac.leggTilBruker(jwt, ObjectMother.systembrukerHentEllerOpprettSakOgLagreSoknad())
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/soknad")
-            },
+            HttpMethod.POST,
+            "/soknad",
             jwt = jwt,
-            forventet = ForventetRespons(status = HttpStatusCode.OK),
-        ) {
-            setBody(
-                createRequest(
-                    saksnummer = saksnummer.verdi,
-                    fnr = fnr.verdi,
-                    søknadId = søknadId.toString(),
-                    clock = tac.clock,
-                    tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
-                ),
-            )
-        }.apply {
-            val bodyAsText = this.bodyAsText()
+            forventet = ForventetRespons(status = 200),
+            body =
+            createRequest(
+                saksnummer = saksnummer.verdi,
+                fnr = fnr.verdi,
+                søknadId = søknadId.toString(),
+                clock = tac.clock,
+                tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
+            ),
+        ).apply {
+            val bodyAsText = this.body
             bodyAsText shouldBe "OK"
 
             val personopplysningerForBrukerFraPdl = ObjectMother.personopplysningKjedeligFyr(

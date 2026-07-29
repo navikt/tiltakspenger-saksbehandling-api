@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling
 
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.desember
@@ -45,7 +44,7 @@ class UtbetalingerIT {
         withTestApplicationContext(clock = clock) { tac ->
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = vedtaksperiode,
-                fnr = Fnr.fromString("12345678911"),
+                fnr = ObjectMother.gyldigFnr(),
             )
 
             val (_, revurdering, _) = startRevurderingForSakId(
@@ -112,7 +111,7 @@ class UtbetalingerIT {
 
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = førsteSøknadsperiode,
-                fnr = Fnr.fromString("12345678911"),
+                fnr = ObjectMother.gyldigFnr(),
             )
             val (oppdatertSak, _, _, _) = iverksettSøknadsbehandling(
                 tac = tac,
@@ -150,7 +149,7 @@ class UtbetalingerIT {
         withTestApplicationContext { tac ->
             val sak = tac.førsteMeldekortIverksatt(
                 innvilgelsesperiode = vedtaksperiode,
-                fnr = Fnr.fromString("12345678911"),
+                fnr = ObjectMother.gyldigFnr(),
                 clock = fixedClockAt(vedtaksperiode.tilOgMed),
             )
 

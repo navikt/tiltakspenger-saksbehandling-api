@@ -2,19 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis
 
 import arrow.core.Tuple4
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsBytes
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -40,7 +33,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "multipart/mixed; boundary=pdf-boundary"),
         forventetPdf: PdfA? = null,
     ): Triple<Sak, Klagebehandling, PdfA>? {
         val (sak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilAvvisning(
@@ -56,8 +49,8 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
-                forventetStatus = forventetStatus,
-                forventetContenttype = ContentType.parse("multipart/mixed; boundary=pdf-boundary"),
+                forventet = forventet,
+                forventetContenttype = "multipart/mixed; boundary=pdf-boundary",
                 forventetPdf = forventetPdf,
             )!!,
         )
@@ -67,7 +60,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "multipart/mixed; boundary=pdf-boundary"),
         forventetPdf: PdfA? = null,
     ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, PdfA>? {
         val (sak, meldekortvedtak, klagebehandling, _) = this.iverksettMeldekortVedtakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
@@ -84,8 +77,8 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
-                forventetStatus = forventetStatus,
-                forventetContenttype = ContentType.parse("multipart/mixed; boundary=pdf-boundary"),
+                forventet = forventet,
+                forventetContenttype = "multipart/mixed; boundary=pdf-boundary",
                 forventetPdf = forventetPdf,
             )!!,
         )
@@ -103,43 +96,35 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 tekst = NonBlankString.create("Din klage er dessverre avvist."),
             ),
         ),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetContenttype: ContentType? = ContentType.parse("multipart/mixed; boundary=pdf-boundary"),
+        forventetContenttype: String? = "multipart/mixed; boundary=pdf-boundary",
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = forventetContenttype),
         forventetPdf: PdfA? = null,
     ): PdfA? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
-        val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/forhandsvis")
-            },
-            jwt = jwt,
-            forventet = forventetStatus?.let { status ->
-                ForventetRespons(status = status, contentType = forventetContenttype)
-            },
-        ) {
-            val tekstTilVedtaksbrevListe = tekstTilVedtaksbrev.joinToString(separator = ",") {
-                """
-                {
-                    "tittel": "${it.tittel.value}",
-                    "tekst": "${it.tekst.value}"
-                }
-                """.trimIndent()
+        val tekstTilVedtaksbrevListe = tekstTilVedtaksbrev.joinToString(separator = ",") {
+            """
+            {
+                "tittel": "${it.tittel.value}",
+                "tekst": "${it.tekst.value}"
             }
-            setBody(
-                //language=JSON
-                """
+            """.trimIndent()
+        }
+        val response = defaultRequestWithAssertions(
+            HttpMethod.POST,
+            "/sak/$sakId/klage/$klagebehandlingId/forhandsvis",
+            jwt = jwt,
+            forventet = forventet,
+            //language=JSON
+            body = """
                 {
                     "tekstTilVedtaksbrev": [$tekstTilVedtaksbrevListe]
                 }
-                """.trimIndent(),
-            )
-        }
-        val pdfBytes = PdfA(response.bodyAsBytes())
+            """.trimIndent(),
+        )
+        val pdfBytes = PdfA(response.bytes)
         if (forventetPdf != null) pdfBytes shouldBe forventetPdf
-        if (response.status != HttpStatusCode.OK) return null
+        if (response.statusCode != 200) return null
         return pdfBytes
     }
 }

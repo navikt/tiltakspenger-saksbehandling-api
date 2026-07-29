@@ -5,9 +5,9 @@ import arrow.core.nonEmptySetOf
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
@@ -222,7 +222,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                 begrunnelseVilkårsvurdering = null,
                 innvilgelsesperioder = innvilgelsesperioder(oppdatertTiltaksdeltakelsesPeriode),
                 barnetillegg = Barnetillegg.utenBarnetillegg(oppdatertTiltaksdeltakelsesPeriode),
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
@@ -273,7 +273,7 @@ class OppdaterSøknadsbehandlingRouteTest {
                         17.januar(2026) til 31.januar(2026),
                     ),
                 ),
-                forventetStatus = HttpStatusCode.BadRequest,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
             )
 
             JSONObject(responseJson).getString("kode") shouldBe "kan_ikke_opphøre"

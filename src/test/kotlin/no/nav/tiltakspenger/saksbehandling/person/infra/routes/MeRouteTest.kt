@@ -1,15 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.routes
 
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
-import io.ktor.server.util.url
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
@@ -52,19 +46,16 @@ class MeRouteTest {
         runTest {
             withTestApplicationContext(texasClient = texasClient) {
                 defaultRequestWithAssertions(
-                    HttpMethod.Get,
-                    url {
-                        protocol = URLProtocol.HTTPS
-                        path(SAKSBEHANDLER_PATH)
-                    },
+                    HttpMethod.GET,
+                    SAKSBEHANDLER_PATH,
                     forventet = ForventetRespons(
-                        status = HttpStatusCode.OK,
-                        contentType = ContentType.parse("application/json; charset=UTF-8"),
+                        status = 200,
+                        contentType = "application/json; charset=UTF-8",
                     ),
                 ).apply {
                     JSONAssert.assertEquals(
                         saksbehandlerMock,
-                        bodyAsText(),
+                        body,
                         JSONCompareMode.LENIENT,
                     )
                 }
@@ -89,12 +80,9 @@ class MeRouteTest {
         runTest {
             withTestApplicationContext {
                 defaultRequestWithAssertions(
-                    HttpMethod.Get,
-                    url {
-                        protocol = URLProtocol.HTTPS
-                        path(SAKSBEHANDLER_PATH)
-                    },
-                    forventet = ForventetRespons(status = HttpStatusCode.Unauthorized),
+                    HttpMethod.GET,
+                    SAKSBEHANDLER_PATH,
+                    forventet = ForventetRespons(status = 401),
                 )
             }
         }
@@ -115,12 +103,9 @@ class MeRouteTest {
         runTest {
             withTestApplicationContext(texasClient = texasClient) {
                 defaultRequestWithAssertions(
-                    HttpMethod.Get,
-                    url {
-                        protocol = URLProtocol.HTTPS
-                        path(SAKSBEHANDLER_PATH)
-                    },
-                    forventet = ForventetRespons(status = HttpStatusCode.Forbidden),
+                    HttpMethod.GET,
+                    SAKSBEHANDLER_PATH,
+                    forventet = ForventetRespons(status = 403),
                 )
             }
         }

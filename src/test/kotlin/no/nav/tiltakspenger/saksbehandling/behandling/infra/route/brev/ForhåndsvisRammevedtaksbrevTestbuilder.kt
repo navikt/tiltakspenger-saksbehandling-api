@@ -1,16 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev
 
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -58,55 +52,51 @@ interface ForhåndsvisRammevedtaksbrevTestbuilder {
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
-        val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/behandling/$behandlingId/forhandsvis")
-            },
-            jwt = jwt,
-            forventet = ForventetRespons(
-                status = HttpStatusCode.OK,
-                body = ForventetBody.Eksakt("pdf"),
-            ),
-        ) {
-            val jsonBody = """
-                  {
-                    "fritekst": "$fritekstTilVedtaksbrev",
-                    "vedtaksperiode": ${if (vedtaksperiode != null) """{"fraOgMed":"${vedtaksperiode.fraOgMed}","tilOgMed":"${vedtaksperiode.tilOgMed}"}""" else null},
-                    "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
-                    "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},
-                    "valgteHjemler": ${valgteHjemler?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
-                    "barnetillegg": ${
-                barnetillegg?.joinToString(
-                    prefix = "[",
-                    postfix = "]",
-                ) { """{"antallBarn":${it.antallBarn},"periode":{"fraOgMed":"${it.periode.fraOgMed}","tilOgMed":"${it.periode.tilOgMed}"}}""" }
-            },
-                    "resultat": "$resultat",
-                    "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
-                    "innvilgelsesperioder": ${
-                innvilgelsesperioder?.let {
-                    innvilgelsesperioder.joinToString(prefix = "[", postfix = "]") { periode ->
-                        """
-                        {
-                            "periode": {
-                                "fraOgMed": "${periode.periode.fraOgMed}",
-                                "tilOgMed": "${periode.periode.tilOgMed}"
-                            },
-                            "antallDagerPerMeldeperiode": ${periode.antallDagerPerMeldeperiode},
-                            "internDeltakelseId": "${periode.internDeltakelseId}"
-                        }
+        val jsonBody = """
+              {
+                "fritekst": "$fritekstTilVedtaksbrev",
+                "vedtaksperiode": ${if (vedtaksperiode != null) """{"fraOgMed":"${vedtaksperiode.fraOgMed}","tilOgMed":"${vedtaksperiode.tilOgMed}"}""" else null},
+                "stansFraOgMed": ${if (stansFraOgMed != null) """"$stansFraOgMed"""" else null},
+                "harValgtStansFraFørsteDagSomGirRett": ${stansFraOgMed == null},
+                "valgteHjemler": ${valgteHjemler?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
+                "barnetillegg": ${
+            barnetillegg?.joinToString(
+                prefix = "[",
+                postfix = "]",
+            ) { """{"antallBarn":${it.antallBarn},"periode":{"fraOgMed":"${it.periode.fraOgMed}","tilOgMed":"${it.periode.tilOgMed}"}}""" }
+        },
+                "resultat": "$resultat",
+                "avslagsgrunner": ${avslagsgrunner?.joinToString(prefix = "[", postfix = "]") { """"$it"""" }},
+                "innvilgelsesperioder": ${
+            innvilgelsesperioder?.let {
+                innvilgelsesperioder.joinToString(prefix = "[", postfix = "]") { periode ->
                     """
+                    {
+                        "periode": {
+                            "fraOgMed": "${periode.periode.fraOgMed}",
+                            "tilOgMed": "${periode.periode.tilOgMed}"
+                        },
+                        "antallDagerPerMeldeperiode": ${periode.antallDagerPerMeldeperiode},
+                        "internDeltakelseId": "${periode.internDeltakelseId}"
                     }
+                """
                 }
             }
-            }
-            """.trimIndent()
-            setBody(jsonBody)
         }
+        }
+        """.trimIndent()
+        val response = defaultRequestWithAssertions(
+            HttpMethod.POST,
+            "/sak/$sakId/behandling/$behandlingId/forhandsvis",
+            jwt = jwt,
+            forventet = ForventetRespons(
+                status = 200,
+                body = ForventetBody.Eksakt("pdf"),
+            ),
+            body = jsonBody,
+        )
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
-        return Triple(sak, behandling, response.bodyAsText())
+        return Triple(sak, behandling, response.body)
     }
 }

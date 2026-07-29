@@ -1,9 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
 
-import io.kotest.assertions.json.CompareJsonOptions
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
@@ -26,8 +25,7 @@ interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder {
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         begrunnelseAvbrytMeldekort: String = "begrunnelse for avbryt meldekortbehandling",
         begrunnelseAvbrytKlage: String = "begrunnelse for avbryt klagebehandling",
-        forventetStatusAvbrytKlage: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBodyAvbrytKlage: (CompareJsonOptions.() -> String)? = null,
+        forventetAvbrytKlage: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, MeldekortbehandlingAvbrutt, Klagebehandling>? {
         val (sak, klagebehandling, meldekortbehandling) = opprettMeldekortbehandlingForKlage(
             tac = tac,
@@ -48,8 +46,7 @@ interface AvbrytKlagebehandlingMedMeldekortbehandlingBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandlerKlagebehandling,
             begrunnelse = begrunnelseAvbrytKlage,
-            forventetStatus = forventetStatusAvbrytKlage,
-            forventetJsonBody = forventetJsonBodyAvbrytKlage,
+            forventet = forventetAvbrytKlage,
         ) ?: return null
 
         val oppdatertMeldekortbehandling =

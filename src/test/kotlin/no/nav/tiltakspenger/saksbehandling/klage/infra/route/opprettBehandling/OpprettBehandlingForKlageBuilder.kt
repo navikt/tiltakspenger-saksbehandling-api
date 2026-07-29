@@ -2,22 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettBehandling
 
 import arrow.core.Tuple4
 import arrow.core.Tuple5
-import io.kotest.assertions.json.CompareJsonOptions
-import io.kotest.assertions.json.shouldEqualJson
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
@@ -70,8 +62,7 @@ interface OpprettBehandlingForKlageBuilder {
         journalpostId: JournalpostId = JournalpostId("12345"),
         begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("Begrunnelse for omgjøring"),
         årsak: KlageOmgjøringsårsak = KlageOmgjøringsårsak.PROSESSUELL_FEIL,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Søknadsbehandling, RammebehandlingDTOJson>? {
         val (sak, søknad, _, klagebehandling, _) = this.iverksettSøknadsbehandlingOgVurderKlagebehandling(
             tac = tac,
@@ -93,8 +84,7 @@ interface OpprettBehandlingForKlageBuilder {
             søknadId = søknadId,
             vedtakIdSomOmgjøres = null,
             type = "SØKNADSBEHANDLING_INNVILGELSE",
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )!!
 
         return Triple(sakEtterOpprettelseAvKlage, rammebehandling as Søknadsbehandling, rammebehandlingJson)
@@ -113,8 +103,7 @@ interface OpprettBehandlingForKlageBuilder {
         saksbehandlerSøknadsbehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerSøknadsbehandling"),
         saksbehandlerKlagebehandling: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         type: String = "REVURDERING_OMGJØRING",
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Revurdering, RammebehandlingDTOJson>? {
         val (sak, søknad, rammevedtakSøknadsbehandling, klagebehandling, _) = this.iverksettSøknadsbehandlingOgVurderKlagebehandling(
             tac = tac,
@@ -131,8 +120,7 @@ interface OpprettBehandlingForKlageBuilder {
             søknadId = søknadId,
             vedtakIdSomOmgjøres = if (type == "REVURDERING_OMGJØRING") vedtakIdSomOmgjøres else null,
             type = type,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )!!
 
         return Triple(sakEtterOpprettelseAvKlage, revurdering as Revurdering, revurderingJson)
@@ -153,8 +141,7 @@ interface OpprettBehandlingForKlageBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         utførJobber: Boolean = true,
         hendelseGenerering: (
             sak: Sak,
@@ -221,8 +208,7 @@ interface OpprettBehandlingForKlageBuilder {
         tac: TestApplicationContext,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         type: String = "SØKNADSBEHANDLING_INNVILGELSE",
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple5<Sak, Rammebehandling, Klagebehandling, RammebehandlingDTOJson, KlagebehandlingDTOJson>? {
         val (sak, ferdigstiltKlagebehandling, klagebehandlingJson) = this.ferdigstiltOpprettholdtKlagebehandling(
             tac = tac,
@@ -237,8 +223,7 @@ interface OpprettBehandlingForKlageBuilder {
             søknadId = if (type == "SØKNADSBEHANDLING_INNVILGELSE") sak.søknader.single().id else null,
             vedtakIdSomOmgjøres = if (type == "REVURDERING_OMGJØRING") ferdigstiltKlagebehandling.formkrav.vedtakDetKlagesPå!!.toString() else null,
             type = type,
-            forventetStatus = forventetStatus,
-            forventetJsonBody = forventetJsonBody,
+            forventet = forventet,
         )!!
 
         return Tuple5(
@@ -312,7 +297,7 @@ interface OpprettBehandlingForKlageBuilder {
         klagebehandlingId: KlagebehandlingId,
         kjedeId: MeldeperiodeKjedeId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOJson>? {
         val (sak, meldekortbehandling, meldekortbehandlingJson) = opprettBehandlingForKlage(
             tac = tac,
@@ -346,8 +331,7 @@ interface OpprettBehandlingForKlageBuilder {
         vedtakIdSomOmgjøres: String?,
         kjedeId: MeldeperiodeKjedeId? = null,
         type: String,
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
-        forventetJsonBody: (CompareJsonOptions.() -> String)? = null,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, AttesterbarBehandling, AttesterbarBehandlingDTOJson>? {
         if (type == "REVURDERING_OMGJØRING") require(vedtakIdSomOmgjøres != null) { "vedtakIdSomSkalOmgjøres må oppgis ved type REVURDERING_OMGJØRING" }
         if (type == "MELDEKORTBEHANDLING") require(kjedeId != null) { "kjedeId på oppgis ved type MELDEKORTBEHANDLING" }
@@ -355,32 +339,24 @@ interface OpprettBehandlingForKlageBuilder {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/$sakId/klage/$klagebehandlingId/opprettBehandling")
-            },
+            HttpMethod.POST,
+            "/sak/$sakId/klage/$klagebehandlingId/opprettBehandling",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
-        ) {
-            setBody(
-                //language=JSON
-                """
+            forventet = forventet,
+            //language=JSON
+            body =
+            """
                 {
                     "søknadId": "${søknadId?.toString()}",
                     "vedtakIdSomSkalOmgjøres": "$vedtakIdSomOmgjøres",
                     "type": "$type",
                     "kjedeId": ${kjedeId?.let { """"${kjedeId.fraOgMed}/${kjedeId.tilOgMed}"""" }}
                 }
-                """.trimIndent(),
-            )
-        }.apply {
-            val bodyAsText = this.bodyAsText()
+            """.trimIndent(),
+        ).apply {
+            val bodyAsText = this.body
 
-            if (forventetJsonBody != null) {
-                bodyAsText.shouldEqualJson(forventetJsonBody)
-            }
-            if (status != HttpStatusCode.OK) return null
+            if (statusCode != 200) return null
             val jsonObject: RammebehandlingDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(

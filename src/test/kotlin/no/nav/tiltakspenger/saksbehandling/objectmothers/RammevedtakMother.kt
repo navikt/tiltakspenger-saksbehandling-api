@@ -179,7 +179,6 @@ interface RammevedtakMother : MotherOfAllMothers {
         distribusjonstidspunkt: LocalDateTime? = null,
         sendtTilDatadeling: LocalDateTime? = null,
         brevJson: String? = null,
-
     ): Rammevedtak = nyttRammevedtak(
         id = id,
         opprettet = opprettet,

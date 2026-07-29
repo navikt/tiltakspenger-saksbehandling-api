@@ -29,7 +29,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
-                fnr = "12345678911",
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerSomTarKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${sak.rammevedtaksliste.first().id}",

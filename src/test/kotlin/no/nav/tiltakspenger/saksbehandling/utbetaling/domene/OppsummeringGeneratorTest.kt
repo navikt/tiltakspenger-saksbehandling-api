@@ -487,7 +487,6 @@ class OppsummeringGeneratorTest {
                             totalMotpostering = 71,
                             harJustering = false,
                         ),
-
                     ).plus(
                         (12.november(2024) til 15.november(2024)).tilDager().map { dato ->
                             Simuleringsdag(

@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
@@ -97,7 +97,7 @@ internal class MottaMeldekortRouteTest {
                     id = meldekortId,
                     dager = meldeperiode.tilUtfyltFraBruker(),
                     mottatt = mottatt.minusDays(1),
-                    forventetStatus = HttpStatusCode.Conflict,
+                    forventet = ForventetRespons(409, contentType = "text/plain; charset=UTF-8"),
                 ) {
                     it shouldContain "allerede lagret med andre data"
                 }

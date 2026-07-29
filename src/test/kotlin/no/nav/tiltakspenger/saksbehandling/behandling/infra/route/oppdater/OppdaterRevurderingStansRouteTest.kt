@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat.Stans
@@ -121,7 +121,7 @@ class OppdaterRevurderingStansRouteTest {
                 valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = stansFraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
         }
     }
@@ -141,7 +141,7 @@ class OppdaterRevurderingStansRouteTest {
                 valgteHjemler = setOf(HjemmelForStans.Alder),
                 stansFraOgMed = stansFraOgMed,
                 harValgtStansFraFørsteDagSomGirRett = false,
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
         }
     }

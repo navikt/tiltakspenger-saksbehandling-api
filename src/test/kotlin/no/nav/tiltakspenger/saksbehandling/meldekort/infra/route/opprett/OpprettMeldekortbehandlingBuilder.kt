@@ -1,16 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
 import arrow.core.Tuple5
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -38,6 +35,7 @@ interface OpprettMeldekortbehandlingBuilder {
 
     suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(
         tac: TestApplicationContext,
+        fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         vedtaksperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
@@ -49,11 +47,12 @@ interface OpprettMeldekortbehandlingBuilder {
             valgtTiltaksdeltakelse = tiltaksdeltakelse,
             antallDagerPerMeldeperiode = AntallDagerForMeldeperiode(DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE),
         ),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
     ): Tuple5<Sak, Søknad, Rammevedtak, MeldekortUnderBehandling, MeldekortbehandlingDTOV2Json>? {
         val (sak, søknad, rammevedtak, _) = iverksettSøknadsbehandling(
             tac = tac,
+            fnr = fnr,
             saksbehandler = saksbehandler,
             tiltaksdeltakelse = tiltaksdeltakelse,
             innvilgelsesperioder = innvilgelsesperioder,
@@ -64,7 +63,7 @@ interface OpprettMeldekortbehandlingBuilder {
             sakId = sak.id,
             kjedeId = førsteMeldeperiode.kjedeId,
             saksbehandler = saksbehandler,
-            forventetStatus = forventetStatus,
+            forventet = forventet,
             medJsonBody = medJsonBody,
         ) ?: return null
         return Tuple5(
@@ -82,35 +81,30 @@ interface OpprettMeldekortbehandlingBuilder {
         sakId: SakId,
         kjedeId: MeldeperiodeKjedeId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOV2Json>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         val kjedeId = "${kjedeId.fraOgMed}%2F${kjedeId.tilOgMed}"
         val response = defaultRequestWithAssertions(
-            HttpMethod.Post,
+            HttpMethod.POST,
             "/sak/$sakId/meldeperiode/$kjedeId/opprettBehandling",
             jwt = jwt,
-            forventet = ForventetRespons(
-                status = forventetStatus,
-                contentType = ContentType.parse("application/json; charset=UTF-8"),
-            ),
-        ) {
-            setBody(
-                """
+            forventet = forventet,
+            body =
+            """
                 {
                 "v2": true
                 }
-                """.trimIndent(),
-            )
-        }
-        val bodyAsText = response.bodyAsText()
+            """.trimIndent(),
+        )
+        val bodyAsText = response.body
         if (medJsonBody != null) {
             medJsonBody(bodyAsText)
         }
 
-        if (response.status != HttpStatusCode.OK) {
+        if (response.statusCode != 200) {
             return null
         }
 

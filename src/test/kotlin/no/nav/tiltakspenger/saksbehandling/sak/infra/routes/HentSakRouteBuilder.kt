@@ -1,15 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.util.url
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
@@ -30,23 +24,21 @@ interface HentSakRouteBuilder {
         tac: TestApplicationContext,
         id: String,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): JSONObject? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Post,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak")
-            },
+            HttpMethod.POST,
+            "/sak",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
-        ) { setBody("""{"fnr":"$id"}""") }.apply {
-            val bodyAsText = this.bodyAsText()
-            if (status != HttpStatusCode.OK) return null
+            forventet = forventet,
+            body = """{"fnr":"$id"}""",
+        ).apply {
+            val bodyAsText = this.body
+            if (statusCode != 200) return null
             return JSONObject(bodyAsText)
         }
     }
@@ -58,23 +50,20 @@ interface HentSakRouteBuilder {
         tac: TestApplicationContext,
         saksnummer: Saksnummer,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-        forventetStatus: HttpStatusCode? = HttpStatusCode.OK,
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): JSONObject? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
         tac.leggTilBruker(jwt, saksbehandler)
         defaultRequestWithAssertions(
-            HttpMethod.Get,
-            url {
-                protocol = URLProtocol.HTTPS
-                path("/sak/${saksnummer.verdi}")
-            },
+            HttpMethod.GET,
+            "/sak/${saksnummer.verdi}",
             jwt = jwt,
-            forventet = forventetStatus?.let { ForventetRespons(status = it) },
+            forventet = forventet,
         ).apply {
-            val bodyAsText = this.bodyAsText()
-            if (status != HttpStatusCode.OK) return null
+            val bodyAsText = this.body
+            if (statusCode != 200) return null
             return JSONObject(bodyAsText)
         }
     }

@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -115,7 +115,7 @@ internal class StartRevurderingTest {
                 behandlingId = omgjøring.id,
                 vedtaksperiode = rammevedtakSøknadsbehandling.periode,
                 innvilgelsesperioder = innvilgelsesperioder(rammevedtakSøknadsbehandling.periode),
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
 
             val (_, oppdatertOmgjøring) = oppdaterOmgjøringInnvilgelse(
@@ -223,7 +223,7 @@ internal class StartRevurderingTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 2 til 9.april(2025),
-                forventetStatus = HttpStatusCode.InternalServerError,
+                forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             )
 
             // Men kan opphøre opprinnelig vedtaksperiode
@@ -232,7 +232,7 @@ internal class StartRevurderingTest {
                 sakId = sak.id,
                 behandlingId = omgjøring.id,
                 vedtaksperiode = 2 til 9.april(2025),
-                forventetStatus = HttpStatusCode.OK,
+                forventet = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
             )
         }
     }

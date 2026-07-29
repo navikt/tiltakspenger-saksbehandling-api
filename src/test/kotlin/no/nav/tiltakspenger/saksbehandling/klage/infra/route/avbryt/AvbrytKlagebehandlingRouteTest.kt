@@ -1,8 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt
 
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
-import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbruttKlagebehandlingStatus
@@ -37,8 +36,8 @@ class AvbrytKlagebehandlingRouteTest {
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                saksnummer = Saksnummer("202505011001"),
-                fnr = "12345678911",
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "AVVIST",
                 vedtakDetKlagesPå = null,
@@ -62,8 +61,8 @@ class AvbrytKlagebehandlingRouteTest {
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                saksnummer = Saksnummer("202505011001"),
-                fnr = "12345678911",
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = "${rammevedtak.id}",
@@ -122,8 +121,8 @@ class AvbrytKlagebehandlingRouteTest {
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                saksnummer = Saksnummer("202505011001"),
-                fnr = "12345678911",
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr.verdi,
                 saksbehandler = "Z12345",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.single().id.toString(),
@@ -163,8 +162,8 @@ class AvbrytKlagebehandlingRouteTest {
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                saksnummer = Saksnummer("202505011001"),
-                fnr = "12345678911",
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr.verdi,
                 saksbehandler = "Z12345",
                 resultat = "OMGJØR",
                 vedtakDetKlagesPå = sak.rammevedtaksliste.single().id.toString(),
@@ -188,15 +187,16 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                      {
                         "melding": "Klagebehandlingen er knyttet til en annen behandling. Avslutt den andre behandlingen først.",
                         "kode": "knyttet_til_ikke_avbrutt_behandling"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -210,15 +210,16 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.Conflict,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    409,
                     """
                      {
                       "melding": "Klagebehandlingen er allerede avsluttet",
                       "kode": "allerede_avsluttet"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -231,15 +232,16 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.Conflict,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    409,
                     """
                      {
                       "melding": "Klagebehandlingen er allerede avsluttet",
                       "kode": "allerede_avsluttet"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -281,15 +283,16 @@ class AvbrytKlagebehandlingRouteTest {
                 tac = tac,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                forventetStatus = HttpStatusCode.Conflict,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    409,
                     """
                      {
                       "melding": "Klagebehandlingen er allerede avsluttet",
                       "kode": "allerede_avsluttet"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -308,8 +311,8 @@ class AvbrytKlagebehandlingRouteTest {
             json.toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,
-                saksnummer = Saksnummer("202505011001"),
-                fnr = "12345678911",
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr.verdi,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 resultat = "AVVIST",
                 vedtakDetKlagesPå = null,
@@ -329,15 +332,16 @@ class AvbrytKlagebehandlingRouteTest {
                 klagebehandlingId = klagebehandling.id,
                 avbruttStatus = AvbruttKlagebehandlingStatus.ANNET,
                 begrunnelse = null,
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                      {
                         "melding": "Begrunnelse må være satt når status er ANNET",
                         "kode": "begrunnelse_må_være_satt_for_status"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -352,15 +356,16 @@ class AvbrytKlagebehandlingRouteTest {
                 klagebehandlingId = klagebehandling.id,
                 avbruttStatus = AvbruttKlagebehandlingStatus.KLAGE_TRUKKET,
                 begrunnelse = "ugyldig begrunnelse",
-                forventetStatus = HttpStatusCode.BadRequest,
-                forventetJsonBody = {
+                forventet = ForventetRespons.json(
+                    400,
                     """
                      {
                         "melding": "Begrunnelse må være null når status ikke er ANNET",
                         "kode": "ugyldig_begrunnelse_for_status"
                      }
-                    """.trimIndent()
-                },
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }

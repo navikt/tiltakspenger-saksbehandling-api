@@ -207,7 +207,7 @@ class BrevOmgjøringOpphørDTOTest {
             harOpphørtBarnetillegg = harOpphørtBarnetillegg,
         )
         val node = lesTre(brevJson).get("valgtHjemmelTekst")
-        return if (node.isNull) null else node.toList().map { it.asText() }
+        return if (node.isNull) null else node.toList().map { it.asString() }
     }
 
     /**
