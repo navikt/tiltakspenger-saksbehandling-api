@@ -23,8 +23,7 @@ class UtbetalingRepoImplTest {
     @Test
     fun `kan lagre og hente utbetaling fra meldekortvedtak`() {
         val tidspunkt = nå(fixedClock)
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
@@ -33,14 +32,14 @@ class UtbetalingRepoImplTest {
 
             val utbetaling = meldekortvedtak.utbetaling
 
-            utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
+            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).single { it.id == utbetaling.id } shouldBe utbetaling
             utbetalingRepo.markerSendtTilUtbetaling(
                 utbetalingId = utbetaling.id,
                 tidspunkt = tidspunkt,
                 utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202, alleredeMottattTidligere = false),
             )
             utbetalingRepo.hentUtbetalingJson(utbetaling.id) shouldBe "myReq"
-            utbetalingRepo.hentForUtsjekk() shouldBe emptyList()
+            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).none { it.id == utbetaling.id } shouldBe true
         }
     }
 
@@ -55,7 +54,7 @@ class UtbetalingRepoImplTest {
 
             val utbetaling = meldekortvedtak.utbetaling
 
-            utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
+            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).single { it.id == utbetaling.id } shouldBe utbetaling
             utbetalingRepo.lagreFeilResponsFraUtbetaling(
                 utbetalingId = utbetaling.id,
                 utbetalingsrespons = KunneIkkeUtbetale(
@@ -64,7 +63,7 @@ class UtbetalingRepoImplTest {
                 ),
             )
             utbetalingRepo.hentUtbetalingJson(utbetaling.id) shouldBe "myFailedReq"
-            utbetalingRepo.hentForUtsjekk() shouldBe listOf(utbetaling)
+            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).single { it.id == utbetaling.id } shouldBe utbetaling
         }
     }
 
@@ -113,9 +112,11 @@ class UtbetalingRepoImplTest {
                 antallForsøk = 0,
                 clock = fixedClock,
             )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor().also {
-                it shouldBe expected(forsøkshistorikk = it.first().forsøkshistorikk)
-            }
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
+                .filter { it.utbetalingId == utbetaling.id }
+                .also {
+                    it shouldBe expected(forsøkshistorikk = it.first().forsøkshistorikk)
+                }
             val forsøk1 = Forsøkshistorikk.opprett(
                 forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(1, ChronoUnit.MICROS),
                 antallForsøk = 1,
@@ -130,7 +131,8 @@ class UtbetalingRepoImplTest {
                 MeldekortvedtakPostgresRepo.hentForSakId(sak.id, it)
                     .single().utbetaling.status shouldBe Utbetalingsstatus.IkkePåbegynt
             }
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøk1)
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
+                .filter { it.utbetalingId == utbetaling.id } shouldBe expected(forsøk1)
 
             val forsøk2 = Forsøkshistorikk.opprett(
                 forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(2, ChronoUnit.MICROS),
@@ -142,7 +144,8 @@ class UtbetalingRepoImplTest {
                 status = Utbetalingsstatus.SendtTilOppdrag,
                 metadata = forsøk2,
             )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøk2)
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
+                .filter { it.utbetalingId == utbetaling.id } shouldBe expected(forsøk2)
 
             val forsøkFeiletMotOppdrag = Forsøkshistorikk.opprett(
                 forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(3, ChronoUnit.MICROS),
@@ -154,7 +157,8 @@ class UtbetalingRepoImplTest {
                 status = Utbetalingsstatus.FeiletMotOppdrag,
                 metadata = forsøkFeiletMotOppdrag,
             )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe expected(forsøkFeiletMotOppdrag)
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
+                .filter { it.utbetalingId == utbetaling.id } shouldBe expected(forsøkFeiletMotOppdrag)
 
             utbetalingRepo.oppdaterUtbetalingsstatus(
                 utbetalingId = utbetaling.id,
@@ -165,7 +169,8 @@ class UtbetalingRepoImplTest {
                     clock = fixedClock,
                 ),
             )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
+                .none { it.utbetalingId == utbetaling.id } shouldBe true
 
             utbetalingRepo.oppdaterUtbetalingsstatus(
                 utbetalingId = utbetaling.id,
@@ -176,7 +181,8 @@ class UtbetalingRepoImplTest {
                     clock = fixedClock,
                 ),
             )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() shouldBe emptyList()
+            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
+                .none { it.utbetalingId == utbetaling.id } shouldBe true
         }
     }
 }

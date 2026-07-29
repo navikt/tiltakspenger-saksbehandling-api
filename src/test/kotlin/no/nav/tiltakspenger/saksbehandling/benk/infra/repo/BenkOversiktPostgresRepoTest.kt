@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerComm
 import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.TilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.domene.ÅpneBehandlingerFiltrering
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.felles.Systembrukerroller
@@ -94,6 +95,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter åpne søknader uten behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val søknad = testDataHelper.persisterSakOgSøknad()
@@ -126,6 +128,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter åpne søknadsbehandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sakOpprettetBehandling, opprettetBehandling) = testDataHelper.persisterOpprettetSøknadsbehandling()
@@ -222,6 +225,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter åpne revurderinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sakOpprettetRevurdering, opprettetRevurdering) = testDataHelper.persisterOpprettetRevurdering()
@@ -300,6 +304,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter meldekort som er klar til behandling`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sak1, _) = testDataHelper.persisterBrukersMeldekort(periode = Periode(2.januar(2023), 29.januar(2023)))
@@ -381,6 +386,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter åpne meldekortbehandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = testDataHelper.persisterBrukersMeldekort()
@@ -457,6 +463,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter meldekortbehandling som er satt på vent`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val saksbehandler = ObjectMother.saksbehandler()
@@ -510,6 +517,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter ikke meldekort som har mottatt tidspunkt som er mindre enn siste meldekort behandling`() {
         val clock = TikkendeKlokke(fixedClockAt(18.august(2025)))
         withMigratedDb(runIsolated = true, clock = clock) { testDataHelper ->
@@ -568,6 +576,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter ikke meldekort der en behandling i ettertid har blitt avsluttet`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val periode = Periode(4.august(2025), 17.august(2025))
@@ -646,6 +655,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter ikke meldekort der en behandling ble endret etter at meldekortet var mottatt`() {
         val clock = TikkendeKlokke(fixedClockAt(18.august(2025)))
         withMigratedDb(runIsolated = true, clock = clock) { testDataHelper ->
@@ -705,6 +715,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `første meldekort i en kjede er 'INNSENDT_MELDEKORT', deretter er det 'KORRIGERT_MELDEKORT'`() {
         val clock = TikkendeKlokke(fixedClockAt(18.august(2025)))
         withMigratedDb(runIsolated = true, clock = clock) { testDataHelper ->
@@ -748,6 +759,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter åpne klagebehandlinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (_, klagebehandling) = testDataHelper.persisterOpprettetKlagebehandlingTilAvvisning()
@@ -823,6 +835,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter åpne tilbakekrevinger`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sak, meldekortvedtak) = testDataHelper.persisterIverksattMeldekortbehandling()
@@ -999,6 +1012,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan filtrere tilbakekrevinger på minstebeløp`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val (sakUnderMinstebeløp, meldekortvedtakUnderMinstebeløp) = testDataHelper.persisterIverksattMeldekortbehandling()
@@ -1081,6 +1095,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter mix av behandlingene`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterSakOgSøknad()
@@ -1119,6 +1134,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan filtrere basert på behandlingstype`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterSakOgSøknad()
@@ -1149,6 +1165,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan filtrere basert på status`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             testDataHelper.persisterSakOgSøknad()
@@ -1191,6 +1208,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan filtrere basert på saksbehandler og beslutter`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             @Suppress("UNCHECKED_CAST")
@@ -1225,6 +1243,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter behandlinger som har saksbehandler eller beslutter ikke tildelt`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             @Suppress("UNCHECKED_CAST")
@@ -1260,6 +1279,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter både behandlinger som er klar og på vent`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val beslutter = ObjectMother.beslutter("Z111111")
@@ -1288,6 +1308,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter behandlinger som er klar`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val beslutter = ObjectMother.beslutter("Z111111")
@@ -1315,6 +1336,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan filtrere på behandlinger som er satt på vent`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             val beslutter = ObjectMother.beslutter("Z111111")
@@ -1342,6 +1364,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan sortere på startet`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
@@ -1372,6 +1395,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan sortere på sist endret`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo
@@ -1402,6 +1426,7 @@ class BenkOversiktPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan sortere på frist`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val benkOversiktRepo = tac.benkOversiktContext.benkOversiktRepo

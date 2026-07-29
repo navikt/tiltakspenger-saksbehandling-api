@@ -116,13 +116,12 @@ internal object SøknadDAO {
                 }.asList,
             )
 
-    fun hentAlleUbehandledeDigitalesoknader(limit: Int, session: Session): List<InnvilgbarSøknad> =
+    fun hentUbehandledeSøknadIder(limit: Int, session: Session): List<SøknadId> =
         session.run(
             sqlQuery(
                 """
-                    select *
+                    select soknad.id
                     from søknad soknad
-                             join sak on soknad.sak_id = sak.id
                              left join behandling b on soknad.id = b.soknad_id
                     where b.id is null and soknad.soknadstype = :digital
                       and soknad.avbrutt is null
@@ -132,9 +131,28 @@ internal object SøknadDAO {
                 "limit" to limit,
                 "digital" to Søknadstype.DIGITAL.toDbValue(),
             ).map { row: Row ->
-                row.toSøknad(session)
+                SøknadId.fromString(row.string("id"))
             }.asList,
-        ).filterIsInstance<InnvilgbarSøknad>()
+        )
+
+    fun hentUbehandletSøknad(søknadId: SøknadId, session: Session): InnvilgbarSøknad? =
+        session.run(
+            sqlQuery(
+                """
+                    select *
+                    from søknad soknad
+                             join sak on soknad.sak_id = sak.id
+                             left join behandling b on soknad.id = b.soknad_id
+                    where soknad.id = :id
+                      and b.id is null and soknad.soknadstype = :digital
+                      and soknad.avbrutt is null
+                """.trimIndent(),
+                "id" to søknadId.toString(),
+                "digital" to Søknadstype.DIGITAL.toDbValue(),
+            ).map { row: Row ->
+                row.toSøknad(session)
+            }.asSingle,
+        ) as? InnvilgbarSøknad
 
     private fun søknadFinnes(
         søknadId: SøknadId,

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -39,7 +40,7 @@ class TilbakekrevingConsumerTest {
                 clock = tac.clock,
             )
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 1
 
             val hendelse = hendelser.first() as TilbakekrevingInfoBehovHendelse
@@ -86,7 +87,7 @@ class TilbakekrevingConsumerTest {
                 clock = tac.clock,
             )
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 1
 
             val hendelse = hendelser.first() as TilbakekrevingBehandlingEndretHendelse
@@ -139,7 +140,7 @@ class TilbakekrevingConsumerTest {
                 clock = tac.clock,
             )
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 1
 
             val hendelse = hendelser.first() as TilbakekrevingBehandlingEndretHendelse
@@ -188,7 +189,7 @@ class TilbakekrevingConsumerTest {
             )
 
             // infosvar skal ikke persistes
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 0
         }
     }
@@ -204,7 +205,7 @@ class TilbakekrevingConsumerTest {
                 clock = tac.clock,
             )
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 0
         }
     }
@@ -241,7 +242,7 @@ class TilbakekrevingConsumerTest {
                 clock = tac.clock,
             )
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 1
         }
     }
@@ -270,7 +271,7 @@ class TilbakekrevingConsumerTest {
                 clock = tac.clock,
             )
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 1
 
             val hendelse = hendelser.first() as TilbakekrevingInfoBehovHendelse
@@ -323,7 +324,7 @@ class TilbakekrevingConsumerTest {
                     clock = tac.clock,
                 )
 
-                val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+                val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
                     .filterIsInstance<TilbakekrevingBehandlingEndretHendelse>()
                     .filter { it.eksternBehandlingId == "ekstern-$index" }
 
@@ -335,7 +336,7 @@ class TilbakekrevingConsumerTest {
 
     @Test
     fun `infobehov - persistes og hentes korrekt fra postgres`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak) = opprettSakOgSøknad(
                 tac = tac,
             )
@@ -352,17 +353,14 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            val hendelseId = TilbakekrevingConsumer.consume(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
-            )
+            ).shouldNotBeNull()
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-            hendelser.size shouldBe 1
-
-            val hendelse = hendelser.first() as TilbakekrevingInfoBehovHendelse
+            val hendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingInfoBehovHendelse
             hendelse.eksternFagsakId shouldBe sak.saksnummer.verdi
             hendelse.kravgrunnlagReferanse shouldBe "ref-postgres-12345"
             hendelse.sakId shouldBe null
@@ -372,7 +370,7 @@ class TilbakekrevingConsumerTest {
 
     @Test
     fun `behandling_endret - persistes og hentes korrekt fra postgres`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak) = opprettSakOgSøknad(
                 tac = tac,
             )
@@ -402,17 +400,14 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            val hendelseId = TilbakekrevingConsumer.consume(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
-            )
+            ).shouldNotBeNull()
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-            hendelser.size shouldBe 1
-
-            val hendelse = hendelser.first() as TilbakekrevingBehandlingEndretHendelse
+            val hendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingBehandlingEndretHendelse
             hendelse.eksternFagsakId shouldBe sak.saksnummer.verdi
             hendelse.eksternBehandlingId shouldBe "ekstern-behandling-postgres-123"
             hendelse.tilbakeBehandlingId shouldBe "tilbake-behandling-postgres-456"
@@ -446,7 +441,7 @@ class TilbakekrevingConsumerTest {
                 clock = tac.clock,
             )
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            val hendelser = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
             hendelser.size shouldBe 1
 
             val hendelse = hendelser.first() as TilbakekrevingUkjentHendelse
@@ -460,7 +455,7 @@ class TilbakekrevingConsumerTest {
 
     @Test
     fun `ukjent hendelse - kan ikke deserialiseres - persistes og hentes korrekt fra postgres`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val key = "test-key-ukjent-postgres"
             //language=json
             val value = """
@@ -470,27 +465,20 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            val hendelseId = TilbakekrevingConsumer.consume(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
                 clock = tac.clock,
-            )
+            ).shouldNotBeNull()
 
-            val hendelser = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-            hendelser.size shouldBe 1
-
-            val hendelse = hendelser.first() as TilbakekrevingUkjentHendelse
+            val hendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId) as TilbakekrevingUkjentHendelse
+            hendelse.id shouldBe hendelseId
             hendelse.hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
             hendelse.sakId shouldBe null
             hendelse.eksternFagsakId shouldBe null
             hendelse.behandlet shouldBe null
             hendelse.feil shouldBe null
-
-            // Verifiser at vi også kan hente den enkeltvis fra db
-            val hentet = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelse.id) as TilbakekrevingUkjentHendelse
-            hentet.id shouldBe hendelse.id
-            hentet.hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
         }
     }
 }

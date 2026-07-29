@@ -14,9 +14,11 @@ interface TilbakekrevingHendelseRepo {
         sessionContext: SessionContext? = null,
     ): Boolean
 
-    fun hentUbehandledeHendelser(): List<Tilbakekrevingshendelse>
+    fun hentUbehandledeHendelseIder(): List<TilbakekrevinghendelseId>
 
     fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse?
+
+    fun hentHendelserForEksternFagsakId(eksternFagsakId: String): List<Tilbakekrevingshendelse>
 
     fun markerInfoBehovSomBehandlet(hendelseId: TilbakekrevinghendelseId, sakId: SakId, svarJson: String, sessionContext: SessionContext? = null)
 

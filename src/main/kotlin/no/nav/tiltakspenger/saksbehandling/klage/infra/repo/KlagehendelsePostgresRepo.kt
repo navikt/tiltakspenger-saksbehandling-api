@@ -101,11 +101,11 @@ class KlagehendelsePostgresRepo(
         }
     }
 
-    override fun hentUbehandledeHendelser(limit: Int): List<NyKlagehendelse> {
+    override fun hentUbehandledeHendelseIder(limit: Int): List<KlagehendelseId> {
         return sessionFactory.withSession { session ->
             session.run(
-                sqlQuery("select id,ekstern_id,opprettet,sist_endret,mottatt_data,sak_id,klagebehandling_id from klagehendelse where sak_id is null limit $limit").map {
-                    fromRow(it)
+                sqlQuery("select id from klagehendelse where sak_id is null order by opprettet limit $limit").map {
+                    KlagehendelseId.fromString(it.string("id"))
                 }.asList,
             )
         }

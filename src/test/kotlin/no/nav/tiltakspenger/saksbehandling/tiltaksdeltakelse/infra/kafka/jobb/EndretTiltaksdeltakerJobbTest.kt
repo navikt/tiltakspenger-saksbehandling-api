@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppgaveId
@@ -43,6 +44,7 @@ class EndretTiltaksdeltakerJobbTest {
     private val oppgaveId = oppgaveId()
 
     @Test
+    @IsolatedDatabaseTest
     fun `hendelser innenfor forsinkelsesvinduet blir ikke behandlet`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val fnr = Fnr.random()
@@ -95,8 +97,54 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    fun `ingen opprettet behandling - ignorerer`() {
+    @IsolatedDatabaseTest
+    fun `hendelser utenfor forsinkelsesvinduet plukkes opp og behandles av jobben`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fnr = Fnr.random()
+            val tiltaksdeltakerId = TiltaksdeltakerId.random()
+            val deltakelseFom = 5.januar(2025)
+            val deltakelsesTom = 5.mai(2025)
+            val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+            val tiltaksdeltakelse = tiltaksdeltakelse(
+                periode = deltakelsesperiode,
+                internDeltakelseId = tiltaksdeltakerId,
+            )
+
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                fnr = fnr,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                tiltaksdeltakelse = tiltaksdeltakelse,
+            )
+
+            // Hendelse utenfor forsinkelsesvinduet (20 min siden, vindu er 15 min)
+            val hendelse = getTiltaksdeltakerHendelse(
+                sakId = sak.id,
+                fom = deltakelseFom,
+                tom = deltakelsesTom.minusDays(2),
+                deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                tiltaksdeltakerId = tiltaksdeltakerId,
+            )
+            tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                hendelse,
+                "melding",
+                TiltaksdeltakerHendelseKilde.Komet,
+                nå(tac.clock).minusMinutes(20),
+            )
+
+            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+
+            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == hendelse.id } shouldBe true
+            val behandletHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(hendelse.id)
+            behandletHendelse.shouldNotBeNull()
+            behandletHendelse.behandlingId.shouldNotBeNull()
+        }
+    }
+
+    @Test
+    fun `ingen opprettet behandling - ignorerer`() {
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
             val deltakelsesperiode = 5.januar(2025) til 5.mai(2025)
@@ -125,7 +173,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
@@ -133,7 +181,7 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `ingen behandling for endret deltaker - ignorerer`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val deltakelsesperiode = 5.januar(2025) til 5.mai(2025)
 
@@ -159,7 +207,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerHendelse.internDeltakerId)
 
             tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
@@ -167,7 +215,7 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `åpen behandling for endret deltaker - oppretter oppgave, ikke revurdering`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
             val deltakelseFom = LocalDate.now(tac.clock).minusDays(2)
@@ -200,7 +248,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
             oppdatertTiltaksdeltakerHendelse.shouldNotBeNull()
@@ -211,7 +259,7 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `åpen automatisk behandling for endret deltaker - oppdaterer venterTil, oppretter ikke oppgave`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
 
@@ -256,7 +304,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.mai(2025)
@@ -265,7 +313,7 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `iverksatt behandling, ingen endring - ignorerer`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
             val deltakelseFom = 5.januar(2025)
@@ -299,7 +347,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
@@ -307,7 +355,7 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `iverksatt søknadsbehandling + revurdering innvilgelse - forlenget tom til samme som revurderingen - ignorerer`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
             val deltakelseFom = 5.januar(2025)
@@ -365,7 +413,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
@@ -373,7 +421,7 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `iverksatt behandling, forlengelse, deltakelsesmengde - oppretter revurdering`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val deltakelseFom = 5.januar(2025)
             val deltakelsesTom = 5.mai(2025)
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
@@ -406,7 +454,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
 
@@ -428,7 +476,7 @@ class EndretTiltaksdeltakerJobbTest {
 
     @Test
     fun `iverksatt behandling, avbrutt - oppretter revurdering`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
             val deltakelseFom = 5.januar(2025)
@@ -461,7 +509,7 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
             oppdatertTiltaksdeltakerHendelse shouldNotBe null
@@ -482,7 +530,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `innvilgelse + stans (over hele perioden) lager ikke oppgave eller revurdering`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val førsteTiltaksdeltakerId = TiltaksdeltakerId.random()
                 val førsteDeltakelseFom = 5.januar(2025)
@@ -522,7 +570,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(førsteTiltaksdeltakerId)
 
                 tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
             }
@@ -530,7 +578,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `innvilgelse + avslag, oppretter stans ved avbrudd`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val førsteTiltaksdeltakerId = TiltaksdeltakerId.random()
                 val førsteEksternId = UUID.randomUUID().toString()
@@ -601,7 +649,8 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(førsteTiltaksdeltakerId)
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(andreTiltaksdeltakerId)
 
                 val førsteOppdatertTiltaksdeltakerHendelse =
                     tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerHendelse.id)
@@ -625,7 +674,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `avslag + innvilgelse, oppretter stans ved avbrudd`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
 
                 val førsteTiltaksdeltakerId = TiltaksdeltakerId.random()
@@ -696,7 +745,8 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(førsteTiltaksdeltakerId)
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(andreTiltaksdeltakerId)
 
                 val førsteOppdatertTiltaksdeltakerHendelse =
                     tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerHendelse.id)
@@ -724,7 +774,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `kun automatisk behandling for deltakelse uten vedtak - ignorerer hendelse`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
@@ -756,7 +806,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
                 // Hendelsen skal være markert som behandlet og ignorert (ingen oppgave eller revurdering)
                 tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
@@ -769,7 +819,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `vedtak for annen deltakelse, ingen behandling for denne - ignorerer hendelse`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val vedtakDeltakerId = TiltaksdeltakerId.random()
                 val annenDeltakerId = TiltaksdeltakerId.random()
@@ -804,7 +854,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(annenDeltakerId)
 
                 // Hendelsen skal være markert som behandlet og ignorert
                 tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
@@ -817,7 +867,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `åpen manuell behandling for deltakelse uten vedtak - oppretter oppgave`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = LocalDate.now(tac.clock).minusDays(2)
@@ -850,7 +900,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
                 val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
                 oppdatertHendelse.shouldNotBeNull()
@@ -861,7 +911,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `vedtak for deltakelse - oppretter revurdering ved endring`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
@@ -894,7 +944,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
                 val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
                 oppdatertHendelse.shouldNotBeNull()
@@ -913,7 +963,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `kun nyeste hendelse evalueres, eldre hendelser markeres som behandlet`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
@@ -961,7 +1011,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
                 // Eldre hendelse skal være markert som behandlet uten oppgave eller revurdering
                 val oppdatertEldreHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(eldreHendelse.id)
@@ -986,7 +1036,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `tre hendelser for samme deltaker - kun siste evalueres, to eldre ignoreres`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val tiltaksdeltakerId = TiltaksdeltakerId.random()
                 val deltakelseFom = 5.januar(2025)
@@ -1044,7 +1094,7 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
                 val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
 
@@ -1074,7 +1124,7 @@ class EndretTiltaksdeltakerJobbTest {
 
         @Test
         fun `hendelser for ulike deltakere behandles uavhengig`() {
-            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val fnr = Fnr.random()
                 val førsteTiltaksdeltakerId = TiltaksdeltakerId.random()
                 val andreTiltaksdeltakerId = TiltaksdeltakerId.random()
@@ -1155,7 +1205,8 @@ class EndretTiltaksdeltakerJobbTest {
                     nå(tac.clock).minusMinutes(20),
                 )
 
-                tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(førsteTiltaksdeltakerId)
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(andreTiltaksdeltakerId)
 
                 val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
                 ubehandlede.none { it.id == førsteEldreHendelse.id } shouldBe true

@@ -135,8 +135,8 @@ class SakFakeRepo(
         }
     }
 
-    override fun hentForSendingTilMeldekortApi(limit: Int): List<Sak> {
-        return skalSendesTilMeldekortApi.get().mapNotNull { hentSak(it) }.take(limit)
+    override fun hentSakIderForSendingTilMeldekortApi(limit: Int): List<SakId> {
+        return skalSendesTilMeldekortApi.get().mapNotNull { hentSak(it) }.take(limit).map { it.id }
     }
 
     override fun hentForSendingAvMeldeperioderTilDatadeling(limit: Int): List<Sak> {

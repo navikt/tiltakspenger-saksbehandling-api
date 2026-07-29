@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -43,7 +44,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             val opphørUtbetaling = opphørVedtak.utbetaling!!
             tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørUtbetaling)
 
-            val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single()
+            val hendelse = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().single()
 
             hendelse.shouldBeInstanceOf<TilbakekrevingInfoBehovHendelse>()
             hendelse.hendelsestype shouldBe TilbakekrevinghendelseType.InfoBehov
@@ -53,7 +54,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // InfoBehov er behandlet, og en ny BehandlingEndret-hendelse er generert som svar
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
                 .single().hendelsestype shouldBe TilbakekrevinghendelseType.BehandlingEndret
         }
     }
@@ -76,12 +77,12 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
-            val hendelseId = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single().id
+            val hendelseId = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().single().id
 
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet (markert med feil)
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             // Verifiser at feil-feltet er satt
             val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId)
@@ -109,12 +110,12 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
-            val hendelseId = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single().id
+            val hendelseId = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().single().id
 
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet (markert med feil)
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             // Verifiser at feil-feltet er satt
             val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseId)
@@ -218,12 +219,12 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
-            val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().first()
+            val hendelse = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().first()
 
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet (markert med feil)
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             // Ingen tilbakekrevingbehandling skal være opprettet
             tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).size shouldBe 0
@@ -267,12 +268,12 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, hendelseJson)
 
-            val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().first()
+            val hendelse = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().first()
 
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet (markert med feil)
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             // Verifiser at feil-feltet er satt
             val behandletHendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelse.id)
@@ -286,13 +287,13 @@ class BehandleTilbakekrevingHendelserJobbTest {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
             tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).size shouldBe 0
 
             // Skal ikke kaste feil
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
             tac.tilbakekrevingBehandlingRepo.hentForSakId(sak.id).size shouldBe 0
         }
     }
@@ -349,7 +350,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
             // Hendelsen skal være behandlet, men behandlingen skal ikke være oppdatert
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             val behandlingEtterUtdatertHendelse =
                 tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
@@ -379,7 +380,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             // Håndterer behandling endret hendelse som følge av info-svar
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             val forventetUtbetaling =
                 sakMedOpphør.utbetalinger.hentUtbetalingForRammebehandling(opphørVedtak.behandlingId)!!
@@ -427,7 +428,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             // Håndterer behandling endret hendelse som følge av info-svar
             tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
 
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             val forventetUtbetaling =
                 sakMedKorrigering.utbetalinger.hentUtbetalingForMeldekort(korrigeringVedtak.meldekortId)!!
@@ -443,7 +444,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
     @Test
     fun `postgres - full flyt fra InfoBehov til TilbakekrevingBehandling`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
             val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
@@ -457,26 +458,30 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
 
             // Verifiser at InfoBehov hendelse er lagret og ubehandlet
-            val ubehandledeFørFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-            ubehandledeFørFørsteKjøring.size shouldBe 1
-            ubehandledeFørFørsteKjøring.single().hendelsestype shouldBe TilbakekrevinghendelseType.InfoBehov
+            val hendelserFørFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+            hendelserFørFørsteKjøring.size shouldBe 1
+            val infoBehov = hendelserFørFørsteKjøring.single()
+            infoBehov.hendelsestype shouldBe TilbakekrevinghendelseType.InfoBehov
+            infoBehov.behandlet shouldBe null
 
             // Første kjøring av jobben - håndterer InfoBehov hendelsen
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(infoBehov.id)
 
             // Verifiser at InfoBehov er behandlet og en ny BehandlingEndret hendelse er generert
-            val ubehandledeEtterFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-            ubehandledeEtterFørsteKjøring.size shouldBe 1
-            ubehandledeEtterFørsteKjøring.single().hendelsestype shouldBe TilbakekrevinghendelseType.BehandlingEndret
+            val hendelserEtterFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+            hendelserEtterFørsteKjøring.size shouldBe 2
+            val behandlingEndret = hendelserEtterFørsteKjøring.single { it.hendelsestype == TilbakekrevinghendelseType.BehandlingEndret }
+            behandlingEndret.behandlet shouldBe null
 
             // Verifiser at det ennå ikke er opprettet noen TilbakekrevingBehandling
             tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).size shouldBe 0
 
             // Andre kjøring av jobben - håndterer BehandlingEndret hendelsen
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(behandlingEndret.id)
 
             // Verifiser at alle hendelser nå er behandlet
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseRepo.hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+                .all { it.behandlet != null } shouldBe true
 
             // Verifiser at TilbakekrevingBehandling er opprettet i databasen
             val tilbakekrevingBehandlinger = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id)
@@ -544,7 +549,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, hendelseMedVenterJson)
 
             // Verifiser at venter er persistert på hendelsen i db (i jsonb-kolonnen `behandling`)
-            val hendelseMedVenter = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().single()
+            val hendelseMedVenter = tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().single()
             hendelseMedVenter.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
             hendelseMedVenter.venter.shouldNotBeNull()
             hendelseMedVenter.venter.grunn shouldBe TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
@@ -653,7 +658,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
     @Test
     fun `postgres - behandlingendret med venter persisterer venter i db`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
             val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
@@ -665,8 +670,14 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             // Etabler behandling via InfoBehov-flyten
             tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            val infoBehov = tac.tilbakekrevingHendelseRepo
+                .hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+                .single()
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(infoBehov.id)
+            val behandlingEndretFraInfoSvar = tac.tilbakekrevingHendelseRepo
+                .hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+                .single { it.hendelsestype == TilbakekrevinghendelseType.BehandlingEndret }
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(behandlingEndretFraInfoSvar.id)
 
             val opprettetBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
             opprettetBehandling.venter shouldBe null
@@ -703,18 +714,22 @@ class BehandleTilbakekrevingHendelserJobbTest {
                 }
             """.trimIndent()
 
-            tac.tilbakekrevingConsumer.consume(sakMedOpphør.fnr.verdi, hendelseJson)
+            val hendelseMedVenterId = TilbakekrevingConsumer.consume(
+                key = sakMedOpphør.fnr.verdi,
+                value = hendelseJson,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                clock = tac.clock,
+            ).shouldNotBeNull()
 
             // Verifiser at hendelsen ble persistert med venter (lest tilbake fra Postgres)
-            val hendelse = tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
-                .filterIsInstance<TilbakekrevingBehandlingEndretHendelse>()
-                .single()
+            val hendelse = tac.tilbakekrevingHendelseRepo.hentHendelse(hendelseMedVenterId)
+            hendelse.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
             hendelse.venter.shouldNotBeNull()
             hendelse.venter.grunn shouldBe TilbakekrevingVentegrunn.AVVENTER_BRUKERUTTALELSE
             hendelse.venter.gjenopptas shouldBe gjenopptas
 
             // Kjør jobben og verifiser at behandlingen i Postgres nå har venter satt
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseMedVenterId)
 
             val oppdatertBehandling = tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
             oppdatertBehandling.venter.shouldNotBeNull()
@@ -785,7 +800,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             etterAndreKjøring.behandlet.shouldNotBeNull()
             etterAndreKjøring.feil shouldBe null
 
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser().size shouldBe 0
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             val tilbakekrevingBehandling =
                 tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
@@ -815,7 +830,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             ukjentEtter.behandlet shouldBe null
             ukjentEtter.feil shouldBe null
 
-            tac.tilbakekrevingHendelseRepo.hentUbehandledeHendelser()
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser()
                 .single().hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
         }
     }

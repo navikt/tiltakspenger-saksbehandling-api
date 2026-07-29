@@ -54,7 +54,7 @@ interface SakRepo {
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 
-    fun hentForSendingTilMeldekortApi(limit: Int = 100): List<Sak>
+    fun hentSakIderForSendingTilMeldekortApi(limit: Int = 100): List<SakId>
 
     fun hentForSendingAvMeldeperioderTilDatadeling(limit: Int = 100): List<Sak>
 

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.Identhend
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import java.util.UUID
 
 class IdenthendelseJobb(
     private val identhendelseRepository: IdenthendelseRepository,
@@ -22,27 +23,32 @@ class IdenthendelseJobb(
     private val log = KotlinLogging.logger {}
 
     fun behandleIdenthendelser() {
-        val identhendelser = identhendelseRepository.hentAlleSomIkkeErBehandlet()
-        identhendelser.forEach { identhendelse ->
+        val identhendelseIder = identhendelseRepository.hentIderSomIkkeErBehandlet()
+        identhendelseIder.forEach { id ->
             try {
-                if (identhendelse.produsertHendelse == null) {
-                    identhendelseKafkaProducer.produserIdenthendelse(identhendelse.id, identhendelse.toIdenthendelseDto())
-                    identhendelseRepository.oppdaterProdusertHendelse(identhendelse.id)
-                    log.info { "Oppdatert produsert_hendelse for identhendelse med id ${identhendelse.id}" }
-                }
-
-                val harProdusertHendelse = identhendelse.produsertHendelse != null || identhendelseRepository.hent(identhendelse.id)?.produsertHendelse != null
-                if (harProdusertHendelse && identhendelse.oppdatertDatabase == null) {
-                    oppdaterFnr(
-                        gammeltFnr = identhendelse.gammeltFnr,
-                        nyttFnr = identhendelse.nyttFnr,
-                    )
-                    identhendelseRepository.oppdaterOppdatertDatabase(identhendelse.id)
-                    log.info { "Oppdatert oppdatert_database for identhendelse med id ${identhendelse.id}" }
-                }
+                behandleIdenthendelse(id)
             } catch (e: Exception) {
-                log.error(e) { "Noe gikk galt ved behandling av identhendelse med id ${identhendelse.id}" }
+                log.error(e) { "Noe gikk galt ved behandling av identhendelse med id $id" }
             }
+        }
+    }
+
+    fun behandleIdenthendelse(identhendelseId: UUID) {
+        val identhendelse = identhendelseRepository.hent(identhendelseId) ?: return
+
+        if (identhendelse.produsertHendelse == null) {
+            identhendelseKafkaProducer.produserIdenthendelse(identhendelse.id, identhendelse.toIdenthendelseDto())
+            identhendelseRepository.oppdaterProdusertHendelse(identhendelse.id)
+            log.info { "Oppdatert produsert_hendelse for identhendelse med id ${identhendelse.id}" }
+        }
+
+        if (identhendelse.oppdatertDatabase == null) {
+            oppdaterFnr(
+                gammeltFnr = identhendelse.gammeltFnr,
+                nyttFnr = identhendelse.nyttFnr,
+            )
+            identhendelseRepository.oppdaterOppdatertDatabase(identhendelse.id)
+            log.info { "Oppdatert oppdatert_database for identhendelse med id ${identhendelse.id}" }
         }
     }
 

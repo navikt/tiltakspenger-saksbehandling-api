@@ -85,17 +85,32 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    override fun hentUbehandledeHendelser(): List<Tilbakekrevingshendelse> =
+    override fun hentHendelserForEksternFagsakId(eksternFagsakId: String): List<Tilbakekrevingshendelse> =
         sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
                     """
                     SELECT *
                     FROM tilbakekreving_hendelse
+                    WHERE ekstern_fagsak_id = :ekstern_fagsak_id
+                    ORDER BY opprettet
+                    """.trimIndent(),
+                    "ekstern_fagsak_id" to eksternFagsakId,
+                ).map { row -> row.tilTilbakekrevingshendelse() }.asList,
+            )
+        }
+
+    override fun hentUbehandledeHendelseIder(): List<TilbakekrevinghendelseId> =
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    SELECT id
+                    FROM tilbakekreving_hendelse
                     WHERE behandlet IS NULL
                     ORDER BY opprettet LIMIT 100
                     """.trimIndent(),
-                ).map { row -> row.tilTilbakekrevingshendelse() }.asList,
+                ).map { row -> TilbakekrevinghendelseId.fromString(row.string("id")) }.asList,
             )
         }
 

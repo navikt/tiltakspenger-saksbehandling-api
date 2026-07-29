@@ -21,14 +21,51 @@ class TiltaksdeltakerHendelsePostgresRepo(
     private val clock: Clock,
 ) {
 
+    fun hentDeltakereMedUbehandledeHendelser(minutterForsinkelse: Long = 0): List<TiltaksdeltakerId> =
+        sessionFactory.withSession {
+            it.run(
+                sqlQuery(
+                    """
+                        select distinct tiltaksdeltaker_id
+                        from tiltaksdeltaker_kafka
+                        where behandlet_tidspunkt is null
+                          and sist_oppdatert < :sist_oppdatert
+                    """.trimIndent(),
+                    "sist_oppdatert" to nå(clock).minusMinutes(minutterForsinkelse),
+                ).map { row -> TiltaksdeltakerId.fromString(row.string("tiltaksdeltaker_id")) }.asList,
+            )
+        }
+
+    fun hentUbehandledeForDeltaker(
+        internDeltakerId: TiltaksdeltakerId,
+        minutterForsinkelse: Long = 0,
+    ): List<TiltaksdeltakerHendelse> =
+        sessionFactory.withSession {
+            it.run(
+                sqlQuery(
+                    """
+                        select *
+                        from tiltaksdeltaker_kafka
+                        where behandlet_tidspunkt is null
+                          and tiltaksdeltaker_id = :tiltaksdeltaker_id
+                          and sist_oppdatert < :sist_oppdatert
+                        order by sist_oppdatert asc
+                    """.trimIndent(),
+                    "tiltaksdeltaker_id" to internDeltakerId.toString(),
+                    "sist_oppdatert" to nå(clock).minusMinutes(minutterForsinkelse),
+                ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
+            )
+        }
+
+    @TestOnly
     fun hentUbehandlede(minutterForsinkelse: Long = 0): List<TiltaksdeltakerHendelse> =
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
                     """
-                        select * 
+                        select *
                         from tiltaksdeltaker_kafka
-                        where behandlet_tidspunkt is null 
+                        where behandlet_tidspunkt is null
                           and sist_oppdatert < :sist_oppdatert
                         order by sist_oppdatert asc
                     """.trimIndent(),

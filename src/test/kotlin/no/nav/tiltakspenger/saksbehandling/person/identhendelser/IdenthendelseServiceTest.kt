@@ -6,7 +6,6 @@ import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.person.pdl.aktor.v2.Identifikator
 import no.nav.person.pdl.aktor.v2.Type
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -17,7 +16,7 @@ import kotlin.test.assertFailsWith
 class IdenthendelseServiceTest {
     @Test
     fun `behandleIdenthendelse - finnes ingen sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
@@ -41,7 +40,7 @@ class IdenthendelseServiceTest {
 
     @Test
     fun `behandleIdenthendelse - finnes en sak - lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
@@ -81,7 +80,7 @@ class IdenthendelseServiceTest {
 
     @Test
     fun `behandleIdenthendelse - finnes sak på nytt fnr - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
@@ -117,7 +116,7 @@ class IdenthendelseServiceTest {
 
     @Test
     fun `behandleIdenthendelse - finnes sak på nytt og gammelt fnr - feiler`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
@@ -134,7 +133,7 @@ class IdenthendelseServiceTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                val sak2 = ObjectMother.nySak(fnr = nyttFnr, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000", clock = testDataHelper.clock))
+                val sak2 = ObjectMother.nySak(fnr = nyttFnr, saksnummer = ObjectMother.nesteSaksnummer())
                 testDataHelper.persisterSakOgSøknad(
                     fnr = nyttFnr,
                     sak = sak2,
@@ -162,7 +161,7 @@ class IdenthendelseServiceTest {
 
     @Test
     fun `behandleIdenthendelse - finnes sak på to gamle fnr - feiler`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
@@ -181,7 +180,7 @@ class IdenthendelseServiceTest {
                     ),
                 )
                 val sak2 =
-                    ObjectMother.nySak(fnr = gammeltFnr2, saksnummer = Saksnummer.genererSaknummer(løpenr = "1000", clock = testDataHelper.clock))
+                    ObjectMother.nySak(fnr = gammeltFnr2, saksnummer = ObjectMother.nesteSaksnummer())
                 testDataHelper.persisterSakOgSøknad(
                     fnr = gammeltFnr2,
                     sak = sak2,
@@ -213,7 +212,7 @@ class IdenthendelseServiceTest {
 
     @Test
     fun `behandleIdenthendelse - ingen gjeldende ident - ignoreres`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo

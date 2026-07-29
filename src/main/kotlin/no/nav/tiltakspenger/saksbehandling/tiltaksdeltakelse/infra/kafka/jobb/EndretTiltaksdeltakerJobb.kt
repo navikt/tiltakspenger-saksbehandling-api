@@ -34,28 +34,34 @@ class EndretTiltaksdeltakerJobb(
 
     suspend fun håndterEndretTiltaksdeltakerHendelser() {
         Either.catch {
-            val hendelserPerDeltaker = tiltaksdeltakerHendelsePostgresRepo
-                .hentUbehandlede(MINUTTER_FORSINKELSE)
-                .groupBy { it.internDeltakerId }
+            val deltakerIder = tiltaksdeltakerHendelsePostgresRepo
+                .hentDeltakereMedUbehandledeHendelser(MINUTTER_FORSINKELSE)
 
-            log.debug { "Fant ${hendelserPerDeltaker.size} hendelser for endret tiltaksdeltakelse som skal behandles" }
+            log.debug { "Fant ${deltakerIder.size} deltakere med hendelser for endret tiltaksdeltakelse som skal behandles" }
 
-            hendelserPerDeltaker.forEach { (_, hendelser) ->
-                val nyesteHendelse = hendelser.last()
-
-                // Marker eldre hendelser for samme deltaker som behandlet uten videre håndtering
-                hendelser.dropLast(1).forEach { eldreHendelse ->
-                    log.info {
-                        "Hendelse ${eldreHendelse.id} er erstattet av en nyere hendelse for deltaker ${eldreHendelse.internDeltakerId}"
-                    }
-                    tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletOgIgnorert(eldreHendelse.id)
-                }
-
-                behandleHendelse(nyesteHendelse)
-            }
+            deltakerIder.forEach { behandleHendelserForDeltaker(it) }
         }.onLeft {
             log.error(it) { "Feil ved opprettelse av oppgaver/revurderinger for endret tiltaksdeltakelse" }
         }
+    }
+
+    suspend fun behandleHendelserForDeltaker(
+        internDeltakerId: TiltaksdeltakerId,
+        minutterForsinkelse: Long = MINUTTER_FORSINKELSE,
+    ) {
+        val hendelser = tiltaksdeltakerHendelsePostgresRepo
+            .hentUbehandledeForDeltaker(internDeltakerId, minutterForsinkelse)
+        val nyesteHendelse = hendelser.lastOrNull() ?: return
+
+        // Marker eldre hendelser for samme deltaker som behandlet uten videre håndtering
+        hendelser.dropLast(1).forEach { eldreHendelse ->
+            log.info {
+                "Hendelse ${eldreHendelse.id} er erstattet av en nyere hendelse for deltaker ${eldreHendelse.internDeltakerId}"
+            }
+            tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletOgIgnorert(eldreHendelse.id)
+        }
+
+        behandleHendelse(nyesteHendelse)
     }
 
     private suspend fun behandleHendelse(deltakerHendelse: TiltaksdeltakerHendelse) {

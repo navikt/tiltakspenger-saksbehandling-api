@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.test.common.TestDatabaseConfig
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import java.time.Clock
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import no.nav.tiltakspenger.libs.persistering.test.common.TestDatabaseManager as LibsTestDatabaseManager
 
 internal class TestDatabaseManager(
@@ -20,14 +22,17 @@ internal class TestDatabaseManager(
     /**
      * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon.
      * Brukes når man gjør operasjoner på tvers av saker.
+     * Testen skal da markeres med [no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest].
      */
     fun withMigratedDbTestDataHelper(
         runIsolated: Boolean = false,
         clock: TikkendeKlokke = TikkendeKlokke(),
         test: (TestDataHelper) -> Unit,
     ) {
-        delegate.withMigratedDb(runIsolated = runIsolated, clock = clock) { _, idGenerators, _ ->
-            test(TestDataHelper(delegate.dataSource(runIsolated), idGenerators, clock))
+        medEventuellIsolasjon(runIsolated) {
+            delegate.withMigratedDb(runIsolated = runIsolated, clock = clock) { _, idGenerators, _ ->
+                test(TestDataHelper(delegate.dataSource(runIsolated), idGenerators, clock))
+            }
         }
     }
 
@@ -36,6 +41,24 @@ internal class TestDatabaseManager(
         clock: TikkendeKlokke = TikkendeKlokke(),
         test: (SessionFactory, IdGenerators, Clock) -> Unit,
     ) {
-        delegate.withMigratedDb(runIsolated = runIsolated, clock = clock, test = test)
+        medEventuellIsolasjon(runIsolated) {
+            delegate.withMigratedDb(runIsolated = runIsolated, clock = clock, test = test)
+        }
+    }
+
+    private fun medEventuellIsolasjon(runIsolated: Boolean, block: () -> Unit) {
+        if (runIsolated) {
+            isolatedTestLock.withLock(block)
+        } else {
+            block()
+        }
+    }
+
+    companion object {
+        /**
+         * JVM-global lås som garanterer at kun én runIsolated-test kjører om gangen, i sin helhet, på tvers av alle [TestDatabaseManager]-instanser.
+         * Speiler runner-garantien fra [no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest].
+         */
+        private val isolatedTestLock = ReentrantLock()
     }
 }

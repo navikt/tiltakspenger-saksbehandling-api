@@ -27,13 +27,13 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattArenadeltaker - finnes ingen sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
-            val deltakerId = "123456789"
+            val deltakerId = arenaDeltakerId()
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
@@ -43,13 +43,13 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattArenadeltaker - finnes sak, ikke lagret melding - lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
-            val deltakerId = "123456789"
+            val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
             val fnr = Fnr.random()
             val sak = ObjectMother.nySak(fnr = fnr)
@@ -83,15 +83,15 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattArenadeltaker - finnes sak, har eksternId - oppdaterer eksternId og lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
-            val deltakerId = "123456789"
+            val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
-            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
+            val nyEksternId = UUID.randomUUID()
             val fnr = Fnr.random()
             val sak = ObjectMother.nySak(fnr = fnr)
             val soknadstiltak = ObjectMother.søknadstiltak(id = id)
@@ -107,7 +107,7 @@ class TiltaksdeltakerServiceTest {
                 søknad = soknad,
             )
 
-            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString())
+            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString(nyEksternId))
 
             tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
             val oppdatertTiltaksdeltaker = tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString())
@@ -133,15 +133,15 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattArenadeltaker - finnes sak for arena-eksternId - lagrer ikke`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
-            val deltakerId = "123456789"
+            val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
-            val nyEksternId = UUID.fromString("9bedf708-1aa2-4be0-a561-cbe60ff2e9f9")
+            val nyEksternId = UUID.randomUUID()
             val fnr = Fnr.random()
             val sak = ObjectMother.nySak(fnr = fnr)
             val soknadstiltak = ObjectMother.søknadstiltak(id = nyEksternId.toString())
@@ -157,7 +157,7 @@ class TiltaksdeltakerServiceTest {
                 søknad = soknad,
             )
 
-            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString())
+            tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingMedEksternIdString(nyEksternId))
 
             tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldNotBe null
             tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
@@ -169,13 +169,13 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattArenadeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
             val tiltaksdeltakerService =
                 TiltaksdeltakerService(tiltaksdeltakerKafkaRepository, soknadRepo, arenaDeltakerMapper, tiltaksdeltakerRepo, testDataHelper.clock)
-            val deltakerId = "123456789"
+            val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
             val fnr = Fnr.random()
             val sak = ObjectMother.nySak(fnr = fnr)
@@ -226,7 +226,7 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattKometdeltaker - finnes ingen sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
@@ -246,7 +246,7 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattKometdeltaker - finnes sak, ikke lagret melding - lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
@@ -289,7 +289,7 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattKometdeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
@@ -349,7 +349,7 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattTeamTiltakdeltaker - finnes ingen sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
@@ -369,7 +369,7 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattTeamTiltakdeltaker - finnes sak, ikke lagret melding - lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
@@ -412,7 +412,7 @@ class TiltaksdeltakerServiceTest {
 
     @Test
     fun `behandleMottattTeamTiltakdeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val tiltaksdeltakerKafkaRepository = testDataHelper.tiltaksdeltakerHendelsePostgresRepo
             val soknadRepo = testDataHelper.søknadRepo
             val tiltaksdeltakerRepo = testDataHelper.tiltaksdeltakerRepo
@@ -485,7 +485,7 @@ class TiltaksdeltakerServiceTest {
             } 
         """.trimIndent()
 
-    private fun getArenaMeldingMedEksternIdString() =
+    private fun getArenaMeldingMedEksternIdString(eksternId: UUID) =
         """
            {
               "op_type": "U",
@@ -495,10 +495,12 @@ class TiltaksdeltakerServiceTest {
                 "DELTAKERSTATUSKODE": "GJENN",
                 "DATO_FRA": "2024-10-14 00:00:00",
                 "DATO_TIL": "2025-08-10 00:00:00",
-                "EKSTERN_ID": "9bedf708-1aa2-4be0-a561-cbe60ff2e9f9"
+                "EKSTERN_ID": "$eksternId"
               }
-            } 
+            }
         """.trimIndent()
+
+    private fun arenaDeltakerId() = (100_000_000..999_999_999).random().toString()
 
     private fun getKometDeltaker(): DeltakerV1Dto =
         DeltakerV1Dto(

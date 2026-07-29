@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.Producer
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -51,7 +52,7 @@ class IdenthendelseJobbTest {
 
     @Test
     fun `behandleIdenthendelser - hendelsen er ikke behandlet - oppdaterer i database og produserer til kafka`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val identhendelseRepository = testDataHelper.identhendelseRepository
@@ -114,7 +115,7 @@ class IdenthendelseJobbTest {
                 )
                 identhendelseRepository.lagre(identhendelseDb)
 
-                identhendelseJobb.behandleIdenthendelser()
+                identhendelseJobb.behandleIdenthendelse(identhendelseDb.id)
 
                 coVerify(exactly = 1) {
                     kafkaProducer.produce(
@@ -139,7 +140,7 @@ class IdenthendelseJobbTest {
 
     @Test
     fun `behandleIdenthendelser - hendelsen er produsert på kafka, ikke oppdatert i db - oppdaterer i database`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val identhendelseRepository = testDataHelper.identhendelseRepository
@@ -202,7 +203,7 @@ class IdenthendelseJobbTest {
                 )
                 identhendelseRepository.lagre(identhendelseDb)
 
-                identhendelseJobb.behandleIdenthendelser()
+                identhendelseJobb.behandleIdenthendelse(identhendelseDb.id)
 
                 coVerify(exactly = 0) { kafkaProducer.produce(any(), any(), any()) }
 
@@ -222,7 +223,7 @@ class IdenthendelseJobbTest {
 
     @Test
     fun `behandleIdenthendelser - hendelsen er ferdig behandlet - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
@@ -262,9 +263,67 @@ class IdenthendelseJobbTest {
                 )
                 identhendelseRepository.lagre(identhendelseDb)
 
-                identhendelseJobb.behandleIdenthendelser()
+                identhendelseJobb.behandleIdenthendelse(identhendelseDb.id)
 
                 coVerify(exactly = 0) { kafkaProducer.produce(any(), any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `behandleIdenthendelser - jobben plukker kun opp hendelser som ikke er ferdig behandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val identhendelseRepository = testDataHelper.identhendelseRepository
+                val identhendelseJobb = IdenthendelseJobb(
+                    identhendelseRepository = identhendelseRepository,
+                    identhendelseKafkaProducer = identhendelseKafkaProducer,
+                    sakRepo = testDataHelper.sakRepo,
+                    søknadRepo = testDataHelper.søknadRepo,
+                    statistikkService = testDataHelper.statistikkService,
+                    sessionFactory = testDataHelper.sessionFactory,
+                )
+                val gammeltFnr = Fnr.random()
+                val nyttFnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = gammeltFnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = gammeltFnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = gammeltFnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                val ubehandlet = IdenthendelseDb(
+                    id = UUID.randomUUID(),
+                    gammeltFnr = gammeltFnr,
+                    nyttFnr = nyttFnr,
+                    sakId = sak.id,
+                    personidenter = listOf(
+                        Personident(nyttFnr.verdi, false, Identtype.FOLKEREGISTERIDENT),
+                        Personident(gammeltFnr.verdi, true, Identtype.FOLKEREGISTERIDENT),
+                    ),
+                    produsertHendelse = null,
+                    oppdatertDatabase = null,
+                )
+                val ferdigBehandlet = ubehandlet.copy(
+                    id = UUID.randomUUID(),
+                    produsertHendelse = nå(testDataHelper.clock),
+                    oppdatertDatabase = nå(testDataHelper.clock),
+                )
+                identhendelseRepository.lagre(ubehandlet)
+                identhendelseRepository.lagre(ferdigBehandlet)
+
+                identhendelseRepository.hentIderSomIkkeErBehandlet() shouldBe listOf(ubehandlet.id)
+
+                identhendelseJobb.behandleIdenthendelser()
+
+                val oppdatert = identhendelseRepository.hent(ubehandlet.id)
+                oppdatert?.produsertHendelse shouldNotBe null
+                oppdatert?.oppdatertDatabase shouldNotBe null
+                coVerify(exactly = 1) { kafkaProducer.produce(any(), ubehandlet.id.toString(), any()) }
             }
         }
     }

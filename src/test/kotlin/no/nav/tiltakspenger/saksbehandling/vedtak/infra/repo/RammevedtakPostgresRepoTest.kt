@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingInnvilgelseIverksatt
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test
 class RammevedtakPostgresRepoTest {
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter vedtak for datadeling`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
@@ -31,6 +33,7 @@ class RammevedtakPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `henter avslagsvedtak for datadeling`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
@@ -84,6 +87,7 @@ class RammevedtakPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `hentRammevedtakSomSkalJournalføres returnerer vedtak når skalSendeVedtaksbrev er true`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->
@@ -95,6 +99,7 @@ class RammevedtakPostgresRepoTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `hentRammevedtakSomSkalJournalføres returnerer ikke vedtak når skalSendeVedtaksbrev er false`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->

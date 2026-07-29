@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
@@ -83,16 +85,19 @@ class SakPostgresRepoTest {
 
     @Test
     fun `Skal flagge saker med iverksatt behandling for sending til meldekort-api`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val sakRepo = testDataHelper.sakRepo
 
             val sak1 = testDataHelper.persisterIverksattSøknadsbehandling().first
             val sak2 = testDataHelper.persisterIverksattSøknadsbehandling().first
-            testDataHelper.persisterOpprettetSøknadsbehandling().first
-            testDataHelper.persisterUnderBeslutningSøknadsbehandling().first
+            val sakOpprettet = testDataHelper.persisterOpprettetSøknadsbehandling().first
+            val sakUnderBeslutning = testDataHelper.persisterUnderBeslutningSøknadsbehandling().first
 
-            sakRepo.hentForSendingTilMeldekortApi() shouldBe listOf(sak1, sak2)
+            val sakIder = sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE)
+            sakIder shouldContain sak1.id
+            sakIder shouldContain sak2.id
+            sakIder shouldNotContain sakOpprettet.id
+            sakIder shouldNotContain sakUnderBeslutning.id
         }
     }
 

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.dto.tilNyTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -45,32 +46,35 @@ class TilbakekrevingConsumer(
 
     companion object {
 
+        /** @return id-en til hendelsen dersom den ble lagret, ellers null. */
         fun consume(
             key: String,
             value: String?,
             tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,
             clock: Clock,
-        ) {
+        ): TilbakekrevinghendelseId? {
             // OBS: Merk at key er fødselsnummer, så det skal ikke logges.
             if (value == null) {
                 logger.warn { "Mottatt tilbakekrevingshendelse uten value, hendelsen forkastes." }
-                return
+                return null
             }
 
             val hendelse = value.tilNyTilbakekrevingshendelse(clock)
 
             if (hendelse == null) {
                 logger.debug { "Mottatt tilbakekrevingshendelse som vi tp-sak har produsert, hendelsen forkastes." }
-                return
+                return null
             }
 
             val bleLagret = tilbakekrevingHendelseRepo.lagreNy(hendelse, key, value)
 
             if (!bleLagret) {
                 logger.error { "Tilbakekrevingshendelse ble ikke lagret - ${hendelse.hendelsestype} / ${hendelse.eksternFagsakId} / ${hendelse.opprettet}" }
-            } else {
-                logger.info { "Lagret ny tilbakekrevingshendelse - type ${hendelse.hendelsestype}." }
+                return null
             }
+
+            logger.info { "Lagret ny tilbakekrevingshendelse - type ${hendelse.hendelsestype}." }
+            return hendelse.id
         }
     }
 }

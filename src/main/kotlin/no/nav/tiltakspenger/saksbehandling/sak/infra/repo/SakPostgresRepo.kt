@@ -226,19 +226,17 @@ class SakPostgresRepo(
         }
     }
 
-    override fun hentForSendingTilMeldekortApi(limit: Int): List<Sak> {
-        return sessionFactory.withSessionContext { sessionContext ->
-            sessionContext.withSession { session ->
-                session.run(
-                    sqlQuery(
-                        """
-                            select * from sak where skal_sendes_til_meldekort_api = true limit $limit
-                        """,
-                    ).map { row ->
-                        row.toSak(sessionContext)
-                    }.asList,
-                )
-            }
+    override fun hentSakIderForSendingTilMeldekortApi(limit: Int): List<SakId> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                        select id from sak where skal_sendes_til_meldekort_api = true limit $limit
+                    """,
+                ).map { row ->
+                    SakId.fromString(row.string("id"))
+                }.asList,
+            )
         }
     }
 

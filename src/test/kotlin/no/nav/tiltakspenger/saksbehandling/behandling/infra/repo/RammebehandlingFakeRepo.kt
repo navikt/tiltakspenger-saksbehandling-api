@@ -59,10 +59,10 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         }
     }
 
-    override fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling> {
+    override fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId> {
         return data.get().values.filter {
             it.erUnderAutomatiskBehandling
-        }.filterIsInstance<Søknadsbehandling>()
+        }.filterIsInstance<Søknadsbehandling>().map { it.id }
     }
 
     override fun taBehandlingSaksbehandler(

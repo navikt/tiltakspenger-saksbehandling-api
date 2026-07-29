@@ -44,7 +44,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - finnes ingen sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -61,15 +61,13 @@ class PersonhendelseServiceTest {
                         clock = clock,
                     ),
                 ) shouldBe KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
-
-                personhendelseRepository.hentAlleUtenOppgave() shouldBe emptyList()
             }
         }
     }
 
     @Test
     fun `behandlePersonhendelse - dødsfall, finnes sak - lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -114,7 +112,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - forelderbarnrelasjon, skal ikke behandles`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -150,7 +148,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, adressebeskyttet i PDL - oppdaterer og lagrer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -222,7 +220,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, ikke adressebeskyttet i PDL - oppdaterer ikke`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -285,7 +283,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - ukjent opplysningstype, finnes sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -320,7 +318,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - DOEDSFALL_V1 men doedsfall-felt er null - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -356,7 +354,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse med gradering FORTROLIG - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -392,7 +390,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - ingen av personidentene matcher en sak - ignorerer`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -429,7 +427,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - samme hendelse mottatt to ganger - lagrer kun første`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository

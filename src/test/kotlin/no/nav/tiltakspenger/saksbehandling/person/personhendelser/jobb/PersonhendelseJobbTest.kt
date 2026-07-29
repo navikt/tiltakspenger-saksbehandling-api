@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
@@ -48,7 +49,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - ingen vedtak - sletter fra db`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -76,7 +77,7 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelser()
+                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
                 personhendelseRepository.hent(sak.id) shouldBe emptyList()
 
@@ -87,7 +88,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - vedtak tilbake i tid - sletter fra db`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -124,7 +125,7 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelser()
+                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
                 personhendelseRepository.hent(sak.id) shouldBe emptyList()
 
@@ -135,7 +136,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har vedtak nå - oppretter oppgave`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -172,7 +173,7 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelser()
+                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
                 val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
@@ -186,7 +187,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har vedtak frem i tid - oppretter oppgave`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -223,7 +224,7 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelser()
+                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
                 val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
@@ -237,7 +238,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har vedtak nå, adressebeskyttelse - oppretter ikke oppgave`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -274,7 +275,7 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelser()
+                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
                 personhendelseRepository.hent(sak.id) shouldBe emptyList()
 
@@ -285,7 +286,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har åpen behandling, adressebeskyttelse - oppretter oppgave`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -322,7 +323,7 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelser()
+                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
                 val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.size shouldBe 1
@@ -342,7 +343,7 @@ class PersonhendelseJobbTest {
     @Test
     fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -380,7 +381,7 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprydning()
+                personhendelseJobb.ryddOppPersonhendelse(id)
 
                 val oppdatertPersonhendelseDb = personhendelseRepository.hent(sak.id).first()
                 oppdatertPersonhendelseDb shouldNotBe null
@@ -395,7 +396,7 @@ class PersonhendelseJobbTest {
     @Test
     fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true.right()
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -433,10 +434,140 @@ class PersonhendelseJobbTest {
                 )
                 personhendelseRepository.lagre(personhendelseDb)
 
-                personhendelseJobb.opprydning()
+                personhendelseJobb.ryddOppPersonhendelse(id)
 
                 personhendelseRepository.hent(sak.id) shouldBe emptyList()
                 coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `opprettOppgaveForPersonhendelser - jobben plukker kun opp hendelser uten oppgave`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val clock = testDataHelper.clock
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakRepo = testDataHelper.sakRepo
+                val personhendelseJobb =
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
+                val id = UUID.randomUUID()
+                val idMedOppgave = UUID.randomUUID()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
+                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
+                testDataHelper.persisterIverksattSøknadsbehandling(
+                    sakId = sak.id,
+                    fnr = fnr,
+                    deltakelseFom = deltakelseFom,
+                    deltakelseTom = deltakelsesTom,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        søknadstiltak = ObjectMother.søknadstiltak(
+                            deltakelseFom = deltakelseFom,
+                            deltakelseTom = deltakelsesTom,
+                        ),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                personhendelseRepository.lagre(
+                    getPersonhendelseDb(
+                        id = id,
+                        fnr = fnr,
+                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
+                        sakId = sak.id,
+                    ),
+                )
+                personhendelseRepository.lagre(
+                    getPersonhendelseDb(
+                        id = idMedOppgave,
+                        fnr = fnr,
+                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
+                        sakId = sak.id,
+                        oppgaveId = OppgaveId("99"),
+                    ),
+                )
+
+                personhendelseRepository.hentIderUtenOppgave() shouldBe listOf(id)
+
+                personhendelseJobb.opprettOppgaveForPersonhendelser()
+
+                val personhendelser = personhendelseRepository.hent(sak.id)
+                personhendelser.first { it.id == id }.oppgaveId shouldBe oppgaveId
+                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.DOED) }
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `opprydning - jobben plukker kun opp hendelser med oppgave som ikke nylig er sjekket`() {
+        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runBlocking {
+                val clock = testDataHelper.clock
+                val personhendelseRepository = testDataHelper.personhendelseRepository
+                val sakRepo = testDataHelper.sakRepo
+                val personhendelseJobb =
+                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
+                val idUtenOppgave = UUID.randomUUID()
+                val idNyligSjekket = UUID.randomUUID()
+                val idIkkeSjekket = UUID.randomUUID()
+                val fnr = Fnr.random()
+                val sak = ObjectMother.nySak(fnr = fnr)
+                testDataHelper.persisterSakOgSøknad(
+                    fnr = fnr,
+                    sak = sak,
+                    søknad = ObjectMother.nyInnvilgbarSøknad(
+                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
+                        sakId = sak.id,
+                        saksnummer = sak.saksnummer,
+                    ),
+                )
+                personhendelseRepository.lagre(
+                    getPersonhendelseDb(
+                        id = idUtenOppgave,
+                        fnr = fnr,
+                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
+                        sakId = sak.id,
+                    ),
+                )
+                personhendelseRepository.lagre(
+                    getPersonhendelseDb(
+                        id = idNyligSjekket,
+                        fnr = fnr,
+                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
+                        sakId = sak.id,
+                        oppgaveId = OppgaveId("98"),
+                        oppgaveSistSjekket = nå(clock),
+                    ),
+                )
+                personhendelseRepository.lagre(
+                    getPersonhendelseDb(
+                        id = idIkkeSjekket,
+                        fnr = fnr,
+                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
+                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
+                        sakId = sak.id,
+                        oppgaveId = oppgaveId,
+                    ),
+                )
+
+                personhendelseRepository.hentIderMedOppgave() shouldBe listOf(idIkkeSjekket)
+
+                personhendelseJobb.opprydning()
+
+                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
+                val oppdatert = personhendelseRepository.hent(sak.id).first { it.id == idIkkeSjekket }
+                oppdatert.oppgaveSistSjekket shouldNotBe null
             }
         }
     }

@@ -54,7 +54,7 @@ open class TestApplicationContextMedInMemoryDb(
     private val søknadFakeRepo = SøknadFakeRepo(rammebehandlingFakeRepo)
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
     private val tilbakekrevingBehandlingFakeRepo = TilbakekrevingBehandlingFakeRepo()
-    private val tilbakekrevingHendelseFakeRepo = TilbakekrevingHendelseFakeRepo(clock)
+    val tilbakekrevingHendelseFakeRepo = TilbakekrevingHendelseFakeRepo(clock)
     private val benkOversiktFakeRepo =
         BenkOversiktFakeRepo(søknadFakeRepo, rammebehandlingFakeRepo, meldekortbehandlingFakeRepo, klagebehandlingFakeRepo)
     private val sakFakeRepo =

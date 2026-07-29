@@ -53,5 +53,6 @@ interface RammebehandlingRepo {
         sessionContext: SessionContext? = null,
     ): Boolean
 
-    fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling>
+    /** Åpne automatiske søknadsbehandlinger som ikke venter (venter_til er null eller passert). */
+    fun hentAutomatiskeSoknadsbehandlingIder(limit: Int = 10): List<RammebehandlingId>
 }

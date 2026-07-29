@@ -26,5 +26,8 @@ interface SøknadRepo {
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
 
-    fun hentAlleUbehandledeSoknader(limit: Int = 10): List<InnvilgbarSøknad>
+    fun hentUbehandledeSøknadIder(limit: Int = 10): List<SøknadId>
+
+    /** Henter søknaden kun dersom den fortsatt er ubehandlet (digital, ikke avbrutt og uten behandling). */
+    fun hentUbehandletSøknad(søknadId: SøknadId): InnvilgbarSøknad?
 }

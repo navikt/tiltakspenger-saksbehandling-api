@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test
 class MeldekortvedtakRepoImplTest {
 
     @Test
+    @IsolatedDatabaseTest
     fun `kan lagre og hente`() {
         val tidspunkt = nå(fixedClock)
         // Aggregert spørring på tvers av saker; må kjøre isolert.
@@ -38,6 +40,7 @@ class MeldekortvedtakRepoImplTest {
     }
 
     @Test
+    @IsolatedDatabaseTest
     fun `skal ikke journalføre vedtak som ikke skal sendes brev for`() {
         // Aggregert spørring på tvers av saker; må kjøre isolert.
         withMigratedDb(runIsolated = true) { testDataHelper ->

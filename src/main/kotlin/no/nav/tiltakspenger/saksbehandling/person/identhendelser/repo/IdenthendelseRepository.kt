@@ -53,10 +53,10 @@ class IdenthendelseRepository(
         )
     }
 
-    fun hentAlleSomIkkeErBehandlet(): List<IdenthendelseDb> = sessionFactory.withSession {
+    fun hentIderSomIkkeErBehandlet(): List<UUID> = sessionFactory.withSession {
         it.run(
-            queryOf(sqlHentAlleSomIkkeErBehandlet)
-                .map { row -> row.toIdenthendelseDb() }
+            queryOf(sqlHentIderSomIkkeErBehandlet)
+                .map { row -> row.uuid("id") }
                 .asList,
         )
     }
@@ -133,6 +133,6 @@ class IdenthendelseRepository(
     private val sqlHentForId = "select * from identhendelse where id = ?"
 
     @Language("SQL")
-    private val sqlHentAlleSomIkkeErBehandlet =
-        "select * from identhendelse where produsert_hendelse is null or oppdatert_database is null"
+    private val sqlHentIderSomIkkeErBehandlet =
+        "select id from identhendelse where produsert_hendelse is null or oppdatert_database is null"
 }

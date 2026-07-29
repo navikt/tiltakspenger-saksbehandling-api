@@ -30,12 +30,23 @@ class PersonhendelseRepository(
         }
     }
 
-    fun hentAlleUtenOppgave(): List<PersonhendelseDb> {
+    fun hent(id: UUID): PersonhendelseDb? {
         return sessionFactory.withSession {
             it.run(
                 queryOf(
-                    """select * from personhendelse where oppgave_id is null""",
-                ).map { row -> row.toPersonhendelseDb() }.asList,
+                    """select * from personhendelse where id = :id""",
+                    mapOf("id" to id),
+                ).map { row -> row.toPersonhendelseDb() }.asSingle,
+            )
+        }
+    }
+
+    fun hentIderUtenOppgave(): List<UUID> {
+        return sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """select id from personhendelse where oppgave_id is null""",
+                ).map { row -> row.uuid("id") }.asList,
             )
         }
     }
@@ -43,14 +54,14 @@ class PersonhendelseRepository(
     /**
      * Henter kun de hvor oppgave_sist_sjekket er null eller oppgave_sist_sjekket < [oppgaveSistSjekket]
      */
-    fun hentAlleMedOppgave(
+    fun hentIderMedOppgave(
         oppgaveSistSjekket: LocalDateTime = nå(clock).minusHours(1),
-    ): List<PersonhendelseDb> {
+    ): List<UUID> {
         return sessionFactory.withSession {
             it.run(
                 queryOf(
                     """
-                        select *
+                        select id
                         from personhendelse
                         where oppgave_id is not null
                           and (oppgave_sist_sjekket is null or oppgave_sist_sjekket < :oppgave_sist_sjekket)
@@ -58,7 +69,7 @@ class PersonhendelseRepository(
                     mapOf(
                         "oppgave_sist_sjekket" to oppgaveSistSjekket,
                     ),
-                ).map { row -> row.toPersonhendelseDb() }.asList,
+                ).map { row -> row.uuid("id") }.asList,
             )
         }
     }

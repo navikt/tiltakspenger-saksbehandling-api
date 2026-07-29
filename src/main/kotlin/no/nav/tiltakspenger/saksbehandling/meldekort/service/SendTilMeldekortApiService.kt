@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
@@ -17,24 +18,26 @@ class SendTilMeldekortApiService(
 
     suspend fun sendSaker() {
         Either.catch {
-            val saker = sakRepo.hentForSendingTilMeldekortApi()
+            val sakIder = sakRepo.hentSakIderForSendingTilMeldekortApi()
 
-            logger.debug { "Fant ${saker.count()} saker for sending til meldekort-api" }
+            logger.debug { "Fant ${sakIder.count()} saker for sending til meldekort-api" }
 
-            saker.forEach { sak ->
-                val id = sak.id
-                meldekortApiHttpClient.sendSak(sak).onRight {
-                    logger.info { "Sendte sak til meldekort-api med id $id" }
-                    val erMarkertSendt = sakRepo.markerErSendtTilMeldekortApi(id, sak.nyesteRammeEllerMeldekortvedtakOpprettet)
-                    if (!erMarkertSendt) {
-                        logger.warn { "Sak $id ble sendt til meldekort-api, men det er nye vedtak på saken - sendes igjen ved neste kjøring" }
-                    }
-                }.onLeft {
-                    it.loggFeil(logger, "sending av sak til meldekort-api", "Sak $id")
-                }
-            }
+            sakIder.forEach { sendSak(it) }
         }.onLeft {
             logger.error(it) { "Uventet feil ved sending av saker til meldekort-api!" }
+        }
+    }
+
+    suspend fun sendSak(sakId: SakId) {
+        val sak = sakRepo.hentForSakId(sakId) ?: return
+        meldekortApiHttpClient.sendSak(sak).onRight {
+            logger.info { "Sendte sak til meldekort-api med id $sakId" }
+            val erMarkertSendt = sakRepo.markerErSendtTilMeldekortApi(sakId, sak.nyesteRammeEllerMeldekortvedtakOpprettet)
+            if (!erMarkertSendt) {
+                logger.warn { "Sak $sakId ble sendt til meldekort-api, men det er nye vedtak på saken - sendes igjen ved neste kjøring" }
+            }
+        }.onLeft {
+            it.loggFeil(logger, "sending av sak til meldekort-api", "Sak $sakId")
         }
     }
 }

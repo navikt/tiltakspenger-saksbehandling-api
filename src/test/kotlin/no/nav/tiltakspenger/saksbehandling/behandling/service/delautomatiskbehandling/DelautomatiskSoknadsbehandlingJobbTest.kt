@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
 import arrow.core.right
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -25,7 +27,7 @@ import org.junit.jupiter.api.Test
 class DelautomatiskSoknadsbehandlingJobbTest {
     @Test
     fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter behandling for åpen søknad uten behandling`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
@@ -38,6 +40,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
                     oppdaterSaksopplysningerService,
+                    testDataHelper.clock,
                 )
 
                 val soknad = testDataHelper.persisterSakOgSøknad()
@@ -49,7 +52,9 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     )
                 } returns ObjectMother.nyOpprettetAutomatiskSøknadsbehandling().right()
 
-                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingerFraNyeSøknader()
+                soknadRepo.hentUbehandledeSøknadIder(limit = Int.MAX_VALUE) shouldContain soknad.id
+
+                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(soknad.id)
 
                 coVerify { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(soknad, any()) }
             }
@@ -58,7 +63,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
     @Test
     fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter ikke behandling for avbrutt søknad`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
@@ -71,6 +76,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
                     oppdaterSaksopplysningerService,
+                    testDataHelper.clock,
                 )
 
                 val soknad = testDataHelper.persisterSakOgSøknad()
@@ -86,7 +92,9 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     ),
                 )
 
-                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingerFraNyeSøknader()
+                soknadRepo.hentUbehandledeSøknadIder(limit = Int.MAX_VALUE) shouldNotContain soknad.id
+
+                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(soknad.id)
 
                 coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
             }
@@ -95,7 +103,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
     @Test
     fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter ikke behandling for søknad med åpen behandling`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
@@ -108,11 +116,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
                     oppdaterSaksopplysningerService,
+                    testDataHelper.clock,
                 )
 
-                testDataHelper.persisterOpprettetSøknadsbehandling()
+                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
 
-                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingerFraNyeSøknader()
+                soknadRepo.hentUbehandledeSøknadIder(limit = Int.MAX_VALUE) shouldNotContain behandling.søknad.id
+
+                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(behandling.søknad.id)
 
                 coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
             }
@@ -121,7 +132,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
     @Test
     fun `automatiskBehandleSøknadsbehandlinger - behandler opprettet automatisk behandling`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
@@ -134,11 +145,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
                     oppdaterSaksopplysningerService,
+                    testDataHelper.clock,
                 )
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
 
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
+                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldContain automatiskBehandling.id
+
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(automatiskBehandling.id)
 
                 coVerify { delautomatiskBehandlingService.behandleAutomatisk(automatiskBehandling, any()) }
                 coVerify(exactly = 0) {
@@ -155,7 +169,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
     @Test
     fun `automatiskBehandleSøknadsbehandlinger - behandler ikke behandling med status UNDER_BEHANDLING`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
@@ -168,9 +182,14 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
                     oppdaterSaksopplysningerService,
+                    testDataHelper.clock,
                 )
 
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
+                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
+
+                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldNotContain behandling.id
+
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
 
                 coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
             }
@@ -179,7 +198,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
     @Test
     fun `automatiskBehandleSøknadsbehandlinger - behandler ikke automatisk behandling der venter til ikke er passert`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
@@ -192,6 +211,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
                     oppdaterSaksopplysningerService,
+                    testDataHelper.clock,
                 )
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
@@ -209,7 +229,9 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 ).first as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
 
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
+                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldNotContain behandlingPaVent.id
+
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandlingPaVent.id)
 
                 coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
             }
@@ -218,7 +240,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
     @Test
     fun `automatiskBehandleSøknadsbehandlinger - behandler automatisk behandling der venter til er passert, oppdaterer saksopplysninger`() {
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val soknadRepo = testDataHelper.søknadRepo
                 val behandlingRepo = testDataHelper.behandlingRepo
@@ -231,6 +253,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     startSøknadsbehandlingService,
                     delautomatiskBehandlingService,
                     oppdaterSaksopplysningerService,
+                    testDataHelper.clock,
                 )
 
                 val (sak, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
@@ -256,7 +279,9 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     )
                 } returns (sak to behandlingPaVent).right()
 
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandlinger()
+                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldContain behandlingPaVent.id
+
+                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandlingPaVent.id)
 
                 coVerify {
                     delautomatiskBehandlingService.behandleAutomatisk(

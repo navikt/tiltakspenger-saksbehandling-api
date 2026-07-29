@@ -61,10 +61,19 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun hentAlleUbehandledeSoknader(limit: Int): List<InnvilgbarSøknad> {
+    override fun hentUbehandledeSøknadIder(limit: Int): List<SøknadId> {
         return sessionFactory.withTransaction {
-            SøknadDAO.hentAlleUbehandledeDigitalesoknader(
+            SøknadDAO.hentUbehandledeSøknadIder(
                 limit = limit,
+                session = it,
+            )
+        }
+    }
+
+    override fun hentUbehandletSøknad(søknadId: SøknadId): InnvilgbarSøknad? {
+        return sessionFactory.withTransaction {
+            SøknadDAO.hentUbehandletSøknad(
+                søknadId = søknadId,
                 session = it,
             )
         }

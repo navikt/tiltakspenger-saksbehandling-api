@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.toKlageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
@@ -21,42 +22,48 @@ class KnyttKlageinstansHendelseTilKlagebehandlingJobb(
 
     fun knyttHendelser() {
         Either.catch {
-            klagehendelseRepo.hentUbehandledeHendelser().forEach { nyKlagehendelse ->
-                val loggkontekst =
-                    "klagehendelseId: ${nyKlagehendelse.klagehendelseId}, eksternKlagehendelseId: ${nyKlagehendelse.eksternKlagehendelseId}"
-                Either.catch {
-                    log.info { "Prøver å knytte klageinstanshendelse til klagebehandling. $loggkontekst" }
-                    val nå = nå(clock)
-                    val klageinstanshendelse =
-                        nyKlagehendelse.value.toKlageinstanshendelse(
-                            klagehendelseId = nyKlagehendelse.klagehendelseId,
-                            opprettet = nyKlagehendelse.opprettet,
-                            sistEndret = nå,
-                        )
-                    val klagebehandlingId = klageinstanshendelse.klagebehandlingId
-                    val klagebehandling = klagebehandlingRepo.hentForKlagebehandlingId(klagebehandlingId)!!
-
-                    val oppdatertKlagebehandling = klagebehandling.leggTilKlageinstanshendelse(klageinstanshendelse, nå)
-                    val oppdatertNyKlagehendelse = nyKlagehendelse.leggTilSakidOgKlagebehandlingId(
-                        klagebehandling.sakId,
-                        klagebehandling.id,
-                        sistEndret = nå,
-                    )
-                    sessionFactory.withTransactionContext { transactionContext ->
-                        klagebehandlingRepo.lagreKlagebehandling(oppdatertKlagebehandling, transactionContext)
-                        klagehendelseRepo.knyttHendelseTilSakOgKlagebehandling(
-                            oppdatertNyKlagehendelse,
-                            transactionContext,
-                        )
-                    }
-                    log.info { "Klageinstanshendelse knyttet til klagebehandling. klagebehandlingId: ${klagebehandling.id}, $loggkontekst" }
-                    errorEveryNLogger.reset()
-                }.onLeft {
-                    errorEveryNLogger.log(it) { "Feil ved knytting av klageinstanshendelse til klagebehandling. $loggkontekst" }
-                }
-            }
+            klagehendelseRepo.hentUbehandledeHendelseIder().forEach { knyttHendelse(it) }
         }.onLeft {
             errorEveryNLogger.log(it) { "Ukjent feil skjedde under knytting av klageinstanshendelser til klagebehandlinger." }
+        }
+    }
+
+    fun knyttHendelse(klagehendelseId: KlagehendelseId) {
+        val nyKlagehendelse = klagehendelseRepo.hentNyHendelse(klagehendelseId) ?: return
+        if (nyKlagehendelse.sakId != null) {
+            return
+        }
+        val loggkontekst =
+            "klagehendelseId: ${nyKlagehendelse.klagehendelseId}, eksternKlagehendelseId: ${nyKlagehendelse.eksternKlagehendelseId}"
+        Either.catch {
+            log.info { "Prøver å knytte klageinstanshendelse til klagebehandling. $loggkontekst" }
+            val nå = nå(clock)
+            val klageinstanshendelse =
+                nyKlagehendelse.value.toKlageinstanshendelse(
+                    klagehendelseId = nyKlagehendelse.klagehendelseId,
+                    opprettet = nyKlagehendelse.opprettet,
+                    sistEndret = nå,
+                )
+            val klagebehandlingId = klageinstanshendelse.klagebehandlingId
+            val klagebehandling = klagebehandlingRepo.hentForKlagebehandlingId(klagebehandlingId)!!
+
+            val oppdatertKlagebehandling = klagebehandling.leggTilKlageinstanshendelse(klageinstanshendelse, nå)
+            val oppdatertNyKlagehendelse = nyKlagehendelse.leggTilSakidOgKlagebehandlingId(
+                klagebehandling.sakId,
+                klagebehandling.id,
+                sistEndret = nå,
+            )
+            sessionFactory.withTransactionContext { transactionContext ->
+                klagebehandlingRepo.lagreKlagebehandling(oppdatertKlagebehandling, transactionContext)
+                klagehendelseRepo.knyttHendelseTilSakOgKlagebehandling(
+                    oppdatertNyKlagehendelse,
+                    transactionContext,
+                )
+            }
+            log.info { "Klageinstanshendelse knyttet til klagebehandling. klagebehandlingId: ${klagebehandling.id}, $loggkontekst" }
+            errorEveryNLogger.reset()
+        }.onLeft {
+            errorEveryNLogger.log(it) { "Feil ved knytting av klageinstanshendelse til klagebehandling. $loggkontekst" }
         }
     }
 }

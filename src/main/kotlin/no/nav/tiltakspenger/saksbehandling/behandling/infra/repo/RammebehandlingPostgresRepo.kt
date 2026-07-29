@@ -708,17 +708,14 @@ class RammebehandlingPostgresRepo(
         }
     }
 
-    override fun hentAlleAutomatiskeSoknadsbehandlinger(limit: Int): List<Søknadsbehandling> {
+    override fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId> {
         return sessionFactory.withSession { session ->
             session.run(
                 queryOf(
                     //language=SQL
                     """
-                    select b.*,
-                    sak.saksnummer,
-                    sak.fnr
+                    select b.id
                     from behandling b
-                    join sak on sak.id = b.sak_id
                     where
                       b.behandlingstype = 'SØKNADSBEHANDLING' and
                       b.status = 'UNDER_AUTOMATISK_BEHANDLING' and
@@ -730,9 +727,9 @@ class RammebehandlingPostgresRepo(
                         "now" to nå(clock),
                         "limit" to limit,
                     ),
-                ).map { it.toBehandling(session) }.asList,
+                ).map { RammebehandlingId.fromString(it.string("id")) }.asList,
             )
-        }.filterIsInstance<Søknadsbehandling>()
+        }
     }
 }
 

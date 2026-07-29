@@ -52,7 +52,7 @@ class KabalKlagehendelserConsumerTest {
     private fun testKlagebehandlingAvsluttet(
         utfall: KlagehendelseKlagebehandlingAvsluttetUtfall,
     ) {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val klagehendelseRepo = tac.klagebehandlingContext.klagehendelseRepo
             val (sak, klagebehandling) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val kildeReferanse = klagebehandling.id.toString()
@@ -72,7 +72,7 @@ class KabalKlagehendelserConsumerTest {
                     kildeReferanse = kildeReferanse,
                 ),
             )
-            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser()
+            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelse(klagehendelseId)
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetNyKlagebehandlingAvsluttetHendelse(
                     klagehendelseId = klagehendelseId,
@@ -146,7 +146,7 @@ class KabalKlagehendelserConsumerTest {
     private fun testOmgjøringskravbehandlingAvsluttet(
         utfall: OmgjøringskravbehandlingAvsluttetUtfall,
     ) {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val klagehendelseRepo = tac.klagebehandlingContext.klagehendelseRepo
             val (sak, klagebehandling) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val kildeReferanse = klagebehandling.id.toString()
@@ -170,7 +170,7 @@ class KabalKlagehendelserConsumerTest {
                     kildeReferanse = kildeReferanse,
                 ),
             )
-            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser()
+            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelse(klagehendelseId)
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetNyOmgjøringskravbehandlingAvsluttetHendelse(
                     klagehendelseId = klagehendelseId,
@@ -224,7 +224,7 @@ class KabalKlagehendelserConsumerTest {
     private fun testBehandlingFeilregistrert(
         type: KlagehendelseFeilregistrertType,
     ) {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val klagehendelseRepo = tac.klagebehandlingContext.klagehendelseRepo
             val (sak, klagebehandling) = opprettSakOgOpprettholdKlagebehandling(tac = tac)!!
             val kildeReferanse = klagebehandling.id.toString()
@@ -248,7 +248,7 @@ class KabalKlagehendelserConsumerTest {
                     kildeReferanse = kildeReferanse,
                 ),
             )
-            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelser()
+            tac.klagebehandlingContext.knyttKlageinstansHendelseTilKlagebehandlingJobb.knyttHendelse(klagehendelseId)
             klagehendelseRepo.hentNyHendelse(klagehendelseId)!!.shouldBeEqualToIgnoringLocalDateTime(
                 forventetBehandlingFeilregistrertHendelse(
                     klagehendelseId = klagehendelseId,

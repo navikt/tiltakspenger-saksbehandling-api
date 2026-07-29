@@ -2,7 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
 import arrow.core.right
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.coroutineScope
@@ -32,43 +34,39 @@ class SendTilMeldekortApiServiceTest {
 
     @Test
     fun `første søknadsbehandling sender oppdatering til meldekort-api`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac = tac)
 
-            val sakerForSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerForSending.map { it.id } shouldBe listOf(sak.id)
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
 
             SendTilMeldekortApiService(
                 sakRepo = tac.sakContext.sakRepo,
                 meldekortApiHttpClient = tac.meldekortContext.meldekortApiHttpClient,
-            ).sendSaker()
+            ).sendSak(sak.id)
 
-            val sakerEtterSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerEtterSending shouldBe emptyList()
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
         }
     }
 
     @Test
     fun `iverksatt søknadsbehandling sender oppdatering til meldekort-api`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, _, _) = iverksettSøknadsbehandling(tac)
 
-            val sakerForSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerForSending.map { it.id } shouldBe listOf(sak.id)
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
 
             SendTilMeldekortApiService(
                 sakRepo = tac.sakContext.sakRepo,
                 meldekortApiHttpClient = tac.meldekortContext.meldekortApiHttpClient,
-            ).sendSaker()
+            ).sendSak(sak.id)
 
-            val sakerEtterSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerEtterSending shouldBe emptyList()
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
         }
     }
 
     @Test
     fun `nytt vedtak iverksatt mens kall til meldekort-api pågår - skal_sendes_til_meldekort_api settes ikke til false`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, rammevedtakSæknad, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(
                 tac = tac,
             )
@@ -81,9 +79,8 @@ class SendTilMeldekortApiServiceTest {
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurdering.id)
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
 
-            val sakerForSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerForSending.map { it.id } shouldBe listOf(sak.id)
-            sakerForSending.first().rammevedtaksliste.map { it.rammebehandling.id } shouldBe listOf(
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammevedtaksliste.map { it.rammebehandling.id } shouldBe listOf(
                 rammevedtakSæknad.rammebehandling.id,
             )
 
@@ -104,47 +101,44 @@ class SendTilMeldekortApiServiceTest {
                 meldekortApiHttpClient = slowMeldekortApiKlient,
             )
 
-            // Start sendSaker i bakgrunnen med coroutineScope
+            // Start sending av saken i bakgrunnen med coroutineScope
             coroutineScope {
                 val sendJob = launch {
-                    sendTilMeldekortApiService.sendSaker()
+                    sendTilMeldekortApiService.sendSak(sak.id)
                 }
 
-                // Iverksett revurderingen mens sendSaker venter
+                // Iverksett revurderingen mens sendSak venter
                 iverksettForBehandlingId(tac, sak.id, revurdering.id)
 
-                // Signal at revurderingen er iverksatt, så sendSaker kan fortsette
+                // Signal at revurderingen er iverksatt, så sendSak kan fortsette
                 revurderingIverksatt.set(true)
 
-                // Vent på at sendSaker fullføres
+                // Vent på at sendSak fullføres
                 sendJob.join()
             }
 
             // Verifiser at saken fortsatt er markert for sending (fordi det kom et nytt vedtak)
-            val sakerEtterSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerEtterSending.map { it.id } shouldBe listOf(sak.id)
-            sakerEtterSending.first().rammevedtaksliste.map { it.rammebehandling.id } shouldBe listOf(
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammevedtaksliste.map { it.rammebehandling.id } shouldBe listOf(
                 rammevedtakSæknad.rammebehandling.id,
                 revurdering.id,
             )
 
-            sendTilMeldekortApiService.sendSaker()
+            sendTilMeldekortApiService.sendSak(sak.id)
 
             // Skal være sendt etter neste kjøring av jobben
-            val sakerEtterNesteSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerEtterNesteSending shouldBe emptyList()
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
         }
     }
 
     @Test
     fun `iverksatt meldekortbehandling flagger saken for sending og payload inneholder meldekortvedtak`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val result = iverksettSøknadsbehandlingOgMeldekortbehandling(tac)!!
             val sak = result.first
             val meldekortvedtak = result.fourth
 
-            val sakerForSending = tac.sakContext.sakRepo.hentForSendingTilMeldekortApi()
-            sakerForSending.map { it.id } shouldBe listOf(sak.id)
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
 
             // Bruk en tracking-klient som fanger opp hva som faktisk sendes
             val sendteSaker = mutableListOf<Sak>()
@@ -158,18 +152,18 @@ class SendTilMeldekortApiServiceTest {
             SendTilMeldekortApiService(
                 sakRepo = tac.sakContext.sakRepo,
                 meldekortApiHttpClient = trackingKlient,
-            ).sendSaker()
+            ).sendSak(sak.id)
 
             sendteSaker shouldHaveSize 1
             sendteSaker.single().meldekortvedtaksliste.map { it.id } shouldBe listOf(meldekortvedtak.id)
 
-            tac.sakContext.sakRepo.hentForSendingTilMeldekortApi() shouldBe emptyList()
+            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
         }
     }
 
     @Test
     fun `Sak tilMeldekortApiDTO og JSON-serialisering inneholder meldekortvedtak med dager`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val result = iverksettSøknadsbehandlingOgMeldekortbehandling(tac)!!
             val sak = result.first
             val meldekortvedtak = result.fourth

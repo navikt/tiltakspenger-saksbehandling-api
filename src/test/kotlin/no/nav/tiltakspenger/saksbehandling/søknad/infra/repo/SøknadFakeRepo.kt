@@ -53,7 +53,7 @@ class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : Sø
         }
     }
 
-    override fun hentAlleUbehandledeSoknader(limit: Int): List<InnvilgbarSøknad> {
+    private fun hentAlleUbehandledeSoknader(): List<InnvilgbarSøknad> {
         val soknaderUtenBehandling = mutableListOf<InnvilgbarSøknad>()
         val alleBehandlinger = behandlingRepo.alle.filterIsInstance<Søknadsbehandling>()
         val alleSoknader = data.get().values.toList().filterIsInstance<InnvilgbarSøknad>()
@@ -63,6 +63,14 @@ class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : Sø
             }
         }
         return soknaderUtenBehandling
+    }
+
+    override fun hentUbehandledeSøknadIder(limit: Int): List<SøknadId> {
+        return hentAlleUbehandledeSoknader().take(limit).map { it.id }
+    }
+
+    override fun hentUbehandletSøknad(søknadId: SøknadId): InnvilgbarSøknad? {
+        return hentAlleUbehandledeSoknader().find { it.id == søknadId }
     }
 
     fun hentForSakId(sakId: SakId): List<Søknad> {

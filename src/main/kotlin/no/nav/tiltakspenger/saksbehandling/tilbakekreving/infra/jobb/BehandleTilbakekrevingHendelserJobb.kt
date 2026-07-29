@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tilBehandlingIdFraTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
@@ -50,23 +51,29 @@ class BehandleTilbakekrevingHendelserJobb(
     private val logger = KotlinLogging.logger {}
 
     fun håndterUbehandledeHendelser() {
-        val ubehandledeHendelser = Either.catch { tilbakekrevingHendelseRepo.hentUbehandledeHendelser() }.getOrElse {
+        val hendelseIder = Either.catch { tilbakekrevingHendelseRepo.hentUbehandledeHendelseIder() }.getOrElse {
             logger.error(it) { "Feil ved henting av ubehandlede tilbakekreving-hendelser" }
             return
         }
 
-        logger.debug { "Behandler ${ubehandledeHendelser.size} tilbakekreving-hendelser" }
+        logger.debug { "Behandler ${hendelseIder.size} tilbakekreving-hendelser" }
 
-        ubehandledeHendelser.forEach { hendelse ->
-            Either.catch {
-                hendelse.håndter().onLeft { (feil, sakId) ->
-                    logger.error { "Feil ved behandling av tilbakekreving-hendelse: $feil - hendelse: ${hendelse.id} / ${hendelse.hendelsestype} - sak: $sakId" }
-                    tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(hendelse.id, sakId, feil)
-                }
-            }.onLeft {
-                logger.error(it) {
-                    "Ukjent feil ved behandling av tilbakekreving-hendelse ${hendelse.id} / ${hendelse.hendelsestype}"
-                }
+        hendelseIder.forEach { håndterHendelse(it) }
+    }
+
+    fun håndterHendelse(hendelseId: TilbakekrevinghendelseId) {
+        Either.catch {
+            val hendelse = tilbakekrevingHendelseRepo.hentHendelse(hendelseId) ?: return
+            if (hendelse.behandlet != null) {
+                return
+            }
+            hendelse.håndter().onLeft { (feil, sakId) ->
+                logger.error { "Feil ved behandling av tilbakekreving-hendelse: $feil - hendelse: ${hendelse.id} / ${hendelse.hendelsestype} - sak: $sakId" }
+                tilbakekrevingHendelseRepo.markerSomBehandletMedFeil(hendelse.id, sakId, feil)
+            }
+        }.onLeft {
+            logger.error(it) {
+                "Ukjent feil ved behandling av tilbakekreving-hendelse $hendelseId"
             }
         }
     }

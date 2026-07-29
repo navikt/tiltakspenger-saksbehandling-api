@@ -318,6 +318,7 @@ open class ApplicationContext(
             startSøknadsbehandlingService = behandlingContext.startSøknadsbehandlingService,
             delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
             oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
+            clock = clock,
         )
     }
 
