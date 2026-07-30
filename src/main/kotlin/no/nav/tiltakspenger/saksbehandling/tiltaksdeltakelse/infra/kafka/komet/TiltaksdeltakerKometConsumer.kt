@@ -2,11 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.kafka.Consumer
-import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
-import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.Consumer
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
@@ -18,7 +16,7 @@ class TiltaksdeltakerKometConsumer(
     private val tiltaksdeltakerService: TiltaksdeltakerService,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfig.fraNaisEnv(autoOffsetReset = "none") else KafkaConfig(kafkaBrokers = "localhost:9092"),
     private val log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<UUID, String?> {
 

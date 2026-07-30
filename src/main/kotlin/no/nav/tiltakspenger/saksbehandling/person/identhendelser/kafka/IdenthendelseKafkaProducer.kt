@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.kafka.Producer
+import no.nav.tiltakspenger.libs.kafka.infra.Producer
 import java.util.UUID
 
 class IdenthendelseKafkaProducer(

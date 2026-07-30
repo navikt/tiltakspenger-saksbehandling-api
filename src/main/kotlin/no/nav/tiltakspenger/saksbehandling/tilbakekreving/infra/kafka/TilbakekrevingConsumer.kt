@@ -2,11 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.kafka.Consumer
-import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
-import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.Consumer
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
@@ -22,7 +20,7 @@ class TilbakekrevingConsumer(
     private val clock: Clock,
     topic: String,
     groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v4",
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfig.fraNaisEnv(autoOffsetReset = "earliest") else KafkaConfig(kafkaBrokers = "localhost:9092"),
     log: KLogger? = logger,
 ) : Consumer<String, String?> {
 

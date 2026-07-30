@@ -4,11 +4,9 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.libs.kafka.Consumer
-import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
-import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.Consumer
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
@@ -21,7 +19,7 @@ class KlageinstansKlagehendelseConsumer(
     private val klagehendelseRepo: KlagehendelseRepo,
     topic: String = "klage.behandling-events.v1",
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfig.fraNaisEnv(autoOffsetReset = "earliest") else KafkaConfig(kafkaBrokers = "localhost:9092"),
     private val clock: Clock,
     log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, String?> {
