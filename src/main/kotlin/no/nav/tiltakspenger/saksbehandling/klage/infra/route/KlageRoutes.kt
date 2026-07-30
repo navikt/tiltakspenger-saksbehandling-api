@@ -99,7 +99,6 @@ fun Route.klagebehandlingRoutes(
         opprettBehandlingForKlageService = opprettBehandlingForKlageService,
         auditService = auditService,
         tilgangskontrollService = tilgangskontrollService,
-        clock = clock,
     )
     overtaKlagebehandlingRoute(
         overtaKlagebehandlingService = overtaKlagebehandlingService,

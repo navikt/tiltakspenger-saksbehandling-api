@@ -35,9 +35,8 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlag
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettRevurderingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage.OpprettSøknadsbehandlingFraKlageKommando
 import no.nav.tiltakspenger.saksbehandling.klage.service.OpprettBehandlingForKlageService
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.tilStatusOgErrorJson
-import java.time.Clock
 
 private data class OpprettBehandlingForKlageRequest(
     val søknadId: String? = null,
@@ -100,7 +99,6 @@ fun Route.opprettBehandlingForKlageRoute(
     opprettBehandlingForKlageService: OpprettBehandlingForKlageService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
-    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
 
@@ -159,7 +157,7 @@ fun Route.opprettBehandlingForKlageRoute(
                                         behandlingId = it.meldekortbehandling.id,
                                     )
                                     call.respondJson(
-                                        value = it.meldekortbehandling.tilMeldekortbehandlingDTOV2(
+                                        value = it.meldekortbehandling.tilMeldekortbehandlingDTO(
                                             beregninger = it.sak.meldeperiodeBeregninger,
                                             hentVedtak = it.sak.meldekortvedtaksliste::hentForMeldekortbehandling,
                                             hentTilbakekreving = it.sak::hentTilbakekrevingForMeldekortbehandling,

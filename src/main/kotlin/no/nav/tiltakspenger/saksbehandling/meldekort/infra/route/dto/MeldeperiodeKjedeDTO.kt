@@ -3,90 +3,79 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
-import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeKorrigeringDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.BEHANDLET
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.IKKE_MOTTATT
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.KORRIGERING_BEHANDLET
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.KORRIGERING_VENTER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.VENTER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
 import java.time.LocalDate
 
-/** @property korrigeringFraTidligerePeriode Korrigering på en tidligere meldeperiodekjede, som har påvirket denne kjeden, og er nyere enn siste meldekortbehandling på denne kjeden.
- *  Dvs en korrigering som har overstyrt beregningen for perioden til denne kjeden. */
 data class MeldeperiodeKjedeDTO(
     val id: String,
     val periode: PeriodeDTO,
-    val status: MeldeperiodeKjedeStatusDTO,
-    val periodeMedÅpenBehandling: PeriodeDTO?,
     val tiltaksnavn: List<String>,
     val sisteMeldeperiode: MeldeperiodeDTO,
-    val meldekortbehandlinger: List<MeldekortbehandlingDTO>,
+    val meldekortbehandlingIder: List<String>,
+    val meldekortbehandlingStatus: MeldekortbehandlingStatusDTO?,
     val brukersMeldekort: List<BrukersMeldekortDTO>,
-    val korrigeringFraTidligerePeriode: MeldeperiodeKorrigeringDTO?,
-    val avbrutteMeldekortbehandlinger: List<MeldekortbehandlingDTO>,
-    val sisteBeregning: MeldeperiodeBeregningDTO?,
+    val brukersMeldekortStatus: BrukersMeldekortStatusDTO,
+    val gjeldendeBeregning: MeldeperiodeBeregningDTO?,
+    val kanBehandles: Boolean,
 )
 
-fun Sak.toMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
+private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
 
-    // TODO: denne bør skrives om litt, bør ikke gå via beregningene her
-    val korrigering = meldeperiodeBeregninger.gjeldendeBeregningPerKjede[kjedeId]?.let {
-        if (it.beregningKilde !is BeregningKilde.BeregningKildeMeldekort) {
-            return@let null
-        }
-
-        val forrigeBehandling = meldekortbehandlinger.hentMeldekortbehandling(it.beregningKilde.id)
-        if (forrigeBehandling !is MeldekortbehandlingManuell) {
-            return@let null
-        }
-
-        if (forrigeBehandling.meldeperioder.first().kjedeId == kjedeId) {
-            null
-        } else {
-            forrigeBehandling.tilMeldeperiodeKorrigeringDTO(it.kjedeId)
-        }
-    }
+    val sisteMeldeperiode = meldeperiodeKjede.siste
 
     val brukersMeldekort = this.brukersMeldekort
         .filter { it.kjedeId == kjedeId }
         .sortedBy { it.mottatt }
 
+    val sisteBrukersMeldekort = brukersMeldekort.lastOrNull()
+
     val meldekortbehandlinger = this.meldekortbehandlinger
-        .hentIkkeAvbrutteBehandlingerForKjede(meldeperiodeKjede.kjedeId)
+        .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
+
+    val harBehandletSiste = this.meldekortbehandlinger
+        .hentSisteMeldekortbehandlingForKjede(kjedeId)
+        ?.let { sisteBehandling ->
+            sisteBrukersMeldekort == null || sisteBehandling.sistEndret > sisteBrukersMeldekort.mottatt
+        } ?: false
 
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
         periode = meldeperiodeKjede.periode.toDTO(),
-        status = toMeldeperiodeKjedeStatusDTO(kjedeId, clock),
-        periodeMedÅpenBehandling = this.meldekortbehandlinger.åpenMeldekortbehandling?.periode?.toDTO(),
         tiltaksnavn = this.rammevedtaksliste
             .valgteTiltaksdeltakelserForPeriode(meldeperiodeKjede.periode)
-            .perioderMedVerdi.toList().map { it.verdi.typeNavn },
-        sisteMeldeperiode = meldeperiodeKjede.siste.toMeldeperiodeDTO(),
-        meldekortbehandlinger = meldekortbehandlinger.map {
-            it.tilMeldekortbehandlingDTO(
-                beregninger = this.meldeperiodeBeregninger,
-                vedtak = this.meldekortvedtaksliste.hentForMeldekortbehandling(it.id),
-                tilbakekreving = this.hentTilbakekrevingForMeldekortbehandling(it.id),
-            )
-        },
+            .perioderMedVerdi.toList().map { it.verdi.typeNavn }
+            .distinct(),
+        sisteMeldeperiode = sisteMeldeperiode.toMeldeperiodeDTO(),
+        meldekortbehandlingIder = meldekortbehandlinger.map { it.id.toString() },
+        meldekortbehandlingStatus = meldekortbehandlinger.lastOrNull()?.status?.toStatusDTO(),
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
-        korrigeringFraTidligerePeriode = korrigering,
-        avbrutteMeldekortbehandlinger = this.meldekortbehandlinger
-            .hentAvbrutteBehandlingerForKjede(meldeperiodeKjede.kjedeId)
-            .map { it.tilMeldekortbehandlingDTO(beregninger = this.meldeperiodeBeregninger) },
-        sisteBeregning = meldeperiodeBeregninger.gjeldendeBeregningPerKjede[kjedeId]?.tilMeldeperiodeBeregningDTO(),
+        brukersMeldekortStatus = when (brukersMeldekort.size) {
+            0 -> IKKE_MOTTATT
+            1 -> if (harBehandletSiste) BEHANDLET else VENTER_BEHANDLING
+            else -> if (harBehandletSiste) KORRIGERING_BEHANDLET else KORRIGERING_VENTER_BEHANDLING
+        },
+        gjeldendeBeregning = meldeperiodeBeregninger
+            .hentSisteForKjedeId(kjedeId)
+            ?.tilMeldeperiodeBeregningDTO(),
+        kanBehandles = sisteMeldeperiode.kanBehandles(clock) || (brukersMeldekort.isNotEmpty() && !harBehandletSiste),
     )
 }
 
-fun Sak.toMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
+fun Sak.tilMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
     return this.meldeperiodeKjeder.mapNotNull {
         if (it.periode.fraOgMed > LocalDate.now(clock)) {
             return@mapNotNull null
         }
 
-        this.toMeldeperiodeKjedeDTO(it.kjedeId, clock)
+        this.tilMeldeperiodeKjedeDTO(it.kjedeId, clock)
     }
 }

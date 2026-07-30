@@ -1,8 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
@@ -15,7 +19,11 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingMedBeregning
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.KanIkkeIverksetteUtbetalingDTO
@@ -30,27 +38,25 @@ import java.time.LocalDateTime
 data class MeldekortbehandlingDTO(
     val id: String,
     val sakId: String,
-    val meldeperiodeId: String,
-    val brukersMeldekortId: String?,
     val saksbehandler: String?,
     val beslutter: String?,
     val opprettet: LocalDateTime,
+    val sistEndret: LocalDateTime,
     val godkjentTidspunkt: LocalDateTime?,
     val status: MeldekortbehandlingStatusDTO,
     val erAvsluttet: Boolean,
-    /**
-     * hendelsene er sortert desc
-     */
-    val ventestatus: List<VentestatusHendelseDTO>,
     val navkontor: String,
     val navkontorNavn: String?,
     val begrunnelse: String?,
-    val type: MeldeperiodebehandlingTypeDTO,
     val attesteringer: List<AttesteringDTO>,
     val utbetalingsstatus: UtbetalingsstatusDTO,
+    /** Sammenhengende totalperiode på tvers av alle [meldeperioder]. */
     val periode: PeriodeDTO,
-    val dager: List<MeldekortDagDTO>,
-    val beregning: MeldekortBeregningDTO?,
+    /**
+     * Én eller flere meldeperioder.
+     * Sortert kronologisk på fra-og-med.
+     */
+    val meldeperioder: List<MeldeperiodebehandlingDTO>,
     val avbrutt: AvbruttDTO?,
     val simulertBeregning: SimulertBeregningDTO?,
     val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
@@ -63,58 +69,86 @@ data class MeldekortbehandlingDTO(
     val tekstTilVedtaksbrev: String?,
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
-    val harFlereMeldeperioder: Boolean,
+    /**
+     * hendelsene er sortert desc
+     */
+    val ventestatus: List<VentestatusHendelseDTO>,
     val klagebehandlingId: String?,
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
+)
+
+data class MeldeperiodebehandlingDTO(
+    val meldeperiodeId: String,
+    val kjedeId: String,
+    /** Foreløpig satt kun for automatiske behandlinger som er knyttet til et brukers meldekort. */
+    val brukersMeldekortId: String?,
+    val periode: PeriodeDTO,
+    val dager: List<MeldekortDagDTO>,
+    val beregning: MeldeperiodeBeregningDTO?,
+    val type: MeldeperiodebehandlingTypeDTO,
 )
 
 fun Meldekortbehandling.tilMeldekortbehandlingDTO(
     beregninger: MeldeperiodeBeregningerVedtatt,
-    vedtak: Meldekortvedtak? = null,
-    tilbakekreving: TilbakekrevingBehandling? = null,
+    hentVedtak: (id: MeldekortId) -> Meldekortvedtak?,
+    hentTilbakekreving: (id: MeldekortId) -> TilbakekrevingBehandling?,
+    kallendeSaksbehandler: Saksbehandler,
 ): MeldekortbehandlingDTO {
+    val vedtak: Meldekortvedtak? = hentVedtak(id)
+
     require(status != MeldekortbehandlingStatus.GODKJENT || vedtak != null) {
-        "Meldekortvedtak må være satt for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
+        "Meldekortvedtak må finnes for godkjente meldekortbehandlinger. sakId ${this.sakId}, behandlingId: $id"
     }
 
     val kanIkkeIverksette = this.validerKanIverksetteUtbetaling().leftOrNull()
     return MeldekortbehandlingDTO(
         id = id.toString(),
         sakId = sakId.toString(),
-        meldeperiodeId = meldeperioder.first().meldeperiodeId.toString(),
-        brukersMeldekortId = meldeperioder.first().brukersMeldekort?.id?.toString(),
-        saksbehandler = saksbehandler,
+        saksbehandler = this.saksbehandler,
         beslutter = beslutter,
         opprettet = opprettet,
+        sistEndret = sistEndret,
         godkjentTidspunkt = vedtak?.opprettet ?: iverksattTidspunkt,
-        status = this.status.toStatusDTO(),
+        status = status.toStatusDTO(),
         erAvsluttet = erAvsluttet,
-        ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         navkontor = navkontor.kontornummer,
         navkontorNavn = navkontor.kontornavn,
         begrunnelse = begrunnelse?.verdi,
-        type = meldeperioder.first().type.tilDTO(),
         attesteringer = attesteringer.toAttesteringDTO(),
-        utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDto(),
-        periode = periode.toDTO(),
-        dager = meldeperioder.first().dager.tilMeldekortDagerDTO(),
-        beregning = beregning?.tilMeldekortBeregningDTO(),
+        utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDTO(),
+        periode = meldeperioder.totalPeriode.toDTO(),
+        meldeperioder = meldeperioder.meldeperioderMedBeregninger.map { it.tilMeldeperiodebehandlingDTO() },
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
         kanIkkeIverksetteUtbetaling = kanIkkeIverksette?.tilKanIkkeIverksetteUtbetalingDTO(),
         kanIkkeIverksetteUtbetalingMelding = kanIkkeIverksette?.tilMeldingDTO(),
-        tekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
-        tilbakekrevingId = tilbakekreving?.id?.toString(),
-        skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
-        harFlereMeldeperioder = this.meldeperioder.size > 1,
+        tekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+        tilbakekrevingId = hentTilbakekreving(id)?.id?.toString(),
+        skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+        ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
+        gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
 
-private fun Meldekortbehandling.tilUtbetalingsstatusDto(): UtbetalingsstatusDTO {
-    return when (this) {
-        is MeldekortbehandlingAvbrutt -> UtbetalingsstatusDTO.AVBRUTT
-        is MeldekortBehandletAutomatisk -> UtbetalingsstatusDTO.IKKE_GODKJENT
-        is MeldekortbehandlingManuell -> UtbetalingsstatusDTO.IKKE_GODKJENT
-        is MeldekortUnderBehandling -> UtbetalingsstatusDTO.IKKE_GODKJENT
-    }
+fun MeldeperiodebehandlingMedBeregning.tilMeldeperiodebehandlingDTO(): MeldeperiodebehandlingDTO {
+    return MeldeperiodebehandlingDTO(
+        meldeperiodeId = meldeperiodebehandling.meldeperiodeId.toString(),
+        kjedeId = meldeperiodebehandling.kjedeId.toString(),
+        brukersMeldekortId = meldeperiodebehandling.brukersMeldekort?.id?.toString(),
+        periode = meldeperiodebehandling.periode.toDTO(),
+        dager = meldeperiodebehandling.dager.tilMeldekortDagerDTO(),
+        beregning = meldeperiodeberegning?.tilMeldeperiodeBeregningDTO(),
+        type = meldeperiodebehandling.type.tilDTO(),
+    )
 }
+
+private fun Meldekortbehandling.tilUtbetalingsstatusDTO(): UtbetalingsstatusDTO =
+    when (this) {
+        is MeldekortbehandlingAvbrutt -> UtbetalingsstatusDTO.AVBRUTT
+
+        is MeldekortBehandletAutomatisk,
+        is MeldekortbehandlingManuell,
+        is MeldekortUnderBehandling,
+        -> UtbetalingsstatusDTO.IKKE_GODKJENT
+    }

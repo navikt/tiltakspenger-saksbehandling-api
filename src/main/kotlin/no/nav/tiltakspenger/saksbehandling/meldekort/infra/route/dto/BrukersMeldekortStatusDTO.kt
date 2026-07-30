@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2
+package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 enum class BrukersMeldekortStatusDTO {
     IKKE_MOTTATT,

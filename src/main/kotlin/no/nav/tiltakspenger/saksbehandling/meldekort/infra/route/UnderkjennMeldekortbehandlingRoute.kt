@@ -65,7 +65,12 @@ fun Route.underkjennMeldekortbehandlingRoute(
                             )
 
                             call.respondJson(
-                                value = behandling.tilMeldekortbehandlingDTO(beregninger = sak.meldeperiodeBeregninger),
+                                value = behandling.tilMeldekortbehandlingDTO(
+                                    beregninger = sak.meldeperiodeBeregninger,
+                                    hentVedtak = { null },
+                                    hentTilbakekreving = { null },
+                                    kallendeSaksbehandler = saksbehandler,
+                                ),
                             )
                         },
                     )

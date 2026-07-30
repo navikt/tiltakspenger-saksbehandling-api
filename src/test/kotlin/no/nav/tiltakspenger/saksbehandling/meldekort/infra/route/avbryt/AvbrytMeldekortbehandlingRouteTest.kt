@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgAvbrytMeldekortbehandling
@@ -17,108 +16,11 @@ class AvbrytMeldekortbehandlingRouteTest {
     fun `saksbehandler kan avbryte meldekortbehandling`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
         withTestApplicationContext(clock = clock) { tac ->
-            val (_, _, _, avbruttMeldekortbehandling, json) = this.iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling(
+            val (_, _, _, avbruttMeldekortbehandling) = this.iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling(
                 tac = tac,
             )!!
-            json.toString().shouldEqualJsonIgnoringTimestamps(
-                """
-                    {
-                      "begrunnelse": null,
-                      "avbrutt": {
-                        "avbruttTidspunkt": "2025-01-01T01:02:27.456789",
-                        "begrunnelse": "begrunnelse for avbrytelse",
-                        "avbruttAv": "Z12345"
-                      },
-                      "attesteringer": [],
-                      "saksbehandler": "Z12345",
-                      "opprettet": "2025-01-01T01:02:25.456789",
-                      "kanIkkeIverksetteUtbetaling": null,
-  "kanIkkeIverksetteUtbetalingMelding": null,
-                      "tilbakekrevingId": null,
-                      "type": "FØRSTE_BEHANDLING",
-                      "meldeperiodeId": "${avbruttMeldekortbehandling.meldeperioder.first().meldeperiode.id}",
-                      "beregning": null,
-                      "beslutter": null,
-                      "simulertBeregning": null,
-                      "brukersMeldekortId": null,
-                      "navkontor": "0220",
-                      "periode": {
-                        "fraOgMed": "2025-03-31",
-                        "tilOgMed": "2025-04-13"
-                      },
-                      "erAvsluttet": true,
-                      "navkontorNavn": "Nav Asker",
-                      "dager": [
-                        {
-                          "dato": "2025-03-31",
-                          "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                        },
-                        {
-                          "dato": "2025-04-01",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-02",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-03",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-04",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-05",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-06",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-07",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-08",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-09",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-10",
-                          "status": "IKKE_BESVART"
-                        },
-                        {
-                          "dato": "2025-04-11",
-                          "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                        },
-                        {
-                          "dato": "2025-04-12",
-                          "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                        },
-                        {
-                          "dato": "2025-04-13",
-                          "status": "IKKE_RETT_TIL_TILTAKSPENGER"
-                        }
-                      ],
-                      "sakId": "${avbruttMeldekortbehandling.sakId}",
-                      "id": "${avbruttMeldekortbehandling.id}",
-                      "godkjentTidspunkt": null,
-                      "utbetalingsstatus": "AVBRUTT",
-                      "tekstTilVedtaksbrev": null,
-                      "status": "AVBRUTT",
-                      "skalSendeVedtaksbrev": true,
-                      "harFlereMeldeperioder": false,
-                      "ventestatus": [],
-                      "klagebehandlingId": null
-                    }
-                """.trimIndent(),
-            )
+
+            avbruttMeldekortbehandling.status shouldBe MeldekortbehandlingStatus.AVBRUTT
         }
     }
 

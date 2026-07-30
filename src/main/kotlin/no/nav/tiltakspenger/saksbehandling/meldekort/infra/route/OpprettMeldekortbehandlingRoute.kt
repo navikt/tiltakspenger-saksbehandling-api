@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeKjedeId
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 
@@ -60,7 +60,7 @@ fun Route.opprettMeldekortbehandlingRoute(
                         )
 
                         call.respondJson(
-                            value = behandling.tilMeldekortbehandlingDTOV2(
+                            value = behandling.tilMeldekortbehandlingDTO(
                                 beregninger = sak.meldeperiodeBeregninger,
                                 hentVedtak = { null },
                                 hentTilbakekreving = { null },

@@ -7,14 +7,12 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagevedtakDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldekortvedtakDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.MeldeperiodeKjedeDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldeperiodeKjederDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toDto
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.toMeldeperiodeKjederDTO
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.MeldekortbehandlingDTOV2
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.MeldeperiodeKjedeDTOV2
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldeperiodeKjederDTOV2
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
@@ -37,12 +35,10 @@ import java.time.LocalDate
  * Avslag, stans og rene opphør er aldri innvilgede.
  */
 data class SakDTO(
-    val saksnummer: String,
     val sakId: String,
+    val saksnummer: String,
     val fnr: String,
     val åpneBehandlinger: List<ÅpenBehandlingDTO>,
-    val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
-    val meldeperiodeKjederV2: List<MeldeperiodeKjedeDTOV2>,
     val førsteDagSomGirRett: LocalDate?,
     val sisteDagSomGirRett: LocalDate?,
     val behandlinger: List<RammebehandlingDTO>,
@@ -52,12 +48,14 @@ data class SakDTO(
     val alleRammevedtak: List<RammevedtakDTO>,
     val alleKlagevedtak: List<KlagevedtakDTO>,
     val meldekortvedtak: List<MeldekortvedtakDTO>,
-    val meldekortbehandlinger: Map<String, MeldekortbehandlingDTOV2>,
-    val åpenMeldekortbehandlingId: String?,
     val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
     val søknader: List<SøknadDTO>,
     val tilbakekrevinger: List<TilbakekrevingBehandlingDTO>,
     val kanSendeInnHelgForMeldekort: Boolean,
+    val meldekortbehandlinger: Map<String, MeldekortbehandlingDTO>,
+    val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
+    val meldeperiodeKjederV2: List<MeldeperiodeKjedeDTO>,
+    val åpenMeldekortbehandlingId: String?,
 )
 
 fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
@@ -65,8 +63,8 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     sakId = id.toString(),
     fnr = fnr.verdi,
     åpneBehandlinger = tilÅpneBehandlingerDTO(),
-    meldeperiodeKjeder = toMeldeperiodeKjederDTO(clock),
-    meldeperiodeKjederV2 = tilMeldeperiodeKjederDTOV2(clock),
+    meldeperiodeKjeder = tilMeldeperiodeKjederDTO(clock),
+    meldeperiodeKjederV2 = tilMeldeperiodeKjederDTO(clock),
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
     behandlinger = this.tilBehandlingerDTO(),
@@ -83,7 +81,7 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
     meldekortvedtak = this.vedtaksliste.meldekortvedtaksliste.toDto(),
     meldekortbehandlinger = meldekortbehandlinger.associate {
-        it.id.toString() to it.tilMeldekortbehandlingDTOV2(
+        it.id.toString() to it.tilMeldekortbehandlingDTO(
             beregninger = this.meldeperiodeBeregninger,
             hentVedtak = this.meldekortvedtaksliste::hentForMeldekortbehandling,
             hentTilbakekreving = this::hentTilbakekrevingForMeldekortbehandling,
