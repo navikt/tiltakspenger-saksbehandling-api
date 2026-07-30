@@ -299,12 +299,6 @@ kover {
                     classes(httpklientKlasserMedDekningskrav)
                 }
             }
-            html {
-                onCheck = true
-            }
-            xml {
-                onCheck = true
-            }
             verify {
                 onCheck = true
                 rule("migrerte httpklient-klienter har full linjedekning") {
