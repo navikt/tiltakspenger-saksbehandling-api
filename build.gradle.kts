@@ -188,6 +188,10 @@ tasks {
     register<Copy>("gitHooks") {
         group = "git hooks"
         description = "Installerer git-hooks fra .gitHooks/ til .git/hooks/."
+        // I en worktree er .git en fil (gitdir-peker), ikke en katalog; hooks eies av hovedklonen, så tasken hopper over.
+        // Verdien fanges utenfor lambdaen: configuration cache kan ikke serialisere referanser til byggskript-objekter.
+        val erHovedklone = file(".git").isDirectory
+        onlyIf("kun i hovedklonen, ikke i worktrees") { erHovedklone }
         from(file(".gitHooks"))
         into(file(".git/hooks"))
         filePermissions { unix("rwxr-xr-x") }
@@ -258,31 +262,41 @@ tasks {
     }
 }
 
+// Klienter som er migrert til libs `httpklient` og skal ha full linjedekning.
+// Utvid lista etter hvert som flere klienter migreres (jf. TASKS.md httpklient-punkt).
+val httpklientKlasserMedDekningskrav =
+    listOf(
+        "no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient",
+        "no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient",
+        "no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
+        "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",
+        "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",
+    )
+
 kover {
+    currentProject {
+        instrumentation {
+            // Instrumenter kun klassene dekningsgaten måler (`*`-suffikset tar med indre klasser og lambdaer).
+            // Agent på hele klassestien koster ellers rundt ti prosent av testtiden.
+            includedClasses.addAll(httpklientKlasserMedDekningskrav.map { "$it*" })
+        }
+    }
     reports {
         total {
             filters {
                 includes {
-                    // Klienter som er migrert til libs `httpklient` og skal ha full linjedekning.
-                    // Utvid lista etter hvert som flere klienter migreres (jf. TASKS.md httpklient-punkt).
-                    classes(
-                        "no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient",
-                        "no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient",
-                        "no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
-                        "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",
-                        "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",
-                    )
+                    classes(httpklientKlasserMedDekningskrav)
                 }
             }
             html {

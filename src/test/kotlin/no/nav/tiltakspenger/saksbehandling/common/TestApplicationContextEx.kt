@@ -18,7 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import java.time.Clock
 
-private val dbManager = TestDatabaseManager()
+// Lat, slik at rene in-memory-tester aldri betaler containerstart og Flyway-migreringer.
+// Egen instans og dermed egen container: route-testene kjører jobber som endrer data på tvers av saker, og de skal ikke dele database med repo-testene i [no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper].
+private val dbManager: TestDatabaseManager by lazy { TestDatabaseManager() }
 
 fun withTestApplicationContextAndPostgres(
     additionalConfig: Application.() -> Unit = {},
