@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -38,6 +38,8 @@ interface IverksettSøknadsbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
+        skalSendeVedtaksbrev: Boolean = true,
+        jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
@@ -48,6 +50,7 @@ interface IverksettSøknadsbehandlingBuilder {
             sakId = sakId,
             fnr = fnr,
             resultat = resultat,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
             tiltaksdeltakelse = tiltaksdeltakelse,
@@ -59,6 +62,7 @@ interface IverksettSøknadsbehandlingBuilder {
             sakId = sak.id,
             behandlingId = behandlingId,
             beslutter = beslutter,
+            jobber = jobber,
         )!!
         return Tuple4(
             oppdatertSak,

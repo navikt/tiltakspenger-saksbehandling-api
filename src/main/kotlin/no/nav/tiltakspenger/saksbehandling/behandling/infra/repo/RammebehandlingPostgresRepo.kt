@@ -182,6 +182,68 @@ class RammebehandlingPostgresRepo(
         }
     }
 
+    /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
+    override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    // language=SQL
+                    """
+                    select b.*,sak.saksnummer,sak.fnr
+                    from behandling b
+                    join sak on sak.id = b.sak_id
+                    where (b.sendt_til_datadeling is null or b.sendt_til_datadeling < b.sist_endret) and sak.sendt_til_datadeling is not null
+                    order by b.opprettet
+                    limit :limit
+                    """.trimIndent(),
+                    mapOf(
+                        "limit" to limit,
+                    ),
+                ).map { it.toBehandling(session) }.asList,
+            )
+        }
+    }
+
+    override fun markerSendtTilDatadeling(id: RammebehandlingId, tidspunkt: LocalDateTime) {
+        sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    """
+                    update behandling set sendt_til_datadeling = :tidspunkt where id = :id
+                    """.trimIndent(),
+                    mapOf(
+                        "id" to id.toString(),
+                        "tidspunkt" to tidspunkt,
+                    ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    //language=SQL
+                    """
+                    select b.id
+                    from behandling b
+                    where
+                      b.behandlingstype = 'SØKNADSBEHANDLING' and
+                      b.status = 'UNDER_AUTOMATISK_BEHANDLING' and
+                      (b.venter_til is null or b.venter_til < :now)
+                    order by b.opprettet
+                    limit :limit
+                    """.trimIndent(),
+                    mapOf(
+                        "now" to nå(clock),
+                        "limit" to limit,
+                    ),
+                ).map { RammebehandlingId.fromString(it.string("id")) }.asList,
+            )
+        }
+    }
+
     companion object {
         fun hentOrNull(
             behandlingId: RammebehandlingId,
@@ -373,67 +435,5 @@ class RammebehandlingPostgresRepo(
                     ),
                 ).map { it.boolean(1) }.asSingle,
             ) ?: false
-    }
-
-    /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
-    override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
-        return sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    // language=SQL
-                    """
-                    select b.*,sak.saksnummer,sak.fnr
-                    from behandling b
-                    join sak on sak.id = b.sak_id
-                    where (b.sendt_til_datadeling is null or b.sendt_til_datadeling < b.sist_endret) and sak.sendt_til_datadeling is not null
-                    order by b.opprettet
-                    limit :limit
-                    """.trimIndent(),
-                    mapOf(
-                        "limit" to limit,
-                    ),
-                ).map { it.toBehandling(session) }.asList,
-            )
-        }
-    }
-
-    override fun markerSendtTilDatadeling(id: RammebehandlingId, tidspunkt: LocalDateTime) {
-        sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    """
-                    update behandling set sendt_til_datadeling = :tidspunkt where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to id.toString(),
-                        "tidspunkt" to tidspunkt,
-                    ),
-                ).asUpdate,
-            )
-        }
-    }
-
-    override fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId> {
-        return sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    //language=SQL
-                    """
-                    select b.id
-                    from behandling b
-                    where
-                      b.behandlingstype = 'SØKNADSBEHANDLING' and
-                      b.status = 'UNDER_AUTOMATISK_BEHANDLING' and
-                      (b.venter_til is null or b.venter_til < :now)
-                    order by b.opprettet
-                    limit :limit
-                    """.trimIndent(),
-                    mapOf(
-                        "now" to nå(clock),
-                        "limit" to limit,
-                    ),
-                ).map { RammebehandlingId.fromString(it.string("id")) }.asList,
-            )
-        }
     }
 }

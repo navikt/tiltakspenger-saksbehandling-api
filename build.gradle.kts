@@ -347,6 +347,7 @@ val postgresRepoerMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo",
         "no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo",
         "no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo",
+        "no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo",
     )
 
 val klasserMedFullDekningskrav = httpklientKlasserMedDekningskrav + postgresRepoerMedDekningskrav

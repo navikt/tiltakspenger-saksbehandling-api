@@ -2,15 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSak
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterUnderBeslutningSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import org.junit.jupiter.api.Test
@@ -79,25 +76,9 @@ class SakPostgresRepoTest {
                     ).first
             testDataHelper.persisterOpprettetSøknadsbehandling()
 
-            sakRepo.hentForFnr(fnr) shouldBe Saker(fnr, listOf(sak1, sak2))
-        }
-    }
-
-    @Test
-    fun `Skal flagge saker med iverksatt behandling for sending til meldekort-api`() {
-        withMigratedDb { testDataHelper ->
-            val sakRepo = testDataHelper.sakRepo
-
-            val sak1 = testDataHelper.persisterIverksattSøknadsbehandling().first
-            val sak2 = testDataHelper.persisterIverksattSøknadsbehandling().first
-            val sakOpprettet = testDataHelper.persisterOpprettetSøknadsbehandling().first
-            val sakUnderBeslutning = testDataHelper.persisterUnderBeslutningSøknadsbehandling().first
-
-            val sakIder = sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE)
-            sakIder shouldContain sak1.id
-            sakIder shouldContain sak2.id
-            sakIder shouldNotContain sakOpprettet.id
-            sakIder shouldNotContain sakUnderBeslutning.id
+            // `select * from sak where fnr = :fnr` har ingen `order by`, så rekkefølgen er udefinert.
+            // Testen asserter derfor innhold, ikke sortering.
+            sakRepo.hentForFnr(fnr) shouldContainExactlyInAnyOrder listOf(sak1, sak2)
         }
     }
 

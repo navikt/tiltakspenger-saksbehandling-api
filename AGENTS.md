@@ -20,6 +20,9 @@ Slik ser den ut i dette repoet:
 - **Aggregat-tester** merkes med `@IsolatedDatabaseTest` og `runIsolated = true`.
   Konvensjonen om at de to alltid følges ad, håndheves av `IsolatedDatabaseTestKonvensjonTest`.
   `MeldekortvedtakAggregatTest` er mønsterfila.
+- **`AggregatspørringKonsistTest` håndhever punkt 3 i taksonomien:** `hent*(limit)`-metodene på repo-portene kalles kun fra `*AggregatTest`-filer og fake-repoer, og `Int.MAX_VALUE` skal aldri sendes som limit.
+  Metodenavnene utledes fra `ports/`-pakkene, så en ny jobbspørring dekkes automatisk.
+  Whitelisten i fila er arbeidslista for det som gjenstår, og en fil som er ryddet må ut av den — testen feiler ellers.
 - **Jobber som følger en iverksettelse slås av og på med `JobberEtterIverksettelse`** i route-byggerne.
   Skal en test observere en kø, må jobben som tømmer køen slås av — ellers er køen alltid tom når testen ser på den.
 - **Negative databasetester** ligger i `*NegativTest`-filer; `MeldekortvedtakPostgresRepoNegativTest` er mønsteret.

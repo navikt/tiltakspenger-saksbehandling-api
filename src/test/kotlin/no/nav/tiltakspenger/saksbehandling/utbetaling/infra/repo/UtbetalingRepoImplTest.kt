@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetS
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.toUtbetalingRequestDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
@@ -32,14 +31,12 @@ class UtbetalingRepoImplTest {
 
             val utbetaling = meldekortvedtak.utbetaling
 
-            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).single { it.id == utbetaling.id } shouldBe utbetaling
             utbetalingRepo.markerSendtTilUtbetaling(
                 utbetalingId = utbetaling.id,
                 tidspunkt = tidspunkt,
                 utbetalingsrespons = SendtUtbetaling("myReq", "myRes", 202, alleredeMottattTidligere = false),
             )
             utbetalingRepo.hentUtbetalingJson(utbetaling.id) shouldBe "myReq"
-            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).none { it.id == utbetaling.id } shouldBe true
         }
     }
 
@@ -54,7 +51,6 @@ class UtbetalingRepoImplTest {
 
             val utbetaling = meldekortvedtak.utbetaling
 
-            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).single { it.id == utbetaling.id } shouldBe utbetaling
             utbetalingRepo.lagreFeilResponsFraUtbetaling(
                 utbetalingId = utbetaling.id,
                 utbetalingsrespons = KunneIkkeUtbetale(
@@ -63,12 +59,15 @@ class UtbetalingRepoImplTest {
                 ),
             )
             utbetalingRepo.hentUtbetalingJson(utbetaling.id) shouldBe "myFailedReq"
-            utbetalingRepo.hentForUtsjekk(limit = Int.MAX_VALUE).single { it.id == utbetaling.id } shouldBe utbetaling
         }
     }
 
+    /**
+     * Rundturen for statusfeltet: [no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo.oppdaterUtbetalingsstatus] skriver statusen, og den leses tilbake på meldekortvedtakets utbetaling.
+     * Hvilke statuser som holder utbetalingen i statuskøen er spørringens kontrakt, og asserteres i `UtbetalingAggregatTest`.
+     */
     @Test
-    fun utbetalingsstatus() {
+    fun `oppdaterer og leser tilbake utbetalingsstatus`() {
         withMigratedDb { testDataHelper ->
             val (sak, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
@@ -76,113 +75,38 @@ class UtbetalingRepoImplTest {
                 fnr = gyldigFnr(),
             )
             val utbetalingRepo = testDataHelper.utbetalingRepo
-
             val utbetaling = meldekortvedtak.utbetaling
 
-            val sendtTilUtbetalingTidspunkt = nå(fixedClock.plus(1, ChronoUnit.MICROS))
             utbetalingRepo.markerSendtTilUtbetaling(
                 utbetalingId = utbetaling.id,
-                tidspunkt = sendtTilUtbetalingTidspunkt,
+                tidspunkt = nå(fixedClock.plus(1, ChronoUnit.MICROS)),
                 utbetalingsrespons = SendtUtbetaling(utbetaling.toUtbetalingRequestDTO(null), "myRes", 202, alleredeMottattTidligere = false),
             )
 
-            fun expected(
-                forsøkshistorikk: Forsøkshistorikk = Forsøkshistorikk.opprett(
-                    forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(1, ChronoUnit.MICROS),
-                    antallForsøk = 1,
-                    clock = fixedClock,
-                ),
-            ) = listOf(
-                UtbetalingDetSkalHentesStatusFor(
+            fun lagretStatus(): Utbetalingsstatus? = testDataHelper.sessionFactory.withSession {
+                MeldekortvedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status
+            }
+
+            lagretStatus() shouldBe null
+
+            listOf(
+                Utbetalingsstatus.IkkePåbegynt,
+                Utbetalingsstatus.SendtTilOppdrag,
+                Utbetalingsstatus.FeiletMotOppdrag,
+                Utbetalingsstatus.OkUtenUtbetaling,
+                Utbetalingsstatus.Ok,
+            ).forEachIndexed { indeks, status ->
+                utbetalingRepo.oppdaterUtbetalingsstatus(
                     utbetalingId = utbetaling.id,
-                    sakId = meldekortvedtak.sakId,
-                    saksnummer = meldekortvedtak.saksnummer,
-                    opprettet = meldekortvedtak.opprettet,
-                    sendtTilUtbetalingstidspunkt = sendtTilUtbetalingTidspunkt,
-                    forsøkshistorikk = forsøkshistorikk,
-                ),
-            )
-
-            testDataHelper.sessionFactory.withSession {
-                MeldekortvedtakPostgresRepo.hentForSakId(sak.id, it).single().utbetaling.status shouldBe null
+                    status = status,
+                    metadata = Forsøkshistorikk.opprett(
+                        forrigeForsøk = nå(fixedClock.plus(indeks.toLong() + 2, ChronoUnit.MICROS)),
+                        antallForsøk = indeks.toLong() + 1,
+                        clock = fixedClock,
+                    ),
+                )
+                lagretStatus() shouldBe status
             }
-
-            Forsøkshistorikk.opprett(
-                forrigeForsøk = null,
-                antallForsøk = 0,
-                clock = fixedClock,
-            )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
-                .filter { it.utbetalingId == utbetaling.id }
-                .also {
-                    it shouldBe expected(forsøkshistorikk = it.first().forsøkshistorikk)
-                }
-            val forsøk1 = Forsøkshistorikk.opprett(
-                forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(1, ChronoUnit.MICROS),
-                antallForsøk = 1,
-                clock = fixedClock,
-            )
-            utbetalingRepo.oppdaterUtbetalingsstatus(
-                utbetalingId = utbetaling.id,
-                status = Utbetalingsstatus.IkkePåbegynt,
-                metadata = forsøk1,
-            )
-            testDataHelper.sessionFactory.withSession {
-                MeldekortvedtakPostgresRepo.hentForSakId(sak.id, it)
-                    .single().utbetaling.status shouldBe Utbetalingsstatus.IkkePåbegynt
-            }
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
-                .filter { it.utbetalingId == utbetaling.id } shouldBe expected(forsøk1)
-
-            val forsøk2 = Forsøkshistorikk.opprett(
-                forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(2, ChronoUnit.MICROS),
-                antallForsøk = 2,
-                clock = fixedClock,
-            )
-            utbetalingRepo.oppdaterUtbetalingsstatus(
-                utbetalingId = utbetaling.id,
-                status = Utbetalingsstatus.SendtTilOppdrag,
-                metadata = forsøk2,
-            )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
-                .filter { it.utbetalingId == utbetaling.id } shouldBe expected(forsøk2)
-
-            val forsøkFeiletMotOppdrag = Forsøkshistorikk.opprett(
-                forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(3, ChronoUnit.MICROS),
-                antallForsøk = 3,
-                clock = fixedClock,
-            )
-            utbetalingRepo.oppdaterUtbetalingsstatus(
-                utbetalingId = utbetaling.id,
-                status = Utbetalingsstatus.FeiletMotOppdrag,
-                metadata = forsøkFeiletMotOppdrag,
-            )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
-                .filter { it.utbetalingId == utbetaling.id } shouldBe expected(forsøkFeiletMotOppdrag)
-
-            utbetalingRepo.oppdaterUtbetalingsstatus(
-                utbetalingId = utbetaling.id,
-                status = Utbetalingsstatus.OkUtenUtbetaling,
-                metadata = Forsøkshistorikk.opprett(
-                    forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(4, ChronoUnit.MICROS),
-                    antallForsøk = 4,
-                    clock = fixedClock,
-                ),
-            )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
-                .none { it.utbetalingId == utbetaling.id } shouldBe true
-
-            utbetalingRepo.oppdaterUtbetalingsstatus(
-                utbetalingId = utbetaling.id,
-                status = Utbetalingsstatus.Ok,
-                metadata = Forsøkshistorikk.opprett(
-                    forrigeForsøk = sendtTilUtbetalingTidspunkt.plus(5, ChronoUnit.MICROS),
-                    antallForsøk = 5,
-                    clock = fixedClock,
-                ),
-            )
-            utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor(limit = Int.MAX_VALUE)
-                .none { it.utbetalingId == utbetaling.id } shouldBe true
         }
     }
 }

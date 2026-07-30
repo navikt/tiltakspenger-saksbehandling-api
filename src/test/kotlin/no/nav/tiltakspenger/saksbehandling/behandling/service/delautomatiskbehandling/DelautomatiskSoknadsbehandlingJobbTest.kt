@@ -1,8 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
 import arrow.core.right
-import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -52,8 +50,6 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     )
                 } returns ObjectMother.nyOpprettetAutomatiskSøknadsbehandling().right()
 
-                soknadRepo.hentUbehandledeSøknadIder(limit = Int.MAX_VALUE) shouldContain soknad.id
-
                 delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(soknad.id)
 
                 coVerify { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(soknad, any()) }
@@ -92,8 +88,6 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     ),
                 )
 
-                soknadRepo.hentUbehandledeSøknadIder(limit = Int.MAX_VALUE) shouldNotContain soknad.id
-
                 delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(soknad.id)
 
                 coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
@@ -121,8 +115,6 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
 
-                soknadRepo.hentUbehandledeSøknadIder(limit = Int.MAX_VALUE) shouldNotContain behandling.søknad.id
-
                 delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(behandling.søknad.id)
 
                 coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
@@ -149,8 +141,6 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
-
-                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldContain automatiskBehandling.id
 
                 delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(automatiskBehandling.id)
 
@@ -186,8 +176,6 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 )
 
                 val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
-
-                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldNotContain behandling.id
 
                 delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
 
@@ -228,8 +216,6 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                     clock = testDataHelper.clock,
                 ).first as Søknadsbehandling
                 behandlingRepo.lagre(behandlingPaVent)
-
-                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldNotContain behandlingPaVent.id
 
                 delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandlingPaVent.id)
 
@@ -278,8 +264,6 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                         any(),
                     )
                 } returns (sak to behandlingPaVent).right()
-
-                behandlingRepo.hentAutomatiskeSoknadsbehandlingIder(limit = Int.MAX_VALUE) shouldContain behandlingPaVent.id
 
                 delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandlingPaVent.id)
 

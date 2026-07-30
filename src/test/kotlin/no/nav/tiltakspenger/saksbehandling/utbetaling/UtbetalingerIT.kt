@@ -83,13 +83,11 @@ class UtbetalingerIT {
 
             val revurderingUtbetalingId = oppdatertSak.rammevedtaksliste.last().utbetaling!!.id
 
-            val utbetalingerSomVenter = tac.utbetalingContext.utbetalingRepo.hentForUtsjekk()
-            utbetalingerSomVenter.size shouldBe 1
-            utbetalingerSomVenter.first().beregning.totalBeløp shouldBe satser2025.sats * 10 + satser2025.satsBarnetillegg * 10 * 2
+            oppdatertSak.rammevedtaksliste.last().utbetaling!!.beregning.totalBeløp shouldBe
+                satser2025.sats * 10 + satser2025.satsBarnetillegg * 10 * 2
 
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
 
-            tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
                 iverksettDto.vedtak.utbetalinger.first().beløp.toInt() shouldBe satser2025.sats
@@ -136,7 +134,6 @@ class UtbetalingerIT {
 
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
 
-            tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(revurderingUtbetalingId)!!.let { json ->
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
                 iverksettDto.vedtak.utbetalinger.first().beløp.toInt() shouldBe satser2025.sats
@@ -185,13 +182,10 @@ class UtbetalingerIT {
 
             val omgjøringUtbetalingId = oppdatertSak.rammevedtaksliste.last().utbetaling!!.id
 
-            val utbetalingerSomVenter = tac.utbetalingContext.utbetalingRepo.hentForUtsjekk()
-            utbetalingerSomVenter.size shouldBe 1
-            utbetalingerSomVenter.first().beregning.totalBeløp shouldBe 0
+            oppdatertSak.rammevedtaksliste.last().utbetaling!!.beregning.totalBeløp shouldBe 0
 
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
 
-            tac.utbetalingContext.utbetalingRepo.hentForUtsjekk().size shouldBe 0
             tac.utbetalingContext.utbetalingRepo.hentUtbetalingJson(omgjøringUtbetalingId)!!.let { json ->
                 val iverksettDto = deserialize<IverksettV2Dto>(json)
                 // Sender tom liste med utbetalinger når hele sakens periode opphøres

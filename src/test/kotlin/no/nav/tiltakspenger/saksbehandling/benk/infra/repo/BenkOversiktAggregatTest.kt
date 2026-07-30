@@ -71,7 +71,16 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class BenkOversiktPostgresRepoTest {
+/**
+ * Aggregat-test for benkoversikten, jf. testtaksonomien i `AGENTS.md`.
+ *
+ * Totalantallet på tvers av saker er selve featuren her, ikke en krykke: benken viser alle åpne behandlinger i hele skjemaet.
+ * Derfor kjører alle testene isolert, og derfor kaller de `hentÅpneBehandlinger(limit)` direkte.
+ *
+ * Tilstanden bygges fortsatt med `TestDataHelper` og ikke gjennom prodstiene.
+ * Det er den største gjenstående posten i overgangsfasen, og hører sammen med rivingen av `TestDataHelper` — se tp-tax-6.
+ */
+class BenkOversiktAggregatTest {
     private fun newCommand(
         benktype: List<BehandlingssammendragBenktype>? = null,
         behandlingstype: List<BehandlingssammendragType>? = null,

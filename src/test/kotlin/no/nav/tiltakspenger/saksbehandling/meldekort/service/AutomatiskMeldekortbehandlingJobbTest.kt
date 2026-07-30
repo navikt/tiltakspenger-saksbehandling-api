@@ -9,9 +9,12 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
@@ -21,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -31,36 +35,30 @@ class AutomatiskMeldekortbehandlingJobbTest {
     val vedtaksperiode = Periode(6.januar(2025), 31.mars(2025))
 
     /**
-     * TODO (tp-tax-8): denne bør være grunnsettet for [no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo] sin mapping av [MeldekortBehandletAutomatisk] og brukers meldekort.
-     * Den kan ikke flyttes til postgres slik den står nå: [søknadsbehandlingIverksattMedMeldeperioder] bygger tilstanden gjennom services og persisterer ikke tiltaksdeltakeren, så `søknadstiltak_tiltaksdeltaker_id_fkey` brytes.
-     * Tilstandsoppbyggingen må gå gjennom route-stien først.
+     * Grunnsettet for [no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo] sin mapping av [MeldekortBehandletAutomatisk] og brukers meldekort.
+     * Derfor kjører den mot postgres, mens resten av fila kjører in-memory.
+     * Hele tilstanden bygges gjennom prodstiene med [iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk].
+     *
+     * Isolert fordi jobben henter brukers meldekort på tvers av alle saker.
+     * Mot det delte skjemaet ville den behandlet meldekort andre tester har lagt inn.
+     *
+     * Klokka må stå på en hverdag innenfor økonomisystemets åpningstider, ellers hopper jobben over alle meldekort.
+     * Standardklokka (1. mai) er både helligdag og utenfor åpningstidene.
      */
     @Test
+    @IsolatedDatabaseTest
     fun `skal behandle brukers meldekort automatisk ved behandlesAutomatisk=true`() {
-        runTest {
-            withTestApplicationContext(clock = clock) { tac ->
-                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
-                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
-                val automatiskMeldekortbehandlingJobb = tac.meldekortContext.automatiskMeldekortbehandlingJobb
-                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
-                    periode = vedtaksperiode,
-                    clock = clock,
-                )
-                val brukersMeldekort = ObjectMother.brukersMeldekort(
-                    behandlesAutomatisk = true,
-                    sakId = sak.id,
-                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
-                )
-                brukersMeldekortRepo.lagre(brukersMeldekort)
+        withTestApplicationContextAndPostgres(
+            clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
+            runIsolated = true,
+        ) { tac ->
+            val (sak, brukersMeldekort) = iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk(tac = tac)
 
-                automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
+            val meldekortbehandlinger = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!
+            val sisteMeldekortbehandling = meldekortbehandlinger.sisteGodkjenteMeldekort!!
 
-                val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!
-                val sisteMeldekortbehandling = meldekortbehandlinger.sisteGodkjenteMeldekort!!
-
-                sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
-                sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
-            }
+            sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+            sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
         }
     }
 

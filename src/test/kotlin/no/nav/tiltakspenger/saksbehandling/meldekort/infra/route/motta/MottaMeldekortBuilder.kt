@@ -10,9 +10,11 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.intellij.lang.annotations.Language
 import java.time.LocalDate
@@ -23,10 +25,49 @@ import java.time.LocalDateTime
  */
 interface MottaMeldekortBuilder {
 
-    fun Meldeperiode.tilUtfyltFraBruker(): Map<LocalDate, BrukerutfyltMeldekortDTO.Status> {
+    /**
+     * En meldeperiode midt i en innvilgelsesperiode gir rett alle 14 dagene, også lørdag og søndag.
+     *
+     * @param kanSendeInnHelgForMeldekort Speiler saksfeltet med samme navn.
+     * Er det `false`, lar vi helgedagene stå ubesvart slik bruker faktisk sender dem inn.
+     * Ellers avvises meldekortet av automatisk behandling med `KAN_IKKE_MELDE_HELG`.
+     */
+    fun Meldeperiode.tilUtfyltFraBruker(
+        kanSendeInnHelgForMeldekort: Boolean = true,
+    ): Map<LocalDate, BrukerutfyltMeldekortDTO.Status> {
         return this.girRett.entries.associate { (dato, harRett) ->
-            dato to (if (harRett) BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET else BrukerutfyltMeldekortDTO.Status.IKKE_BESVART)
+            val registrerer = harRett && (kanSendeInnHelgForMeldekort || !dato.erHelg())
+            dato to (if (registrerer) BrukerutfyltMeldekortDTO.Status.DELTATT_UTEN_LØNN_I_TILTAKET else BrukerutfyltMeldekortDTO.Status.IKKE_BESVART)
         }
+    }
+
+    /**
+     * Bygger en sak med et meldekort som er behandlet automatisk, hele veien gjennom prodstiene.
+     * [iverksettSøknadsbehandling] registrerer tiltaksdeltakelsen, ruta tar imot brukers meldekort, og jobben behandler det slik den gjør på cron-intervall i prod.
+     *
+     * Kalleren må sørge for at klokka står på en hverdag innenfor økonomisystemets åpningstider.
+     * Ellers hopper jobben over alle meldekort, og standardklokka (1. mai) er både helligdag og utenfor åpningstidene.
+     *
+     * Jobben henter brukers meldekort på tvers av alle saker.
+     * Kjøres denne mot postgres, må testen derfor være isolert (`runIsolated = true` + `@IsolatedDatabaseTest`).
+     */
+    suspend fun ApplicationTestBuilder.iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk(
+        tac: TestApplicationContext,
+    ): Pair<Sak, BrukersMeldekort> {
+        val (sak) = iverksettSøknadsbehandling(tac = tac)
+        val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+        // Ruta setter behandlesAutomatisk = true, slik at jobben plukker meldekortet opp.
+        val (_, brukersMeldekort) = mottaMeldekortRequest(
+            tac = tac,
+            meldeperiodeId = meldeperiode.id,
+            sakId = sak.id,
+            dager = meldeperiode.tilUtfyltFraBruker(kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort),
+        )
+
+        tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+        return sak to brukersMeldekort!!
     }
 
     suspend fun ApplicationTestBuilder.mottaMeldekortRequest(

@@ -1,15 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
-import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingInnvilgelseIverksatt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -18,31 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import org.junit.jupiter.api.Test
 
 class RammevedtakPostgresRepoTest {
-
-    @Test
-    fun `henter vedtak for datadeling`() {
-        withMigratedDb { testDataHelper ->
-            val (sak, rammevedtak, _, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort()
-            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).map { it.id } shouldContain sak.id
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).none { it.sakId == sak.id } shouldBe true
-            testDataHelper.sakRepo.markerSendtTilDatadeling(rammevedtak.sakId, nå(testDataHelper.clock))
-            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).none { it.id == sak.id } shouldBe true
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).filter { it.sakId == sak.id } shouldBe listOf(rammevedtak)
-        }
-    }
-
-    @Test
-    fun `henter avslagsvedtak for datadeling`() {
-        withMigratedDb { testDataHelper ->
-            val (_, rammevedtak) = testDataHelper.persisterRammevedtakAvslag()
-            val sakId = rammevedtak.sakId
-            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).map { it.id } shouldContain sakId
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).none { it.sakId == sakId } shouldBe true
-            testDataHelper.sakRepo.markerSendtTilDatadeling(sakId, nå(testDataHelper.clock))
-            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).none { it.id == sakId } shouldBe true
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).filter { it.sakId == sakId } shouldBe listOf(rammevedtak)
-        }
-    }
 
     @Test
     fun `kan lagre rammevedtak med utbetaling`() {
@@ -81,22 +51,6 @@ class RammevedtakPostgresRepoTest {
             vedtakFraDb shouldBe vedtak
 
             vedtakFraDb!!.utbetaling!!.id shouldBe utbetalinger.last().id
-        }
-    }
-
-    @Test
-    fun `hentRammevedtakSomSkalJournalføres returnerer vedtak når skalSendeVedtaksbrev er true`() {
-        withMigratedDb { testDataHelper ->
-            val (_, rammevedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = true)
-            testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(Int.MAX_VALUE).map { it.id } shouldContain rammevedtak.id
-        }
-    }
-
-    @Test
-    fun `hentRammevedtakSomSkalJournalføres returnerer ikke vedtak når skalSendeVedtaksbrev er false`() {
-        withMigratedDb { testDataHelper ->
-            val (_, rammevedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
-            testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(Int.MAX_VALUE).map { it.id } shouldNotContain rammevedtak.id
         }
     }
 }

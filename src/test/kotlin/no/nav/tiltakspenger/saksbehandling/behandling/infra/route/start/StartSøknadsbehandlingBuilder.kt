@@ -150,6 +150,7 @@ interface StartSøknadsbehandlingBuilder {
         saksbehandler: Saksbehandler = saksbehandler(),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
+        skalSendeVedtaksbrev: Boolean = true,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
@@ -172,6 +173,7 @@ interface StartSøknadsbehandlingBuilder {
             saksbehandler = saksbehandler,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
+            skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
         )

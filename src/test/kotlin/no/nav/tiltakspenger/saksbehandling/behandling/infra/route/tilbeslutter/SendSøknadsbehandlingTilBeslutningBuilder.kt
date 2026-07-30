@@ -32,6 +32,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
+        skalSendeVedtaksbrev: Boolean = true,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
@@ -43,6 +44,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
                 sakId = sakId,
                 fnr = fnr,
                 saksbehandler = saksbehandler,
+                skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg,
                 tiltaksdeltakelse = tiltaksdeltakelse,

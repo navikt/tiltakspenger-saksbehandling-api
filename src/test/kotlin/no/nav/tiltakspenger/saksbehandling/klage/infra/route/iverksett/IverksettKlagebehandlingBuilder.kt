@@ -34,6 +34,7 @@ interface IverksettKlagebehandlingBuilder {
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+        utførJobber: Boolean = true,
     ): Triple<Sak, Klagevedtak, KlagebehandlingDTOJson>? {
         val (sak, klagebehandling, _) = this.opprettSakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
             tac = tac,
@@ -46,6 +47,7 @@ interface IverksettKlagebehandlingBuilder {
             klagebehandlingId = klagebehandling.id,
             saksbehandler = saksbehandler,
             forventet = forventet,
+            utførJobber = utførJobber,
         )
     }
 
@@ -86,6 +88,7 @@ interface IverksettKlagebehandlingBuilder {
         klagebehandlingId: KlagebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+        utførJobber: Boolean = true,
     ): Triple<Sak, Klagevedtak, KlagebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
@@ -98,9 +101,11 @@ interface IverksettKlagebehandlingBuilder {
             val bodyAsText = this.body
 
             if (statusCode != 200) return null
-            // Emulerer journalføring og distribuering av vedtaksbrev, kun for denne saken.
-            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførAvvisningbrevForSak(sakId)
-            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerAvvisningsbrevForSak(sakId)
+            if (utførJobber) {
+                // Emulerer journalføring og distribuering av vedtaksbrev, kun for denne saken.
+                tac.klagebehandlingContext.journalførKlagebrevJobb.journalførAvvisningbrevForSak(sakId)
+                tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerAvvisningsbrevForSak(sakId)
+            }
             val jsonObject: KlagebehandlingDTOJson = objectMapper.readTree(bodyAsText)
             val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("id").asString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

@@ -92,3 +92,5 @@ gradle-app.setting
 
 
 .DS_Store
+**/.worktrees/**
+**/.worktree
