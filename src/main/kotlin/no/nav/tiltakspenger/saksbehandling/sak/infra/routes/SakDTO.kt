@@ -38,23 +38,34 @@ data class SakDTO(
     val sakId: String,
     val saksnummer: String,
     val fnr: String,
-    val åpneBehandlinger: List<ÅpenBehandlingDTO>,
+
     val førsteDagSomGirRett: LocalDate?,
     val sisteDagSomGirRett: LocalDate?,
+    val kanSendeInnHelgForMeldekort: Boolean,
+
+    val søknader: List<SøknadDTO>,
+
+    // Fjernes asap!
     val behandlinger: List<RammebehandlingDTO>,
     val klageBehandlinger: List<KlagebehandlingDTO>,
-    val tidslinje: TidslinjeDTO,
-    val innvilgetTidslinje: TidslinjeDTO,
+
+    val åpneBehandlinger: List<ÅpenBehandlingDTO>,
+
+    val rammebehandlinger: List<RammebehandlingDTO>,
+    val klagebehandlinger: List<KlagebehandlingDTO>,
+    val tilbakekrevinger: List<TilbakekrevingBehandlingDTO>,
+
     val alleRammevedtak: List<RammevedtakDTO>,
     val alleKlagevedtak: List<KlagevedtakDTO>,
-    val meldekortvedtak: List<MeldekortvedtakDTO>,
-    val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
-    val søknader: List<SøknadDTO>,
-    val tilbakekrevinger: List<TilbakekrevingBehandlingDTO>,
-    val kanSendeInnHelgForMeldekort: Boolean,
+
     val meldekortbehandlinger: Map<String, MeldekortbehandlingDTO>,
+    val meldekortvedtak: List<MeldekortvedtakDTO>,
     val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
     val åpenMeldekortbehandlingId: String?,
+
+    val tidslinje: TidslinjeDTO,
+    val innvilgetTidslinje: TidslinjeDTO,
+    val utbetalingstidslinje: List<UtbetalingstidslinjeMeldeperiodeDTO>,
 )
 
 fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
@@ -66,7 +77,9 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
     behandlinger = this.tilBehandlingerDTO(),
+    rammebehandlinger = this.tilBehandlingerDTO(),
     klageBehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
+    klagebehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
     tidslinje = rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
     innvilgetTidslinje = rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),
     alleRammevedtak = rammevedtaksliste.map { it.tilRammevedtakDTO() },
