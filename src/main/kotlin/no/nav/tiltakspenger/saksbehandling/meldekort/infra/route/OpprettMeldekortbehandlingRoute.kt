@@ -3,12 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
-import io.ktor.server.request.receiveText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
-import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -23,19 +20,12 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.v2.tilMeldekortbehandlingDTOV2
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
-import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
-import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
-
-private data class OpprettMeldekortbehandlingBody(
-    val v2: Boolean = false,
-)
 
 fun Route.opprettMeldekortbehandlingRoute(
     opprettMeldekortbehandlingService: OpprettMeldekortbehandlingService,
     auditService: AuditService,
-    clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger { }
@@ -46,22 +36,6 @@ fun Route.opprettMeldekortbehandlingRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withMeldeperiodeKjedeId { kjedeId ->
-                val rawBody = call.receiveText()
-                val body = if (rawBody.isBlank()) {
-                    OpprettMeldekortbehandlingBody()
-                } else {
-                    try {
-                        deserialize<OpprettMeldekortbehandlingBody>(rawBody)
-                    } catch (e: Exception) {
-                        logger.debug(e) { "Kunne ikke deserialisere request-body" }
-                        call.respond400BadRequest(
-                            melding = "Kunne ikke deserialisere request",
-                            kode = "ugyldig_request",
-                        )
-                        return@withMeldeperiodeKjedeId
-                    }
-                }
-
                 val correlationId = call.correlationId()
                 krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
@@ -85,18 +59,14 @@ fun Route.opprettMeldekortbehandlingRoute(
                             behandlingId = behandling.id,
                         )
 
-                        if (body.v2) {
-                            call.respondJson(
-                                value = behandling.tilMeldekortbehandlingDTOV2(
-                                    beregninger = sak.meldeperiodeBeregninger,
-                                    hentVedtak = { null },
-                                    hentTilbakekreving = { null },
-                                    kallendeSaksbehandler = saksbehandler,
-                                ),
-                            )
-                        } else {
-                            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
-                        }
+                        call.respondJson(
+                            value = behandling.tilMeldekortbehandlingDTOV2(
+                                beregninger = sak.meldeperiodeBeregninger,
+                                hentVedtak = { null },
+                                hentTilbakekreving = { null },
+                                kallendeSaksbehandler = saksbehandler,
+                            ),
+                        )
                     },
                 )
             }
