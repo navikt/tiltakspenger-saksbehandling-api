@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeld
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.VENTER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
-import java.time.LocalDate
 
 data class MeldeperiodeKjedeDTO(
     val id: String,
@@ -29,11 +28,7 @@ data class MeldeperiodeKjedeDTO(
 )
 
 fun Sak.tilMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
-    return this.meldeperiodeKjeder.mapNotNull {
-        if (it.periode.fraOgMed > LocalDate.now(clock)) {
-            return@mapNotNull null
-        }
-
+    return this.meldeperiodeKjeder.map {
         this.tilMeldeperiodeKjedeDTO(it.kjedeId, clock)
     }
 }
