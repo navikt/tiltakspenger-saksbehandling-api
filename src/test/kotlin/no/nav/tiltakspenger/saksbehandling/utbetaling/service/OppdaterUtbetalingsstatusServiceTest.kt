@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
-import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -14,23 +14,15 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class OppdaterUtbetalingsstatusServiceTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val utbetalingRepo = mockk<UtbetalingRepo>()
-    private val utbetalingsklient = mockk<Utbetalingsklient>()
-    private val sendUtbetalingerService =
-        OppdaterUtbetalingsstatusService(utbetalingRepo, utbetalingsklient, fixedClock)
-
-    @BeforeEach
-    fun setup() {
-        clearAllMocks()
-    }
-
     @Test
     fun `innhenting av status som ikke har fått ok etter mange forsøkblir forsøkt på nytt etter en stund`() = runTest {
+        val utbetalingRepo = mockk<UtbetalingRepo>()
+        val utbetalingsklient = mockk<Utbetalingsklient>()
+        val sendUtbetalingerService =
+            OppdaterUtbetalingsstatusService(utbetalingRepo, utbetalingsklient, fixedClock)
         val utbetaling = ObjectMother.utbetalingDetSkalHentesStatusFor(
             forsøkshistorikk = Forsøkshistorikk.opprett(
                 antallForsøk = 10,
@@ -40,7 +32,7 @@ class OppdaterUtbetalingsstatusServiceTest {
         )
         every { utbetalingRepo.hentDeSomSkalHentesUtbetalingsstatusFor() } returns listOf(utbetaling)
         coEvery { utbetalingsklient.hentUtbetalingsstatus(any()) } returns Either.Right(Utbetalingsstatus.Ok)
-        coEvery {
+        coJustRun {
             utbetalingRepo.oppdaterUtbetalingsstatus(
                 utbetaling.utbetalingId,
                 Utbetalingsstatus.Ok,

@@ -30,15 +30,16 @@ import java.time.Instant
  */
 internal class SafJournalpostHttpClientTest {
 
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val texasClient = mockk<TexasClient>()
     private val systemTokenProvider = object : AuthTokenProvider {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("system-token", Instant.parse("2026-01-01T00:00:00Z"))
     }
     private val journalpostId = JournalpostId("467010363")
     private val pdfBytes = byteArrayOf(0x25, 0x50, 0x44, 0x46, 0xFF.toByte(), 0xFE.toByte())
 
-    private fun nyKlient(transport: FakeHttpTransport) = SafJournalpostHttpClient(
+    private fun nyKlient(
+        transport: FakeHttpTransport,
+        texasClient: TexasClient = mockk<TexasClient>(),
+    ) = SafJournalpostHttpClient(
         baseUrl = "http://saf",
         safScope = "saf-scope",
         texasClient = texasClient,
@@ -47,9 +48,9 @@ internal class SafJournalpostHttpClientTest {
         transport = transport,
     )
 
-    private fun mockOboVeksling() {
+    private fun texasClientMedOboVeksling(): TexasClient = mockk<TexasClient>().also {
         coEvery {
-            texasClient.exchangeToken(
+            it.exchangeToken(
                 userToken = "saksbehandler-token",
                 audienceTarget = "saf-scope",
                 identityProvider = IdentityProvider.AZUREAD,
@@ -75,7 +76,7 @@ internal class SafJournalpostHttpClientTest {
         SafJournalpostHttpClient(
             baseUrl = "http://saf",
             safScope = "saf-scope",
-            texasClient = texasClient,
+            texasClient = mockk<TexasClient>(),
             authTokenProvider = systemTokenProvider,
             clock = fixedClock,
         )
@@ -175,11 +176,10 @@ internal class SafJournalpostHttpClientTest {
 
     @Test
     fun `hentDokument - 200 gir PdfA med bytene eksakt og OBO-token på kallet`() = runTest {
-        mockOboVeksling()
         val transport = FakeHttpTransport().apply { leggIKøBytes(pdfBytes, contentType = "application/pdf") }
         val command = hentDokumentCommand()
 
-        val pdf = nyKlient(transport).hentDokument(command).getOrFail()
+        val pdf = nyKlient(transport, texasClientMedOboVeksling()).hentDokument(command).getOrFail()
 
         pdf.getContent().toList() shouldBe pdfBytes.toList()
         val kall = transport.mottatteKall.single()
@@ -192,16 +192,16 @@ internal class SafJournalpostHttpClientTest {
 
     @Test
     fun `hentDokument - feilstatus gir Left`() = runTest {
-        mockOboVeksling()
         val transport = FakeHttpTransport().apply { leggIKøStatus(404, body = "finnes ikke", contentType = "text/plain") }
 
-        val feil = nyKlient(transport).hentDokument(hentDokumentCommand()).swap().getOrNull().shouldNotBeNull()
+        val feil = nyKlient(transport, texasClientMedOboVeksling()).hentDokument(hentDokumentCommand()).swap().getOrNull().shouldNotBeNull()
 
         feil.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 404
     }
 
     @Test
     fun `hentDokument - feilet OBO-veksling gir AuthError uten at noe kall gjøres`() = runTest {
+        val texasClient = mockk<TexasClient>()
         coEvery {
             texasClient.exchangeToken(
                 userToken = "saksbehandler-token",
@@ -211,7 +211,7 @@ internal class SafJournalpostHttpClientTest {
         } throws IllegalStateException("texas er nede")
         val transport = FakeHttpTransport()
 
-        val feil = nyKlient(transport).hentDokument(hentDokumentCommand()).swap().getOrNull().shouldNotBeNull()
+        val feil = nyKlient(transport, texasClient).hentDokument(hentDokumentCommand()).swap().getOrNull().shouldNotBeNull()
 
         feil.shouldBeInstanceOf<HttpKlientError.AuthError>()
         transport.mottatteKall shouldBe emptyList()

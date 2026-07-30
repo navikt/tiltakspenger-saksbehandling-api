@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -25,7 +24,6 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -33,23 +31,15 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class PersonhendelseJobbTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val oppgaveKlient = mockk<OppgaveKlient>()
     private val oppgaveId = OppgaveId("50")
 
-    @BeforeEach
-    fun clearMockData() {
-        clearMocks(oppgaveKlient)
-        coEvery {
-            oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                any(),
-                any(),
-            )
-        } returns oppgaveId.right()
+    private fun nyOppgaveKlient(): OppgaveKlient = mockk<OppgaveKlient>().also {
+        coEvery { it.opprettOppgaveUtenDuplikatkontroll(any(), any()) } returns oppgaveId.right()
     }
 
     @Test
     fun `opprettOppgaveForPersonhendelser - ingen vedtak - sletter fra db`() {
+        val oppgaveKlient = nyOppgaveKlient()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -89,6 +79,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - vedtak tilbake i tid - sletter fra db`() {
+        val oppgaveKlient = nyOppgaveKlient()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -137,6 +128,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har vedtak nå - oppretter oppgave`() {
+        val oppgaveKlient = nyOppgaveKlient()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -188,6 +180,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har vedtak frem i tid - oppretter oppgave`() {
+        val oppgaveKlient = nyOppgaveKlient()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -239,6 +232,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har vedtak nå, adressebeskyttelse - oppretter ikke oppgave`() {
+        val oppgaveKlient = nyOppgaveKlient()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -287,6 +281,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprettOppgaveForPersonhendelser - har åpen behandling, adressebeskyttelse - oppretter oppgave`() {
+        val oppgaveKlient = nyOppgaveKlient()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -343,6 +338,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
+        val oppgaveKlient = nyOppgaveKlient()
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
         withMigratedDb { testDataHelper ->
             runBlocking {
@@ -396,6 +392,7 @@ class PersonhendelseJobbTest {
 
     @Test
     fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
+        val oppgaveKlient = nyOppgaveKlient()
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true.right()
         withMigratedDb { testDataHelper ->
             runBlocking {
@@ -447,6 +444,7 @@ class PersonhendelseJobbTest {
     @IsolatedDatabaseTest
     fun `opprettOppgaveForPersonhendelser - jobben plukker kun opp hendelser uten oppgave`() {
         // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
+        val oppgaveKlient = nyOppgaveKlient()
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -511,6 +509,7 @@ class PersonhendelseJobbTest {
     @IsolatedDatabaseTest
     fun `opprydning - jobben plukker kun opp hendelser med oppgave som ikke nylig er sjekket`() {
         // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
+        val oppgaveKlient = nyOppgaveKlient()
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {

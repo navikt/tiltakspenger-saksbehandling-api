@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import arrow.core.Either
-import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.justRun
@@ -15,24 +14,15 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class SendUtbetalingerServiceTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val utbetalingRepo = mockk<UtbetalingRepo>()
-    private val utbetalingsklient = mockk<Utbetalingsklient>()
-    private val statistikkService = mockk<StatistikkService>()
-    private val sendUtbetalingerService =
-        SendUtbetalingerService(utbetalingRepo, utbetalingsklient, statistikkService, fixedClock)
-
-    @BeforeEach
-    fun setup() {
-        clearAllMocks()
-    }
-
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {
+        val utbetalingRepo = mockk<UtbetalingRepo>()
+        val utbetalingsklient = mockk<Utbetalingsklient>()
+        val sendUtbetalingerService =
+            SendUtbetalingerService(utbetalingRepo, utbetalingsklient, mockk<StatistikkService>(), fixedClock)
         val utbetaling = ObjectMother.utbetaling()
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)
@@ -53,6 +43,10 @@ internal class SendUtbetalingerServiceTest {
 
     @Test
     fun `feilrespons fra utbetaling lagres`() = runTest {
+        val utbetalingRepo = mockk<UtbetalingRepo>()
+        val utbetalingsklient = mockk<Utbetalingsklient>()
+        val sendUtbetalingerService =
+            SendUtbetalingerService(utbetalingRepo, utbetalingsklient, mockk<StatistikkService>(), fixedClock)
         val utbetaling = ObjectMother.utbetaling()
 
         every { utbetalingRepo.hentForUtsjekk() } returns listOf(utbetaling)

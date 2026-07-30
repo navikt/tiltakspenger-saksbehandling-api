@@ -16,9 +16,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 
 class MeRouteTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    val texasClient = mockk<TexasClient>()
-
     // language = JSON
     private val saksbehandlerMock =
         """
@@ -32,6 +29,7 @@ class MeRouteTest {
 
     @Test
     fun `get saksbehandler - er saksbehandler med gyldig token - returnerer saksbehandler`() {
+        val texasClient = mockk<TexasClient>()
         coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
             active = true,
             error = null,
@@ -66,6 +64,7 @@ class MeRouteTest {
 
     @Test
     fun `get saksbehandler - utløpt token - returnerer 401`() {
+        val texasClient = mockk<TexasClient>()
         coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
             active = false,
             error = null,
@@ -79,7 +78,7 @@ class MeRouteTest {
             ),
         )
         runTest {
-            withTestApplicationContext {
+            withTestApplicationContext(texasClient = texasClient) {
                 defaultRequestWithAssertions(
                     HttpMethod.GET,
                     SAKSBEHANDLER_PATH,
@@ -91,6 +90,7 @@ class MeRouteTest {
 
     @Test
     fun `get saksbehandler - ugyldig token - returnerer 403`() {
+        val texasClient = mockk<TexasClient>()
         coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
             active = true,
             error = null,

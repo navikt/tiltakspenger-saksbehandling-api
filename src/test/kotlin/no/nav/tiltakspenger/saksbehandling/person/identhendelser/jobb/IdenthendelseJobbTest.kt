@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
@@ -28,31 +27,20 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.Identhend
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 class IdenthendelseJobbTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val kafkaProducer = mockk<Producer<String, String>>()
-    private val identhendelseKafkaProducer = IdenthendelseKafkaProducer(kafkaProducer, "topic")
-
-    @BeforeEach
-    fun clearMockData() {
-        clearMocks(kafkaProducer)
-        coEvery {
-            kafkaProducer.produce(
-                any(),
-                any(),
-                any(),
-            )
-        } just Runs
+    private fun nyKafkaProducer(): Producer<String, String> = mockk<Producer<String, String>>().also {
+        coEvery { it.produce(any(), any(), any()) } just Runs
     }
 
     @Test
     fun `behandleIdenthendelser - hendelsen er ikke behandlet - oppdaterer i database og produserer til kafka`() {
+        val kafkaProducer = nyKafkaProducer()
+        val identhendelseKafkaProducer = IdenthendelseKafkaProducer(kafkaProducer, "topic")
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -141,6 +129,8 @@ class IdenthendelseJobbTest {
 
     @Test
     fun `behandleIdenthendelser - hendelsen er produsert på kafka, ikke oppdatert i db - oppdaterer i database`() {
+        val kafkaProducer = nyKafkaProducer()
+        val identhendelseKafkaProducer = IdenthendelseKafkaProducer(kafkaProducer, "topic")
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -224,6 +214,8 @@ class IdenthendelseJobbTest {
 
     @Test
     fun `behandleIdenthendelser - hendelsen er ferdig behandlet - ignorerer`() {
+        val kafkaProducer = nyKafkaProducer()
+        val identhendelseKafkaProducer = IdenthendelseKafkaProducer(kafkaProducer, "topic")
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
@@ -275,6 +267,8 @@ class IdenthendelseJobbTest {
     @IsolatedDatabaseTest
     fun `behandleIdenthendelser - jobben plukker kun opp hendelser som ikke er ferdig behandlet`() {
         // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
+        val kafkaProducer = nyKafkaProducer()
+        val identhendelseKafkaProducer = IdenthendelseKafkaProducer(kafkaProducer, "topic")
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository

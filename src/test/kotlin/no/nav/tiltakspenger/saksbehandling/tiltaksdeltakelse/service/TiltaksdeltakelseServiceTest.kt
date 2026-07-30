@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -18,34 +17,31 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class TiltaksdeltakelseServiceTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val sakService: SakService = mockk<SakService>()
-    private val personService: PersonService = mockk<PersonService>()
-    private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
-
-    private val tiltaksdeltakelseService: TiltaksdeltakelseService = TiltaksdeltakelseService(
-        sakService,
-        personService,
-        tiltaksdeltakelseKlient,
-    )
-
-    @BeforeEach
-    fun setup() {
-        clearAllMocks()
-    }
-
     @Nested
     inner class HentTiltaksdeltakelserForSak {
         val sak = ObjectMother.nySak()
         val person = ObjectMother.personopplysningKjedeligFyr(fnr = sak.fnr)
 
+        private fun nyTiltaksdeltakelseService(
+            sakService: SakService = mockk<SakService>(),
+            personService: PersonService = mockk<PersonService>(),
+            tiltaksdeltakelseKlient: TiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>(),
+        ) = TiltaksdeltakelseService(
+            sakService,
+            personService,
+            tiltaksdeltakelseKlient,
+        )
+
         @Test
         fun `Får tiltaksdeltakelser som overlapper med periode`() = runTest {
+            val sakService = mockk<SakService>()
+            val personService = mockk<PersonService>()
+            val tiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
+            val tiltaksdeltakelseService = nyTiltaksdeltakelseService(sakService, personService, tiltaksdeltakelseKlient)
             val oppslagsperiode = Periode(
                 fraOgMed = 1.januar(2025),
                 tilOgMed = 31.januar(2025),
@@ -82,6 +78,10 @@ class TiltaksdeltakelseServiceTest {
 
         @Test
         fun `Får tiltaksdeltakelser som delvis overlapper med periode`() = runTest {
+            val sakService = mockk<SakService>()
+            val personService = mockk<PersonService>()
+            val tiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
+            val tiltaksdeltakelseService = nyTiltaksdeltakelseService(sakService, personService, tiltaksdeltakelseKlient)
             val oppslagsperiode = Periode(
                 fraOgMed = 1.januar(2025),
                 tilOgMed = 31.januar(2025),
@@ -129,6 +129,10 @@ class TiltaksdeltakelseServiceTest {
 
         @Test
         fun `Får ikke tiltaksdeltakelser som ikke overlapper med periode`() = runTest {
+            val sakService = mockk<SakService>()
+            val personService = mockk<PersonService>()
+            val tiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
+            val tiltaksdeltakelseService = nyTiltaksdeltakelseService(sakService, personService, tiltaksdeltakelseKlient)
             val oppslagsperiode = Periode(
                 fraOgMed = 1.januar(2025),
                 tilOgMed = 31.januar(2025),
@@ -176,6 +180,7 @@ class TiltaksdeltakelseServiceTest {
 
         @Test
         fun `Feiler hvis oppslagsperiode ikke er satt`() = runTest {
+            val tiltaksdeltakelseService = nyTiltaksdeltakelseService()
             tiltaksdeltakelseService.hentTiltaksdeltakelserForSak(
                 sakId = sak.id,
                 fraOgMed = null,
@@ -200,6 +205,7 @@ class TiltaksdeltakelseServiceTest {
 
         @Test
         fun `Feiler for negativ oppslagsperiode`() = runTest {
+            val tiltaksdeltakelseService = nyTiltaksdeltakelseService()
             tiltaksdeltakelseService.hentTiltaksdeltakelserForSak(
                 sakId = sak.id,
                 fraOgMed = 31.januar(2025),

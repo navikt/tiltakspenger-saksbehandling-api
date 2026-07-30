@@ -26,10 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class TilgangskontrollServiceTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
-    private val sakService = mockk<SakService>()
-    private val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
     private val fnr = Fnr.random()
     private val fnr2 = Fnr.random()
     private val fnrs = listOf(fnr, fnr2)
@@ -56,8 +52,20 @@ class TilgangskontrollServiceTest {
         ),
     )
 
+    private val avvistVurdering = Tilgangsvurdering.Avvist(
+        årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
+        begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
+        metadata = AvvistMetadata(
+            type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
+            navIdent = "Z12345",
+            brukerIdent = fnr.verdi,
+        ),
+    )
+
     @Test
     fun `harTilgangTilPerson - har tilgang - kaster ikke feil`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Godkjent.right()
 
         shouldNotThrow<TilgangException> {
@@ -67,15 +75,9 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPerson - har ikke tilgang - kaster TilgangException`() = runTest {
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Avvist(
-            årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
-            begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-            metadata = AvvistMetadata(
-                type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
-                navIdent = "Z12345",
-                brukerIdent = fnr.verdi,
-            ),
-        ).right()
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns avvistVurdering.right()
 
         shouldThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
@@ -84,6 +86,8 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPerson - generell feil - kaster RuntimeException`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns uventetFeil.left()
 
         shouldThrow<RuntimeException> {
@@ -93,6 +97,9 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSakId - har tilgang - kaster ikke feil`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
         coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Godkjent.right()
 
@@ -103,16 +110,11 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSakId - har ikke tilgang - kaster TilgangException`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
         coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Avvist(
-            årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
-            begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-            metadata = AvvistMetadata(
-                type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
-                navIdent = "Z12345",
-                brukerIdent = fnr.verdi,
-            ),
-        ).right()
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns avvistVurdering.right()
 
         shouldThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, "token")
@@ -121,6 +123,9 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSakId - generell feil - kaster RuntimeException`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
         coEvery { sakService.hentFnrForSakId(sakId) } returns fnr
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns uventetFeil.left()
 
@@ -131,6 +136,8 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSakId - fant ikke sak - kaster TilgangException`() = runTest {
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(mockk<TilgangsmaskinClient>(), sakService)
         coEvery { sakService.hentFnrForSakId(sakId) } throws IkkeFunnetException("Fant ikke sak med sakId $sakId")
 
         shouldThrow<RuntimeException> {
@@ -140,6 +147,9 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSaksnummer - har tilgang - kaster ikke feil`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Godkjent.right()
 
@@ -150,16 +160,11 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSaksnummer - har ikke tilgang - kaster TilgangException`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
-        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Avvist(
-            årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
-            begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
-            metadata = AvvistMetadata(
-                type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
-                navIdent = "Z12345",
-                brukerIdent = fnr.verdi,
-            ),
-        ).right()
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns avvistVurdering.right()
 
         shouldThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPersonForSaksnummer(saksnummer, saksbehandler, "token")
@@ -168,6 +173,9 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSaksnummer - generell feil - kaster RunTimeException`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, sakService)
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } returns fnr
         coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns uventetFeil.left()
 
@@ -178,6 +186,8 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersonForSaksnummer - fant ikke sak - kaster TilgangException`() = runTest {
+        val sakService = mockk<SakService>()
+        val tilgangskontrollService = TilgangskontrollService(mockk<TilgangsmaskinClient>(), sakService)
         coEvery { sakService.hentFnrForSaksnummer(saksnummer) } throws IkkeFunnetException("Fant ikke sak med saksnummer $saksnummer")
 
         shouldThrow<RuntimeException> {
@@ -187,6 +197,8 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersoner - har tilgang til en og ikke tilgang til annen - returnerer riktig map`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
         coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } returns mapOf(
             fnr to true,
             fnr2 to false,
@@ -201,6 +213,8 @@ class TilgangskontrollServiceTest {
 
     @Test
     fun `harTilgangTilPersoner - kaster feil - kaster TilgangException`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
         coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } throws RuntimeException("feilmelding")
 
         shouldThrow<RuntimeException> {

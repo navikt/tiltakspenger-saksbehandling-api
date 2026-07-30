@@ -19,26 +19,32 @@ import java.time.Clock
 import java.time.Instant
 
 class TilgangsmaskinHttpClientTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val texasClient = mockk<TexasClient>()
-    private val fakeTransport = FakeHttpTransport()
-    private val client = TilgangsmaskinHttpClient(
+
+    private fun nyClient(
+        texasClient: TexasClient,
+        transport: FakeHttpTransport,
+    ) = TilgangsmaskinHttpClient(
         baseUrl = "https://tilgangsmaskin.test",
         scope = "scope",
         texasClient = texasClient,
         clock = Clock.systemUTC(),
-        transport = fakeTransport,
+        transport = transport,
     )
 
-    @Test
-    fun `harTilgangTilPerson returns godkjent for 204`() = runTest {
+    private fun texasClientMedOboVeksling(): TexasClient = mockk<TexasClient>().also {
         coEvery {
-            texasClient.exchangeToken(
+            it.exchangeToken(
                 userToken = "token",
                 audienceTarget = "scope",
                 identityProvider = IdentityProvider.AZUREAD,
             )
         } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+    }
+
+    @Test
+    fun `harTilgangTilPerson returns godkjent for 204`() = runTest {
+        val fakeTransport = FakeHttpTransport()
+        val client = nyClient(texasClientMedOboVeksling(), fakeTransport)
         fakeTransport.leggIKøTomRespons(statusCode = 204)
 
         val result = client.harTilgangTilPerson(Fnr.fromString("01010199999"), "token")
@@ -48,13 +54,8 @@ class TilgangsmaskinHttpClientTest {
 
     @Test
     fun `harTilgangTilPerson returns avvist vurdering for 403`() = runTest {
-        coEvery {
-            texasClient.exchangeToken(
-                userToken = "token",
-                audienceTarget = "scope",
-                identityProvider = IdentityProvider.AZUREAD,
-            )
-        } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+        val fakeTransport = FakeHttpTransport()
+        val client = nyClient(texasClientMedOboVeksling(), fakeTransport)
         fakeTransport.leggIKøJson(
             json = """
                 {
@@ -85,13 +86,8 @@ class TilgangsmaskinHttpClientTest {
 
     @Test
     fun `harTilgangTilPersoner returns bulk response for 207`() = runTest {
-        coEvery {
-            texasClient.exchangeToken(
-                userToken = "token",
-                audienceTarget = "scope",
-                identityProvider = IdentityProvider.AZUREAD,
-            )
-        } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+        val fakeTransport = FakeHttpTransport()
+        val client = nyClient(texasClientMedOboVeksling(), fakeTransport)
         fakeTransport.leggIKøJson(
             TilgangBulkResponseDto(
                 resultater = listOf(
@@ -113,13 +109,8 @@ class TilgangsmaskinHttpClientTest {
 
     @Test
     fun `harTilgangTilPerson gir Uventet for ukjent avvisningstype`() = runTest {
-        coEvery {
-            texasClient.exchangeToken(
-                userToken = "token",
-                audienceTarget = "scope",
-                identityProvider = IdentityProvider.AZUREAD,
-            )
-        } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+        val fakeTransport = FakeHttpTransport()
+        val client = nyClient(texasClientMedOboVeksling(), fakeTransport)
         fakeTransport.leggIKøJson(
             json = """
                 {
@@ -142,13 +133,8 @@ class TilgangsmaskinHttpClientTest {
 
     @Test
     fun `harTilgangTilPerson gir Uventet for andre feilstatuser`() = runTest {
-        coEvery {
-            texasClient.exchangeToken(
-                userToken = "token",
-                audienceTarget = "scope",
-                identityProvider = IdentityProvider.AZUREAD,
-            )
-        } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+        val fakeTransport = FakeHttpTransport()
+        val client = nyClient(texasClientMedOboVeksling(), fakeTransport)
         fakeTransport.leggIKøStatus(statusCode = 500, body = "intern serverfeil", contentType = "text/plain")
 
         val result = client.harTilgangTilPerson(Fnr.fromString("01010199999"), "token")
@@ -161,13 +147,14 @@ class TilgangsmaskinHttpClientTest {
         TilgangsmaskinHttpClient(
             baseUrl = "https://tilgangsmaskin.test",
             scope = "scope",
-            texasClient = texasClient,
+            texasClient = mockk<TexasClient>(),
             clock = Clock.systemUTC(),
         )
     }
 
     @Test
     fun `harTilgangTilPerson gir Uventet når token-exchange feiler`() = runTest {
+        val texasClient = mockk<TexasClient>()
         coEvery {
             texasClient.exchangeToken(
                 userToken = "token",
@@ -175,6 +162,7 @@ class TilgangsmaskinHttpClientTest {
                 identityProvider = IdentityProvider.AZUREAD,
             )
         } throws RuntimeException("boom")
+        val client = nyClient(texasClient, FakeHttpTransport())
 
         val result = client.harTilgangTilPerson(Fnr.fromString("01010199999"), "token")
 
@@ -184,13 +172,8 @@ class TilgangsmaskinHttpClientTest {
 
     @Test
     fun `harTilgangTilPersoner gir ForMangeIdenter for 413`() = runTest {
-        coEvery {
-            texasClient.exchangeToken(
-                userToken = "token",
-                audienceTarget = "scope",
-                identityProvider = IdentityProvider.AZUREAD,
-            )
-        } returns AccessToken("obo-token", Instant.parse("2026-01-01T00:00:00Z"))
+        val fakeTransport = FakeHttpTransport()
+        val client = nyClient(texasClientMedOboVeksling(), fakeTransport)
         fakeTransport.leggIKøStatus(statusCode = 413, body = "For mange identer", contentType = "text/plain")
 
         val result = client.harTilgangTilPersoner(listOf(Fnr.fromString("01010199999")), "token")

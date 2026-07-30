@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -28,23 +27,16 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysni
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 
 class PersonhendelseServiceTest {
-    // TODO: Klassedelte mocks deler tilstand mellom testmetodene og krever same_thread-kjøring, flytt dem inn i testmetodene (#1740).
-    private val personKlient = mockk<PersonKlient>()
-
-    @BeforeEach
-    fun clearMockData() {
-        clearMocks(personKlient)
-    }
 
     @Test
     fun `behandlePersonhendelse - finnes ingen sak - ignorerer`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -68,6 +60,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - dødsfall, finnes sak - lagrer`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -113,6 +106,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - forelderbarnrelasjon, skal ikke behandles`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -149,6 +143,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, adressebeskyttet i PDL - oppdaterer og lagrer`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -221,6 +216,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, ikke adressebeskyttet i PDL - oppdaterer ikke`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -284,6 +280,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - ukjent opplysningstype, finnes sak - ignorerer`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -319,6 +316,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - DOEDSFALL_V1 men doedsfall-felt er null - ignorerer`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -355,6 +353,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse med gradering FORTROLIG - ignorerer`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -391,6 +390,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - ingen av personidentene matcher en sak - ignorerer`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
@@ -428,6 +428,7 @@ class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - samme hendelse mottatt to ganger - lagrer kun første`() {
+        val personKlient = mockk<PersonKlient>()
         withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
