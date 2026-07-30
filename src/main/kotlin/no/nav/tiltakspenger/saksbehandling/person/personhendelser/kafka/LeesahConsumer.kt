@@ -4,11 +4,10 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.person.pdl.leesah.Personhendelse
-import no.nav.tiltakspenger.libs.kafka.Consumer
-import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
-import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.Consumer
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
@@ -36,18 +35,21 @@ class LeesahConsumer(
     private val personhendelseService: PersonhendelseService,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
+    avroKafkaConfig: AvroKafkaConfig = if (Configuration.isNais()) {
+        AvroKafkaConfig.fraNaisEnv(autoOffsetReset = "none")
+    } else {
+        AvroKafkaConfig(kafkaConfig = KafkaConfig(kafkaBrokers = "localhost:9092"), schemaRegistryUrl = "mock://test")
+    },
     log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, Personhendelse> {
 
     private val consumer = ManagedKafkaConsumer(
         kanLoggeKey = false,
         topic = topic,
-        config = kafkaConfig.avroConsumerConfig(
+        config = avroKafkaConfig.avroConsumerConfig(
             keyDeserializer = StringDeserializer(),
             valueDeserializer = KafkaAvroDeserializer(),
             groupId = groupId,
-            useSpecificAvroReader = true,
         ) + mapOf(
             // Override lib-default på 1.
             // Lib-default er konservativ for at en feilende record skal gi minimal re-prosessering, men ManagedKafkaConsumer commit-er uansett ikke før hele batchen er ok, så vi mister ingen at-least-once-garantier ved å øke.

@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.kafka.Producer
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.Producer
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
@@ -295,7 +295,7 @@ open class ApplicationContext(
 
     open val identhendelseKafkaProducer by lazy {
         IdenthendelseKafkaProducer(
-            kafkaProducer = Producer(KafkaConfigImpl()),
+            kafkaProducer = Producer(producerConfig = KafkaConfig.fraNaisEnv().producerConfig()),
             topic = Configuration.identhendelseTopic,
         )
     }
@@ -527,7 +527,7 @@ open class ApplicationContext(
     open val tilbakekrevingProducer: TilbakekrevingProducer by lazy {
         TilbakekrevingKafkaProducer(
             topic = Configuration.tilbakekrevingTopic,
-            kafkaProducer = Producer(KafkaConfigImpl()),
+            kafkaProducer = Producer(producerConfig = KafkaConfig.fraNaisEnv().producerConfig()),
         )
     }
 
