@@ -1,11 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.ports
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
 
 interface RammebehandlingRepo {
@@ -24,8 +22,6 @@ interface RammebehandlingRepo {
         behandlingId: RammebehandlingId,
         sessionContext: SessionContext? = null,
     ): Rammebehandling
-
-    fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling>
 
     fun hentBehandlingerTilDatadeling(limit: Int = 10): List<Rammebehandling>
 

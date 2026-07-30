@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.journalføring.infra.repo
 
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
-import java.time.LocalDateTime
 
 private data class JournalførBrevMetadataDbJson(
     val requestBody: String,

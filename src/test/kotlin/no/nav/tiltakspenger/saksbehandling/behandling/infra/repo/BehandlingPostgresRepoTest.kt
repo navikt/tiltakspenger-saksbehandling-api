@@ -121,19 +121,6 @@ internal class BehandlingPostgresRepoTest {
     }
 
     @Test
-    fun `hentAlleForIdent skal kun hente behandlinger for en ident og ikke de andre`() {
-        withMigratedDb { testDataHelper ->
-            val behandlingRepo = testDataHelper.behandlingRepo
-
-            val (sak1, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
-            val (sak2, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
-
-            behandlingRepo.hentAlleForFnr(sak1.fnr) shouldBe sak1.rammebehandlinger
-            behandlingRepo.hentAlleForFnr(sak2.fnr) shouldBe sak2.rammebehandlinger
-        }
-    }
-
-    @Test
     fun `en saksbehandler kan ta behandling`() {
         withMigratedDb { testDataHelper ->
             val behandlingRepo = testDataHelper.behandlingRepo

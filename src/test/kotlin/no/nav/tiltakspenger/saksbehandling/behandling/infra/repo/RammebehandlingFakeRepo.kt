@@ -3,7 +3,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
@@ -41,8 +40,6 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
     ): Rammebehandling {
         return data.get()[behandlingId]!!
     }
-
-    override fun hentAlleForFnr(fnr: Fnr): List<Rammebehandling> = data.get().values.filter { it.fnr == fnr }
 
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Rammebehandling> {
         return data.get().values.filter {

@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface MeldekortvedtakMother : MotherOfAllMothers {

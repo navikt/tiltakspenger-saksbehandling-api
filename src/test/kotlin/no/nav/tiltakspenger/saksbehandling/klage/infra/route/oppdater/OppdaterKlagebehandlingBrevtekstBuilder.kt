@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
 import arrow.core.Tuple4
-import io.kotest.assertions.json.shouldEqualJson
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString

@@ -139,6 +139,9 @@ spotless {
             .editorConfigOverride(
                 mapOf(
                     "ktlint_standard_max-line-length" to "off",
+                    // Fjerner ubrukte importer automatisk i spotlessApply, og feiler i spotlessCheck.
+                    // Eksplisitt aktivert fordi default code style (intellij_idea) deaktiverer den.
+                    "ktlint_standard_no-unused-imports" to "enabled",
                     "ktlint_standard_function-signature" to "disabled",
                     "ktlint_standard_function-expression-body" to "disabled",
                     // Krev blank linje før topp-deklarasjoner (bl.a. etter siste import).

@@ -3,8 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
-import arrow.core.toNonEmptyListOrNull
-import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
@@ -34,7 +32,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
-import kotlin.math.abs
 import kotlin.math.max
 
 interface SimuleringMother {

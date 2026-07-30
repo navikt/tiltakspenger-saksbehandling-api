@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder
 
 import arrow.core.Tuple5
-import io.kotest.assertions.json.shouldEqualJson
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
