@@ -203,7 +203,7 @@ fun Sak.opprettManuellMeldekortbehandling(
     klagebehandlingId: KlagebehandlingId?,
     clock: Clock,
 ): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, MeldekortUnderBehandling>> {
-    validerOpprettManuellMeldekortbehandling(kjedeId).onLeft {
+    validerOpprettManuellMeldekortbehandling().onLeft {
         return KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil(it).left()
     }
 

@@ -766,4 +766,81 @@ class AutomatiskMeldekortbehandlingJobbTest {
             }
         }
     }
+
+    @Test
+    fun `skal ikke behandle automatisk på andre kjede dersom første kjede med rett ikke er behandlet`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder[1].hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
+                    it.behandlesAutomatisk shouldBe true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk på tredje kjede dersom bare første kjede er behandlet`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val førsteMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                )
+                brukersMeldekortRepo.lagre(førsteMeldekort)
+
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
+
+                val tredjeMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder[2].hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(tredjeMeldekort)
+
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.size shouldBe 1
+
+                brukersMeldekortRepo.hentForMeldekortId(tredjeMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
+                    it.behandlesAutomatisk shouldBe true
+                }
+            }
+        }
+    }
 }

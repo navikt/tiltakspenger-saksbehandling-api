@@ -7,8 +7,12 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-fun Sak.validerOpprettManuellMeldekortbehandling(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
-    return validerOpprettBehandlingPåKjede(kjedeId)
+fun Sak.validerOpprettManuellMeldekortbehandling(): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
+    if (this.meldekortbehandlinger.harÅpenBehandling) {
+        return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
+    }
+
+    return Unit.right()
 }
 
 fun Sak.validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
@@ -64,22 +68,6 @@ private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersM
         return MeldekortBehandletAutomatiskStatus.ER_UNDER_REVURDERING.left()
     }
 
-    validerOpprettBehandlingPåKjede(kjedeId).onLeft {
-        return when (it) {
-            ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING -> MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
-            ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE
-            ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE -> MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
-        }.left()
-    }
-
-    return Unit.right()
-}
-
-private fun Sak.validerOpprettBehandlingPåKjede(kjedeId: MeldeperiodeKjedeId): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
-    if (this.meldekortbehandlinger.harÅpenBehandling) {
-        return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
-    }
-
     val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
 
     val erFørsteBehandlingPåSaken = this.meldekortbehandlinger.isEmpty()
@@ -88,13 +76,17 @@ private fun Sak.validerOpprettBehandlingPåKjede(kjedeId: MeldeperiodeKjedeId): 
         ?.hentSisteMeldeperiode()
 
     if (erFørsteBehandlingPåSaken && førsteMeldeperiodeMedRettPåSaken != null && !meldeperiode.ingenDagerGirRett && førsteMeldeperiodeMedRettPåSaken != meldeperiode) {
-        return ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE.left()
+        return MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_FØRSTE_KJEDE.left()
     }
 
     this.meldeperiodeKjeder.hentForegåendeMeldeperiodekjedeMedRett(kjedeId)?.also { foregåendeMeldeperiodekjede ->
         if (!kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(foregåendeMeldeperiodekjede.kjedeId)) {
-            return ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE.left()
+            return MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE.left()
         }
+    }
+
+    if (this.meldekortbehandlinger.harÅpenBehandling) {
+        return MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING.left()
     }
 
     return Unit.right()
@@ -117,6 +109,4 @@ private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: Meldep
 
 enum class ValiderOpprettMeldekortbehandlingFeil {
     HAR_ÅPEN_BEHANDLING,
-    MÅ_BEHANDLE_FØRSTE_KJEDE,
-    MÅ_BEHANDLE_NESTE_KJEDE,
 }

@@ -10,8 +10,6 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_FØRSTE_KJEDE
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.MÅ_BEHANDLE_NESTE_KJEDE
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil
@@ -105,50 +103,6 @@ class OpprettMeldekortbehandlingServiceTest {
             meldekortbehandling.harKorrigering shouldBe true
             oppdatertSak.meldekortbehandlinger.size shouldBe 2
             oppdatertSak.meldekortbehandlinger.last() shouldBe meldekortbehandling
-        }
-    }
-
-    @Test
-    fun `Skal ikke kunne opprette behandling på andre kjede dersom første kjede med rett ikke er behandlet`() {
-        withTestApplicationContext { tac ->
-            val (sak) = iverksettSøknadsbehandling(
-                tac = tac,
-                innvilgelsesperioder = innvilgelsesperioderTotal,
-            )
-
-            tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
-                    sakId = sak.id,
-                    kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
-                    saksbehandler = saksbehandler(),
-                    klagebehandlingId = null,
-                ),
-            ) shouldBe ValiderOpprettFeil(MÅ_BEHANDLE_FØRSTE_KJEDE).left()
-        }
-    }
-
-    @Test
-    fun `Skal ikke kunne opprette behandling på tredje kjede dersom bare første kjede er behandlet`() {
-        val clock = TikkendeKlokke(fixedClockAt(3.mars(2025)))
-        withTestApplicationContext(clock = clock) { tac ->
-            val (sak) = iverksettSøknadsbehandling(
-                tac = tac,
-                innvilgelsesperioder = innvilgelsesperioderTotal,
-            )
-
-            tac.meldekortbehandlingIverksatt(
-                sakId = sak.id,
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
-            )
-
-            tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
-                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
-                    sakId = sak.id,
-                    kjedeId = sak.meldeperiodeKjeder[2].kjedeId,
-                    saksbehandler = saksbehandler(),
-                    klagebehandlingId = null,
-                ),
-            ) shouldBe ValiderOpprettFeil(MÅ_BEHANDLE_NESTE_KJEDE).left()
         }
     }
 

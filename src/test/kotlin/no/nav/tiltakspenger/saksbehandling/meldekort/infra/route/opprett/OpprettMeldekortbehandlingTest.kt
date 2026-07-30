@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.opprett
 
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
@@ -99,25 +98,22 @@ class OpprettMeldekortbehandlingTest {
     }
 
     @Test
-    fun `kan ikke opprette meldekortbehandling på senere kjede før første kjede er behandlet`() {
+    fun `kan opprette meldekortbehandling på senere kjede før første kjede er behandlet`() {
         withTestApplicationContext { tac ->
             val (sak, _, _) = this.iverksettSøknadsbehandling(
                 tac = tac,
                 innvilgelsesperioder = innvilgelsesperioder(1 til 31.januar(2025)),
             )
             sak.meldeperiodeKjeder.size shouldBe 3
-            val andreKjedeId = sak.meldeperiodeKjeder[1].kjedeId
+            val andreKjede = sak.meldeperiodeKjeder[1]
 
-            opprettMeldekortbehandlingForSakId(
+            val (oppdatertSak) = opprettMeldekortbehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
-                kjedeId = andreKjedeId,
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
-                medJsonBody = { it harKode "MÅ_BEHANDLE_FØRSTE_KJEDE" },
-            )
+                kjedeId = andreKjede.kjedeId,
+            )!!
 
-            val sakEtter = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            sakEtter.meldekortbehandlinger.shouldBeEmpty()
+            oppdatertSak.meldekortbehandlinger.single().kjedeIder.single() shouldBe andreKjede.kjedeId
         }
     }
 
