@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.service
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -13,12 +14,16 @@ import org.junit.jupiter.api.Test
  * Vedtaket er fattet i det saksbehandler iverksetter, så en feilet utbetaling skal ikke holde brevet tilbake.
  * Bruker har krav på vedtaket sitt, og klagefristen løper.
  * Avviket varsles i stedet via metrikk og errorlogg, se [no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisUtbetalingHarFeilet].
+ *
+ * Testen kjører isolert fordi `oppdaterUtbetalingsstatus`-jobben sveiper over alle utbetalinger i skjemaet, ikke bare denne sakens.
+ * Deler vi skjema med andre route-tester, vil deres jobb hente statusen vår fra deres [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient] og overskrive den med `Ok`.
  */
 class JournalførMeldekortvedtakMedFeiletUtbetalingTest {
 
     @Test
+    @IsolatedDatabaseTest
     fun `journalfører meldekortvedtak selv om utbetalingen har feilet mot oppdrag`() {
-        withTestApplicationContextAndPostgres { tac ->
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             tac.utbetalingFakeKlient.utbetalingsstatus = Utbetalingsstatus.FeiletMotOppdrag
 
             val (sak) = iverksettSøknadsbehandling(tac = tac)
