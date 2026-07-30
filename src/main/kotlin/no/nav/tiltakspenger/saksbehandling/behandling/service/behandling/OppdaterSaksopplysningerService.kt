@@ -13,11 +13,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import java.time.Clock
 
 class OppdaterSaksopplysningerService(
     private val sakService: SakService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val hentSaksopplysingerService: HentSaksopplysingerService,
+    private val clock: Clock,
 ) {
     suspend fun oppdaterSaksopplysninger(
         sakId: SakId,
@@ -44,7 +46,7 @@ class OppdaterSaksopplysningerService(
             behandlingId = behandling.id,
         )
 
-        return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger).map {
+        return behandling.oppdaterSaksopplysninger(saksbehandler, oppdaterteSaksopplysninger, clock).map {
             val oppdatertSak = sak.oppdaterRammebehandling(it)
 
             rammebehandlingRepo.lagre(it)

@@ -132,6 +132,7 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
             hentSaksopplysingerService = hentSaksopplysingerService,
+            clock = clock,
         )
     }
     val iverksettRammebehandlingService by lazy {

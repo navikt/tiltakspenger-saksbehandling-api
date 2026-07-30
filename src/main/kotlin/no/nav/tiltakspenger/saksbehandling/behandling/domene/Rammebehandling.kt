@@ -512,6 +512,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     fun oppdaterSaksopplysninger(
         saksbehandler: Saksbehandler,
         nyeSaksopplysninger: Saksopplysninger,
+        clock: Clock,
     ): Either<KunneIkkeOppdatereSaksopplysninger, Rammebehandling> {
         return validerKanOppdatere(saksbehandler).mapLeft {
             KunneIkkeOppdatereSaksopplysninger.KunneIkkeOppdatereBehandling(it)
@@ -522,6 +523,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     resultat = this.resultat?.oppdaterSaksopplysninger(nyeSaksopplysninger)?.getOrElse {
                         return it.left()
                     },
+                    sistEndret = nå(clock),
                 )
 
                 is Revurdering -> this.copy(
@@ -529,6 +531,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                     resultat = this.resultat.oppdaterSaksopplysninger(nyeSaksopplysninger).getOrElse {
                         return it.left()
                     },
+                    sistEndret = nå(clock),
                 )
             }
         }
@@ -705,5 +708,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Rammebehandling
 
+    /**
+     * Propagerer en endret klagebehandling gjennom aggregatet.
+     *
+     * Bumper bevisst ikke [sistEndret]: rammebehandlingens egen tilstand er uendret, det er klagebehandlingen som er endret.
+     * Alle andre operasjoner som endrer rammebehandlingen skal oppdatere [sistEndret].
+     */
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Rammebehandling
 }

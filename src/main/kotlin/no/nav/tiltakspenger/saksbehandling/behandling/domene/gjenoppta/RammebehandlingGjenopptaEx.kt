@@ -143,7 +143,11 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
         )
     }
     return if (hentSaksopplysninger != null) {
-        oppdatertRammebehandling.oppdaterSaksopplysninger(kommando.saksbehandler, hentSaksopplysninger())
+        oppdatertRammebehandling.oppdaterSaksopplysninger(
+            saksbehandler = kommando.saksbehandler,
+            nyeSaksopplysninger = hentSaksopplysninger(),
+            clock = clock,
+        )
     } else {
         oppdatertRammebehandling.right()
     }.map {

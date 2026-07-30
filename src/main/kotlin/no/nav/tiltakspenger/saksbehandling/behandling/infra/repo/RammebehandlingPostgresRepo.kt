@@ -39,12 +39,10 @@ class RammebehandlingPostgresRepo(
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { transactionalSession ->
-            val sistEndret = hentSistEndret(behandling.id, transactionalSession)
-
-            if (sistEndret == null) {
-                opprettRammebehandling(behandling, transactionalSession)
+            if (finnes(behandling.id, transactionalSession)) {
+                oppdaterRammebehandling(behandling, transactionalSession)
             } else {
-                oppdaterRammebehandling(sistEndret, behandling, transactionalSession)
+                opprettRammebehandling(behandling, transactionalSession)
             }
             if (behandling.klagebehandling != null) {
                 KlagebehandlingPostgresRepo.lagreKlagebehandling(
@@ -214,13 +212,12 @@ class RammebehandlingPostgresRepo(
                 .let { Rammebehandlinger(it) }
 
         private fun oppdaterRammebehandling(
-            sistEndret: LocalDateTime,
             behandling: Rammebehandling,
             session: Session,
         ) {
             log.info { "Oppdaterer behandling ${behandling.id} ${behandling.behandlingstype}" }
 
-            val antRaderOppdatert = session.run(
+            session.run(
                 queryOf(
                     """
                     update behandling set
@@ -260,16 +257,11 @@ class RammebehandlingPostgresRepo(
                         klagebehandling_id = :klagebehandling_id,
                         automatisk_opprettet_grunn = to_jsonb(:automatisk_opprettet_grunn::jsonb),
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
-                    where id = :id and sist_endret = :sist_endret_old
+                    where id = :id
                     """.trimIndent(),
-                    behandling.tilDbParams()
-                        .plus("sist_endret_old" to sistEndret),
+                    behandling.tilDbParams(),
                 ).asUpdate,
             )
-
-            if (antRaderOppdatert == 0) {
-                throw IllegalStateException("Noen andre har endret denne behandlingen ${behandling.id}")
-            }
         }
 
         private fun opprettRammebehandling(
@@ -368,18 +360,19 @@ class RammebehandlingPostgresRepo(
             )
         }
 
-        private fun hentSistEndret(
+        /** Avgjør om [lagre] skal gjøre en insert eller en update. */
+        private fun finnes(
             behandlingId: RammebehandlingId,
             session: Session,
-        ): LocalDateTime? =
+        ): Boolean =
             session.run(
                 queryOf(
-                    "select sist_endret from behandling where id = :id",
+                    "select exists(select 1 from behandling where id = :id)",
                     mapOf(
                         "id" to behandlingId.toString(),
                     ),
-                ).map { it.localDateTime("sist_endret") }.asSingle,
-            )
+                ).map { it.boolean(1) }.asSingle,
+            ) ?: false
     }
 
     /** Siden dette er på tvers av saker, gir det ikke mening og bruke [Rammebehandlinger] */
