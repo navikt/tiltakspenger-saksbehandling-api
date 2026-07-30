@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorRandom
+import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
@@ -114,6 +115,8 @@ class LocalApplicationContext(
         realPdfGen ?: GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
+    private val journalførFakeKlagevedtaksbrevKlient =
+        JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGenerator)
     private val dokumentdistribusjonsklientFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
     private val tilgangsmaskinFakeClient = TilgangsmaskinFakeLokalClient()
@@ -161,8 +164,10 @@ class LocalApplicationContext(
 
     override val dokumentContext by lazy {
         object : DokumentContext(texasClient, clock) {
+            override val dokumentdistribusjonsklient = dokumentdistribusjonsklientFakeKlient
             override val journalførMeldekortKlient = journalførFakeMeldekortKlient
             override val journalførRammevedtaksbrevKlient = journalførFakeRammevedtaksbrevKlient
+            override val journalførKlagevedtaksbrevKlient = journalførFakeKlagevedtaksbrevKlient
             override val genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient
             override val genererVedtaksbrevForInnvilgelseKlient =
                 this@LocalApplicationContext.genererFakeVedtaksbrevForInnvilgelseKlient

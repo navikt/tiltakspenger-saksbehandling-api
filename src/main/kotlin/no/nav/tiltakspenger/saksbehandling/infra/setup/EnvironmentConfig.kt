@@ -6,6 +6,14 @@ enum class Profile {
     PROD,
 }
 
+/**
+ *  Benyttes kun dersom appen kjører lokalt med "prod-main" i App.kt.
+ *  Ved kjøring via LokalMain.kt vil normalt fake-klienter benyttes istedenfor å kalle disse url'ene
+ *
+ *  Wiremock kan kjøres opp via docker-compose i meta-repoet
+ * */
+private const val WIREMOCK_URL = "http://host.docker.internal:8091"
+
 sealed interface EnvironmentConfig {
     val profile: Profile
     val httpPort: Int
@@ -105,28 +113,28 @@ data object LocalConfig : EnvironmentConfig {
     override val tokenExchangeEndpoint = "http://localhost:7165/api/v1/token/exchange"
 
     override val pdlScope = "localhost"
-    override val pdlUrl = "http://host.docker.internal:8091/graphql"
+    override val pdlUrl = "$WIREMOCK_URL/graphql"
 
     override val skjermingScope = "localhost"
-    override val skjermingUrl = "http://host.docker.internal:8091"
+    override val skjermingUrl = WIREMOCK_URL
 
     override val tiltakScope = "localhost"
-    override val tiltakUrl = "http://host.docker.internal:8091"
+    override val tiltakUrl = WIREMOCK_URL
 
     override val utbetalingScope = "localhost"
-    override val utbetalingUrl = "http://host.docker.internal:8091"
+    override val utbetalingUrl = WIREMOCK_URL
 
     override val dokarkivScope = "localhost"
-    override val dokarkivUrl = "http://host.docker.internal:8091"
+    override val dokarkivUrl = WIREMOCK_URL
 
     override val dokdistScope = "localhost"
-    override val dokdistUrl = "http://host.docker.internal:8091"
+    override val dokdistUrl = WIREMOCK_URL
 
     override val pdfgenUrl = "http://host.docker.internal:8081"
     override val pdfgenrsUrl = "http://host.docker.internal:8084"
 
     override val microsoftScope = "localhost"
-    override val microsoftUrl = "host.docker.internal:8091"
+    override val microsoftUrl = WIREMOCK_URL.replaceFirst("http://", "")
 
     override val datadelingScope = "localhost"
     override val datadelingUrl = "http://host.docker.internal:8082"
@@ -135,28 +143,28 @@ data object LocalConfig : EnvironmentConfig {
     override val meldekortApiUrl = "http://localhost:8083"
 
     override val aoKontorScope = "localhost"
-    override val aoKontorUrl = "http://host.docker.internal:8091"
+    override val aoKontorUrl = WIREMOCK_URL
 
     override val veilarboppfolgingScope = "localhost"
-    override val veilarboppfolgingUrl = "http://host.docker.internal:8091"
+    override val veilarboppfolgingUrl = WIREMOCK_URL
 
     override val oppgaveScope = "localhost"
-    override val oppgaveUrl = "http://host.docker.internal:8091"
+    override val oppgaveUrl = WIREMOCK_URL
 
     override val sokosUtbetaldataScope = "localhost"
-    override val sokosUtbetaldataUrl = "http://host.docker.internal:8091"
+    override val sokosUtbetaldataUrl = WIREMOCK_URL
 
-    override val tilgangsmaskinenUrl = "http://host.docker.internal:8091"
+    override val tilgangsmaskinenUrl = WIREMOCK_URL
     override val tilgangsmaskinenScope = "localhost"
 
-    override val tiltakspengerArenaUrl = "http://host.docker.internal:8091"
+    override val tiltakspengerArenaUrl = WIREMOCK_URL
     override val tiltakspengerArenaScope = "localhost"
 
-    override val safUrl = "http://host.docker.internal:8091"
+    override val safUrl = WIREMOCK_URL
     override val safScope = "localhost"
 
     override val kabalScope = "localhost"
-    override val kabalUrl = "http://host.docker.internal:8091"
+    override val kabalUrl = WIREMOCK_URL
 
     override val arenaTiltaksdeltakerTopic = "arena.tiltaksdeltaker"
     override val kometTiltaksdeltakerTopic = "komet.tiltaksdeltaker"
