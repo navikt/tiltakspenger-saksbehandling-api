@@ -50,7 +50,7 @@ fun Sak.toMeldeperiodeKjedeStatusDTO(
 
     val meldeperiode = this.hentSisteMeldeperiodeForKjede(kjedeId)
 
-    if (meldeperiode.girIngenDagerRett()) {
+    if (meldeperiode.ingenDagerGirRett) {
         return MeldeperiodeKjedeStatusDTO.IKKE_RETT_TIL_TILTAKSPENGER
     }
 

@@ -72,7 +72,7 @@ fun Sak.tilMeldeperiodeKjedeDTOV2(kjedeId: MeldeperiodeKjedeId, clock: Clock): M
         gjeldendeBeregning = meldeperiodeBeregninger
             .hentSisteForKjedeId(kjedeId)
             ?.tilMeldeperiodeBeregningDTO(),
-        kanBehandles = sisteMeldeperiode.erKlarTilUtfylling(clock),
+        kanBehandles = sisteMeldeperiode.kanBehandles(clock) || (brukersMeldekort.isNotEmpty() && !harBehandletSiste),
     )
 }
 

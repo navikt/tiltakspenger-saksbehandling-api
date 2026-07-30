@@ -31,16 +31,16 @@ data class Meldeperiode(
     val antallDagerSomGirRett = girRett.values.count { it }
     val ingenDagerGirRett = antallDagerSomGirRett == 0
 
-    fun girIngenDagerRett(): Boolean {
-        return girRett.values.toList().all { !it }
-    }
-
     /**
      *  Saksbehandler kan fylle ut meldekortet når meldeperioden har begynt.
      *  For bruker har vi en annen logikk.
      * */
     fun erKlarTilUtfylling(clock: Clock): Boolean {
         return periode.fraOgMed <= LocalDate.now(clock)
+    }
+
+    fun kanBehandles(clock: Clock): Boolean {
+        return erKlarTilUtfylling(clock) && !ingenDagerGirRett
     }
 
     fun erLik(meldeperiode: Meldeperiode): Boolean {
