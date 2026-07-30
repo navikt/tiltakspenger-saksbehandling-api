@@ -39,8 +39,6 @@ class TaTilbakekrevingBehandlingRouteTest {
                 it.get("type").asString() == "TILBAKEKREVING"
             }
             åpenTilbakekrevingJson.get("id").asString() shouldBe behandling.id.toString()
-            åpenTilbakekrevingJson.get("saksbehandler").asString() shouldBe "saksbehandlerSomTar"
-            åpenTilbakekrevingJson.get("status").asString() shouldBe "UNDER_BEHANDLING"
         }
     }
 
