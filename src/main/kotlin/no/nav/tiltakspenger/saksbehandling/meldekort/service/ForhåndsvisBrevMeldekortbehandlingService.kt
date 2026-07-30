@@ -30,7 +30,6 @@ class ForhåndsvisBrevMeldekortbehandlingService(
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val navIdentClient: NavIdentClient,
     val clock: Clock,
-    val brukMeldekortvedtakBrevV2: Boolean,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -79,48 +78,30 @@ class ForhåndsvisBrevMeldekortbehandlingService(
             sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
         }
 
-        return if (brukMeldekortvedtakBrevV2) {
-            genererBrevClient.genererMeldekortvedtakBrevV2(
-                kommando = GenererMeldekortvedtakBrevKommando(
-                    sakId = meldekortbehandling.sakId,
-                    saksnummer = meldekortbehandling.saksnummer,
-                    fnr = meldekortbehandling.fnr,
-                    saksbehandler = meldekortbehandling.saksbehandler,
-                    beslutter = meldekortbehandling.beslutter,
-                    meldekortbehandlingId = meldekortbehandling.id,
-                    beregningsperiode = beregningsperiode,
-                    tiltaksdeltakelser = tiltaksdeltakelser,
-                    iverksattTidspunkt = null,
-                    erKorrigering = meldekortbehandling.harKorrigering,
-                    beregninger = nåværendeBeregningMedTidligereBeregning,
-                    totaltBeløp = beregning.sumOf { it.totalBeløp },
-                    tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
-                    forhåndsvisning = true,
-                ),
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+        return genererBrevClient.genererMeldekortvedtakBrevV2(
+            kommando = GenererMeldekortvedtakBrevKommando(
+                sakId = meldekortbehandling.sakId,
+                saksnummer = meldekortbehandling.saksnummer,
+                fnr = meldekortbehandling.fnr,
+                saksbehandler = meldekortbehandling.saksbehandler,
+                beslutter = meldekortbehandling.beslutter,
+                meldekortbehandlingId = meldekortbehandling.id,
+                beregningsperiode = beregningsperiode,
+                tiltaksdeltakelser = tiltaksdeltakelser,
+                iverksattTidspunkt = null,
+                erKorrigering = meldekortbehandling.harKorrigering,
+                beregninger = nåværendeBeregningMedTidligereBeregning,
+                totaltBeløp = beregning.sumOf { it.totalBeløp },
+                tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
+                forhåndsvisning = true,
+            ),
+            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+        ).mapLeft {
+            it.feil.loggFeil(
+                log,
+                "generering av forhåndsvisning av meldekortvedtaksbrev",
+                "SakId: ${meldekortbehandling.sakId}, saksnummer: ${meldekortbehandling.saksnummer}, meldekortbehandlingId: ${meldekortbehandling.id}",
             )
-        } else {
-            genererBrevClient.genererMeldekortvedtakBrev(
-                kommando = GenererMeldekortvedtakBrevKommando(
-                    sakId = meldekortbehandling.sakId,
-                    saksnummer = meldekortbehandling.saksnummer,
-                    fnr = meldekortbehandling.fnr,
-                    saksbehandler = meldekortbehandling.saksbehandler,
-                    beslutter = meldekortbehandling.beslutter,
-                    meldekortbehandlingId = meldekortbehandling.id,
-                    beregningsperiode = beregningsperiode,
-                    tiltaksdeltakelser = tiltaksdeltakelser,
-                    iverksattTidspunkt = null,
-                    erKorrigering = meldekortbehandling.harKorrigering,
-                    beregninger = nåværendeBeregningMedTidligereBeregning,
-                    totaltBeløp = beregning.sumOf { it.totalBeløp },
-                    tekstTilVedtaksbrev = kommando.tekstTilVedtaksbrev,
-                    forhåndsvisning = true,
-                ),
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            )
-        }.mapLeft {
-            it.feil.loggFeil(log, "generering av forhåndsvisning av meldekortvedtaksbrev", "SakId: ${meldekortbehandling.sakId}, saksnummer: ${meldekortbehandling.saksnummer}, meldekortbehandlingId: ${meldekortbehandling.id}")
             KunneIkkeForhåndsviseBrevMeldekortbehandling.FeilVedGenereringAvPdf(it)
         }
     }

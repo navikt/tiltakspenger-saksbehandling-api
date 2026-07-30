@@ -88,7 +88,6 @@ open class MeldekortContext(
             utbetalingRepo = utbetalingRepo,
             clock = clock,
             statistikkService = statistikkService,
-            kanIverksetteFlereMeldeperioder = !Configuration.isProd(),
         )
     }
     val oppdaterMeldekortbehandlingService by lazy {
@@ -210,7 +209,6 @@ open class MeldekortContext(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             navIdentClient = navIdentClient,
             clock = clock,
-            brukMeldekortvedtakBrevV2 = !Configuration.isProd(),
         )
     }
 }

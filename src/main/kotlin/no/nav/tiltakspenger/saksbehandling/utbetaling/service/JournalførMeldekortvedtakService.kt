@@ -30,7 +30,6 @@ class JournalførMeldekortvedtakService(
     private val navIdentClient: NavIdentClient,
     private val sakRepo: SakRepo,
     private val clock: Clock,
-    private val brukMeldekortvedtakBrevV2: Boolean,
 ) {
     private val log = KotlinLogging.logger { }
     private val errorEveryNLogger = ErrorEveryNLogger(log, 3)
@@ -77,32 +76,31 @@ class JournalførMeldekortvedtakService(
                             navIdentClient::hentNavnForNavIdentEllerKast
                         }
 
-                    val pdfOgJson =
-                        if (brukMeldekortvedtakBrevV2) {
-                            genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrevV2(
-                                meldekortvedtak,
-                                tiltaksdeltakelser = tiltak,
-                                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                                sammenligning = sammenligning,
-                            )
-                        } else {
-                            genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrev(
-                                meldekortvedtak,
-                                tiltaksdeltakelser = tiltak,
-                                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                                sammenligning = sammenligning,
-                            )
-                        }.getOrElse {
-                            it.feil.loggFeil(log, "generering av vedtaksbrev for meldekortvedtak", "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}")
-                            return@forEach
-                        }
+                    val pdfOgJson = genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrevV2(
+                        meldekortvedtak,
+                        tiltaksdeltakelser = tiltak,
+                        hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                        sammenligning = sammenligning,
+                    ).getOrElse {
+                        it.feil.loggFeil(
+                            log,
+                            "generering av vedtaksbrev for meldekortvedtak",
+                            "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}",
+                        )
+                        return@forEach
+                    }
+
                     log.info { "Pdf generert for meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}" }
                     val journalpostId = journalførMeldekortKlient.journalførVedtaksbrevForMeldekortvedtak(
                         meldekortvedtak = meldekortvedtak,
                         pdfOgJson = pdfOgJson,
                         correlationId = correlationId,
                     ).getOrElse {
-                        it.loggFeil(log, "journalføring av meldekortvedtaksbrev", "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}")
+                        it.loggFeil(
+                            log,
+                            "journalføring av meldekortvedtaksbrev",
+                            "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}",
+                        )
                         return@forEach
                     }.journalpostId
                     log.info { "Meldekortvedtak journalført. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}. JournalpostId: $journalpostId" }

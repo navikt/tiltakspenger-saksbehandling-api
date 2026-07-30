@@ -77,7 +77,6 @@ open class UtbetalingContext(
             navIdentClient = navIdentClient,
             sakRepo = sakRepo,
             clock = clock,
-            brukMeldekortvedtakBrevV2 = !Configuration.isProd(),
         )
     }
 
