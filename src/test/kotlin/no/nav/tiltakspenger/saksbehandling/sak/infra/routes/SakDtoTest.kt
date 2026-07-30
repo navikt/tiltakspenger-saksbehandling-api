@@ -22,4 +22,17 @@ class SakDtoTest {
             it.type shouldBe ÅpenBehandlingDTO.ÅpenBehandlingTypeDTO.SØKNAD
         }
     }
+
+    @Test
+    fun `åpneBehandlingerIder speiler åpneBehandlinger`() {
+        val (sak) = ObjectMother.sakMedOpprettetBehandling()
+        val nySøknad = ObjectMother.nyInnvilgbarSøknad()
+        val sakMedSøknadOgBehandling = sak.leggTilSøknad(nySøknad)
+
+        val actual = sakMedSøknadOgBehandling.toSakDTO(ObjectMother.saksbehandler(), fixedClock)
+
+        actual.åpneBehandlingerIder shouldBe actual.åpneBehandlinger.map {
+            ÅpenBehandlingIdDTO(id = it.id, type = it.type)
+        }
+    }
 }

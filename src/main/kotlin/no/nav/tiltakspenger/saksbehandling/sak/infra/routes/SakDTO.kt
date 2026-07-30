@@ -46,6 +46,7 @@ data class SakDTO(
     val søknader: List<SøknadDTO>,
 
     val åpneBehandlinger: List<ÅpenBehandlingDTO>,
+    val åpneBehandlingerIder: List<ÅpenBehandlingIdDTO>,
 
     val rammebehandlinger: List<RammebehandlingDTO>,
     val klagebehandlinger: List<KlagebehandlingDTO>,
@@ -76,6 +77,7 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     søknader = this.søknader.map { it.toSøknadDTO() },
 
     åpneBehandlinger = this.tilÅpneBehandlingerDTO(),
+    åpneBehandlingerIder = this.tilÅpneBehandlingerIderDTO(),
 
     rammebehandlinger = this.tilBehandlingerDTO(),
     klagebehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
