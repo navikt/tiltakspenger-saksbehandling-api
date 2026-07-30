@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
 
     /**
-     * Se [Rammebehandlinger.oppdaterRammebehandling] for mer context.
+     * Se [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger.oppdaterRammebehandling] for mer context.
      */
     @Test
     fun `kan avbryte rammebehandling hvor klagebehandlingen har flere rammebehandlinger tilknyttet hvor det finnes flere ulike klager og behandlinger`() {
@@ -63,8 +63,8 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )!!
 
-            val rammebehandlingJson = sakJson.get("behandlinger").last().toString()
-            val klagebehandlingJson = sakJson.get("klageBehandlinger").last().toString()
+            val rammebehandlingJson = sakJson.get("rammebehandlinger").last().toString()
+            val klagebehandlingJson = sakJson.get("klagebehandlinger").last().toString()
 
             rammebehandlingJson.shouldBeRevurderingDTO(
                 behandlingId = avbruttRammebehandling!!.id,

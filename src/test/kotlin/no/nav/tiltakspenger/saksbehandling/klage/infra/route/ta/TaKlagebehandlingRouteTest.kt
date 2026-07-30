@@ -17,7 +17,7 @@ class TaKlagebehandlingRouteTest {
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgTaKlagebehandling(
                 tac = tac,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -41,7 +41,7 @@ class TaKlagebehandlingRouteTest {
                 saksbehandlerKlagebehandling = saksbehandler,
                 saksbehandlerSomTar = saksbehandler,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

@@ -17,7 +17,7 @@ class OvertaKlagebehandlingRouteTest {
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgOvertaKlagebehandling(
                 tac = tac,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -39,7 +39,7 @@ class OvertaKlagebehandlingRouteTest {
                 saksbehandlerKlagebehandling = saksbehandler,
                 saksbehandlerSomOvertar = saksbehandler,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

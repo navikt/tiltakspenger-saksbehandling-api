@@ -8,18 +8,18 @@ import tools.jackson.databind.JsonNode
 import java.time.LocalDate
 
 /**
- * Henter rammebehandlingen med [id] fra `behandlinger`-arrayen i sakens respons-JSON.
+ * Henter rammebehandlingen med [id] fra `rammebehandlinger`-arrayen i sakens respons-JSON.
  * Lar tester asserte på den relevante behandlingen uten å sammenligne hele saken.
  */
 fun SakDTOJson.rammebehandlingJson(id: RammebehandlingId): JsonNode =
-    get("behandlinger").single { behandling -> behandling.get("id").asString() == id.toString() }
+    get("rammebehandlinger").single { behandling -> behandling.get("id").asString() == id.toString() }
 
 /**
- * Henter klagebehandlingen med [id] fra `klageBehandlinger`-arrayen i sakens respons-JSON.
+ * Henter klagebehandlingen med [id] fra `klagebehandlinger`-arrayen i sakens respons-JSON.
  * Lar tester asserte på den relevante klagebehandlingen uten å sammenligne hele saken.
  */
 fun SakDTOJson.klagebehandlingJson(id: KlagebehandlingId): JsonNode =
-    get("klageBehandlinger").single { behandling -> behandling.get("id").asString() == id.toString() }
+    get("klagebehandlinger").single { behandling -> behandling.get("id").asString() == id.toString() }
 
 /**
  * Asserter siste hendelse i behandlingens `ventestatus`-array felt for felt; `tidspunkt` ignoreres bevisst.

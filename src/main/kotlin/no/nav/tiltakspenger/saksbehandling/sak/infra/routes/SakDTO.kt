@@ -45,10 +45,6 @@ data class SakDTO(
 
     val søknader: List<SøknadDTO>,
 
-    // Fjernes asap!
-    val behandlinger: List<RammebehandlingDTO>,
-    val klageBehandlinger: List<KlagebehandlingDTO>,
-
     val åpneBehandlinger: List<ÅpenBehandlingDTO>,
 
     val rammebehandlinger: List<RammebehandlingDTO>,
@@ -69,29 +65,28 @@ data class SakDTO(
 )
 
 fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
-    saksnummer = saksnummer.verdi,
-    sakId = id.toString(),
-    fnr = fnr.verdi,
-    åpneBehandlinger = tilÅpneBehandlingerDTO(),
-    meldeperiodeKjeder = tilMeldeperiodeKjederDTO(clock),
-    førsteDagSomGirRett = førsteDagSomGirRett,
-    sisteDagSomGirRett = sisteDagSomGirRett,
-    behandlinger = this.tilBehandlingerDTO(),
-    rammebehandlinger = this.tilBehandlingerDTO(),
-    klageBehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
-    klagebehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
-    tidslinje = rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
-    innvilgetTidslinje = rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),
-    alleRammevedtak = rammevedtaksliste.map { it.tilRammevedtakDTO() },
-    alleKlagevedtak = klagevedtaksliste.map { it.tilKlagevedtakDTO() },
-    utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
+    sakId = this.id.toString(),
+    saksnummer = this.saksnummer.verdi,
+    fnr = this.fnr.verdi,
+
+    førsteDagSomGirRett = this.førsteDagSomGirRett,
+    sisteDagSomGirRett = this.sisteDagSomGirRett,
+    kanSendeInnHelgForMeldekort = this.kanSendeInnHelgForMeldekort,
+
     søknader = this.søknader.map { it.toSøknadDTO() },
+
+    åpneBehandlinger = this.tilÅpneBehandlingerDTO(),
+
+    rammebehandlinger = this.tilBehandlingerDTO(),
+    klagebehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
     tilbakekrevinger = this.tilbakekrevinger.map {
         it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!, saksbehandler)
     },
-    kanSendeInnHelgForMeldekort = kanSendeInnHelgForMeldekort,
-    meldekortvedtak = this.vedtaksliste.meldekortvedtaksliste.toDto(),
-    meldekortbehandlinger = meldekortbehandlinger.associate {
+
+    alleRammevedtak = this.rammevedtaksliste.map { it.tilRammevedtakDTO() },
+    alleKlagevedtak = this.klagevedtaksliste.map { it.tilKlagevedtakDTO() },
+
+    meldekortbehandlinger = this.meldekortbehandlinger.associate {
         it.id.toString() to it.tilMeldekortbehandlingDTO(
             beregninger = this.meldeperiodeBeregninger,
             hentVedtak = this.meldekortvedtaksliste::hentForMeldekortbehandling,
@@ -99,5 +94,11 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
             kallendeSaksbehandler = saksbehandler,
         )
     },
-    åpenMeldekortbehandlingId = meldekortbehandlinger.åpenMeldekortbehandling?.id?.toString(),
+    meldekortvedtak = this.vedtaksliste.meldekortvedtaksliste.toDto(),
+    meldeperiodeKjeder = this.tilMeldeperiodeKjederDTO(clock),
+    åpenMeldekortbehandlingId = this.meldekortbehandlinger.åpenMeldekortbehandling?.id?.toString(),
+
+    tidslinje = this.rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
+    innvilgetTidslinje = this.rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),
+    utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
 )

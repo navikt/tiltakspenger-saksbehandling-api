@@ -14,19 +14,21 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeD
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlageresultatstypeDto.Companion.toKlageresultatstypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagestatustypeDto.Companion.toKlagestatustypeDto
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.SøknadUtenBehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenSøknadsbehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpentMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ÅpenBehandlingDTO.ÅpenTilbakekrevingDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.dto.TilbakekrevingBehandlingDTO.TilbakekrevingBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.dto.tilTilbakekrevingBehandlingsstatusDTO
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 sealed interface ÅpenBehandlingDTO {
     val id: String
-    val sakId: String
-    val saksnummer: String
     val opprettet: LocalDateTime
     val type: ÅpenBehandlingTypeDTO
 
@@ -36,6 +38,7 @@ sealed interface ÅpenBehandlingDTO {
         REVURDERING,
         MELDEKORT,
         KLAGE,
+        TILBAKEKREVING,
     }
 
     sealed interface ÅpenRammebehandlingDTO : ÅpenBehandlingDTO {
@@ -51,8 +54,6 @@ sealed interface ÅpenBehandlingDTO {
     data class SøknadUtenBehandlingDTO(
         override val id: String,
         override val opprettet: LocalDateTime,
-        override val sakId: String,
-        override val saksnummer: String,
         val kravtidspunkt: LocalDateTime,
     ) : ÅpenBehandlingDTO {
         override val type = ÅpenBehandlingTypeDTO.SØKNAD
@@ -60,8 +61,6 @@ sealed interface ÅpenBehandlingDTO {
 
     data class ÅpenSøknadsbehandlingDTO(
         override val id: String,
-        override val sakId: String,
-        override val saksnummer: String,
         override val opprettet: LocalDateTime,
         override val periode: PeriodeDTO?,
         override val status: RammebehandlingsstatusDTO,
@@ -77,8 +76,6 @@ sealed interface ÅpenBehandlingDTO {
 
     data class ÅpenRevurderingDTO(
         override val id: String,
-        override val sakId: String,
-        override val saksnummer: String,
         override val opprettet: LocalDateTime,
         override val periode: PeriodeDTO?,
         override val status: RammebehandlingsstatusDTO,
@@ -91,31 +88,18 @@ sealed interface ÅpenBehandlingDTO {
         override val type = ÅpenBehandlingTypeDTO.REVURDERING
     }
 
-    // TODO: split denne til separat håndtering av brukers meldekort og meldekortbehandlinger
-    data class ÅpentMeldekortDTO(
+    data class ÅpenMeldekortbehandlingDTO(
         override val id: String,
-        override val sakId: String,
-        override val saksnummer: String,
         override val opprettet: LocalDateTime,
-        val subtype: ÅpentMeldekortType,
         val periode: PeriodeDTO,
-        val meldekortbehandlingId: String?,
         val saksbehandler: String?,
         val beslutter: String?,
     ) : ÅpenBehandlingDTO {
         override val type = ÅpenBehandlingTypeDTO.MELDEKORT
-
-        enum class ÅpentMeldekortType {
-            MELDEKORTBEHANDLING,
-            INNSENDT_MELDEKORT,
-            KORRIGERT_MELDEKORT,
-        }
     }
 
     data class ÅpenKlagebehandlingDTO(
         override val id: String,
-        override val sakId: String,
-        override val saksnummer: String,
         override val opprettet: LocalDateTime,
         val status: KlagestatustypeDto,
         val saksbehandler: String?,
@@ -123,24 +107,39 @@ sealed interface ÅpenBehandlingDTO {
     ) : ÅpenBehandlingDTO {
         override val type = ÅpenBehandlingTypeDTO.KLAGE
     }
+
+    data class ÅpenTilbakekrevingDTO(
+        override val id: String,
+        override val opprettet: LocalDateTime,
+        val periode: PeriodeDTO,
+        val status: TilbakekrevingBehandlingsstatusDTO,
+        val totaltFeilutbetaltBeløp: BigDecimal,
+        val saksbehandler: String?,
+        val beslutter: String?,
+    ) : ÅpenBehandlingDTO {
+        override val type = ÅpenBehandlingTypeDTO.TILBAKEKREVING
+    }
 }
 
 /**
- *  Returnerer en liste over søknader, rammebehandlinger og meldeperiodekjeder som er åpne for behandling eller beslutning
+ *  Returnerer en liste over søknader, rammebehandlinger, meldekortbehandlinger, klagebehandlinger og tilbakekrevinger som er åpne for behandling eller beslutning
  * */
 fun Sak.tilÅpneBehandlingerDTO(): List<ÅpenBehandlingDTO> {
     val søknaderUtenBehandling: List<SøknadUtenBehandlingDTO> = this.tilSøknaderUtenBehandling()
 
     val åpneRammebehandlinger: List<ÅpenRammebehandlingDTO> = this.tilÅpneRammebehandlinger()
 
-    val åpneMeldekort: List<ÅpentMeldekortDTO> = this.tilÅpneMeldekortDTO()
+    val åpneMeldekort: List<ÅpenMeldekortbehandlingDTO> = this.tilÅpneMeldekortDTO()
 
     val åpneKlager = this.behandlinger.klagebehandlinger.filter { it.erÅpen }.toÅpenKlagebehandlingDTO()
+
+    val åpneTilbakekrevinger: List<ÅpenTilbakekrevingDTO> = this.tilÅpneTilbakekrevingerDTO()
 
     return søknaderUtenBehandling
         .plus(åpneRammebehandlinger)
         .plus(åpneMeldekort)
         .plus(åpneKlager)
+        .plus(åpneTilbakekrevinger)
         .sortedByDescending { it.opprettet }
 }
 
@@ -148,8 +147,6 @@ private fun List<Klagebehandling>.toÅpenKlagebehandlingDTO(): List<ÅpenBehandl
     this.map {
         ÅpenBehandlingDTO.ÅpenKlagebehandlingDTO(
             id = it.id.toString(),
-            sakId = it.sakId.toString(),
-            saksnummer = it.saksnummer.toString(),
             opprettet = it.opprettet,
             status = it.status.toKlagestatustypeDto(),
             saksbehandler = it.saksbehandler,
@@ -169,8 +166,6 @@ private fun Sak.tilSøknaderUtenBehandling(): List<SøknadUtenBehandlingDTO> {
         .map {
             SøknadUtenBehandlingDTO(
                 id = it.id.toString(),
-                sakId = this.id.toString(),
-                saksnummer = this.saksnummer.toString(),
                 opprettet = it.opprettet,
                 kravtidspunkt = it.tidsstempelHosOss,
             )
@@ -178,9 +173,6 @@ private fun Sak.tilSøknaderUtenBehandling(): List<SøknadUtenBehandlingDTO> {
 }
 
 private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
-    val sakId = this.id.toString()
-    val saksnummer = this.saksnummer.toString()
-
     return this.rammebehandlinger.åpneBehandlinger.map {
         val id = it.id.toString()
         val periode = it.vedtaksperiode?.toDTO()
@@ -190,8 +182,6 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
         when (it) {
             is Søknadsbehandling -> ÅpenSøknadsbehandlingDTO(
                 id = id,
-                sakId = sakId,
-                saksnummer = saksnummer,
                 opprettet = it.opprettet,
                 periode = periode,
                 status = status,
@@ -205,8 +195,6 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
 
             is Revurdering -> ÅpenRevurderingDTO(
                 id = id,
-                sakId = sakId,
-                saksnummer = saksnummer,
                 opprettet = it.opprettet,
                 periode = periode,
                 status = status,
@@ -220,80 +208,33 @@ private fun Sak.tilÅpneRammebehandlinger(): List<ÅpenRammebehandlingDTO> {
     }
 }
 
-// Returnerer meldeperiodekjeder med et brukers meldekort som ikke har blitt behandlet, samt en evt. åpen meldekortbehandling
-private fun Sak.tilÅpneMeldekortDTO(): List<ÅpentMeldekortDTO> {
-    val sakId = this.id.toString()
-    val saksnummer = this.saksnummer.toString()
+// Returnerer en evt. åpen meldekortbehandling
+private fun Sak.tilÅpneMeldekortDTO(): List<ÅpenMeldekortbehandlingDTO> {
+    val åpenMeldekortbehandling = this.meldekortbehandlinger.åpenMeldekortbehandling ?: return emptyList()
 
-    val åpenMeldekortbehandling = this.meldekortbehandlinger.åpenMeldekortbehandling
-
-    // Meldekort fra bruker som ikke er behandlet eller under behandling
-    val åpneInnsendteMeldekort = this.meldeperiodeKjeder.mapNotNull { kjede ->
-        val kjedeId = kjede.kjedeId
-
-        if (åpenMeldekortbehandling != null && åpenMeldekortbehandling.kjedeIder.contains(kjedeId)) {
-            return@mapNotNull null
-        }
-
-        val brukersMeldekortForKjede = this.brukersMeldekort.filter { it.kjedeId == kjedeId }
-
-        val sisteBrukersMeldekort = brukersMeldekortForKjede.maxByOrNull { it.mottatt } ?: return@mapNotNull null
-
-        // Skal ikke fremheve meldekort hvis de venter på automatisk behandling
-        if (sisteBrukersMeldekort.behandletAutomatiskStatus === MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING) {
-            return@mapNotNull null
-        }
-
-        val sisteBehandledeMeldekort = this.meldekortbehandlinger.behandledeMeldekortPerKjede[kjedeId]?.lastOrNull()
-
-        val harBehandletMeldekortet =
-            sisteBehandledeMeldekort != null && sisteBehandledeMeldekort.sistEndret > sisteBrukersMeldekort.mottatt
-
-        if (harBehandletMeldekortet) {
-            return@mapNotNull null
-        }
-
-        val harAvbruttBehandlingAvMeldekortet = this.meldekortbehandlinger.avbrutteMeldekortbehandlinger
-            .filter { it.kjedeIder.contains(kjedeId) }
-            .any { it.avbrutt != null && it.avbrutt.tidspunkt > sisteBrukersMeldekort.mottatt }
-
-        // Stygg workaround for at saksbehandler skal kunne bli kvitt korrigeringer som ikke skal behandles i vår løsning
-        if (harAvbruttBehandlingAvMeldekortet) {
-            return@mapNotNull null
-        }
-
-        ÅpentMeldekortDTO(
-            id = kjedeId.toString(),
-            sakId = sakId,
-            saksnummer = saksnummer,
-            periode = kjede.periode.toDTO(),
-            meldekortbehandlingId = null,
-            opprettet = sisteBrukersMeldekort.mottatt,
-            saksbehandler = null,
-            beslutter = null,
-            subtype = if (brukersMeldekortForKjede.size == 1) {
-                ÅpentMeldekortDTO.ÅpentMeldekortType.INNSENDT_MELDEKORT
-            } else {
-                ÅpentMeldekortDTO.ÅpentMeldekortType.KORRIGERT_MELDEKORT
-            },
-        )
-    }
-
-    if (åpenMeldekortbehandling == null) {
-        return åpneInnsendteMeldekort
-    }
-
-    return åpneInnsendteMeldekort.plus(
-        ÅpentMeldekortDTO(
+    return listOf(
+        ÅpenMeldekortbehandlingDTO(
             id = åpenMeldekortbehandling.id.toString(),
-            sakId = sakId,
-            saksnummer = saksnummer,
             periode = åpenMeldekortbehandling.periode.toDTO(),
-            meldekortbehandlingId = åpenMeldekortbehandling.id.toString(),
             opprettet = åpenMeldekortbehandling.opprettet,
             saksbehandler = åpenMeldekortbehandling.saksbehandler,
             beslutter = åpenMeldekortbehandling.beslutter,
-            subtype = ÅpentMeldekortDTO.ÅpentMeldekortType.MELDEKORTBEHANDLING,
         ),
     )
+}
+
+private fun Sak.tilÅpneTilbakekrevingerDTO(): List<ÅpenTilbakekrevingDTO> {
+    return this.tilbakekrevinger
+        .filter { it.status != TilbakekrevingBehandlingsstatus.AVSLUTTET }
+        .map {
+            ÅpenTilbakekrevingDTO(
+                id = it.id.toString(),
+                opprettet = it.opprettet,
+                periode = it.kravgrunnlagTotalPeriode.toDTO(),
+                status = it.statusIntern.tilTilbakekrevingBehandlingsstatusDTO(),
+                totaltFeilutbetaltBeløp = it.totaltFeilutbetaltBeløp,
+                saksbehandler = it.saksbehandler,
+                beslutter = it.beslutter,
+            )
+        }
 }

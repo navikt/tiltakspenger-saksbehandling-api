@@ -75,7 +75,7 @@ interface AvbrytKlagebehandlingBuilder {
             if (statusCode != 200) return null
             val sakJson = objectMapper.readTree(bodyAsText)
 
-            val klagebehandling: KlagebehandlingDTOJson = sakJson.get("klageBehandlinger").single {
+            val klagebehandling: KlagebehandlingDTOJson = sakJson.get("klagebehandlinger").single {
                 it.get("id").asString() == klagebehandlingId.toString()
             }
 

@@ -57,7 +57,7 @@ data class TilbakekrevingBehandlingDTO(
     }
 }
 
-private fun TilbakekrevingBehandlingsstatusIntern.tilDTO() = when (this) {
+fun TilbakekrevingBehandlingsstatusIntern.tilTilbakekrevingBehandlingsstatusDTO() = when (this) {
     TilbakekrevingBehandlingsstatusIntern.OPPRETTET -> TilbakekrevingBehandlingsstatusDTO.OPPRETTET
     TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING -> TilbakekrevingBehandlingsstatusDTO.UNDER_FORHÅNDSVARSLING
     TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL -> TilbakekrevingBehandlingsstatusDTO.TIL_FORHÅNDSVARSEL
@@ -82,7 +82,7 @@ fun TilbakekrevingBehandling.tilTilbakekrevingBehandlingDTO(
         tilbakeBehandlingId = tilbakeBehandlingId,
         opprettet = opprettet,
         sistEndret = sistEndret,
-        status = statusIntern.tilDTO(),
+        status = statusIntern.tilTilbakekrevingBehandlingsstatusDTO(),
         url = url,
         kravgrunnlagTotalPeriode = kravgrunnlagTotalPeriode.toDTO(),
         totaltFeilutbetaltBeløp = totaltFeilutbetaltBeløp,

@@ -84,7 +84,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             )
 
             // Sjekk klagebehandling JSON (SakDTO)
-            val klageJson = json.get("klageBehandlinger").first()
+            val klageJson = json.get("klagebehandlinger").first()
             klageJson.get("status").asString() shouldBe "UNDER_BEHANDLING"
             klageJson.get("saksbehandler").asString() shouldBe saksbehandler.navIdent
             val klageVentestatusArray = klageJson.get("ventestatus")

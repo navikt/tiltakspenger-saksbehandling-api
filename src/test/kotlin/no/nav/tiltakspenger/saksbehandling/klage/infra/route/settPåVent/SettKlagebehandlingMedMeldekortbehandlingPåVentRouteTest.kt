@@ -37,7 +37,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             oppdatertMeldekortbehandling.saksbehandler shouldBe null
             oppdatertMeldekortbehandling.ventestatus.erSattPåVent shouldBe true
 
-            val klageJson = sakJson.get("klageBehandlinger").first()
+            val klageJson = sakJson.get("klagebehandlinger").first()
             klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
             klageJson.get("saksbehandler").isNull shouldBe true
             val klageVentestatusArray = klageJson.get("ventestatus")
@@ -84,7 +84,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             oppdatertMeldekortbehandling.saksbehandler shouldBe null
             oppdatertMeldekortbehandling.ventestatus.erSattPåVent shouldBe true
 
-            val klageJson = sakJson.get("klageBehandlinger").first()
+            val klageJson = sakJson.get("klagebehandlinger").first()
             klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
             klageJson.get("saksbehandler").isNull shouldBe true
             val klageVentestatusArray = klageJson.get("ventestatus")
@@ -173,7 +173,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
             }
 
-            val klageJson = sakJson.get("klageBehandlinger").first()
+            val klageJson = sakJson.get("klagebehandlinger").first()
             klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
             klageJson.get("saksbehandler").isNull shouldBe true
             val klageVentestatusArray = klageJson.get("ventestatus")
@@ -251,7 +251,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
             }
 
-            val klageJson = sakJson.get("klageBehandlinger").first()
+            val klageJson = sakJson.get("klagebehandlinger").first()
             klageJson.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
             klageJson.get("saksbehandler").isNull shouldBe false
             val klageVentestatusArray = klageJson.get("ventestatus")

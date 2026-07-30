@@ -103,7 +103,7 @@ class KabalKlagehendelserConsumerTest {
                 )
             }
             hentSakForSaksnummer(tac = tac, saksnummer = klagebehandling.saksnummer)!!
-                .getJSONArray("klageBehandlinger")
+                .getJSONArray("klagebehandlinger")
                 .getJSONObject(0)
                 .getJSONObject("resultat")
                 .getJSONArray("klageinstanshendelser")

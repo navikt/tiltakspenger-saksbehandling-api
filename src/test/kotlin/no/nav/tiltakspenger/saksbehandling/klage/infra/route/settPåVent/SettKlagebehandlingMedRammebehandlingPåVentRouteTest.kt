@@ -36,7 +36,7 @@ class SettKlagebehandlingMedRammebehandlingPåVentRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

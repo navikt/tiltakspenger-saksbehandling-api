@@ -94,7 +94,7 @@ interface SettKlagebehandlingPåVentBuilder {
 
             if (statusCode != 200) return null
             val jsonObject: SakDTOJson = objectMapper.readTree(bodyAsText)
-            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("klageBehandlinger").first().get("id").asString())
+            val klagebehandlingId = KlagebehandlingId.fromString(jsonObject.get("klagebehandlinger").first().get("id").asString())
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             return Triple(
                 oppdatertSak,

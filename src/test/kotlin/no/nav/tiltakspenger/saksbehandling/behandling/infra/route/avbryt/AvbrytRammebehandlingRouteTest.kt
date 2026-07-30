@@ -35,7 +35,7 @@ class AvbrytRammebehandlingRouteTest {
                 behandlingsarsak = null,
             )
 
-            json.get("behandlinger").single().toString().shouldBeSøknadsbehandlingDTO(
+            json.get("rammebehandlinger").single().toString().shouldBeSøknadsbehandlingDTO(
                 behandlingId = søknadsbehandling!!.id,
                 sakId = sak.id,
                 klagebehandlingId = null,

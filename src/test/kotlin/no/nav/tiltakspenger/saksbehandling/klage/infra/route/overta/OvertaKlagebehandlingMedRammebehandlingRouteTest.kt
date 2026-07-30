@@ -27,7 +27,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -70,8 +70,8 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             oppdatertKlagebehandling.saksbehandler shouldBe saksbehandlerSomOvertar.navIdent
 
             val resultat = oppdatertKlagebehandling.resultat!! as Klagebehandlingsresultat.Opprettholdt
-            json.get("behandlinger").last().get("saksbehandler").stringValue() shouldBe saksbehandlerSomOvertar.navIdent
-            json.get("klageBehandlinger").single().toString().shouldBeKlagebehandlingDTO(
+            json.get("rammebehandlinger").last().get("saksbehandler").stringValue() shouldBe saksbehandlerSomOvertar.navIdent
+            json.get("klagebehandlinger").single().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -133,8 +133,8 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 overtarFra = rammebehandling.saksbehandler!!,
             )!!
 
-            val overtattRammebehandling = sakJson.get("behandlinger").last()
-            val klagebehandling = sakJson.get("klageBehandlinger").single()
+            val overtattRammebehandling = sakJson.get("rammebehandlinger").last()
+            val klagebehandling = sakJson.get("klagebehandlinger").single()
 
             overtattRammebehandling.get("saksbehandler").asString() shouldBe nySaksbehandler.navIdent
             klagebehandling.toString().shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(

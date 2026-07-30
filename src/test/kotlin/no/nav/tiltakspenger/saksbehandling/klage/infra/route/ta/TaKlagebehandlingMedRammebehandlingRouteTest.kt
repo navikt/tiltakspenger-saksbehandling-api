@@ -25,7 +25,7 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 tac = tac,
             )!!
             val klagebehandling = rammebehandlingMedKlagebehandling.klagebehandling!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -63,8 +63,8 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandlerSomTar = nySaksbehandler,
             )!!
 
-            val rammebehandlingJson = json.get("behandlinger").last()
-            val klagebehandlingJson = json.get("klageBehandlinger").single()
+            val rammebehandlingJson = json.get("rammebehandlinger").last()
+            val klagebehandlingJson = json.get("klagebehandlinger").single()
 
             rammebehandlingJson.get("saksbehandler").asString() shouldBe nySaksbehandler.navIdent
             rammebehandlingJson.get("status").asString() shouldBe "UNDER_BEHANDLING"

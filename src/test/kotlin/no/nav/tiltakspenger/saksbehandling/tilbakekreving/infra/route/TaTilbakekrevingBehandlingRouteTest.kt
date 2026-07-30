@@ -34,6 +34,13 @@ class TaTilbakekrevingBehandlingRouteTest {
             val tilbakekrevingJson = json.get("tilbakekrevinger").first()
             tilbakekrevingJson.get("saksbehandler").toString() shouldBe "\"saksbehandlerSomTar\""
             tilbakekrevingJson.get("status").toString() shouldBe "\"UNDER_BEHANDLING\""
+
+            val åpenTilbakekrevingJson = json.get("åpneBehandlinger").single {
+                it.get("type").asString() == "TILBAKEKREVING"
+            }
+            åpenTilbakekrevingJson.get("id").asString() shouldBe behandling.id.toString()
+            åpenTilbakekrevingJson.get("saksbehandler").asString() shouldBe "saksbehandlerSomTar"
+            åpenTilbakekrevingJson.get("status").asString() shouldBe "UNDER_BEHANDLING"
         }
     }
 

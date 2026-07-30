@@ -28,7 +28,7 @@ class SettKlagebehandlingPåVentRouteTest {
             val (sak, _, rammevedtakSøknadsbehandling, klagebehandling, json) = iverksettSøknadsbehandlingOgSettKlagebehandlingPåVent(
                 tac = tac,
             )!!
-            json.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            json.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,
@@ -58,7 +58,7 @@ class SettKlagebehandlingPåVentRouteTest {
             )!!
 
             val resultat = klagebehandlingPåVent.resultat as Klagebehandlingsresultat.Opprettholdt
-            sakJson.get("klageBehandlinger").first().toString().shouldBeKlagebehandlingDTO(
+            sakJson.get("klagebehandlinger").first().toString().shouldBeKlagebehandlingDTO(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 klagebehandlingId = klagebehandling.id,

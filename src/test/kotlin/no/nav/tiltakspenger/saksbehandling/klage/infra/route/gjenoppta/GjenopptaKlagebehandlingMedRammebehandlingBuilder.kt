@@ -49,7 +49,7 @@ interface GjenopptaKlagebehandlingMedRammebehandlingBuilder {
             forventet = forventet,
         ) ?: return null
         val oppdatertRammebehandling = oppdatertSak.åpneBehandlingerMedKlagebehandlingId(oppdatertKlagebehandling.id).first() as Rammebehandling
-        val klagebehandlingJson = sakJson.get("klageBehandlinger").first()
+        val klagebehandlingJson = sakJson.get("klagebehandlinger").first()
         return Triple(oppdatertSak, oppdatertRammebehandling, klagebehandlingJson)
     }
 }
