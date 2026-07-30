@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetille
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.førsteMeldekortIverksatt
+import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
@@ -73,7 +74,7 @@ class UtbetalingerIT {
             )
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
 
-            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id, utførJobber = false)!!
+            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id, jobber = JobberEtterIverksettelse.ingen)!!
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortvedtaksliste.first().utbetaling,
@@ -175,7 +176,7 @@ class UtbetalingerIT {
             )
             taBehandling(tac, sak.id, omgjøring.id, saksbehandler = ObjectMother.beslutter())
 
-            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, omgjøring.id, utførJobber = false)!!
+            val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, omgjøring.id, jobber = JobberEtterIverksettelse.ingen)!!
 
             oppdatertSak.utbetalinger shouldBe listOf(
                 oppdatertSak.meldekortvedtaksliste.first().utbetaling,

@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meld
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMeldekortbehandlingDTO.OppdatertMeldeperiodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgBesluttertarMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -114,6 +115,7 @@ interface IverksettMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
         val (sak, meldekortbehandling) = opprettOgBesluttertarMeldekortbehanding(
@@ -132,18 +134,22 @@ interface IverksettMeldekortbehandlingBuilder {
             sakId = sak.id,
             meldekortId = meldekortbehandling.id,
             beslutter = beslutter,
+            jobber = jobber,
             forventet = forventet,
         )
     }
 
     /**
      * Forventer at det allerede finnes en sak og meldekortbehandling i status UNDER_BESLUTNING
+     *
+     * @param jobber Meldekortvedtak distribueres ikke, så [JobberEtterIverksettelse.distribuerVedtaksbrev] har ingen effekt her.
      */
     suspend fun ApplicationTestBuilder.iverksettMeldekortbehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         meldekortId: MeldekortId,
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
+        jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -164,9 +170,16 @@ interface IverksettMeldekortbehandlingBuilder {
             val meldekortvedtak = oppdatertSak.meldekortvedtaksliste.single { it.behandlingId == meldekortbehandling.id }
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.GODKJENT
 
-            tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
-            tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
-            tac.utbetalingContext.journalførMeldekortvedtakService.journalfør()
+            // Emulerer jobbene som normalt ville blitt trigget av å iverksette meldekortbehandlingen.
+            if (jobber.sendUtbetalinger) {
+                tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            }
+            if (jobber.oppdaterUtbetalingsstatus) {
+                tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            }
+            if (jobber.journalførVedtaksbrev) {
+                tac.utbetalingContext.journalførMeldekortvedtakService.journalfør()
+            }
 
             return Tuple4(
                 oppdatertSak,

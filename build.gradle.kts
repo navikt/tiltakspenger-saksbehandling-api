@@ -126,13 +126,11 @@ application {
 }
 repositories {
     mavenCentral()
-    mavenLocal()
     maven("https://packages.confluent.io/maven/")
     maven {
         url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
 }
-apply(plugin = "org.jetbrains.kotlin.jvm")
 apply(plugin = "com.diffplug.spotless")
 
 spotless {
@@ -284,24 +282,33 @@ val httpklientKlasserMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",
     )
 
+// Postgres-repoer som er brakt til full linjedekning gjennom route-testene, jf. testtaksonomien i AGENTS.md.
+// Lista er en ratchet: utvid den når et repo når full dekning i sveipen, slik at dekningen ikke kan falle tilbake.
+val postgresRepoerMedDekningskrav =
+    listOf(
+        "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo",
+    )
+
+val klasserMedFullDekningskrav = httpklientKlasserMedDekningskrav + postgresRepoerMedDekningskrav
+
 kover {
     currentProject {
         instrumentation {
             // Instrumenter kun klassene dekningsgaten måler (`*`-suffikset tar med indre klasser og lambdaer).
             // Agent på hele klassestien koster ellers rundt ti prosent av testtiden.
-            includedClasses.addAll(httpklientKlasserMedDekningskrav.map { "$it*" })
+            includedClasses.addAll(klasserMedFullDekningskrav.map { "$it*" })
         }
     }
     reports {
         total {
             filters {
                 includes {
-                    classes(httpklientKlasserMedDekningskrav)
+                    classes(klasserMedFullDekningskrav.map { "$it*" })
                 }
             }
             verify {
                 onCheck = true
-                rule("migrerte httpklient-klienter har full linjedekning") {
+                rule("migrerte httpklient-klienter og dekkede postgres-repoer har full linjedekning") {
                     bound {
                         minValue = 100
                         coverageUnits = CoverageUnit.LINE

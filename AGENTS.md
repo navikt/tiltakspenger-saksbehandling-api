@@ -19,7 +19,13 @@ Slik ser den ut i dette repoet:
 - **Prodstien er `withTestApplicationContextAndPostgres`** i `common/TestApplicationContextEx.kt`, sammen med route-byggerne.
 - **Aggregat-tester** merkes med `@IsolatedDatabaseTest` og `runIsolated = true`.
   Konvensjonen om at de to alltid følges ad, håndheves av `IsolatedDatabaseTestKonvensjonTest`.
-- **Rene db-typer uten domeneflyt** er unntak nummer to i taksonomien; `PeriodeDbTest` er eksempelet her.
+  `MeldekortvedtakAggregatTest` er mønsterfila.
+- **Jobber som følger en iverksettelse slås av og på med `JobberEtterIverksettelse`** i route-byggerne.
+  Skal en test observere en kø, må jobben som tømmer køen slås av — ellers er køen alltid tom når testen ser på den.
+- **Negative databasetester** ligger i `*NegativTest`-filer; `MeldekortvedtakPostgresRepoNegativTest` er mønsteret.
+- **Rene db-typer uten domeneflyt** er den andre unntakskategorien; `PeriodeDbTest` er eksempelet her.
+- **Dekningsgaten** låser repoene som har nådd 100 % — se `postgresRepoerMedDekningskrav` i `build.gradle.kts`.
+  Merk at kover-rapportene ikke lenger genereres av `check`; kjør `./gradlew koverHtmlReport` eksplisitt når du skal lese dem.
 
 > **Overgangsfase (per 2026-07-30):** 20 testfiler bygger fortsatt tilstand via `withMigratedDb` og `TestDataHelper`.
 > Det universet er under avvikling, og du skal ikke utvide det.

@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVe
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
+import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
@@ -461,7 +462,7 @@ open class ApplicationContext(
         )
     }
 
-    private val datadelingKlient by lazy {
+    open val datadelingKlient: DatadelingClient by lazy {
         DatadelingHttpClient(
             baseUrl = Configuration.datadelingUrl,
             clock = clock,

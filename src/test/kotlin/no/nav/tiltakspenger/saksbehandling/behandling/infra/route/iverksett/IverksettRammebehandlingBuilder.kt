@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
@@ -28,7 +29,7 @@ interface IverksettRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
-        utførJobber: Boolean = true,
+        jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         medJsonBody: ((jsonBody: String) -> Unit)? = null,
     ): Tuple4<Sak, Rammevedtak, Rammebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -46,11 +47,17 @@ interface IverksettRammebehandlingBuilder {
                 medJsonBody(bodyAsText)
             }
             if (statusCode != 200) return null
-            if (utførJobber) {
-                // Emulerer jobbene som normalt ville blitt trigget av å sette behandling til IVERKSATT.
+            // Emulerer jobbene som normalt ville blitt trigget av å sette behandling til IVERKSATT.
+            if (jobber.sendUtbetalinger) {
                 tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
+            }
+            if (jobber.oppdaterUtbetalingsstatus) {
                 tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
+            }
+            if (jobber.journalførVedtaksbrev) {
                 tac.behandlingContext.journalførRammevedtaksbrevService.journalfør()
+            }
+            if (jobber.distribuerVedtaksbrev) {
                 tac.behandlingContext.distribuerRammevedtaksbrevService.distribuer()
             }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

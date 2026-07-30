@@ -19,11 +19,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
+import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
+import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
-import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
@@ -135,6 +136,8 @@ sealed class TestApplicationContext(
         TiltaksdeltakelseFakeKlient { søknadContext.søknadRepo }
     }
     protected open val safJournalpostFakeClient by lazy { SafJournalpostFakeClient(clock) }
+    open val datadelingFakeKlient by lazy { DatadelingFakeKlient() }
+    override val datadelingKlient: DatadelingClient by lazy { datadelingFakeKlient }
     override val safJournalpostClient by lazy { safJournalpostFakeClient }
     override val sokosUtbetaldataClient by lazy { sokosUtbetaldataFakeClient }
     override val tiltakspengerArenaClient by lazy { tiltakspengerArenaFakeClient }

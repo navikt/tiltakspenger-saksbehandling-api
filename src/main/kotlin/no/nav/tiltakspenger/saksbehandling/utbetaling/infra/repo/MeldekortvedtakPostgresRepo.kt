@@ -181,7 +181,10 @@ class MeldekortvedtakPostgresRepo(
             val opprettet = localDateTime("opprettet")
 
             val utbetalingId = UtbetalingId.fromString(string("utbetaling_id"))
-            val utbetaling = UtbetalingPostgresRepo.hent(utbetalingId, session)
+
+            // Foreign key-en meldekortvedtak_utbetaling_id_fkey garanterer at utbetalingen finnes.
+            // Tilstanden kan dermed ikke konstrueres, heller ikke ved å mutere databasen direkte, så en requireNotNull med melding ville blitt stående som udekket kode.
+            val utbetaling = UtbetalingPostgresRepo.hent(utbetalingId, session)!!
 
             val meldekortId = MeldekortId.fromString(string("meldekort_id"))
             val meldekortbehandling = MeldekortbehandlingPostgresRepo
@@ -190,12 +193,9 @@ class MeldekortvedtakPostgresRepo(
                     session,
                 )
 
+            // Dekkes av MeldekortvedtakPostgresRepoNegativTest, som muterer statusen i databasen.
             require(meldekortbehandling is Meldekortbehandling.Behandlet) {
                 "Meldekortet $meldekortId på meldekortvedtak $vedtakId er ikke et behandlet meldekort"
-            }
-
-            requireNotNull(utbetaling) {
-                "Fant ikke utbetalingen $utbetalingId for vedtak $vedtakId"
             }
 
             return Meldekortvedtak(
