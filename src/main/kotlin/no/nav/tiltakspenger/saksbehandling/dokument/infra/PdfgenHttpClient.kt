@@ -91,12 +91,9 @@ class PdfgenHttpClient(
         transport = transport,
     )
 
-    private val vedtakInnvilgelseUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
     private val pdfgenrsVedtakInnvilgelseUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakInnvilgelse")
-    private val vedtakAvslagUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val pdfgenrsVedtakAvslagUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakAvslag")
-    private val meldekortvedtakRsUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/utbetalingsvedtak")
-    private val meldekortvedtakV2RsUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/meldekortvedtak")
+    private val meldekortvedtakRsUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/meldekortvedtak")
 
     private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
     private val pdfgenrsStansvedtakUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/stansvedtak")
@@ -211,7 +208,7 @@ class PdfgenHttpClient(
         sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
-            meldekortvedtak.toJsonRequest(
+            meldekortvedtak.tilBrevMeldekortvedtakJson(
                 hentSaksbehandlersNavn,
                 tiltaksdeltakelser,
                 sammenligning,
@@ -225,35 +222,9 @@ class PdfgenHttpClient(
         kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        val jsonPayload = suspend { kommando.tilJsonRequest(hentSaksbehandlersNavn) }
+        val jsonPayload = suspend { kommando.tilBrevMeldekortvedtakJson(hentSaksbehandlersNavn) }
 
         return pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakRsUri)
-    }
-
-    override suspend fun genererMeldekortvedtakBrevV2(
-        meldekortvedtak: Meldekortvedtak,
-        tiltaksdeltakelser: Tiltaksdeltakelser,
-        hentSaksbehandlersNavn: suspend (String) -> String,
-        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        val jsonPayload = suspend {
-            meldekortvedtak.toJsonRequestV2(
-                hentSaksbehandlersNavn,
-                tiltaksdeltakelser,
-                sammenligning,
-            )
-        }
-
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakV2RsUri)
-    }
-
-    override suspend fun genererMeldekortvedtakBrevV2(
-        kommando: GenererMeldekortvedtakBrevKommando,
-        hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        val jsonPayload = suspend { kommando.tilJsonRequestV2(hentSaksbehandlersNavn) }
-
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakV2RsUri)
     }
 
     /*

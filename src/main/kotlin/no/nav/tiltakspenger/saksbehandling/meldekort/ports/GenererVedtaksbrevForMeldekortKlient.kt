@@ -21,16 +21,4 @@ interface GenererVedtaksbrevForMeldekortKlient {
         kommando: GenererMeldekortvedtakBrevKommando,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson>
-
-    suspend fun genererMeldekortvedtakBrevV2(
-        meldekortvedtak: Meldekortvedtak,
-        tiltaksdeltakelser: Tiltaksdeltakelser,
-        hentSaksbehandlersNavn: suspend (String) -> String,
-        sammenligning: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson>
-
-    suspend fun genererMeldekortvedtakBrevV2(
-        kommando: GenererMeldekortvedtakBrevKommando,
-        hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

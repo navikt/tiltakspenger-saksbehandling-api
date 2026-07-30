@@ -81,7 +81,7 @@ class JournalførMeldekortvedtakService(
                             navIdentClient::hentNavnForNavIdentEllerKast
                         }
 
-                    val pdfOgJson = genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrevV2(
+                    val pdfOgJson = genererVedtaksbrevForMeldekortKlient.genererMeldekortvedtakBrev(
                         meldekortvedtak,
                         tiltaksdeltakelser = tiltak,
                         hentSaksbehandlersNavn = hentSaksbehandlersNavn,

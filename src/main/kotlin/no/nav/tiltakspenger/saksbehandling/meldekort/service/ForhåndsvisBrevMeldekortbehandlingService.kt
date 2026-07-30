@@ -78,7 +78,7 @@ class ForhåndsvisBrevMeldekortbehandlingService(
             sak.hentNyesteTiltaksdeltakelserForRammevedtakIder(it)
         }
 
-        return genererBrevClient.genererMeldekortvedtakBrevV2(
+        return genererBrevClient.genererMeldekortvedtakBrev(
             kommando = GenererMeldekortvedtakBrevKommando(
                 sakId = meldekortbehandling.sakId,
                 saksnummer = meldekortbehandling.saksnummer,

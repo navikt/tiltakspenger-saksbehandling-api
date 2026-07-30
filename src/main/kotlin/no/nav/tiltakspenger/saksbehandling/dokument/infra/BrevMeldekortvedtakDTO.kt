@@ -1,8 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.dato.norskTidspunktFormatter
 import no.nav.tiltakspenger.libs.dato.norskUkedagOgDatoUtenÅrFormatter
 import no.nav.tiltakspenger.libs.json.serialize
@@ -12,110 +9,120 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningDag
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingMedBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 
-data class BrevMeldekortvedtakDTO(
+private typealias SammenlignMeldeperioder = (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger
+
+private data class BrevMeldekortvedtakDTO(
     val meldekortId: String,
     val saksnummer: String,
-    val meldekortPeriode: BrevMeldekortPeriodeDTO,
-    val saksbehandler: SaksbehandlerDTO?,
-    val beslutter: SaksbehandlerDTO?,
-    val tiltak: List<TiltakDTO>,
+    val periode: BrevPeriodeDTO,
+    val erAutomatiskBehandlet: Boolean,
+    val saksbehandlerNavn: String?,
+    val beslutterNavn: String?,
+    val tiltak: List<String>,
     val iverksattTidspunkt: String?,
     val fødselsnummer: String,
-    val sammenligningAvBeregninger: SammenligningAvBeregningerDTO,
-    val korrigering: Boolean,
+    val meldeperioder: List<BrevMeldeperiode>,
     val totaltBelop: Int,
+    val totalDifferanse: Int,
     val brevTekst: String?,
     val forhandsvisning: Boolean,
 ) {
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-    @JsonSubTypes(
-        JsonSubTypes.Type(value = SaksbehandlerDTO.Automatisk::class, name = "AUTOMATISK"),
-        JsonSubTypes.Type(value = SaksbehandlerDTO.Manuell::class, name = "MANUELL"),
-    )
-    sealed interface SaksbehandlerDTO {
-        data object Automatisk : SaksbehandlerDTO
-
-        data class Manuell(val navn: String) : SaksbehandlerDTO
-    }
-
-    data class BrevMeldekortPeriodeDTO(
-        val fom: String,
-        val tom: String,
-    )
-
-    data class TiltakDTO(
-        val tiltakstypenavn: String,
-        val tiltakstype: String,
-    )
-
-    data class SammenligningAvBeregningerDTO(
-        val meldeperioder: List<MeldeperiodeSammenligningerDTO>,
-        val totalDifferanse: Int,
-    )
-
-    data class MeldeperiodeSammenligningerDTO(
-        val tittel: String,
-        val differanseFraForrige: Int,
+    data class BrevMeldeperiode(
+        val korrigering: Boolean,
+        val periode: BrevPeriodeDTO,
+        val beløp: Int,
+        val beløpDiff: Int,
         val harBarnetillegg: Boolean,
-        val dager: List<DagSammenligningDTO>,
+        val dager: List<Dag>,
     )
 
-    data class DagSammenligningDTO(
+    data class Dag(
         val dato: String,
         val status: ForrigeOgGjeldendeDTO<String>,
         val beløp: ForrigeOgGjeldendeDTO<Int>,
         val barnetillegg: ForrigeOgGjeldendeDTO<Int>,
         val prosent: ForrigeOgGjeldendeDTO<Int>,
-        val harEndretSeg: Boolean = status.harEndretSeg || beløp.harEndretSeg || barnetillegg.harEndretSeg || prosent.harEndretSeg,
-    )
+    ) {
+        @Suppress("unused")
+        val harEndring: Boolean = status.harEndring || beløp.harEndring || barnetillegg.harEndring || prosent.harEndring
+    }
 
     data class ForrigeOgGjeldendeDTO<T>(
         val forrige: T?,
         val gjeldende: T,
-        val harEndretSeg: Boolean = forrige != null && forrige != gjeldende,
+    ) {
+        val harEndring: Boolean = forrige != gjeldende
+    }
+
+    init {
+        if (erAutomatiskBehandlet) {
+            require(saksbehandlerNavn == null && beslutterNavn == null) {
+                "Skal ikke ha saksbehandler og beslutter ved automatisk behandling"
+            }
+        } else if (!forhandsvisning) {
+            // Ved forhåndsvisning er brevet ikke ferdig behandlet ennå, så beslutter (og potensielt saksbehandler) kan mangle.
+            require(saksbehandlerNavn != null && beslutterNavn != null) {
+                "Må ha saksbehandler og beslutter ved manuell behandling"
+            }
+        }
+    }
+}
+
+private fun MeldeperiodebehandlingMedBeregning.tilBrevMeldeperiode(
+    sammenlign: SammenlignMeldeperioder,
+): BrevMeldekortvedtakDTO.BrevMeldeperiode {
+    requireNotNull(meldeperiodeberegning)
+
+    return byggBrevMeldeperiode(
+        sammenligning = sammenlign(meldeperiodeberegning),
+        korrigering = meldeperiodebehandling.erKorrigering,
+        beløp = meldeperiodeberegning.dager.sumOf { it.totalBeløp },
     )
 }
 
-private fun SammenligningAvBeregninger.MeldeperiodeSammenligninger.toDto(): BrevMeldekortvedtakDTO.MeldeperiodeSammenligningerDTO {
-    val fraOgMed = periode.fraOgMed.format(norskDatoFormatter)
-    val tilOgMed = periode.tilOgMed.format(norskDatoFormatter)
-    val tittel = "Meldekort $fraOgMed - $tilOgMed"
-    val harBarnetillegg = this.dager.any {
+private fun byggBrevMeldeperiode(
+    sammenligning: SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    korrigering: Boolean,
+    beløp: Int,
+): BrevMeldekortvedtakDTO.BrevMeldeperiode {
+    val harBarnetillegg = sammenligning.dager.any {
         it.barnetillegg.gjeldende > 0 ||
             (it.barnetillegg.forrige ?: 0) > 0
     }
 
-    return BrevMeldekortvedtakDTO.MeldeperiodeSammenligningerDTO(
-        tittel = tittel,
-        differanseFraForrige = this.differanseFraForrige,
-        dager = this.dager.map { it.toDto() },
+    return BrevMeldekortvedtakDTO.BrevMeldeperiode(
+        korrigering = korrigering,
+        periode = BrevPeriodeDTO.fraPeriode(sammenligning.periode),
+        beløp = beløp,
+        beløpDiff = sammenligning.differanseFraForrige,
         harBarnetillegg = harBarnetillegg,
+        dager = sammenligning.dager.map { it.tilBrevDag() },
     )
 }
 
-private fun Meldekortvedtak.toBeregningSammenligningDTO(
-    sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
-): BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO {
-    return this.utbetaling.beregning.beregninger
-        .map { beregninger -> sammenlign(beregninger) }
-        .map { it.toDto() }
-        .let { meldeperiodeSammenligninger ->
-            // Kommentar: Bug rundt serialisering av NonEmptyList gjør at vi konverterer til standard kotlin list
-            BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
-                meldeperioder = meldeperiodeSammenligninger.toList(),
-                totalDifferanse = meldeperiodeSammenligninger.toList().sumOf { it.differanseFraForrige },
-            )
-        }
-}
-
-private fun Tiltaksdeltakelse.toTiltakDTO() =
-    BrevMeldekortvedtakDTO.TiltakDTO(
-        tiltakstypenavn = typeNavn,
-        tiltakstype = typeKode.name,
+private fun SammenligningAvBeregninger.DagSammenligning.tilBrevDag(): BrevMeldekortvedtakDTO.Dag =
+    BrevMeldekortvedtakDTO.Dag(
+        dato = dato.format(norskUkedagOgDatoUtenÅrFormatter),
+        status = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = status.forrige?.toStatus(),
+            gjeldende = status.gjeldende.toStatus(),
+        ),
+        beløp = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = beløp.forrige,
+            gjeldende = beløp.gjeldende,
+        ),
+        barnetillegg = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = barnetillegg.forrige,
+            gjeldende = barnetillegg.gjeldende,
+        ),
+        prosent = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
+            forrige = prosent.forrige,
+            gjeldende = prosent.gjeldende,
+        ),
     )
 
 private fun MeldeperiodeBeregningDag.toStatus(): String {
@@ -133,89 +140,58 @@ private fun MeldeperiodeBeregningDag.toStatus(): String {
     }
 }
 
-fun SammenligningAvBeregninger.DagSammenligning.toDto(): BrevMeldekortvedtakDTO.DagSammenligningDTO =
-    BrevMeldekortvedtakDTO.DagSammenligningDTO(
-        dato = this.dato.format(norskUkedagOgDatoUtenÅrFormatter),
-        status = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.status.forrige?.toStatus(),
-            gjeldende = this.status.gjeldende.toStatus(),
-        ),
-        beløp = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.beløp.forrige,
-            gjeldende = this.beløp.gjeldende,
-        ),
-        barnetillegg = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.barnetillegg.forrige,
-            gjeldende = this.barnetillegg.gjeldende,
-        ),
-        prosent = BrevMeldekortvedtakDTO.ForrigeOgGjeldendeDTO(
-            forrige = this.prosent.forrige,
-            gjeldende = this.prosent.gjeldende,
-        ),
-    )
-
-suspend fun String.tilSaksbehandlerDto(
-    hentSaksbehandlersNavn: suspend (String) -> String,
-): BrevMeldekortvedtakDTO.SaksbehandlerDTO? = when (this) {
-    AUTOMATISK_SAKSBEHANDLER_ID -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Automatisk
-    else -> BrevMeldekortvedtakDTO.SaksbehandlerDTO.Manuell(navn = hentSaksbehandlersNavn(this))
-}
-
-suspend fun Meldekortvedtak.toJsonRequest(
+suspend fun Meldekortvedtak.tilBrevMeldekortvedtakJson(
     hentSaksbehandlersNavn: suspend (String) -> String,
     tiltaksdeltakelser: Tiltaksdeltakelser,
-    sammenlign: (MeldeperiodeBeregning) -> SammenligningAvBeregninger.MeldeperiodeSammenligninger,
+    sammenlign: SammenlignMeldeperioder,
 ): String {
+    val meldeperioder = meldeperioderMedBeregninger.map { it.tilBrevMeldeperiode(sammenlign) }
+
     return BrevMeldekortvedtakDTO(
         fødselsnummer = fnr.verdi,
-        saksbehandler = saksbehandler.tilSaksbehandlerDto(hentSaksbehandlersNavn),
-        beslutter = beslutter.tilSaksbehandlerDto(hentSaksbehandlersNavn),
+        erAutomatiskBehandlet = erAutomatiskBehandlet,
+        saksbehandlerNavn = if (erAutomatiskBehandlet) null else hentSaksbehandlersNavn(saksbehandler),
+        beslutterNavn = if (erAutomatiskBehandlet) null else hentSaksbehandlersNavn(beslutter),
         meldekortId = meldekortId.toString(),
         saksnummer = saksnummer.toString(),
-        meldekortPeriode = BrevMeldekortvedtakDTO.BrevMeldekortPeriodeDTO(
-            fom = beregningsperiode.fraOgMed.format(norskDatoFormatter),
-            tom = beregningsperiode.tilOgMed.format(norskDatoFormatter),
-        ),
-        tiltak = tiltaksdeltakelser.map { it.toTiltakDTO() },
+        periode = BrevPeriodeDTO.fraPeriode(beregningsperiode),
+        tiltak = tiltaksdeltakelser.map { it.typeNavn },
         iverksattTidspunkt = opprettet.format(norskTidspunktFormatter),
-        korrigering = harKorrigering,
-        sammenligningAvBeregninger = toBeregningSammenligningDTO(sammenlign),
-        totaltBelop = meldekortbehandling.beløpTotal,
         brevTekst = this.meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
         forhandsvisning = false,
+        totaltBelop = meldekortbehandling.beløpTotal,
+        totalDifferanse = meldeperioder.sumOf { it.beløpDiff },
+        meldeperioder = meldeperioder,
     ).let { serialize(it) }
 }
 
-suspend fun GenererMeldekortvedtakBrevKommando.tilJsonRequest(
+suspend fun GenererMeldekortvedtakBrevKommando.tilBrevMeldekortvedtakJson(
     hentSaksbehandlersNavn: suspend (String) -> String,
 ): String {
-    return BrevMeldekortvedtakDTO(
-        fødselsnummer = this.fnr.verdi,
-        saksbehandler = this.saksbehandler?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
-        beslutter = this.beslutter?.tilSaksbehandlerDto(hentSaksbehandlersNavn),
-        meldekortId = this.meldekortbehandlingId.toString(),
-        saksnummer = this.saksnummer.verdi,
-        meldekortPeriode = this.beregningsperiode.let {
-            BrevMeldekortvedtakDTO.BrevMeldekortPeriodeDTO(
-                fom = it.fraOgMed.format(norskDatoFormatter),
-                tom = it.tilOgMed.format(norskDatoFormatter),
-            )
-        },
-        tiltak = this.tiltaksdeltakelser.map { it.toTiltakDTO() },
-        iverksattTidspunkt = this.iverksattTidspunkt?.format(norskTidspunktFormatter),
-        korrigering = this.erKorrigering,
-        sammenligningAvBeregninger = this.beregninger.map {
-            sammenlignBeregninger(it.first, it.second).toDto()
-        }.let {
-            BrevMeldekortvedtakDTO.SammenligningAvBeregningerDTO(
-                meldeperioder = it,
-                totalDifferanse = it.sumOf { periode -> periode.differanseFraForrige },
-            )
-        },
-        totaltBelop = this.totaltBeløp,
-        brevTekst = this.tekstTilVedtaksbrev?.value,
-        forhandsvisning = this.forhåndsvisning,
-    ).let {
-        serialize(it)
+    val erAutomatiskBehandlet = saksbehandler == AUTOMATISK_SAKSBEHANDLER_ID
+
+    val meldeperioder = beregninger.map { (forrigeBeregning, gjeldendeBeregning) ->
+        byggBrevMeldeperiode(
+            sammenligning = sammenlignBeregninger(forrigeBeregning, gjeldendeBeregning),
+            korrigering = forrigeBeregning != null,
+            beløp = gjeldendeBeregning.dager.sumOf { it.totalBeløp },
+        )
     }
+
+    return BrevMeldekortvedtakDTO(
+        fødselsnummer = fnr.verdi,
+        erAutomatiskBehandlet = erAutomatiskBehandlet,
+        saksbehandlerNavn = if (erAutomatiskBehandlet) null else saksbehandler?.let { hentSaksbehandlersNavn(it) },
+        beslutterNavn = if (erAutomatiskBehandlet) null else beslutter?.let { hentSaksbehandlersNavn(it) },
+        meldekortId = meldekortbehandlingId.toString(),
+        saksnummer = saksnummer.verdi,
+        periode = BrevPeriodeDTO.fraPeriode(beregningsperiode),
+        tiltak = tiltaksdeltakelser.map { it.typeNavn },
+        iverksattTidspunkt = iverksattTidspunkt?.format(norskTidspunktFormatter),
+        brevTekst = tekstTilVedtaksbrev?.value,
+        forhandsvisning = forhåndsvisning,
+        totaltBelop = totaltBeløp,
+        totalDifferanse = meldeperioder.sumOf { it.beløpDiff },
+        meldeperioder = meldeperioder,
+    ).let { serialize(it) }
 }

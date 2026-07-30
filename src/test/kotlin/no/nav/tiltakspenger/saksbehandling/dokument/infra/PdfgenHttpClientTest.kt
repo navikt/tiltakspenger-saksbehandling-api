@@ -195,9 +195,9 @@ internal class PdfgenHttpClientTest {
     }
 
     @Test
-    fun `genererMeldekortvedtakBrev for vedtak treffer utbetalingsvedtak`() {
+    fun `genererMeldekortvedtakBrev for vedtak treffer meldekortvedtak`() {
         val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = nå(fixedClock))
-        verifiserKunPdfgenrs("utbetalingsvedtak") {
+        verifiserKunPdfgenrs("meldekortvedtak") {
             it.genererMeldekortvedtakBrev(
                 meldekortvedtak = meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
@@ -208,32 +208,9 @@ internal class PdfgenHttpClientTest {
     }
 
     @Test
-    fun `genererMeldekortvedtakBrev for kommando treffer utbetalingsvedtak`() {
-        verifiserKunPdfgenrs("utbetalingsvedtak") {
+    fun `genererMeldekortvedtakBrev for kommando treffer meldekortvedtak`() {
+        verifiserKunPdfgenrs("meldekortvedtak") {
             it.genererMeldekortvedtakBrev(
-                kommando = meldekortvedtakBrevKommando(),
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            )
-        }
-    }
-
-    @Test
-    fun `genererMeldekortvedtakBrevV2 for vedtak treffer meldekortvedtak`() {
-        val meldekortvedtak = ObjectMother.meldekortvedtak(opprettet = nå(fixedClock))
-        verifiserKunPdfgenrs("meldekortvedtak") {
-            it.genererMeldekortvedtakBrevV2(
-                meldekortvedtak = meldekortvedtak,
-                tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
-                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                sammenligning = { sammenlign(it) },
-            )
-        }
-    }
-
-    @Test
-    fun `genererMeldekortvedtakBrevV2 for kommando treffer meldekortvedtak`() {
-        verifiserKunPdfgenrs("meldekortvedtak") {
-            it.genererMeldekortvedtakBrevV2(
                 kommando = meldekortvedtakBrevKommando(),
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
@@ -424,7 +401,7 @@ internal class PdfgenHttpClientTest {
                 sammenligning = { sammenlign(meldekortvedtak.utbetaling.beregning.beregninger.first()) },
             ).getOrFail()
 
-            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"6. januar 2025","tom":"19. januar 2025"},"saksbehandler":{"type":"MANUELL","navn":"Sak Behandler"},"beslutter":{"type":"MANUELL","navn":"Sak Behandler"},"tiltak":[{"tiltakstypenavn":"Arbeidsmarkedsoppfølging gruppe","tiltakstype":"GRUPPE_AMO"}],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[{"tittel":"Meldekort 6. januar 2025 - 19. januar 2025","differanseFraForrige":0,"harBarnetillegg":false,"dager":[]}],"totalDifferanse":0},"korrigering":false,"totaltBelop":2980,"brevTekst":null,"forhandsvisning":false}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":"Sak Behandler","tiltak":["Arbeidsmarkedsoppfølging gruppe"],"iverksattTidspunkt":"1. januar 2025 01:02:03","fødselsnummer":"${fnr.verdi}","meldeperioder":[{"korrigering":false,"periode":{"fraOgMed":"6. januar 2025","tilOgMed":"19. januar 2025"},"beløp":2980,"beløpDiff":0,"harBarnetillegg":false,"dager":[]}],"totaltBelop":2980,"totalDifferanse":0,"brevTekst":null,"forhandsvisning":false}"""
         }
     }
 
@@ -444,7 +421,7 @@ internal class PdfgenHttpClientTest {
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
             ).getOrFail()
 
-            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","meldekortPeriode":{"fom":"1. mai 2025","tom":"7. mai 2025"},"saksbehandler":{"type":"MANUELL","navn":"Sak Behandler"},"beslutter":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","sammenligningAvBeregninger":{"meldeperioder":[],"totalDifferanse":0},"korrigering":false,"totaltBelop":50,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
+            actual.json shouldBe """{"meldekortId":"$meldekortId","saksnummer":"$saksnummer","periode":{"fraOgMed":"1. mai 2025","tilOgMed":"7. mai 2025"},"erAutomatiskBehandlet":false,"saksbehandlerNavn":"Sak Behandler","beslutterNavn":null,"tiltak":[],"iverksattTidspunkt":null,"fødselsnummer":"${fnr.verdi}","meldeperioder":[],"totaltBelop":50,"totalDifferanse":0,"brevTekst":"Bacon ipsum dolor amet","forhandsvisning":true}"""
         }
     }
 
