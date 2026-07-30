@@ -74,13 +74,16 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandlingId,
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
-                forventetBody = """
+                forventet = ForventetRespons.json(
+                    400,
+                    """
                     {
-                        "melding": "Kan ikke legge tilbake behandling med status KLAR_TIL_BESLUTNING.",
-                        "kode": "ugyldig_status_for_legg_tilbake"
+                      "melding": "Kan ikke legge tilbake behandling med status KLAR_TIL_BESLUTNING.",
+                      "kode": "ugyldig_status_for_legg_tilbake"
                     }
-                """,
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -97,13 +100,16 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandling.id,
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
-                forventetBody = """
+                forventet = ForventetRespons.json(
+                    400,
+                    """
                     {
-                        "melding": "Kan ikke legge tilbake behandling med status KLAR_TIL_BEHANDLING.",
-                        "kode": "ugyldig_status_for_legg_tilbake"
+                      "melding": "Kan ikke legge tilbake behandling med status KLAR_TIL_BEHANDLING.",
+                      "kode": "ugyldig_status_for_legg_tilbake"
                     }
-                """,
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -118,13 +124,16 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandling.id,
                 saksbehandler = ObjectMother.saksbehandler(navIdent = "Z999999"),
-                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
-                forventetBody = """
+                forventet = ForventetRespons.json(
+                    403,
+                    """
                     {
-                        "melding": "Du må være saksbehandleren som er tildelt behandlingen for å legge den tilbake.",
-                        "kode": "maa_vaere_saksbehandler_for_behandlingen"
+                      "melding": "Du må være saksbehandleren som er tildelt behandlingen for å legge den tilbake.",
+                      "kode": "maa_vaere_saksbehandler_for_behandlingen"
                     }
-                """,
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
@@ -144,13 +153,16 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandling.id,
                 saksbehandler = ObjectMother.beslutter(),
-                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
-                forventetBody = """
+                forventet = ForventetRespons.json(
+                    403,
+                    """
                     {
-                        "melding": "Du må være saksbehandler for å legge tilbake denne behandlingen.",
-                        "kode": "maa_vaere_saksbehandler"
+                      "melding": "Du må være saksbehandler for å legge tilbake denne behandlingen.",
+                      "kode": "maa_vaere_saksbehandler"
                     }
-                """,
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -165,13 +177,16 @@ class LeggTilbakeRammebehandlingRouteTest {
                 tac,
                 sak.id,
                 behandlingId,
-                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
-                forventetBody = """
+                forventet = ForventetRespons.json(
+                    403,
+                    """
                     {
-                        "melding": "Du må være beslutter for å legge tilbake denne behandlingen.",
-                        "kode": "maa_vaere_beslutter"
+                      "melding": "Du må være beslutter for å legge tilbake denne behandlingen.",
+                      "kode": "maa_vaere_beslutter"
                     }
-                """,
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
         }
     }
@@ -187,13 +202,16 @@ class LeggTilbakeRammebehandlingRouteTest {
                 sak.id,
                 behandlingId,
                 saksbehandler = ObjectMother.beslutter(navIdent = "B99999"),
-                forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
-                forventetBody = """
+                forventet = ForventetRespons.json(
+                    403,
+                    """
                     {
-                        "melding": "Du må være beslutteren som er tildelt behandlingen for å legge den tilbake.",
-                        "kode": "maa_vaere_beslutter_for_behandlingen"
+                      "melding": "Du må være beslutteren som er tildelt behandlingen for å legge den tilbake.",
+                      "kode": "maa_vaere_beslutter_for_behandlingen"
                     }
-                """,
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {

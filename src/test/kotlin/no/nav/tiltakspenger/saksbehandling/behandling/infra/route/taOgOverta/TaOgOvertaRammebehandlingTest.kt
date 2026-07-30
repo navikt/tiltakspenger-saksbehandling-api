@@ -23,13 +23,16 @@ internal class TaOgOvertaRammebehandlingTest {
                 sak.id,
                 behandling.id,
                 saksbehandler = ObjectMother.saksbehandler(navIdent = "Z999999"),
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
-                forventetBody = """
+                forventet = ForventetRespons.json(
+                    400,
+                    """
                     {
-                        "melding": "Behandlingen har allerede en saksbehandler.",
-                        "kode": "behandlingen_har_allerede_en_saksbehandler"
+                      "melding": "Behandlingen har allerede en saksbehandler.",
+                      "kode": "behandlingen_har_allerede_en_saksbehandler"
                     }
-                """,
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
             ) shouldBe null
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {

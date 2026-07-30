@@ -14,7 +14,6 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.infra.Producer
-import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
@@ -28,7 +27,6 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.Identhende
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -84,7 +82,7 @@ class IdenthendelseJobbTest {
                     vedtak.genererSaksstatistikk().genererSaksstatistikk(
                         gjelderKode6 = { false },
                         versjon = "1",
-                        clock = Clock.system(zoneIdOslo),
+                        clock = clock,
                     ),
                 )
                 statistikkStønadRepo.lagre(
@@ -174,7 +172,7 @@ class IdenthendelseJobbTest {
                     vedtak.genererSaksstatistikk().genererSaksstatistikk(
                         gjelderKode6 = { false },
                         versjon = "1",
-                        clock = Clock.system(zoneIdOslo),
+                        clock = clock,
                     ),
                 )
                 statistikkStønadRepo.lagre(

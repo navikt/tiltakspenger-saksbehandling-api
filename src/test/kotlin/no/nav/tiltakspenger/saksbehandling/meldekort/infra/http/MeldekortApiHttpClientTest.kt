@@ -7,9 +7,9 @@ import com.marcinziolo.kotlin.wiremock.returns
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.withWireMockServer
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
-import java.time.Clock
 
 /**
  * Wiremock-test for [MeldekortApiHttpClient].
@@ -28,7 +28,7 @@ internal class MeldekortApiHttpClientTest {
 
     private fun nyClient(baseUrl: String) = MeldekortApiHttpClient(
         baseUrl = baseUrl,
-        clock = Clock.systemUTC(),
+        clock = fixedClock,
         authTokenProvider = object : no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider {
             override suspend fun hentToken(skipCache: Boolean) = ObjectMother.accessToken()
         },

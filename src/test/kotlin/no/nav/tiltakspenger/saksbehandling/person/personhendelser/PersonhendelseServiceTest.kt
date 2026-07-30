@@ -16,7 +16,6 @@ import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.oktober
-import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -170,7 +169,7 @@ class PersonhendelseServiceTest {
                     ).genererSaksstatistikk(
                         gjelderKode6 = { false },
                         versjon = "1",
-                        clock = Clock.system(zoneIdOslo),
+                        clock = clock,
                     ),
                 )
                 val personhendelse = getPersonhendelse(
@@ -243,7 +242,7 @@ class PersonhendelseServiceTest {
                         hendelse = StatistikkhendelseType.OPPRETTET_BEHANDLING,
                     ).genererSaksstatistikk(
                         versjon = "1",
-                        clock = Clock.system(zoneIdOslo),
+                        clock = clock,
                         gjelderKode6 = { false },
                     ),
                 )

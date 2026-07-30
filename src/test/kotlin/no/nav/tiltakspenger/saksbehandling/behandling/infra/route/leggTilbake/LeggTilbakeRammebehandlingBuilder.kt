@@ -25,7 +25,6 @@ interface LeggTilbakeRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
-        forventetBody: String? = null,
     ): Triple<Sak, Rammebehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,

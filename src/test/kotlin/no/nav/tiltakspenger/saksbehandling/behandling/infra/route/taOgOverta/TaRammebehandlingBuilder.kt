@@ -27,7 +27,6 @@ interface TaRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
-        forventetBody: String? = null,
     ): Triple<Sak, AttesterbarBehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,

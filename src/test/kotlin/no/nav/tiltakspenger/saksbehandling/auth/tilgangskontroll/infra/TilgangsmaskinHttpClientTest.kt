@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponseDto
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.fixedClock
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.Instant
 
 class TilgangsmaskinHttpClientTest {
@@ -27,7 +27,7 @@ class TilgangsmaskinHttpClientTest {
         baseUrl = "https://tilgangsmaskin.test",
         scope = "scope",
         texasClient = texasClient,
-        clock = Clock.systemUTC(),
+        clock = fixedClock,
         transport = transport,
     )
 
@@ -148,7 +148,7 @@ class TilgangsmaskinHttpClientTest {
             baseUrl = "https://tilgangsmaskin.test",
             scope = "scope",
             texasClient = mockk<TexasClient>(),
-            clock = Clock.systemUTC(),
+            clock = fixedClock,
         )
     }
 
