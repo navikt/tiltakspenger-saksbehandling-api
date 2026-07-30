@@ -54,7 +54,6 @@ data class SakDTO(
     val kanSendeInnHelgForMeldekort: Boolean,
     val meldekortbehandlinger: Map<String, MeldekortbehandlingDTO>,
     val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
-    val meldeperiodeKjederV2: List<MeldeperiodeKjedeDTO>,
     val åpenMeldekortbehandlingId: String?,
 )
 
@@ -64,7 +63,6 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     fnr = fnr.verdi,
     åpneBehandlinger = tilÅpneBehandlingerDTO(),
     meldeperiodeKjeder = tilMeldeperiodeKjederDTO(clock),
-    meldeperiodeKjederV2 = tilMeldeperiodeKjederDTO(clock),
     førsteDagSomGirRett = førsteDagSomGirRett,
     sisteDagSomGirRett = sisteDagSomGirRett,
     behandlinger = this.tilBehandlingerDTO(),

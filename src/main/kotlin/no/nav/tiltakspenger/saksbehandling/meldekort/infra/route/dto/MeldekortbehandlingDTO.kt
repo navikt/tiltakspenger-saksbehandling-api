@@ -131,7 +131,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
     )
 }
 
-fun MeldeperiodebehandlingMedBeregning.tilMeldeperiodebehandlingDTO(): MeldeperiodebehandlingDTO {
+private fun MeldeperiodebehandlingMedBeregning.tilMeldeperiodebehandlingDTO(): MeldeperiodebehandlingDTO {
     return MeldeperiodebehandlingDTO(
         meldeperiodeId = meldeperiodebehandling.meldeperiodeId.toString(),
         kjedeId = meldeperiodebehandling.kjedeId.toString(),

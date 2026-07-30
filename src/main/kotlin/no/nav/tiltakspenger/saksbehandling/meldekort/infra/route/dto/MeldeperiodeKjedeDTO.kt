@@ -27,6 +27,16 @@ data class MeldeperiodeKjedeDTO(
     val kanBehandles: Boolean,
 )
 
+fun Sak.tilMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
+    return this.meldeperiodeKjeder.mapNotNull {
+        if (it.periode.fraOgMed > LocalDate.now(clock)) {
+            return@mapNotNull null
+        }
+
+        this.tilMeldeperiodeKjedeDTO(it.kjedeId, clock)
+    }
+}
+
 private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clock): MeldeperiodeKjedeDTO {
     val meldeperiodeKjede = this.meldeperiodeKjeder.single { it.kjedeId == kjedeId }
 
@@ -68,14 +78,4 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
             ?.tilMeldeperiodeBeregningDTO(),
         kanBehandles = sisteMeldeperiode.kanBehandles(clock) || (brukersMeldekort.isNotEmpty() && !harBehandletSiste),
     )
-}
-
-fun Sak.tilMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
-    return this.meldeperiodeKjeder.mapNotNull {
-        if (it.periode.fraOgMed > LocalDate.now(clock)) {
-            return@mapNotNull null
-        }
-
-        this.tilMeldeperiodeKjedeDTO(it.kjedeId, clock)
-    }
 }
