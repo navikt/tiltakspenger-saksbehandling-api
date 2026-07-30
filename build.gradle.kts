@@ -11,6 +11,37 @@ val testContainersVersion = "2.0.5"
 val confluentVersion = "8.1.1"
 val avroVersion = "1.12.1"
 val prometeusVersion = "1.17.0"
+val jackson2Version = "2.22.1"
+val lz4Version = "1.11.1"
+// Samme versjon som `kafka` i tiltakspenger-libs sin versjonskatalog; se constraint-blokka for hvorfor den må være strict.
+val kafkaVersion = "4.3.1"
+
+// Avro-pluginen drar inn `avro-tools` på buildscript-classpathen, og derfra kommer
+// `avro-mapred` → `avro-ipc-jetty` → Jetty 9.4, som er EOL og ikke får sikkerhetsfikser.
+// Sammen med gammel `commons-lang3`, `avro-compiler` 1.12.0 og jackson 2.18.x sto det for
+// 16 Dependabot-alerts med scope `development`.
+// Ingenting av det havner i imaget, men støyen skjuler de reelle runtime-funnene i alert-lista.
+//
+// Vi ekskluderer `avro-ipc-jetty` og ikke hele `avro-tools`: schemaene våre er `.avdl` (Avro IDL),
+// og kodegenereringen trenger `avro-idl` fra samme tre — uten den feiler `generateAvro` med
+// NoClassDefFoundError på `org/apache/avro/idl/IdlReader`.
+buildscript {
+    configurations["classpath"].exclude(group = "org.apache.avro", module = "avro-ipc-jetty")
+    dependencies {
+        constraints {
+            // Versjonene er skrevet ut fordi buildscript-blokka evalueres før script-valene finnes;
+            // hold dem i sync med `avroVersion` og `jackson2Version`.
+            // Kodeinjeksjon i Avros Java-SDK (GHSA-rp46-r563-jrc7).
+            add("classpath", "org.apache.avro:avro-compiler:1.12.1")
+            // Ukontrollert rekursjon på lange inndata (GHSA-j288-q9x7-2f5v).
+            add("classpath", "org.apache.commons:commons-lang3:3.18.0")
+            // Avro drar inn en gammel jackson-bom her. Buildscript-classpathen er en egen
+            // konfigurasjon, så `implementation(platform(...))` i dependencies-blokka når den ikke.
+            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.1")
+            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.1")
+        }
+    }
+}
 
 dependencies {
     // Lås versjonene på alle Kotlin-komponenter til samme versjon
@@ -23,6 +54,30 @@ dependencies {
     // duplikate baseklasser (ByteToMessageDecoder m.fl.), som med `-cp lib/*` lastes i feil
     // rekkefølge og brekker HTTP-pipelinen.
     implementation(platform("io.netty:netty-bom:4.2.16.Final"))
+
+    // Vår egen kode er på jackson3 (tools.jackson), men jackson 2 kommer inn transitivt via
+    // Confluents kafka-avro-serializer (kafka-schema-registry-client avhenger av jackson-databind)
+    // og drar med seg jackson-bom 2.20.0. Den har bl.a. to PolymorphicTypeValidator-omgåelser
+    // (GHSA-rmj7-2vxq-3g9f, GHSA-j3rv-43j4-c7qm) og en SSRF via InetSocketAddress-deserialisering
+    // (GHSA-hgj6-7826-r7m5). Vi styrer versjonen selv i stedet for å vente på at Confluent bumper -
+    // samme versjon som `jackson2` i tiltakspenger-libs sin versjonskatalog.
+    implementation(platform("com.fasterxml.jackson:jackson-bom:$jackson2Version"))
+
+    constraints {
+        // Confluent publiserer sin egen fork av kafka-clients som `8.1.1-ccs`. Den taper ikke
+        // konfliktoppløsningen mot Apache 4.3.1 fra libs:kafka - Gradle leser "8.1.1-ccs" som
+        // høyere enn "4.3.1" - så uten `strictly` er det Confluent-forken som havner i imaget.
+        // Den er bygd på Kafka 4.1 og drar inn den avviklede `org.lz4:lz4-java` 1.8.0, som har
+        // både out-of-bounds-lesing (GHSA-vqf4-7m7x-wgfc) og en informasjonslekkasje i den trygge
+        // dekomprimereren (GHSA-cmp6-m4wj-q63q) - sistnevnte uten fiks på de koordinatene.
+        // Med Apache-versjonen kommer i stedet `at.yawk.lz4:lz4-java`, som vedlikeholdes.
+        implementation("org.apache.kafka:kafka-clients") {
+            version { strictly(kafkaVersion) }
+        }
+        // Apache kafka-clients drar inn lz4-java 1.10.2, der de native XXHash-implementasjonene
+        // kan krasje JVM-en på ugyldige byte-intervaller (GHSA-xx22-p4ch-683r).
+        implementation("at.yawk.lz4:lz4-java:$lz4Version")
+    }
 
     implementation("com.github.navikt.tiltakspenger-libs:soknad-dtos:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:tiltak-dtos:$felleslibVersion")
