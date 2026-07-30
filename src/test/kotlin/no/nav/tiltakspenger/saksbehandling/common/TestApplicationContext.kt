@@ -149,7 +149,7 @@ sealed class TestApplicationContext(
 
     protected open val kabalClientFake by lazy { KabalClientFake(clock) }
 
-    protected open val utbetalingFakeKlient by lazy {
+    open val utbetalingFakeKlient by lazy {
         UtbetalingFakeKlient(
             sakRepo = sakContext.sakRepo,
             clock = clock,

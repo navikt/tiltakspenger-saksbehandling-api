@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedt
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisUtbetalingHarFeilet
 import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentEllerKast
@@ -47,6 +48,9 @@ class JournalførRammevedtakService(
             rammevedtakRepo.hentRammevedtakSomSkalJournalføres().forEach { vedtak ->
                 val correlationId = CorrelationId.generate()
                 log.info { "Journalfører vedtaksbrev for vedtak ${vedtak.id}, type: ${vedtak.rammebehandlingsresultat.tilRammebehandlingResultatTypeDTO()}" }
+                varsleHvisUtbetalingHarFeilet(log, vedtak.utbetaling?.status) {
+                    "Saksnummer: ${vedtak.saksnummer}, sakId: ${vedtak.sakId}, vedtakId: ${vedtak.id}, utbetalingId: ${vedtak.utbetaling?.id}"
+                }
                 Either.catch {
                     val vedtaksdato = LocalDate.now(clock)
                     val (pdfOgJson, pdfOgJsonPdfgenrs) = when (vedtak.rammebehandlingsresultat) {

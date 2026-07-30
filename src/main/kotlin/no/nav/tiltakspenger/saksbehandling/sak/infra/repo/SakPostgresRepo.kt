@@ -115,23 +115,6 @@ class SakPostgresRepo(
             )
         }
 
-    override fun hentSakIdForSaksnummer(
-        saksnummer: Saksnummer,
-        sessionContext: SessionContext?,
-    ): SakId? =
-        sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    """
-                        select id from sak where saksnummer = :saksnummer
-                    """.trimIndent(),
-                    mapOf("saksnummer" to saksnummer.verdi),
-                ).map { row ->
-                    SakId.fromString(row.string("id"))
-                }.asSingle,
-            )
-        }
-
     override fun hentSakIdForPersonidenter(
         personidenter: Nel<String>,
         sessionContext: SessionContext?,
@@ -231,7 +214,7 @@ class SakPostgresRepo(
             session.run(
                 sqlQuery(
                     """
-                        select id from sak where skal_sendes_til_meldekort_api = true limit $limit
+                        select id from sak where skal_sendes_til_meldekort_api = true order by opprettet limit $limit
                     """,
                 ).map { row ->
                     SakId.fromString(row.string("id"))
@@ -249,6 +232,7 @@ class SakPostgresRepo(
                             select * 
                             from sak
                             where skal_sende_meldeperioder_til_datadeling = true and sendt_til_datadeling is not null
+                            order by opprettet
                             limit $limit
                         """,
                     ).map { row ->

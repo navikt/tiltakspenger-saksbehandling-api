@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.overta
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgOverta
@@ -22,9 +23,13 @@ class OvertaMeldekortbehandlingRouteTest {
         }
     }
 
+    /**
+     * Kjøres mot postgres fordi den er grunnsettet for [no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo.overtaBeslutter].
+     * Ingen annen test treffer den spørringen.
+     */
     @Test
     fun `beslutter kan overta meldekortbehandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (_, _, _, meldekortbehandling) = this.iverksettSøknadsbehandlingSendMeldekortbehandlingTilBeslutterOgOverta(
                 tac = tac,
                 overtarFraBeslutter = ObjectMother.beslutter("overtarFraBeslutter"),

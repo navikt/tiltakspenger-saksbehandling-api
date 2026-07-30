@@ -49,29 +49,6 @@ class RammevedtakPostgresRepo(
         }
     }
 
-    override fun hentForFnr(fnr: Fnr): List<Rammevedtak> {
-        return sessionFactory
-            .withSession { session ->
-                session.run(
-                    queryOf(
-                        """
-                            select v.*
-                            from rammevedtak v
-                            join sak s
-                              on s.id = v.sak_id 
-                            where s.fnr = :fnr
-                            order by v.opprettet
-                        """.trimIndent(),
-                        mapOf(
-                            "fnr" to fnr.verdi,
-                        ),
-                    ).map { row ->
-                        row.toRammevedtak(session)
-                    }.asList,
-                )
-            }
-    }
-
     override fun hentRammevedtakSomSkalJournalføres(
         limit: Int,
     ): List<Rammevedtak> {

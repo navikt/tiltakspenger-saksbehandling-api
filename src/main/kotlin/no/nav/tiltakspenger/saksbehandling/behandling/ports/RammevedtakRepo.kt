@@ -28,8 +28,6 @@ interface RammevedtakRepo {
         context: TransactionContext? = null,
     )
 
-    fun hentForFnr(fnr: Fnr): List<Rammevedtak>
-
     fun hentRammevedtakSomSkalJournalføres(limit: Int = 10): List<Rammevedtak>
 
     fun hentRammevedtakSomSkalDistribueres(limit: Int = 10): List<VedtakSomSkalDistribueres>

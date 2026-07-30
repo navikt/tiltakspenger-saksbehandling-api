@@ -36,11 +36,6 @@ interface SakRepo {
         sessionContext: SessionContext? = null,
     ): Fnr?
 
-    fun hentSakIdForSaksnummer(
-        saksnummer: Saksnummer,
-        sessionContext: SessionContext? = null,
-    ): SakId?
-
     /**
      * Laget i utgangspunktet for PDL sin personhendelse topic, der vi kan få en liste av identer (fnr/d-nummer/aktørId, både historiske og aktive) som alle refererer til samme person.
      *

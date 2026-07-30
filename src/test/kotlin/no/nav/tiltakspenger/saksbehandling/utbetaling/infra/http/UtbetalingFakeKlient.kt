@@ -34,6 +34,8 @@ class UtbetalingFakeKlient(
     private val clock: Clock = fixedClock,
     private val tilbakekrevingProducer: TilbakekrevingFakeProducer,
     var skalStarteTilbakekrevinger: Boolean,
+    /** Settes av tester som trenger en utbetaling som ikke gikk gjennom, f.eks. [Utbetalingsstatus.FeiletMotOppdrag]. */
+    var utbetalingsstatus: Utbetalingsstatus = Utbetalingsstatus.Ok,
 ) : Utbetalingsklient {
 
     override suspend fun iverksett(
@@ -58,7 +60,7 @@ class UtbetalingFakeKlient(
     override suspend fun hentUtbetalingsstatus(
         utbetaling: UtbetalingDetSkalHentesStatusFor,
     ): Either<HttpKlientError, Utbetalingsstatus> {
-        return Utbetalingsstatus.Ok.right()
+        return utbetalingsstatus.right()
     }
 
     override suspend fun simuler(

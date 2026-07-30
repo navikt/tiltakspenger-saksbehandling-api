@@ -106,13 +106,6 @@ class SakFakeRepo(
         return data.get()[sakId]?.fnr
     }
 
-    override fun hentSakIdForSaksnummer(
-        saksnummer: Saksnummer,
-        sessionContext: SessionContext?,
-    ): SakId? {
-        return data.get().values.singleOrNull { it.saksnummer == saksnummer }?.id
-    }
-
     override fun hentSakIdForPersonidenter(
         personidenter: Nel<String>,
         sessionContext: SessionContext?,

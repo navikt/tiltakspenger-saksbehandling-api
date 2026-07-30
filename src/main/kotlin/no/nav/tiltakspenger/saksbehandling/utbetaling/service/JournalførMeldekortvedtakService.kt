@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.sammenlignBeregninger
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisUtbetalingHarFeilet
 import no.nav.tiltakspenger.saksbehandling.journalføring.loggFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
@@ -40,6 +41,10 @@ class JournalførMeldekortvedtakService(
                 val correlationId = CorrelationId.generate()
                 log.info {
                     "Journalfører meldekortvedtak. Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}"
+                }
+
+                varsleHvisUtbetalingHarFeilet(log, meldekortvedtak.utbetaling.status) {
+                    "Saksnummer: ${meldekortvedtak.saksnummer}, sakId: ${meldekortvedtak.sakId}, meldekortvedtakId: ${meldekortvedtak.id}, utbetalingId: ${meldekortvedtak.utbetaling.id}"
                 }
 
                 Either.catch {

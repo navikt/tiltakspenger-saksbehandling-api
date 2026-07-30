@@ -42,9 +42,6 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
         }
     }
 
-    override fun hentForFnr(fnr: Fnr): List<Rammevedtak> =
-        data.get().values.filter { it.rammebehandling.fnr == fnr }.sortedBy { it.opprettet }
-
     override fun hentRammevedtakSomSkalJournalføres(limit: Int): List<Rammevedtak> {
         return data.get().values.filter { it.journalpostId == null }.sortedBy { it.opprettet }.take(limit)
     }

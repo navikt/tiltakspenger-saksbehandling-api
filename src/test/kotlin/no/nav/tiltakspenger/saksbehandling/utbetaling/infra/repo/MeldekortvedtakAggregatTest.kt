@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -23,37 +22,36 @@ import org.junit.jupiter.api.Test
  * Derfor bygger testene flere saker og asserter på hele køen, uten å filtrere på `sakId`.
  * Rundturen (lagre og hente et meldekortvedtak) dekkes av e2e-testene og hører ikke hjemme her.
  *
- * Ingen av de to spørringene har `order by`, så rekkefølgen er udefinert.
- * Testene asserter derfor på innhold og antall, ikke på sortering.
+ * Begge køene sorterer eldst først (`order by v.opprettet`), og testene asserter den rekkefølgen.
+ * Sorteringen er det som gjør at `limit` batcher forutsigbart og at ingen vedtak kan sulte i køen.
  */
 class MeldekortvedtakAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `journalføringskøen tar kun vedtak uten journalpost som skal ha vedtaksbrev, respekterer limit og tømmes av markerJournalført`() {
+    fun `journalføringskøen tar kun vedtak uten journalpost som skal ha vedtaksbrev, sorterer eldst først, respekterer limit og tømmes av markerJournalført`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val medBrev = iverksattMeldekortvedtak(tac, journalførVedtaksbrev = false)
-            val ogsåMedBrev = iverksattMeldekortvedtak(tac, journalførVedtaksbrev = false)
+            val eldst = iverksattMeldekortvedtak(tac, journalførVedtaksbrev = false)
+            val nyest = iverksattMeldekortvedtak(tac, journalførVedtaksbrev = false)
             // Kandidaten som skal falle utenfor: saksbehandler har valgt bort vedtaksbrevet.
             iverksattMeldekortvedtak(tac, skalSendeVedtaksbrev = false, journalførVedtaksbrev = false)
 
             val repo = tac.utbetalingContext.meldekortvedtakRepo
 
-            // Databasen er isolert og tømt, så køen kan asserteres i sin helhet.
-            repo.hentDeSomSkalJournalføres(limit = 10).map { it.id } shouldContainExactlyInAnyOrder
-                listOf(medBrev, ogsåMedBrev)
+            // Databasen er isolert og tømt, så køen kan asserteres i sin helhet, i rekkefølge.
+            repo.hentDeSomSkalJournalføres(limit = 10).map { it.id } shouldBe listOf(eldst, nyest)
 
-            // Limit er det jobben batcher på, og må faktisk begrense uttrekket.
-            repo.hentDeSomSkalJournalføres(limit = 1).size shouldBe 1
+            // Limit batcher fra toppen av køen, så det eldste vedtaket kommer først og ingen kan sulte.
+            repo.hentDeSomSkalJournalføres(limit = 1).map { it.id } shouldBe listOf(eldst)
 
             repo.markerJournalført(
-                vedtakId = medBrev,
-                journalpostId = JournalpostId("journalpost-for-$medBrev"),
+                vedtakId = eldst,
+                journalpostId = JournalpostId("journalpost-for-$eldst"),
                 tidspunkt = nå(tac.clock),
             )
 
             // Journalførte vedtak forlater køen, slik at jobben ikke plukker dem opp på nytt.
-            repo.hentDeSomSkalJournalføres(limit = 10).map { it.id } shouldBe listOf(ogsåMedBrev)
+            repo.hentDeSomSkalJournalføres(limit = 10).map { it.id } shouldBe listOf(nyest)
         }
     }
 
@@ -63,20 +61,22 @@ class MeldekortvedtakAggregatTest {
      */
     @Test
     @IsolatedDatabaseTest
-    fun `datadelingskøen tar kun journalførte vedtak på delte saker, og tømmes når vedtaket er sendt`() {
+    fun `datadelingskøen tar kun journalførte vedtak på delte saker, sorterer eldst først, og tømmes når vedtaket er sendt`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val journalført = iverksattMeldekortvedtak(tac)
+            val eldst = iverksattMeldekortvedtak(tac)
+            val nyest = iverksattMeldekortvedtak(tac)
             val ikkeJournalført = iverksattMeldekortvedtak(tac, journalførVedtaksbrev = false)
 
             val repo = tac.utbetalingContext.meldekortvedtakRepo
 
-            // Ingen av sakene er delt ennå, så køen er tom selv om det finnes et journalført vedtak.
+            // Ingen av sakene er delt ennå, så køen er tom selv om det finnes journalførte vedtak.
             repo.hentMeldekortvedtakTilDatadeling(limit = 10).shouldBeEmpty()
 
             tac.sendTilDatadelingService.send()
 
+            // Jobben plukker køen eldst først, og det ikke journalførte vedtaket kom aldri inn i den.
             val sendte = tac.datadelingFakeKlient.sendteMeldekortvedtak.toList()
-            sendte shouldBe listOf(journalført)
+            sendte shouldBe listOf(eldst, nyest)
             sendte shouldNotContain ikkeJournalført
 
             // Sendte vedtak forlater køen, så en ny jobbkjøring ikke sender dem på nytt.
