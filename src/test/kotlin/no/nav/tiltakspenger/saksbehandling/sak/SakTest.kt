@@ -119,8 +119,7 @@ class SakTest {
     fun `harSoknadUnderBehandling - har iverksatt søknadsbehandling og ny søknad - returnerer true`() {
         val sak = ObjectMother.nySakMedVedtak().first
         val soknad = ObjectMother.nyInnvilgbarSøknad(fnr = sak.fnr, sakId = sak.id)
-        val soknader = sak.søknader
-        val oppdatertSak = sak.copy(søknader = soknader + soknad)
+        val oppdatertSak = sak.leggTilSøknad(soknad)
 
         oppdatertSak.harSoknadUnderBehandling() shouldBe true
     }

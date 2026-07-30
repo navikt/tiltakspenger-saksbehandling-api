@@ -58,10 +58,11 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
         return data.get().values.filter { it.sakId == sakId && it.kjedeId == kjedeId }
     }
 
-    override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+    override fun hentMeldekortSomSkalBehandlesAutomatisk(limit: Int, sessionContext: SessionContext?): List<BrukersMeldekort> {
         return data.get().values
             .filter { it.behandlesAutomatisk }
             .sortedBy { it.periode.fraOgMed }.distinctBy { it.sakId }
+            .take(limit)
     }
 
     override fun oppdaterAutomatiskBehandletStatus(

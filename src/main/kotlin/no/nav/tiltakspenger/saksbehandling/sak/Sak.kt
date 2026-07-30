@@ -193,6 +193,11 @@ data class Sak(
             .let { this.copy(meldeperiodeKjeder = it.first) to it.second }
     }
 
+    fun leggTilSøknad(søknad: Søknad): Sak {
+        require(this.søknader.none { it.id == søknad.id }) { "Søknad med id ${søknad.id} finnes allerede på saken." }
+        return this.copy(søknader = this.søknader + søknad)
+    }
+
     fun leggTilSøknadsbehandling(behandling: Søknadsbehandling): Sak {
         return this.copy(behandlinger = this.behandlinger.leggTilSøknadsbehandling(behandling))
     }

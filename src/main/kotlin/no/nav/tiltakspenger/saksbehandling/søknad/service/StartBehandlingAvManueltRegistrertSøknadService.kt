@@ -89,7 +89,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
         )
 
         // Legg søknaden inn i sak før vi oppretter behandlingen eventuelt tiltak inkluderes i saksopplysningene
-        val sakMedSøknad = sak.copy(søknader = sak.søknader + manueltRegistrertSøknad)
+        val sakMedSøknad = sak.leggTilSøknad(manueltRegistrertSøknad)
 
         val (oppdatertSak, søknadsbehandling, statistikkhendelser) = Søknadsbehandling.opprett(
             sak = sakMedSøknad,

@@ -11,8 +11,7 @@ class SakDtoTest {
     fun `behandlingsoversikt inneholder behandlinger, og søknader uten behandling`() {
         val (sak) = ObjectMother.sakMedOpprettetBehandling()
         val nySøknad = ObjectMother.nyInnvilgbarSøknad()
-        // TODO - burde muligens ha en sak.nySøknad()
-        val sakMedSøknadOgBehandling = sak.copy(søknader = sak.søknader + nySøknad)
+        val sakMedSøknadOgBehandling = sak.leggTilSøknad(nySøknad)
 
         val actual = sakMedSøknadOgBehandling.toSakDTO(ObjectMother.saksbehandler(), fixedClock)
         actual.åpneBehandlinger.size shouldBe 2

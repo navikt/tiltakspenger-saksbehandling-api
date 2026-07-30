@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
 import arrow.core.right
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -14,7 +16,6 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
@@ -441,11 +442,9 @@ class PersonhendelseJobbTest {
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `opprettOppgaveForPersonhendelser - jobben plukker kun opp hendelser uten oppgave`() {
-        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
         val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -494,9 +493,11 @@ class PersonhendelseJobbTest {
                     ),
                 )
 
-                personhendelseRepository.hentIderUtenOppgave() shouldBe listOf(id)
+                val iderUtenOppgave = personhendelseRepository.hentIderUtenOppgave()
+                iderUtenOppgave shouldContain id
+                iderUtenOppgave shouldNotContain idMedOppgave
 
-                personhendelseJobb.opprettOppgaveForPersonhendelser()
+                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
                 val personhendelser = personhendelseRepository.hent(sak.id)
                 personhendelser.first { it.id == id }.oppgaveId shouldBe oppgaveId
@@ -506,12 +507,10 @@ class PersonhendelseJobbTest {
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `opprydning - jobben plukker kun opp hendelser med oppgave som ikke nylig er sjekket`() {
-        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
         val oppgaveKlient = nyOppgaveKlient()
         coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
@@ -563,9 +562,12 @@ class PersonhendelseJobbTest {
                     ),
                 )
 
-                personhendelseRepository.hentIderMedOppgave() shouldBe listOf(idIkkeSjekket)
+                val iderMedOppgave = personhendelseRepository.hentIderMedOppgave()
+                iderMedOppgave shouldContain idIkkeSjekket
+                iderMedOppgave shouldNotContain idUtenOppgave
+                iderMedOppgave shouldNotContain idNyligSjekket
 
-                personhendelseJobb.opprydning()
+                personhendelseJobb.ryddOppPersonhendelse(idIkkeSjekket)
 
                 coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
                 val oppdatert = personhendelseRepository.hent(sak.id).first { it.id == idIkkeSjekket }

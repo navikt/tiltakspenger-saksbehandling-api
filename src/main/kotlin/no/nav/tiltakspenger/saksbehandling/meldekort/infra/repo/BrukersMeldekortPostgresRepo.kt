@@ -111,7 +111,7 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
-    override fun hentMeldekortSomSkalBehandlesAutomatisk(sessionContext: SessionContext?): List<BrukersMeldekort> {
+    override fun hentMeldekortSomSkalBehandlesAutomatisk(limit: Int, sessionContext: SessionContext?): List<BrukersMeldekort> {
         return sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
@@ -121,14 +121,15 @@ class BrukersMeldekortPostgresRepo(
                     from meldekort_bruker mk
                     where mk.behandles_automatisk is true
                     and not exists (
-                        select 1 
-                        from utbetaling u 
-                        where u.sak_id = mk.sak_id 
+                        select 1
+                        from utbetaling u
+                        where u.sak_id = mk.sak_id
                         and (u.status is null or u.status not in ('OK', 'OK_UTEN_UTBETALING'))
                     )
                     order by mk.sak_id, mk.meldeperiode_kjede_id, mk.meldeperiode_versjon, mk.mottatt
-                    limit 100;
+                    limit :limit;
                     """,
+                    "limit" to limit,
                 ).map { row -> fromRow(row, session) }.asList,
             )
         }

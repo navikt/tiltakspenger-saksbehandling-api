@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb
 
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
@@ -14,7 +16,6 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.infra.Producer
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
@@ -262,12 +263,10 @@ class IdenthendelseJobbTest {
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `behandleIdenthendelser - jobben plukker kun opp hendelser som ikke er ferdig behandlet`() {
-        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på ID-spørringen og per-ID-kall i stedet for full jobbkjøring.
         val kafkaProducer = nyKafkaProducer()
         val identhendelseKafkaProducer = IdenthendelseKafkaProducer(kafkaProducer, "topic")
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             runBlocking {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val identhendelseJobb = IdenthendelseJobb(
@@ -310,9 +309,11 @@ class IdenthendelseJobbTest {
                 identhendelseRepository.lagre(ubehandlet)
                 identhendelseRepository.lagre(ferdigBehandlet)
 
-                identhendelseRepository.hentIderSomIkkeErBehandlet() shouldBe listOf(ubehandlet.id)
+                val iderSomIkkeErBehandlet = identhendelseRepository.hentIderSomIkkeErBehandlet()
+                iderSomIkkeErBehandlet shouldContain ubehandlet.id
+                iderSomIkkeErBehandlet shouldNotContain ferdigBehandlet.id
 
-                identhendelseJobb.behandleIdenthendelser()
+                identhendelseJobb.behandleIdenthendelse(ubehandlet.id)
 
                 val oppdatert = identhendelseRepository.hent(ubehandlet.id)
                 oppdatert?.produsertHendelse shouldNotBe null

@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -19,7 +21,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppgaveId
@@ -44,9 +45,8 @@ class EndretTiltaksdeltakerJobbTest {
     private val oppgaveId = oppgaveId()
 
     @Test
-    @IsolatedDatabaseTest
     fun `hendelser innenfor forsinkelsesvinduet blir ikke behandlet`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
             val deltakelseFom = 5.januar(2025)
@@ -80,7 +80,11 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(10),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            // Deltakeren plukkes ikke opp av jobbens ID-spørring innenfor forsinkelsesvinduet
+            tac.tiltaksdeltakerHendelsePostgresRepo
+                .hentDeltakereMedUbehandledeHendelser(EndretTiltaksdeltakerJobb.MINUTTER_FORSINKELSE) shouldNotContain tiltaksdeltakerId
+
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             // Hendelsen skal fortsatt være ubehandlet
             val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
@@ -97,9 +101,8 @@ class EndretTiltaksdeltakerJobbTest {
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `hendelser utenfor forsinkelsesvinduet plukkes opp og behandles av jobben`() {
-        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakerId = TiltaksdeltakerId.random()
             val deltakelseFom = 5.januar(2025)
@@ -133,7 +136,11 @@ class EndretTiltaksdeltakerJobbTest {
                 nå(tac.clock).minusMinutes(20),
             )
 
-            tac.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            // Deltakeren plukkes opp av jobbens ID-spørring utenfor forsinkelsesvinduet
+            tac.tiltaksdeltakerHendelsePostgresRepo
+                .hentDeltakereMedUbehandledeHendelser(EndretTiltaksdeltakerJobb.MINUTTER_FORSINKELSE) shouldContain tiltaksdeltakerId
+
+            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == hendelse.id } shouldBe true
             val behandletHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(hendelse.id)

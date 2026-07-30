@@ -282,7 +282,7 @@ class EndretTiltaksdeltakerJobb(
 
     companion object {
         // Vi legger til en liten forsinkelse for behandling av hendelser i tilfelle det kommer flere hendelser for samme deltakelse i løpet av kort tid
-        private const val MINUTTER_FORSINKELSE: Long = 15L
+        internal const val MINUTTER_FORSINKELSE: Long = 15L
     }
 }
 

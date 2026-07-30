@@ -1,10 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.jobb
 
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
@@ -18,15 +19,14 @@ import java.time.LocalDate
 class IverksattOpprettholdelseJobberTest {
 
     @Test
-    @IsolatedDatabaseTest
     fun `jobbene kjører som forventet`() {
-        // TODO: Kan flippes til runIsolated = false når klage-brevjobbene (journalfør/distribuer/oversend) får per-ID-varianter med lette ID-spørringer.
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))
-        withTestApplicationContextAndPostgres(clock = clock, runIsolated = true) { tac ->
+        withTestApplicationContextAndPostgres(clock = clock) { tac ->
             val (_, klagebehandling, _) = opprettSakOgOpprettholdKlagebehandling(tac = tac, utførJobber = false)!!
+            val klagebehandlingRepo = tac.klagebehandlingContext.klagebehandlingRepo
             verifiserResultat(tac, klagebehandling.id)
-            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().size shouldBe 1
-            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
+            klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres(Int.MAX_VALUE).map { it.id } shouldContain klagebehandling.id
+            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev(klagebehandling.id)
             verifiserResultat(
                 tac = tac,
                 id = klagebehandling.id,
@@ -35,11 +35,11 @@ class IverksattOpprettholdelseJobberTest {
                 forventetJournalføringstidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
-            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres().size shouldBe 0
-            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev()
+            klagebehandlingRepo.hentInnstillingsbrevSomSkalJournalføres(Int.MAX_VALUE).map { it.id } shouldNotContain klagebehandling.id
+            tac.klagebehandlingContext.journalførKlagebrevJobb.journalførInnstillingsbrev(klagebehandling.id)
 
-            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres().size shouldBe 1
-            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
+            klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres(Int.MAX_VALUE).map { it.id } shouldContain klagebehandling.id
+            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev(klagebehandling.id)
             verifiserResultat(
                 tac = tac,
                 id = klagebehandling.id,
@@ -50,11 +50,11 @@ class IverksattOpprettholdelseJobberTest {
                 forventetDistribusjonstidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
-            tac.klagebehandlingContext.klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres().size shouldBe 0
-            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev()
+            klagebehandlingRepo.hentInnstillingsbrevSomSkalDistribueres(Int.MAX_VALUE).map { it.id } shouldNotContain klagebehandling.id
+            tac.klagebehandlingContext.distribuerKlagebrevJobb.distribuerInnstillingsbrev(klagebehandling.id)
 
-            tac.klagebehandlingContext.klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().size shouldBe 1
-            tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
+            klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen(Int.MAX_VALUE) shouldContain klagebehandling.sakId
+            tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstansForSak(klagebehandling.sakId)
             verifiserResultat(
                 tac = tac,
                 id = klagebehandling.id,
@@ -66,8 +66,8 @@ class IverksattOpprettholdelseJobberTest {
                 forventetOversendtKlageinstansenTidspunkt = true,
             )
             // Påser at det ikke feiler og kjøre den samme jobben gang nr. 2:
-            tac.klagebehandlingContext.klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen().size shouldBe 0
-            tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstans()
+            klagebehandlingRepo.hentSakerSomSkalOversendesKlageinstansen(Int.MAX_VALUE) shouldNotContain klagebehandling.sakId
+            tac.klagebehandlingContext.oversendKlageTilKlageinstansJobb.oversendKlagerTilKlageinstansForSak(klagebehandling.sakId)
         }
     }
 

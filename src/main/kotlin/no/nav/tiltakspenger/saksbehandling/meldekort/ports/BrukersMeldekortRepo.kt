@@ -37,6 +37,7 @@ interface BrukersMeldekortRepo {
     ): List<BrukersMeldekort>
 
     fun hentMeldekortSomSkalBehandlesAutomatisk(
+        limit: Int = 100,
         sessionContext: SessionContext? = null,
     ): List<BrukersMeldekort>
 

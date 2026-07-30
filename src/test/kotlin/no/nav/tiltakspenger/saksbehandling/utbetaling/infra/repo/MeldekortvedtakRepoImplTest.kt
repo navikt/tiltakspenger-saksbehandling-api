@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
@@ -14,12 +13,9 @@ import org.junit.jupiter.api.Test
 class MeldekortvedtakRepoImplTest {
 
     @Test
-    @IsolatedDatabaseTest
     fun `kan lagre og hente`() {
         val tidspunkt = nå(fixedClock)
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false med scoped assertions på egen id (single/none) og høy limit, som i UtbetalingRepoImplTest.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val (sak, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
@@ -30,36 +26,35 @@ class MeldekortvedtakRepoImplTest {
             val oppdatertMedUtbetalingsdata = testDataHelper.sessionFactory.withSession { session ->
                 MeldekortvedtakPostgresRepo.hentForSakId(sak.id, session)
             }
-            meldekortvedtakRepo.hentDeSomSkalJournalføres() shouldBe oppdatertMedUtbetalingsdata
+            meldekortvedtakRepo.hentDeSomSkalJournalføres(limit = Int.MAX_VALUE)
+                .filter { it.sakId == sak.id } shouldBe oppdatertMedUtbetalingsdata
             meldekortvedtakRepo.markerJournalført(
                 vedtakId = meldekortvedtak.id,
                 journalpostId = JournalpostId("123"),
                 tidspunkt = tidspunkt,
             )
-            meldekortvedtakRepo.hentDeSomSkalJournalføres() shouldBe emptyList()
+            meldekortvedtakRepo.hentDeSomSkalJournalføres(limit = Int.MAX_VALUE)
+                .none { it.sakId == sak.id } shouldBe true
         }
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `skal ikke journalføre vedtak som ikke skal sendes brev for`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false med scoped assertions på egen id (single/none) og høy limit, som i UtbetalingRepoImplTest.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val (_, _, meldekortvedtak, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
             )
-            testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
+            val (_, _, meldekortvedtakUtenBrev, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
                 deltakelseFom = 2.januar(2023),
                 deltakelseTom = 2.april(2023),
                 skalSendeVedtaksbrev = false,
             )
             val meldekortvedtakRepo = testDataHelper.meldekortvedtakRepo as MeldekortvedtakPostgresRepo
 
-            val actual = meldekortvedtakRepo.hentDeSomSkalJournalføres(10)
-            actual.size shouldBe 1
-            actual.single() shouldBe meldekortvedtak
+            val actual = meldekortvedtakRepo.hentDeSomSkalJournalføres(limit = Int.MAX_VALUE)
+            actual.single { it.id == meldekortvedtak.id } shouldBe meldekortvedtak
+            actual.none { it.id == meldekortvedtakUtenBrev.id } shouldBe true
         }
     }
 }

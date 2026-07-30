@@ -22,10 +22,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 
-/**
- * TODO jah: Disse kjører isolert, pga. statisk fnr (kreves for helved sin fnr validator) og statisk tiltaksdeltakelse (gjørejobb).
- * Vi trenger genereringstyper for dette på samme nivå som no.nav.tiltakspenger.saksbehandling.sak.TestSaksnummerGenerator
- */
 class AvbrytKlagebehandlingRouteTest {
     @Test
     fun `oppretter klage og deretter avbryter`() {

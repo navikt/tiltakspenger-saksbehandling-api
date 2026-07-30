@@ -1,12 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRammevedtakAvslag
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterRevurderingInnvilgelseIverksatt
@@ -19,32 +20,27 @@ import org.junit.jupiter.api.Test
 class RammevedtakPostgresRepoTest {
 
     @Test
-    @IsolatedDatabaseTest
     fun `henter vedtak for datadeling`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false når datadeling-jobben får per-ID-variant med lett ID-spørring, ved å scope assertions til egne vedtak.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            val (_, rammevedtak, _, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort()
-            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling().size shouldBe 0
+        withMigratedDb { testDataHelper ->
+            val (sak, rammevedtak, _, _) = testDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort()
+            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).map { it.id } shouldContain sak.id
+            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).none { it.sakId == sak.id } shouldBe true
             testDataHelper.sakRepo.markerSendtTilDatadeling(rammevedtak.sakId, nå(testDataHelper.clock))
-            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 0
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
+            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).none { it.id == sak.id } shouldBe true
+            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).filter { it.sakId == sak.id } shouldBe listOf(rammevedtak)
         }
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `henter avslagsvedtak for datadeling`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false når datadeling-jobben får per-ID-variant med lett ID-spørring, ved å scope assertions til egne vedtak.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val (_, rammevedtak) = testDataHelper.persisterRammevedtakAvslag()
-            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 1
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling().size shouldBe 0
-            testDataHelper.sakRepo.markerSendtTilDatadeling(rammevedtak.sakId, nå(testDataHelper.clock))
-            testDataHelper.sakRepo.hentSakerTilDatadeling().size shouldBe 0
-            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling() shouldBe listOf(rammevedtak)
+            val sakId = rammevedtak.sakId
+            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).map { it.id } shouldContain sakId
+            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).none { it.sakId == sakId } shouldBe true
+            testDataHelper.sakRepo.markerSendtTilDatadeling(sakId, nå(testDataHelper.clock))
+            testDataHelper.sakRepo.hentSakerTilDatadeling(limit = Int.MAX_VALUE).none { it.id == sakId } shouldBe true
+            testDataHelper.vedtakRepo.hentRammevedtakTilDatadeling(limit = Int.MAX_VALUE).filter { it.sakId == sakId } shouldBe listOf(rammevedtak)
         }
     }
 
@@ -89,27 +85,18 @@ class RammevedtakPostgresRepoTest {
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `hentRammevedtakSomSkalJournalføres returnerer vedtak når skalSendeVedtaksbrev er true`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på egne vedtak og høy limit.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val (_, rammevedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = true)
-            val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)
-            vedtakSomSkalJournalføres.size shouldBe 1
-            vedtakSomSkalJournalføres.first().id shouldBe rammevedtak.id
+            testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(Int.MAX_VALUE).map { it.id } shouldContain rammevedtak.id
         }
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `hentRammevedtakSomSkalJournalføres returnerer ikke vedtak når skalSendeVedtaksbrev er false`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false med shouldContain/shouldNotContain på egne vedtak og høy limit.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
-            testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
-            val vedtakSomSkalJournalføres = testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(10)
-            vedtakSomSkalJournalføres.size shouldBe 0
+        withMigratedDb { testDataHelper ->
+            val (_, rammevedtak, _) = testDataHelper.persisterIverksattSøknadsbehandling(skalSendeVedtaksbrev = false)
+            testDataHelper.vedtakRepo.hentRammevedtakSomSkalJournalføres(Int.MAX_VALUE).map { it.id } shouldNotContain rammevedtak.id
         }
     }
 }

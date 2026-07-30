@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mars
-import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
@@ -59,11 +58,8 @@ class MeldekortBrukerPostgresRepoTest {
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `Skal hente kun det neste (eldste) meldekortet for automatisk behandling per sak`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false når hentMeldekortSomSkalBehandlesAutomatisk får limit som parameter, ved å scope assertions til egne saker med høy limit.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
             val (sak1) = testDataHelper.persisterIverksattSøknadsbehandling(
@@ -88,19 +84,15 @@ class MeldekortBrukerPostgresRepoTest {
             val sak2brukersMeldekort1 = lagBrukersMeldekort(sak2meldeperiode1)
             meldekortBrukerRepo.lagre(sak2brukersMeldekort1)
 
-            meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk() shouldBe listOf(
-                sak1brukersMeldekort1,
-                sak2brukersMeldekort1,
-            )
+            val actual = meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk(limit = Int.MAX_VALUE)
+            actual.single { it.sakId == sak1.id } shouldBe sak1brukersMeldekort1
+            actual.single { it.sakId == sak2.id } shouldBe sak2brukersMeldekort1
         }
     }
 
     @Test
-    @IsolatedDatabaseTest
     fun `Skal ikke hente meldekort som allerede er behandlet`() {
-        // Aggregert spørring på tvers av saker; må kjøre isolert.
-        // TODO: Kan flippes til runIsolated = false når hentMeldekortSomSkalBehandlesAutomatisk får limit som parameter, ved å scope assertions til egne saker med høy limit.
-        withMigratedDb(runIsolated = true) { testDataHelper ->
+        withMigratedDb { testDataHelper ->
             val meldekortBrukerRepo = testDataHelper.meldekortBrukerRepo
 
             val (sak) = testDataHelper.persisterIverksattSøknadsbehandling(
@@ -118,7 +110,8 @@ class MeldekortBrukerPostgresRepoTest {
             val meldekort2 = lagBrukersMeldekort(sak.meldeperiodeKjeder[1].first())
             meldekortBrukerRepo.lagre(meldekort2)
 
-            meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk() shouldBe listOf(meldekort2)
+            meldekortBrukerRepo.hentMeldekortSomSkalBehandlesAutomatisk(limit = Int.MAX_VALUE)
+                .filter { it.sakId == sak.id } shouldBe listOf(meldekort2)
         }
     }
 }
