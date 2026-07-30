@@ -24,6 +24,7 @@ data class MeldeperiodeKjedeDTO(
     val brukersMeldekort: List<BrukersMeldekortDTO>,
     val brukersMeldekortStatus: BrukersMeldekortStatusDTO,
     val gjeldendeBeregning: MeldeperiodeBeregningDTO?,
+    val erKlarTilUtfylling: Boolean,
     val kanBehandles: Boolean,
 )
 
@@ -76,6 +77,7 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
         gjeldendeBeregning = meldeperiodeBeregninger
             .hentSisteForKjedeId(kjedeId)
             ?.tilMeldeperiodeBeregningDTO(),
+        erKlarTilUtfylling = sisteMeldeperiode.erKlarTilUtfylling(clock),
         kanBehandles = sisteMeldeperiode.kanBehandles(clock) || (brukersMeldekort.isNotEmpty() && !harBehandletSiste),
     )
 }
