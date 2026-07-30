@@ -100,6 +100,8 @@ class MeldekortvedtakAggregatTest {
             sakId = sak.id,
             kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            // Fritekst settes for at repoets mapping av tekst_til_vedtaksbrev skal kjøres.
+            tekstTilVedtaksbrev = "Fritekst til vedtaksbrevet",
             jobber = JobberEtterIverksettelse(journalførVedtaksbrev = journalførVedtaksbrev),
         )!!
         return meldekortvedtak.id

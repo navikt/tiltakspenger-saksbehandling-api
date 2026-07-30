@@ -288,6 +288,7 @@ val postgresRepoerMedDekningskrav =
     listOf(
         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo",
         "no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo",
+        "no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo",
     )
 
 val klasserMedFullDekningskrav = httpklientKlasserMedDekningskrav + postgresRepoerMedDekningskrav

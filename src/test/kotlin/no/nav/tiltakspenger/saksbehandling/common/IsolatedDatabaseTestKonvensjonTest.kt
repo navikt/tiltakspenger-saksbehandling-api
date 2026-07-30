@@ -24,7 +24,8 @@ class IsolatedDatabaseTestKonvensjonTest {
             .flatMap { fil ->
                 val linjer = fil.readLines()
                 linjer.withIndex()
-                    .filter { (_, linje) -> "runIsolated = true" in linje }
+                    // Kommentarer holdes utenfor: KDoc som forklarer når man skal bruke isolering er dokumentasjon, ikke et kall.
+                    .filter { (_, linje) -> "runIsolated = true" in linje && !linje.erKommentar() }
                     .mapNotNull { (indeks, _) ->
                         val testAnnotasjonIndeks = (indeks downTo 0).firstOrNull { linjer[it].trim() == "@Test" }
                             ?: return@mapNotNull "${fil.path}:${indeks + 1} bruker runIsolated = true utenfor en @Test-metode"
@@ -39,5 +40,12 @@ class IsolatedDatabaseTestKonvensjonTest {
             .toList()
 
         brudd.shouldBeEmpty()
+    }
+
+    /**
+     * Grov, men tilstrekkelig: regelen leser rå tekst, og en linje som starter som kommentar kan ikke inneholde et kall.
+     */
+    private fun String.erKommentar(): Boolean = trim().let {
+        it.startsWith("//") || it.startsWith("*") || it.startsWith("/*")
     }
 }

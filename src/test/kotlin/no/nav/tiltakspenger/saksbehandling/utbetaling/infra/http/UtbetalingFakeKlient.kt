@@ -34,7 +34,13 @@ class UtbetalingFakeKlient(
     private val clock: Clock = fixedClock,
     private val tilbakekrevingProducer: TilbakekrevingFakeProducer,
     var skalStarteTilbakekrevinger: Boolean,
-    /** Settes av tester som trenger en utbetaling som ikke gikk gjennom, f.eks. [Utbetalingsstatus.FeiletMotOppdrag]. */
+    /**
+     * Settes av tester som trenger en utbetaling som ikke gikk gjennom, f.eks. [Utbetalingsstatus.FeiletMotOppdrag].
+     *
+     * **Testen må da kjøre isolert** (`runIsolated = true` + `@IsolatedDatabaseTest`).
+     * Denne faken er per test-kontekst, mens `oppdaterUtbetalingsstatus`-jobben sveiper over alle utbetalinger i skjemaet.
+     * Deler du skjema med andre route-tester, vil deres jobbkjøring hente statusen for din utbetaling gjennom deres fake og overskrive den med `Ok`.
+     */
     var utbetalingsstatus: Utbetalingsstatus = Utbetalingsstatus.Ok,
 ) : Utbetalingsklient {
 

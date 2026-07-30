@@ -1,23 +1,27 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.routes
 
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
-import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasIntrospectionResponse
+import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.route.SAKSBEHANDLER_PATH
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 
+/**
+ * Bruker [TexasClientFake] framfor en mock av `TexasClient`.
+ * Faken utleder introspeksjonssvaret fra brukeren som er registrert på tokenet, slik Texas gjør i prod, i stedet for at testen dikterer svaret direkte.
+ */
 class MeRouteTest {
     // language = JSON
-    private val saksbehandlerMock =
+    private val forventetSaksbehandler =
         """
         {
           "navIdent":"Z12345",
@@ -29,31 +33,23 @@ class MeRouteTest {
 
     @Test
     fun `get saksbehandler - er saksbehandler med gyldig token - returnerer saksbehandler`() {
-        val texasClient = mockk<TexasClient>()
-        coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
-            active = true,
-            error = null,
-            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
-            roles = null,
-            other = mutableMapOf(
-                "azp_name" to "saksbehandling",
-                "azp" to "saksbehandling-id",
-                "NAVident" to "Z12345",
-                "preferred_username" to "Sak.Behandler@nav.no",
-            ),
-        )
         runTest {
-            withTestApplicationContext(texasClient = texasClient) {
+            withTestApplicationContext { tac ->
+                val saksbehandler = ObjectMother.saksbehandler()
+                val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
+                tac.leggTilBruker(jwt, saksbehandler)
+
                 defaultRequestWithAssertions(
                     HttpMethod.GET,
                     SAKSBEHANDLER_PATH,
+                    jwt = jwt,
                     forventet = ForventetRespons(
                         status = 200,
                         contentType = "application/json; charset=UTF-8",
                     ),
                 ).apply {
                     JSONAssert.assertEquals(
-                        saksbehandlerMock,
+                        forventetSaksbehandler,
                         body,
                         JSONCompareMode.LENIENT,
                     )
@@ -63,25 +59,16 @@ class MeRouteTest {
     }
 
     @Test
-    fun `get saksbehandler - utløpt token - returnerer 401`() {
-        val texasClient = mockk<TexasClient>()
-        coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
-            active = false,
-            error = null,
-            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
-            roles = null,
-            other = mutableMapOf(
-                "azp_name" to "saksbehandling",
-                "azp" to "saksbehandling-id",
-                "NAVident" to "Z12345",
-                "preferred_username" to "Sak.Behandler@nav.no",
-            ),
-        )
+    fun `get saksbehandler - ukjent token - returnerer 401`() {
         runTest {
-            withTestApplicationContext(texasClient = texasClient) {
+            withTestApplicationContext { tac ->
+                // Tokenet registreres bevisst ikke, så faken svarer active = false slik Texas gjør for et utløpt eller ukjent token.
+                val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = ObjectMother.saksbehandler())
+
                 defaultRequestWithAssertions(
                     HttpMethod.GET,
                     SAKSBEHANDLER_PATH,
+                    jwt = jwt,
                     forventet = ForventetRespons(status = 401),
                 )
             }
@@ -89,23 +76,33 @@ class MeRouteTest {
     }
 
     @Test
-    fun `get saksbehandler - ugyldig token - returnerer 403`() {
-        val texasClient = mockk<TexasClient>()
-        coEvery { texasClient.introspectToken(any(), IdentityProvider.AZUREAD) } returns TexasIntrospectionResponse(
-            active = true,
-            error = null,
-            groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
-            roles = null,
-            other = mutableMapOf(
-                "azp_name" to "saksbehandling",
-                "azp" to "saksbehandling-id",
-            ),
-        )
+    fun `get saksbehandler - aktivt token uten NAVident - returnerer 403`() {
+        // Et aktivt token som mangler NAVident og preferred_username, altså en applikasjon og ikke en saksbehandler.
+        // Faken kan ikke uttrykke det fra en Bruker, så vi overstyrer selve svaret her i stedet for å mocke klienten.
+        val texasClientUtenNavIdent = object : TexasClientFake(fixedClock) {
+            override suspend fun introspectToken(
+                token: String,
+                identityProvider: IdentityProvider,
+            ): TexasIntrospectionResponse = TexasIntrospectionResponse(
+                active = true,
+                error = null,
+                groups = listOf("1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"),
+                roles = null,
+                other = mutableMapOf(
+                    "azp_name" to "saksbehandling",
+                    "azp" to "saksbehandling-id",
+                ),
+            )
+        }
+
         runTest {
-            withTestApplicationContext(texasClient = texasClient) {
+            withTestApplicationContext(texasClient = texasClientUtenNavIdent) { tac ->
+                val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = ObjectMother.saksbehandler())
+
                 defaultRequestWithAssertions(
                     HttpMethod.GET,
                     SAKSBEHANDLER_PATH,
+                    jwt = jwt,
                     forventet = ForventetRespons(status = 403),
                 )
             }

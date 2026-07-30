@@ -30,6 +30,11 @@ class AutomatiskMeldekortbehandlingJobbTest {
     val clock = TikkendeKlokke(fixedClockAt(1.april(2025).atTime(12, 0)))
     val vedtaksperiode = Periode(6.januar(2025), 31.mars(2025))
 
+    /**
+     * TODO (tp-tax-8): denne bør være grunnsettet for [no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo] sin mapping av [MeldekortBehandletAutomatisk] og brukers meldekort.
+     * Den kan ikke flyttes til postgres slik den står nå: [søknadsbehandlingIverksattMedMeldeperioder] bygger tilstanden gjennom services og persisterer ikke tiltaksdeltakeren, så `søknadstiltak_tiltaksdeltaker_id_fkey` brytes.
+     * Tilstandsoppbyggingen må gå gjennom route-stien først.
+     */
     @Test
     fun `skal behandle brukers meldekort automatisk ved behandlesAutomatisk=true`() {
         runTest {

@@ -534,8 +534,9 @@ class MeldekortbehandlingPostgresRepo(
 
             val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
             val klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
-                KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)
-                    ?: throw IllegalStateException("Fant ikke klagebehandling $it for meldekortbehandling $id")
+                // Foreign key-en meldekortbehandling_klagebehandling_id_fkey garanterer at klagebehandlingen finnes.
+                // Tilstanden kan dermed ikke konstrueres, heller ikke ved å mutere databasen direkte, så en throw med melding ville blitt stående som udekket kode.
+                KlagebehandlingPostgresRepo.hentOrNull(KlagebehandlingId.fromString(it), session)!!
             }
 
             return when (val status = row.string("status").toMeldekortbehandlingStatus()) {
