@@ -44,7 +44,7 @@ jobs:
     name: Test and build
     # Delt workflow i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
     uses: navikt/tiltakspenger/.github/workflows/test-og-bygg-gradle.yml@main
-    # id-token: write kreves av den delte workflowens byggejobb (OIDC mot nais) selv når image-bygget er skrudd av.
+    # id-token: write brukes kun av den delte workflowens image-jobb (OIDC mot nais); den skippes her, men grant-en beholdes til det er verifisert at GitHub godtar kallet uten.
     permissions:
       contents: read
       id-token: write
@@ -52,3 +52,4 @@ jobs:
       bygg-image: false
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}

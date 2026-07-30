@@ -44,6 +44,7 @@ jobs:
       id-token: write
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
   deploy-dev:
     name: Deploy to NAIS (dev)
