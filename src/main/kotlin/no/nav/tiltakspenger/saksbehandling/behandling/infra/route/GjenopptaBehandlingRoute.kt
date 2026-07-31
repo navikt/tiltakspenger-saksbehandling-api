@@ -59,7 +59,7 @@ fun Route.gjenopptaRammebehandling(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                     },
                 )
             }

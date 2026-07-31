@@ -59,7 +59,7 @@ fun Route.oppdaterRammebehandlingRoute(
                                 contextMessage = "Saksbehandler har oppdatert en behandling under behandling",
                                 correlationId = correlationId,
                             )
-                            call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                            call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                         },
                     )
                 }

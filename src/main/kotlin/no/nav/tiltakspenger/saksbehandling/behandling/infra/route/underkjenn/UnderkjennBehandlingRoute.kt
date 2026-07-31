@@ -62,7 +62,7 @@ fun Route.underkjennRammebehandlingRoute(
                                 contextMessage = "Beslutter underkjenner behandling",
                                 correlationId = correlationId,
                             )
-                            call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                            call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                         },
                     )
                 }

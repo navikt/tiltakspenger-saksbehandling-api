@@ -56,6 +56,7 @@ fun Route.behandleSøknadPåNyttRoute(
                         beregninger = sak.meldeperiodeBeregninger,
                         rammevedtakId = null,
                         tilbakekrevingId = null,
+                        kallendeSaksbehandler = saksbehandler,
                     ),
                 )
             }
