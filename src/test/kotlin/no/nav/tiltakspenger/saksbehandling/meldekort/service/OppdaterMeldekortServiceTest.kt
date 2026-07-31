@@ -32,7 +32,7 @@ class OppdaterMeldekortServiceTest {
         runTest {
             withTestApplicationContext { tac ->
                 val sak = tac.meldekortbehandlingOpprettet()
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = nonEmptyListOf(
                         OppdatertDag(
@@ -70,7 +70,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -120,7 +120,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -171,7 +171,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -221,7 +221,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -272,7 +272,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
                     OppdaterMeldekortbehandlingKommando(

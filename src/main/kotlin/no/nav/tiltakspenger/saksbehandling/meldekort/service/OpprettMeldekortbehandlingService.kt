@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettManuellMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -95,10 +94,6 @@ class OpprettMeldekortbehandlingService(
 
 sealed interface KanIkkeOppretteMeldekortbehandling {
     data object HenteNavKontorFeilet : KanIkkeOppretteMeldekortbehandling
-
-    data class ValiderOpprettFeil(
-        val feil: ValiderOpprettMeldekortbehandlingFeil,
-    ) : KanIkkeOppretteMeldekortbehandling
 
     data class SaksbehandlerMismatch(
         val forventetSaksbehandler: String?,

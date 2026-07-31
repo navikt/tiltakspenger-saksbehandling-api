@@ -57,7 +57,6 @@ data class SakDTO(
     val meldekortbehandlinger: Map<String, MeldekortbehandlingDTO>,
     val meldekortvedtak: List<MeldekortvedtakDTO>,
     val meldeperiodeKjeder: List<MeldeperiodeKjedeDTO>,
-    val åpenMeldekortbehandlingId: String?,
 
     val tidslinje: TidslinjeDTO,
     val innvilgetTidslinje: TidslinjeDTO,
@@ -96,7 +95,6 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     },
     meldekortvedtak = this.vedtaksliste.meldekortvedtaksliste.toDto(),
     meldeperiodeKjeder = this.tilMeldeperiodeKjederDTO(clock),
-    åpenMeldekortbehandlingId = this.meldekortbehandlinger.åpenMeldekortbehandling?.id?.toString(),
 
     tidslinje = this.rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
     innvilgetTidslinje = this.rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),

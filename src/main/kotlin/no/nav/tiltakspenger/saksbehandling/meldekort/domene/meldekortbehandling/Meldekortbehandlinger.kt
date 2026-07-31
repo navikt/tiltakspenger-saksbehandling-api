@@ -18,7 +18,6 @@ import java.time.Clock
 /**
  * Består av ingen, én eller flere [Meldekortbehandling].
  * Vil være tom fram til første innvilgede søknadsbehandling.
- * Kun en behandling kan være under behandling (åpen) til enhver tid.
  * Merk at [verdi] inneholder alle meldekortbehandlinger, inkludert de som er avbrutt, og bør ikke brukes direkte!
  */
 data class Meldekortbehandlinger(
@@ -57,8 +56,8 @@ data class Meldekortbehandlinger(
     }
 
     /** meldekort med status UNDER_BEHANDLING */
-    val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
-        verdi.singleOrNullOrThrow { it.status == MeldekortbehandlingStatus.UNDER_BEHANDLING } as MeldekortUnderBehandling?
+    val meldekortbehandlingerUnderBehandling: List<MeldekortUnderBehandling> by lazy {
+        verdi.filterIsInstance<MeldekortUnderBehandling>().filter { it.status == MeldekortbehandlingStatus.UNDER_BEHANDLING }
     }
 
     val godkjenteMeldekort: List<Meldekortbehandling.Behandlet> by lazy {
@@ -70,9 +69,9 @@ data class Meldekortbehandlinger(
     val sisteGodkjenteMeldekort: Meldekortbehandling.Behandlet? by lazy { godkjenteMeldekort.maxByOrNull { it.opprettet } }
 
     /** Meldekort som er under behandling eller venter på beslutning */
-    val åpenMeldekortbehandling: Meldekortbehandling? by lazy { this.singleOrNullOrThrow { it.erÅpen() } }
+    val åpneMeldekortbehandlinger: List<Meldekortbehandling> by lazy { verdi.filter { it.erÅpen() } }
 
-    val harÅpenBehandling: Boolean by lazy { åpenMeldekortbehandling != null }
+    val harÅpenBehandling: Boolean by lazy { åpneMeldekortbehandlinger.isNotEmpty() }
 
     fun sendTilBeslutter(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
@@ -167,10 +166,6 @@ data class Meldekortbehandlinger(
             require(a.opprettet < b.opprettet) {
                 "Meldekortperiodene må være sortert på opprettet-tidspunkt. ${a.opprettet}(${a.id}) er ikke før ${b.opprettet}(${b.id})"
             }
-        }
-
-        require(verdi.count { it.erÅpen() } <= 1) {
-            "Kun ett meldekort på saken kan være åpen om gangen"
         }
 
         verdi.map { it.id }.also {

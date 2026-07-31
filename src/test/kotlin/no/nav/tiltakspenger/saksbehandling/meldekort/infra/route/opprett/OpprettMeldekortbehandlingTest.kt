@@ -71,7 +71,7 @@ class OpprettMeldekortbehandlingTest {
     }
 
     @Test
-    fun `kan ikke opprette meldekortbehandling dersom det allerede finnes en åpen behandling på kjeden`() {
+    fun `kan opprette flere åpne meldekortbehandlinger på samme kjede`() {
         withTestApplicationContext { tac ->
             val (sak, _, _) = this.iverksettSøknadsbehandling(
                 tac,
@@ -89,12 +89,11 @@ class OpprettMeldekortbehandlingTest {
                 tac = tac,
                 sakId = sak.id,
                 kjedeId = kjedeId,
-                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
-                medJsonBody = { it harKode "HAR_ÅPEN_BEHANDLING" },
-            )
+            )!!
 
             val sakEtter = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            sakEtter.meldekortbehandlinger.size shouldBe 1
+            sakEtter.meldekortbehandlinger.size shouldBe 2
+            sakEtter.meldekortbehandlinger.åpneMeldekortbehandlinger.size shouldBe 2
         }
     }
 

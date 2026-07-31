@@ -96,14 +96,6 @@ fun KanIkkeOppretteMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
         ),
     )
 
-    is KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil -> Pair(
-        HttpStatusCode.BadRequest,
-        ErrorJson(
-            melding = "Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: ${this.feil}",
-            kode = this.feil.toString(),
-        ),
-    )
-
     is KanIkkeOppretteMeldekortbehandling.SaksbehandlerMismatch -> Pair(
         HttpStatusCode.InternalServerError,
         ErrorJson(

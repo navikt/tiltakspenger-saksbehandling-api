@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
-import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
@@ -9,10 +8,8 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandlingIverksatt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -149,7 +146,7 @@ class OpprettMeldekortbehandlingServiceTest {
     }
 
     @Test
-    fun `Skal ikke opprette behandling på noen kjede dersom det finnes en åpen behandling`() {
+    fun `Kan opprette behandling på alle kjeder selv om det finnes en åpen behandling`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
@@ -169,13 +166,13 @@ class OpprettMeldekortbehandlingServiceTest {
                         saksbehandler = saksbehandler(),
                         klagebehandlingId = null,
                     ),
-                ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
+                ).getOrFail()
             }
         }
     }
 
     @Test
-    fun `Skal ikke kunne opprette behandling når det finnes en åpen behandling som kan tas`() {
+    fun `Kan opprette behandling når det finnes en åpen behandling som kan tas`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
@@ -200,7 +197,7 @@ class OpprettMeldekortbehandlingServiceTest {
                     saksbehandler = saksbehandler(),
                     klagebehandlingId = null,
                 ),
-            ) shouldBe ValiderOpprettFeil(HAR_ÅPEN_BEHANDLING).left()
+            ).getOrFail()
         }
     }
 }

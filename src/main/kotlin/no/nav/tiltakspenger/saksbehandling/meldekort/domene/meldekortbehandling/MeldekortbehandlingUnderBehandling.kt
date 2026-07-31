@@ -231,10 +231,6 @@ fun Sak.opprettManuellMeldekortbehandling(
         }
     }
 
-    validerOpprettManuellMeldekortbehandling().onLeft {
-        return KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil(it).left()
-    }
-
     val meldekortId = MeldekortId.random()
 
     val meldeperiodebehandlinger = kjedeIder.map { kjedeId ->
