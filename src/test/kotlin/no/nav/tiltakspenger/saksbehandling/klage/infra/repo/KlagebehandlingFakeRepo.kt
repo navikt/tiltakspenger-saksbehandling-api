@@ -1,9 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 
 import arrow.atomic.Atomic
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.singleOrNullOrThrow
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -28,12 +26,6 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
 
     override fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling? {
         return data.get()[klagebehandlingId]
-    }
-
-    override fun hentForBehandlingId(behandlingId: BehandlingId): Klagebehandling? {
-        return data.get().values.singleOrNullOrThrow {
-            it.behandlingId.singleOrNullOrThrow { it == behandlingId } == behandlingId
-        }
     }
 
     override fun taBehandling(

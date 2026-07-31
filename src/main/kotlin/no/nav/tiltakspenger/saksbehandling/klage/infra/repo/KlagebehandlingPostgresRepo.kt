@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.repo
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -43,25 +42,6 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
     override fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling? {
         return sessionFactory.withSession { session ->
             hentOrNull(klagebehandlingId, session)
-        }
-    }
-
-    override fun hentForBehandlingId(behandlingId: BehandlingId): Klagebehandling? {
-        return sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    select
-                      k.*,
-                      s.fnr,
-                      s.saksnummer
-                    from klagebehandling k
-                    join sak s on s.id = k.sak_id
-                    where k.resultat->'behandlingId' ? :behandlingId
-                    """,
-                    "behandlingId" to behandlingId.toString(),
-                ).map { fromRow(it) }.asSingle,
-            )
         }
     }
 
