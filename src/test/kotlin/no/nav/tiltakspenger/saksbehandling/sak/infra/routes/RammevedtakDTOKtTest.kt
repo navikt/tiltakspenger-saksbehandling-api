@@ -5,8 +5,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggPeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.TidslinjeResultat
@@ -29,10 +27,7 @@ class RammevedtakDTOKtTest {
         tidslinjeElementDTO.size shouldBe 1
         tidslinjeElementDTO.first().periode shouldBe innvilgelsesperiode.toDTO()
         tidslinjeElementDTO.first().tidslinjeResultat shouldBe TidslinjeResultat.SØKNADSBEHANDLING_INNVILGELSE
-        tidslinjeElementDTO.first().rammevedtak.barnetillegg shouldBe BarnetilleggDTO(
-            perioder = listOf(BarnetilleggPeriodeDTO(antallBarn = 0, periode = innvilgelsesperiode.toDTO())),
-            begrunnelse = null,
-        )
+        tidslinjeElementDTO.first().rammevedtakId shouldBe rammevedtak.id.toString()
     }
 
     @Nested
@@ -49,10 +44,7 @@ class RammevedtakDTOKtTest {
             tidslinjeElementDTO.size shouldBe 1
             tidslinjeElementDTO.first().periode shouldBe innvilgelsesperiode.toDTO()
             tidslinjeElementDTO.first().tidslinjeResultat shouldBe TidslinjeResultat.OMGJØRING_INNVILGELSE
-            tidslinjeElementDTO.first().rammevedtak.barnetillegg shouldBe BarnetilleggDTO(
-                perioder = listOf(BarnetilleggPeriodeDTO(antallBarn = 0, periode = innvilgelsesperiode.toDTO())),
-                begrunnelse = null,
-            )
+            tidslinjeElementDTO.first().rammevedtakId shouldBe rammevedtak.id.toString()
         }
 
         @Test
@@ -70,19 +62,11 @@ class RammevedtakDTOKtTest {
                 Periode(innvilgelsesperiode.fraOgMed, tilOgMed = innvilgelsesperiode.fraOgMed)
             tidslinjeElementDTO.first().periode shouldBe forventedeOpphørsperiode.toDTO()
             tidslinjeElementDTO.first().tidslinjeResultat shouldBe TidslinjeResultat.OMGJØRING_OPPHØR
-            tidslinjeElementDTO.first().rammevedtak.barnetillegg shouldBe null
 
             tidslinjeElementDTO.last().periode shouldBe omgjøringInnvilgelsesperiode.toDTO()
             tidslinjeElementDTO.last().tidslinjeResultat shouldBe TidslinjeResultat.OMGJØRING_INNVILGELSE
-            tidslinjeElementDTO.last().rammevedtak.barnetillegg shouldBe BarnetilleggDTO(
-                perioder = listOf(
-                    BarnetilleggPeriodeDTO(
-                        antallBarn = 0,
-                        periode = omgjøringInnvilgelsesperiode.toDTO(),
-                    ),
-                ),
-                begrunnelse = null,
-            )
+
+            tidslinjeElementDTO.map { it.rammevedtakId }.distinct() shouldBe listOf(rammevedtak.id.toString())
         }
 
         @Test
@@ -100,25 +84,16 @@ class RammevedtakDTOKtTest {
                 Periode(innvilgelsesperiode.fraOgMed, tilOgMed = innvilgelsesperiode.fraOgMed)
             tidslinjeElementDTO.first().periode shouldBe forventedeOpphørsperiodeFørsteDto.toDTO()
             tidslinjeElementDTO.first().tidslinjeResultat shouldBe TidslinjeResultat.OMGJØRING_OPPHØR
-            tidslinjeElementDTO.first().rammevedtak.barnetillegg shouldBe null
 
             tidslinjeElementDTO[1].periode shouldBe omgjøringInnvilgelsesperiode.toDTO()
             tidslinjeElementDTO[1].tidslinjeResultat shouldBe TidslinjeResultat.OMGJØRING_INNVILGELSE
-            tidslinjeElementDTO[1].rammevedtak.barnetillegg shouldBe BarnetilleggDTO(
-                perioder = listOf(
-                    BarnetilleggPeriodeDTO(
-                        antallBarn = 0,
-                        periode = omgjøringInnvilgelsesperiode.toDTO(),
-                    ),
-                ),
-                begrunnelse = null,
-            )
 
             val forventedeOpphørsperiodeSisteDto =
                 Periode(innvilgelsesperiode.tilOgMed, tilOgMed = innvilgelsesperiode.tilOgMed)
             tidslinjeElementDTO.last().periode shouldBe forventedeOpphørsperiodeSisteDto.toDTO()
             tidslinjeElementDTO.last().tidslinjeResultat shouldBe TidslinjeResultat.OMGJØRING_OPPHØR
-            tidslinjeElementDTO.last().rammevedtak.barnetillegg shouldBe null
+
+            tidslinjeElementDTO.map { it.rammevedtakId }.distinct() shouldBe listOf(rammevedtak.id.toString())
         }
 
         @Test
@@ -140,24 +115,6 @@ class RammevedtakDTOKtTest {
                 Periode(11.januar(2023), 19.januar(2023)).toDTO() to TidslinjeResultat.OMGJØRING_OPPHØR,
                 andreOmgjøringsperiode.toDTO() to TidslinjeResultat.OMGJØRING_INNVILGELSE,
                 Periode(26.januar(2023), 31.januar(2023)).toDTO() to TidslinjeResultat.OMGJØRING_OPPHØR,
-            )
-
-            tidslinjeElementDTO.map { it.rammevedtak.barnetillegg } shouldBe listOf(
-                null,
-                BarnetilleggDTO(
-                    perioder = listOf(
-                        BarnetilleggPeriodeDTO(antallBarn = 0, periode = førsteOmgjøringsperiode.toDTO()),
-                    ),
-                    begrunnelse = null,
-                ),
-                null,
-                BarnetilleggDTO(
-                    perioder = listOf(
-                        BarnetilleggPeriodeDTO(antallBarn = 0, periode = andreOmgjøringsperiode.toDTO()),
-                    ),
-                    begrunnelse = null,
-                ),
-                null,
             )
 
             tidslinjeElementDTO.map { it.rammevedtakId }.distinct() shouldBe listOf(rammevedtak.id.toString())

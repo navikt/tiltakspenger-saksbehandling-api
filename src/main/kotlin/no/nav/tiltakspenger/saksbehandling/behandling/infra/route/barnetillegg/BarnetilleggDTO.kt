@@ -35,12 +35,7 @@ data class BarnetilleggPeriodeDTO(
 )
 
 fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
-    perioder = periodisering.perioderMedVerdi.map {
-        BarnetilleggPeriodeDTO(
-            antallBarn = it.verdi.value,
-            periode = it.periode.toDTO(),
-        )
-    },
+    perioder = periodisering.tilBarnetilleggPerioderDTO(),
     begrunnelse = begrunnelse?.verdi,
 )
 
@@ -48,4 +43,13 @@ fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(): Periodisering<AntallBarn> {
     // Vi ønsker ikke fylle hull med 0 på dette tidspunktet.
     // Det gjøres av domenet siden man skal bruke innvilgelsesperiode på behandlingen dersom den er satt.
     return this.map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }.tilPeriodisering()
+}
+
+fun Periodisering<AntallBarn>.tilBarnetilleggPerioderDTO(): List<BarnetilleggPeriodeDTO> {
+    return this.perioderMedVerdi.map {
+        BarnetilleggPeriodeDTO(
+            antallBarn = it.verdi.value,
+            periode = it.periode.toDTO(),
+        )
+    }
 }

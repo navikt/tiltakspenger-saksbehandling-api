@@ -13,9 +13,12 @@ import no.nav.tiltakspenger.libs.periode.overlapper
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
+import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.TomPeriodisering
+import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
@@ -138,6 +141,19 @@ data class Rammevedtak(
         if (valgteTiltaksdeltakelser == null) return@lazy TomPeriodisering.instance()
 
         valgteTiltaksdeltakelser.filter { gjeldendeInnvilgetPerioder.overlapper(it.periode) }
+    }
+
+    val gjeldendeBarnetillegg: Periodisering<AntallBarn> by lazy {
+        barnetillegg?.let {
+            it.periodisering.perioderMedVerdi.toList().flatMap { (barnetillegg, gjeldendePeriode) ->
+                gjeldendePeriode.overlappendePerioder(gjeldendeInnvilgetPerioder).map { nyPeriode ->
+                    PeriodeMedVerdi(
+                        verdi = barnetillegg,
+                        periode = nyPeriode,
+                    )
+                }
+            }
+        }?.tilPeriodisering() ?: TomPeriodisering.instance()
     }
 
     /**

@@ -244,19 +244,16 @@ internal class IverksettRevurderingTest {
                         ]
                     }
                 """.trimIndent(),
-                gjeldendeBarnetillegg = """
-                    {
-                        "begrunnelse": null,
-                        "perioder": [
-                          {
-                            "antallBarn": 0,
-                            "periode": {
-                              "fraOgMed": "2025-04-01",
-                              "tilOgMed": "2025-04-08"
-                            }
-                          }
-                        ]
-                    }
+                gjeldendeBarnetilleggPerioder = """
+                    [
+                      {
+                        "antallBarn": 0,
+                        "periode": {
+                          "fraOgMed": "2025-04-01",
+                          "tilOgMed": "2025-04-08"
+                        }
+                      }
+                    ]
                 """.trimIndent(),
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
@@ -322,19 +319,16 @@ internal class IverksettRevurderingTest {
                 omgjortGrad = "DELVIS",
                 internDeltakelseId = rammevedtakSøknadsbehandling.innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId,
                 opprettet = "2025-01-01T01:02:20.456789",
-                gjeldendeBarnetillegg = """
-                    {
-                        "begrunnelse": null,
-                        "perioder": [
-                          {
-                            "antallBarn": 0,
-                            "periode": {
-                              "fraOgMed": "2023-01-01",
-                              "tilOgMed": "2023-01-04"
-                            }
-                          }
-                        ]
-                    }
+                gjeldendeBarnetilleggPerioder = """
+                    [
+                      {
+                        "antallBarn": 0,
+                        "periode": {
+                          "fraOgMed": "2023-01-01",
+                          "tilOgMed": "2023-01-04"
+                        }
+                      }
+                    ]
                 """.trimIndent(),
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
@@ -395,12 +389,7 @@ internal class IverksettRevurderingTest {
                 omgjortGrad = "HELT",
                 internDeltakelseId = sak.rammevedtaksliste[0].innvilgelsesperioder!!.valgteTiltaksdeltagelser.verdier.single().internDeltakelseId,
                 opprettet = "2025-01-01T01:02:20.456789",
-                gjeldendeBarnetillegg = """
-                    {
-                        "begrunnelse": null,
-                        "perioder": []
-                    }
-                """.trimIndent(),
+                gjeldendeBarnetilleggPerioder = "[]",
             )
             revurderingvedtakDTOJson.shouldBeEqualToRammevedtakDTO(
                 id = sak.rammevedtaksliste[1].id.toString(),
