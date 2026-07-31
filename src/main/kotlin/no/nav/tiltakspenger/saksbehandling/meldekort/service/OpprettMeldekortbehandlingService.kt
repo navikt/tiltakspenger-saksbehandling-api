@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.BehandlingId
@@ -33,11 +35,25 @@ class OpprettMeldekortbehandlingService(
 
     data class OpprettMeldekortbehandlingKommando(
         val sakId: SakId,
-        val kjedeId: MeldeperiodeKjedeId,
+        val kjedeIder: NonEmptyList<MeldeperiodeKjedeId>,
         val saksbehandler: Saksbehandler,
         val klagebehandlingId: KlagebehandlingId? = null,
         val correlationId: CorrelationId = CorrelationId.generate(),
-    )
+    ) {
+        constructor(
+            sakId: SakId,
+            kjedeId: MeldeperiodeKjedeId,
+            saksbehandler: Saksbehandler,
+            klagebehandlingId: KlagebehandlingId? = null,
+            correlationId: CorrelationId = CorrelationId.generate(),
+        ) : this(
+            sakId = sakId,
+            kjedeIder = nonEmptyListOf(kjedeId),
+            saksbehandler = saksbehandler,
+            klagebehandlingId = klagebehandlingId,
+            correlationId = correlationId,
+        )
+    }
 
     suspend fun opprettBehandling(
         kommando: OpprettMeldekortbehandlingKommando,
@@ -58,7 +74,7 @@ class OpprettMeldekortbehandlingService(
         }
 
         val (oppdatertSak, meldekortbehandling) = sak.opprettManuellMeldekortbehandling(
-            kjedeId = kommando.kjedeId,
+            kjedeIder = kommando.kjedeIder,
             navkontor = navkontor,
             saksbehandler = kommando.saksbehandler,
             clock = clock,
@@ -71,7 +87,7 @@ class OpprettMeldekortbehandlingService(
             meldekortbehandlingRepo.lagre(meldekortbehandling, null, tx)
         }
 
-        logger.info { "Opprettet behandling ${meldekortbehandling.id} på meldeperiode kjede ${kommando.kjedeId} for sak ${kommando.sakId}" }
+        logger.info { "Opprettet behandling ${meldekortbehandling.id} på meldeperiodekjedene ${kommando.kjedeIder} for sak ${kommando.sakId}" }
 
         return (oppdatertSak to meldekortbehandling).right()
     }
@@ -91,5 +107,9 @@ sealed interface KanIkkeOppretteMeldekortbehandling {
 
     data class FinnesÅpenBehandling(
         val behandlingId: BehandlingId,
+    ) : KanIkkeOppretteMeldekortbehandling
+
+    data class DuplikateKjeder(
+        val kjedeIder: Set<MeldeperiodeKjedeId>,
     ) : KanIkkeOppretteMeldekortbehandling
 }

@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -203,17 +205,46 @@ fun Sak.opprettManuellMeldekortbehandling(
     klagebehandlingId: KlagebehandlingId?,
     clock: Clock,
 ): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, MeldekortUnderBehandling>> {
+    return opprettManuellMeldekortbehandling(
+        kjedeIder = nonEmptyListOf(kjedeId),
+        navkontor = navkontor,
+        saksbehandler = saksbehandler,
+        klagebehandlingId = klagebehandlingId,
+        clock = clock,
+    )
+}
+
+/**
+ * Oppretter en manuell meldekortbehandling som omfatter én eller flere meldeperiodekjeder.
+ * Meldeperiodene sorteres etter periode, og hver kjede får sin egen [MeldeperiodebehandlingType] basert på om kjeden er behandlet fra før.
+ */
+fun Sak.opprettManuellMeldekortbehandling(
+    kjedeIder: NonEmptyList<MeldeperiodeKjedeId>,
+    navkontor: Navkontor,
+    saksbehandler: Saksbehandler,
+    klagebehandlingId: KlagebehandlingId?,
+    clock: Clock,
+): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, MeldekortUnderBehandling>> {
+    kjedeIder.groupBy { it }.filterValues { it.size > 1 }.keys.let {
+        if (it.isNotEmpty()) {
+            return KanIkkeOppretteMeldekortbehandling.DuplikateKjeder(it).left()
+        }
+    }
+
     validerOpprettManuellMeldekortbehandling().onLeft {
         return KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil(it).left()
     }
 
-    val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId)
-
-    val behandlingerForKjede = this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
-    val type =
-        if (behandlingerForKjede.isEmpty()) MeldeperiodebehandlingType.FØRSTE_BEHANDLING else MeldeperiodebehandlingType.KORRIGERING
-
     val meldekortId = MeldekortId.random()
+
+    val meldeperiodebehandlinger = kjedeIder.map { kjedeId ->
+        val behandlingerForKjede = this.meldekortbehandlinger.hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
+        val type =
+            if (behandlingerForKjede.isEmpty()) MeldeperiodebehandlingType.FØRSTE_BEHANDLING else MeldeperiodebehandlingType.KORRIGERING
+
+        this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjedeId(kjedeId).tilMeldeperiodebehandling(type, meldekortId)
+    }.sortedBy { it.periode.fraOgMed }.toNonEmptyListOrThrow()
+
     val nå = nå(clock)
 
     return MeldekortUnderBehandling(
@@ -232,7 +263,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         sistEndret = nå,
         fritekstTilVedtaksbrev = null,
         meldeperioder = Meldeperiodebehandlinger(
-            meldeperioder = nonEmptyListOf(meldeperiode.tilMeldeperiodebehandling(type, meldekortId)),
+            meldeperioder = meldeperiodebehandlinger,
             beregning = null,
         ),
         skalSendeVedtaksbrev = true,

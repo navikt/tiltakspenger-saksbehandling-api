@@ -121,4 +121,52 @@ interface OpprettMeldekortbehandlingBuilder {
             jsonObject,
         )
     }
+
+    /**
+     * Ny variant som støtter flere meldeperiodekjeder i samme behandling.
+     * Kjedene sendes i request-body i stedet for i path.
+     */
+    suspend fun ApplicationTestBuilder.opprettMeldekortbehandlingForSakIdV2(
+        tac: TestApplicationContext,
+        sakId: SakId,
+        kjedeIder: List<MeldeperiodeKjedeId>,
+        saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+        medJsonBody: ((jsonBody: String) -> Unit)? = null,
+    ): Triple<Sak, MeldekortUnderBehandling, MeldekortbehandlingDTOV2Json>? {
+        val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
+        tac.leggTilBruker(jwt, saksbehandler)
+        val response = defaultRequestWithAssertions(
+            HttpMethod.POST,
+            "/sak/$sakId/meldekort/opprettBehandling",
+            jwt = jwt,
+            forventet = forventet,
+            body = """
+                {
+                  "kjedeIder": ${kjedeIder.joinToString(prefix = "[", postfix = "]") { "\"${it.verdi}\"" }}
+                }
+            """.trimIndent(),
+        )
+        val bodyAsText = response.body
+        if (medJsonBody != null) {
+            medJsonBody(bodyAsText)
+        }
+
+        if (response.statusCode != 200) {
+            return null
+        }
+
+        val jsonObject: MeldekortbehandlingDTOV2Json = objectMapper.readTree(bodyAsText)
+        val meldekortbehandlingId = MeldekortId.fromString(jsonObject.get("id").asString())
+
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
+        val meldekortbehandling =
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandlingId) as MeldekortUnderBehandling
+
+        return Triple(
+            oppdatertSak,
+            meldekortbehandling,
+            jsonObject,
+        )
+    }
 }

@@ -52,7 +52,6 @@ data class RammevedtakDTO(
     val beslutter: String,
     val innvilgelsesperioder: InnvilgelsesperioderDTO?,
     val barnetillegg: BarnetilleggDTO?,
-    val gjeldendeBarnetillegg: BarnetilleggDTO?,
     val gjeldendeBarnetilleggPerioder: List<BarnetilleggPeriodeDTO>,
     val erGjeldende: Boolean,
     val gyldigeKommandoer: Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO>,
@@ -88,13 +87,6 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         beslutter = beslutter,
         innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
-        // TODO: fjernes når frontend er oppdatert
-        gjeldendeBarnetillegg = barnetillegg?.let {
-            BarnetilleggDTO(
-                perioder = it.periodisering.tilBarnetilleggPerioderDTO(),
-                begrunnelse = it.begrunnelse?.verdi,
-            )
-        },
         gjeldendeBarnetilleggPerioder = gjeldendeBarnetillegg.tilBarnetilleggPerioderDTO(),
         opprinneligVedtaksperiode = periode.toDTO(),
         opprinneligInnvilgetPerioder = this.opprinneligInnvilgetPerioder.map { it.toDTO() },

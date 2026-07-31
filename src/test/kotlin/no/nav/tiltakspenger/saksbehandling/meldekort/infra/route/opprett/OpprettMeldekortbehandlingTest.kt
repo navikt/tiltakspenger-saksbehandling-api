@@ -8,12 +8,14 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakIdV2
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import org.junit.jupiter.api.Test
 
@@ -213,6 +215,96 @@ class OpprettMeldekortbehandlingTest {
             )!!
             andreBehandling.meldeperioder.first().kjedeId shouldBe andreKjede.kjedeId
             andreBehandling.meldeperioder.first().meldeperiode.ingenDagerGirRett shouldBe true
+        }
+    }
+
+    @Test
+    fun `kan opprette meldekortbehandling for flere kjeder`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(1 til 31.januar(2025)),
+            )
+            sak.meldeperiodeKjeder.size shouldBe 3
+            val førsteKjede = sak.meldeperiodeKjeder[0]
+            val andreKjede = sak.meldeperiodeKjeder[1]
+
+            val (oppdatertSak, meldekortbehandling, _) = opprettMeldekortbehandlingForSakIdV2(
+                tac = tac,
+                sakId = sak.id,
+                // Sender i omvendt rekkefølge for å verifisere at meldeperiodene sorteres.
+                kjedeIder = listOf(andreKjede.kjedeId, førsteKjede.kjedeId),
+            )!!
+
+            meldekortbehandling.meldeperioder.map { it.kjedeId } shouldBe listOf(
+                førsteKjede.kjedeId,
+                andreKjede.kjedeId,
+            )
+            meldekortbehandling.meldeperioder.map { it.type } shouldBe listOf(
+                MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+            )
+            oppdatertSak.meldekortbehandlinger.single() shouldBe meldekortbehandling
+        }
+    }
+
+    @Test
+    fun `kan opprette meldekortbehandling for en enkelt kjede med den nye ruta`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
+            )
+            val førsteMeldeperiode = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
+
+            val (oppdatertSak) = opprettMeldekortbehandlingForSakIdV2(
+                tac = tac,
+                sakId = sak.id,
+                kjedeIder = listOf(førsteMeldeperiode.kjedeId),
+            )!!
+
+            oppdatertSak.meldekortbehandlinger.single().meldeperioder.single().meldeperiode shouldBe førsteMeldeperiode
+        }
+    }
+
+    @Test
+    fun `feiler dersom samme kjede sendes inn flere ganger`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
+            )
+            val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
+
+            opprettMeldekortbehandlingForSakIdV2(
+                tac = tac,
+                sakId = sak.id,
+                kjedeIder = listOf(kjedeId, kjedeId),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                medJsonBody = { it harKode "duplikate_kjeder" },
+            )
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.meldekortbehandlinger.size shouldBe 0
+        }
+    }
+
+    @Test
+    fun `feiler dersom kjedeIder er tom`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, _) = this.iverksettSøknadsbehandling(
+                tac,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
+            )
+
+            opprettMeldekortbehandlingForSakIdV2(
+                tac = tac,
+                sakId = sak.id,
+                kjedeIder = emptyList(),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                medJsonBody = { it harKode "kjedeider_mangler" },
+            )
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.meldekortbehandlinger.size shouldBe 0
         }
     }
 }

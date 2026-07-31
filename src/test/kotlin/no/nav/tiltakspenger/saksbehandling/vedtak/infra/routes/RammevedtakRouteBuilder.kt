@@ -56,8 +56,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
             ]
           }
     """.trimIndent(),
-    gjeldendeBarnetillegg: String? = barnetillegg,
-    gjeldendeBarnetilleggPerioder: String = gjeldendeBarnetillegg?.let { JSONObject(it).getJSONArray("perioder").toString() } ?: "[]",
+    gjeldendeBarnetilleggPerioder: String = barnetillegg?.let { JSONObject(it).getJSONArray("perioder").toString() } ?: "[]",
     vedtaksdato: String? = null,
     omgjortGrad: String? = null,
     omgjøringskommando: String? = if (gjeldendeVedtaksperioder.isEmpty()) {
@@ -104,7 +103,6 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
         saksbehandler = saksbehandler,
         opprettet = opprettet,
         barnetillegg = barnetillegg,
-        gjeldendeBarnetillegg = gjeldendeBarnetillegg,
         gjeldendeBarnetilleggPerioder = gjeldendeBarnetilleggPerioder,
         gjeldendeVedtaksperioder = gjeldendeVedtaksperioder,
         resultat = resultat,
@@ -140,7 +138,6 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
         saksbehandler = saksbehandler,
         opprettet = opprettet,
         barnetillegg = null,
-        gjeldendeBarnetillegg = null,
         gjeldendeVedtaksperioder = emptyList(),
         resultat = "AVSLAG",
         gjeldendeInnvilgetPerioder = emptyList(),
@@ -175,8 +172,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
     resultat: String,
     vedtaksdato: String?,
     barnetillegg: String?,
-    gjeldendeBarnetillegg: String? = barnetillegg,
-    gjeldendeBarnetilleggPerioder: String = gjeldendeBarnetillegg?.let { JSONObject(it).getJSONArray("perioder").toString() } ?: "[]",
+    gjeldendeBarnetilleggPerioder: String = barnetillegg?.let { JSONObject(it).getJSONArray("perioder").toString() } ?: "[]",
     innvilgelsesperioder: String?,
     omgjortGrad: String?,
     omgjøringskommando: String? = null,
@@ -200,7 +196,6 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
               "erGjeldende": $erGjeldende,
               "saksbehandler": "$saksbehandler",
               "barnetillegg": $barnetillegg,
-              "gjeldendeBarnetillegg": $gjeldendeBarnetillegg,
               "gjeldendeBarnetilleggPerioder": $gjeldendeBarnetilleggPerioder,
               "gjeldendeVedtaksperioder": ${
                 gjeldendeVedtaksperioder.map {
