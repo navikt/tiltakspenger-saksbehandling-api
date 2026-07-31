@@ -30,9 +30,10 @@ Slik ser den ut i dette repoet:
 - **Dekningsgaten** låser repoene som har nådd 100 % — se `postgresRepoerMedDekningskrav` i `build.gradle.kts`.
   Merk at kover-rapportene ikke lenger genereres av `check`; kjør `./gradlew koverHtmlReport` eksplisitt når du skal lese dem.
 
-> **Overgangsfase (per 2026-07-30):** 20 testfiler bygger fortsatt tilstand via `withMigratedDb` og `TestDataHelper`.
+> **Overgangsfase (per 2026-07-31):** 8 testfiler bygger fortsatt tilstand via `withMigratedDb` og `TestDataHelper`.
 > Det universet er under avvikling, og du skal ikke utvide det.
 > Trenger du ny testtilstand, bygg den gjennom prodstiene.
+> Unntaket er `PeriodeDbTest`, som blir stående — den tester en ren db-type og har ingen prodsti å bygges gjennom.
 
 ## Lokal testdata
 

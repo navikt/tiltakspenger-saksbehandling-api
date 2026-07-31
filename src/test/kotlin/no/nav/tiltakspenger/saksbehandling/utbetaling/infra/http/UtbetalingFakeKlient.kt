@@ -3,6 +3,7 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -42,6 +43,13 @@ class UtbetalingFakeKlient(
      * Deler du skjema med andre route-tester, vil deres jobbkjøring hente statusen for din utbetaling gjennom deres fake og overskrive den med `Ok`.
      */
     var utbetalingsstatus: Utbetalingsstatus = Utbetalingsstatus.Ok,
+    /**
+     * Settes av tester som trenger at selve iverksettingen mot helved feiler, f.eks. for å dekke lagringen av feilresponsen.
+     *
+     * **Testen må da kjøre isolert** (`runIsolated = true` + `@IsolatedDatabaseTest`), av samme grunn som [utbetalingsstatus].
+     * `sendUtbetalingerTilHelved`-jobben sveiper over alle utbetalinger i skjemaet, så en annen test ville fått sin utbetaling feilet av din fake.
+     */
+    var iverksettFeil: KunneIkkeUtbetale? = null,
 ) : Utbetalingsklient {
 
     override suspend fun iverksett(
@@ -49,6 +57,8 @@ class UtbetalingFakeKlient(
         forrigeUtbetalingJson: String?,
         correlationId: CorrelationId,
     ): Either<KunneIkkeUtbetale, SendtUtbetaling> {
+        iverksettFeil?.let { return it.left() }
+
         val response = SendtUtbetaling(
             utbetaling.toUtbetalingRequestDTO(forrigeUtbetalingJson),
             "response - ${utbetaling.id}",

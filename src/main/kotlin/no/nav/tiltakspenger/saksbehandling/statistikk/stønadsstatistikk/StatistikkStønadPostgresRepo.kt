@@ -1,21 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
 
-import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
-import java.util.UUID
 
 class StatistikkStønadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -29,17 +24,6 @@ class StatistikkStønadPostgresRepo(
     ) {
         sessionFactory.withTransaction(context) { tx ->
             lagre(dto, clock, tx)
-        }
-    }
-
-    /** Denne brukes kun for tester */
-    @TestOnly
-    fun lagre(
-        dto: StatistikkUtbetalingDTO,
-        context: TransactionContext? = null,
-    ) {
-        sessionFactory.withTransaction(context) { tx ->
-            lagre(dto, tx)
         }
     }
 
@@ -170,83 +154,6 @@ class StatistikkStønadPostgresRepo(
             )
         }
     }
-
-    /** Denne brukes kun for tester */
-    @TestOnly
-    fun hentForRammevedtak(sakId: SakId): List<StatistikkStønadDTO> = sessionFactory.withSession {
-        it.run(
-            sqlQuery(
-                """
-                    select *
-                    from statistikk_stonad
-                    where sak_id = :sak_id
-                """.trimIndent(),
-                "sak_id" to sakId.toString(),
-            ).map { row -> row.toStatistikkStonadDTO() }
-                .asList,
-        )
-    }
-
-    /** Denne brukes kun for tester */
-    @TestOnly
-    fun hentForUtbetalinger(sakId: SakId): List<StatistikkUtbetalingDTO> = sessionFactory.withSession {
-        it.run(
-            sqlQuery(
-                """
-                    select *
-                    from statistikk_utbetaling
-                    where sak_id = :sak_id
-                """.trimIndent(),
-                "sak_id" to sakId.toString(),
-            ).map { row -> row.toStatistikkUtbetalingDTO() }
-                .asList,
-        )
-    }
-
-    private fun Row.toStatistikkStonadDTO() =
-        StatistikkStønadDTO(
-            id = UUID.fromString(string("id")),
-            brukerId = string("bruker_id"),
-            sakId = string("sak_id"),
-            saksnummer = string("saksnummer"),
-            resultat = string("resultat").let { VedtakStatistikkResultat.valueOf(it) },
-            sakDato = localDate("sak_dato"),
-            ytelse = string("ytelse"),
-            søknadId = stringOrNull("soknad_id"),
-            søknadDato = localDateOrNull("soknad_dato"),
-            søknadFraDato = localDateOrNull("gyldig_fra_dato_soknad"),
-            søknadTilDato = localDateOrNull("gyldig_til_dato_soknad"),
-            vedtakId = string("vedtak_id"),
-            vedtaksType = string("type"),
-            vedtakDato = localDate("vedtak_dato"),
-            vedtaksperiodeFraOgMed = localDate("vedtaksperiode_fra_og_med"),
-            vedtaksperiodeTilOgMed = localDate("vedtaksperiode_til_og_med"),
-            fagsystem = string("fagsystem"),
-            barnetillegg = deserialize(string("barnetillegg")),
-            harBarnetillegg = boolean("har_barnetillegg"),
-            innvilgelsesperioder = deserialize(string("innvilgelsesperioder")),
-            omgjørRammevedtakId = stringOrNull("omgjor_rammevedtak_id"),
-            omgjørRammevedtak = deserialize(string("omgjor_rammevedtak")),
-        )
-
-    private fun Row.toStatistikkUtbetalingDTO() =
-        StatistikkUtbetalingDTO(
-            id = string("id"),
-            sakId = string("sak_id"),
-            saksnummer = string("saksnummer"),
-            totalBeløp = int("belop"),
-            ordinærBeløp = int("ordinar_belop"),
-            barnetilleggBeløp = int("barnetillegg_belop"),
-            posteringDato = localDate("posteringsdato"),
-            gyldigFraDatoPostering = localDate("gyldig_fra_dato"),
-            gyldigTilDatoPostering = localDate("gyldig_til_dato"),
-            utbetalingId = string("utbetaling_id"),
-            vedtakId = stringOrNull("vedtak_id")?.let { deserialize(it) },
-            opprettet = localDateTimeOrNull("opprettet"),
-            sistEndret = localDateTimeOrNull("sist_endret"),
-            brukerId = string("bruker_id"),
-            meldeperioder = deserialize(string("meldeperioder")),
-        )
 }
 
 @Language("SQL")

@@ -1,18 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort
 
-import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.deserializeList
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO.StatistikkMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO.StatistikkMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldeperiodeDbJson.MeldekortdagDbJson
 import org.intellij.lang.annotations.Language
-import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.time.LocalDate
 
@@ -63,41 +60,6 @@ class StatistikkMeldekortPostgresRepo {
                         "sist_endret" to dto.sistEndret,
                     ),
                 ).asUpdate,
-            )
-        }
-
-        /**
-         * Kun for test.
-         * I produksjon leses denne tabellen kun av eksterne konsumenter.
-         */
-        @TestOnly
-        fun hentForMeldekortbehandlingId(
-            meldekortbehandlingId: String,
-            session: Session,
-        ): StatistikkMeldekortDTO? {
-            return session.run(
-                sqlQuery(
-                    "select * from statistikk_meldekort where meldekortbehandling_id = :meldekortbehandling_id",
-                    "meldekortbehandling_id" to meldekortbehandlingId,
-                ).map { row -> row.toStatistikkMeldekortDTO() }.asSingle,
-            )
-        }
-
-        private fun Row.toStatistikkMeldekortDTO(): StatistikkMeldekortDTO {
-            return StatistikkMeldekortDTO(
-                sakId = string("sak_id"),
-                meldekortbehandlingId = string("meldekortbehandling_id"),
-                brukerId = string("bruker_id"),
-                saksnummer = string("saksnummer"),
-                vedtattTidspunkt = localDateTime("vedtatt_tidspunkt"),
-                behandletAutomatisk = boolean("behandlet_automatisk"),
-                fraOgMed = localDate("fra_og_med"),
-                tilOgMed = localDate("til_og_med"),
-                opprettet = localDateTime("opprettet"),
-                sistEndret = localDateTime("sist_endret"),
-                meldeperioder = deserializeList<StatistikkMeldeperiodeDbJson>(string("meldeperioder")).tilStatistikkMeldeperioder(),
-                meldeperiodeKjedeId = string("meldeperiode_kjede_id"),
-                meldekortdager = deserializeList<MeldekortdagDbJson>(string("meldekortdager")).tilStatistikkMeldekortdager(),
             )
         }
     }
@@ -176,27 +138,6 @@ private fun List<StatistikkMeldekortDag>.tilMeldekortdagerDbJson(): List<Meldeko
             dato = dag.dato,
             status = dag.status.name,
             reduksjon = dag.reduksjon.name,
-        )
-    }
-}
-
-private fun List<StatistikkMeldeperiodeDbJson>.tilStatistikkMeldeperioder(): List<StatistikkMeldeperiode> {
-    return this.map {
-        StatistikkMeldeperiode(
-            fraOgMed = it.fraOgMed,
-            tilOgMed = it.tilOgMed,
-            meldeperiodeKjedeId = it.meldeperiodeKjedeId,
-            meldekortdager = it.meldekortdager.tilStatistikkMeldekortdager(),
-        )
-    }
-}
-
-private fun List<MeldekortdagDbJson>.tilStatistikkMeldekortdager(): List<StatistikkMeldekortDag> {
-    return this.map {
-        StatistikkMeldekortDag(
-            dato = it.dato,
-            status = StatistikkMeldekortDag.MeldekortDagStatus.valueOf(it.status),
-            reduksjon = StatistikkMeldekortDag.Reduksjon.valueOf(it.reduksjon),
         )
     }
 }

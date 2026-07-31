@@ -62,13 +62,17 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.ta.TaMeldekortb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.underkjenn.UnderkjennMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.HentSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.OpprettSakRouteBuilder
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.ToggleKanSendeHelgForMeldekortSakRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.MottaSøknadRouteBuilder
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.StartBehandlingAvManueltRegistrertSøknadRouteBuilder
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route.TilbakekrevingBehandlingBuilder
 
 object RouteBehandlingBuilder :
     OpprettSakRouteBuilder,
     HentSakRouteBuilder,
+    ToggleKanSendeHelgForMeldekortSakRouteBuilder,
     MottaSøknadRouteBuilder,
+    StartBehandlingAvManueltRegistrertSøknadRouteBuilder,
     StartSøknadsbehandlingBuilder,
     OpprettKlagebehandlingBuilder,
     OvertaKlagebehandlingBuilder,

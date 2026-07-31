@@ -12,8 +12,14 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-// Tester for egendefinert postgres type periode_datoer.
-// Se V200__periode_type.sql
+/**
+ * Tester for egendefinert postgres-type `periode`.
+ * Se `V200__periode_type.sql`.
+ *
+ * Unntak (b) i testtaksonomien: en ren db-type uten domeneflyt.
+ * Typen har ingen prodsti å bygges gjennom — den er en datatype, ikke en tilstand — så testen går rett på databasen med en egen temp-tabell.
+ * Derfor er dette den ene gjenværende `withMigratedDb`-bruken utenfor testinfrastrukturen.
+ */
 class PeriodeDbTest {
 
     private fun withPeriodeTestTabell(test: (Session) -> Unit) {

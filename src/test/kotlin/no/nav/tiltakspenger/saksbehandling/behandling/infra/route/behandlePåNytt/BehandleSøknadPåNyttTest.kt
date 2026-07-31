@@ -13,20 +13,27 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.behandleSøknadPåNytt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvSøknadPåNyttForSøknadId
 import org.junit.jupiter.api.Test
 
 internal class BehandleSøknadPåNyttTest {
+    /**
+     * Kjører mot postgres fordi ruta er eneste prodsti til `PersonPostgresRepo.hentFnrForSøknadId`, via auditloggingen.
+     * De øvrige testene i fila er tilgangskontroll og kan bli stående in-memory.
+     */
     @Test
     fun `kan behandle avslått søknad på nytt`() = runTest {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
 
             val (sak, søknad, rammevedtak) = this.iverksettSøknadsbehandling(
                 tac = tac,
                 resultat = SøknadsbehandlingsresultatType.AVSLAG,
+                jobber = JobberEtterIverksettelse.ingen,
             )
             val behandling = rammevedtak.rammebehandling as Søknadsbehandling
             behandling.vedtaksperiode.shouldNotBeNull()

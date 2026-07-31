@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
@@ -70,9 +71,13 @@ internal class TaOgOvertaRammebehandlingTest {
         }
     }
 
+    /**
+     * Kjører mot postgres fordi den er grunnsettet for `taBehandlingBeslutter` og `overtaBeslutter` i [no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo].
+     * Saksbehandlervarianten over dekkes av andre route-tester mot postgres, og kan bli stående in-memory.
+     */
     @Test
     fun `beslutter kan ta og overta behandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING

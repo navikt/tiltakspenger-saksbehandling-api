@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -15,10 +16,14 @@ import org.junit.jupiter.api.Test
 
 class UnderkjennRammebehandlingTest {
 
+    /**
+     * Kjører mot postgres fordi den er grunnsettet for at en underkjenning lagres og leses tilbake.
+     * `Attesteringsstatus.SENDT_TILBAKE` mappes kun her; de øvrige underkjenn-testene kan kjøre in-memory.
+     */
     @Test
     fun `sjekk at begrunnelse kan sendes inn`() {
         runTest {
-            withTestApplicationContext { tac ->
+            withTestApplicationContextAndPostgres { tac ->
                 val (_, _, behandlingId, _) = this.underkjenn(tac)
 
                 val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
