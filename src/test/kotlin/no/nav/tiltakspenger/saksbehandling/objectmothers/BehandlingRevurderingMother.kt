@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptySet
 import arrow.core.nonEmptySetOf
+import arrow.core.toNonEmptyListOrNull
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -402,6 +403,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         beslutter: Saksbehandler = beslutter(),
         søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
         omgjøringInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
+        omgjøringInnvilgelsesperioder: List<Periode> = listOf(omgjøringInnvilgelsesperiode),
         omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
             sakId = sakId,
             saksnummer = saksnummer,
@@ -444,8 +446,9 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     correlationId = CorrelationId.generate(),
                     begrunnelseVilkårsvurdering = null,
                     fritekstTilVedtaksbrev = null,
-                    innvilgelsesperioder = listOf(innvilgelsesperiodeKommando(omgjøringInnvilgelsesperiode)).medDeltakelseFra(it.saksopplysninger).tilPeriodisering(),
-                    barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperiode),
+                    innvilgelsesperioder = omgjøringInnvilgelsesperioder.map { periode -> innvilgelsesperiodeKommando(periode) }
+                        .medDeltakelseFra(it.saksopplysninger).tilPeriodisering(),
+                    barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperioder.toNonEmptyListOrNull()!!),
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                 ),
@@ -472,6 +475,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         beslutter: Saksbehandler = beslutter(),
         søknadsbehandlingInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
         omgjøringInnvilgelsesperiode: Periode = revurderingVedtaksperiode(),
+        omgjøringInnvilgelsesperioder: List<Periode> = listOf(omgjøringInnvilgelsesperiode),
         correlationId: CorrelationId = CorrelationId.generate(),
         omgjørBehandling: Rammebehandling = nyVedtattSøknadsbehandling(
             sakId = sakId,
@@ -500,6 +504,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         beslutter = beslutter,
         søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
         omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
+        omgjøringInnvilgelsesperioder = omgjøringInnvilgelsesperioder,
         omgjørBehandling = omgjørBehandling,
         omgjørRammevedtak = omgjørRammevedtak,
         hentSaksopplysninger = hentSaksopplysninger,

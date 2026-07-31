@@ -231,10 +231,12 @@ interface RammevedtakMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         søknadsbehandlingInnvilgelsesperiode: Periode = ObjectMother.revurderingVedtaksperiode(),
         omgjøringInnvilgelsesperiode: Periode = ObjectMother.revurderingVedtaksperiode(),
+        omgjøringInnvilgelsesperioder: List<Periode> = listOf(omgjøringInnvilgelsesperiode),
         behandling: Rammebehandling = ObjectMother.nyIverksattRevurderingOmgjøring(
             sakId = sakId,
             søknadsbehandlingInnvilgelsesperiode = søknadsbehandlingInnvilgelsesperiode,
             omgjøringInnvilgelsesperiode = omgjøringInnvilgelsesperiode,
+            omgjøringInnvilgelsesperioder = omgjøringInnvilgelsesperioder,
             saksnummer = ObjectMother.nesteSaksnummer(),
             fnr = fnr,
         ),

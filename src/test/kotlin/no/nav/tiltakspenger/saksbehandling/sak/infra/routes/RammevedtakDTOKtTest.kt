@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
@@ -118,6 +119,48 @@ class RammevedtakDTOKtTest {
             tidslinjeElementDTO.last().periode shouldBe forventedeOpphørsperiodeSisteDto.toDTO()
             tidslinjeElementDTO.last().tidslinjeResultat shouldBe TidslinjeResultat.OMGJØRING_OPPHØR
             tidslinjeElementDTO.last().rammevedtak.barnetillegg shouldBe null
+        }
+
+        @Test
+        fun `omgjøring med flere innvilgelsesperioder gir et element per innvilgelse og per hull`() {
+            val innvilgelsesperiode = Periode(1.januar(2023), 31.januar(2023))
+            val førsteOmgjøringsperiode = Periode(5.januar(2023), 10.januar(2023))
+            val andreOmgjøringsperiode = Periode(20.januar(2023), 25.januar(2023))
+
+            val rammevedtak = ObjectMother.nyRammevedtakOmgjøring(
+                søknadsbehandlingInnvilgelsesperiode = innvilgelsesperiode,
+                omgjøringInnvilgelsesperioder = listOf(førsteOmgjøringsperiode, andreOmgjøringsperiode),
+            )
+
+            val tidslinjeElementDTO = rammevedtak.toTidslinjeElementDto(innvilgelsesperiode)
+
+            tidslinjeElementDTO.map { it.periode to it.tidslinjeResultat } shouldBe listOf(
+                Periode(1.januar(2023), 4.januar(2023)).toDTO() to TidslinjeResultat.OMGJØRING_OPPHØR,
+                førsteOmgjøringsperiode.toDTO() to TidslinjeResultat.OMGJØRING_INNVILGELSE,
+                Periode(11.januar(2023), 19.januar(2023)).toDTO() to TidslinjeResultat.OMGJØRING_OPPHØR,
+                andreOmgjøringsperiode.toDTO() to TidslinjeResultat.OMGJØRING_INNVILGELSE,
+                Periode(26.januar(2023), 31.januar(2023)).toDTO() to TidslinjeResultat.OMGJØRING_OPPHØR,
+            )
+
+            tidslinjeElementDTO.map { it.rammevedtak.barnetillegg } shouldBe listOf(
+                null,
+                BarnetilleggDTO(
+                    perioder = listOf(
+                        BarnetilleggPeriodeDTO(antallBarn = 0, periode = førsteOmgjøringsperiode.toDTO()),
+                    ),
+                    begrunnelse = null,
+                ),
+                null,
+                BarnetilleggDTO(
+                    perioder = listOf(
+                        BarnetilleggPeriodeDTO(antallBarn = 0, periode = andreOmgjøringsperiode.toDTO()),
+                    ),
+                    begrunnelse = null,
+                ),
+                null,
+            )
+
+            tidslinjeElementDTO.map { it.rammevedtakId }.distinct() shouldBe listOf(rammevedtak.id.toString())
         }
     }
 

@@ -56,6 +56,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
             ]
           }
     """.trimIndent(),
+    gjeldendeBarnetillegg: String? = barnetillegg,
     vedtaksdato: String? = null,
     omgjortGrad: String? = null,
     omgjøringskommando: String? = if (gjeldendeVedtaksperioder.isEmpty()) {
@@ -102,6 +103,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOinnvilgelse(
         saksbehandler = saksbehandler,
         opprettet = opprettet,
         barnetillegg = barnetillegg,
+        gjeldendeBarnetillegg = gjeldendeBarnetillegg,
         gjeldendeVedtaksperioder = gjeldendeVedtaksperioder,
         resultat = resultat,
         gjeldendeInnvilgetPerioder = gjeldendeInnvilgetPerioder,
@@ -136,6 +138,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTOavslag(
         saksbehandler = saksbehandler,
         opprettet = opprettet,
         barnetillegg = null,
+        gjeldendeBarnetillegg = null,
         gjeldendeVedtaksperioder = emptyList(),
         resultat = "AVSLAG",
         gjeldendeInnvilgetPerioder = emptyList(),
@@ -170,6 +173,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
     resultat: String,
     vedtaksdato: String?,
     barnetillegg: String?,
+    gjeldendeBarnetillegg: String? = barnetillegg,
     innvilgelsesperioder: String?,
     omgjortGrad: String?,
     omgjøringskommando: String? = null,
@@ -193,6 +197,7 @@ fun RammevedtakDTOJson.shouldBeEqualToRammevedtakDTO(
               "erGjeldende": $erGjeldende,
               "saksbehandler": "$saksbehandler",
               "barnetillegg": $barnetillegg,
+              "gjeldendeBarnetillegg": $gjeldendeBarnetillegg,
               "gjeldendeVedtaksperioder": ${
                 gjeldendeVedtaksperioder.map {
                     """{

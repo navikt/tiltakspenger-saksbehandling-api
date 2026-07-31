@@ -6,14 +6,6 @@ enum class Profile {
     PROD,
 }
 
-/**
- *  Benyttes kun dersom appen kjører lokalt med "prod-main" i App.kt.
- *  Ved kjøring via LokalMain.kt vil normalt fake-klienter benyttes istedenfor å kalle disse url'ene
- *
- *  Wiremock kan kjøres opp via docker-compose i meta-repoet
- * */
-private const val WIREMOCK_URL = "http://host.docker.internal:8091"
-
 sealed interface EnvironmentConfig {
     val profile: Profile
     val httpPort: Int
@@ -95,6 +87,14 @@ sealed interface EnvironmentConfig {
 }
 
 data object LocalConfig : EnvironmentConfig {
+    /**
+     *  Benyttes kun dersom appen kjører lokalt med "prod-main" i App.kt.
+     *  Ved kjøring via LokalMain.kt vil normalt fake-klienter benyttes istedenfor å kalle disse url'ene
+     *
+     *  Wiremock kan kjøres opp via docker-compose i meta-repoet
+     * */
+    private const val WIREMOCK_URL = "http://host.docker.internal:8091"
+
     override val profile = Profile.LOCAL
     override val httpPort = 8080
     override val logbackConfigurationFile = "logback.local.xml"

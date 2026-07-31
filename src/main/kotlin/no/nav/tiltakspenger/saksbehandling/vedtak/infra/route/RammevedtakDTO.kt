@@ -52,6 +52,7 @@ data class RammevedtakDTO(
     val beslutter: String,
     val innvilgelsesperioder: InnvilgelsesperioderDTO?,
     val barnetillegg: BarnetilleggDTO?,
+    val gjeldendeBarnetillegg: BarnetilleggDTO?,
     val erGjeldende: Boolean,
     val gyldigeKommandoer: Map<RammevedtakKommandoDTO.KommandoType, RammevedtakKommandoDTO>,
     val omgjortGrad: OmgjøringsgradDTO?,
@@ -74,8 +75,6 @@ enum class OmgjøringsgradDTO {
 }
 
 fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
-    val periodeDTO = periode.toDTO()
-
     return RammevedtakDTO(
         id = id.toString(),
         behandlingId = rammebehandling.id.toString(),
@@ -88,7 +87,8 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
         beslutter = beslutter,
         innvilgelsesperioder = innvilgelsesperioder?.tilDTO(),
         barnetillegg = barnetillegg?.toBarnetilleggDTO(),
-        opprinneligVedtaksperiode = periodeDTO,
+        gjeldendeBarnetillegg = barnetillegg?.tilKrympetBarnetilleggDTO(gjeldendeInnvilgetPerioder),
+        opprinneligVedtaksperiode = periode.toDTO(),
         opprinneligInnvilgetPerioder = this.opprinneligInnvilgetPerioder.map { it.toDTO() },
         gjeldendeInnvilgetPerioder = this.gjeldendeInnvilgetPerioder.map { it.toDTO() },
         erGjeldende = this.erGjeldende,
@@ -100,6 +100,7 @@ fun Rammevedtak.tilRammevedtakDTO(): RammevedtakDTO {
 
 data class TidslinjeElementDTO(
     val rammevedtak: RammevedtakDTO,
+    val rammevedtakId: String,
     val periode: PeriodeDTO,
     val tidslinjeResultat: TidslinjeResultat,
 )
@@ -120,61 +121,35 @@ data class TidslinjeDTO(
 fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<TidslinjeElementDTO> {
     return when (this.rammebehandlingsresultat) {
         is OmgjøringInnvilgelse -> {
-            // TODO: må støtte flere perioder
-            val innvilgelseperiode = tidslinjeperiode.overlappendePeriode(this.innvilgelsesperioder!!.totalPeriode)
-                ?: return listOf(
-                    // Dette omgjøringsvedtaket har ingen gjeldende innvilgelser.
-                    // Hele perioden er et opphør.
+            val innvilgedePerioder = tidslinjeperiode.overlappendePerioder(this.innvilgelsesperioder!!.perioder)
+
+            // Det som ikke er innvilget i denne tidslinjeperioden, er opphørt av omgjøringen.
+            val opphørtePerioder = tidslinjeperiode.trekkFra(innvilgedePerioder)
+
+            innvilgedePerioder.map { it to TidslinjeResultat.OMGJØRING_INNVILGELSE }
+                .plus(opphørtePerioder.map { it to TidslinjeResultat.OMGJØRING_OPPHØR })
+                .sortedBy { (periode, _) -> periode.fraOgMed }
+                .map { (periode, tidslinjeResultat) ->
                     TidslinjeElementDTO(
-                        rammevedtak = this.tilRammevedtakDTO().copy(barnetillegg = null),
-                        periode = tidslinjeperiode.toDTO(),
-                        tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
-                    ),
-                )
+                        rammevedtak = this.tilRammevedtakDTO().copy(
+                            barnetillegg = when (tidslinjeResultat) {
+                                TidslinjeResultat.OMGJØRING_INNVILGELSE ->
+                                    this.barnetillegg?.tilKrympetBarnetilleggDTO(listOf(periode))
 
-            val opphørtePeriode = tidslinjeperiode.trekkFra(innvilgelseperiode)
-
-            val innvilgelsesTidslinjeElement = TidslinjeElementDTO(
-                rammevedtak = this.tilRammevedtakDTO().copy(
-                    barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(innvilgelseperiode),
-                ),
-                periode = innvilgelseperiode.toDTO(),
-                tidslinjeResultat = TidslinjeResultat.OMGJØRING_INNVILGELSE,
-            )
-
-            val opphørteTidslinjeElementer = opphørtePeriode.map {
-                TidslinjeElementDTO(
-                    rammevedtak = this.tilRammevedtakDTO().copy(barnetillegg = null),
-                    periode = it.toDTO(),
-                    tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
-                )
-            }
-
-            when (opphørtePeriode.size) {
-                0 -> listOf(innvilgelsesTidslinjeElement)
-
-                1 -> {
-                    val singleOpphørsTidslinjeElement = opphørteTidslinjeElementer.single()
-                    if (innvilgelseperiode.fraOgMed > tidslinjeperiode.fraOgMed) {
-                        listOf(singleOpphørsTidslinjeElement, innvilgelsesTidslinjeElement)
-                    } else {
-                        listOf(innvilgelsesTidslinjeElement, singleOpphørsTidslinjeElement)
-                    }
+                                else -> null
+                            },
+                        ),
+                        rammevedtakId = this.id.toString(),
+                        periode = periode.toDTO(),
+                        tidslinjeResultat = tidslinjeResultat,
+                    )
                 }
-
-                2 -> listOf(
-                    opphørteTidslinjeElementer.first(),
-                    innvilgelsesTidslinjeElement,
-                    opphørteTidslinjeElementer.last(),
-                )
-
-                else -> throw IllegalStateException("Uventet antall opphørte perioder ved omgjøring: ${opphørtePeriode.size}")
-            }
         }
 
         is Omgjøringsresultat.OmgjøringOpphør -> listOf(
             TidslinjeElementDTO(
                 rammevedtak = this.tilRammevedtakDTO(),
+                rammevedtakId = this.id.toString(),
                 periode = tidslinjeperiode.toDTO(),
                 tidslinjeResultat = TidslinjeResultat.OMGJØRING_OPPHØR,
             ),
@@ -187,8 +162,9 @@ fun Rammevedtak.toTidslinjeElementDto(tidslinjeperiode: Periode): List<Tidslinje
             listOf(
                 TidslinjeElementDTO(
                     rammevedtak = this.tilRammevedtakDTO().copy(
-                        barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(tidslinjeperiode),
+                        barnetillegg = this.barnetillegg?.tilKrympetBarnetilleggDTO(listOf(tidslinjeperiode)),
                     ),
+                    rammevedtakId = this.id.toString(),
                     periode = tidslinjeperiode.toDTO(),
                     tidslinjeResultat = when (this.rammebehandlingsresultat) {
                         is Omgjøringsresultat -> throw IllegalStateException("Omgjøring skal bli håndtert spesielt")
@@ -218,12 +194,14 @@ fun Rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(): TidslinjeDTO {
     }.let { TidslinjeDTO(it) }
 }
 
-private fun Barnetillegg.tilKrympetBarnetilleggDTO(periode: Periode): BarnetilleggDTO = BarnetilleggDTO(
-    perioder = periodisering.krymp(periode).perioderMedVerdi.map {
-        BarnetilleggPeriodeDTO(
-            antallBarn = it.verdi.value,
-            periode = it.periode.toDTO(),
-        )
+private fun Barnetillegg.tilKrympetBarnetilleggDTO(perioder: List<Periode>): BarnetilleggDTO = BarnetilleggDTO(
+    perioder = periodisering.perioderMedVerdi.toList().flatMap { (barnetillegg, gjeldendePeriode) ->
+        gjeldendePeriode.overlappendePerioder(perioder).map { nyPeriode ->
+            BarnetilleggPeriodeDTO(
+                antallBarn = barnetillegg.value,
+                periode = nyPeriode.toDTO(),
+            )
+        }
     },
     begrunnelse = begrunnelse?.verdi,
 )
