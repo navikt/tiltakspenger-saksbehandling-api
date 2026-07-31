@@ -11,7 +11,6 @@ import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.junit.jupiter.api.Test
 import tools.jackson.module.kotlin.readValue
 
@@ -33,7 +32,7 @@ class HentEllerOpprettSakRouteTest {
                 forventet = ForventetRespons(status = 200),
                 body = objectMapper.writeValueAsString(FnrDTO(ident.verdi)),
             )
-            tac.sakContext.sakRepo.hentForFnr(ident).saker shouldNotBe emptyList<Sak>()
+            tac.sakContext.sakRepo.hentForFnr(ident) shouldNotBe null
         }
     }
 

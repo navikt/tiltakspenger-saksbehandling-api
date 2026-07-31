@@ -2,15 +2,17 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSak
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import org.junit.jupiter.api.Test
+import org.postgresql.util.PSQLException
 
 class SakPostgresRepoTest {
     @Test
@@ -31,7 +33,7 @@ class SakPostgresRepoTest {
             val sakRepo = testDataHelper.sakRepo
 
             val opprettetSak = testDataHelper.persisterSak()
-            val hentetSak = sakRepo.hentForFnr(opprettetSak.fnr).first()
+            val hentetSak = sakRepo.hentForFnr(opprettetSak.fnr)!!
 
             hentetSak.rammebehandlinger.behandlinger shouldBe emptyList()
             hentetSak.rammevedtaksliste.verdi shouldBe emptyList()
@@ -51,34 +53,41 @@ class SakPostgresRepoTest {
             val sak1 = testDataHelper.persisterOpprettetSøknadsbehandling().first
             testDataHelper.persisterOpprettetSøknadsbehandling().first
 
-            sakRepo.hentForFnr(sak1.fnr) shouldBe Saker(sak1.fnr, listOf(sak1))
+            sakRepo.hentForFnr(sak1.fnr) shouldBe sak1
             sakRepo.hentForSaksnummer(saksnummer = sak1.saksnummer)!! shouldBe sak1
             sakRepo.hentForSakId(sak1.id) shouldBe sak1
         }
     }
 
+    /**
+     * `SakPostgresRepo.hentForFnr` returnerer én sak eller null, og den garantien hviler på `sak_fnr_unique`.
+     * Testen verifiserer at constrainten faktisk finnes, ved å forsøke innsettingen den skal stoppe.
+     * En constraint er ikke sterkere enn migreringen som holder den i live, jf. «Full dekning på postgres-repoene» i `../AGENTS-backend.md`.
+     */
     @Test
-    fun `hentForIdent skal hente saker med matchende ident`() {
+    fun `en person kan ikke ha to saker`() {
         withMigratedDb { testDataHelper ->
-            val sakRepo = testDataHelper.sakRepo
+            val sak = testDataHelper.persisterSak()
 
-            val fnr = Fnr.random()
+            val forsøkPåDuplikat = shouldThrow<PSQLException> {
+                testDataHelper.sessionFactory.withSession { session ->
+                    session.run(
+                        queryOf(
+                            """
+                            insert into sak (id, fnr, saksnummer, sist_endret, opprettet, skal_sendes_til_meldekort_api, skal_sende_meldeperioder_til_datadeling, sendt_til_datadeling)
+                            select :id, fnr, :saksnummer, sist_endret, opprettet, false, false, null from sak where id = :kildeId
+                            """.trimIndent(),
+                            mapOf(
+                                "id" to SakId.random().toString(),
+                                "saksnummer" to "202101011999",
+                                "kildeId" to sak.id.toString(),
+                            ),
+                        ).asUpdate,
+                    )
+                }
+            }
 
-            val sak1 =
-                testDataHelper
-                    .persisterOpprettetSøknadsbehandling(
-                        fnr = fnr,
-                    ).first
-            val sak2 =
-                testDataHelper
-                    .persisterOpprettetSøknadsbehandling(
-                        fnr = fnr,
-                    ).first
-            testDataHelper.persisterOpprettetSøknadsbehandling()
-
-            // `select * from sak where fnr = :fnr` har ingen `order by`, så rekkefølgen er udefinert.
-            // Testen asserter derfor innhold, ikke sortering.
-            sakRepo.hentForFnr(fnr) shouldContainExactlyInAnyOrder listOf(sak1, sak2)
+            forsøkPåDuplikat.message shouldContain "sak_fnr_unique"
         }
     }
 

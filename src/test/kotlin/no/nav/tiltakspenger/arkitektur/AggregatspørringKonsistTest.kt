@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.konsist.assertIngenBrudd
 import no.nav.tiltakspenger.libs.konsist.kildefiler
 import org.junit.jupiter.api.Test
+import java.nio.file.Path
 
 /**
  * Håndhever aggregat-disiplinen i testtaksonomien, jf. `AGENTS.md` og `../AGENTS-backend.md`.
@@ -15,8 +16,7 @@ import org.junit.jupiter.api.Test
  * Brukes en slik spørring som lesekanal for én sak, testes verken utvalget, grensen eller sorteringen — testen består selv om spørringen plukker feil rader for alle andre saker.
  * Derfor skal de kun kalles fra `*AggregatTest`-filer, som asserter kontrakten deres direkte, og fra fake-repoene som implementerer dem.
  *
- * Begge reglene er en ratchet: whitelistene skal krympe for hver fil som ryddes i sveipen, og være tomme når den er ferdig.
- * `whitelistene inneholder ingen filer som allerede er ryddet` feiler så snart en fil er ren, slik at whitelisten ikke kan bli stående.
+ * Begge reglene er en ratchet: whitelistene er tomme nå, og `whitelistene inneholder ingen filer som allerede er ryddet` sørger for at en oppføring ikke kan bli stående etter at fila er ryddet.
  *
  * Reglene ligger lokalt her først.
  * Når mønsteret er bevist, hører de hjemme i `konsist-regler` i tiltakspenger-libs.
@@ -26,18 +26,16 @@ class AggregatspørringKonsistTest {
     /**
      * Filer som fortsatt kaller en `hent*(limit)`-metode utenfor en aggregat-test.
      *
-     * `SendTilMeldekortApiServiceTest` tester livsløpet til `skal_sendes_til_meldekort_api`-flagget, ikke køspørringen.
-     * Den står her fordi flagget ikke er lesbart per sak — verken `Sak` eller `SakDb` eksponerer det — så køen er eneste lesekanal.
-     * Enten må saken eksponere flagget, eller så må testene bygges om sammen med resten av jobbtestene (tp-tax-5.3).
+     * Lista er tom, og det er meningen at den skal forbli det.
+     * Trenger du å legge til en fil her, spør først om testen egentlig skulle lest tilstanden på en annen måte: gjennom domenemodellen, eller med egen SQL hvis feltet aldri leses ut i prod.
      */
-    private val kallendeFilerSomVenterPåOpprydding = setOf(
-        "SendTilMeldekortApiServiceTest.kt",
-    )
+    private val kallendeFilerSomVenterPåOpprydding = emptySet<String>()
 
-    /** Filer som fortsatt sender `Int.MAX_VALUE` som limit. */
-    private val maxValueFilerSomVenterPåOpprydding = setOf(
-        "SendTilMeldekortApiServiceTest.kt",
-    )
+    /**
+     * Filer som fortsatt sender `Int.MAX_VALUE` som limit.
+     * Skal forbli tom.
+     */
+    private val maxValueFilerSomVenterPåOpprydding = emptySet<String>()
 
     @Test
     fun `hent-metoder med limit kalles kun fra aggregat-tester og fake-repoer`() {
@@ -127,9 +125,19 @@ class AggregatspørringKonsistTest {
 
     /**
      * Et git-arbeidstre som ligger under repo-rota er en egen utsjekk av det samme repoet.
-     * Konsist går inn i det, og reglene ville da rapportert brudd på filer som ikke er våre å rydde i.
+     * Konsist walker inn i det, og reglene ville da rapportert brudd på filer som ikke hører til utsjekken vi kjører i.
+     *
+     * Sjekken er relativ til arbeidskatalogen, ikke absolutt.
+     * Kjører du bygget *inne* i et arbeidstre, er arbeidskatalogen selve arbeidstreet, og da skal reglene kjøre som vanlig — det er kun arbeidstrær under oss som skal utelates.
      */
-    private fun String.iEtArbeidstre(): Boolean = "/.worktrees/" in this || "/.worktree/" in this
+    private fun String.iEtArbeidstre(): Boolean {
+        val relativ = runCatching { arbeidskatalog.relativize(Path.of(this)) }.getOrNull() ?: return false
+        return relativ.any { segment -> segment.toString() in arbeidstrekataloger }
+    }
+
+    private val arbeidskatalog: Path = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize()
+
+    private val arbeidstrekataloger = setOf(".worktrees", ".worktree")
 
     private data class Testfil(val file: KoFileDeclaration, val filnavn: String)
 

@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
@@ -44,7 +43,11 @@ class SakFakeRepo(
     val data = Atomic(mutableMapOf<SakId, Sak>())
     val skalSendesTilMeldekortApi = Atomic(mutableSetOf<SakId>())
 
-    override fun hentForFnr(fnr: Fnr): Saker = Saker(fnr, data.get().values.filter { it.fnr == fnr })
+    override fun hentForFnr(fnr: Fnr): Sak? = data.get().values.filter { it.fnr == fnr }.let {
+        // Speiler postgres-repoet, der en strict-sesjon kaster framfor å plukke en vilkårlig rad.
+        require(it.size <= 1) { "Forventet maks én sak for fnr, fant ${it.size}" }
+        it.firstOrNull()
+    }
 
     override fun hentForSaksnummer(saksnummer: Saksnummer): Sak? {
         val sakId = data.get().values.find { it.saksnummer == saksnummer }?.id ?: return null

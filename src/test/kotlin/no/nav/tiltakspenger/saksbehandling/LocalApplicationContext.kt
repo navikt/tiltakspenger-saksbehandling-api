@@ -350,7 +350,7 @@ class LocalApplicationContext(
 
     init {
         val sakRepo = sakContext.sakRepo
-        val sak = sakRepo.hentForFnr(fnr).saker.firstOrNull() ?: ObjectMother.nySak(
+        val sak = sakRepo.hentForFnr(fnr) ?: ObjectMother.nySak(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
         ).also { sakRepo.opprettSak(it) }

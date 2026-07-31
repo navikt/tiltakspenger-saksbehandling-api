@@ -32,14 +32,10 @@ class IdenthendelseService(
             val identOgSakMap = mutableMapOf<Fnr, Sak>()
             personidenter.filter { it.historisk && it.identtype != Identtype.AKTORID }.forEach {
                 val fnr = Fnr.tryFromString(it.ident) ?: return@forEach
-                val saker = sakRepo.hentForFnr(fnr)
-                if (saker.saker.isNotEmpty()) {
-                    val sak = saker.saker.single()
-                    identOgSakMap[fnr] = sak
-                }
+                sakRepo.hentForFnr(fnr)?.let { identOgSakMap[fnr] = it }
             }
 
-            val harSakForNyttFnr = sakRepo.hentForFnr(nyttFnr).saker.isNotEmpty()
+            val harSakForNyttFnr = sakRepo.hentForFnr(nyttFnr) != null
             if (harSakForNyttFnr) {
                 log.warn { "Fant sak for nytt fnr" }
             }

@@ -4,16 +4,20 @@ import arrow.core.Either
 import arrow.core.right
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.meldekort.SakTilMeldekortApiDTO
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.tilMeldekortApiDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
@@ -37,14 +41,14 @@ class SendTilMeldekortApiServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac = tac)
 
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe true
 
             SendTilMeldekortApiService(
                 sakRepo = tac.sakContext.sakRepo,
                 meldekortApiHttpClient = tac.meldekortContext.meldekortApiHttpClient,
             ).sendSak(sak.id)
 
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe false
         }
     }
 
@@ -53,14 +57,14 @@ class SendTilMeldekortApiServiceTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, _, _) = iverksettSøknadsbehandling(tac)
 
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe true
 
             SendTilMeldekortApiService(
                 sakRepo = tac.sakContext.sakRepo,
                 meldekortApiHttpClient = tac.meldekortContext.meldekortApiHttpClient,
             ).sendSak(sak.id)
 
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe false
         }
     }
 
@@ -79,7 +83,7 @@ class SendTilMeldekortApiServiceTest {
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurdering.id)
             taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
 
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe true
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammevedtaksliste.map { it.rammebehandling.id } shouldBe listOf(
                 rammevedtakSæknad.rammebehandling.id,
             )
@@ -118,7 +122,7 @@ class SendTilMeldekortApiServiceTest {
             }
 
             // Verifiser at saken fortsatt er markert for sending (fordi det kom et nytt vedtak)
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe true
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammevedtaksliste.map { it.rammebehandling.id } shouldBe listOf(
                 rammevedtakSæknad.rammebehandling.id,
                 revurdering.id,
@@ -127,7 +131,7 @@ class SendTilMeldekortApiServiceTest {
             sendTilMeldekortApiService.sendSak(sak.id)
 
             // Skal være sendt etter neste kjøring av jobben
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe false
         }
     }
 
@@ -138,7 +142,7 @@ class SendTilMeldekortApiServiceTest {
             val sak = result.first
             val meldekortvedtak = result.fourth
 
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe true
 
             // Bruk en tracking-klient som fanger opp hva som faktisk sendes
             val sendteSaker = mutableListOf<Sak>()
@@ -157,7 +161,7 @@ class SendTilMeldekortApiServiceTest {
             sendteSaker shouldHaveSize 1
             sendteSaker.single().meldekortvedtaksliste.map { it.id } shouldBe listOf(meldekortvedtak.id)
 
-            tac.sakContext.sakRepo.hentSakIderForSendingTilMeldekortApi(limit = Int.MAX_VALUE) shouldNotContain sak.id
+            tac.skalSendesTilMeldekortApi(sak.id) shouldBe false
         }
     }
 
@@ -202,4 +206,19 @@ class SendTilMeldekortApiServiceTest {
             deserialisert shouldBe dto
         }
     }
+
+    /**
+     * Leser flagget direkte fra databasen med egen SQL.
+     * `skal_sendes_til_meldekort_api` skrives inn, men leses aldri ut igjen på domenemodellen — det er kun jobbens køspørring som bruker det.
+     * Vi forurenser ikke [no.nav.tiltakspenger.saksbehandling.sak.Sak] med feltet bare for å gjøre det observerbart i test, og køspørringen er ingen god lesekanal for én sak.
+     */
+    private fun TestApplicationContext.skalSendesTilMeldekortApi(sakId: SakId): Boolean =
+        (this.sessionFactory as PostgresSessionFactory).withSession { session ->
+            session.run(
+                queryOf(
+                    "select skal_sendes_til_meldekort_api from sak where id = :id",
+                    mapOf("id" to sakId.toString()),
+                ).map { it.boolean("skal_sendes_til_meldekort_api") }.asSingle,
+            )
+        }!!
 }

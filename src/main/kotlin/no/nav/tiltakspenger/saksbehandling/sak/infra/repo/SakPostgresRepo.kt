@@ -25,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadDAO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
@@ -43,25 +42,24 @@ class SakPostgresRepo(
 ) : SakRepo {
     val logger = KotlinLogging.logger { }
 
-    override fun hentForFnr(fnr: Fnr): Saker {
-        val saker =
-            sessionFactory.withSessionContext { sessionContext ->
-                sessionContext.withSession { session ->
-                    session.run(
-                        queryOf(
-                            sqlHentSakerForFnr,
-                            mapOf("fnr" to fnr.verdi),
-                        ).map { row ->
-                            row.toSak(sessionContext)
-                        }.asList,
-                    )
-                }
+    /**
+     * En person har maks én sak.
+     * `sak.ident` har ingen unik constraint, så flere saker kan skrives, men prodflytene lager dem ikke.
+     * Sesjonene er `strict`, så [asSingle] kaster hvis spørringen likevel treffer flere rader — det er å foretrekke framfor å plukke en vilkårlig av dem.
+     */
+    override fun hentForFnr(fnr: Fnr): Sak? =
+        sessionFactory.withSessionContext { sessionContext ->
+            sessionContext.withSession { session ->
+                session.run(
+                    queryOf(
+                        sqlHentSakForFnr,
+                        mapOf("fnr" to fnr.verdi),
+                    ).map { row ->
+                        row.toSak(sessionContext)
+                    }.asSingle,
+                )
             }
-        return Saker(
-            fnr = fnr,
-            saker = saker,
-        )
-    }
+        }
 
     override fun hentForSaksnummer(saksnummer: Saksnummer): Sak? =
         sessionFactory.withSessionContext { sessionContext ->
@@ -484,7 +482,7 @@ class SakPostgresRepo(
             """select * from sak where id = :id""".trimIndent()
 
         @Language("SQL")
-        private val sqlHentSakerForFnr =
+        private val sqlHentSakForFnr =
             """select * from sak where fnr = :fnr""".trimIndent()
 
         @Language("SQL")

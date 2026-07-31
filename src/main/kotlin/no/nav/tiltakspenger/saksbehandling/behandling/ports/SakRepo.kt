@@ -7,12 +7,15 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import no.nav.tiltakspenger.saksbehandling.sak.Saker
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakDb
 import java.time.LocalDateTime
 
 interface SakRepo {
-    fun hentForFnr(fnr: Fnr): Saker
+    /**
+     * En person har maks én sak.
+     * Kaster hvis databasen likevel har flere.
+     */
+    fun hentForFnr(fnr: Fnr): Sak?
 
     fun hentForSaksnummer(saksnummer: Saksnummer): Sak?
 

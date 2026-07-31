@@ -38,13 +38,7 @@ class SakService(
         fnr: Fnr,
         correlationId: CorrelationId,
     ): Pair<Sak, Boolean> {
-        val saker = sakRepo.hentForFnr(fnr)
-        if (saker.size > 1) {
-            throw IllegalStateException("Vi støtter ikke flere saker per søker i piloten. correlationId: $correlationId")
-        }
-        if (saker.isNotEmpty()) {
-            return saker.single() to false
-        }
+        sakRepo.hentForFnr(fnr)?.let { return it to false }
 
         val sak = Sak(
             id = SakId.random(),
@@ -73,11 +67,7 @@ class SakService(
     fun hentForFnr(
         fnr: Fnr,
     ): Sak? {
-        val saker = sakRepo.hentForFnr(fnr)
-        if (saker.saker.isEmpty()) return null
-
-        val sak = saker.single()
-        return sak
+        return sakRepo.hentForFnr(fnr)
     }
 
     /** Gjør ingen tilgangskontroll */
