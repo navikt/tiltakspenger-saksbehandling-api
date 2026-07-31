@@ -39,12 +39,9 @@ class ForhåndsvisRammevedtaksbrevService(
 ) {
     private val log = KotlinLogging.logger {}
 
-    /*
-        TODO - pdfgenrs: skift tilbake til PdfA når det er verifisert at PDF fra pdfgenrs er ok
-     */
     suspend fun forhåndsvisVedtaksbrev(
         kommando: ForhåndsvisVedtaksbrevKommando,
-    ): Pair<PdfA, PdfA?> {
+    ): PdfA {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         val behandling: Rammebehandling = sak.hentRammebehandling(kommando.behandlingId)!!
 
@@ -62,14 +59,14 @@ class ForhåndsvisRammevedtaksbrevService(
                         } else {
                             behandling.innvilgelsesperioder!!
                         },
-                    ).map { it to null }
+                    )
 
                     is ForhåndsvisVedtaksbrevForSøknadsbehandlingAvslagKommando -> genererSøknadsbehandlingAvslagsbrev(
                         kommando = k,
                         sak = sak,
                         behandling = behandling,
                         avslagsperiode = behandling.søknad.tiltaksdeltakelseperiodeDetErSøktOm()!!,
-                    ).map { it to null }
+                    )
                 }
             }
 
@@ -120,7 +117,7 @@ class ForhåndsvisRammevedtaksbrevService(
                 it.feil.loggFeil(log, "generering av forhåndsvisning av vedtaksbrev", "SakId: ${kommando.sakId}, behandlingId: ${kommando.behandlingId}")
                 throw IllegalStateException("Kunne ikke generere vedtaksbrev. Underliggende feil: $it")
             },
-            ifRight = { Pair(it.first.pdf, it.second?.pdf) },
+            ifRight = { it.pdf },
         )
     }
 
@@ -129,7 +126,7 @@ class ForhåndsvisRammevedtaksbrevService(
         behandling: Revurdering,
         innvilgelsesperioder: Innvilgelsesperioder,
         kommando: ForhåndsvisVedtaksbrevForRevurderingInnvilgelseKommando,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
@@ -142,14 +139,14 @@ class ForhåndsvisRammevedtaksbrevService(
             innvilgelsesperioder = innvilgelsesperioder,
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             barnetilleggsperioder = kommando.barnetillegg,
-        ).map { it to null }
+        )
     }
 
     private suspend fun genererRevurderingStansbrev(
         sak: Sak,
         kommando: ForhåndsvisVedtaksbrevForRevurderingStansKommando,
         behandling: Revurdering,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val (stansperiode, valgteHjemler, tilleggstekst) = when (behandling.status) {
             Rammebehandlingsstatus.UNDER_BEHANDLING -> Triple(
                 kommando.utledStansperiode(
@@ -193,7 +190,7 @@ class ForhåndsvisRammevedtaksbrevService(
         behandling: Revurdering,
         innvilgelsesperioder: Innvilgelsesperioder,
         kommando: ForhåndsvisVedtaksbrevForOmgjøringInnvilgelseKommando,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererInnvilgelsesbrevClient.genererInnvilgetRevurderingBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
@@ -206,14 +203,14 @@ class ForhåndsvisRammevedtaksbrevService(
             tilleggstekst = kommando.fritekstTilVedtaksbrev,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetilleggsperioder = kommando.barnetillegg,
-        ).map { it to null }
+        )
     }
 
     private suspend fun genererOmgjøringOpphørBrev(
         sak: Sak,
         behandling: Revurdering,
         kommando: ForhåndsvisVedtaksbrevForOmgjøringOpphørKommando,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return genererOpphørbrevKlient.genererOpphørBrevForhåndsvisning(
             hentBrukersNavn = personService::hentNavn,
             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,

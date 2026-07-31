@@ -11,4 +11,4 @@ typealias GenererKlageAvvisningsbrev = suspend (
     saksbehandlerNavIdent: String,
     tilleggstekst: Brevtekster,
     forhåndsvisning: Boolean,
-) -> Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+) -> Either<KunneIkkeGenererePdf, PdfOgJson>

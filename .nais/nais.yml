@@ -80,7 +80,6 @@ spec:
     outbound:
       rules:
         - application: tiltakspenger-tiltak
-        - application: tiltakspenger-pdfgen
         - application: tiltakspenger-pdfgenrs
         - application: tiltakspenger-datadeling
         - application: tiltakspenger-meldekort-api

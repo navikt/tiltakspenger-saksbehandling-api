@@ -21,7 +21,7 @@ interface GenererVedtaksbrevForOpphørKlient {
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harOpphørtBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
@@ -36,5 +36,5 @@ interface GenererVedtaksbrevForOpphørKlient {
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         vedtaksperiode: Periode,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

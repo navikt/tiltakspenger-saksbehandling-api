@@ -29,7 +29,7 @@ suspend fun Klagebehandling.genererBrev(
     genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
     // til bruk for innstillingsbrev
     vedtaksdato: LocalDate?,
-): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+): Either<KunneIkkeGenererePdf, PdfOgJson> {
     require(resultat is Klagebehandlingsresultat.Avvist || resultat is Klagebehandlingsresultat.Opprettholdt) {
         """
             Kan kun generere klagebrev dersom;
@@ -90,7 +90,7 @@ suspend fun Klagebehandling.genererBrev(
     genererKlageInnstillingsbrev: GenererKlageInnstillingsbrev,
     // til bruk for innstillingsbrev
     vedtaksdato: LocalDate?,
-): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+): Either<KunneIkkeGenererePdf, PdfOgJson> {
     require(skalGenerereBrevKunFraBehandling()) {
         """
             Kan kun generere endelig klagebrev dersom;

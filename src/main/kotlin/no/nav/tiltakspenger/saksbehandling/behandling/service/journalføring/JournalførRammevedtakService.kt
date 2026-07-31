@@ -53,14 +53,14 @@ class JournalførRammevedtakService(
                 }
                 Either.catch {
                     val vedtaksdato = LocalDate.now(clock)
-                    val (pdfOgJson, pdfOgJsonPdfgenrs) = when (vedtak.rammebehandlingsresultat) {
+                    val pdfOgJson = when (vedtak.rammebehandlingsresultat) {
                         is Rammebehandlingsresultat.Innvilgelse -> genererVedtaksbrevForInnvilgelseKlient.genererInnvilgetVedtakBrev(
                             vedtaksdato = vedtaksdato,
                             vedtak = vedtak,
                             tilleggstekst = vedtak.rammebehandling.fritekstTilVedtaksbrev,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        ).map { it to null }
+                        )
 
                         is Revurderingsresultat.Stans -> genererVedtaksbrevForStansKlient.genererStansBrev(
                             vedtaksdato = vedtaksdato,
@@ -75,7 +75,7 @@ class JournalførRammevedtakService(
                             datoForUtsending = vedtaksdato,
                             hentBrukersNavn = personService::hentNavn,
                             hentSaksbehandlersNavn = navIdentClient::hentNavnForNavIdentEllerKast,
-                        ).map { it to null }
+                        )
 
                         is Omgjøringsresultat.OmgjøringOpphør -> genererVedtaksbrevForOpphørKlient.genererOpphørBrev(
                             vedtak = vedtak,
@@ -108,52 +108,9 @@ class JournalførRammevedtakService(
                         )
                         return@forEach
                     }.journalpostId
-                    /*
-                        TODO - pdfgenrs: fjern journalføringen av pdfgenrs-pdf'en når det er verifisert at pdf'en er ok.
-                            Vi journalfører den kun for å manuelt kunne sjekke at pdfgenrs genererer riktig pdf i dev.
-                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
-                     */
-                    pdfOgJsonPdfgenrs?.let {
-                        journalførRammevedtaksbrevKlient.journalførVedtaksbrevForRammevedtak(
-                            vedtak = vedtak,
-                            pdfOgJson = it,
-                            correlationId = correlationId,
-                        ).onLeft { feil ->
-                            feil.loggFeil(
-                                log,
-                                "journalføring av pdfgenrs-vedtaksbrev (kun dev-sammenligning)",
-                                "SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}",
-                            )
-                        }
-                    }
+
                     log.info { "Vedtaksbrev journalført for vedtak ${vedtak.id}" }
                     rammevedtakRepo.markerJournalført(vedtak.id, vedtaksdato, pdfOgJson.json, journalpostId, nå(clock))
-
-                    /*
-                     * TODO - fjern denne logg blokken når alle brev er verifisert OK
-                     */
-                    when (vedtak.rammebehandlingsresultat) {
-                        is Rammebehandlingsresultat.Innvilgelse -> {
-                            when (vedtak.rammebehandlingsresultat) {
-                                is Søknadsbehandlingsresultat.Innvilgelse -> {
-                                    log.info { "PDFGENRS-PROD: journalførtbrev $journalpostId, SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}, behandlingId: ${vedtak.behandlingId}" }
-                                }
-
-                                is Omgjøringsresultat.OmgjøringInnvilgelse,
-                                is Revurderingsresultat.Innvilgelse,
-                                -> Unit
-                            }
-                        }
-
-                        is Søknadsbehandlingsresultat.Avslag -> {
-                            log.info { "PDFGENRS-PROD: journalførtbrev $journalpostId, SakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, vedtakId: ${vedtak.id}, behandlingId: ${vedtak.behandlingId}" }
-                        }
-
-                        is Revurderingsresultat.Stans,
-                        is Omgjøringsresultat.OmgjøringOpphør,
-                        -> Unit
-                    }
-
                     log.info { "Vedtaksbrev markert som journalført for vedtak ${vedtak.id}" }
                     errorEveryNLogger.reset()
                 }.onLeft {

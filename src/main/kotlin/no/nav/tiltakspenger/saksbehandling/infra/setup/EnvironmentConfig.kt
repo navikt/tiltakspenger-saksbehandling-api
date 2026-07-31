@@ -41,7 +41,6 @@ sealed interface EnvironmentConfig {
     val dokdistScope: String
     val dokdistUrl: String
 
-    val pdfgenUrl: String
     val pdfgenrsUrl: String
 
     val microsoftScope: String
@@ -130,7 +129,6 @@ data object LocalConfig : EnvironmentConfig {
     override val dokdistScope = "localhost"
     override val dokdistUrl = WIREMOCK_URL
 
-    override val pdfgenUrl = "http://host.docker.internal:8081"
     override val pdfgenrsUrl = "http://host.docker.internal:8084"
 
     override val microsoftScope = "localhost"
@@ -213,7 +211,6 @@ data object DevConfig : EnvironmentConfig {
     override val dokdistScope = "dev-fss:teamdokumenthandtering:dokdistfordeling"
     override val dokdistUrl = "https://dokdistfordeling.dev-fss-pub.nais.io"
 
-    override val pdfgenUrl = "http://tiltakspenger-pdfgen"
     override val pdfgenrsUrl = "http://tiltakspenger-pdfgenrs"
 
     override val datadelingScope = "dev-gcp:tpts:tiltakspenger-datadeling"
@@ -293,7 +290,6 @@ data object ProdConfig : EnvironmentConfig {
     override val dokdistScope = "prod-fss:teamdokumenthandtering:dokdistfordeling"
     override val dokdistUrl = "https://dokdistfordeling.prod-fss-pub.nais.io"
 
-    override val pdfgenUrl = "http://tiltakspenger-pdfgen"
     override val pdfgenrsUrl = "http://tiltakspenger-pdfgenrs"
 
     override val datadelingScope = "prod-gcp:tpts:tiltakspenger-datadeling"

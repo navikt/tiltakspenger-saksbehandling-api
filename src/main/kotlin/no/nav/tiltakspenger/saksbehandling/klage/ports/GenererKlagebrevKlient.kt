@@ -20,7 +20,7 @@ interface GenererKlagebrevKlient {
         forhåndsvisning: Boolean,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 
     suspend fun genererInnstillingsbrev(
         saksnummer: Saksnummer,
@@ -33,5 +33,5 @@ interface GenererKlagebrevKlient {
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
         clock: Clock,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+    ): Either<KunneIkkeGenererePdf, PdfOgJson>
 }

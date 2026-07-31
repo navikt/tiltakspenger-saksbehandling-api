@@ -84,9 +84,7 @@ class LocalApplicationContext(
     val distribusjonIdGenerator = DistribusjonIdGenerator()
     private val realPdfGen = if (usePdfGen) {
         PdfgenHttpClient(
-            baseUrl = Configuration.pdfgenUrl,
             basePdfgenrsUrl = Configuration.pdfgenrsUrl,
-            isLocalOrDev = true,
             clock = clock,
         )
     } else {

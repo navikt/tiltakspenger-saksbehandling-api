@@ -82,34 +82,26 @@ class JournalførKlagebrevJobb(
                     "Ugyldig resultat (${vedtak.resultat::class.simpleName} ved journalføring av klagevedtak. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}",
                 )
             }.getOrElse {
-                it.feil.loggFeil(log, "generering av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
+                it.feil.loggFeil(
+                    log,
+                    "generering av avvisningsbrev for klagevedtak",
+                    "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}",
+                )
                 return
             }
 
             log.info { "Vedtaksbrev generert for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
             val (journalpostId, _, metadata) = journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
                 klagevedtak = vedtak,
-                pdfOgJson = pdfOgJson.first,
+                pdfOgJson = pdfOgJson,
                 correlationId = correlationId,
             ).getOrElse {
-                it.loggFeil(log, "journalføring av avvisningsbrev for klagevedtak", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
+                it.loggFeil(
+                    log,
+                    "journalføring av avvisningsbrev for klagevedtak",
+                    "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}",
+                )
                 return
-            }
-
-                    /*
-                        TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-avvis pdf er ok
-                            Akkurat nå bryr vi oss ikke om journalpostId'en etc.
-                            Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
-                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
-                     */
-            pdfOgJson.second?.let {
-                journalførKlagevedtaksbrevKlient.journalførAvvisningsvedtakForKlagevedtak(
-                    klagevedtak = vedtak,
-                    pdfOgJson = it,
-                    correlationId = correlationId,
-                ).onLeft { feil ->
-                    feil.loggFeil(log, "journalføring av pdfgenrs-avvisningsbrev (kun dev-sammenligning)", "sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}, klagevedtakId: ${vedtak.id}")
-                }
             }
             log.info { "Vedtaksbrev journalført for klagevedtak ${vedtak.id}, type: ${vedtak.resultat}. sakId: ${vedtak.sakId}, saksnummer: ${vedtak.saksnummer}" }
             klagevedtakRepo.markerJournalført(
@@ -181,26 +173,11 @@ class JournalførKlagebrevJobb(
             log.info { "Innstillingsbrev generert. $loggkontekst" }
             val (journalpostId, dokumentInfoId, metadata) = journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
                 klagebehandling = klagebehandling,
-                pdfOgJson = pdfOgJson.first,
+                pdfOgJson = pdfOgJson,
                 correlationId = correlationId,
             ).getOrElse {
                 it.loggFeil(log, "journalføring av innstillingsbrev", loggkontekst)
                 return
-            }
-                    /*
-                        TODO - pdfgenrs: erstatt blokken over med denne når det er verifisert at klage-innstilling pdf er ok
-                            Akkurat nå bryr vi oss ikke om journalpostId'en etc.
-                            Så lenge vi finner saken igjen i gosys så bare manuelt sjekker vi at ting er ok.
-                            Feiler den, logger vi bare - dev-sammenligningen skal ikke stoppe journalføringsløpet.
-                     */
-            pdfOgJson.second?.let {
-                journalførKlagevedtaksbrevKlient.journalførInnstillingsbrevForOpprettholdtKlagebehandling(
-                    klagebehandling = klagebehandling,
-                    pdfOgJson = it,
-                    correlationId = correlationId,
-                ).onLeft { feil ->
-                    feil.loggFeil(log, "journalføring av pdfgenrs-innstillingsbrev (kun dev-sammenligning)", loggkontekst)
-                }
             }
             val oppdatertKlagebehandling = klagebehandling.oppdaterInnstillingsbrevJournalpost(
                 brevdato = LocalDate.now(clock),

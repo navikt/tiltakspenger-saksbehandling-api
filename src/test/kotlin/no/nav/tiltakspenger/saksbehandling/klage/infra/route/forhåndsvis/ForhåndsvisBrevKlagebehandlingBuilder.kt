@@ -33,7 +33,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventet: ForventetRespons? = ForventetRespons(200, contentType = "multipart/mixed; boundary=pdf-boundary"),
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/pdf"),
         forventetPdf: PdfA? = null,
     ): Triple<Sak, Klagebehandling, PdfA>? {
         val (sak, klagebehandling, _) = this.opprettSakOgKlagebehandlingTilAvvisning(
@@ -50,7 +50,6 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
                 forventet = forventet,
-                forventetContenttype = "multipart/mixed; boundary=pdf-boundary",
                 forventetPdf = forventetPdf,
             )!!,
         )
@@ -60,7 +59,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = ObjectMother.gyldigFnr(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling"),
-        forventet: ForventetRespons? = ForventetRespons(200, contentType = "multipart/mixed; boundary=pdf-boundary"),
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/pdf"),
         forventetPdf: PdfA? = null,
     ): Tuple4<Sak, Meldekortvedtak, Klagebehandling, PdfA>? {
         val (sak, meldekortvedtak, klagebehandling, _) = this.iverksettMeldekortVedtakOgOppdaterKlagebehandlingTilAvvisningBrevtekst(
@@ -78,7 +77,6 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = saksbehandler,
                 forventet = forventet,
-                forventetContenttype = "multipart/mixed; boundary=pdf-boundary",
                 forventetPdf = forventetPdf,
             )!!,
         )
@@ -96,8 +94,7 @@ interface ForhåndsvisBrevKlagebehandlingBuilder {
                 tekst = NonBlankString.create("Din klage er dessverre avvist."),
             ),
         ),
-        forventetContenttype: String? = "multipart/mixed; boundary=pdf-boundary",
-        forventet: ForventetRespons? = ForventetRespons(200, contentType = forventetContenttype),
+        forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/pdf"),
         forventetPdf: PdfA? = null,
     ): PdfA? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)

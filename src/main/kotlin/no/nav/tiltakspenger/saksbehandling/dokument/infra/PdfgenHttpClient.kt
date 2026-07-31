@@ -2,10 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.Either
 import arrow.core.NonEmptySet
-import arrow.core.flatMap
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -47,7 +44,6 @@ import java.time.Clock
 import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTimedValue
 
 /**
  * Har ansvar for å konvertere domene til JSON som sendes til https://github.com/navikt/tiltakspenger-pdfgen for å generere PDF.
@@ -66,9 +62,7 @@ import kotlin.time.measureTimedValue
  * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class PdfgenHttpClient(
-    baseUrl: String,
     basePdfgenrsUrl: String,
-    private val isLocalOrDev: Boolean,
     clock: Clock,
     connectTimeout: Duration = 1.seconds,
     timeout: Duration = 20.seconds,
@@ -95,15 +89,11 @@ class PdfgenHttpClient(
     private val pdfgenrsVedtakAvslagUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakAvslag")
     private val meldekortvedtakRsUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/meldekortvedtak")
 
-    private val stansvedtakUri = URI.create("$baseUrl/api/v1/genpdf/tpts/stansvedtak")
     private val pdfgenrsStansvedtakUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/stansvedtak")
-    private val opphørUri = URI.create("$baseUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val pdfgenrsOpphørUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/vedtakOpphør")
     private val pdfgenrsRevurderingInnvilgelseUri =
         URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
-    private val klageAvvisUri = URI.create("$baseUrl/api/v1/genpdf/tpts/klageAvvis")
     private val pdfgenrsKlageAvvisUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageAvvis")
-    private val klageInnstillingUrl = URI.create("$baseUrl/api/v1/genpdf/tpts/klageInnstilling")
     private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
 
     override suspend fun genererInnvilgetVedtakBrev(
@@ -227,16 +217,13 @@ class PdfgenHttpClient(
         return pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakRsUri)
     }
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harStansetBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             vedtak.toRevurderingStans(
                 hentBrukersNavn = hentBrukersNavn,
@@ -246,21 +233,9 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = stansvedtakUri,
-                pdfgenrsUri = pdfgenrsStansvedtakUri,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = stansvedtakUri)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsStansvedtakUri)
     }
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererStansBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -274,7 +249,7 @@ class PdfgenHttpClient(
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForStans>,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             genererStansbrev(
                 hentBrukersNavn = hentBrukersNavn,
@@ -292,16 +267,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = stansvedtakUri,
-                pdfgenrsUri = pdfgenrsStansvedtakUri,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = stansvedtakUri)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsStansvedtakUri)
     }
 
     override suspend fun genererAvslagsVedtaksbrev(
@@ -356,9 +322,6 @@ class PdfgenHttpClient(
         return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakAvslagUri)
     }
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererAvvisningsvedtak(
         saksnummer: Saksnummer,
         fnr: Fnr,
@@ -368,7 +331,7 @@ class PdfgenHttpClient(
         forhåndsvisning: Boolean,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             BrevKlageAvvisningDTO.create(
                 hentBrukersNavn = hentBrukersNavn,
@@ -382,16 +345,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = klageAvvisUri,
-                pdfgenrsUri = pdfgenrsKlageAvvisUri,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = klageAvvisUri)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageAvvisUri)
     }
 
     override suspend fun genererInnstillingsbrev(
@@ -405,7 +359,7 @@ class PdfgenHttpClient(
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
         clock: Clock,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             BrevKlageInnstillingDTO.create(
                 hentBrukersNavn = hentBrukersNavn,
@@ -421,28 +375,16 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = klageInnstillingUrl,
-                pdfgenrsUri = pdfgenrsKlageInnstillingUrl,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = klageInnstillingUrl)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageInnstillingUrl)
     }
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererOpphørBrev(
         vedtak: Rammevedtak,
         vedtaksdato: LocalDate,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harOpphørtBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             vedtak.tilBrevOmgjøringOpphørDTO(
                 hentBrukersNavn = hentBrukersNavn,
@@ -452,21 +394,9 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = opphørUri,
-                pdfgenrsUri = pdfgenrsOpphørUri,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = opphørUri)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsOpphørUri)
     }
 
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
     override suspend fun genererOpphørBrevForhåndsvisning(
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
@@ -480,7 +410,7 @@ class PdfgenHttpClient(
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         vedtaksperiode: Periode,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend {
             genererOpphørBrev(
                 hentBrukersNavn = hentBrukersNavn,
@@ -498,16 +428,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return if (isLocalOrDev) {
-            runParallel(
-                jsonPayload = jsonPayload,
-                pdfgenUri = opphørUri,
-                pdfgenrsUri = pdfgenrsOpphørUri,
-            )
-        } else {
-            pdfgenRequest(jsonPayload = jsonPayload, uri = opphørUri)
-                .map { it to null }
-        }
+        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsOpphørUri)
     }
 
     /**
@@ -525,35 +446,5 @@ class PdfgenHttpClient(
             godta = Statusregel.Eksakt(200),
         ).map { PdfOgJson(PdfA(it.body), payload) }
             .mapLeft { KunneIkkeGenererePdf(it) }
-    }
-
-    /**
-     * Kaller pdfgen og pdfgenrs i parallell (kun local/dev) slik at PDF-ene kan sammenlignes manuelt.
-     * Feiler én av dem, feiler hele kallet; feiler begge, er det pdfgen-feilen som propageres til kallerens feillogging.
-     */
-    private suspend fun runParallel(
-        jsonPayload: suspend () -> String,
-        pdfgenUri: URI,
-        pdfgenrsUri: URI,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return coroutineScope {
-            val pdfgenDeferred = async {
-                measureTimedValue { pdfgenRequest(jsonPayload, pdfgenUri) }
-            }
-            val pdfgenrsDeferred = async {
-                measureTimedValue { pdfgenRequest(jsonPayload, pdfgenrsUri) }
-            }
-
-            val (pdfgenResult, pdfgenDuration) = pdfgenDeferred.await()
-            val (pdfgenrsResult, pdfgenrsDuration) = pdfgenrsDeferred.await()
-
-            log.info { "pdfgen brukte $pdfgenDuration, pdfgenrs brukte $pdfgenrsDuration" }
-
-            pdfgenResult.flatMap { pdfgen ->
-                pdfgenrsResult.map { pdfgenrs ->
-                    Pair(pdfgen, pdfgenrs)
-                }
-            }
-        }
     }
 }

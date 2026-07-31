@@ -27,7 +27,7 @@ class ForhåndsvisBrevKlagebehandlingService(
 
     suspend fun forhåndsvisBrev(
         kommando: KlagebehandlingBrevKommando,
-    ): Either<KanIkkeForhåndsviseBrev, Pair<PdfA, PdfA?>> {
+    ): Either<KanIkkeForhåndsviseBrev, PdfA> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
         return sak.forhåndsvisKlagebrev(
             kommando = kommando,
@@ -58,9 +58,13 @@ class ForhåndsvisBrevKlagebehandlingService(
                 )
             },
         ).map {
-            Pair(it.first.pdf, it.second?.pdf)
+            it.pdf
         }.mapLeft {
-            it.feil.loggFeil(log, "generering av forhåndsvisning av klagebrev", "SakId: ${kommando.sakId}, klagebehandlingId: ${kommando.klagebehandlingId}")
+            it.feil.loggFeil(
+                log,
+                "generering av forhåndsvisning av klagebrev",
+                "SakId: ${kommando.sakId}, klagebehandlingId: ${kommando.klagebehandlingId}",
+            )
             KanIkkeForhåndsviseBrev.FeilMotPdfgen
         }
     }

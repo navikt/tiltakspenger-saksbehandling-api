@@ -5,10 +5,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respondBytes
-import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import io.ktor.utils.io.writeFully
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
@@ -20,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
-import no.nav.tiltakspenger.saksbehandling.infra.route.buildMultipartBody
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeForhåndsviseBrev
@@ -65,15 +62,7 @@ fun Route.forhåndsvisBrevKlagebehandlingRoute(
                                 contextMessage = "Forhåndsviser brev for klagebehandling",
                                 correlationId = correlationId,
                             )
-                            if (it.second == null) {
-                                call.respondBytes(it.first.getContent(), ContentType.Application.Pdf)
-                            } else {
-                                call.respondBytesWriter(
-                                    ContentType.MultiPart.Mixed.withParameter("boundary", "pdf-boundary"),
-                                ) {
-                                    writeFully(buildMultipartBody(it.first.getContent(), it.second!!.getContent()))
-                                }
-                            }
+                            call.respondBytes(it.getContent(), ContentType.Application.Pdf)
                         },
                     )
                 }

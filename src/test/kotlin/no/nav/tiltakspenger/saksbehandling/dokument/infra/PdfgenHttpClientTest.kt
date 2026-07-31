@@ -54,40 +54,14 @@ internal class PdfgenHttpClientTest {
     private val saksnummer = Saksnummer.genererSaknummer(3.desember(2025), "4050")
     private val brevtekster = Brevtekster(listOf(TittelOgTekst("Tittel", "Tekst")))
 
-    private fun nyKlient(transport: FakeHttpTransport, isLocalOrDev: Boolean) = PdfgenHttpClient(
-        baseUrl = "http://pdfgen",
+    private fun nyKlient(transport: FakeHttpTransport) = PdfgenHttpClient(
         basePdfgenrsUrl = "http://pdfgenrs",
-        isLocalOrDev = isLocalOrDev,
         clock = fixedClock,
         transport = transport,
     )
 
     private fun transportMedPdf(antallSvar: Int) = FakeHttpTransport().apply {
         repeat(antallSvar) { leggIKøBytes(pdfBytes, contentType = "application/pdf") }
-    }
-
-    /**
-     * Kjører [kall] i prod-modus (kun pdfgen) og local/dev-modus (pdfgen + pdfgenrs i parallell) og asserter URI-ene som treffes.
-     * Dekker dermed begge grenene av `isLocalOrDev` for metoden.
-     */
-    private fun verifiserBeggeModi(
-        endepunkt: String,
-        kall: suspend (PdfgenHttpClient) -> Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>,
-    ) = runTest {
-        val prodTransport = transportMedPdf(antallSvar = 1)
-        val prodResultat = kall(nyKlient(prodTransport, isLocalOrDev = false)).getOrFail()
-        prodResultat.first.pdf.getContent().toList() shouldBe pdfBytes.toList()
-        prodResultat.second shouldBe null
-        prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgen/api/v1/genpdf/tpts/$endepunkt")
-
-        val devTransport = transportMedPdf(antallSvar = 2)
-        val devResultat = kall(nyKlient(devTransport, isLocalOrDev = true)).getOrFail()
-        devResultat.second.shouldNotBeNull()
-        // Parallelle kall mot FIFO-faken gir nondeterministisk rekkefølge, derfor set-sammenligning.
-        devTransport.mottatteKall.map { it.uri.toString() }.toSet() shouldBe setOf(
-            "http://pdfgen/api/v1/genpdf/tpts/$endepunkt",
-            "http://pdfgenrs/api/v1/genpdf/tpts/$endepunkt",
-        )
     }
 
     /**
@@ -98,35 +72,29 @@ internal class PdfgenHttpClientTest {
         endepunkt: String,
         kall: suspend (PdfgenHttpClient) -> Either<KunneIkkeGenererePdf, PdfOgJson>,
     ) = runTest {
-        listOf(false, true).forEach { isLocalOrDev ->
-            val transport = transportMedPdf(antallSvar = 1)
-            val resultat = kall(nyKlient(transport, isLocalOrDev = isLocalOrDev)).getOrFail()
-            resultat.pdf.getContent().toList() shouldBe pdfBytes.toList()
-            transport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/$endepunkt")
-        }
+        val transport = transportMedPdf(antallSvar = 1)
+        val resultat = kall(nyKlient(transport)).getOrFail()
+        resultat.pdf.getContent().toList() shouldBe pdfBytes.toList()
+        transport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/$endepunkt")
     }
 
     @Test
     fun `genererInnvilgetVedtakBrev for søknadsbehandling treffer vedtakInnvilgelse`() {
-        runTest {
+        verifiserKunPdfgenrs("vedtakInnvilgelse") { klient ->
             val vedtak = ObjectMother.nyRammevedtakInnvilgelse()
-            val prodTransport = transportMedPdf(antallSvar = 1)
-            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetVedtakBrev(
+            klient.genererInnvilgetVedtakBrev(
                 vedtak = vedtak,
                 vedtaksdato = 2.januar(2023),
                 tilleggstekst = null,
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
-
-            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
-            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakInnvilgelse")
         }
     }
 
     @Test
     fun `genererInnvilgetVedtakBrev for revurdering treffer revurderingInnvilgelse`() {
-        runTest {
+        verifiserKunPdfgenrs("revurderingInnvilgelse") { klient ->
             val behandling = ObjectMother.nyVedtattRevurderingInnvilgelse()
             val vedtak = ObjectMother.nyttRammevedtak(
                 sakId = behandling.sakId,
@@ -134,25 +102,20 @@ internal class PdfgenHttpClientTest {
                 behandling = behandling,
                 periode = behandling.innvilgelsesperioder!!.totalPeriode,
             )
-            val prodTransport = transportMedPdf(antallSvar = 1)
-            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetVedtakBrev(
+            klient.genererInnvilgetVedtakBrev(
                 vedtak = vedtak,
                 vedtaksdato = 2.januar(2023),
                 tilleggstekst = null,
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
             )
-
-            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
-            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/revurderingInnvilgelse")
         }
     }
 
     @Test
     fun `genererInnvilgetSøknadBrevForhåndsvisning treffer vedtakInnvilgelse`() {
-        runTest {
-            val prodTransport = transportMedPdf(antallSvar = 1)
-            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetSøknadBrevForhåndsvisning(
+        verifiserKunPdfgenrs("vedtakInnvilgelse") {
+            it.genererInnvilgetSøknadBrevForhåndsvisning(
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                 vedtaksdato = 2.januar(2025),
@@ -165,17 +128,13 @@ internal class PdfgenHttpClientTest {
                 barnetilleggsperioder = null,
                 tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
             )
-
-            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
-            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakInnvilgelse")
         }
     }
 
     @Test
     fun `genererInnvilgetRevurderingBrevForhåndsvisning treffer revurderingInnvilgelse`() {
-        runTest {
-            val prodTransport = transportMedPdf(antallSvar = 1)
-            val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererInnvilgetRevurderingBrevForhåndsvisning(
+        verifiserKunPdfgenrs("revurderingInnvilgelse") {
+            it.genererInnvilgetRevurderingBrevForhåndsvisning(
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
                 vedtaksdato = 2.januar(2025),
@@ -188,9 +147,6 @@ internal class PdfgenHttpClientTest {
                 barnetilleggsperioder = null,
                 tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
             )
-
-            prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
-            prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/revurderingInnvilgelse")
         }
     }
 
@@ -220,7 +176,7 @@ internal class PdfgenHttpClientTest {
     @Test
     fun `genererStansBrev treffer stansvedtak`() {
         val vedtak = ObjectMother.nyRammevedtakStans()
-        verifiserBeggeModi("stansvedtak") {
+        verifiserKunPdfgenrs("stansvedtak") {
             it.genererStansBrev(
                 vedtak = vedtak,
                 vedtaksdato = 2.januar(2023),
@@ -233,7 +189,7 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererStansBrevForhåndsvisning treffer stansvedtak`() {
-        verifiserBeggeModi("stansvedtak") {
+        verifiserKunPdfgenrs("stansvedtak") {
             it.genererStansBrevForhåndsvisning(
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
@@ -252,45 +208,42 @@ internal class PdfgenHttpClientTest {
     }
 
     @Test
-    suspend fun `genererAvslagsVedtaksbrev for parametre treffer vedtakAvslag`() {
-        val prodTransport = transportMedPdf(antallSvar = 1)
-        val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererAvslagsVedtaksbrev(
-            hentBrukersNavn = hentBrukersNavn,
-            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-            avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
-            fnr = Fnr.random(),
-            saksbehandlerNavIdent = "Z123456",
-            beslutterNavIdent = null,
-            avslagsperiode = 1.januar(2025) til 31.januar(2025),
-            saksnummer = saksnummer,
-            sakId = SakId.random(),
-            tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
-            forhåndsvisning = true,
-            harSøktBarnetillegg = false,
-            datoForUtsending = 2.januar(2025),
-        )
-        prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
-        prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakAvslag")
+    fun `genererAvslagsVedtaksbrev for parametre treffer vedtakAvslag`() {
+        verifiserKunPdfgenrs("vedtakAvslag") {
+            it.genererAvslagsVedtaksbrev(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                avslagsgrunner = nonEmptySetOf(Avslagsgrunnlag.Alder),
+                fnr = Fnr.random(),
+                saksbehandlerNavIdent = "Z123456",
+                beslutterNavIdent = null,
+                avslagsperiode = 1.januar(2025) til 31.januar(2025),
+                saksnummer = saksnummer,
+                sakId = SakId.random(),
+                tilleggstekst = FritekstTilVedtaksbrev.createOrThrow("tilleggstekst"),
+                forhåndsvisning = true,
+                harSøktBarnetillegg = false,
+                datoForUtsending = 2.januar(2025),
+            )
+        }
     }
 
     @Test
-    suspend fun `genererAvslagsVedtaksbrev for vedtak treffer vedtakAvslag`() {
-        val vedtak = ObjectMother.nyRammevedtakAvslag()
-        val prodTransport = transportMedPdf(antallSvar = 1)
-        val prodResultat = nyKlient(prodTransport, isLocalOrDev = false).genererAvslagsVedtaksbrev(
-            vedtak = vedtak,
-            datoForUtsending = 2.januar(2023),
-            hentBrukersNavn = hentBrukersNavn,
-            hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-        )
-
-        prodResultat.getOrFail().pdf.getContent().toList() shouldBe pdfBytes.toList()
-        prodTransport.mottatteKall.map { it.uri.toString() } shouldBe listOf("http://pdfgenrs/api/v1/genpdf/tpts/vedtakAvslag")
+    fun `genererAvslagsVedtaksbrev for vedtak treffer vedtakAvslag`() {
+        verifiserKunPdfgenrs("vedtakAvslag") {
+            val vedtak = ObjectMother.nyRammevedtakAvslag()
+            it.genererAvslagsVedtaksbrev(
+                vedtak = vedtak,
+                datoForUtsending = 2.januar(2023),
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        }
     }
 
     @Test
     fun `genererAvvisningsvedtak treffer klageAvvis`() {
-        verifiserBeggeModi("klageAvvis") {
+        verifiserKunPdfgenrs("klageAvvis") {
             it.genererAvvisningsvedtak(
                 saksnummer = saksnummer,
                 fnr = Fnr.random(),
@@ -306,7 +259,7 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererInnstillingsbrev treffer klageInnstilling`() {
-        verifiserBeggeModi("klageInnstilling") {
+        verifiserKunPdfgenrs("klageInnstilling") {
             innstillingsbrev(it)
         }
     }
@@ -314,9 +267,7 @@ internal class PdfgenHttpClientTest {
     @Test
     fun `bygger default transport når transport ikke sendes inn`() {
         PdfgenHttpClient(
-            baseUrl = "http://pdfgen",
             basePdfgenrsUrl = "http://pdfgenrs",
-            isLocalOrDev = false,
             clock = fixedClock,
         )
     }
@@ -338,7 +289,7 @@ internal class PdfgenHttpClientTest {
             behandling = opphørBehandling,
             periode = gammeltResultat.vedtaksperiode!!,
         )
-        verifiserBeggeModi("vedtakOpphør") {
+        verifiserKunPdfgenrs("vedtakOpphør") {
             it.genererOpphørBrev(
                 vedtak = vedtak,
                 vedtaksdato = 2.januar(2025),
@@ -351,7 +302,7 @@ internal class PdfgenHttpClientTest {
 
     @Test
     fun `genererOpphørBrevForhåndsvisning treffer vedtakOpphør`() {
-        verifiserBeggeModi("vedtakOpphør") {
+        verifiserKunPdfgenrs("vedtakOpphør") {
             it.genererOpphørBrevForhåndsvisning(
                 hentBrukersNavn = hentBrukersNavn,
                 hentSaksbehandlersNavn = hentSaksbehandlersNavn,
@@ -373,7 +324,7 @@ internal class PdfgenHttpClientTest {
     fun `sender payloaden som JSON og aksepterer PDF`() = runTest {
         val transport = transportMedPdf(antallSvar = 1)
 
-        innstillingsbrev(nyKlient(transport, isLocalOrDev = false)).getOrFail()
+        innstillingsbrev(nyKlient(transport)).getOrFail()
 
         val kall = transport.mottatteKall.single()
         kall.metode shouldBe "POST"
@@ -394,7 +345,7 @@ internal class PdfgenHttpClientTest {
             opprettet = nå(fixedClock),
         )
         runTest {
-            val actual = nyKlient(transportMedPdf(antallSvar = 1), isLocalOrDev = true).genererMeldekortvedtakBrev(
+            val actual = nyKlient(transportMedPdf(antallSvar = 1)).genererMeldekortvedtakBrev(
                 meldekortvedtak,
                 tiltaksdeltakelser = Tiltaksdeltakelser(listOf(ObjectMother.tiltaksdeltakelse())),
                 hentSaksbehandlersNavn = { ObjectMother.saksbehandler().brukernavn },
@@ -412,7 +363,7 @@ internal class PdfgenHttpClientTest {
         val saksnummer = Saksnummer.genererSaknummer(1.mai(2025), "4050")
 
         runTest {
-            val actual = nyKlient(transportMedPdf(antallSvar = 1), isLocalOrDev = true).genererMeldekortvedtakBrev(
+            val actual = nyKlient(transportMedPdf(antallSvar = 1)).genererMeldekortvedtakBrev(
                 kommando = meldekortvedtakBrevKommando(
                     saksnummer = saksnummer,
                     fnr = fnr,
@@ -430,7 +381,7 @@ internal class PdfgenHttpClientTest {
         val transport = FakeHttpTransport().apply { leggIKøStatus(500, body = "internal server error") }
         val fnr = Fnr.random()
 
-        val resultat = nyKlient(transport, isLocalOrDev = false).genererInnstillingsbrev(fnr = fnr)
+        val resultat = nyKlient(transport).genererInnstillingsbrev(fnr = fnr)
 
         val feil = resultat.swap().getOrNull().shouldNotBeNull()
         val httpFeil = feil.feil.shouldBeInstanceOf<HttpKlientError.UventetStatus>()
@@ -440,21 +391,9 @@ internal class PdfgenHttpClientTest {
         feil.toString() shouldBe "KunneIkkeGenererePdf(feil=UventetStatus, statusCode=500)"
     }
 
-    @Test
-    fun `feiler en av backendene i local dev feiler hele kallet`() = runTest {
-        val transport = FakeHttpTransport().apply {
-            leggIKøBytes(pdfBytes, contentType = "application/pdf")
-            leggIKøStatus(503, body = "unavailable")
-        }
-
-        val resultat = nyKlient(transport, isLocalOrDev = true).genererInnstillingsbrev(fnr = Fnr.random())
-
-        resultat.isLeft() shouldBe true
-    }
-
     private suspend fun innstillingsbrev(klient: PdfgenHttpClient) = klient.genererInnstillingsbrev(fnr = Fnr.random())
 
-    private suspend fun PdfgenHttpClient.genererInnstillingsbrev(fnr: Fnr): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> =
+    private suspend fun PdfgenHttpClient.genererInnstillingsbrev(fnr: Fnr): Either<KunneIkkeGenererePdf, PdfOgJson> =
         genererInnstillingsbrev(
             saksnummer = saksnummer,
             fnr = fnr,

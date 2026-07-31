@@ -14,4 +14,4 @@ typealias GenererKlageInnstillingsbrev = suspend (
     forhåndsvisning: Boolean,
     innsendingsdato: LocalDate,
     datoVedtak: LocalDate,
-) -> Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>>
+) -> Either<KunneIkkeGenererePdf, PdfOgJson>

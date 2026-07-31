@@ -47,9 +47,7 @@ open class DokumentContext(
     open val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient by lazy { dokarkivClient }
     private val pdfgen by lazy {
         PdfgenHttpClient(
-            baseUrl = Configuration.pdfgenUrl,
             basePdfgenrsUrl = Configuration.pdfgenrsUrl,
-            isLocalOrDev = !Configuration.isProd(),
             clock = clock,
         )
     }

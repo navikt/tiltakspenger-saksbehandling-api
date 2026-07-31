@@ -34,11 +34,9 @@ class GenererFakeVedtaksbrevKlient :
     GenererVedtaksbrevForAvslagKlient,
     GenererVedtaksbrevForOpphørKlient,
     GenererKlagebrevKlient {
-    /*
-        TODO - pdfgenrs: skift tilbake til Either<KunneIkkeGenererePdf, PdfOgJson> når det er verifisert at PDF pdfgenrs er ok
-     */
-    private val response: Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> by lazy {
-        Pair(PdfOgJson(PdfA("pdf".toByteArray()), "{}"), null).right()
+
+    private val response: Either<KunneIkkeGenererePdf, PdfOgJson> by lazy {
+        PdfOgJson(PdfA("pdf".toByteArray()), "{}").right()
     }
 
     override suspend fun genererInnvilgetVedtakBrev(
@@ -48,7 +46,7 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return response.map { it.first }
+        return response
     }
 
     override suspend fun genererInnvilgetSøknadBrevForhåndsvisning(
@@ -64,7 +62,7 @@ class GenererFakeVedtaksbrevKlient :
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return response.map { it.first }
+        return response
     }
 
     override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
@@ -79,7 +77,7 @@ class GenererFakeVedtaksbrevKlient :
         innvilgelsesperioder: Innvilgelsesperioder,
         barnetilleggsperioder: Periodisering<AntallBarn>?,
         tilleggstekst: FritekstTilVedtaksbrev?,
-    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response.map { it.first }
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> = response
 
     override suspend fun genererStansBrev(
         vedtak: Rammevedtak,
@@ -87,7 +85,7 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harStansetBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
 
@@ -104,7 +102,7 @@ class GenererFakeVedtaksbrevKlient :
         sakId: SakId,
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForStans>,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
 
@@ -123,7 +121,7 @@ class GenererFakeVedtaksbrevKlient :
         harSøktBarnetillegg: Boolean,
         datoForUtsending: LocalDate,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return response.map { it.first }
+        return response
     }
 
     override suspend fun genererAvslagsVedtaksbrev(
@@ -132,7 +130,7 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
-        return response.map { it.first }
+        return response
     }
 
     override suspend fun genererAvvisningsvedtak(
@@ -144,33 +142,18 @@ class GenererFakeVedtaksbrevKlient :
         forhåndsvisning: Boolean,
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return Pair(
-            PdfOgJson(
-                pdf = PdfA("pdf".toByteArray()),
-                json = BrevKlageAvvisningDTO.create(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    fnr = fnr,
-                ),
-            ),
-            PdfOgJson(
-                pdf = PdfA("pdf".toByteArray()),
-                json = BrevKlageAvvisningDTO.create(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    fnr = fnr,
-                ),
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return PdfOgJson(
+            pdf = PdfA("pdf".toByteArray()),
+            json = BrevKlageAvvisningDTO.create(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = vedtaksdato,
+                tilleggstekst = tilleggstekst,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                fnr = fnr,
             ),
         ).right()
     }
@@ -186,37 +169,20 @@ class GenererFakeVedtaksbrevKlient :
         hentSaksbehandlersNavn: suspend (String) -> String,
         innsendingsdato: LocalDate,
         clock: Clock,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
-        return Pair(
-            PdfOgJson(
-                pdf = PdfA("pdf".toByteArray()),
-                json = BrevKlageInnstillingDTO.create(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    fnr = fnr,
-                    vedtaksdato = vedtaksdato,
-                    innsendingsdato = innsendingsdato,
-                ),
-            ),
-            PdfOgJson(
-                pdf = PdfA("pdf".toByteArray()),
-                json = BrevKlageInnstillingDTO.create(
-                    hentBrukersNavn = hentBrukersNavn,
-                    hentSaksbehandlersNavn = hentSaksbehandlersNavn,
-                    datoForUtsending = vedtaksdato,
-                    tilleggstekst = tilleggstekst,
-                    saksbehandlerNavIdent = saksbehandlerNavIdent,
-                    saksnummer = saksnummer,
-                    forhåndsvisning = forhåndsvisning,
-                    fnr = fnr,
-                    vedtaksdato = vedtaksdato,
-                    innsendingsdato = innsendingsdato,
-                ),
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        return PdfOgJson(
+            pdf = PdfA("pdf".toByteArray()),
+            json = BrevKlageInnstillingDTO.create(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+                datoForUtsending = vedtaksdato,
+                tilleggstekst = tilleggstekst,
+                saksbehandlerNavIdent = saksbehandlerNavIdent,
+                saksnummer = saksnummer,
+                forhåndsvisning = forhåndsvisning,
+                fnr = fnr,
+                vedtaksdato = vedtaksdato,
+                innsendingsdato = innsendingsdato,
             ),
         ).right()
     }
@@ -227,7 +193,7 @@ class GenererFakeVedtaksbrevKlient :
         hentBrukersNavn: suspend (Fnr) -> Navn,
         hentSaksbehandlersNavn: suspend (String) -> String,
         harOpphørtBarnetillegg: Boolean,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
 
@@ -244,7 +210,7 @@ class GenererFakeVedtaksbrevKlient :
         tilleggstekst: FritekstTilVedtaksbrev?,
         valgteHjemler: NonEmptySet<HjemmelForOpphør>,
         vedtaksperiode: Periode,
-    ): Either<KunneIkkeGenererePdf, Pair<PdfOgJson, PdfOgJson?>> {
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         return response
     }
 }
