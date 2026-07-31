@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakIdV2
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import org.junit.jupiter.api.Test
 
@@ -229,7 +228,7 @@ class OpprettMeldekortbehandlingTest {
             val førsteKjede = sak.meldeperiodeKjeder[0]
             val andreKjede = sak.meldeperiodeKjeder[1]
 
-            val (oppdatertSak, meldekortbehandling, _) = opprettMeldekortbehandlingForSakIdV2(
+            val (oppdatertSak, meldekortbehandling, _) = opprettMeldekortbehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 // Sender i omvendt rekkefølge for å verifisere at meldeperiodene sorteres.
@@ -249,25 +248,6 @@ class OpprettMeldekortbehandlingTest {
     }
 
     @Test
-    fun `kan opprette meldekortbehandling for en enkelt kjede med den nye ruta`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, _) = this.iverksettSøknadsbehandling(
-                tac,
-                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
-            )
-            val førsteMeldeperiode = sak.meldeperiodeKjeder.sisteMeldeperiodePerKjede.first()
-
-            val (oppdatertSak) = opprettMeldekortbehandlingForSakIdV2(
-                tac = tac,
-                sakId = sak.id,
-                kjedeIder = listOf(førsteMeldeperiode.kjedeId),
-            )!!
-
-            oppdatertSak.meldekortbehandlinger.single().meldeperioder.single().meldeperiode shouldBe førsteMeldeperiode
-        }
-    }
-
-    @Test
     fun `feiler dersom samme kjede sendes inn flere ganger`() {
         withTestApplicationContext { tac ->
             val (sak, _, _) = this.iverksettSøknadsbehandling(
@@ -276,7 +256,7 @@ class OpprettMeldekortbehandlingTest {
             )
             val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
 
-            opprettMeldekortbehandlingForSakIdV2(
+            opprettMeldekortbehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 kjedeIder = listOf(kjedeId, kjedeId),
@@ -296,7 +276,7 @@ class OpprettMeldekortbehandlingTest {
                 innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 10.april(2025)),
             )
 
-            opprettMeldekortbehandlingForSakIdV2(
+            opprettMeldekortbehandlingForSakId(
                 tac = tac,
                 sakId = sak.id,
                 kjedeIder = emptyList(),

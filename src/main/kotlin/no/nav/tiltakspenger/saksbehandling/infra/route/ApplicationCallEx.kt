@@ -5,8 +5,6 @@ import io.ktor.server.plugins.callid.callId
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.ktor.common.withValidParam
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
@@ -23,31 +21,6 @@ suspend inline fun ApplicationCall.withSaksnummer(
         parse = ::Saksnummer,
         errorMessage = "Ugyldig saksnummer",
         errorCode = "ugyldig_saksnummer",
-        onSuccess = onRight,
-    )
-}
-
-suspend inline fun ApplicationCall.withMeldeperiodeKjedeId(
-    crossinline onRight: suspend (MeldeperiodeKjedeId) -> Unit,
-) {
-    withValidParam(
-        paramName = "kjedeId",
-        parse = { MeldeperiodeKjedeId(it) },
-        errorMessage = "Ugyldig meldeperiode-kjede id",
-        errorCode = "ugyldig_meldeperiodekjede_id",
-        onSuccess = onRight,
-    )
-}
-
-@Suppress("unused")
-suspend inline fun ApplicationCall.withMeldeperiodeId(
-    crossinline onRight: suspend (MeldeperiodeId) -> Unit,
-) {
-    withValidParam(
-        paramName = "meldeperiodeId",
-        parse = MeldeperiodeId::fromString,
-        errorMessage = "Ugyldig meldeperiode id",
-        errorCode = "ugyldig_meldeperiode_id",
         onSuccess = onRight,
     )
 }

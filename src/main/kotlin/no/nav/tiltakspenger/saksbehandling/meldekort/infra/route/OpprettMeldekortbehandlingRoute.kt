@@ -20,13 +20,11 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
-import no.nav.tiltakspenger.saksbehandling.infra.route.withMeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 
-private const val PATH = "sak/{sakId}/meldeperiode/{kjedeId}/opprettBehandling"
-private const val PATH_V2 = "sak/{sakId}/meldekort/opprettBehandling"
+private const val PATH = "sak/{sakId}/meldekort/opprettBehandling"
 
 private data class OpprettMeldekortbehandlingBody(
     val kjedeIder: List<String>,
@@ -39,52 +37,8 @@ fun Route.opprettMeldekortbehandlingRoute(
 ) {
     val logger = KotlinLogging.logger { }
 
-    // TODO: denne skal fjernes når frontend er oppdatert til å bruke v2-endepunktet
     post(PATH) {
         logger.debug { "Mottatt post-request på $PATH - oppretter meldekort-behandling" }
-        val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
-        val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
-        call.withSakId { sakId ->
-            call.withMeldeperiodeKjedeId { kjedeId ->
-                val correlationId = call.correlationId()
-                krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-                tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                opprettMeldekortbehandlingService.opprettBehandling(
-                    OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
-                        sakId = sakId,
-                        kjedeId = kjedeId,
-                        saksbehandler = saksbehandler,
-                        klagebehandlingId = null,
-                        correlationId = correlationId,
-                    ),
-                ).fold(
-                    { call.respondJson(statusAndValue = it.tilStatusOgErrorJson()) },
-                    { (sak, behandling) ->
-                        auditService.logMedSakId(
-                            sakId = sakId,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.CREATE,
-                            contextMessage = "Oppretter meldekort-behandling",
-                            correlationId = correlationId,
-                            behandlingId = behandling.id,
-                        )
-
-                        call.respondJson(
-                            value = behandling.tilMeldekortbehandlingDTO(
-                                beregninger = sak.meldeperiodeBeregninger,
-                                hentVedtak = { null },
-                                hentTilbakekreving = { null },
-                                kallendeSaksbehandler = saksbehandler,
-                            ),
-                        )
-                    },
-                )
-            }
-        }
-    }
-
-    post(PATH_V2) {
-        logger.debug { "Mottatt post-request på $PATH_V2 - oppretter meldekort-behandling" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
