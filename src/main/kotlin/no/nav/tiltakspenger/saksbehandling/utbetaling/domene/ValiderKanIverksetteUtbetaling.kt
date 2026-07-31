@@ -23,6 +23,15 @@ fun Meldekortbehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
         return Unit.right()
     }
 
+    // Kontrollen kjøres først når behandlingen sendes videre i flyten, så fram til da er det ingenting å sammenligne mot.
+    // Mangler simuleringen på behandlingen, er det [KanIkkeIverksetteUtbetaling.SimuleringMangler] som er den dekkende feilen, og den håndteres lenger ned.
+    val kontrollsimulering = this.utbetalingskontroll?.simulering
+    if (simulering != null && kontrollsimulering != null) {
+        simulering.finnUlikheter(kontrollsimulering).toNonEmptyListOrNull()?.let {
+            return KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer(it).left()
+        }
+    }
+
     if (status == MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET) {
         if (simulering?.harJustering == true) {
             return KanIkkeIverksetteUtbetaling.BehandlingstypeStøtterIkkeJustering.left()

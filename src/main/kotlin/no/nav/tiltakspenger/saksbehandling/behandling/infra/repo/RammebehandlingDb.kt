@@ -27,8 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraRammebehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJsonString
-import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilRammebehandlingUtbetalingskontroll
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilUtbetalingskontrollDbJson
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
@@ -309,7 +309,7 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
         "beregning" to this.utbetaling?.let { it.beregning.tilBeregningerDbJsonString() },
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
-        "utbetalingskontroll" to this.utbetalingskontroll?.tilDbJson(),
+        "utbetalingskontroll" to this.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
         "navkontor" to this.utbetaling?.let { it.navkontor.kontornummer },
         "navkontor_navn" to this.utbetaling?.let { it.navkontor.kontornavn },
         "klagebehandling_id" to this.klagebehandling?.let { it.id.toString() },

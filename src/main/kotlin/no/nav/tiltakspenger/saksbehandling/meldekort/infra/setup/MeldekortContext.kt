@@ -80,6 +80,7 @@ open class MeldekortContext(
 
     val iverksettMeldekortbehandlingService by lazy {
         IverksettMeldekortbehandlingService(
+            simulerService = simulerService,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
@@ -174,6 +175,7 @@ open class MeldekortContext(
         SendMeldekortbehandlingTilBeslutterService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
+            simulerService = simulerService,
             erProd = Configuration.isProd(),
         )
     }

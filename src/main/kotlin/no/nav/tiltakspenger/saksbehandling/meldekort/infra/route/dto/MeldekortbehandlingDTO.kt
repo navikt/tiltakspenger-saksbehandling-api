@@ -6,7 +6,9 @@ import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
@@ -59,6 +61,11 @@ data class MeldekortbehandlingDTO(
     val meldeperioder: List<MeldeperiodebehandlingDTO>,
     val avbrutt: AvbruttDTO?,
     val simulertBeregning: SimulertBeregningDTO?,
+    /**
+     * Kontrollberegningen og -simuleringen som kjøres når behandlingen sendes videre i flyten.
+     * Null dersom kontrollen ikke er kjørt enda.
+     */
+    val utbetalingskontroll: UtbetalingskontrollDTO?,
     val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
 
     /**
@@ -120,6 +127,10 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         meldeperioder = meldeperioder.meldeperioderMedBeregninger.map { it.tilMeldeperiodebehandlingDTO() },
         avbrutt = avbrutt?.toAvbruttDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger)?.toSimulertBeregningDTO(),
+        utbetalingskontroll = utbetalingskontroll?.tilUtbetalingskontrollDTO(
+            behandlingSimulering = simulering,
+            beregninger = beregninger,
+        ),
         kanIkkeIverksetteUtbetaling = kanIkkeIverksette?.tilKanIkkeIverksetteUtbetalingDTO(),
         kanIkkeIverksetteUtbetalingMelding = kanIkkeIverksette?.tilMeldingDTO(),
         tekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,

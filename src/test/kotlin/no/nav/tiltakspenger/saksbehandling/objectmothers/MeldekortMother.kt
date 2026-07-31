@@ -153,6 +153,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 type = type,
                 meldekortbehandlingId = id,
             ),
+            utbetalingskontroll = null,
             ventestatus = ventestatus,
             klagebehandling = null,
         )
@@ -288,6 +289,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 type = type,
                 meldekortbehandlingId = id,
             ),
+            utbetalingskontroll = null,
             ventestatus = Ventestatus(),
             klagebehandling = null,
         )
@@ -711,6 +713,7 @@ interface MeldekortMother : MotherOfAllMothers {
                         type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                         meldekortbehandlingId = meldekortId,
                     ),
+                    utbetalingskontroll = null,
                     ventestatus = Ventestatus(),
                     klagebehandling = null,
                 ),
@@ -837,6 +840,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                     meldekortbehandlingId = meldekortId,
                 ),
+                utbetalingskontroll = null,
                 ventestatus = Ventestatus(),
                 klagebehandling = null,
             ),

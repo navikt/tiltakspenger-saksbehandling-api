@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortbehandlingTilBeslutterService
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringErrorJson
 import java.time.Clock
 
 fun Route.sendMeldekortTilBeslutningRoute(
@@ -68,6 +69,10 @@ fun Route.sendMeldekortTilBeslutningRoute(
 
                             is KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(
                                 statusAndValue = it.feil.tilErrorJson(),
+                            )
+
+                            is KanIkkeSendeMeldekortbehandlingTilBeslutter.SimuleringFeil -> call.respondJson(
+                                statusAndValue = it.feil.tilSimuleringErrorJson(),
                             )
 
                             KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeFullstendigUtfylt -> call.respond400BadRequest(

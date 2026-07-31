@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandli
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningMedSimulering
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -53,6 +54,13 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
 
     /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
     val simulering: Simulering?
+
+    /**
+     * Kontrollberegningen og -simuleringen som kjøres når behandlingen sendes videre i flyten (til beslutter og ved iverksettelse).
+     * Flere meldekortbehandlinger kan være åpne samtidig og påvirke hverandre, så grunnlaget kan ha endret seg siden saksbehandler simulerte.
+     * Null dersom kontrollen ikke er kjørt enda.
+     */
+    val utbetalingskontroll: Utbetalingskontroll?
 
     val beregning: Beregning? get() = meldeperioder.beregning
 
@@ -131,6 +139,7 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
                 this.copy(
                     meldeperioder = oppdaterteMeldeperioder,
                     simulering = null,
+                    utbetalingskontroll = null,
                     sistEndret = oppdatertTidspunkt,
                 )
             }
@@ -142,6 +151,12 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     }
 
     fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling
+
+    /**
+     * Setter resultatet av kontrollberegningen og -simuleringen på behandlingen.
+     * Kun tillatt i tilstandene der behandlingen er på vei videre i flyten; UNDER_BEHANDLING (mot beslutter) og UNDER_BESLUTNING (mot iverksettelse).
+     */
+    fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Meldekortbehandling
 
     fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling
 

@@ -22,6 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringErrorJson
 import java.time.Clock
 
 private const val PATH = "sak/{sakId}/meldekort/{meldekortId}/iverksett"
@@ -71,6 +73,14 @@ fun Route.iverksettMeldekortRoute(
                             KanIkkeIverksetteMeldekortbehandling.MeldeperiodeneErIkkeSisteVersjon -> call.respond400BadRequest(
                                 melding = "Meldeperiodene må være siste versjon for å kunne iverksette meldekortet",
                                 kode = "meldeperiodene_er_ikke_siste_versjon",
+                            )
+
+                            is KanIkkeIverksetteMeldekortbehandling.SimuleringFeil -> call.respondJson(
+                                statusAndValue = it.feil.tilSimuleringErrorJson(),
+                            )
+
+                            is KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke -> call.respondJson(
+                                statusAndValue = it.feil.tilErrorJson(),
                             )
                         }
                     },

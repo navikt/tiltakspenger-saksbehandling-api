@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -13,17 +14,22 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.utbetalingskontroll.oppdaterUtbetalingskontrollForMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.tilStatistikkMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 class IverksettMeldekortbehandlingService(
     val sakService: SakService,
+    val simulerService: SimulerService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val utbetalingRepo: UtbetalingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
@@ -55,15 +61,41 @@ class IverksettMeldekortbehandlingService(
             return KanIkkeIverksetteMeldekortbehandling.MeldeperiodeneErIkkeSisteVersjon.left()
         }
 
-        return meldekortbehandling.iverksettMeldekort(kommando.beslutter, clock, kommando.correlationId).map { (iverksattMeldekortbehandling, klagestatistikk) ->
+        // Andre meldekortbehandlinger på saken kan ha blitt iverksatt siden behandlingen ble sendt til beslutter, og da er ikke tallene beslutter så på lenger de som ville blitt utbetalt.
+        val (sakMedKontroll, behandlingMedKontroll) = sak.oppdaterUtbetalingskontrollForMeldekort(
+            meldekortId = meldekortId,
+            simuler = { behandling, beregning ->
+                simulerService.simulerMeldekort(
+                    behandling = behandling,
+                    forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+                    meldeperiodeKjeder = sak.meldeperiodeKjeder,
+                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
+                    beregning = beregning,
+                    brukersNavkontor = { behandling.navkontor },
+                )
+            },
+            clock = clock,
+        ).getOrElse {
+            it.logg(logger, "Kontrollsimulering feilet ved iverksettelse. sakId: $sakId, meldekortId: $meldekortId")
+            return KanIkkeIverksetteMeldekortbehandling.SimuleringFeil(it).left()
+        }
+
+        behandlingMedKontroll.validerKanIverksetteUtbetaling().onLeft {
+            it.logg(logger) { "Utbetaling på meldekortbehandlingen har et resultat som ikke kan iverksettes. sakId: $sakId, meldekortId: $meldekortId" }
+            // Lagrer kontrollen slik at beslutter ser hva som avviker.
+            meldekortbehandlingRepo.oppdater(behandlingMedKontroll)
+            return KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke(it).left()
+        }
+
+        return (behandlingMedKontroll as MeldekortbehandlingManuell).iverksettMeldekort(kommando.beslutter, clock, kommando.correlationId).map { (iverksattMeldekortbehandling, klagestatistikk) ->
             val meldekortvedtak = iverksattMeldekortbehandling.opprettVedtak(
-                forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
+                forrigeUtbetaling = sakMedKontroll.utbetalinger.lastOrNull(),
                 clock = clock,
             )
 
             val meldekortstatistikk = Statistikkhendelser(iverksattMeldekortbehandling.tilStatistikkMeldekortDTO(clock))
             val statistikkDTO = statistikkService.generer(meldekortstatistikk + klagestatistikk)
-            val oppdatertSak = sak.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
+            val oppdatertSak = sakMedKontroll.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortvedtak(meldekortvedtak)
             sessionFactory.withTransactionContext { tx ->
                 meldekortbehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)

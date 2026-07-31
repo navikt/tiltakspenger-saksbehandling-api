@@ -18,6 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.toDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJsonString
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldekortbehandlingUtbetalingskontroll
+import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilUtbetalingskontrollDbJson
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
@@ -70,6 +72,7 @@ class MeldekortbehandlingPostgresRepo(
                         beregninger,
                         simulering,
                         simulering_metadata,
+                        utbetalingskontroll,
                         saksbehandler,
                         beslutter,
                         status,
@@ -92,6 +95,7 @@ class MeldekortbehandlingPostgresRepo(
                         :beregninger::jsonb,
                         :simulering::jsonb,
                         :simulering_metadata,
+                        :utbetalingskontroll::jsonb,
                         :saksbehandler,
                         :beslutter,
                         :status,
@@ -116,6 +120,7 @@ class MeldekortbehandlingPostgresRepo(
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     // den er ferdig serialisert
                     "simulering_metadata" to simuleringMedMetadata?.originalResponseBody,
+                    "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
                     "saksbehandler" to meldekortbehandling.saksbehandler,
                     "beslutter" to meldekortbehandling.beslutter,
                     "status" to meldekortbehandling.status.toDb(),
@@ -158,6 +163,7 @@ class MeldekortbehandlingPostgresRepo(
                         avbrutt = :avbrutt::jsonb,
                         ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
+                        utbetalingskontroll = to_jsonb(:utbetalingskontroll::jsonb),
                         klagebehandling_id = :klagebehandling_id
                     where id = :id
                     """,
@@ -176,6 +182,7 @@ class MeldekortbehandlingPostgresRepo(
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
+                    "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -214,6 +221,7 @@ class MeldekortbehandlingPostgresRepo(
                         attesteringer = :attesteringer::jsonb,
                         ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
+                        utbetalingskontroll = to_jsonb(:utbetalingskontroll::jsonb),
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
                         klagebehandling_id = :klagebehandling_id
@@ -234,6 +242,7 @@ class MeldekortbehandlingPostgresRepo(
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
+                    "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
@@ -509,6 +518,12 @@ class MeldekortbehandlingPostgresRepo(
             val simulering = row.stringOrNull("simulering")
                 ?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
 
+            val utbetalingskontroll = row.stringOrNull("utbetalingskontroll")
+                ?.tilMeldekortbehandlingUtbetalingskontroll(
+                    id = id,
+                    meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session),
+                )
+
             val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
             val sistEndret = row.localDateTime("sist_endret")
 
@@ -574,6 +589,7 @@ class MeldekortbehandlingPostgresRepo(
                         status = status,
                         iverksattTidspunkt = iverksattTidspunkt,
                         simulering = simulering,
+                        utbetalingskontroll = utbetalingskontroll,
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
@@ -596,6 +612,7 @@ class MeldekortbehandlingPostgresRepo(
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
                         simulering = simulering,
+                        utbetalingskontroll = utbetalingskontroll,
                         status = status,
                         sistEndret = sistEndret,
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
