@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
@@ -59,11 +60,11 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                         KanIkkeSendeRammebehandlingTilBeslutter.ErPaVent,
                         KanIkkeSendeRammebehandlingTilBeslutter.MåVæreUnderBehandlingEllerAutomatisk,
                         is KanIkkeSendeRammebehandlingTilBeslutter.SimuleringFeil,
-                        -> call.respondJson(statusAndValue = it.toErrorJson())
+                        -> call.respondJson(statusAndValue = it.toErrorJson(saksbehandler))
 
-                        is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson())
+                        is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson(saksbehandler))
 
-                        KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg -> call.respondJson(it.toErrorJson())
+                        KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg -> call.respondJson(it.toErrorJson(saksbehandler))
                     }
                 }.onRight { (sak, behandling) ->
                     auditService.logMedRammebehandlingId(
@@ -76,14 +77,14 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
                         },
                         correlationId = correlationId,
                     )
-                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                 }
             }
         }
     }
 }
 
-private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStatusCode, Any> = when (this) {
+private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(saksbehandler: Saksbehandler): Pair<HttpStatusCode, Any> = when (this) {
     is KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
         this.eiesAvSaksbehandler,
     )
@@ -104,7 +105,7 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(): Pair<HttpStat
         status to ErrorJsonMedData(
             melding = errorJson.melding,
             kode = errorJson.kode,
-            data = this.sak.tilRammebehandlingDTO(this.behandling.id),
+            data = this.sak.tilRammebehandlingDTO(this.behandling.id, saksbehandler),
         )
     }
 

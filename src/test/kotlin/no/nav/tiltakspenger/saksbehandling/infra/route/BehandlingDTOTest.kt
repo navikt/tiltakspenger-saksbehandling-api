@@ -74,7 +74,7 @@ class BehandlingDTOTest {
 
                 val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(listOf(behandlingSattPåVent)))
 
-                val dto = sak.tilRammebehandlingDTO(behandlingSattPåVent.id)
+                val dto = sak.tilRammebehandlingDTO(behandlingSattPåVent.id, beslutter)
 
                 dto.ventestatus.size shouldBe 3
                 dto.ventestatus.first().erSattPåVent shouldBe true

@@ -59,7 +59,7 @@ fun Route.taRammebehandlingRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = it.first.tilRammebehandlingDTO(behandlingId))
+                        call.respondJson(value = it.first.tilRammebehandlingDTO(behandlingId, saksbehandler))
                     },
                 )
             }
@@ -84,6 +84,16 @@ fun KunneIkkeTaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson
     )
 
     is KunneIkkeTaBehandling.FeilVedKlagebehandling -> this.originalfeil.toStatusAndErrorJson()
+
+    KunneIkkeTaBehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være saksbehandler for å ta denne behandlingen.",
+        "maa_vaere_saksbehandler",
+    )
+
+    KunneIkkeTaBehandling.MåVæreBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være beslutter for å ta denne behandlingen.",
+        "maa_vaere_beslutter",
+    )
 
     KunneIkkeTaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling -> HttpStatusCode.BadRequest to ErrorJson(
         "Saksbehandler og beslutter kan ikke være den samme på behandlingen.",

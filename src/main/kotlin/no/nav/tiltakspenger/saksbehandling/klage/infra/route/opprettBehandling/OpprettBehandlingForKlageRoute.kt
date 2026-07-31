@@ -144,7 +144,7 @@ fun Route.opprettBehandlingForKlageRoute(
                                         correlationId = correlationId,
                                         behandlingId = rammebehandlingId,
                                     )
-                                    call.respondJson(value = it.sak.tilRammebehandlingDTO(rammebehandlingId))
+                                    call.respondJson(value = it.sak.tilRammebehandlingDTO(rammebehandlingId, saksbehandler))
                                 }
 
                                 is OpprettBehandlingForKlageResultat.MeldekortbehandlingOpprettet -> {

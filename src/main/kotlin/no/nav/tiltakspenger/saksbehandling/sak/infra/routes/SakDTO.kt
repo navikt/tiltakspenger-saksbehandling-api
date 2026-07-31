@@ -77,7 +77,7 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
 
     åpneBehandlinger = this.tilÅpneBehandlingerDTO(),
 
-    rammebehandlinger = this.tilBehandlingerDTO(),
+    rammebehandlinger = this.tilBehandlingerDTO(saksbehandler),
     klagebehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
     tilbakekrevinger = this.tilbakekrevinger.map {
         it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!, saksbehandler)

@@ -48,6 +48,7 @@ fun String.shouldBeRevurderingDTO(
     sistEndret: String = "2025-01-01T01:03:05.456789",
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
+    gyldigeKommandoer: List<String> = emptyList(),
     periodeFraOgMed: String = "2023-01-01",
     periodeTilOgMed: String = "2023-03-31",
     eksternDeltagelseId: String,
@@ -180,7 +181,8 @@ fun String.shouldBeRevurderingDTO(
           "opprettet": "TIMESTAMP",
           "sistEndret": "$sistEndret",
           "status": "$status",
-          "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
+          "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
+          "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }
     """
 
@@ -220,6 +222,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     sistEndret: String = "2025-01-01T01:03:06.456789",
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
+    gyldigeKommandoer: List<String> = emptyList(),
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
     manueltBehandlesGrunner: List<String> = emptyList(),
@@ -373,7 +376,8 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "journalpostId": "$journalpostId"
         },
         "status": "$status",
-        "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
+        "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
+        "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
     }
     """
     if (ignorerTidspunkt) {

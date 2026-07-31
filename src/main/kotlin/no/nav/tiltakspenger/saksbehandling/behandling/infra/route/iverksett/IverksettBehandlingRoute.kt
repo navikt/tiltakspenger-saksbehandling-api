@@ -6,6 +6,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
@@ -52,7 +53,7 @@ fun Route.iverksettRammebehandlingRoute(
                     sakId = sakId,
                     correlationId = correlationId,
                 ).fold(
-                    { call.handleIverksettFeil(it) },
+                    { call.handleIverksettFeil(it, saksbehandler) },
                     { (sak) ->
                         auditService.logMedSakId(
                             behandlingId = behandlingId,
@@ -62,7 +63,7 @@ fun Route.iverksettRammebehandlingRoute(
                             correlationId = correlationId,
                             sakId = sakId,
                         )
-                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                     },
                 )
             }
@@ -70,7 +71,7 @@ fun Route.iverksettRammebehandlingRoute(
     }
 }
 
-private suspend fun ApplicationCall.handleIverksettFeil(feil: KanIkkeIverksetteBehandling) {
+private suspend fun ApplicationCall.handleIverksettFeil(feil: KanIkkeIverksetteBehandling, saksbehandler: Saksbehandler) {
     when (feil) {
         is KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter -> respond400BadRequest(
             behandlingenEiesAvAnnenSaksbehandler(feil.eiesAvBeslutter),
@@ -83,7 +84,7 @@ private suspend fun ApplicationCall.handleIverksettFeil(feil: KanIkkeIverksetteB
                 status to ErrorJsonMedData(
                     melding = errorJson.melding,
                     kode = errorJson.kode,
-                    data = feil.sak.tilRammebehandlingDTO(feil.behandling.id),
+                    data = feil.sak.tilRammebehandlingDTO(feil.behandling.id, saksbehandler),
                 )
             },
         )
