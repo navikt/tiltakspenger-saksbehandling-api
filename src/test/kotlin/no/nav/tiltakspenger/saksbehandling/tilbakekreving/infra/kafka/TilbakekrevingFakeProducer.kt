@@ -50,7 +50,7 @@ class TilbakekrevingFakeProducer(
         }?.harFeilutbetaling ?: false
 
         if (harFeilutbetaling) {
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = utbetaling.fnr.verdi,
                 value = serialize(
                     TilbakekrevingInfoBehovDTO(
@@ -107,7 +107,7 @@ class TilbakekrevingFakeProducer(
             ),
         )
 
-        TilbakekrevingConsumer.consume(
+        konsumerTilbakekrevingshendelse(
             this.fnr.verdi,
             serialize(behandlingEndretDTO),
             tilbakekrevingHendelseRepo,

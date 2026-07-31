@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -107,7 +109,14 @@ sealed class TestApplicationContext(
 ) : ApplicationContext(
     gitHash = "fake-git-hash",
     clock = clock,
+    erDev = false,
 ) {
+    override fun kafkaConfig(autoOffsetReset: String) = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER)
+
+    override fun avroKafkaConfig(autoOffsetReset: String) = AvroKafkaConfig(
+        kafkaConfig = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER),
+        schemaRegistryUrl = LOKAL_SCHEMA_REGISTRY,
+    )
 
     protected open val journalpostIdGenerator by lazy { idGenerators.journalpostIdGenerator }
     protected open val dokumentInfoIdGeneratorGenerator by lazy { idGenerators.dokumentInfoIdGeneratorSerial }
@@ -423,6 +432,8 @@ sealed class TestApplicationContext(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
             clock = clock,
+            erDev = false,
+            kafkaConfig = kafkaConfig(autoOffsetReset = "earliest"),
             log = null,
         )
     }

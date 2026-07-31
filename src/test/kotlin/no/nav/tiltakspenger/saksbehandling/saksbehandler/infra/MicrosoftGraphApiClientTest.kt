@@ -28,6 +28,7 @@ internal class MicrosoftGraphApiClientTest {
 
     private fun client(transport: FakeHttpTransport) = MicrosoftGraphApiClient(
         baseUrl = baseUrl,
+        brukHttps = false,
         authTokenProvider = authTokenProvider,
         clock = ObjectMother.clock,
         transport = transport,
@@ -47,6 +48,7 @@ internal class MicrosoftGraphApiClientTest {
     fun `bygger default HttpKlient når httpKlient ikke sendes inn`() {
         MicrosoftGraphApiClient(
             baseUrl = baseUrl,
+            brukHttps = false,
             authTokenProvider = authTokenProvider,
             clock = ObjectMother.clock,
         )

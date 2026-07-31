@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.Producer
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -80,8 +81,26 @@ import java.time.Clock
 open class ApplicationContext(
     internal val gitHash: String,
     internal open val clock: Clock,
+    /**
+     * Injiseres fra komposisjonsroten i stedet for å slås opp i [Configuration] her.
+     * Konteksten deles med tester og lokal kjøring, og et statisk oppslag ville gjort oppførselen avhengig av prosessglobal tilstand.
+     */
+    internal val erDev: Boolean,
 ) {
     private val log = KotlinLogging.logger {}
+
+    /**
+     * Kafka-oppsettet bygges her, i komposisjonsroten, i stedet for som defaultparameter på hver enkelt consumer.
+     * Consumerne tar [KafkaConfig]/[AvroKafkaConfig] som et obligatorisk argument, slik at ingen av dem leser miljøet selv.
+     *
+     * Denne klassen er NAIS-oppsettet.
+     * Lokal kjøring og tester har egne kontekstklasser som overstyrer disse - vi bruker ikke miljø-if-er her.
+     */
+    protected open fun kafkaConfig(autoOffsetReset: String): KafkaConfig =
+        KafkaConfig.fraNaisEnv(autoOffsetReset = autoOffsetReset)
+
+    protected open fun avroKafkaConfig(autoOffsetReset: String): AvroKafkaConfig =
+        AvroKafkaConfig.fraNaisEnv(autoOffsetReset = autoOffsetReset)
 
     open val jdbcUrl by lazy { Configuration.database().url }
     open val dataSource by lazy { DataSourceSetup.createDatasource(jdbcUrl) }
@@ -219,18 +238,21 @@ open class ApplicationContext(
         TiltaksdeltakerArenaConsumer(
             tiltaksdeltakerService = tiltaksdeltakerService,
             topic = Configuration.arenaTiltaksdeltakerTopic,
+            kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )
     }
     open val tiltaksdeltakerKometConsumer by lazy {
         TiltaksdeltakerKometConsumer(
             tiltaksdeltakerService = tiltaksdeltakerService,
             topic = Configuration.kometTiltaksdeltakerTopic,
+            kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )
     }
     open val tiltaksdeltakerTeamTiltakConsumer by lazy {
         TiltaksdeltakerTeamTiltakConsumer(
             tiltaksdeltakerService = tiltaksdeltakerService,
             topic = Configuration.teamTiltakTiltaksdeltakerTopic,
+            kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )
     }
 
@@ -268,6 +290,7 @@ open class ApplicationContext(
         LeesahConsumer(
             topic = Configuration.leesahTopic,
             personhendelseService = personhendelseService,
+            avroKafkaConfig = avroKafkaConfig(autoOffsetReset = "none"),
         )
     }
 
@@ -284,6 +307,7 @@ open class ApplicationContext(
         AktorV2Consumer(
             topic = Configuration.aktorV2Topic,
             identhendelseService = identhendelseService,
+            avroKafkaConfig = avroKafkaConfig(autoOffsetReset = "none"),
         )
     }
 
@@ -291,6 +315,7 @@ open class ApplicationContext(
         KlageinstansKlagehendelseConsumer(
             klagehendelseRepo = klagebehandlingContext.klagehendelseRepo,
             clock = clock,
+            kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )
     }
 
@@ -522,6 +547,8 @@ open class ApplicationContext(
             topic = Configuration.tilbakekrevingTopic,
             tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
             clock = clock,
+            erDev = erDev,
+            kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )
     }
 
@@ -548,6 +575,7 @@ open class ApplicationContext(
             tilbakekrevingProducer = tilbakekrevingProducer,
             sessionFactory = sessionFactory,
             clock = clock,
+            erDev = erDev,
         )
     }
 }

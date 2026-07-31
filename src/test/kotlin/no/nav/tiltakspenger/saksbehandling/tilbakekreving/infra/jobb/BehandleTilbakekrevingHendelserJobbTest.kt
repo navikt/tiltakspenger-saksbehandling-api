@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb
 
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
@@ -21,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.konsumerTilbakekrevingshendelse
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -714,7 +716,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
                 }
             """.trimIndent()
 
-            val hendelseMedVenterId = TilbakekrevingConsumer.consume(
+            val hendelseMedVenterId = konsumerTilbakekrevingshendelse(
                 key = sakMedOpphør.fnr.verdi,
                 value = hendelseJson,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -810,7 +812,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
     }
 
     @Test
-    fun `ukjent - hopper over hendelse som fortsatt ikke kan deserialiseres`() {
+    fun `ukjent - beholder hendelse som fortsatt ikke kan deserialiseres utenfor dev`() {
         withTestApplicationContext { tac ->
             val ugyldigJson = """{ "lol": "what" }"""
 
@@ -834,4 +836,37 @@ class BehandleTilbakekrevingHendelserJobbTest {
                 .single().hendelsestype shouldBe TilbakekrevinghendelseType.Ukjent
         }
     }
+
+    @Test
+    fun `ukjent - sletter hendelse som fortsatt ikke kan deserialiseres i dev`() {
+        withTestApplicationContext { tac ->
+            // Team tilbakekreving sender bogusdata på køen i dev.
+            // Den kommer aldri til å la seg lese, så den skal forkastes i stedet for å bli forsøkt på nytt ved hver jobbkjøring.
+            val ugyldigJson = """{ "lol": "what" }"""
+
+            val ukjentId = TilbakekrevinghendelseId.random()
+            val ukjent = TilbakekrevingUkjentHendelse(
+                id = ukjentId,
+                opprettet = nå(tac.clock),
+                value = ugyldigJson,
+            )
+            tac.tilbakekrevingHendelseRepo.lagreNy(ukjent, key = "asdf", value = ugyldigJson) shouldBe true
+
+            tac.behandleTilbakekrevingHendelserJobbIDev().håndterUbehandledeHendelser()
+
+            tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId) shouldBe null
+            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().shouldBeEmpty()
+        }
+    }
+
+    private fun TestApplicationContext.behandleTilbakekrevingHendelserJobbIDev() =
+        BehandleTilbakekrevingHendelserJobb(
+            tilbakekrevingHendelseRepo = tilbakekrevingHendelseRepo,
+            tilbakekrevingBehandlingRepo = tilbakekrevingBehandlingRepo,
+            sakRepo = sakContext.sakRepo,
+            tilbakekrevingProducer = tilbakekrevingProducer,
+            sessionFactory = sessionFactory,
+            clock = clock,
+            erDev = true,
+        )
 }

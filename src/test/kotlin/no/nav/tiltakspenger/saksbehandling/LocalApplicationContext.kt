@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
@@ -15,6 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevFo
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForOpphørKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
+import no.nav.tiltakspenger.saksbehandling.common.LOKAL_KAFKA_BROKER
+import no.nav.tiltakspenger.saksbehandling.common.LOKAL_SCHEMA_REGISTRY
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
@@ -74,7 +78,14 @@ import java.time.Clock
 class LocalApplicationContext(
     usePdfGen: Boolean,
     clock: Clock,
-) : ApplicationContext(gitHash = "fake-git-hash", clock = clock) {
+) : ApplicationContext(gitHash = "fake-git-hash", clock = clock, erDev = false) {
+
+    override fun kafkaConfig(autoOffsetReset: String) = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER)
+
+    override fun avroKafkaConfig(autoOffsetReset: String) = AvroKafkaConfig(
+        kafkaConfig = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER),
+        schemaRegistryUrl = LOKAL_SCHEMA_REGISTRY,
+    )
 
     @Suppress("MemberVisibilityCanBePrivate")
     val journalpostIdGenerator = JournalpostIdGeneratorRandom()
@@ -155,6 +166,7 @@ class LocalApplicationContext(
 
     override val personContext =
         object : PersonContext(sessionFactory, texasClient, clock) {
+            override val brukHttpsMotGraph = false
             override val personKlient = personFakeKlient
             override val fellesSkjermingsklient = fellesFakeSkjermingsklient
             override val navIdentClient = if (usePdfGen) FakeNavIdentClient() else super.navIdentClient

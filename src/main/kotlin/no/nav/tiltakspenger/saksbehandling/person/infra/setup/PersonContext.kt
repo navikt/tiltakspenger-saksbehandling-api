@@ -24,6 +24,12 @@ open class PersonContext(
     texasClient: TexasClient,
     clock: Clock,
 ) {
+    /**
+     * Denne konteksten er NAIS-oppsettet, der Graph nås over https.
+     * Lokal kjøring overstyrer dette i sin egen kontekstklasse i stedet for at vi legger en miljø-if her.
+     */
+    protected open val brukHttpsMotGraph: Boolean get() = true
+
     open val personKlient: PersonKlient by lazy {
         PersonHttpklient(
             endepunkt = Configuration.pdlUrl,
@@ -41,6 +47,7 @@ open class PersonContext(
     open val navIdentClient: NavIdentClient by lazy {
         MicrosoftGraphApiClient(
             baseUrl = Configuration.microsoftUrl,
+            brukHttps = brukHttpsMotGraph,
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
                 audienceTarget = Configuration.microsoftScope,

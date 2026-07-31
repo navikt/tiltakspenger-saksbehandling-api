@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.BeregningKilde
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -47,6 +46,7 @@ class BehandleTilbakekrevingHendelserJobb(
     private val tilbakekrevingProducer: TilbakekrevingProducer,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
+    private val erDev: Boolean,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -117,9 +117,18 @@ class BehandleTilbakekrevingHendelserJobb(
      */
     private fun TilbakekrevingUkjentHendelse.håndter(): Either<Pair<TilbakekrevinghendelseFeil, SakId?>, Unit> {
         val hendelseId = this.id
-        val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(clock, hendelseId)
+        val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(clock, erDev, hendelseId)
 
         if (oppdatertHendelse == null || oppdatertHendelse is TilbakekrevingUkjentHendelse) {
+            // Hendelsen blir aldri markert som behandlet, så den plukkes opp av hver eneste jobbkjøring.
+            // I dev er dette bogusdata fra team tilbakekreving som aldri kommer til å la seg lese, og vi sletter den for å slippe å logge den i evig tid.
+            // I prod beholder vi raden ubehandlet, slik at hendelsen kan behandles etter en retting av DTO-en.
+            if (erDev) {
+                logger.info { "Sletter ukjent tilbakekreving-hendelse $hendelseId som fortsatt ikke kan deserialiseres" }
+                tilbakekrevingHendelseRepo.slett(hendelseId)
+                return Unit.right()
+            }
+
             logger.warn { "Ukjent tilbakekreving-hendelse $hendelseId kunne fortsatt ikke deserialiseres - hopper over" }
             return Unit.right()
         }
@@ -297,15 +306,14 @@ class BehandleTilbakekrevingHendelserJobb(
         )
     }
 
+    // Team tilbake sender noen ganger saker de har generert selv for å teste i dev
+    private fun erFakeSak(eksternSakId: String): Boolean {
+        return erDev && eksternSakId.startsWith(FAKE_SAK_PREFIX)
+    }
+
     companion object {
         private const val NAV_TILTAK_OSLO_ENHET = "0387"
 
         private const val FAKE_SAK_PREFIX = "BF"
-        private val erDev: Boolean = Configuration.isDev()
-
-        // Team tilbake sender noen ganger saker de har generert selv for å teste i dev
-        private fun erFakeSak(eksternSakId: String): Boolean {
-            return erDev && eksternSakId.startsWith(FAKE_SAK_PREFIX)
-        }
     }
 }

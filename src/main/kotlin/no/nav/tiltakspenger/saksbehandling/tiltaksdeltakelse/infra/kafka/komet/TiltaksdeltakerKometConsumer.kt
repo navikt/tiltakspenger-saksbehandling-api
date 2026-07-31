@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -16,7 +15,7 @@ class TiltaksdeltakerKometConsumer(
     private val tiltaksdeltakerService: TiltaksdeltakerService,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfig.fraNaisEnv(autoOffsetReset = "none") else KafkaConfig(kafkaBrokers = "localhost:9092"),
+    kafkaConfig: KafkaConfig,
     private val log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<UUID, String?> {
 

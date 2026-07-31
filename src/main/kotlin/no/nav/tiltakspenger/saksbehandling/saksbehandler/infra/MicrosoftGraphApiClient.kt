@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.KanIkkeHenteNavnForNavIdent
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import java.net.URI
@@ -41,6 +40,11 @@ import kotlin.time.Duration.Companion.seconds
  */
 class MicrosoftGraphApiClient(
     private val baseUrl: String,
+    /**
+     * Injiseres fra komposisjonsroten.
+     * Klienten skal ikke selv slå opp om den kjører i NAIS - se «Miljøflagg injiseres, slås aldri opp statisk» i AGENTS-backend.md.
+     */
+    private val brukHttps: Boolean,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 2.seconds,
     timeout: Duration = 4.seconds,
@@ -90,7 +94,7 @@ class MicrosoftGraphApiClient(
     /**
      * Denne oppretter en URI med en URLBuilder for at encodingen skal bli riktig for spesialtegn (apostrof ')
      */
-    private fun uri(navIdent: String): URI = graphUri(baseUrl = baseUrl, navIdent = navIdent, brukHttps = Configuration.isNais())
+    private fun uri(navIdent: String): URI = graphUri(baseUrl = baseUrl, navIdent = navIdent, brukHttps = brukHttps)
 }
 
 /**

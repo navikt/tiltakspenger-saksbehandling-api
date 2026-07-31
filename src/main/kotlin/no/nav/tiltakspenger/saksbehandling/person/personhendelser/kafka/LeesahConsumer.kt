@@ -6,9 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
-import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -35,11 +33,7 @@ class LeesahConsumer(
     private val personhendelseService: PersonhendelseService,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    avroKafkaConfig: AvroKafkaConfig = if (Configuration.isNais()) {
-        AvroKafkaConfig.fraNaisEnv(autoOffsetReset = "none")
-    } else {
-        AvroKafkaConfig(kafkaConfig = KafkaConfig(kafkaBrokers = "localhost:9092"), schemaRegistryUrl = "mock://test")
-    },
+    avroKafkaConfig: AvroKafkaConfig,
     log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, Personhendelse> {
 

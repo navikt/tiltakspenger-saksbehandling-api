@@ -33,7 +33,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -80,7 +80,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -133,7 +133,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -181,7 +181,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -198,7 +198,7 @@ class TilbakekrevingConsumerTest {
     fun `null value - logger warning og returnerer`() {
         withTestApplicationContext { tac ->
             // Skal ikke kaste exception, bare logge warning og returnere
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = "test-key",
                 value = null,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -227,7 +227,7 @@ class TilbakekrevingConsumerTest {
             """.trimIndent()
 
             // Første kall - skal persiste
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = "key-1",
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -235,7 +235,7 @@ class TilbakekrevingConsumerTest {
             )
 
             // Andre kall med samme kravgrunnlagReferanse - skal ikke persiste
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = "key-2",
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -264,7 +264,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -317,7 +317,7 @@ class TilbakekrevingConsumerTest {
                     }
                 """.trimIndent()
 
-                TilbakekrevingConsumer.consume(
+                konsumerTilbakekrevingshendelse(
                     key = key,
                     value = value,
                     tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -353,7 +353,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            val hendelseId = TilbakekrevingConsumer.consume(
+            val hendelseId = konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -400,7 +400,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            val hendelseId = TilbakekrevingConsumer.consume(
+            val hendelseId = konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -434,7 +434,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            TilbakekrevingConsumer.consume(
+            konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
@@ -465,7 +465,7 @@ class TilbakekrevingConsumerTest {
                 }
             """.trimIndent()
 
-            val hendelseId = TilbakekrevingConsumer.consume(
+            val hendelseId = konsumerTilbakekrevingshendelse(
                 key = key,
                 value = value,
                 tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,

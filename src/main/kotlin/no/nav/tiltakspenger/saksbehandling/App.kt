@@ -34,6 +34,7 @@ internal fun start(
     applicationContext: ApplicationContext = ApplicationContext(
         gitHash = Configuration.gitHash(),
         clock = clock,
+        erDev = Configuration.isDev(),
     ),
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},
 ) {
