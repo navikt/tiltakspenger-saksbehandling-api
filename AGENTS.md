@@ -29,6 +29,11 @@ Slik ser den ut i dette repoet:
 - **Rene db-typer uten domeneflyt** er den andre unntakskategorien; `PeriodeDbTest` er eksempelet her.
 - **Dekningsgaten** låser repoene som har nådd 100 % — se `postgresRepoerMedDekningskrav` i `build.gradle.kts`.
   Merk at kover-rapportene ikke lenger genereres av `check`; kjør `./gradlew koverHtmlReport` eksplisitt når du skal lese dem.
+- **Testhjelpere som ikke hører i prodkoden ligger i `*TestEx.kt` ved siden av typen de gjelder.**
+  `BegrunnelseTestEx.kt` og `BarnetilleggTestEx.kt` er bekvemmelighetskonstruktører som companion-extensions, `StatistikkTestEx.kt` og `TiltaksdeltakerHendelseTestEx.kt` er databaseoppslag kun tester trenger.
+  Repoet har null `@TestOnly` i `src/main`, og det skal det fortsette å ha.
+- **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i [`../AGENTS-backend.md`](../AGENTS-backend.md).
+  `HjemmelForOpphørDbTest` og `TiltakDeltakerstatusDbTest` er mønsterfilene.
 
 > **Overgangsfase (per 2026-07-31):** 8 testfiler bygger fortsatt tilstand via `withMigratedDb` og `TestDataHelper`.
 > Det universet er under avvikling, og du skal ikke utvide det.
