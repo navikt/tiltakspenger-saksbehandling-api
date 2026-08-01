@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksb
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning

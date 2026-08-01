@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 /**
  * Kjører mot postgres fordi ruta er eneste prodsti til `SakPostgresRepo.oppdaterKanSendeInnHelgForMeldekort`.
  */
-internal class ToggleKanSendeHelgForMeldekortSakRouteTest {
+class ToggleKanSendeHelgForMeldekortSakRouteTest {
 
     @Test
     fun `saksbehandler kan slå muligheten til å melde helg av og på`() = runTest {

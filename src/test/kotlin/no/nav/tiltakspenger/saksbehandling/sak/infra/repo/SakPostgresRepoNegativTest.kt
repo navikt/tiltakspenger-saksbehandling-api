@@ -15,7 +15,7 @@ import org.postgresql.util.PSQLException
  * Testene bygger sakene gjennom prodstiene og går utenom domenemodellen først når den ugyldige tilstanden skal fremtvinges.
  * Dette er unntak (a) i testtaksonomien, jf. `AGENTS.md`.
  */
-internal class SakPostgresRepoNegativTest {
+class SakPostgresRepoNegativTest {
 
     /**
      * `SakPostgresRepo.hentForFnr` returnerer én sak eller null, og den garantien hviler på `sak_fnr_unique`.

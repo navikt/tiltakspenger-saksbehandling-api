@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando

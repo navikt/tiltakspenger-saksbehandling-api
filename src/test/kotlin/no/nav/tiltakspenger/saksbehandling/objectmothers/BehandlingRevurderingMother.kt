@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdaterOmgjøring
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.RevurderingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -35,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevur
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.beslutter

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder

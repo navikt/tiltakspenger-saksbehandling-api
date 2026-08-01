@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
@@ -27,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.navkontor

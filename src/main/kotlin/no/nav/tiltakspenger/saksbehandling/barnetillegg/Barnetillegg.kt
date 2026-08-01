@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.barnetillegg
 
 import arrow.core.NonEmptyList
-import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -9,7 +8,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.perioder
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Representerer en periodisering av barnetillegg.
@@ -90,11 +88,6 @@ data class Barnetillegg(
                 }.tilIkkeTomPeriodisering(),
                 begrunnelse = null,
             )
-        }
-
-        @TestOnly
-        fun utenBarnetillegg(periode: Periode): Barnetillegg {
-            return utenBarnetillegg(nonEmptyListOf(periode))
         }
     }
 }

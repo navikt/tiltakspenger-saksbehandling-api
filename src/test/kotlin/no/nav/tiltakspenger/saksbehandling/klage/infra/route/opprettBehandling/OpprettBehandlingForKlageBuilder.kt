@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesterbarBehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.MeldekortbehandlingDTOJson

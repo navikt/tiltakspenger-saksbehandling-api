@@ -24,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
+import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.lagreSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import org.junit.jupiter.api.Test
@@ -163,7 +165,7 @@ class PersonhendelseServiceTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                testDataHelper.statistikkSakRepo.lagre(
+                testDataHelper.sessionFactory.lagreSaksstatistikk(
                     behandling.genererSaksstatistikk(
                         hendelse = StatistikkhendelseType.OPPRETTET_BEHANDLING,
                     ).genererSaksstatistikk(
@@ -204,7 +206,7 @@ class PersonhendelseServiceTest {
                 personhendelseDb.oppgaveId shouldBe null
                 personhendelseDb.oppgaveSistSjekket shouldBe null
 
-                val statistikkSakDTO = testDataHelper.statistikkSakRepo.hent(sak.id).first()
+                val statistikkSakDTO = testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first()
                 statistikkSakDTO.fnr shouldBe fnr.verdi
                 statistikkSakDTO.opprettetAv shouldBe "-5"
                 statistikkSakDTO.saksbehandler shouldBe "-5"
@@ -221,7 +223,6 @@ class PersonhendelseServiceTest {
                 val clock = testDataHelper.clock
                 val personhendelseRepository = testDataHelper.personhendelseRepository
                 val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
                 val statistikkService = testDataHelper.statistikkService
                 val personhendelseService =
                     PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
@@ -237,7 +238,7 @@ class PersonhendelseServiceTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                statistikkSakRepo.lagre(
+                testDataHelper.sessionFactory.lagreSaksstatistikk(
                     behandling.genererSaksstatistikk(
                         hendelse = StatistikkhendelseType.OPPRETTET_BEHANDLING,
                     ).genererSaksstatistikk(
@@ -268,7 +269,7 @@ class PersonhendelseServiceTest {
                     KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
 
                 personhendelseRepository.hent(sak.id) shouldBe emptyList()
-                val statistikkSakDTO = statistikkSakRepo.hent(sak.id).first()
+                val statistikkSakDTO = testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first()
                 statistikkSakDTO.fnr shouldBe fnr.verdi
                 statistikkSakDTO.opprettetAv shouldNotBe "-5"
                 statistikkSakDTO.saksbehandler shouldNotBe "-5"

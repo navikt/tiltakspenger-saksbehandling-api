@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat

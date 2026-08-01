@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse.Companion.toBegrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import org.junit.jupiter.api.Test
 
 class BegrunnelseTest {

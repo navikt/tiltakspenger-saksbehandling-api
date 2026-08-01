@@ -19,9 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.TiltaksdeltakerHendelsePostgresRepo
@@ -45,9 +42,6 @@ internal class TestDataHelper(
     val behandlingRepo = RammebehandlingPostgresRepo(sessionFactory, clock)
     val vedtakRepo = RammevedtakPostgresRepo(sessionFactory)
     val sakRepo = SakPostgresRepo(sessionFactory, saksnummerGenerator, clock)
-    val statistikkSakRepo = SaksstatistikkPostgresRepo(sessionFactory)
-    val statistikkStønadRepo = StatistikkStønadPostgresRepo(sessionFactory, clock)
-    val statistikkMeldekortRepo = StatistikkMeldekortPostgresRepo()
     val statistikkRepo = StatistikkPostgresRepo(sessionFactory, clock)
     private val personFakeKlient = PersonFakeKlient(clock)
     val statistikkService = StatistikkService(

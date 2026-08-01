@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test
  * Ruta er den eneste som setter søknadstype, manuelt satt søknadsperiode og tiltak, og barnetillegg — og den eneste som kan gi en søknad uten tiltak.
  * Derfor er dette grunnsettet for `SøknadDAO`, `BarnetilleggDAO` og `SpmFunctions` mot postgres.
  */
-internal class StartBehandlingAvManueltRegistrertSøknadRouteTest {
+class StartBehandlingAvManueltRegistrertSøknadRouteTest {
 
     @Test
     fun `papirsøknad uten tiltak lagres med barnetillegg og ja-svar, og leses tilbake`() = runTest {
@@ -131,6 +131,37 @@ internal class StartBehandlingAvManueltRegistrertSøknadRouteTest {
             søknad.alderspensjon shouldBe Søknad.FraOgMedDatoSpm.IkkeBesvart
             søknad.manueltSattSøknadsperiode shouldBe null
             søknad.barnetillegg shouldBe emptyList()
+        }
+    }
+
+    /**
+     * Alle søknadstypene skal overleve rundturen gjennom `SøknadstypeDb`.
+     * DIGITAL settes av `mottaSøknadRoute` og dekkes av de øvrige testene; resten kan kun oppstå her.
+     */
+    @Test
+    fun `alle søknadstypene lagres og leses tilbake`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            listOf(
+                Søknadstype.PAPIR_SKJEMA,
+                Søknadstype.PAPIR_FRIHAND,
+                Søknadstype.MODIA,
+                Søknadstype.ANNET,
+            ).forEach { søknadstype ->
+                val journalpostId = "journalpost-${søknadstype.name}"
+
+                startBehandlingAvManueltRegistrertSøknad(
+                    tac = tac,
+                    saksnummer = sak.saksnummer,
+                    søknadstype = søknadstype.name,
+                    journalpostId = journalpostId,
+                )
+
+                tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                    .søknader.single { it.journalpostId == journalpostId }
+                    .søknadstype shouldBe søknadstype
+            }
         }
     }
 }

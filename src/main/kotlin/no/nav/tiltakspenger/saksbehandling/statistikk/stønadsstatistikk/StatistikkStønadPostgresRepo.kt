@@ -5,28 +5,11 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
-import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 
-class StatistikkStønadPostgresRepo(
-    private val sessionFactory: PostgresSessionFactory,
-    private val clock: Clock,
-) {
-    /** Denne brukes kun for tester */
-    @TestOnly
-    fun lagre(
-        dto: StatistikkStønadDTO,
-        context: TransactionContext? = null,
-    ) {
-        sessionFactory.withTransaction(context) { tx ->
-            lagre(dto, clock, tx)
-        }
-    }
-
+class StatistikkStønadPostgresRepo {
     companion object {
         fun oppdaterFnr(
             gammeltFnr: Fnr,

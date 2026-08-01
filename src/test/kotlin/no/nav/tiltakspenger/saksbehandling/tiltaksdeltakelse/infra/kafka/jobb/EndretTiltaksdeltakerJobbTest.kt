@@ -36,6 +36,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.getTiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.hentTiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.hentUbehandledeTiltaksdeltakerHendelser
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -87,10 +89,10 @@ class EndretTiltaksdeltakerJobbTest {
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
             // Hendelsen skal fortsatt være ubehandlet
-            val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
+            val ubehandlede = tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser()
             ubehandlede.any { it.id == nyligHendelse.id } shouldBe true
 
-            val ubehandletHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(nyligHendelse.id)
+            val ubehandletHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(nyligHendelse.id)
             ubehandletHendelse.shouldNotBeNull()
             ubehandletHendelse.oppgaveId.shouldBeNull()
             ubehandletHendelse.behandlingId.shouldBeNull()
@@ -142,8 +144,8 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == hendelse.id } shouldBe true
-            val behandletHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(hendelse.id)
+            tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == hendelse.id } shouldBe true
+            val behandletHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(hendelse.id)
             behandletHendelse.shouldNotBeNull()
             behandletHendelse.behandlingId.shouldNotBeNull()
         }
@@ -182,7 +184,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -216,7 +218,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerHendelse.internDeltakerId)
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -257,7 +259,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+            val oppdatertTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
             oppdatertTiltaksdeltakerHendelse.shouldNotBeNull()
             oppdatertTiltaksdeltakerHendelse.oppgaveId shouldBe oppgaveId
             oppdatertTiltaksdeltakerHendelse.behandlingId.shouldBeNull()
@@ -313,7 +315,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).venterTil?.toLocalDate() shouldBe 1.mai(2025)
         }
     }
@@ -356,7 +358,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -422,7 +424,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
         }
     }
 
@@ -463,7 +465,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+            val oppdatertTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
 
             val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
 
@@ -518,7 +520,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-            val oppdatertTiltaksdeltakerHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+            val oppdatertTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
             oppdatertTiltaksdeltakerHendelse shouldNotBe null
             oppdatertTiltaksdeltakerHendelse?.oppgaveId shouldBe null
 
@@ -579,7 +581,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(førsteTiltaksdeltakerId)
 
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
             }
         }
 
@@ -660,7 +662,7 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(andreTiltaksdeltakerId)
 
                 val førsteOppdatertTiltaksdeltakerHendelse =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerHendelse.id)
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(førsteTiltaksdeltakerHendelse.id)
                 førsteOppdatertTiltaksdeltakerHendelse shouldNotBe null
                 førsteOppdatertTiltaksdeltakerHendelse?.oppgaveId shouldBe null
 
@@ -673,9 +675,9 @@ class EndretTiltaksdeltakerJobbTest {
                 grunn.endringer.first().shouldBeInstanceOf<TiltaksdeltakerEndring.AvbruttDeltakelse>()
 
                 val andreOppdatertTiltaksdeltakerHendelse =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerHendelse.id)
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(andreTiltaksdeltakerHendelse.id)
                 andreOppdatertTiltaksdeltakerHendelse shouldNotBe null
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == andreTiltaksdeltakerHendelse.id } shouldBe true
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == andreTiltaksdeltakerHendelse.id } shouldBe true
             }
         }
 
@@ -756,12 +758,12 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(andreTiltaksdeltakerId)
 
                 val førsteOppdatertTiltaksdeltakerHendelse =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteTiltaksdeltakerHendelse.id)
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(førsteTiltaksdeltakerHendelse.id)
                 førsteOppdatertTiltaksdeltakerHendelse shouldNotBe null
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == førsteTiltaksdeltakerHendelse.id } shouldBe true
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == førsteTiltaksdeltakerHendelse.id } shouldBe true
 
                 val andreOppdatertTiltaksdeltakerHendelse =
-                    tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreTiltaksdeltakerHendelse.id)
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(andreTiltaksdeltakerHendelse.id)
                 andreOppdatertTiltaksdeltakerHendelse shouldNotBe null
                 andreOppdatertTiltaksdeltakerHendelse?.oppgaveId shouldBe null
 
@@ -816,8 +818,8 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
                 // Hendelsen skal være markert som behandlet og ignorert (ingen oppgave eller revurdering)
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
-                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+                val oppdatertHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
                 oppdatertHendelse.shouldNotBeNull()
                 oppdatertHendelse.oppgaveId.shouldBeNull()
                 oppdatertHendelse.behandlingId.shouldBeNull()
@@ -864,8 +866,8 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(annenDeltakerId)
 
                 // Hendelsen skal være markert som behandlet og ignorert
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
-                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+                val oppdatertHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
                 oppdatertHendelse.shouldNotBeNull()
                 oppdatertHendelse.oppgaveId.shouldBeNull()
                 oppdatertHendelse.behandlingId.shouldBeNull()
@@ -909,7 +911,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                val oppdatertHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
                 oppdatertHendelse.shouldNotBeNull()
                 oppdatertHendelse.oppgaveId shouldBe oppgaveId
                 oppdatertHendelse.behandlingId.shouldBeNull()
@@ -953,7 +955,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-                val oppdatertHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(tiltaksdeltakerHendelse.id)
+                val oppdatertHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
                 oppdatertHendelse.shouldNotBeNull()
                 oppdatertHendelse.oppgaveId.shouldBeNull()
                 oppdatertHendelse.behandlingId.shouldNotBeNull()
@@ -1021,17 +1023,17 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
                 // Eldre hendelse skal være markert som behandlet uten oppgave eller revurdering
-                val oppdatertEldreHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(eldreHendelse.id)
+                val oppdatertEldreHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(eldreHendelse.id)
                 oppdatertEldreHendelse.shouldNotBeNull()
                 oppdatertEldreHendelse.oppgaveId.shouldBeNull()
                 oppdatertEldreHendelse.behandlingId.shouldBeNull()
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == eldreHendelse.id } shouldBe true
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == eldreHendelse.id } shouldBe true
 
                 // Nyeste hendelse skal ha blitt evaluert og opprettet revurdering
-                val oppdatertNyesteHendelse = tac.tiltaksdeltakerHendelsePostgresRepo.hent(nyesteHendelse.id)
+                val oppdatertNyesteHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(nyesteHendelse.id)
                 oppdatertNyesteHendelse.shouldNotBeNull()
                 oppdatertNyesteHendelse.behandlingId.shouldNotBeNull()
-                tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede().none { it.id == nyesteHendelse.id } shouldBe true
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == nyesteHendelse.id } shouldBe true
 
                 val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
                 val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
@@ -1103,7 +1105,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
 
-                val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
+                val ubehandlede = tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser()
 
                 // Alle tre skal være markert som behandlet
                 ubehandlede.none { it.id == eldsteHendelse.id } shouldBe true
@@ -1111,16 +1113,16 @@ class EndretTiltaksdeltakerJobbTest {
                 ubehandlede.none { it.id == nyesteHendelse.id } shouldBe true
 
                 // De to eldste skal være ignorert (ingen oppgave eller behandling)
-                val oppdatertEldste = tac.tiltaksdeltakerHendelsePostgresRepo.hent(eldsteHendelse.id)!!
+                val oppdatertEldste = tac.sessionFactory.hentTiltaksdeltakerHendelse(eldsteHendelse.id)!!
                 oppdatertEldste.oppgaveId.shouldBeNull()
                 oppdatertEldste.behandlingId.shouldBeNull()
 
-                val oppdatertMellom = tac.tiltaksdeltakerHendelsePostgresRepo.hent(mellomHendelse.id)!!
+                val oppdatertMellom = tac.sessionFactory.hentTiltaksdeltakerHendelse(mellomHendelse.id)!!
                 oppdatertMellom.oppgaveId.shouldBeNull()
                 oppdatertMellom.behandlingId.shouldBeNull()
 
                 // Kun nyeste skal ha blitt evaluert og fått revurdering
-                val oppdatertNyeste = tac.tiltaksdeltakerHendelsePostgresRepo.hent(nyesteHendelse.id)!!
+                val oppdatertNyeste = tac.sessionFactory.hentTiltaksdeltakerHendelse(nyesteHendelse.id)!!
                 oppdatertNyeste.behandlingId.shouldNotBeNull()
 
                 val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
@@ -1215,23 +1217,23 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(førsteTiltaksdeltakerId)
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(andreTiltaksdeltakerId)
 
-                val ubehandlede = tac.tiltaksdeltakerHendelsePostgresRepo.hentUbehandlede()
+                val ubehandlede = tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser()
                 ubehandlede.none { it.id == førsteEldreHendelse.id } shouldBe true
                 ubehandlede.none { it.id == førsteNyesteHendelse.id } shouldBe true
                 ubehandlede.none { it.id == andreHendelse.id } shouldBe true
 
                 // Eldre hendelse for første deltaker skal være ignorert
-                val oppdatertFørsteEldre = tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteEldreHendelse.id)!!
+                val oppdatertFørsteEldre = tac.sessionFactory.hentTiltaksdeltakerHendelse(førsteEldreHendelse.id)!!
                 oppdatertFørsteEldre.oppgaveId.shouldBeNull()
                 oppdatertFørsteEldre.behandlingId.shouldBeNull()
 
                 // Nyeste hendelse for første deltaker skal ha blitt evaluert og fått revurdering
-                val oppdatertFørsteNyeste = tac.tiltaksdeltakerHendelsePostgresRepo.hent(førsteNyesteHendelse.id)!!
+                val oppdatertFørsteNyeste = tac.sessionFactory.hentTiltaksdeltakerHendelse(førsteNyesteHendelse.id)!!
                 oppdatertFørsteNyeste.behandlingId.shouldNotBeNull()
 
                 // Andre deltaker sin hendelse skal også ha blitt evaluert uavhengig
                 // Men siden første deltaker sin revurdering nå er en åpen behandling, vil andre deltaker få oppgave i stedet
-                val oppdatertAndre = tac.tiltaksdeltakerHendelsePostgresRepo.hent(andreHendelse.id)!!
+                val oppdatertAndre = tac.sessionFactory.hentTiltaksdeltakerHendelse(andreHendelse.id)!!
                 oppdatertAndre.oppgaveId.shouldNotBeNull()
             }
         }

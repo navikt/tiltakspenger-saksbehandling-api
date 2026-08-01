@@ -17,6 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendels
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.hentTiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository.hentTiltaksdeltakerHendelserForEksternId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -37,7 +39,7 @@ class TiltaksdeltakerServiceTest {
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
-            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId).shouldBeEmpty()
+            testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).shouldBeEmpty()
         }
     }
 
@@ -67,7 +69,7 @@ class TiltaksdeltakerServiceTest {
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
-            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id)
+            val hendelser = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id)
             hendelser shouldHaveSize 1
             val tiltaksdeltakerHendelse = hendelser.first()
             tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
@@ -116,8 +118,8 @@ class TiltaksdeltakerServiceTest {
             oppdatertTiltaksdeltaker?.tiltakstype shouldBe soknadstiltak.typeKode
             oppdatertTiltaksdeltaker?.utdatertEksternId shouldBe id
 
-            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id).shouldBeEmpty()
-            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(nyEksternId.toString())
+            testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).shouldBeEmpty()
+            val hendelser = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(nyEksternId.toString())
             hendelser shouldHaveSize 1
             val tiltaksdeltakerHendelse = hendelser.first()
             tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
@@ -162,8 +164,8 @@ class TiltaksdeltakerServiceTest {
             tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldNotBe null
             tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
 
-            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(nyEksternId.toString()).shouldBeEmpty()
-            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id).shouldBeEmpty()
+            testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(nyEksternId.toString()).shouldBeEmpty()
+            testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).shouldBeEmpty()
         }
     }
 
@@ -207,9 +209,9 @@ class TiltaksdeltakerServiceTest {
 
             tiltaksdeltakerService.behandleMottattArenadeltaker(deltakerId, getArenaMeldingString())
 
-            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(id)
+            val hendelser = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id)
             hendelser shouldHaveSize 2
-            val opprinnelig = tiltaksdeltakerKafkaRepository.hent(opprinneligTiltaksdeltakerHendelse.id)
+            val opprinnelig = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelse(opprinneligTiltaksdeltakerHendelse.id)
             opprinnelig shouldNotBe null
             opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
             val nyHendelse = hendelser.first { it.id != opprinneligTiltaksdeltakerHendelse.id }
@@ -240,7 +242,7 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(kometDeltaker),
             )
 
-            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId.toString()).shouldBeEmpty()
+            testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString()).shouldBeEmpty()
         }
     }
 
@@ -273,7 +275,7 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(kometDeltaker),
             )
 
-            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId.toString())
+            val hendelser = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString())
             hendelser shouldHaveSize 1
             val tiltaksdeltakerHendelse = hendelser.first()
             tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe kometDeltaker.startDato
@@ -330,9 +332,9 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(kometDeltaker),
             )
 
-            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId.toString())
+            val hendelser = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString())
             hendelser shouldHaveSize 2
-            val opprinnelig = tiltaksdeltakerKafkaRepository.hent(opprinneligTiltaksdeltakerHendelse.id)
+            val opprinnelig = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelse(opprinneligTiltaksdeltakerHendelse.id)
             opprinnelig shouldNotBe null
             opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
             val nyHendelse = hendelser.first { it.id != opprinneligTiltaksdeltakerHendelse.id }
@@ -363,7 +365,7 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(teamTiltakDeltaker),
             )
 
-            tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId).shouldBeEmpty()
+            testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).shouldBeEmpty()
         }
     }
 
@@ -396,7 +398,7 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(teamTiltakDeltaker),
             )
 
-            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId)
+            val hendelser = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId)
             hendelser shouldHaveSize 1
             val tiltaksdeltakerHendelse = hendelser.first()
             tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
@@ -453,9 +455,9 @@ class TiltaksdeltakerServiceTest {
                 objectMapper.writeValueAsString(teamTiltakDeltaker),
             )
 
-            val hendelser = tiltaksdeltakerKafkaRepository.hentForEksternDeltakerId(deltakerId)
+            val hendelser = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId)
             hendelser shouldHaveSize 2
-            val opprinnelig = tiltaksdeltakerKafkaRepository.hent(opprinneligTiltaksdeltakerHendelse.id)
+            val opprinnelig = testDataHelper.sessionFactory.hentTiltaksdeltakerHendelse(opprinneligTiltaksdeltakerHendelse.id)
             opprinnelig shouldNotBe null
             opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
             val nyHendelse = hendelser.first { it.id != opprinneligTiltaksdeltakerHendelse.id }

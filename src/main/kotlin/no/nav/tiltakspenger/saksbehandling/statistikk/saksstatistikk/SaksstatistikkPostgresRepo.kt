@@ -1,15 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk
 
-import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import org.intellij.lang.annotations.Language
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Denne tabellen brukes for å dele data med DVH.
@@ -21,115 +17,87 @@ import org.jetbrains.annotations.TestOnly
  *
  * Vår dokumentasjon: docs/statistikk/resending_team_sak.md
  */
-internal class SaksstatistikkPostgresRepo(
-    private val sessionFactory: PostgresSessionFactory,
-) {
-    /** OBS: Skal kun brukes for tester */
-    @TestOnly
-    fun lagre(dto: SaksstatistikkDTO, context: TransactionContext? = null) {
-        sessionFactory.withTransaction(context) { tx ->
-            lagre(dto, tx)
-        }
-    }
-
-    /** OBS: Skal kun brukes for tester */
-    @TestOnly
-    fun hent(sakId: SakId): List<SaksstatistikkDTO> = sessionFactory.withSession {
-        it.run(
+object SaksstatistikkPostgresRepo {
+    /**
+     * DVH håndterer selv adressebeskyttelse, så dette gjør vi mest for vår egen del.
+     */
+    fun oppdaterFnr(
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        session: Session,
+    ) {
+        session.run(
             queryOf(
                 """
-                    select *
-                    from statistikk_sak
-                    where sak_id = :sak_id
+                        update statistikk_sak set fnr = :nytt_fnr where fnr = :gammelt_fnr
                 """.trimIndent(),
                 mapOf(
-                    "sak_id" to sakId.toString(),
+                    "nytt_fnr" to nyttFnr.verdi,
+                    "gammelt_fnr" to gammeltFnr.verdi,
                 ),
-            ).map { row -> row.toStatistikkSakDTO() }.asList,
+            ).asUpdate,
         )
     }
 
-    companion object {
-        /**
-         * DVH håndterer selv adressebeskyttelse, så dette gjør vi mest for vår egen del.
-         */
-        fun oppdaterFnr(
-            gammeltFnr: Fnr,
-            nyttFnr: Fnr,
-            session: Session,
-        ) {
-            session.run(
-                queryOf(
-                    """
-                        update statistikk_sak set fnr = :nytt_fnr where fnr = :gammelt_fnr
-                    """.trimIndent(),
-                    mapOf(
-                        "nytt_fnr" to nyttFnr.verdi,
-                        "gammelt_fnr" to gammeltFnr.verdi,
-                    ),
-                ).asUpdate,
-            )
-        }
-
-        fun oppdaterAdressebeskyttelse(sakId: SakId, session: Session) {
-            session.run(
-                queryOf(
-                    """
+    fun oppdaterAdressebeskyttelse(sakId: SakId, session: Session) {
+        session.run(
+            queryOf(
+                """
                         update statistikk_sak set opprettetAv = :verdi, saksbehandler = :verdi, ansvarligbeslutter = :verdi, ansvarligenhet = :verdi where sak_id = :sak_id
-                    """.trimIndent(),
-                    mapOf(
-                        "verdi" to "-5",
-                        "sak_id" to sakId.toString(),
-                    ),
-                ).asUpdate,
-            )
-        }
+                """.trimIndent(),
+                mapOf(
+                    "verdi" to "-5",
+                    "sak_id" to sakId.toString(),
+                ),
+            ).asUpdate,
+        )
+    }
 
-        fun lagre(dto: SaksstatistikkDTO, tx: TransactionalSession) {
-            tx.run(
-                queryOf(
-                    lagreSql,
-                    mapOf(
-                        "sakId" to dto.sakId,
-                        "saksnummer" to dto.saksnummer,
-                        "behandlingId" to dto.behandlingId,
-                        "relatertBehandlingId" to dto.relatertBehandlingId,
-                        "fnr" to dto.fnr,
-                        "mottattTidspunkt" to dto.mottattTidspunkt,
-                        "registrertTidspunkt" to dto.registrertTidspunkt,
-                        "ferdigBehandletTidspunkt" to dto.ferdigBehandletTidspunkt,
-                        "vedtakTidspunkt" to dto.vedtakTidspunkt,
-                        "utbetaltTidspunkt" to dto.utbetaltTidspunkt,
-                        "endretTidspunkt" to dto.endretTidspunkt,
-                        "soknadsformat" to dto.søknadsformat.name,
-                        "forventetOppstartTidspunkt" to dto.forventetOppstartTidspunkt,
-                        "tekniskTidspunkt" to dto.tekniskTidspunkt,
-                        "sakYtelse" to dto.sakYtelse,
-                        "behandlingType" to dto.behandlingType.name,
-                        "behandlingStatus" to dto.behandlingStatus.name,
-                        "behandlingResultat" to dto.behandlingResultat?.name,
-                        "resultatBegrunnelse" to dto.resultatBegrunnelse,
-                        "behandlingMetode" to dto.behandlingMetode,
-                        "opprettetAv" to dto.opprettetAv,
-                        "saksbehandler" to dto.saksbehandler,
-                        "ansvarligBeslutter" to dto.ansvarligBeslutter,
-                        "tilbakekrevingsbelop" to dto.tilbakekrevingsbeløp,
-                        "funksjonellPeriodeFom" to dto.funksjonellPeriodeFom,
-                        "funksjonellPeriodeTom" to dto.funksjonellPeriodeTom,
-                        "hendelse" to dto.hendelse,
-                        "avsender" to dto.avsender,
-                        "versjon" to dto.versjon,
-                        "behandling_aarsak" to dto.behandlingAarsak?.name,
-                        "relatertfagsystem" to dto.relatertFagsystem,
-                        "sakutland" to dto.sakUtland,
-                        "ansvarligenhet" to dto.ansvarligenhet,
-                    ),
-                ).asUpdateAndReturnGeneratedKey,
-            )
-        }
+    fun lagre(dto: SaksstatistikkDTO, tx: TransactionalSession) {
+        tx.run(
+            queryOf(
+                lagreSql,
+                mapOf(
+                    "sakId" to dto.sakId,
+                    "saksnummer" to dto.saksnummer,
+                    "behandlingId" to dto.behandlingId,
+                    "relatertBehandlingId" to dto.relatertBehandlingId,
+                    "fnr" to dto.fnr,
+                    "mottattTidspunkt" to dto.mottattTidspunkt,
+                    "registrertTidspunkt" to dto.registrertTidspunkt,
+                    "ferdigBehandletTidspunkt" to dto.ferdigBehandletTidspunkt,
+                    "vedtakTidspunkt" to dto.vedtakTidspunkt,
+                    "utbetaltTidspunkt" to dto.utbetaltTidspunkt,
+                    "endretTidspunkt" to dto.endretTidspunkt,
+                    "soknadsformat" to dto.søknadsformat.name,
+                    "forventetOppstartTidspunkt" to dto.forventetOppstartTidspunkt,
+                    "tekniskTidspunkt" to dto.tekniskTidspunkt,
+                    "sakYtelse" to dto.sakYtelse,
+                    "behandlingType" to dto.behandlingType.name,
+                    "behandlingStatus" to dto.behandlingStatus.name,
+                    "behandlingResultat" to dto.behandlingResultat?.name,
+                    "resultatBegrunnelse" to dto.resultatBegrunnelse,
+                    "behandlingMetode" to dto.behandlingMetode,
+                    "opprettetAv" to dto.opprettetAv,
+                    "saksbehandler" to dto.saksbehandler,
+                    "ansvarligBeslutter" to dto.ansvarligBeslutter,
+                    "tilbakekrevingsbelop" to dto.tilbakekrevingsbeløp,
+                    "funksjonellPeriodeFom" to dto.funksjonellPeriodeFom,
+                    "funksjonellPeriodeTom" to dto.funksjonellPeriodeTom,
+                    "hendelse" to dto.hendelse,
+                    "avsender" to dto.avsender,
+                    "versjon" to dto.versjon,
+                    "behandling_aarsak" to dto.behandlingAarsak?.name,
+                    "relatertfagsystem" to dto.relatertFagsystem,
+                    "sakutland" to dto.sakUtland,
+                    "ansvarligenhet" to dto.ansvarligenhet,
+                ),
+            ).asUpdateAndReturnGeneratedKey,
+        )
+    }
 
-        @Language("SQL")
-        private val lagreSql = """
+    @Language("SQL")
+    private val lagreSql = """
         insert into statistikk_sak (
             sak_id,
             saksnummer,
@@ -199,43 +167,5 @@ internal class SaksstatistikkPostgresRepo(
             :sakutland,
             :ansvarligenhet
         )
-        """.trimIndent()
-    }
-
-    private fun Row.toStatistikkSakDTO() =
-        SaksstatistikkDTO(
-            sakId = string("sak_id"),
-            saksnummer = string("saksnummer"),
-            behandlingId = string("behandlingid"),
-            relatertBehandlingId = stringOrNull("relatertbehandlingid"),
-            fnr = string("fnr"),
-            mottattTidspunkt = localDateTime("mottatt_tidspunkt"),
-            registrertTidspunkt = localDateTime("registrerttidspunkt"),
-            ferdigBehandletTidspunkt = localDateTimeOrNull("ferdigbehandlettidspunkt"),
-            vedtakTidspunkt = localDateTimeOrNull("vedtaktidspunkt"),
-            endretTidspunkt = localDateTime("endrettidspunkt"),
-            utbetaltTidspunkt = localDateTimeOrNull("utbetalttidspunkt"),
-            søknadsformat = StatistikkFormat.valueOf(string("soknadsformat")),
-            forventetOppstartTidspunkt = localDateOrNull("forventetoppstarttidspunkt"),
-            tekniskTidspunkt = localDateTime("teknisktidspunkt"),
-            sakYtelse = string("sakytelse"),
-            behandlingType = StatistikkBehandlingType.valueOf(string("behandlingtype")),
-            behandlingStatus = StatistikkBehandlingStatus.valueOf(string("behandlingstatus")),
-            behandlingResultat = stringOrNull("behandlingresultat")?.let { StatistikkBehandlingResultat.valueOf(it) },
-            resultatBegrunnelse = stringOrNull("resultatbegrunnelse"),
-            behandlingMetode = string("behandlingmetode"),
-            opprettetAv = string("opprettetav"),
-            saksbehandler = stringOrNull("saksbehandler"),
-            ansvarligBeslutter = stringOrNull("ansvarligbeslutter"),
-            tilbakekrevingsbeløp = doubleOrNull("tilbakekrevingsbelop"),
-            funksjonellPeriodeFom = localDateOrNull("funksjonellperiode_fra_og_med"),
-            funksjonellPeriodeTom = localDateOrNull("funksjonellperiode_til_og_med"),
-            avsender = string("avsender"),
-            versjon = string("versjon"),
-            hendelse = string("hendelse"),
-            behandlingAarsak = stringOrNull("behandling_aarsak")?.let { StatistikkBehandlingAarsak.valueOf(it) },
-            relatertFagsystem = string("relatertfagsystem"),
-            sakUtland = string("sakutland"),
-            ansvarligenhet = string("ansvarligenhet"),
-        )
+    """.trimIndent()
 }

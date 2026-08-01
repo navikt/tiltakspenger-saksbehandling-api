@@ -12,7 +12,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
-import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -52,23 +51,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
                         order by sist_oppdatert asc
                     """.trimIndent(),
                     "tiltaksdeltaker_id" to internDeltakerId.toString(),
-                    "sist_oppdatert" to nå(clock).minusMinutes(minutterForsinkelse),
-                ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
-            )
-        }
-
-    @TestOnly
-    fun hentUbehandlede(minutterForsinkelse: Long = 0): List<TiltaksdeltakerHendelse> =
-        sessionFactory.withSession {
-            it.run(
-                sqlQuery(
-                    """
-                        select *
-                        from tiltaksdeltaker_kafka
-                        where behandlet_tidspunkt is null
-                          and sist_oppdatert < :sist_oppdatert
-                        order by sist_oppdatert asc
-                    """.trimIndent(),
                     "sist_oppdatert" to nå(clock).minusMinutes(minutterForsinkelse),
                 ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
             )
@@ -186,48 +168,24 @@ class TiltaksdeltakerHendelsePostgresRepo(
             )
         }
     }
+}
 
-    private fun Row.tilTiltaksdeltakerHendelse(): TiltaksdeltakerHendelse {
-        return TiltaksdeltakerHendelse(
-            id = TiltaksdeltakerHendelseId.fromString(string("hendelse_id")),
-            eksternDeltakerId = string("deltaker_id"),
-            deltakelseFraOgMed = localDateOrNull("deltakelse_fra_og_med"),
-            deltakelseTilOgMed = localDateOrNull("deltakelse_til_og_med"),
-            dagerPerUke = floatOrNull("dager_per_uke"),
-            deltakelsesprosent = floatOrNull("deltakelsesprosent"),
-            deltakerstatus = TiltakDeltakerstatus.valueOf(string("deltakerstatus")),
-            sakId = SakId.fromString(string("sak_id")),
-            oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
-            internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
-            behandlingId = stringOrNull("behandling_id")?.let { RammebehandlingId.fromString(it) },
-        )
-    }
-
-    @TestOnly
-    fun hent(id: TiltaksdeltakerHendelseId): TiltaksdeltakerHendelse? = sessionFactory.withSession {
-        it.run(
-            sqlQuery(
-                """
-                    select * 
-                    from tiltaksdeltaker_kafka 
-                    where hendelse_id = :hendelse_id
-                """.trimIndent(),
-                "hendelse_id" to id.toString(),
-            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asSingle,
-        )
-    }
-
-    @TestOnly
-    fun hentForEksternDeltakerId(id: String): List<TiltaksdeltakerHendelse> = sessionFactory.withSession {
-        it.run(
-            sqlQuery(
-                """
-                    select * 
-                    from tiltaksdeltaker_kafka 
-                    where deltaker_id = :deltaker_id
-                """.trimIndent(),
-                "deltaker_id" to id,
-            ).map { row -> row.tilTiltaksdeltakerHendelse() }.asList,
-        )
-    }
+/**
+ * Toppnivå fordi testlaget gjør sine egne oppslag mot `tiltaksdeltaker_kafka` med egen SQL, og skal slippe å duplisere mappingen.
+ * Mappingen brukes av prodspørringene i [TiltaksdeltakerHendelsePostgresRepo], så den hører hjemme her.
+ */
+fun Row.tilTiltaksdeltakerHendelse(): TiltaksdeltakerHendelse {
+    return TiltaksdeltakerHendelse(
+        id = TiltaksdeltakerHendelseId.fromString(string("hendelse_id")),
+        eksternDeltakerId = string("deltaker_id"),
+        deltakelseFraOgMed = localDateOrNull("deltakelse_fra_og_med"),
+        deltakelseTilOgMed = localDateOrNull("deltakelse_til_og_med"),
+        dagerPerUke = floatOrNull("dager_per_uke"),
+        deltakelsesprosent = floatOrNull("deltakelsesprosent"),
+        deltakerstatus = TiltakDeltakerstatus.valueOf(string("deltakerstatus")),
+        sakId = SakId.fromString(string("sak_id")),
+        oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
+        internDeltakerId = TiltaksdeltakerId.fromString(string("tiltaksdeltaker_id")),
+        behandlingId = stringOrNull("behandling_id")?.let { RammebehandlingId.fromString(it) },
+    )
 }

@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.felles
 
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SaniterStringForPdfgen
-import org.jetbrains.annotations.TestOnly
 
 // TODO - denne burde flyttes til libs
 
@@ -23,9 +22,6 @@ value class Begrunnelse private constructor(
             if (verdi.isBlank()) return null
             return Begrunnelse(NonBlankString.create(SaniterStringForPdfgen.saniterBeholdNewline(verdi)))
         }
-
-        @TestOnly
-        fun createOrThrow(verdi: String): Begrunnelse = create(verdi)!!
 
         /** @return null dersom strengen er blank */
         fun String.toBegrunnelse(): Begrunnelse? = create(this)

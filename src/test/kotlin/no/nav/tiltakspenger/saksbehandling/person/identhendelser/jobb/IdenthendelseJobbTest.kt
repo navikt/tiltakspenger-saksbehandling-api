@@ -25,6 +25,9 @@ import no.nav.tiltakspenger.saksbehandling.person.Personident
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
+import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.lagreSaksstatistikk
+import no.nav.tiltakspenger.saksbehandling.statistikk.lagreStønadsstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.genererStønadsstatistikkForRammevedtak
 import org.junit.jupiter.api.Test
@@ -46,8 +49,6 @@ class IdenthendelseJobbTest {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val søknadRepo = testDataHelper.søknadRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val statistikkStønadRepo = testDataHelper.statistikkStønadRepo
                 val statistikkService = testDataHelper.statistikkService
                 val identhendelseJobb = IdenthendelseJobb(
                     identhendelseRepository = identhendelseRepository,
@@ -79,15 +80,16 @@ class IdenthendelseJobbTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                statistikkSakRepo.lagre(
+                testDataHelper.sessionFactory.lagreSaksstatistikk(
                     vedtak.genererSaksstatistikk().genererSaksstatistikk(
                         gjelderKode6 = { false },
                         versjon = "1",
                         clock = clock,
                     ),
                 )
-                statistikkStønadRepo.lagre(
+                testDataHelper.sessionFactory.lagreStønadsstatistikk(
                     genererStønadsstatistikkForRammevedtak(vedtak).genererStønadsstatistikk(),
+                    clock,
                 )
                 val identhendelseDb = IdenthendelseDb(
                     id = UUID.randomUUID(),
@@ -120,8 +122,8 @@ class IdenthendelseJobbTest {
                 sakRepo.hentForSakId(sak.id)?.fnr shouldBe nyttFnr
                 søknadRepo.hentSøknaderForFnr(gammeltFnr) shouldBe emptyList()
                 søknadRepo.hentSøknaderForFnr(nyttFnr).size shouldBe 1
-                statistikkSakRepo.hent(sak.id).first().fnr shouldBe nyttFnr.verdi
-                statistikkSakRepo.hent(sak.id).first().fnr shouldBe nyttFnr.verdi
+                testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first().fnr shouldBe nyttFnr.verdi
+                testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first().fnr shouldBe nyttFnr.verdi
             }
         }
     }
@@ -136,8 +138,6 @@ class IdenthendelseJobbTest {
                 val identhendelseRepository = testDataHelper.identhendelseRepository
                 val sakRepo = testDataHelper.sakRepo
                 val søknadRepo = testDataHelper.søknadRepo
-                val statistikkSakRepo = testDataHelper.statistikkSakRepo
-                val statistikkStønadRepo = testDataHelper.statistikkStønadRepo
                 val statistikkService = testDataHelper.statistikkService
                 val identhendelseJobb = IdenthendelseJobb(
                     identhendelseRepository = identhendelseRepository,
@@ -169,15 +169,16 @@ class IdenthendelseJobbTest {
                         saksnummer = sak.saksnummer,
                     ),
                 )
-                statistikkSakRepo.lagre(
+                testDataHelper.sessionFactory.lagreSaksstatistikk(
                     vedtak.genererSaksstatistikk().genererSaksstatistikk(
                         gjelderKode6 = { false },
                         versjon = "1",
                         clock = clock,
                     ),
                 )
-                statistikkStønadRepo.lagre(
+                testDataHelper.sessionFactory.lagreStønadsstatistikk(
                     genererStønadsstatistikkForRammevedtak(vedtak).genererStønadsstatistikk(),
+                    clock,
                 )
                 val identhendelseDb = IdenthendelseDb(
                     id = UUID.randomUUID(),
@@ -205,8 +206,8 @@ class IdenthendelseJobbTest {
                 sakRepo.hentForSakId(sak.id)?.fnr shouldBe nyttFnr
                 søknadRepo.hentSøknaderForFnr(gammeltFnr) shouldBe emptyList()
                 søknadRepo.hentSøknaderForFnr(nyttFnr).size shouldBe 1
-                statistikkSakRepo.hent(sak.id).first().fnr shouldBe nyttFnr.verdi
-                statistikkSakRepo.hent(sak.id).first().fnr shouldBe nyttFnr.verdi
+                testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first().fnr shouldBe nyttFnr.verdi
+                testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first().fnr shouldBe nyttFnr.verdi
             }
         }
     }

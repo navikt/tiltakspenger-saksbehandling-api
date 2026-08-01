@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.libs.satser.Satser
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
