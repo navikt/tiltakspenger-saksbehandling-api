@@ -109,8 +109,6 @@ enum class KlagehjemmelDb {
             Hjemmel.TiltakspengeforskriftenHjemmel.TILTAKSPENGEFORSKRIFTEN_11 -> TILTAKSPENGEFORSKRIFTEN_11
         }
 
-        fun List<Klagehjemmel>.toDb(): List<KlagehjemmelDb> = this.toList().map { it.toDb() }
-
         fun List<KlagehjemmelDb>.toDomain(): Klagehjemler =
             Klagehjemler(this.map { it.toDomain() }.toNonEmptySetOrThrow())
     }
