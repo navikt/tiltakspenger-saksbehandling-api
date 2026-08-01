@@ -6,7 +6,6 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingB
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 
 class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<TilbakekrevingId, TilbakekrevingBehandling>())
@@ -79,10 +78,6 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         return true
     }
 
-    override fun hent(id: TilbakekrevingId, sessionContext: SessionContext?): TilbakekrevingBehandling? {
-        return data.get()[id]
-    }
-
     override fun hentForTilbakeBehandlingId(
         id: String,
         sessionContext: SessionContext?,
@@ -92,12 +87,5 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
         return data.get().values.filter { it.sakId == sakId }
-    }
-
-    override fun hentForUtbetalingId(
-        utbetalingId: UtbetalingId,
-        sessionContext: SessionContext?,
-    ): List<TilbakekrevingBehandling> {
-        return data.get().values.filter { it.utbetalingId == utbetalingId }
     }
 }

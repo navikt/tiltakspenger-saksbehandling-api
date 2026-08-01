@@ -218,20 +218,6 @@ class TilbakekrevingBehandlingPostgresRepo(
             ) > 0
         }
 
-    override fun hent(id: TilbakekrevingId, sessionContext: SessionContext?): TilbakekrevingBehandling? =
-        sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    SELECT *
-                    FROM tilbakekreving_behandling
-                    WHERE id = :id
-                    """.trimIndent(),
-                    "id" to id.toString(),
-                ).map { row -> row.tilTilbakekrevingBehandling() }.asSingle,
-            )
-        }
-
     override fun hentForTilbakeBehandlingId(id: String, sessionContext: SessionContext?): TilbakekrevingBehandling? =
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
@@ -248,23 +234,6 @@ class TilbakekrevingBehandlingPostgresRepo(
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> =
         sessionFactory.withSession(sessionContext) { session -> hentForSakId(sakId, session) }
-
-    override fun hentForUtbetalingId(
-        utbetalingId: UtbetalingId,
-        sessionContext: SessionContext?,
-    ): List<TilbakekrevingBehandling> =
-        sessionFactory.withSession(sessionContext) { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    SELECT *
-                    FROM tilbakekreving_behandling
-                    WHERE utbetaling_id = :utbetaling_id
-                    """.trimIndent(),
-                    "utbetaling_id" to utbetalingId.toString(),
-                ).map { row -> row.tilTilbakekrevingBehandling() }.asList,
-            )
-        }
 
     companion object {
         fun hentForSakId(sakId: SakId, session: Session): List<TilbakekrevingBehandling> =

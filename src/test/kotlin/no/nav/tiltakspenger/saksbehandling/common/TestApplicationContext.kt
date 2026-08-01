@@ -5,8 +5,12 @@ import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
@@ -64,6 +68,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.Tilbakekre
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelseRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerRepo
@@ -440,8 +445,17 @@ sealed class TestApplicationContext(
 
     // ====== Hjelpemetoder for tester ======
 
-    /** Genererer en ny [Tiltaksdeltakelse] med unik intern- og ekstern-id basert på [idGenerators]. */
-    fun tiltaksdeltakelse(): Tiltaksdeltakelse = idGenerators.søknadstiltakIdGenerator.tiltaksdeltakelse()
+    /**
+     * Genererer en ny [Tiltaksdeltakelse] med unik intern- og ekstern-id basert på [idGenerators].
+     * Defaultene er en deltakelse som allerede har startet; send inn [periode] og [status] for en deltakelse som ikke har det.
+     */
+    fun tiltaksdeltakelse(
+        periode: Periode = 1.januar(2023) til 31.mars(2023),
+        status: TiltakDeltakerstatus = TiltakDeltakerstatus.Deltar,
+    ): Tiltaksdeltakelse = idGenerators.søknadstiltakIdGenerator.tiltaksdeltakelse(
+        periode = periode,
+        status = status,
+    )
 
     /**
      * Registrerer en person i alle nødvendige fake-klienter for at en test skal kunne behandle vedkommende:

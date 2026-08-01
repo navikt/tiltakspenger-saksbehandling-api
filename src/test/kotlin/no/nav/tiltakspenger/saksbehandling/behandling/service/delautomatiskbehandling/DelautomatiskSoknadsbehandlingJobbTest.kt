@@ -1,287 +1,159 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
-import arrow.core.right
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
-import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.dato.juni
+import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterSaksopplysningerService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartSøknadsbehandlingService
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetAutomatiskSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Test
 
+/**
+ * Tilstanden bygges gjennom prodstiene: søknaden kommer inn på søknadsruta, og jobben kjøres slik den kjøres i nais.
+ * Tjenestene jobben kaller er de ekte, ikke mocks, slik at testene sier noe om utfallet og ikke bare om hvilke kall som ble gjort.
+ */
 class DelautomatiskSoknadsbehandlingJobbTest {
+
     @Test
-    fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter behandling for åpen søknad uten behandling`() {
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val soknadRepo = testDataHelper.søknadRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
-                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
-                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
-                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
-                    soknadRepo,
-                    behandlingRepo,
-                    startSøknadsbehandlingService,
-                    delautomatiskBehandlingService,
-                    oppdaterSaksopplysningerService,
-                    testDataHelper.clock,
-                )
+    fun `opprettSøknadsbehandlingForSøknad - åpen søknad uten behandling - oppretter automatisk behandling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, søknad) = opprettSakOgSøknad(tac = tac)
 
-                val soknad = testDataHelper.persisterSakOgSøknad()
-                soknad.shouldBeInstanceOf<InnvilgbarSøknad>()
-                coEvery {
-                    startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(
-                        any(),
-                        any(),
-                    )
-                } returns ObjectMother.nyOpprettetAutomatiskSøknadsbehandling().right()
+            tac.delautomatiskSøknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(søknad.id)
 
-                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(soknad.id)
+            val rammebehandlinger = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger
+            rammebehandlinger.size shouldBe 1
+            val behandling = rammebehandlinger.single()
+            behandling.shouldBeInstanceOf<Søknadsbehandling>()
+            behandling.søknad.id shouldBe søknad.id
+            behandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+        }
+    }
 
-                coVerify { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(soknad, any()) }
-            }
+    /**
+     * En avbrutt søknad uten behandling finnes ikke i prod: søknaden avbrytes gjennom avbryt-ruta, som krever en behandling å avbryte.
+     * Vi bygger derfor tilstanden slik den faktisk oppstår - behandling og søknad avbrytes sammen - og sjekker at jobben lar den ligge.
+     */
+    @Test
+    fun `opprettSøknadsbehandlingForSøknad - avbrutt søknad - oppretter ikke behandling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, søknad) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
+
+            tac.delautomatiskSøknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(søknad.id)
+
+            val rammebehandlinger = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger
+            rammebehandlinger.size shouldBe 1
+            rammebehandlinger.single().status shouldBe Rammebehandlingsstatus.AVBRUTT
         }
     }
 
     @Test
-    fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter ikke behandling for avbrutt søknad`() {
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val soknadRepo = testDataHelper.søknadRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
-                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
-                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
-                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
-                    soknadRepo,
-                    behandlingRepo,
-                    startSøknadsbehandlingService,
-                    delautomatiskBehandlingService,
-                    oppdaterSaksopplysningerService,
-                    testDataHelper.clock,
-                )
+    fun `opprettSøknadsbehandlingForSøknad - søknad med åpen behandling - oppretter ikke ny behandling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac = tac)
 
-                val soknad = testDataHelper.persisterSakOgSøknad()
+            tac.delautomatiskSøknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(søknad.id)
 
-                soknad as InnvilgbarSøknad
-                soknadRepo.lagreAvbruttSøknad(
-                    soknad.copy(
-                        avbrutt = Avbrutt(
-                            nå(testDataHelper.clock),
-                            "saksbehandler",
-                            "begrunnelse".toNonBlankString(),
-                        ),
-                    ),
-                )
-
-                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(soknad.id)
-
-                coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
-            }
+            val rammebehandlinger = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger
+            rammebehandlinger.size shouldBe 1
+            rammebehandlinger.single().id shouldBe behandling.id
         }
     }
 
     @Test
-    fun `opprettSøknadsbehandlingerFraNyeSøknader - oppretter ikke behandling for søknad med åpen behandling`() {
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val soknadRepo = testDataHelper.søknadRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
-                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
-                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
-                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
-                    soknadRepo,
-                    behandlingRepo,
-                    startSøknadsbehandlingService,
-                    delautomatiskBehandlingService,
-                    oppdaterSaksopplysningerService,
-                    testDataHelper.clock,
-                )
+    fun `automatiskBehandleSøknadsbehandling - behandling under automatisk behandling - behandles ferdig`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac = tac)
 
-                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
+            tac.delautomatiskSøknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
 
-                delautomatiskSoknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(behandling.søknad.id)
-
-                coVerify(exactly = 0) { startSøknadsbehandlingService.opprettAutomatiskSoknadsbehandling(any(), any()) }
-            }
+            val behandlet = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+            behandlet.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            behandlet.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER.navIdent
         }
     }
 
     @Test
-    fun `automatiskBehandleSøknadsbehandlinger - behandler opprettet automatisk behandling`() {
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val soknadRepo = testDataHelper.søknadRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
-                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
-                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
-                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
-                    soknadRepo,
-                    behandlingRepo,
-                    startSøknadsbehandlingService,
-                    delautomatiskBehandlingService,
-                    oppdaterSaksopplysningerService,
-                    testDataHelper.clock,
-                )
+    fun `automatiskBehandleSøknadsbehandling - behandling under manuell behandling - hoppes over`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac = tac)
 
-                val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
+            tac.delautomatiskSøknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
 
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(automatiskBehandling.id)
+            val uendret = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+            uendret.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+            uendret.saksbehandler shouldBe behandling.saksbehandler
+        }
+    }
 
-                coVerify { delautomatiskBehandlingService.behandleAutomatisk(automatiskBehandling, any()) }
-                coVerify(exactly = 0) {
-                    oppdaterSaksopplysningerService.oppdaterSaksopplysninger(
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                    )
-                }
-            }
+    /**
+     * Tiltaket har ikke startet, så første kjøring setter behandlingen på vent til startdatoen.
+     * Andre kjøring skal la den ligge, siden `venterTil` ikke er passert.
+     */
+    @Test
+    fun `automatiskBehandleSøknadsbehandling - venter til er ikke passert - hoppes over`() {
+        val klokke = TikkendeKlokke(fixedClockAt(1.mai(2025)))
+        withTestApplicationContextAndPostgres(clock = klokke) { tac ->
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                tac = tac,
+                tiltaksdeltakelse = tac.tiltaksdeltakelseSomIkkeHarStartet(),
+            )
+
+            tac.delautomatiskSøknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
+
+            val påVent = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+            påVent.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            påVent.ventestatus.erSattPåVent shouldBe true
+            påVent.venterTil shouldBe 1.juni(2025).atTime(6, 0)
+
+            tac.delautomatiskSøknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
+
+            val fortsattPåVent = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+            fortsattPåVent.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            fortsattPåVent.ventestatus.erSattPåVent shouldBe true
+            fortsattPåVent.sistEndret shouldBe påVent.sistEndret
         }
     }
 
     @Test
-    fun `automatiskBehandleSøknadsbehandlinger - behandler ikke behandling med status UNDER_BEHANDLING`() {
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val soknadRepo = testDataHelper.søknadRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
-                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
-                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
-                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
-                    soknadRepo,
-                    behandlingRepo,
-                    startSøknadsbehandlingService,
-                    delautomatiskBehandlingService,
-                    oppdaterSaksopplysningerService,
-                    testDataHelper.clock,
-                )
+    fun `automatiskBehandleSøknadsbehandling - venter til er passert - oppdaterer saksopplysninger og behandler`() {
+        val klokke = TikkendeKlokke(fixedClockAt(1.mai(2025)))
+        withTestApplicationContextAndPostgres(clock = klokke) { tac ->
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                tac = tac,
+                tiltaksdeltakelse = tac.tiltaksdeltakelseSomIkkeHarStartet(),
+            )
+            tac.delautomatiskSøknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
+            val påVent = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+            påVent.ventestatus.erSattPåVent shouldBe true
 
-                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling()
+            klokke.spolTil(2.juni(2025))
 
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
+            tac.delautomatiskSøknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandling.id)
 
-                coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
-            }
-        }
-    }
-
-    @Test
-    fun `automatiskBehandleSøknadsbehandlinger - behandler ikke automatisk behandling der venter til ikke er passert`() {
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val soknadRepo = testDataHelper.søknadRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
-                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
-                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
-                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
-                    soknadRepo,
-                    behandlingRepo,
-                    startSøknadsbehandlingService,
-                    delautomatiskBehandlingService,
-                    oppdaterSaksopplysningerService,
-                    testDataHelper.clock,
-                )
-
-                val (_, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
-                val kommando = SettRammebehandlingPåVentKommando(
-                    sakId = automatiskBehandling.sakId,
-                    rammebehandlingId = automatiskBehandling.id,
-                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                    venterTil = nå(testDataHelper.clock).plusDays(1),
-                    frist = null,
-                )
-                val behandlingPaVent = automatiskBehandling.settPåVent(
-                    kommando = kommando,
-                    clock = testDataHelper.clock,
-                ).first as Søknadsbehandling
-                behandlingRepo.lagre(behandlingPaVent)
-
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandlingPaVent.id)
-
-                coVerify(exactly = 0) { delautomatiskBehandlingService.behandleAutomatisk(any(), any()) }
-            }
-        }
-    }
-
-    @Test
-    fun `automatiskBehandleSøknadsbehandlinger - behandler automatisk behandling der venter til er passert, oppdaterer saksopplysninger`() {
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val soknadRepo = testDataHelper.søknadRepo
-                val behandlingRepo = testDataHelper.behandlingRepo
-                val startSøknadsbehandlingService = mockk<StartSøknadsbehandlingService>()
-                val oppdaterSaksopplysningerService = mockk<OppdaterSaksopplysningerService>()
-                val delautomatiskBehandlingService = mockk<DelautomatiskBehandlingService>(relaxed = true)
-                val delautomatiskSoknadsbehandlingJobb = DelautomatiskSoknadsbehandlingJobb(
-                    soknadRepo,
-                    behandlingRepo,
-                    startSøknadsbehandlingService,
-                    delautomatiskBehandlingService,
-                    oppdaterSaksopplysningerService,
-                    testDataHelper.clock,
-                )
-
-                val (sak, automatiskBehandling, _) = testDataHelper.persisterOpprettetAutomatiskSøknadsbehandling()
-                val kommando = SettRammebehandlingPåVentKommando(
-                    sakId = automatiskBehandling.sakId,
-                    rammebehandlingId = automatiskBehandling.id,
-                    begrunnelse = "Tiltaksdeltakelsen har ikke startet ennå",
-                    saksbehandler = AUTOMATISK_SAKSBEHANDLER,
-                    venterTil = nå(testDataHelper.clock).minusDays(1),
-                    frist = null,
-                )
-                val behandlingPaVent = automatiskBehandling.settPåVent(
-                    kommando = kommando,
-                    clock = testDataHelper.clock,
-                ).first as Søknadsbehandling
-                behandlingRepo.lagre(behandlingPaVent)
-                coEvery {
-                    oppdaterSaksopplysningerService.oppdaterSaksopplysninger(
-                        any(),
-                        any(),
-                        any(),
-                        any(),
-                    )
-                } returns (sak to behandlingPaVent).right()
-
-                delautomatiskSoknadsbehandlingJobb.automatiskBehandleSøknadsbehandling(behandlingPaVent.id)
-
-                coVerify {
-                    delautomatiskBehandlingService.behandleAutomatisk(
-                        match { it.id == behandlingPaVent.id },
-                        any(),
-                    )
-                }
-                coVerify {
-                    oppdaterSaksopplysningerService.oppdaterSaksopplysninger(
-                        automatiskBehandling.sakId,
-                        automatiskBehandling.id,
-                        AUTOMATISK_SAKSBEHANDLER,
-                        any(),
-                    )
-                }
-            }
+            val gjenopptatt = tac.behandlingContext.rammebehandlingRepo.hent(behandling.id)
+            gjenopptatt.ventestatus.erSattPåVent shouldBe false
+            gjenopptatt.status shouldNotBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
         }
     }
 }
+
+/**
+ * Tiltaksdeltakelse som starter etter klokka i testen, slik at [DelautomatiskBehandlingService] setter behandlingen på vent.
+ */
+private fun TestApplicationContext.tiltaksdeltakelseSomIkkeHarStartet() =
+    tiltaksdeltakelse(
+        periode = 1.juni(2025) til 30.juni(2025),
+        status = TiltakDeltakerstatus.VenterPåOppstart,
+    )
