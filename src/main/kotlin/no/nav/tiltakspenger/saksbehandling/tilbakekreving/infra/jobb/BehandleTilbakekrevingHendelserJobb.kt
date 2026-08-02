@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.KjentTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
@@ -119,7 +120,7 @@ class BehandleTilbakekrevingHendelserJobb(
         val hendelseId = this.id
         val oppdatertHendelse = this.value.tilNyTilbakekrevingshendelse(clock, erDev, hendelseId)
 
-        if (oppdatertHendelse == null || oppdatertHendelse is TilbakekrevingUkjentHendelse) {
+        if (oppdatertHendelse !is KjentTilbakekrevingshendelse) {
             // Hendelsen blir aldri markert som behandlet, så den plukkes opp av hver eneste jobbkjøring.
             // I dev er dette bogusdata fra team tilbakekreving som aldri kommer til å la seg lese, og vi sletter den for å slippe å logge den i evig tid.
             // I prod beholder vi raden ubehandlet, slik at hendelsen kan behandles etter en retting av DTO-en.

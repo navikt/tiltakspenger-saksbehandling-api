@@ -11,5 +11,5 @@ interface KlagehendelseRepo {
 
     fun hentNyHendelse(klagehendelseId: KlagehendelseId, sessionContext: SessionContext? = null): NyKlagehendelse?
 
-    fun knyttHendelseTilSakOgKlagebehandling(nyKlagehendelse: NyKlagehendelse, sessionContext: SessionContext? = null)
+    fun knyttHendelseTilSakOgKlagebehandling(nyKlagehendelse: NyKlagehendelse, sessionContext: SessionContext?)
 }

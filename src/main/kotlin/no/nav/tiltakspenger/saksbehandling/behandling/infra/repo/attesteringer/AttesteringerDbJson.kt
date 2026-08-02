@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
-import java.security.InvalidParameterException
 
 /**
  * Har ansvar for å serialisere/deserialisere Attesteringer til og fra json for lagring i database.
@@ -12,16 +11,8 @@ private data class AttesteringerDbJson(
     val attesteringer: List<AttesteringDbJson>,
 )
 
-fun String.toAttesteringer(): List<Attestering> {
-    try {
-        val attesteringerDbJson = deserialize<AttesteringerDbJson>(this)
-        return attesteringerDbJson.attesteringer.map {
-            it.toDomain()
-        }
-    } catch (exception: Exception) {
-        throw InvalidParameterException("Det oppstod en feil ved parsing av json: " + exception.message)
-    }
-}
+fun String.toAttesteringer(): List<Attestering> =
+    deserialize<AttesteringerDbJson>(this).attesteringer.map { it.toDomain() }
 
 fun List<Attestering>.toDbJson(): String =
     serialize(

@@ -20,7 +20,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
     private val clock: Clock,
 ) {
 
-    fun hentDeltakereMedUbehandledeHendelser(minutterForsinkelse: Long = 0): List<TiltaksdeltakerId> =
+    fun hentDeltakereMedUbehandledeHendelser(minutterForsinkelse: Long): List<TiltaksdeltakerId> =
         sessionFactory.withSession {
             it.run(
                 sqlQuery(
@@ -37,7 +37,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
 
     fun hentUbehandledeForDeltaker(
         internDeltakerId: TiltaksdeltakerId,
-        minutterForsinkelse: Long = 0,
+        minutterForsinkelse: Long,
     ): List<TiltaksdeltakerHendelse> =
         sessionFactory.withSession {
             it.run(

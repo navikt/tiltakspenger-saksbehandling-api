@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.3"
-val felleslibVersion = "0.0.20260801065408"
+val felleslibVersion = "0.0.20260802145428"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
@@ -340,36 +340,56 @@ val httpklientKlasserMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",
     )
 
-// Postgres-repoer som er brakt til full linjedekning gjennom route-testene, jf. testtaksonomien i AGENTS.md.
-// Lista er en ratchet: utvid den når et repo når full dekning i sveipen, slik at dekningen ikke kan falle tilbake.
-val postgresRepoerMedDekningskrav =
+// Hele databaselaget skal ha full linjedekning, jf. testtaksonomien i AGENTS.md.
+// Mønstre framfor navneliste: ny kode i databaselaget er dekket som standard, i stedet for å måtte legges til for hånd.
+// En navneliste ville dessuten mistet dekningen stille ved en pakke- eller navneendring.
+//
+// Kover matcher på fullt klassenavn, og `*` dekker også punktum — det finnes ingen `**`, og det trengs ikke.
+// Ett `*` spenner altså over vilkårlig mange pakkenivåer, og de to mønstrene er derfor så brede som de ser ut.
+val databaselagMedDekningskrav =
     listOf(
-        "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo",
-        "no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo",
-        "no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo",
-        "no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo",
+        // Alt som ligger under en `infra/repo`-pakke, uansett hvor dypt: `<domene>/infra/repo/`, `<domene>/infra/repo/<mappe>/`, `infra/repo/`.
+        // `*DbJson`-filene ligger alle her, og fanges av dette mønsteret.
+        "no.nav.tiltakspenger.saksbehandling.*infra.repo.*",
+        // Alt som heter `*Repo`, uansett hvor det ligger — i praksis portene i `<domene>/ports`, men et repo som havner et annet sted er dekket uten at gaten må endres.
+        // Suffikset tar med de syntetiske `$DefaultImpls`-broene som defaultargumenter på et interface genererer.
+        "no.nav.tiltakspenger.saksbehandling.*Repo*",
     )
 
-val klasserMedFullDekningskrav = httpklientKlasserMedDekningskrav + postgresRepoerMedDekningskrav
+// Bootstrap som ligger i `infra/repo`, men ikke er databaselag: oppkoblingen mot Postgres og Flyway-oppsettet.
+// De kjøres kun fra `ApplicationContext`, som selv står utenfor gaten, og testinfrastrukturen kobler seg opp med libs' `TestDatabaseManager` i stedet.
+// Å dekke dem ville krevd et tredje skjema med alle migreringene på nytt, for å bevise en oppkobling de to eksisterende testskjemaene allerede beviser.
+// TODO jah: vurder om de heller hører hjemme under `infra/setup` sammen med resten av bootstrappen.
+val bootstrapUtenforDekningskravet =
+    listOf(
+        "no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup*",
+        "no.nav.tiltakspenger.saksbehandling.infra.repo.FlywayMigrateKt",
+    )
+
+// `*`-suffikset på httpklient-klassene tar med indre klasser og lambdaer; databaselag-mønstrene har det allerede.
+val klasserMedFullDekningskrav = httpklientKlasserMedDekningskrav.map { "$it*" } + databaselagMedDekningskrav
 
 kover {
     currentProject {
         instrumentation {
-            // Instrumenter kun klassene dekningsgaten måler (`*`-suffikset tar med indre klasser og lambdaer).
+            // Instrumenter kun klassene dekningsgaten måler.
             // Agent på hele klassestien koster ellers rundt ti prosent av testtiden.
-            includedClasses.addAll(klasserMedFullDekningskrav.map { "$it*" })
+            includedClasses.addAll(klasserMedFullDekningskrav)
         }
     }
     reports {
         total {
             filters {
                 includes {
-                    classes(klasserMedFullDekningskrav.map { "$it*" })
+                    classes(klasserMedFullDekningskrav)
+                }
+                excludes {
+                    classes(bootstrapUtenforDekningskravet)
                 }
             }
             verify {
                 onCheck = true
-                rule("migrerte httpklient-klienter og dekkede postgres-repoer har full linjedekning") {
+                rule("migrerte httpklient-klienter og hele databaselaget har full linjedekning") {
                     bound {
                         minValue = 100
                         coverageUnits = CoverageUnit.LINE

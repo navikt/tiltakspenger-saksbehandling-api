@@ -28,37 +28,6 @@ class KlagebehandlingFakeRepo : KlagebehandlingRepo {
         return data.get()[klagebehandlingId]
     }
 
-    override fun taBehandling(
-        klagebehandling: Klagebehandling,
-        sessionContext: SessionContext?,
-    ): Boolean {
-        val behandlingId = klagebehandling.id
-
-        val behandling = data.get()[behandlingId]
-        requireNotNull(behandling) {
-            "Behandling med id $behandlingId finnes ikke"
-        }
-        require(behandling.saksbehandler == null) {
-            "Saksbehandler ${behandling.saksbehandler} er ikke null"
-        }
-        data.get()[behandlingId] = klagebehandling
-        return true
-    }
-
-    override fun overtaBehandling(
-        klagebehandling: Klagebehandling,
-        nåværendeSaksbehandler: String,
-        sessionContext: SessionContext?,
-    ): Boolean {
-        val behandlingId = klagebehandling.id
-        val behandling = data.get()[behandlingId]
-        require(behandling != null && behandling.saksbehandler == nåværendeSaksbehandler) {
-            "Behandling med id $behandlingId finnes ikke eller har ikke saksbehandler $nåværendeSaksbehandler"
-        }
-        data.get()[behandlingId] = klagebehandling
-        return true
-    }
-
     override fun hentInnstillingsbrevSomSkalJournalføres(limit: Int): List<Klagebehandling> {
         return data.get().values.filter {
             it.status == Klagebehandlingsstatus.OPPRETTHOLDT &&

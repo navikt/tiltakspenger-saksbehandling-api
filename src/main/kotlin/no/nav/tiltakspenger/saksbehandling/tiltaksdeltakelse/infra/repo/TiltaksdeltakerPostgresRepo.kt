@@ -16,6 +16,10 @@ class TiltaksdeltakerPostgresRepo(
 ) : TiltaksdeltakerRepo {
 
     companion object {
+        /**
+         * `!!` er trygt: raden opprettes av [hentEllerLagre] første gang vi ser deltakelsen, og ingen prodsti sletter fra `tiltaksdeltaker`.
+         * `søknadstiltak_tiltaksdeltaker_id_fkey` hindrer i tillegg at en rad forsvinner under en søknad som peker på den.
+         */
         fun hentEksternId(
             internId: TiltaksdeltakerId,
             session: Session,
@@ -27,7 +31,7 @@ class TiltaksdeltakerPostgresRepo(
                 )
                     .map { row -> row.string("ekstern_id") }
                     .asSingle,
-            ) ?: throw IllegalArgumentException("Fant ikke eksternId for internId $internId!")
+            )!!
         }
     }
 

@@ -14,55 +14,52 @@ import org.intellij.lang.annotations.Language
 import java.time.Clock
 import java.time.LocalDate
 
-class StatistikkMeldekortPostgresRepo {
+object StatistikkMeldekortPostgresRepo {
+    fun oppdaterFnr(
+        gammeltFnr: Fnr,
+        nyttFnr: Fnr,
+        clock: Clock,
+        session: Session,
+    ) {
+        session.run(
+            sqlQuery(
+                """
+                    update statistikk_meldekort set
+                        bruker_id = :nytt_fnr,
+                        sist_endret = :sist_endret
+                    where bruker_id = :gammelt_fnr
+                """.trimIndent(),
+                "nytt_fnr" to nyttFnr.verdi,
+                "gammelt_fnr" to gammeltFnr.verdi,
+                "sist_endret" to nå(clock),
+            ).asUpdate,
+        )
+    }
 
-    companion object {
-        fun oppdaterFnr(
-            gammeltFnr: Fnr,
-            nyttFnr: Fnr,
-            clock: Clock,
-            session: Session,
-        ) {
-            session.run(
-                sqlQuery(
-                    """
-                        update statistikk_meldekort set
-                            bruker_id = :nytt_fnr,
-                            sist_endret = :sist_endret
-                        where bruker_id = :gammelt_fnr
-                    """.trimIndent(),
-                    "nytt_fnr" to nyttFnr.verdi,
-                    "gammelt_fnr" to gammeltFnr.verdi,
-                    "sist_endret" to nå(clock),
-                ).asUpdate,
-            )
-        }
-
-        fun lagre(
-            dto: StatistikkMeldekortDTO,
-            session: Session,
-        ) {
-            session.run(
-                queryOf(
-                    lagreMeldekortSql,
-                    mapOf(
-                        "meldeperiode_kjede_id" to dto.meldeperiodeKjedeId,
-                        "sak_id" to dto.sakId,
-                        "meldekortbehandling_id" to dto.meldekortbehandlingId,
-                        "bruker_id" to dto.brukerId,
-                        "saksnummer" to dto.saksnummer,
-                        "vedtatt_tidspunkt" to dto.vedtattTidspunkt,
-                        "behandlet_automatisk" to dto.behandletAutomatisk,
-                        "fra_og_med" to dto.fraOgMed,
-                        "til_og_med" to dto.tilOgMed,
-                        "meldekortdager" to dto.meldekortdager.tilMeldekortdagerDbJson().let { serialize(it) },
-                        "meldeperioder" to dto.meldeperioder.tilMeldeperioderDbJson().let { serialize(it) },
-                        "opprettet" to dto.opprettet,
-                        "sist_endret" to dto.sistEndret,
-                    ),
-                ).asUpdate,
-            )
-        }
+    fun lagre(
+        dto: StatistikkMeldekortDTO,
+        session: Session,
+    ) {
+        session.run(
+            queryOf(
+                lagreMeldekortSql,
+                mapOf(
+                    "meldeperiode_kjede_id" to dto.meldeperiodeKjedeId,
+                    "sak_id" to dto.sakId,
+                    "meldekortbehandling_id" to dto.meldekortbehandlingId,
+                    "bruker_id" to dto.brukerId,
+                    "saksnummer" to dto.saksnummer,
+                    "vedtatt_tidspunkt" to dto.vedtattTidspunkt,
+                    "behandlet_automatisk" to dto.behandletAutomatisk,
+                    "fra_og_med" to dto.fraOgMed,
+                    "til_og_med" to dto.tilOgMed,
+                    "meldekortdager" to dto.meldekortdager.tilMeldekortdagerDbJson().let { serialize(it) },
+                    "meldeperioder" to dto.meldeperioder.tilMeldeperioderDbJson().let { serialize(it) },
+                    "opprettet" to dto.opprettet,
+                    "sist_endret" to dto.sistEndret,
+                ),
+            ).asUpdate,
+        )
     }
 }
 

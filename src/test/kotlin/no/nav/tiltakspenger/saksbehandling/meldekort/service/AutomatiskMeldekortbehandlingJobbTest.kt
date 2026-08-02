@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
@@ -24,7 +25,10 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBehandleMeldekortAutomatisk
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -59,6 +63,40 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
             sisteMeldekortbehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
             sisteMeldekortbehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
+
+            // En annen sak der bruker melder tre sammenhengende dager med godkjent fravær.
+            // Jobben avviser meldekortet og skriver statusen tilbake på raden — grunnsettet for `oppdaterAutomatiskBehandletStatus`.
+            val (sakMedForMyeFravær) = iverksettSøknadsbehandling(tac = tac)
+            val meldeperiode = sakMedForMyeFravær.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+            val utfylt = meldeperiode.tilUtfyltFraBruker(
+                kanSendeInnHelgForMeldekort = sakMedForMyeFravær.kanSendeInnHelgForMeldekort,
+            )
+            // Bruker kan bare registrere på dager med rett, så fraværet må legges på dager hen faktisk kan fylle ut.
+            val fraværsdager = utfylt.keys
+                .filter { utfylt.getValue(it) != BrukerutfyltMeldekortDTO.Status.IKKE_BESVART }
+                .sorted()
+                .windowed(MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER + 1)
+                .first { vindu -> vindu.zipWithNext().all { (a, b) -> b == a.plusDays(1) } }
+                .toSet()
+            val dagerMedFravær = utfylt.mapValues { (dato, status) ->
+                if (dato in fraværsdager) BrukerutfyltMeldekortDTO.Status.FRAVÆR_GODKJENT_AV_NAV else status
+            }
+
+            val (_, meldekortMedForMyeFravær) = mottaMeldekortRequest(
+                tac = tac,
+                meldeperiodeId = meldeperiode.id,
+                sakId = sakMedForMyeFravær.id,
+                dager = dagerMedFravær,
+                // Journalpost-IDen er unik per meldekort, og standardverdien er allerede brukt av saken over.
+                journalpostId = "4321",
+            )
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            val lagret = tac.meldekortContext.brukersMeldekortRepo.hentForMeldekortId(meldekortMedForMyeFravær!!.id)!!
+            lagret.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
+            // Markert som ikke-automatisk, slik at jobben ikke plukker den opp igjen.
+            lagret.behandlesAutomatisk shouldBe false
+            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakMedForMyeFravær.id) shouldBe null
         }
     }
 

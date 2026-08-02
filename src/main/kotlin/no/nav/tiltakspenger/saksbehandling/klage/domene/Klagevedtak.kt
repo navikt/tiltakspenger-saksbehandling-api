@@ -25,7 +25,11 @@ data class Klagevedtak(
     val vedtaksdato: LocalDate?,
     /**
      * Alltid null i praksis: klagevedtak deles ikke med `tiltakspenger-datadeling`, som ikke kjenner klagebegrepet.
-     * Se [no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo.markerSendtTilDatadeling] for hva som må avklares før feltet tas i bruk.
+     * `SendTilDatadelingService` deler sak, rammevedtak, rammebehandling og meldekortvedtak — ikke klagevedtak.
+     *
+     * Kolonnen `sendt_til_datadeling` skrives ved lagring og leses tilbake hit, men står alltid som null.
+     * Skrivemetoden på repoet er fjernet fordi ingen prodsti kalte den.
+     * Vi fant ingen issue eller nedskrevet avklaring på om klagevedtak *skal* deles: enten kobles de på datadelingen, eller så ryddes feltet og kolonnen bort.
      */
     val sendtTilDatadeling: LocalDateTime?,
 ) : Vedtak {

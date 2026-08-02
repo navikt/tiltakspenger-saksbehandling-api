@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.KjentTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
@@ -206,12 +207,9 @@ class TilbakekrevingHendelsePostgresRepo(
         }
 
     override fun oppdaterUkjent(
-        oppdatertHendelse: Tilbakekrevingshendelse,
+        oppdatertHendelse: KjentTilbakekrevingshendelse,
         sessionContext: SessionContext?,
     ) {
-        require(oppdatertHendelse !is TilbakekrevingUkjentHendelse) {
-            "Kan ikke oppdatere ukjent-rad til ukjent type"
-        }
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
@@ -243,8 +241,6 @@ class TilbakekrevingHendelsePostgresRepo(
                             "ekstern_behandling_id" to oppdatertHendelse.eksternBehandlingId,
                             "behandling" to oppdatertHendelse.tilDbBehandlingJson(),
                         )
-
-                        is TilbakekrevingUkjentHendelse -> error("Kan ikke oppdatere ukjent til ukjent")
                     },
                 ).asUpdate,
             )

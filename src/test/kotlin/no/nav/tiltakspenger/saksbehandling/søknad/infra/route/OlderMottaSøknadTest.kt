@@ -113,8 +113,6 @@ class OlderMottaSøknadTest {
                     søknadstype = Søknadstype.DIGITAL,
                     manueltRegistrert = false,
                 )
-
-            tac.søknadContext.søknadRepo.hentSakIdForSoknad(søknadId) shouldBe sak.id
         }
     }
 

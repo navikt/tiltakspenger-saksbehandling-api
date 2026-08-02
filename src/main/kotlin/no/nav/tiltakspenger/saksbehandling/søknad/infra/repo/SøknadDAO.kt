@@ -48,16 +48,6 @@ object SøknadDAO {
                 .asList,
         ).firstOrNull()
 
-    fun finnSakId(
-        søknadId: SøknadId,
-        session: Session,
-    ): SakId? =
-        session.run(
-            queryOf("select * from søknad s join sak on sak.id = s.sak_id where s.id = ?", søknadId.toString())
-                .map { row -> row.toSakId() }
-                .asSingle,
-        )
-
     fun hentForSøknadId(
         søknadId: SøknadId,
         session: Session,

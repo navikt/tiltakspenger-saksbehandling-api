@@ -20,7 +20,7 @@ class UtbetalingFakeRepo : UtbetalingRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, VedtattUtbetaling>())
     private val response = arrow.atomic.Atomic(mutableMapOf<UtbetalingId, UtbetalingResponse>())
 
-    override fun lagre(
+    fun lagre(
         utbetaling: VedtattUtbetaling,
         context: TransactionContext?,
     ) {

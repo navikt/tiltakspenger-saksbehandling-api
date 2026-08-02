@@ -7,14 +7,14 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkD
 import java.time.Clock
 
 interface StatistikkRepo {
-    fun lagre(statistikk: StatistikkDTO, context: TransactionContext? = null)
+    fun lagre(statistikk: StatistikkDTO, context: TransactionContext?)
 
     fun oppdaterFnr(
         gammeltFnr: Fnr,
         nyttFnr: Fnr,
         clock: Clock,
-        transactionContext: TransactionContext? = null,
+        transactionContext: TransactionContext?,
     )
 
-    fun oppdaterAdressebeskyttelse(sakId: SakId, transactionContext: TransactionContext? = null)
+    fun oppdaterAdressebeskyttelse(sakId: SakId, transactionContext: TransactionContext?)
 }

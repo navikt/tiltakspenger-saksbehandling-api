@@ -16,6 +16,13 @@ sealed interface Tilbakekrevingshendelse {
     val feil: TilbakekrevinghendelseFeil?
 }
 
+/**
+ * En hendelse vi klarte å lese fra køen.
+ * [TilbakekrevingUkjentHendelse] er den eneste som ikke er det, og den kan aldri erstatte en annen ukjent-rad.
+ * Skillet ligger i typen slik at kompilatoren håndhever det, i stedet for en `require` i repoet.
+ */
+sealed interface KjentTilbakekrevingshendelse : Tilbakekrevingshendelse
+
 data class TilbakekrevinghendelseId private constructor(
     private val ulid: UlidBase,
 ) : Ulid by ulid {

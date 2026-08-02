@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.KjentTilbakekrevingshendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingInfoBehovHendelse
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingUkjentHendelse
@@ -103,13 +104,9 @@ class TilbakekrevingHendelseFakeRepo(
     }
 
     override fun oppdaterUkjent(
-        oppdatertHendelse: Tilbakekrevingshendelse,
+        oppdatertHendelse: KjentTilbakekrevingshendelse,
         sessionContext: SessionContext?,
     ) {
-        require(oppdatertHendelse !is TilbakekrevingUkjentHendelse) {
-            "Kan ikke oppdatere ukjent-rad til ukjent type"
-        }
-
         data.get()[oppdatertHendelse.id] as? TilbakekrevingUkjentHendelse
             ?: throw IllegalArgumentException("Fant ikke ukjent hendelse med id ${oppdatertHendelse.id}")
 

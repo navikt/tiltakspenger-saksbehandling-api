@@ -16,8 +16,6 @@ interface SøknadRepo {
 
     fun hentForSøknadId(søknadId: SøknadId): Søknad?
 
-    fun hentSakIdForSoknad(søknadId: SøknadId): SakId?
-
     fun hentSøknaderForFnr(fnr: Fnr, disableSessionCounter: Boolean = false): List<Søknad>
 
     fun finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): SakId?
@@ -30,9 +28,9 @@ interface SøknadRepo {
      */
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?)
 
-    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
+    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?)
 
-    fun hentUbehandledeSøknadIder(limit: Int = 10): List<SøknadId>
+    fun hentUbehandledeSøknadIder(limit: Int): List<SøknadId>
 
     /** Henter søknaden kun dersom den fortsatt er ubehandlet (digital, ikke avbrutt og uten behandling). */
     fun hentUbehandletSøknad(søknadId: SøknadId): InnvilgbarSøknad?

@@ -42,7 +42,7 @@ enum class KlageInnsendingskildeDb {
     }
 }
 
-private fun String.toBehandlingIdDetKlagesPå(): Ulid {
+fun String.toBehandlingIdDetKlagesPå(): Ulid {
     if (this.startsWith(RammebehandlingId.PREFIX)) {
         return RammebehandlingId.fromString(this)
     }

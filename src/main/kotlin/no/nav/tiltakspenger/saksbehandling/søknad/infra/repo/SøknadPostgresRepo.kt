@@ -27,11 +27,6 @@ class SøknadPostgresRepo(
         }
     }
 
-    override fun hentSakIdForSoknad(søknadId: SøknadId): SakId? =
-        sessionFactory.withSession {
-            SøknadDAO.finnSakId(søknadId, it)
-        }
-
     override fun hentSøknaderForFnr(fnr: Fnr, disableSessionCounter: Boolean): List<Søknad> {
         return sessionFactory.withSession(disableSessionCounter) {
             SøknadDAO.hentForFnr(fnr, it)

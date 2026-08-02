@@ -22,7 +22,7 @@ import java.time.Clock
  *
  * **Klagevedtak deles ikke.**
  * Mottakeren kjenner ikke klagebegrepet, og vi fant ingen nedskrevet avklaring på om de skal deles.
- * `klagevedtak.sendt_til_datadeling` finnes som kolonne og `KlagevedtakRepo.markerSendtTilDatadeling` som metode, men ingen av delene er koblet på — se KDoc-en der før du utvider denne tjenesten.
+ * `klagevedtak.sendt_til_datadeling` finnes som kolonne, men ingenting skriver til den — se KDoc-en på `Klagevedtak.sendtTilDatadeling` før du utvider denne tjenesten.
  */
 class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,

@@ -31,15 +31,6 @@ import java.time.LocalDateTime
 class UtbetalingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : UtbetalingRepo {
-    override fun lagre(
-        utbetaling: VedtattUtbetaling,
-        context: TransactionContext?,
-    ) {
-        sessionFactory.withSession(context) { session ->
-            lagre(utbetaling, session)
-        }
-    }
-
     override fun markerSendtTilUtbetaling(
         utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,
@@ -225,15 +216,13 @@ class UtbetalingPostgresRepo(
             )
         }
 
+        /**
+         * `rammevedtakId!!` er trygt: check-constrainten `rammevedtak_eller_meldekortvedtak` garanterer at nøyaktig én av de to kolonnene er satt.
+         * `UtbetalingPostgresRepoNegativTest` verifiserer at constrainten fortsatt finnes.
+         */
         private fun Row.tilUtbetaling(): VedtattUtbetaling {
-            val id = UtbetalingId.fromString(string("id"))
-
             val meldekortvedtakId = stringOrNull("meldekortvedtak_id")
             val rammevedtakId = stringOrNull("rammevedtak_id")
-
-            require((meldekortvedtakId != null).xor(rammevedtakId != null)) {
-                "VedtakId for meldekortvedtak ELLER rammevedtak må være satt - Utbetalingen $id hadde $meldekortvedtakId / $rammevedtakId"
-            }
 
             val beregningJson = string("beregning")
 

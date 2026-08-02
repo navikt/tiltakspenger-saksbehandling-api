@@ -137,24 +137,6 @@ class KlagevedtakPostgresRepo(
         }
     }
 
-    override fun markerSendtTilDatadeling(id: VedtakId, tidspunkt: LocalDateTime) {
-        sessionFactory.withSession { session ->
-            session.run(
-                queryOf(
-                    """
-                    update klagevedtak
-                    set sendt_til_datadeling = :tidspunkt
-                    where id = :id
-                    """.trimIndent(),
-                    mapOf(
-                        "id" to id.toString(),
-                        "tidspunkt" to tidspunkt,
-                    ),
-                ).asUpdate,
-            )
-        }
-    }
-
     override fun hentKlagevedtakSomSkalJournalføres(limit: Int): List<Klagevedtak> {
         return sessionFactory.withSession { session ->
             session.run(

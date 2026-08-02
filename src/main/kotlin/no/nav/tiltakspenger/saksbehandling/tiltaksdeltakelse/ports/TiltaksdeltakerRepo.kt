@@ -24,7 +24,7 @@ interface TiltaksdeltakerRepo {
 
     fun hentEksternId(
         id: TiltaksdeltakerId,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     ): String
 
     fun hentTiltaksdeltaker(eksternId: String): Tiltaksdeltaker?

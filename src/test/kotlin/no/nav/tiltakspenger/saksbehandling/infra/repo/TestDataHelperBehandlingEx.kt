@@ -243,7 +243,7 @@ fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning(
 
     val tilBeslutning = behandlingRepo.hent(behandling.id).taBehandling(beslutter, clock).getOrFail().first
 
-    behandlingRepo.taBehandlingBeslutter(tilBeslutning)
+    behandlingRepo.taBehandlingBeslutter(tilBeslutning, sessionContext = null)
 
     return sakRepo.hentForSakId(sakId)!! to behandlingRepo.hent(behandling.id)
 }

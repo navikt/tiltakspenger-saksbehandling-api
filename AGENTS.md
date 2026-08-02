@@ -37,7 +37,11 @@ Slik ser den ut i dette repoet:
   Skal en test observere en kø, må jobben som tømmer køen slås av — ellers er køen alltid tom når testen ser på den.
 - **Negative databasetester** ligger i `*NegativTest`-filer; `MeldekortvedtakPostgresRepoNegativTest` er mønsteret.
 - **Rene db-typer uten domeneflyt** er den andre unntakskategorien; `PeriodeDbTest` er eksempelet her.
-- **Dekningsgaten** låser repoene som har nådd 100 % — se `postgresRepoerMedDekningskrav` i `build.gradle.kts`.
+- **Dekningsgaten krever 100 % linjedekning på hele databaselaget** — se `databaselagMedDekningskrav` i `build.gradle.kts`.
+  Gaten er mønsterbasert og består av to mønstre: alt som ligger under en `infra/repo`-pakke uansett dybde (inkludert `*DbJson`-filene), og alt som heter `*Repo` uansett hvor det ligger.
+  Kover matcher på fullt klassenavn, og `*` dekker også punktum — det finnes ingen `**`, og det trengs ikke.
+  Ny kode i databaselaget er altså dekket som standard, og skal ikke legges til for hånd.
+  Eneste unntak er `DataSourceSetup` og `FlywayMigrate`, som er bootstrap og ikke databaselag; de står i `bootstrapUtenforDekningskravet` med begrunnelse.
   Merk at kover-rapportene ikke lenger genereres av `check`; kjør `./gradlew koverHtmlReport` eksplisitt når du skal lese dem.
 - **Testhjelpere som ikke hører i prodkoden ligger i `*TestEx.kt` ved siden av typen de gjelder.**
   `BegrunnelseTestEx.kt` og `BarnetilleggTestEx.kt` er bekvemmelighetskonstruktører som companion-extensions, `StatistikkTestEx.kt` og `TiltaksdeltakerHendelseTestEx.kt` er databaseoppslag kun tester trenger.

@@ -29,26 +29,26 @@ interface RammebehandlingRepo {
 
     fun taBehandlingSaksbehandler(
         rammebehandling: Rammebehandling,
-        transactionContext: TransactionContext? = null,
+        transactionContext: TransactionContext?,
     ): Boolean
 
     fun taBehandlingBeslutter(
         rammebehandling: Rammebehandling,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     ): Boolean
 
     fun overtaSaksbehandler(
         rammebehandling: Rammebehandling,
         nåværendeSaksbehandler: String,
-        transactionContext: TransactionContext? = null,
+        transactionContext: TransactionContext?,
     ): Boolean
 
     fun overtaBeslutter(
         rammebehandling: Rammebehandling,
         nåværendeBeslutter: String,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     ): Boolean
 
     /** Åpne automatiske søknadsbehandlinger som ikke venter (venter_til er null eller passert). */
-    fun hentAutomatiskeSoknadsbehandlingIder(limit: Int = 10): List<RammebehandlingId>
+    fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId>
 }

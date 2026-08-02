@@ -9,8 +9,6 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDateTime
 
 interface UtbetalingRepo {
-    fun lagre(utbetaling: VedtattUtbetaling, context: TransactionContext? = null)
-
     fun markerSendtTilUtbetaling(
         utbetalingId: UtbetalingId,
         tidspunkt: LocalDateTime,

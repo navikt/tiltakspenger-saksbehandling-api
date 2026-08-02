@@ -13,6 +13,6 @@ data class TilbakekrevingInfoBehovHendelse(
     override val feil: TilbakekrevinghendelseFeil?,
     val kravgrunnlagReferanse: String,
     val svar: TilbakekrevingInfoSvarDTO?,
-) : Tilbakekrevingshendelse {
+) : KjentTilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevinghendelseType.InfoBehov
 }

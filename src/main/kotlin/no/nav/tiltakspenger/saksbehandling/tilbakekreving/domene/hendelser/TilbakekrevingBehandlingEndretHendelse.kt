@@ -27,7 +27,7 @@ data class TilbakekrevingBehandlingEndretHendelse(
     val url: String,
     val fullstendigPeriode: Periode,
     val venter: TilbakekrevingVenter?,
-) : Tilbakekrevingshendelse {
+) : KjentTilbakekrevingshendelse {
     override val hendelsestype = TilbakekrevinghendelseType.BehandlingEndret
 
     private val logger = KotlinLogging.logger {}

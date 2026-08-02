@@ -14,9 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
-import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.TilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo.Companion.IKKE_TILDELT
@@ -314,6 +312,9 @@ class BenkOversiktPostgresRepo(
         }
     }
 
+    /**
+     * `!!` er trygt: spørringen er en ren aggregering uten `from`-tabell, og gir alltid nøyaktig én rad — også når alle delspørringene er tomme.
+     */
     private fun hentTotalAntallUfiltrert(session: kotliquery.Session): Int {
         return session.run(
             sqlQuery(
@@ -336,7 +337,7 @@ class BenkOversiktPostgresRepo(
                   + (select count(*) from åpneTilbakekrevinger) as total_unfiltered_count
                 """.trimIndent(),
             ).map { it.int("total_unfiltered_count") }.asSingle,
-        ) ?: 0
+        )!!
     }
 
     private fun Row.tilSammendrag(): BehandlingssammendragMedCount {
@@ -433,25 +434,6 @@ private enum class BehandlingssammendragTypeDb {
         TILBAKEKREVING -> BehandlingssammendragType.TILBAKEKREVING
     }
 }
-
-private fun BenkSorteringKolonne.toDbString(): String =
-    when (this) {
-        BenkSorteringKolonne.STARTET -> "startet"
-        BenkSorteringKolonne.SIST_ENDRET -> "sist_endret"
-        BenkSorteringKolonne.FRIST -> "sattPåVentFrist"
-        BenkSorteringKolonne.FNR -> "fnr"
-        BenkSorteringKolonne.BEHANDLINGSTYPE -> "behandlingstype"
-        BenkSorteringKolonne.STATUS -> "status"
-        BenkSorteringKolonne.SAKSBEHANDLER -> "saksbehandler"
-        BenkSorteringKolonne.BESLUTTER -> "beslutter"
-        BenkSorteringKolonne.BELØP -> "beløp"
-    }
-
-private fun SorteringRetning.toDbString(): String =
-    when (this) {
-        SorteringRetning.ASC -> "ASC"
-        SorteringRetning.DESC -> "DESC"
-    }
 
 private fun String.toBehandlingssammendragStatus(): BehandlingssammendragStatus =
     BehandlingssammendragStatus.valueOf(this)

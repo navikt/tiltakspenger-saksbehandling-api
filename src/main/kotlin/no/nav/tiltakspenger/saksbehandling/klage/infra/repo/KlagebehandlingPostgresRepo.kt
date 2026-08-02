@@ -46,34 +46,6 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
     }
 
     /**
-     * Oppdaterer behandlingsstatus, og saksbehandler bare dersom den er null.
-     * Skal du endre saksbehandler bruk [overtaBehandling]
-     */
-    override fun taBehandling(
-        klagebehandling: Klagebehandling,
-        sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
-            taBehandling(klagebehandling, session)
-        }
-    }
-
-    /**
-     * En ny saksbehandler overtar for [nåværendeSaksbehandler].
-     * Dersom det ikke er en saksbehandler på behandlingen, bruk [taBehandling]
-     * @param nåværendeSaksbehandler For å unngå at to saksbehandlere kan overta samtidig.
-     */
-    override fun overtaBehandling(
-        klagebehandling: Klagebehandling,
-        nåværendeSaksbehandler: String,
-        sessionContext: SessionContext?,
-    ): Boolean {
-        return sessionFactory.withSession(sessionContext) { session ->
-            overtaBehandling(klagebehandling, nåværendeSaksbehandler, session)
-        }
-    }
-
-    /**
      * Henter de som har ligget lengst basert på sist_endret.
      */
     override fun hentInnstillingsbrevSomSkalJournalføres(

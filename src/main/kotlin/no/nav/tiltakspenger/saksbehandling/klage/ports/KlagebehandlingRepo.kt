@@ -12,16 +12,6 @@ interface KlagebehandlingRepo {
 
     fun hentForKlagebehandlingId(klagebehandlingId: KlagebehandlingId): Klagebehandling?
 
-    /** Egen funksjon for at saksbehandlerne ikke skal gå i beina på hverandre. */
-    fun taBehandling(klagebehandling: Klagebehandling, sessionContext: SessionContext?): Boolean
-
-    /** Egen funksjon for at saksbehandlerne ikke skal gå i beina på hverandre. */
-    fun overtaBehandling(
-        klagebehandling: Klagebehandling,
-        nåværendeSaksbehandler: String,
-        sessionContext: SessionContext?,
-    ): Boolean
-
     fun hentInnstillingsbrevSomSkalJournalføres(limit: Int = 10): List<Klagebehandling>
 
     fun markerInnstillingsbrevJournalført(klagebehandling: Klagebehandling, metadata: JournalførBrevMetadata)
@@ -34,6 +24,6 @@ interface KlagebehandlingRepo {
     fun markerOversendtTilKlageinstans(
         klagebehandling: Klagebehandling,
         metadata: OversendtKlageTilKabalMetadata,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     )
 }

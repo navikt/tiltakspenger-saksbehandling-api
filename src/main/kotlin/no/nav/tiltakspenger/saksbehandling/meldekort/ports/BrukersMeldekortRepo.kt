@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.ports
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
@@ -12,11 +11,6 @@ interface BrukersMeldekortRepo {
         brukersMeldekort: BrukersMeldekort,
         sessionContext: SessionContext? = null,
     )
-
-    fun hentForSakId(
-        sakId: SakId,
-        sessionContext: SessionContext? = null,
-    ): List<BrukersMeldekort>
 
     fun hentForMeldekortId(
         meldekortId: MeldekortId,

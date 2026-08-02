@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehjemmelDb.Compa
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-private fun String.toBehandlingId(): BehandlingId {
+fun String.toBehandlingId(): BehandlingId {
     if (startsWith(RammebehandlingId.PREFIX)) {
         return RammebehandlingId.fromString(this)
     }

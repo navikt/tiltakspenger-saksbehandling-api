@@ -24,7 +24,7 @@ class MeldeperiodeFakeRepo : MeldeperiodeRepo {
         meldeperioder.forEach(::lagre)
     }
 
-    override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): MeldeperiodeKjeder {
+    fun hentForSakId(sakId: SakId): MeldeperiodeKjeder {
         return data.get().values.filter {
             it.sakId == sakId
         }.let {

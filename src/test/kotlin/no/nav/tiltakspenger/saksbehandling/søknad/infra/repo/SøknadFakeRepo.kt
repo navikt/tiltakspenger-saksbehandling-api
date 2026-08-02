@@ -29,8 +29,6 @@ class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : Sø
 
     override fun hentForSøknadId(søknadId: SøknadId): Søknad = data.get()[søknadId]!!
 
-    override fun hentSakIdForSoknad(søknadId: SøknadId): SakId = data.get()[søknadId]!!.sakId
-
     override fun hentSøknaderForFnr(fnr: Fnr, disableSessionCounter: Boolean): List<Søknad> = data.get().values.filter { it.fnr == fnr }
 
     override fun finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): SakId? {

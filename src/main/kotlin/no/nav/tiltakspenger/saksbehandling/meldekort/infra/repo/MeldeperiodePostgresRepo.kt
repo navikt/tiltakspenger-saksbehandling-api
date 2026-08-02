@@ -78,15 +78,6 @@ class MeldeperiodePostgresRepo(
         }
     }
 
-    override fun hentForSakId(
-        sakId: SakId,
-        sessionContext: SessionContext?,
-    ): MeldeperiodeKjeder {
-        return sessionFactory.withSession(sessionContext) { session ->
-            hentMeldeperiodekjederForSakId(sakId, session)
-        }
-    }
-
     override fun hentForMeldeperiodeId(meldeperiodeId: MeldeperiodeId, sessionContext: SessionContext?): Meldeperiode? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldeperiodeId(meldeperiodeId, session)

@@ -50,15 +50,15 @@ interface SakRepo {
         sessionContext: SessionContext? = null,
     ): Pair<Fnr, SakId>?
 
-    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext? = null)
+    fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?)
 
-    fun hentSakIderForSendingTilMeldekortApi(limit: Int = 100): List<SakId>
+    fun hentSakIderForSendingTilMeldekortApi(limit: Int): List<SakId>
 
     fun hentForSendingAvMeldeperioderTilDatadeling(limit: Int = 100): List<Sak>
 
     fun markerSkalSendesTilMeldekortApi(
         sakId: SakId,
-        sessionContext: SessionContext? = null,
+        sessionContext: SessionContext?,
     )
 
     fun markerErSendtTilMeldekortApi(

@@ -18,7 +18,7 @@ class SendTilMeldekortApiService(
 
     suspend fun sendSaker() {
         Either.catch {
-            val sakIder = sakRepo.hentSakIderForSendingTilMeldekortApi()
+            val sakIder = sakRepo.hentSakIderForSendingTilMeldekortApi(limit = 100)
 
             logger.debug { "Fant ${sakIder.count()} saker for sending til meldekort-api" }
 

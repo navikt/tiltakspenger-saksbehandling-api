@@ -76,15 +76,6 @@ class BrukersMeldekortPostgresRepo(
         }
     }
 
-    override fun hentForSakId(
-        sakId: SakId,
-        sessionContext: SessionContext?,
-    ): List<BrukersMeldekort> {
-        return sessionFactory.withSession(sessionContext) { session ->
-            hentForSakId(sakId, session)
-        }
-    }
-
     override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): BrukersMeldekort? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldekortId(meldekortId, session)

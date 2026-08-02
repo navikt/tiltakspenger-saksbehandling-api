@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb
 
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -15,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.OppdaterMel
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingVenter.TilbakekrevingVentegrunn
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevingBehandlingEndretHendelse
@@ -740,9 +740,13 @@ class BehandleTilbakekrevingHendelserJobbTest {
         }
     }
 
+    /**
+     * Kjører mot postgres fordi den er grunnsettet for `TilbakekrevingHendelsePostgresRepo.oppdaterUkjent`.
+     * En ukjent-rad med en payload som lar seg lese oppstår i prod først etter at en DTO er rettet, så den bygges her ved å lagre raden som ukjent med gyldig innhold.
+     */
     @Test
     fun `ukjent - deserialiserer gyldig payload og behandler hendelsen`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, vedtak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
 
             val (sakMedOpphør, opphørVedtak) = iverksettOmgjøringOpphør(
@@ -787,7 +791,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.tilbakekrevingHendelseRepo.lagreNy(ukjent, key = "", value = gyldigJson) shouldBe true
 
             // Første kjøring: raden konverteres fra Ukjent til BehandlingEndret, men er fortsatt ubehandlet
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(ukjentId)
 
             val etterFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId)
             etterFørsteKjøring.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
@@ -795,14 +799,12 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).size shouldBe 0
 
             // Andre kjøring: hendelsen behandles normalt og resulterer i en TilbakekrevingBehandling
-            tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(ukjentId)
 
             val etterAndreKjøring = tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId)
             etterAndreKjøring.shouldBeInstanceOf<TilbakekrevingBehandlingEndretHendelse>()
             etterAndreKjøring.behandlet.shouldNotBeNull()
             etterAndreKjøring.feil shouldBe null
-
-            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().size shouldBe 0
 
             val tilbakekrevingBehandling =
                 tac.tilbakekrevingBehandlingRepo.hentForSakId(sakMedOpphør.id).single()
@@ -837,9 +839,50 @@ class BehandleTilbakekrevingHendelserJobbTest {
         }
     }
 
+    /**
+     * Kjører mot postgres fordi den dekker infobehov-grenen i `TilbakekrevingHendelsePostgresRepo.oppdaterUkjent`.
+     * Den andre grenen (behandling_endret) dekkes av testen over.
+     */
+    @Test
+    fun `ukjent - konverteres til infobehov når payloaden lar seg lese`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak) = opprettSakOgSøknad(tac = tac)
+
+            @Language("JSON")
+            val gyldigJson = """
+                {
+                    "hendelsestype": "fagsysteminfo_behov",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "${nå(tac.clock)}",
+                    "kravgrunnlagReferanse": "ref-fra-ukjent"
+                }
+            """.trimIndent()
+
+            val ukjentId = TilbakekrevinghendelseId.random()
+            val ukjent = TilbakekrevingUkjentHendelse(
+                id = ukjentId,
+                opprettet = nå(tac.clock),
+                value = gyldigJson,
+            )
+            tac.tilbakekrevingHendelseRepo.lagreNy(ukjent, key = "", value = gyldigJson) shouldBe true
+
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(ukjentId)
+
+            val etterKjøring = tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId)
+            etterKjøring.shouldBeInstanceOf<TilbakekrevingInfoBehovHendelse>()
+            etterKjøring.kravgrunnlagReferanse shouldBe "ref-fra-ukjent"
+            etterKjøring.eksternFagsakId shouldBe sak.saksnummer.verdi
+            etterKjøring.behandlet shouldBe null
+        }
+    }
+
+    /**
+     * Kjører mot postgres fordi den er grunnsettet for `TilbakekrevingHendelsePostgresRepo.slett`.
+     */
     @Test
     fun `ukjent - sletter hendelse som fortsatt ikke kan deserialiseres i dev`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             // Team tilbakekreving sender bogusdata på køen i dev.
             // Den kommer aldri til å la seg lese, så den skal forkastes i stedet for å bli forsøkt på nytt ved hver jobbkjøring.
             val ugyldigJson = """{ "lol": "what" }"""
@@ -852,10 +895,9 @@ class BehandleTilbakekrevingHendelserJobbTest {
             )
             tac.tilbakekrevingHendelseRepo.lagreNy(ukjent, key = "asdf", value = ugyldigJson) shouldBe true
 
-            tac.behandleTilbakekrevingHendelserJobbIDev().håndterUbehandledeHendelser()
+            tac.behandleTilbakekrevingHendelserJobbIDev().håndterHendelse(ukjentId)
 
             tac.tilbakekrevingHendelseRepo.hentHendelse(ukjentId) shouldBe null
-            tac.tilbakekrevingHendelseFakeRepo.hentUbehandledeHendelser().shouldBeEmpty()
         }
     }
 

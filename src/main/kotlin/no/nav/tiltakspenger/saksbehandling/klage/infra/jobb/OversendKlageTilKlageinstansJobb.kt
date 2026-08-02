@@ -78,7 +78,11 @@ class OversendKlageTilKlageinstansJobb(
                             val metadata = error.tilOversendtKlageTilKabalMetadata(clock = clock)
                             val oppdatertKlagebehandling =
                                 klagebehandling.oppdaterOversendtKlageinstansFeilet(metadata.oversendtTidspunkt)
-                            klagebehandlingRepo.markerOversendtTilKlageinstans(oppdatertKlagebehandling, metadata)
+                            klagebehandlingRepo.markerOversendtTilKlageinstans(
+                                oppdatertKlagebehandling,
+                                metadata,
+                                sessionContext = null,
+                            )
                         }
                         // Andre feil: klagen står igjen og forsøkes på nytt ved neste kjøring.
                     }

@@ -58,16 +58,6 @@ class KlagevedtakFakeRepo : KlagevedtakRepo {
             )
     }
 
-    override fun markerSendtTilDatadeling(
-        id: VedtakId,
-        tidspunkt: LocalDateTime,
-    ) {
-        data.get()[id] =
-            data.get()[id]!!.copy(
-                sendtTilDatadeling = tidspunkt,
-            )
-    }
-
     override fun hentKlagevedtakSomSkalJournalføres(limit: Int): List<Klagevedtak> {
         return data.get().values.filter { it.journalpostId == null }.sortedBy { it.opprettet }.take(limit)
     }

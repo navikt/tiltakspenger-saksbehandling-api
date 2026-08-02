@@ -210,16 +210,7 @@ private fun SimuleringEndringDbJson.SimuleringForMeldeperiode.tilPosteringer(): 
     }.toNonEmptyListOrNull()!!
 }
 
-fun SimuleringMedMetadata.toSimuleringDbJson(): SimuleringDbJson {
-    return SimuleringDbJson(
-        simulering = simulering.toSimuleringEndringDbJson(),
-        type = when (simulering) {
-            is Simulering.Endring -> SimuleringTypeDb.ENDRING
-            is Simulering.IngenEndring -> SimuleringTypeDb.INGEN_ENDRING
-        },
-        simuleringstidspunkt = simulering.simuleringstidspunkt,
-    )
-}
+fun SimuleringMedMetadata.toSimuleringDbJson(): SimuleringDbJson = simulering.toSimuleringDbJson()
 
 fun SimuleringMedMetadata.toDbJson(): String {
     return serialize(toSimuleringDbJson())
@@ -285,7 +276,7 @@ private fun Simulering.Endring.toDbJson(): SimuleringEndringDbJson {
     )
 }
 
-private fun Posteringstype.toDbType(): SimuleringEndringDbJson.PosteringstypeDbType {
+fun Posteringstype.toDbType(): SimuleringEndringDbJson.PosteringstypeDbType {
     return when (this) {
         Posteringstype.YTELSE -> SimuleringEndringDbJson.PosteringstypeDbType.YTELSE
         Posteringstype.FEILUTBETALING -> SimuleringEndringDbJson.PosteringstypeDbType.FEILUTBETALING

@@ -1,0 +1,70 @@
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
+
+import io.kotest.assertions.throwables.shouldThrowWithMessage
+import kotliquery.queryOf
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import org.junit.jupiter.api.Test
+
+/**
+ * Negative tester for radmappingen i `RammebehandlingDb`: databasetilstander prodkoden ikke kan skrive.
+ *
+ * Testene muterer databasen direkte, og det er selve poenget.
+ * De verifiserer at mappingen oppdager korrupt data i stedet for å bygge en ugyldig domenemodell.
+ * Dette er unntak (a) i testtaksonomien, jf. `AGENTS.md`.
+ */
+class RammebehandlingPostgresRepoNegativTest {
+
+    /**
+     * Vedtaksperioden lagres som to kolonner som alltid settes sammen.
+     * Er bare den ene satt, har vi ingen periode å bygge, og mappingen skal si fra i stedet for å gjette.
+     */
+    @Test
+    fun `kaster når bare den ene enden av vedtaksperioden er satt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, rammevedtak) = iverksettSøknadsbehandling(tac = tac)
+
+            tac.sessionFactory.withSession { session ->
+                session.run(
+                    queryOf(
+                        "update behandling set virkningsperiode_til_og_med = null where id = :id",
+                        mapOf("id" to rammevedtak.behandlingId.toString()),
+                    ).asUpdate,
+                )
+            }
+
+            shouldThrowWithMessage<IllegalStateException>(
+                "Både fra og med og til og med for vedtaksperiode må være satt, eller ingen av dem",
+            ) {
+                tac.sakContext.sakRepo.hentForSakId(sak.id)
+            }
+        }
+    }
+
+    /**
+     * En søknadsbehandling er opprettet fra en søknad og har alltid en `soknad_id`.
+     * Mangler den, kan vi ikke bygge søknadsbehandlingen, og mappingen skal si fra.
+     */
+    @Test
+    fun `kaster når søknadsbehandlingen ikke har en søknad`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, rammevedtak) = iverksettSøknadsbehandling(tac = tac)
+            val behandlingId = rammevedtak.behandlingId
+
+            tac.sessionFactory.withSession { session ->
+                session.run(
+                    queryOf(
+                        "update behandling set soknad_id = null where id = :id",
+                        mapOf("id" to behandlingId.toString()),
+                    ).asUpdate,
+                )
+            }
+
+            shouldThrowWithMessage<IllegalStateException>(
+                "Fant ikke søknad for søknadsbehandling, behandlingsid $behandlingId",
+            ) {
+                tac.sakContext.sakRepo.hentForSakId(sak.id)
+            }
+        }
+    }
+}
