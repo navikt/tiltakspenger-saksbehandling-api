@@ -1,10 +1,11 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndringer
 import org.junit.jupiter.api.Test

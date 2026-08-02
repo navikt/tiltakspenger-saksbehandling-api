@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
+import no.nav.tiltakspenger.saksbehandling.statistikk.ports.StatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
 

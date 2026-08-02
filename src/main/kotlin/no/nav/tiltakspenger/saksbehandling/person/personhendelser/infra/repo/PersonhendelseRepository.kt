@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo
+package no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo
 
 import kotliquery.Row
 import kotliquery.queryOf

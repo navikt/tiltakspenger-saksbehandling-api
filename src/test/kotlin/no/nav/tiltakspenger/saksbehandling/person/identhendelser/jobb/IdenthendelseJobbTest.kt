@@ -22,9 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Identtype
 import no.nav.tiltakspenger.saksbehandling.person.Personident
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.lagreSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.lagreStønadsstatistikk

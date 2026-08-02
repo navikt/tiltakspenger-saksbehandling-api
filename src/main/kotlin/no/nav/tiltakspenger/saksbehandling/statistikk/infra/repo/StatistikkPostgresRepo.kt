@@ -1,13 +1,14 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk
+package no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.infra.repo.StatistikkMeldekortPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.ports.StatistikkRepo
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
-import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.infra.repo.SaksstatistikkPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.infra.repo.StatistikkStønadPostgresRepo
 import java.time.Clock
 
 class StatistikkPostgresRepo(

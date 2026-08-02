@@ -12,10 +12,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseDb
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseRepository
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseDb
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseRepository
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.util.UUID
 

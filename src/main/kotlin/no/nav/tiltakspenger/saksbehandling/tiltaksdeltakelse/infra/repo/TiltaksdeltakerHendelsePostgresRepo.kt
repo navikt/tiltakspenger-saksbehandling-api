@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.repository
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import kotliquery.Row
 import no.nav.tiltakspenger.libs.common.RammebehandlingId

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort
+package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.infra.repo
 
 import kotliquery.Session
 import kotliquery.queryOf
@@ -6,9 +6,10 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO.StatistikkMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO.StatistikkMeldeperiode
-import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldeperiodeDbJson.MeldekortdagDbJson
+import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.infra.repo.StatistikkMeldeperiodeDbJson.MeldekortdagDbJson
 import org.intellij.lang.annotations.Language
 import java.time.Clock
 import java.time.LocalDate

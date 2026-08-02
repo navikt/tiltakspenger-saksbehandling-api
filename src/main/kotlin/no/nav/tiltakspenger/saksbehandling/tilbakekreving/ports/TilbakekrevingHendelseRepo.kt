@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
+package no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext

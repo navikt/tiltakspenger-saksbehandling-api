@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk
+package no.nav.tiltakspenger.saksbehandling.statistikk.ports
 
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId

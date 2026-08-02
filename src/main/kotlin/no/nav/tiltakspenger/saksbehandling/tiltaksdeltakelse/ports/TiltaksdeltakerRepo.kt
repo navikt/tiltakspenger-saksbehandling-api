@@ -1,8 +1,9 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ports
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 
 interface TiltaksdeltakerRepo {
     fun hentEllerLagre(

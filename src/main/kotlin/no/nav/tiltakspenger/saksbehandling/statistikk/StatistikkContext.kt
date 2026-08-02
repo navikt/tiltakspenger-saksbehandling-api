@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.statistikk
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.statistikk.infra.repo.StatistikkPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.statistikk.ports.StatistikkRepo
 import java.time.Clock
 
 open class StatistikkContext(

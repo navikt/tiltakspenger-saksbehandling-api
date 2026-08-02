@@ -11,6 +11,16 @@ Les disse først.
   Gjelder også fler-setnings `//`-kommentarer.
   Se den utfyllende regelen i [`../AGENTS-backend.md`](../AGENTS-backend.md#språk-og-stil) — den gjentas her fordi agenter glipper på den gang på gang.
 
+## Pakkestruktur
+
+- **Databaserelaterte filer ligger under `<domene>/infra/repo/`.**
+  Db-mapping hører til domenet den lagrer, ikke til en delt db-pakke.
+  Portene (repo-grensesnittene) ligger i `<domene>/ports/`, implementasjonen i `<domene>/infra/repo/`.
+- **`felles` er domenekode, `infra` er infrastruktur.**
+  De to pakkene ligger side om side rett under `no.nav.tiltakspenger.saksbehandling`, og `felles` skal verken ha en `infra`-underpakke eller importere infrastruktur.
+  Mapping av en felles domenetype er infrastruktur selv om typen den mapper er felles, og hører derfor hjemme under `infra` — ikke ved siden av typen.
+  Håndheves av `FellesErDomenepakkeKonsistTest`, som har en whitelist-ratchet for det som gjenstår.
+
 ## Testtaksonomi
 
 Taksonomien — prodstier, aggregat-disiplin og filter-krykka som motbilde — står i [`../AGENTS-backend.md`](../AGENTS-backend.md#testtaksonomi-prodstier-og-aggregat-disiplin).

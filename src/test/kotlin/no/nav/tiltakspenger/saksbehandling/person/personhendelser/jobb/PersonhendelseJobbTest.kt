@@ -22,9 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseDb
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseDb
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime

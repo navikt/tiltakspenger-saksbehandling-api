@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingI
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.overta
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.tildel
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports.TilbakekrevingBehandlingRepo
 import java.time.Clock
 
 class TilbakekrevingBehandlingTildelingService(

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo
+package no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.tiltakspenger.libs.common.Fnr

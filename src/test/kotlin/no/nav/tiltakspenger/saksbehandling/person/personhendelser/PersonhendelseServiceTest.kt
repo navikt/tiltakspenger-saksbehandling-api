@@ -22,8 +22,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.lagreSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType

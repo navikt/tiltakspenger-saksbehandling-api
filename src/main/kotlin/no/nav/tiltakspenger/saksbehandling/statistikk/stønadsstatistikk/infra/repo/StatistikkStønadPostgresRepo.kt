@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk
+package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.infra.repo
 
 import kotliquery.Session
 import kotliquery.TransactionalSession
@@ -6,6 +6,8 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO
+import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
 import java.time.Clock
 
