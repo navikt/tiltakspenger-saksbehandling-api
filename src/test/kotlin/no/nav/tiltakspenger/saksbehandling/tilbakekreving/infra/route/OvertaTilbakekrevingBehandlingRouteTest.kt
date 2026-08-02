@@ -2,9 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
@@ -15,7 +16,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
 
     @Test
     fun `saksbehandler kan overta behandling fra en annen saksbehandler`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
             val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
@@ -46,7 +47,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
 
     @Test
     fun `kan ikke overta fra seg selv - returnerer 500`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
 
@@ -69,7 +70,7 @@ class OvertaTilbakekrevingBehandlingRouteTest {
 
     @Test
     fun `kan ikke overta behandling som ikke er tatt - returnerer 500`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar")
 
@@ -80,6 +81,29 @@ class OvertaTilbakekrevingBehandlingRouteTest {
                 saksbehandler = saksbehandler,
                 forventet = ForventetRespons(500, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
+        }
+    }
+
+    @Test
+    fun `beslutter kan overta behandling til godkjenning fra en annen beslutter`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, behandling) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
+
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sak.id,
+                tilbakekrevingId = behandling.id,
+                saksbehandler = ObjectMother.beslutter("beslutter1"),
+            )!!
+
+            val (_, oppdatertBehandling) = overtaTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sak.id,
+                tilbakekrevingId = behandling.id,
+                saksbehandler = ObjectMother.beslutter("beslutter2"),
+            )!!
+
+            oppdatertBehandling.beslutter shouldBe "beslutter2"
         }
     }
 }

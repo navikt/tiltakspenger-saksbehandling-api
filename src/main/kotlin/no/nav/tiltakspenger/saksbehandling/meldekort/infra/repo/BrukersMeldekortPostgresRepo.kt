@@ -5,7 +5,6 @@ import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
@@ -89,25 +88,6 @@ class BrukersMeldekortPostgresRepo(
     override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): BrukersMeldekort? {
         return sessionFactory.withSession(sessionContext) { session ->
             hentForMeldekortId(meldekortId, session)
-        }
-    }
-
-    override fun hentForMeldeperiodeId(
-        meldeperiodeId: MeldeperiodeId,
-        sessionContext: SessionContext?,
-    ): List<BrukersMeldekort> {
-        return sessionFactory.withSession(sessionContext) { session ->
-            hentForMeldeperiodeId(meldeperiodeId, session)
-        }
-    }
-
-    override fun hentForKjedeId(
-        kjedeId: MeldeperiodeKjedeId,
-        sakId: SakId,
-        sessionContext: SessionContext?,
-    ): List<BrukersMeldekort> {
-        return sessionFactory.withSession(sessionContext) { session ->
-            hentForKjedeId(kjedeId, sakId, session)
         }
     }
 
@@ -200,24 +180,6 @@ class BrukersMeldekortPostgresRepo(
             )
         }
 
-        fun hentForKjedeId(
-            kjedeId: MeldeperiodeKjedeId,
-            sakId: SakId,
-            session: Session,
-        ): List<BrukersMeldekort> {
-            return session.run(
-                sqlQuery(
-                    """
-                    select m.*
-                        from meldekort_bruker m 
-                    where m.sak_id = :sak_id and m.meldeperiode_kjede_id = :kjede_id
-                    """,
-                    "sak_id" to sakId.toString(),
-                    "kjede_id" to kjedeId.toString(),
-                ).map { row -> fromRow(row, session) }.asList,
-            )
-        }
-
         fun hentForMeldekortId(
             meldekortId: MeldekortId,
             session: Session,
@@ -231,22 +193,6 @@ class BrukersMeldekortPostgresRepo(
                     """,
                     "id" to meldekortId.toString(),
                 ).map { row -> fromRow(row, session) }.asSingle,
-            )
-        }
-
-        fun hentForMeldeperiodeId(
-            meldeperiodeId: MeldeperiodeId,
-            session: Session,
-        ): List<BrukersMeldekort> {
-            return session.run(
-                sqlQuery(
-                    """
-                    select m.*
-                        from meldekort_bruker m 
-                    where m.meldeperiode_id = :meldeperiode_id
-                    """,
-                    "meldeperiode_id" to meldeperiodeId.toString(),
-                ).map { row -> fromRow(row, session) }.asList,
             )
         }
 

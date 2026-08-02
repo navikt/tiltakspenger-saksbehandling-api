@@ -112,6 +112,50 @@ interface TilbakekrevingBehandlingBuilder {
     }
 
     /**
+     * Som [opprettTilbakekrevingBehandlingTilBehandling], men sender i tillegg en hendelse som flytter behandlingen til TIL_GODKJENNING.
+     * Det er statusen som gjør at tildelingsrutene tar beslutter-veien i stedet for saksbehandler-veien.
+     */
+    suspend fun ApplicationTestBuilder.opprettTilbakekrevingBehandlingTilGodkjenning(
+        tac: TestApplicationContext,
+        vedtaksperiode: Periode = 1.til(10.april(2025)),
+    ): Pair<Sak, TilbakekrevingBehandling> {
+        val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac, vedtaksperiode = vedtaksperiode)
+
+        @Language("JSON")
+        val tilGodkjenningHendelseJson = """
+            {
+                "hendelsestype": "behandling_endret",
+                "versjon": 1,
+                "eksternFagsakId": "${sak.saksnummer.verdi}",
+                "hendelseOpprettet": "${nå(tac.clock).plusSeconds(20)}",
+                "eksternBehandlingId": "${sak.utbetalinger.first().id.uuidPart()}",
+                "tilbakekreving": {
+                    "behandlingId": "${behandling.tilbakeBehandlingId}",
+                    "sakOpprettet": "${nå(tac.clock)}",
+                    "varselSendt": "${LocalDate.now(tac.clock)}",
+                    "behandlingsstatus": "TIL_GODKJENNING",
+                    "forrigeBehandlingsstatus": "TIL_BEHANDLING",
+                    "totaltFeilutbetaltBeløp": 1000.00,
+                    "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/${behandling.tilbakeBehandlingId}",
+                    "fullstendigPeriode": {
+                        "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                        "tom": "${LocalDate.now(tac.clock)}"
+                    }
+                }
+            }
+        """.trimIndent()
+
+        tac.tilbakekrevingConsumer.consume(sak.fnr.verdi, tilGodkjenningHendelseJson)
+        tac.behandleTilbakekrevingHendelserJobb.håndterUbehandledeHendelser()
+
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+        val tilbakekrevingBehandling = oppdatertSak.tilbakekrevinger.single()
+        tilbakekrevingBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_GODKJENNING
+
+        return oppdatertSak to tilbakekrevingBehandling
+    }
+
+    /**
      * Forventer at det allerede finnes en sak og en tilbakekrevingbehandling.
      * Kaller POST /sak/{sakId}/tilbakekreving/{tilbakekrevingId}/tildel
      */

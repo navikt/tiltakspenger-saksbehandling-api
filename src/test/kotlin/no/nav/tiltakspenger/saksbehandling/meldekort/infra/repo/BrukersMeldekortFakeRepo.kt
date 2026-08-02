@@ -2,8 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
-import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
@@ -41,21 +39,6 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
 
     override fun hentForMeldekortId(meldekortId: MeldekortId, sessionContext: SessionContext?): BrukersMeldekort? {
         return data.get()[meldekortId]
-    }
-
-    override fun hentForMeldeperiodeId(
-        meldeperiodeId: MeldeperiodeId,
-        sessionContext: SessionContext?,
-    ): List<BrukersMeldekort> {
-        return data.get().values.filter { it.meldeperiodeId == meldeperiodeId }
-    }
-
-    override fun hentForKjedeId(
-        kjedeId: MeldeperiodeKjedeId,
-        sakId: SakId,
-        sessionContext: SessionContext?,
-    ): List<BrukersMeldekort> {
-        return data.get().values.filter { it.sakId == sakId && it.kjedeId == kjedeId }
     }
 
     override fun hentMeldekortSomSkalBehandlesAutomatisk(limit: Int, sessionContext: SessionContext?): List<BrukersMeldekort> {

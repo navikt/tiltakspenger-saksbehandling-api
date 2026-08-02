@@ -25,7 +25,8 @@ interface SøknadRepo {
     /**
      * Avbrytingen skjer alltid sammen med avbrytingen av rammebehandlingen, så [txContext] har ingen default.
      * Se «Ingen defaults i prod for testenes skyld» i AGENTS-backend.md.
-     * TODO jah: Siden/hvis denne eies av behandlingen, bør den lagres sammen med behandlingen fra RammebehandlingPostgresRepo via en compantion object funksjon i SøknadPostgresRepo. Slett så dette interfacet.
+     * TODO jah: Siden/hvis denne eies av behandlingen, bør den lagres sammen med behandlingen fra RammebehandlingPostgresRepo via en companion object-funksjon i SøknadPostgresRepo.
+     *  Slett så dette interfacet.
      */
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?)
 

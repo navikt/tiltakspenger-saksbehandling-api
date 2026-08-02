@@ -17,6 +17,13 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRe
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import java.time.Clock
 
+/**
+ * Deler sak, rammevedtak, rammebehandling, meldekortbehandling og meldekortvedtak med `tiltakspenger-datadeling`.
+ *
+ * **Klagevedtak deles ikke.**
+ * Mottakeren kjenner ikke klagebegrepet, og vi fant ingen nedskrevet avklaring på om de skal deles.
+ * `klagevedtak.sendt_til_datadeling` finnes som kolonne og `KlagevedtakRepo.markerSendtTilDatadeling` som metode, men ingen av delene er koblet på — se KDoc-en der før du utvider denne tjenesten.
+ */
 class SendTilDatadelingService(
     private val rammevedtakRepo: RammevedtakRepo,
     private val rammebehandlingRepo: RammebehandlingRepo,

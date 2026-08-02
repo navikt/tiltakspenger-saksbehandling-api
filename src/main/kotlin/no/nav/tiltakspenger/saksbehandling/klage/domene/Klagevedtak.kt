@@ -23,6 +23,10 @@ data class Klagevedtak(
     val distribusjonId: DistribusjonId?,
     val distribusjonstidspunkt: LocalDateTime?,
     val vedtaksdato: LocalDate?,
+    /**
+     * Alltid null i praksis: klagevedtak deles ikke med `tiltakspenger-datadeling`, som ikke kjenner klagebegrepet.
+     * Se [no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo.markerSendtTilDatadeling] for hva som må avklares før feltet tas i bruk.
+     */
     val sendtTilDatadeling: LocalDateTime?,
 ) : Vedtak {
     override val behandlingId: KlagebehandlingId = behandling.id

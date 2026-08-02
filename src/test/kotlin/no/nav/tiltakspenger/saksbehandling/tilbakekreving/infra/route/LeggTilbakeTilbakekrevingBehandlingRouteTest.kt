@@ -2,10 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.route
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
-import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
@@ -15,7 +16,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
 
     @Test
     fun `saksbehandler kan legge tilbake behandling hen selv har tatt`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
 
@@ -45,7 +46,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
 
     @Test
     fun `kan ikke legge tilbake behandling som en annen saksbehandler eier - returnerer 500`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
             val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
@@ -69,7 +70,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
 
     @Test
     fun `kan ikke legge tilbake behandling som ikke er tatt - returnerer 500`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
 
@@ -85,7 +86,7 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
 
     @Test
     fun `ta-leggTilbake-ta roundtrip bevarer ekstern status`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, behandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
             val saksbehandler1 = ObjectMother.saksbehandler("saksbehandler1")
             val saksbehandler2 = ObjectMother.saksbehandler("saksbehandler2")
@@ -121,6 +122,30 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             etterNyTa.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING
             etterNyTa.status shouldBe TilbakekrevingBehandlingsstatus.TIL_BEHANDLING
             etterNyTa.saksbehandler shouldBe "saksbehandler2"
+        }
+    }
+
+    @Test
+    fun `beslutter kan legge tilbake behandling til godkjenning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, behandling) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
+            val beslutter = ObjectMother.beslutter("beslutterSomLeggerTilbake")
+
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sak.id,
+                tilbakekrevingId = behandling.id,
+                saksbehandler = beslutter,
+            )!!
+
+            val (_, oppdatertBehandling) = leggTilbakeTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sak.id,
+                tilbakekrevingId = behandling.id,
+                saksbehandler = beslutter,
+            )!!
+
+            oppdatertBehandling.beslutter shouldBe null
         }
     }
 }
