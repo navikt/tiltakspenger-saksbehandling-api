@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
  * Disse to følges alltid ad i dataene: en positiv feilutbetaling kommer med en negativ motpostering av samme størrelse, og motsatt.
  * 757 av dagene i dev-uttrekket hadde nettopp denne formen.
  */
-internal class OppsummeringGeneratorFeilutbetalingTest {
+class OppsummeringGeneratorFeilutbetalingTest {
 
     @Test
     fun `positiv feilutbetaling med motpostering`() {

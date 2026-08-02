@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
  * https://confluence.adeo.no/pages/viewpage.action?pageId=597368022
  * Eksempel 2
  */
-internal class Meldekortberegning5DagerIUkaEksempel4Test {
+class Meldekortberegning5DagerIUkaEksempel4Test {
     private val meldekort1 = nonEmptyListOf(
         DagMedForventning(29.januar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),
         DagMedForventning(30.januar(2024), IKKE_RETT_TIL_TILTAKSPENGER, YtelsenFallerBort),

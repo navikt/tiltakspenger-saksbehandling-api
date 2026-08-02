@@ -44,7 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRa
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
-internal class IverksettRevurderingTest {
+class IverksettRevurderingTest {
     @Test
     fun `kan iverksette revurdering stans`() {
         withTestApplicationContext { tac ->

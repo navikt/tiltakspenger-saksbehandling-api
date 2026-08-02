@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEll
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaSøknad
 import org.junit.jupiter.api.Test
 
-internal class MottaSøknadTest {
+class MottaSøknadTest {
     @Test
     fun `kan motta søknad`() {
         withTestApplicationContext { tac ->

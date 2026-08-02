@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
-internal class VeilarboppfolgingHttpClientTest {
+class VeilarboppfolgingHttpClientTest {
     private val baseUrl = "http://veilarboppfolging.test"
     private val fnr = Fnr.random()
 

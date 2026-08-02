@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrak
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
-internal class UtbetalingHttpKlientTest {
+class UtbetalingHttpKlientTest {
     private val baseUrl = "http://helved.test"
 
     private val authTokenProvider = object : AuthTokenProvider {

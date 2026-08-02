@@ -193,7 +193,7 @@ class UtbetalingHttpKlient(
 
     companion object {
         /** Pipelinen setter responsMottatt på alle ekte responser; fallbacken dekker håndbygde/ufullstendige metadata. */
-        internal fun simuleringstidspunkt(responsMottatt: java.time.LocalDateTime?, clock: Clock): java.time.LocalDateTime =
+        fun simuleringstidspunkt(responsMottatt: java.time.LocalDateTime?, clock: Clock): java.time.LocalDateTime =
             responsMottatt ?: nå(clock)
     }
 

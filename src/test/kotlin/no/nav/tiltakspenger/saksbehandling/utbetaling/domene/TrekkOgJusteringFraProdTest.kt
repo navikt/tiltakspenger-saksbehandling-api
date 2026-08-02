@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
  * Beløpene og strukturen er ekte; datoene er flyttet inn i meldeperiodene testdataene bruker.
  * Dette er de kombinasjonene vi ikke klarte å konstruere selv, fordi de oppstår av forhold hos oppdragssystemet og ikke av vår egen beregning.
  */
-internal class TrekkOgJusteringFraProdTest {
+class TrekkOgJusteringFraProdTest {
 
     /**
      * Trekk kommer med begge fortegn, og alle skal telle.

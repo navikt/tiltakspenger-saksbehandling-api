@@ -19,7 +19,7 @@ import java.time.YearMonth
  *
  * Testene bygger simuleringen fra posteringer, slik at hele veien fra helved-responsen til vernet blir kjørt.
  */
-internal class JusteringPåTversAvMeldeperioderTest {
+class JusteringPåTversAvMeldeperioderTest {
 
     /**
      * To meldeperioder, med justeringer som balanserer i null i hver av dem.

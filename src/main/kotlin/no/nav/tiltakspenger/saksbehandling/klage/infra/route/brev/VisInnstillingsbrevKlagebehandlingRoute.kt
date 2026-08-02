@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.KunneIkkeViseInnstillin
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 
-internal const val VIS_INNSTILLINGSBREV_KLAGEBEHANDLING_PATH =
+const val VIS_INNSTILLINGSBREV_KLAGEBEHANDLING_PATH =
     "/sak/{sakId}/klage/{klagebehandlingId}/innstillingsbrev/{dokumentInfoId}"
 
 fun Route.visInnstillingsbrevKlagebehandlingRoute(

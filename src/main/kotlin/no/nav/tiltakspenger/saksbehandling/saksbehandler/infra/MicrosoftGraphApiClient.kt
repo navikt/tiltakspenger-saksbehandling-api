@@ -101,7 +101,7 @@ class MicrosoftGraphApiClient(
  * Bygger Graph-URI-en med en URLBuilder for at encodingen skal bli riktig for spesialtegn (apostrof ').
  * Toppnivåfunksjon slik at begge protokollgrenene kan dekkes av tester uten å styre NAIS-miljødeteksjonen.
  */
-internal fun graphUri(baseUrl: String, navIdent: String, brukHttps: Boolean): URI {
+fun graphUri(baseUrl: String, navIdent: String, brukHttps: Boolean): URI {
     val urlBuilder = URLBuilder().apply {
         protocol = if (brukHttps) URLProtocol.HTTPS else URLProtocol.HTTP
         host = baseUrl

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
  * Perioden er kildedata og kan alltid vises.
  * Beløpet kan bare vises når posteringen dekker én dag -- ellers finnes det ingen dagsandel å oppgi.
  */
-internal class SimuleringsmerkeTest {
+class SimuleringsmerkeTest {
 
     @Test
     fun `endagspostering beholder beløpet`() {
@@ -57,7 +57,7 @@ internal class SimuleringsmerkeTest {
  * Flaggene er fakta om meldeperioden, ikke dommer.
  * Se [Simuleringsflagg].
  */
-internal class SimuleringsflaggTest {
+class SimuleringsflaggTest {
 
     /**
      * Prod-casen fra [TrekkOgJusteringFraProdTest]: 66, -41 og -25 summerer til null hos oppdragssystemet.

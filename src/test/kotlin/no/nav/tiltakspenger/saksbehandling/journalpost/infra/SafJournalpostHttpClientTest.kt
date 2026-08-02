@@ -28,7 +28,7 @@ import java.time.Instant
 /**
  * Tester klienten mot `FakeHttpTransport` slik at hele den reelle `HttpKlient`-pipelinen kjører (statusregel, retry, auth, binær dekoding).
  */
-internal class SafJournalpostHttpClientTest {
+class SafJournalpostHttpClientTest {
 
     private val systemTokenProvider = object : AuthTokenProvider {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("system-token", Instant.parse("2026-01-01T00:00:00Z"))

@@ -34,7 +34,7 @@ private const val ALDERSPENSJON_FELT = "alderspensjon"
 private const val TRYGD_OG_PENSJON_FELT = "trygd_og_pensjon"
 private const val ETTERLØNN_FELT = "etterlonn"
 
-internal object SøknadDAO {
+object SøknadDAO {
     fun finnSakIdForTiltaksdeltakelse(
         tiltaksdeltakerId: TiltaksdeltakerId,
         session: Session,

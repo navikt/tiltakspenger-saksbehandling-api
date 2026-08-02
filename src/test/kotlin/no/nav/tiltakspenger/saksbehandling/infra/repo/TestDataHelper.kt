@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakPostgresRepo
 import javax.sql.DataSource
 
-internal class TestDataHelper(
+class TestDataHelper(
     private val dataSource: DataSource,
     idGenerators: IdGenerators,
     val clock: TikkendeKlokke = TikkendeKlokke(),
@@ -71,7 +71,7 @@ private val dbManager: TestDatabaseManager by lazy { TestDatabaseManager() }
  * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon.
  * Brukes når man gjør operasjoner på tvers av saker.
  */
-internal fun withMigratedDb(
+fun withMigratedDb(
     runIsolated: Boolean = false,
     clock: TikkendeKlokke = TikkendeKlokke(),
     test: (TestDataHelper) -> Unit,

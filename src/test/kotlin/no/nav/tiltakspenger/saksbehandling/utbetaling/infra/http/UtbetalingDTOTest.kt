@@ -22,7 +22,7 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-internal class UtbetalingDTOTest {
+class UtbetalingDTOTest {
 
     @Test
     fun `uten barnetillegg`() {

@@ -25,7 +25,7 @@ fun main() {
     start(log = log, clock = Clock.system(zoneIdOslo))
 }
 
-internal fun start(
+fun start(
     log: KLogger,
     port: Int = Configuration.httpPort,
     host: String = "0.0.0.0",

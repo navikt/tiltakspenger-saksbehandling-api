@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 
-internal fun mapTiltak(
+fun mapTiltak(
     tiltakDTOListe: List<TiltakshistorikkDTO>,
 ): TiltaksdeltakelserFraRegister {
     return tiltakDTOListe
@@ -61,7 +61,7 @@ internal fun mapTiltak(
         }.let { TiltaksdeltakelserFraRegister(it) }
 }
 
-internal fun mapTiltakMedArrangørnavn(
+fun mapTiltakMedArrangørnavn(
     harAdressebeskyttelse: Boolean,
     tiltakDTOListe: List<TiltakshistorikkDTO>,
 ): List<TiltaksdeltakelseMedArrangørnavn> {

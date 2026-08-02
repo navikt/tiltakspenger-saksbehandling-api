@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
 import java.time.Clock
 
-internal const val AVBRYT_SØKNAD_OG_BEHANDLING_PATH = "$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling"
+const val AVBRYT_SØKNAD_OG_BEHANDLING_PATH = "$SAK_PATH/{saksnummer}/avbryt-aktiv-behandling"
 
 private val logger = KotlinLogging.logger {}
 

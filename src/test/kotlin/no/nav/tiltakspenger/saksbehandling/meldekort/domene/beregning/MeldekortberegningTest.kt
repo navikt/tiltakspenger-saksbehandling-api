@@ -24,7 +24,7 @@ import java.time.LocalDate
 private typealias Dag = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
 private typealias Status = OppdaterMeldekortbehandlingKommando.Status
 
-internal class MeldekortberegningTest {
+class MeldekortberegningTest {
     private val førsteDag = LocalDate.of(2024, 1, 1)
     private val vedtaksperiode = Periode(fraOgMed = førsteDag, tilOgMed = førsteDag.plusDays(364))
 

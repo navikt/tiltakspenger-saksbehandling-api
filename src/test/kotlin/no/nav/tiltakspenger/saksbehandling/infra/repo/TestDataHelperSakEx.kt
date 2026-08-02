@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
  * @param sakId brukes ikke dersom [sak] er oppgitt.
  * @param saksnummer brukes ikke dersom [sak] er oppgitt.
  */
-internal fun TestDataHelper.persisterSak(
+fun TestDataHelper.persisterSak(
     fnr: Fnr = Fnr.random(),
     sakId: SakId = SakId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),

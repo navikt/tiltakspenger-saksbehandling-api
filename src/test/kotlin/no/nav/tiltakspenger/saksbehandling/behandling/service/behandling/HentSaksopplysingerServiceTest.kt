@@ -39,7 +39,7 @@ import java.time.Clock
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-internal class HentSaksopplysingerServiceTest {
+class HentSaksopplysingerServiceTest {
 
     @Test
     fun `en tiltaksdeltakelse ingen ytelser`() {

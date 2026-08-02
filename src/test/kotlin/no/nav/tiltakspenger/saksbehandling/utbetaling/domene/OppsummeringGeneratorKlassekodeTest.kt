@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
  * `KL_KODE_FEIL_ARBYT` og `KL_KODE_JUST_ARBYT`.
  * Testene her låser det skillet, slik at en ny klassekode ikke stille endrer oppførselen.
  */
-internal class OppsummeringGeneratorKlassekodeTest {
+class OppsummeringGeneratorKlassekodeTest {
 
     @Test
     fun `alle observerte ytelsesklassekoder behandles likt`() {

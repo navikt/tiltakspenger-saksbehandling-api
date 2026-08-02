@@ -442,7 +442,7 @@ class MeldekortbehandlingPostgresRepo(
     }
 
     companion object {
-        internal fun hentForMeldekortId(
+        fun hentForMeldekortId(
             meldekortId: MeldekortId,
             session: Session,
         ): Meldekortbehandling? {
@@ -462,7 +462,7 @@ class MeldekortbehandlingPostgresRepo(
             )
         }
 
-        internal fun hentForSakId(
+        fun hentForSakId(
             sakId: SakId,
             session: Session,
         ): Meldekortbehandlinger? {

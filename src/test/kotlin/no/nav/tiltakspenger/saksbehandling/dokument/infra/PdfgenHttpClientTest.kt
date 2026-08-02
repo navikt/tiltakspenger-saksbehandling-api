@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Test
  * Tester klienten mot `FakeHttpTransport` slik at hele den reelle `HttpKlient`-pipelinen kjører (statusregel, Accept-header, binær dekoding, metadata).
  * Hver metode øves i begge modi: prod (kun pdfgen) og local/dev (pdfgen + pdfgenrs i parallell).
  */
-internal class PdfgenHttpClientTest {
+class PdfgenHttpClientTest {
 
     // %PDF-magic etterfulgt av bytes som er ugyldige som UTF-8, slik at charset-dekoding underveis ville korruptert innholdet.
     private val pdfBytes = byteArrayOf(0x25, 0x50, 0x44, 0x46, 0xFF.toByte(), 0xFE.toByte())

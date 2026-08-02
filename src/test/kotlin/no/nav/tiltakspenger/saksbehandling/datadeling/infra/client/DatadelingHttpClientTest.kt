@@ -30,7 +30,7 @@ import java.time.Instant
  * Selve serialiseringen av payloadene er dekket av de respektive JSON-testene, så her verifiserer vi HTTP-flyten som denne klienten eier: at riktig endepunkt/metode kalles for hver `send`-variant, at suksess gir [arrow.core.Either.Right] og at en [no.nav.tiltakspenger.libs.httpklient.HttpKlientError] fra libs videreformidles uendret som [arrow.core.Either.Left].
  * Testene gir full linjedekning (jf. Kover-regelen i build.gradle.kts).
  */
-internal class DatadelingHttpClientTest {
+class DatadelingHttpClientTest {
 
     private val baseUrl = "http://datadeling.test"
     private val correlationId = CorrelationId.generate()

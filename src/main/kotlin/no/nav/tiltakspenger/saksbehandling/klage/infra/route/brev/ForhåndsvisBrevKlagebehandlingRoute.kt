@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.KanIkkeForhåndsviseBrev
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
 
-internal const val FORHÅNDSVIS_BREV_KLAGEBEHANDLING_PATH =
+const val FORHÅNDSVIS_BREV_KLAGEBEHANDLING_PATH =
     "/sak/{sakId}/klage/{klagebehandlingId}/forhandsvis"
 
 fun Route.forhåndsvisBrevKlagebehandlingRoute(

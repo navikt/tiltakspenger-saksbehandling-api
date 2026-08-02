@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.KafkaConsumerOppsett
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 
-internal fun kafkaConsumers(
+fun kafkaConsumers(
     isNais: Boolean,
     applicationContext: ApplicationContext,
 ): List<KafkaConsumerOppsett> = buildList {

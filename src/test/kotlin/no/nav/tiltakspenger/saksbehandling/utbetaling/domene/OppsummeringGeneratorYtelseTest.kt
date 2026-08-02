@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
  *
  * Dette er den klart vanligste formen: 4946 av dagene i dev-uttrekket besto bare av positive ytelser.
  */
-internal class OppsummeringGeneratorYtelseTest {
+class OppsummeringGeneratorYtelseTest {
 
     @Test
     fun `bare positive ytelser gir ny utbetaling og etterbetaling`() {

@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import org.junit.jupiter.api.Test
 
-internal class SendUtbetalingerServiceTest {
+class SendUtbetalingerServiceTest {
     @Test
     fun `utbetaling blir iverksatt og markert som sendt til utbetaling`() = runTest {
         val utbetalingRepo = mockk<UtbetalingRepo>()

@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId.Companion.fromString
 import java.time.LocalDateTime
 
-internal data class AttesteringDbJson(
+data class AttesteringDbJson(
     val id: String,
     val status: String,
     val begrunnelse: String?,
@@ -22,7 +22,7 @@ internal data class AttesteringDbJson(
         )
 }
 
-internal fun Attestering.toDbJson(): AttesteringDbJson =
+fun Attestering.toDbJson(): AttesteringDbJson =
     AttesteringDbJson(
         id = id.toString(),
         status = status.toDbJson(),

@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.Kon
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-internal class KontorhistorikkTest {
+class KontorhistorikkTest {
 
     @Test
     fun `nyesteAktuelleKontor velger nyeste ARBEIDSOPPFOLGING-innslag når den finnes`() {

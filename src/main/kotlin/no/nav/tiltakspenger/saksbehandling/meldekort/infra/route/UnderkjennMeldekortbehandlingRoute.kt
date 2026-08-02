@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortbehandlingService
 
-internal const val UNDERKJENN_MELDEKORT_BEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/underkjenn"
+const val UNDERKJENN_MELDEKORT_BEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/underkjenn"
 
 private data class UnderkjennMeldekortbehandlingBody(val begrunnelse: String)
 
@@ -80,7 +80,7 @@ fun Route.underkjennMeldekortbehandlingRoute(
     }
 }
 
-internal fun KanIkkeUnderkjenneMeldekortbehandling.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+fun KanIkkeUnderkjenneMeldekortbehandling.toErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     KanIkkeUnderkjenneMeldekortbehandling.BegrunnelseMåVæreUtfylt -> HttpStatusCode.BadRequest to ErrorJson(
         "Begrunnelse må være utfylt",
         "begrunnelse_må_være_utfylt",

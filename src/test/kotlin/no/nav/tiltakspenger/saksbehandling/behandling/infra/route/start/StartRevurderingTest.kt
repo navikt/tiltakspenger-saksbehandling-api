@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
 import org.junit.jupiter.api.Test
 
-internal class StartRevurderingTest {
+class StartRevurderingTest {
     @Test
     fun `kan starte revurdering stans`() {
         withTestApplicationContext { tac ->

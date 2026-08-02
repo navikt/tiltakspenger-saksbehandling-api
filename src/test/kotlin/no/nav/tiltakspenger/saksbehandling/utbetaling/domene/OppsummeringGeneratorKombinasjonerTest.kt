@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
  * Her er poenget kombinasjonene: feilutbetaling, motpostering og justering på samme dag, som er der utregningene griper inn i hverandre.
  * Hver test viser hvor mange dager i uttrekket som hadde den formen.
  */
-internal class OppsummeringGeneratorKombinasjonerTest {
+class OppsummeringGeneratorKombinasjonerTest {
 
     /**
      * 13 dager i uttrekket.

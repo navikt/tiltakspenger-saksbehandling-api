@@ -44,7 +44,7 @@ sealed interface KanIkkeHenteNavnForNavIdent {
  * Nøytral beskrivelse av feilen for bruk i vanlig logg og exception-meldinger.
  * Feiltypene bærer rå request/response via [HttpKlientError]/[HttpKlientMetadata], og en default `toString()` ville derfor dratt rådata inn i vanlig logg.
  */
-internal fun KanIkkeHenteNavnForNavIdent.beskrivelse(): String = when (this) {
+fun KanIkkeHenteNavnForNavIdent.beskrivelse(): String = when (this) {
     is KanIkkeHenteNavnForNavIdent.KallFeilet -> "KallFeilet(${httpKlientError::class.simpleName})"
     is KanIkkeHenteNavnForNavIdent.FantIkkeEntydigBruker -> "FantIkkeEntydigBruker(antallTreff=$antallTreff)"
     is KanIkkeHenteNavnForNavIdent.NavnetErBlankt -> "NavnetErBlankt"

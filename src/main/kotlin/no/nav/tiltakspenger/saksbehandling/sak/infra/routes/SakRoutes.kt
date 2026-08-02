@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonServi
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import java.time.Clock
 
-internal const val SAK_PATH = "/sak"
+const val SAK_PATH = "/sak"
 
 fun Route.sakRoutes(
     sakService: SakService,

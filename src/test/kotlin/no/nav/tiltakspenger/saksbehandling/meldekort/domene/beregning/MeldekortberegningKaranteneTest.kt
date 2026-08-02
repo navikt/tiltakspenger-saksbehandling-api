@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
 import org.junit.jupiter.api.Test
 
-internal class MeldekortberegningKaranteneTest {
+class MeldekortberegningKaranteneTest {
 
     private val meldekort1 = nonEmptyListOf(
         DagMedForventning(29.januar(2024), DELTATT_UTEN_LØNN_I_TILTAKET, IngenReduksjon),

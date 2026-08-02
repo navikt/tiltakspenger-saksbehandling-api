@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDateTime
 
-internal class KontorhistorikkHttpklientTest {
+class KontorhistorikkHttpklientTest {
     private val baseUrl = "http://ao-oppfolgingskontor.test"
     private val fnr = Fnr.random()
 

@@ -4,6 +4,7 @@ import com.lemonappdev.konsist.api.Konsist
 import no.nav.tiltakspenger.libs.konsist.EnSetningPerLinje
 import no.nav.tiltakspenger.libs.konsist.IngenAndreHttpKlienter
 import no.nav.tiltakspenger.libs.konsist.IngenClockDefault
+import no.nav.tiltakspenger.libs.konsist.IngenInternalModifier
 import no.nav.tiltakspenger.libs.konsist.IngenJUnit4
 import no.nav.tiltakspenger.libs.konsist.IngenJackson2
 import no.nav.tiltakspenger.libs.konsist.IngenJupiterAsserts
@@ -25,6 +26,15 @@ class FellesArkitekturKonsistTest {
     @Test
     fun `produksjonskode bruker Jackson 3, ikke Jackson 2`() {
         IngenJackson2.assert(Konsist.scopeFromProduction())
+    }
+
+    /**
+     * `internal` avgrenser til kompileringsmodulen, og dette er et enmodul-repo som ikke publiseres.
+     * Modifikatoren ville derfor sett ut som en tilgangsgrense uten å være en; `private` er den eneste grensen vi faktisk har her.
+     */
+    @Test
+    fun `ingen internal-modifikator`() {
+        IngenInternalModifier.assert(Konsist.scopeFromProject())
     }
 
     @Test

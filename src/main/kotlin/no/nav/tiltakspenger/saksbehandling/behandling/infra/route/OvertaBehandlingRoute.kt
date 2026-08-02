@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutte
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.toStatusAndErrorJson
 
-internal const val OVERTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/overta"
+const val OVERTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/overta"
 
 data class OvertaBehandlingBody(
     val overtarFra: String,

@@ -38,7 +38,7 @@ import java.time.LocalDate
  * 472 simuleringer kokte ned til 24 unike kombinasjoner av posteringstype, klassekode og fortegn.
  * TREKK og FORSKUDSSKATT forekom ikke i uttrekket og er derfor konstruert for hånd.
  */
-internal object Simuleringstestdata {
+object Simuleringstestdata {
     val fnr: Fnr = Fnr.random()
     val sakId: SakId = SakId.random()
     val saksnummer: Saksnummer = Saksnummer.genererSaknummer(løpenr = "1001", clock = fixedClock)
@@ -149,21 +149,21 @@ object Klassekoder {
 }
 
 /** En postering slik den kommer fra helved, før den splittes opp per dag. */
-internal data class Testpostering(
+data class Testpostering(
     val type: String,
     val klassekode: String,
     val beløp: Int,
     val fagområde: String = FAGOMRÅDE_TILTAKSPENGER,
 )
 
-internal fun ytelse(beløp: Int, klassekode: String = "TPTPAFT") =
+fun ytelse(beløp: Int, klassekode: String = "TPTPAFT") =
     Testpostering(type = "YTELSE", klassekode = klassekode, beløp = beløp)
 
 /**
  * FEILUTBETALING med feilutbetalingsklassekoden.
  * Dette er den som gir `totalFeilutbetaling`.
  */
-internal fun feilutbetaling(beløp: Int) =
+fun feilutbetaling(beløp: Int) =
     Testpostering(
         type = "FEILUTBETALING",
         klassekode = OppsummeringGenerator.KLASSEKODE_FEILUTBETALING,
@@ -176,27 +176,27 @@ internal fun feilutbetaling(beløp: Int) =
  * Dette var slik justeringer kom før OS begynte å sende dem som egen posteringstype.
  * Se [OppsummeringGeneratorJusteringTest] for hvorfor skillet betyr noe.
  */
-internal fun feilutbetalingMedJusteringsklassekode(beløp: Int) =
+fun feilutbetalingMedJusteringsklassekode(beløp: Int) =
     Testpostering(
         type = "FEILUTBETALING",
         klassekode = OppsummeringGenerator.KLASSEKODE_JUSTERING,
         beløp = beløp,
     )
 
-internal fun justering(beløp: Int) =
+fun justering(beløp: Int) =
     Testpostering(
         type = "JUSTERING",
         klassekode = OppsummeringGenerator.KLASSEKODE_JUSTERING,
         beløp = beløp,
     )
 
-internal fun motpostering(beløp: Int) =
+fun motpostering(beløp: Int) =
     Testpostering(type = "MOTPOSTERING", klassekode = Klassekoder.MOTPOSTERING, beløp = beløp)
 
-internal fun trekk(beløp: Int, klassekode: String = Klassekoder.TREKK_BIDRAG) =
+fun trekk(beløp: Int, klassekode: String = Klassekoder.TREKK_BIDRAG) =
     Testpostering(type = "TREKK", klassekode = klassekode, beløp = beløp)
 
-internal fun forskudsskatt(beløp: Int) =
+fun forskudsskatt(beløp: Int) =
     Testpostering(
         type = "FORSKUDSSKATT",
         klassekode = Klassekoder.FORSKUDSSKATT,
@@ -207,7 +207,7 @@ internal fun forskudsskatt(beløp: Int) =
  * En postering på et annet fagområde enn tiltakspenger.
  * Skal filtreres bort.
  */
-internal fun annetFagområde(beløp: Int, fagområde: String = "DAGPENGER") =
+fun annetFagområde(beløp: Int, fagområde: String = "DAGPENGER") =
     Testpostering(type = "YTELSE", klassekode = "DPORAS", beløp = beløp, fagområde = fagområde)
 
 /**
@@ -215,10 +215,10 @@ internal fun annetFagområde(beløp: Int, fagområde: String = "DAGPENGER") =
  *
  * Beløpene brukes uendret, siden en periode på én dag ikke fordeles.
  */
-internal fun simulerDag(vararg posteringer: Testpostering): Simuleringsdag =
+fun simulerDag(vararg posteringer: Testpostering): Simuleringsdag =
     simulerDagPåDato(Simuleringstestdata.førsteDag, *posteringer)
 
-internal fun simulerDagPåDato(dato: LocalDate, vararg posteringer: Testpostering): Simuleringsdag =
+fun simulerDagPåDato(dato: LocalDate, vararg posteringer: Testpostering): Simuleringsdag =
     simulerPeriode(Periode(dato, dato), *posteringer).single()
 
 /**
@@ -227,11 +227,11 @@ internal fun simulerDagPåDato(dato: LocalDate, vararg posteringer: Testposterin
  * Posteringene henger på meldeperioden, ikke på dagen, siden en postering kan dekke flere dager.
  * Bruk denne når testen handler om hva vi bevarte fra kilden, og [simulerDag] når den handler om dagsaggregatene.
  */
-internal fun posteringerForDag(vararg posteringer: Testpostering): List<Postering> =
+fun posteringerForDag(vararg posteringer: Testpostering): List<Postering> =
     posteringerForPeriode(Periode(Simuleringstestdata.førsteDag, Simuleringstestdata.førsteDag), *posteringer)
 
 /** Som [posteringerForDag], men for en periode som kan spenne over flere dager. */
-internal fun posteringerForPeriode(periode: Periode, vararg posteringer: Testpostering): List<Postering> =
+fun posteringerForPeriode(periode: Periode, vararg posteringer: Testpostering): List<Postering> =
     simulering(periode, *posteringer).simuleringPerMeldeperiode.flatMap { it.posteringer }
 
 /**
@@ -241,7 +241,7 @@ internal fun posteringerForPeriode(periode: Periode, vararg posteringer: Testpos
  * I de store forventningstestene ville det å gjenta hele responsen i forventningen gjort et allerede stort oppsett dobbelt så stort, uten å fange noe utover at kopieringen virker.
  * At posteringene bevares med riktig periode og beløp dekkes i stedet av [posteringerForPeriode]-testene.
  */
-internal fun plassholderPosteringerFor(meldeperiode: Meldeperiode): NonEmptyList<Postering> = nonEmptyListOf(
+fun plassholderPosteringerFor(meldeperiode: Meldeperiode): NonEmptyList<Postering> = nonEmptyListOf(
     Postering(
         periode = Periode(meldeperiode.periode.fraOgMed, meldeperiode.periode.fraOgMed),
         fagområde = FAGOMRÅDE_TILTAKSPENGER,
@@ -257,7 +257,7 @@ internal fun plassholderPosteringerFor(meldeperiode: Meldeperiode): NonEmptyList
  * Posteringene må ligge innenfor meldeperioden, ellers avviser init-blokka dem.
  * Derfor utledes plassholderen fra meldeperioden i stedet for å være en fast verdi.
  */
-internal fun simuleringForMeldeperiode(
+fun simuleringForMeldeperiode(
     meldeperiode: Meldeperiode,
     simuleringsdager: NonEmptyList<Simuleringsdag>,
 ): SimuleringForMeldeperiode = SimuleringForMeldeperiode(
@@ -267,10 +267,10 @@ internal fun simuleringForMeldeperiode(
 )
 
 /** Bytter ut posteringene med plassholdere, slik at en forventning kan sammenlignes uten dem. */
-internal fun Simulering.Endring.medPlassholderPosteringer(): Simulering.Endring =
+fun Simulering.Endring.medPlassholderPosteringer(): Simulering.Endring =
     copy(simuleringPerMeldeperiode = simuleringPerMeldeperiode.map { it.medPlassholderPosteringer() })
 
-internal fun SimuleringForMeldeperiode.medPlassholderPosteringer(): SimuleringForMeldeperiode =
+fun SimuleringForMeldeperiode.medPlassholderPosteringer(): SimuleringForMeldeperiode =
     copy(posteringer = plassholderPosteringerFor(meldeperiode))
 
 /**
@@ -279,28 +279,28 @@ internal fun SimuleringForMeldeperiode.medPlassholderPosteringer(): SimuleringFo
  * Beløpene fordeles likt over dagene i perioden og avrundes per dag, slik `tilPosteringerPerDag` gjør det.
  * Bruk denne når selve fordelingen er det du vil teste; ellers er [simulerDag] enklere.
  */
-internal fun simulerPeriode(periode: Periode, vararg posteringer: Testpostering): List<Simuleringsdag> =
+fun simulerPeriode(periode: Periode, vararg posteringer: Testpostering): List<Simuleringsdag> =
     simulering(periode, *posteringer).simuleringPerMeldeperiode.flatMap { it.simuleringsdager }
 
 /** Som [simulerPeriode], men gir hele simuleringen i stedet for bare dagene. */
-internal fun simulering(periode: Periode, vararg posteringer: Testpostering): Simulering.Endring =
+fun simulering(periode: Periode, vararg posteringer: Testpostering): Simulering.Endring =
     simuleringResultat(periode, *posteringer) as Simulering.Endring
 
 /** Som [simulering], men uten å anta at resultatet er en endring. */
-internal fun simuleringResultat(periode: Periode, vararg posteringer: Testpostering): Simulering =
+fun simuleringResultat(periode: Periode, vararg posteringer: Testpostering): Simulering =
     byggRespons(periode, posteringer.toList())
         .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
         .forventTolkbar()
 
 /** Som [simuleringResultat], men for tester som forventer at svaret ikke kan tolkes. */
-internal fun simuleringsfeil(periode: Periode, vararg posteringer: Testpostering): Simuleringsfeil =
+fun simuleringsfeil(periode: Periode, vararg posteringer: Testpostering): Simuleringsfeil =
     byggRespons(periode, posteringer.toList())
         .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
         .swap()
         .getOrElse { throw AssertionError("Forventet at simuleringen ikke kunne tolkes, men den ble tolket: $it") }
 
 /** Pakker ut simuleringen, med en lesbar testfeil dersom svaret ikke kunne tolkes. */
-internal fun Either<Simuleringsfeil, Simulering>.forventTolkbar(): Simulering =
+fun Either<Simuleringsfeil, Simulering>.forventTolkbar(): Simulering =
     getOrElse { throw AssertionError("Forventet at simuleringen kunne tolkes, men fikk: ${it.loggkontekst.melding}") }
 
 /**
@@ -309,7 +309,7 @@ internal fun Either<Simuleringsfeil, Simulering>.forventTolkbar(): Simulering =
  * Hver dag blir sin egen periode med `fom = tom`, slik OS gjør for dagytelser.
  * Bruk denne når det er fordelingen av dager på meldeperioder som er poenget, for eksempel når en justering skal balanseres innenfor eller på tvers av meldeperioder.
  */
-internal fun simuleringForDager(vararg dager: Pair<LocalDate, List<Testpostering>>): Simulering.Endring =
+fun simuleringForDager(vararg dager: Pair<LocalDate, List<Testpostering>>): Simulering.Endring =
     deserialize<SimuleringResponseDTO>(byggFlerdagersResponsJson(dager.toList()))
         .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
         .forventTolkbar() as Simulering.Endring
@@ -320,7 +320,7 @@ internal fun simuleringForDager(vararg dager: Pair<LocalDate, List<Testpostering
  * Dette er formen som trengs for å gjenskape motregning fra oppdragssystemet: et beløp stemplet med en periode på flere dager, som fordeles og avrundes per dag.
  * Bruk [simuleringForDager] når hver postering hører til én bestemt dag.
  */
-internal fun simuleringForPerioder(vararg perioder: Pair<Periode, List<Testpostering>>): Simulering.Endring =
+fun simuleringForPerioder(vararg perioder: Pair<Periode, List<Testpostering>>): Simulering.Endring =
     deserialize<SimuleringResponseDTO>(byggFlerperiodeResponsJson(perioder.toList()))
         .toSimuleringFraHelvedResponse(Simuleringstestdata.meldeperiodeKjeder, fixedClock)
         .forventTolkbar() as Simulering.Endring
@@ -384,7 +384,7 @@ private fun byggFlerdagersResponsJson(dager: List<Pair<LocalDate, List<Testposte
  * Da dekker testene også deserialiseringen -- feltnavn med æøå, parsing av datoer og oversettelsen av posteringstypen -- og ikke bare utregningen.
  * Formatet er verifisert mot 446 rå responser i `simulering_metadata` fra dev, som alle hadde nøyaktig disse feltene.
  */
-internal fun byggResponsJson(periode: Periode, posteringer: List<Testpostering>): String {
+fun byggResponsJson(periode: Periode, posteringer: List<Testpostering>): String {
     val totalBeløp = posteringer.filter { it.type == "YTELSE" }.sumOf { it.beløp }
     val perioder = if (posteringer.isEmpty()) {
         ""

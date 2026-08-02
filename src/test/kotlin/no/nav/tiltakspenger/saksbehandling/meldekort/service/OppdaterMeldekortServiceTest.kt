@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortbehandlingOppr
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-internal class OppdaterMeldekortServiceTest {
+class OppdaterMeldekortServiceTest {
 
     @Test
     fun `En meldeperiode kan ikke være 1 dag`() {

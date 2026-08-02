@@ -403,7 +403,7 @@ private fun eksaktTrekkMedJusteringRespons(
     return perMeldeperiode[meldeperiodeFraOgMed]
 }
 
-internal data class HelvedSimuleringsdag(
+data class HelvedSimuleringsdag(
     val dato: LocalDate,
     val tidligereUtbetalt: Int,
     val nyttBeløp: Int,
@@ -416,14 +416,14 @@ internal data class HelvedSimuleringsdag(
 )
 
 /** En justeringspostering slik OS periodiserer dem: ett beløp for en periode som kan spenne flere dager. */
-internal data class HelvedJusteringspostering(
+data class HelvedJusteringspostering(
     val fom: LocalDate,
     val tom: LocalDate,
     val beløp: Int,
 )
 
 /** En vilkårlig postering med egen type og klassekode, for scenarioer som trenger mer enn ytelse, justering og trekk. */
-internal data class HelvedEkstrapostering(
+data class HelvedEkstrapostering(
     val fom: LocalDate,
     val tom: LocalDate,
     val beløp: Int,
@@ -435,7 +435,7 @@ internal data class HelvedEkstrapostering(
  * Et trekk slik OS leverer dem: ett beløp for en periode, negativt for nye trekk og positivt for reversering av tidligere trekk.
  * Genereres kun i [DevSimuleringsscenario.TREKK] -- trekk oppstår hos OS, ikke av vår beregning.
  */
-internal data class HelvedTrekkpostering(
+data class HelvedTrekkpostering(
     val fom: LocalDate,
     val tom: LocalDate,
     val beløp: Int,
@@ -599,7 +599,7 @@ private val KLASSEKODE_FEILUTBETALING = OppsummeringGenerator.KLASSEKODE_FEILUTB
 private val KLASSEKODE_JUSTERING = OppsummeringGenerator.KLASSEKODE_JUSTERING
 private val KLASSEKODE_MOTPOSTERING = Klassekoder.MOTPOSTERING
 
-internal fun byggHelvedSimuleringRespons(
+fun byggHelvedSimuleringRespons(
     gjelderId: String,
     sakId: String,
     datoBeregnet: LocalDate,

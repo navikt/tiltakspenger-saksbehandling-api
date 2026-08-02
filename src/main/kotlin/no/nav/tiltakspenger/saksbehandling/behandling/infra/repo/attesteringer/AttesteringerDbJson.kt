@@ -12,7 +12,7 @@ private data class AttesteringerDbJson(
     val attesteringer: List<AttesteringDbJson>,
 )
 
-internal fun String.toAttesteringer(): List<Attestering> {
+fun String.toAttesteringer(): List<Attestering> {
     try {
         val attesteringerDbJson = deserialize<AttesteringerDbJson>(this)
         return attesteringerDbJson.attesteringer.map {
@@ -23,7 +23,7 @@ internal fun String.toAttesteringer(): List<Attestering> {
     }
 }
 
-internal fun List<Attestering>.toDbJson(): String =
+fun List<Attestering>.toDbJson(): String =
     serialize(
         AttesteringerDbJson(
             attesteringer = this.map {

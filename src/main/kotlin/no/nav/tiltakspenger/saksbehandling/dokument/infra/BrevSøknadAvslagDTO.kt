@@ -33,7 +33,7 @@ private data class BrevSøknadAvslagDTO(
     val avslagTilOgMed: String,
 ) : BrevRammevedtakBaseDTO
 
-internal suspend fun genererAvslagSøknadsbrev(
+suspend fun genererAvslagSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     tilleggstekst: FritekstTilVedtaksbrev?,
@@ -72,7 +72,7 @@ internal suspend fun genererAvslagSøknadsbrev(
     ).let { serialize(it) }
 }
 
-internal suspend fun Rammevedtak.genererAvslagSøknadsbrev(
+suspend fun Rammevedtak.genererAvslagSøknadsbrev(
     hentBrukersNavn: suspend (Fnr) -> Navn,
     hentSaksbehandlersNavn: suspend (String) -> String,
     datoForUtsending: LocalDate,

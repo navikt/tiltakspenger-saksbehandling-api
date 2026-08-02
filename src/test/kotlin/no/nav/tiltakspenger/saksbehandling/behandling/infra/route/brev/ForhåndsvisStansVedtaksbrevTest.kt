@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhån
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import org.junit.jupiter.api.Test
 
-internal class ForhåndsvisStansVedtaksbrevTest {
+class ForhåndsvisStansVedtaksbrevTest {
     @Test
     fun `kan forhåndsvise vedtaksbrev for stans under behandling`() {
         withTestApplicationContext { tac ->

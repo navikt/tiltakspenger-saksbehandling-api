@@ -38,7 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import java.time.Clock
 
-internal fun TestDataHelper.persisterBrukersMeldekort(
+fun TestDataHelper.persisterBrukersMeldekort(
     sak: Sak? = null,
     // Første kall kan være null - alle påfølgende kall må ha med meldeperiode
     meldeperiode: Meldeperiode? = null,
@@ -83,7 +83,7 @@ internal fun TestDataHelper.persisterBrukersMeldekort(
     return this.sakRepo.hentForSakId(generertSak.id)!! to brukersMeldekort
 }
 
-internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling(
+fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = saksbehandler(),
     kjedeId: MeldeperiodeKjedeId? = null,
@@ -120,7 +120,7 @@ internal fun TestDataHelper.persisterKlarTilBehandlingManuellMeldekortbehandling
  * OBS: Prøver å avslutte siste meldekortbehandling i [sak], hvis den er i tilstanden [MeldekortUnderBehandling].
  * (enklere å begynne med :) )
  */
-internal fun TestDataHelper.persisterAvsluttetMeldekortbehandling(
+fun TestDataHelper.persisterAvsluttetMeldekortbehandling(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = saksbehandler(),
     periode: Periode = Periode(
@@ -158,7 +158,7 @@ internal fun TestDataHelper.persisterAvsluttetMeldekortbehandling(
     return this.sakRepo.hentForSakId(avbruttMeldekortbehandling.sakId)!! to avbruttMeldekortbehandling
 }
 
-internal fun TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning(
+fun TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = saksbehandler(),
     periode: Periode = Periode(
@@ -210,7 +210,7 @@ internal fun TestDataHelper.persisterManuellMeldekortbehandlingTilBeslutning(
     }
 }
 
-internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
+fun TestDataHelper.persisterIverksattMeldekortbehandling(
     sak: Sak? = null,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     periode: Periode = Periode(
@@ -243,7 +243,7 @@ internal fun TestDataHelper.persisterIverksattMeldekortbehandling(
     return sakRepo.hentForSakId(sakMedMeldekortbehandlingTilBeslutning.id)!! to meldekortvedtak
 }
 
-internal fun TestDataHelper.persisterOppdatertMeldekortbehandling(
+fun TestDataHelper.persisterOppdatertMeldekortbehandling(
     id: MeldekortId? = null,
     behandling: Meldekortbehandling? = id?.let { meldekortRepo.hent(it) },
     dager: OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode? = null,

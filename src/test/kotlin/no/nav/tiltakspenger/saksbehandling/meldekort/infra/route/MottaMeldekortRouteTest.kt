@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMe
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import org.junit.jupiter.api.Test
 
-internal class MottaMeldekortRouteTest {
+class MottaMeldekortRouteTest {
 
     @Test
     fun `Kan lagre meldekort fra bruker`() {

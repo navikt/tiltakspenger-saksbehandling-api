@@ -8,12 +8,12 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.route.toSaksbehandlerDTO
 
-internal const val SAKSBEHANDLER_PATH = "/saksbehandler"
+const val SAKSBEHANDLER_PATH = "/saksbehandler"
 
 private val logger = KotlinLogging.logger { }
 
 /** Henter informasjon om saksbehandleren som er logget inn.*/
-internal fun Route.meRoute() {
+fun Route.meRoute() {
     get(SAKSBEHANDLER_PATH) {
         logger.debug { "Mottatt get-request på $SAKSBEHANDLER_PATH" }
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get

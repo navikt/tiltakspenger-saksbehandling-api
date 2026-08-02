@@ -991,7 +991,7 @@ fun Rammebehandling.tilBeslutning(
  * Kallstedene uttrykker hvilke perioder som innvilges; deltakelsen eies av saksopplysningene og har unik id per test.
  * Kommandoer som allerede peker på en deltakelse i saksopplysningene røres ikke.
  */
-internal fun List<InnvilgelsesperiodeKommando>.medDeltakelseFra(saksopplysninger: Saksopplysninger): List<InnvilgelsesperiodeKommando> {
+fun List<InnvilgelsesperiodeKommando>.medDeltakelseFra(saksopplysninger: Saksopplysninger): List<InnvilgelsesperiodeKommando> {
     return map { kommando ->
         if (saksopplysninger.tiltaksdeltakelser.any { it.internDeltakelseId == kommando.internDeltakelseId }) {
             kommando

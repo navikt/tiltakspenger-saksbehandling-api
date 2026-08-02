@@ -11,7 +11,7 @@ import java.time.Clock
  * Defaulten hører hjemme her, i testkoden, og ikke i produksjonssignaturen - se «Ingen defaults i prod for testenes skyld» i AGENTS-backend.md.
  * Testene som faktisk bryr seg, sender inn verdien selv.
  */
-internal fun konsumerTilbakekrevingshendelse(
+fun konsumerTilbakekrevingshendelse(
     key: String,
     value: String?,
     tilbakekrevingHendelseRepo: TilbakekrevingHendelseRepo,

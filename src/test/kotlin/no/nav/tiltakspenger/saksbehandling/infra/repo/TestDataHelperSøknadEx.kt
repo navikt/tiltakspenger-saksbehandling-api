@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import java.time.LocalDate
 import kotlin.random.Random
 
-internal fun TestDataHelper.persisterSakOgSøknad(
+fun TestDataHelper.persisterSakOgSøknad(
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
     deltakelseTom: LocalDate = 31.mars(2023),

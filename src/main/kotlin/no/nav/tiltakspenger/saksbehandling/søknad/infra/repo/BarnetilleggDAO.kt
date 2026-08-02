@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import org.intellij.lang.annotations.Language
 
-internal object BarnetilleggDAO {
+object BarnetilleggDAO {
 
     private const val ULID_PREFIX_BARNETILLEGG = "btil"
 

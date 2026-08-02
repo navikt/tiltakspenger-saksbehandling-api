@@ -54,7 +54,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toSimuleringFra
  *
  * Ligger for seg selv fordi mappingen er omfangsrik og har et annet ansvar enn spørringene i [RammebehandlingPostgresRepo].
  */
-internal fun Row.toBehandling(session: Session): Rammebehandling {
+fun Row.toBehandling(session: Session): Rammebehandling {
     val behandlingstype = string("behandlingstype").toBehandlingstype()
     val id = RammebehandlingId.fromString(string("id"))
     val sakId = SakId.fromString(string("sak_id"))
@@ -246,7 +246,7 @@ internal fun Row.toBehandling(session: Session): Rammebehandling {
     }
 }
 
-internal fun saksopplysningerMedOppdatertEksternDeltakselseId(
+fun saksopplysningerMedOppdatertEksternDeltakselseId(
     saksopplysninger: Saksopplysninger,
     session: Session,
 ): Saksopplysninger {
@@ -258,7 +258,7 @@ internal fun saksopplysningerMedOppdatertEksternDeltakselseId(
     return saksopplysninger.copy(tiltaksdeltakelser = Tiltaksdeltakelser(oppdaterteTiltaksdeltakelser))
 }
 
-internal fun Rammebehandling.tilDbParams(): Map<String, Any?> {
+fun Rammebehandling.tilDbParams(): Map<String, Any?> {
     val søknadId = when (this) {
         is Søknadsbehandling -> this.søknad.id.toString()
         is Revurdering -> null
@@ -314,7 +314,7 @@ internal fun Rammebehandling.tilDbParams(): Map<String, Any?> {
     )
 }
 
-internal fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
+fun Rammebehandlingsresultat?.tilDbParams(): Array<Pair<String, Any?>> = when (this) {
     is Søknadsbehandlingsresultat.Avslag -> arrayOf(
         "avslagsgrunner" to this.avslagsgrunner.toDb(),
         "omgjoer_rammevedtak" to null,

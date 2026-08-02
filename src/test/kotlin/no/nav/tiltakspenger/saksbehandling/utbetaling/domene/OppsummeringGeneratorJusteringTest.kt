@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
  *
  * Testene her låser dagens oppførsel og dokumenterer hva den gamle ga, slik at skiftet ikke blir borte neste gang noen leser tallene.
  */
-internal class OppsummeringGeneratorJusteringTest {
+class OppsummeringGeneratorJusteringTest {
 
     /**
      * Begge formene skal telle som justering.

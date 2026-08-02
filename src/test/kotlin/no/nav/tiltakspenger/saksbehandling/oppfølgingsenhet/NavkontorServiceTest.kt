@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 import kotlin.time.Duration
 
-internal class NavkontorServiceTest {
+class NavkontorServiceTest {
     private val fnr = Fnr.random()
 
     private fun klientSomSvarer(

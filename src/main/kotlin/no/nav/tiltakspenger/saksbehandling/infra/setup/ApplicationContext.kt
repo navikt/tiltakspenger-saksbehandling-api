@@ -79,13 +79,13 @@ import java.time.Clock
  */
 @Suppress("unused")
 open class ApplicationContext(
-    internal val gitHash: String,
-    internal open val clock: Clock,
+    val gitHash: String,
+    open val clock: Clock,
     /**
      * Injiseres fra komposisjonsroten i stedet for å slås opp i [Configuration] her.
      * Konteksten deles med tester og lokal kjøring, og et statisk oppslag ville gjort oppførselen avhengig av prosessglobal tilstand.
      */
-    internal val erDev: Boolean,
+    val erDev: Boolean,
 ) {
     private val log = KotlinLogging.logger {}
 

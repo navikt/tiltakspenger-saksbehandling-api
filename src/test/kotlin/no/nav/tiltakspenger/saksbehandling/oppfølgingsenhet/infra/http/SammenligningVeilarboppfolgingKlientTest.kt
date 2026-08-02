@@ -20,7 +20,7 @@ import java.time.Instant
  * Klientene er konkrete klasser uten interface, så vi faker på transport-nivå med `FakeHttpTransport` — hele den reelle pipelinen kjører.
  * Testene dekker dermed også JSON-mappingen i begge klientene, ikke bare valg-/logglogikken.
  */
-internal class SammenligningVeilarboppfolgingKlientTest {
+class SammenligningVeilarboppfolgingKlientTest {
 
     private val authTokenProvider = object : AuthTokenProvider {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)

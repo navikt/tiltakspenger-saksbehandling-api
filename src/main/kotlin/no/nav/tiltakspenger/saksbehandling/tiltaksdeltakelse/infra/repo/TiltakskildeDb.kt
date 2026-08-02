@@ -8,14 +8,14 @@ enum class TiltakskildeDb {
     TeamTiltak,
 }
 
-internal fun String.toTiltakskilde(): Tiltakskilde =
+fun String.toTiltakskilde(): Tiltakskilde =
     when (TiltakskildeDb.valueOf(this)) {
         TiltakskildeDb.Arena -> Tiltakskilde.Arena
         TiltakskildeDb.Komet -> Tiltakskilde.Komet
         TiltakskildeDb.TeamTiltak -> Tiltakskilde.TeamTiltak
     }
 
-internal fun Tiltakskilde.toDb(): String =
+fun Tiltakskilde.toDb(): String =
     when (this) {
         Tiltakskilde.Arena -> TiltakskildeDb.Arena
         Tiltakskilde.Komet -> TiltakskildeDb.Komet

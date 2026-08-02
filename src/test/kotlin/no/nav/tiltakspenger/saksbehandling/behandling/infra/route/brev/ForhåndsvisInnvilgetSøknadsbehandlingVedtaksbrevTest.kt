@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.forhån
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import org.junit.jupiter.api.Test
 
-internal class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
+class ForhåndsvisInnvilgetSøknadsbehandlingVedtaksbrevTest {
     @Test
     fun `kan forhåndsvise vedtaksbrev for innvilget søknadsbehandling uten barnetillegg`() {
         withTestApplicationContext { tac ->

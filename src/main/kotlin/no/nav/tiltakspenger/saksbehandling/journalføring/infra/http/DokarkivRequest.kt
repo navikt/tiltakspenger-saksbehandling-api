@@ -7,7 +7,7 @@ package no.nav.tiltakspenger.saksbehandling.journalføring.infra.http
  *
  * https://confluence.adeo.no/display/BOA/opprettJournalpost
  */
-internal data class DokarkivRequest(
+data class DokarkivRequest(
     /**
      * Tittel som beskriver forsendelsen samlet, feks "Søknad om foreldrepenger".
      */

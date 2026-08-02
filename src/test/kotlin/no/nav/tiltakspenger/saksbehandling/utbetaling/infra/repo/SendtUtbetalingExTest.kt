@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import org.junit.jupiter.api.Test
 
-internal class SendtUtbetalingExTest {
+class SendtUtbetalingExTest {
 
     @Test
     fun `empty and plain string`() {

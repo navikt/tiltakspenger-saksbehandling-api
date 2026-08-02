@@ -39,7 +39,7 @@ import java.time.Instant
  * Tester klienten mot `FakeHttpTransport` slik at hele den reelle `HttpKlient`-pipelinen kjører (statusregel, retry, auth, deserialisering).
  * [Klagevedtak] mockes fordi et gyldig klagevedtak krever hele avvisnings-flyten; journalpost-mapperen leser kun fnr og saksnummer.
  */
-internal class DokarkivHttpClientTest {
+class DokarkivHttpClientTest {
 
     private val systemTokenProvider = object : AuthTokenProvider {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("system-token", Instant.parse("2026-01-01T00:00:00Z"))

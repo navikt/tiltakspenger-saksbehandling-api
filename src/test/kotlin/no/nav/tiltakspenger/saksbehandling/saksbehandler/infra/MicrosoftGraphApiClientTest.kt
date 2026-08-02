@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.hentNavnForNavIdentElle
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
-internal class MicrosoftGraphApiClientTest {
+class MicrosoftGraphApiClientTest {
     private val baseUrl = "graph.test"
     private val navIdent = "Z123456"
 

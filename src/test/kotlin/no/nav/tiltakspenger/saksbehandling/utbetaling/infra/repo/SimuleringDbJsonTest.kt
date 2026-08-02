@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
  * Vi skiller dem på om `posteringer` finnes, ikke på et versjonsnummer.
  * Feltene er disjunkte, så en rad kan aldri tolkes som feil form.
  */
-internal class SimuleringDbJsonTest {
+class SimuleringDbJsonTest {
 
     private val meldeperiodeId =
         Simuleringstestdata.meldeperiodeKjeder.hentMeldeperioderForPeriode(Simuleringstestdata.meldeperiode)

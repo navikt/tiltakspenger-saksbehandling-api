@@ -25,7 +25,7 @@ import java.time.LocalDate
  * `client` er helveds egne DTO-er mot oppdragssystemet og treffer oss aldri.
  * Derfor peker konvolutten og oppsummeringene på `api`, mens detaljene peker på `domain`.
  */
-internal data class SimuleringResponseDTO(
+data class SimuleringResponseDTO(
     val oppsummeringer: List<OppsummeringForPeriode>,
     val detaljer: SimuleringDetaljer,
 ) {
@@ -102,7 +102,7 @@ internal data class SimuleringResponseDTO(
     }
 }
 
-internal fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
+fun SimuleringResponseDTO.toSimuleringFraHelvedResponse(
     meldeperiodeKjeder: MeldeperiodeKjeder,
     clock: Clock,
 ): Either<Simuleringsfeil, Simulering> {

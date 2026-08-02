@@ -104,7 +104,7 @@ class MeldeperiodePostgresRepo(
     }
 
     companion object {
-        internal fun hentForMeldeperiodeId(
+        fun hentForMeldeperiodeId(
             meldeperiodeId: MeldeperiodeId,
             session: Session,
         ): Meldeperiode? {
@@ -124,7 +124,7 @@ class MeldeperiodePostgresRepo(
             )
         }
 
-        internal fun hentMeldeperiodekjederForSakId(
+        fun hentMeldeperiodekjederForSakId(
             sakId: SakId,
             session: Session,
         ): MeldeperiodeKjeder {

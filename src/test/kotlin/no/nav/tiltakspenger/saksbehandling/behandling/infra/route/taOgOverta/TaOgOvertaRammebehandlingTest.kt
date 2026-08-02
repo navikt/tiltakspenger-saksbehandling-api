@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 
-internal class TaOgOvertaRammebehandlingTest {
+class TaOgOvertaRammebehandlingTest {
 
     @Test
     fun `kan ikke ta behandling som allerede har saksbehandler`() {

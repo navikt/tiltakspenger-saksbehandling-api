@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
  *
  * Vi asserter på JSON-en, ikke på domeneobjektene, slik at et brudd i kontrakten mot frontend også fanges.
  */
-internal class SimuleringRouteTest {
+class SimuleringRouteTest {
 
     /**
      * Førstegangsutbetaling: ingenting er utbetalt fra før, så alt er ny utbetaling og etterbetaling.

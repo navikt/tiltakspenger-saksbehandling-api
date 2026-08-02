@@ -24,7 +24,7 @@ import kotlin.time.Duration.Companion.seconds
  * Responsen fra dokdist ved distribusjon av en journalpost.
  * `bestillingsId` er distribusjons-id-en vi lagrer på vedtaket.
  */
-internal data class DokdistResponse(
+data class DokdistResponse(
     val bestillingsId: String,
 )
 

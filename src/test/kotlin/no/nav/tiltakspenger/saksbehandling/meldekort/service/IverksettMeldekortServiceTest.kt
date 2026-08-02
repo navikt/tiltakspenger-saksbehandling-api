@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.tilSendMeldekortTilBesl
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import org.junit.jupiter.api.Test
 
-internal class IverksettMeldekortServiceTest {
+class IverksettMeldekortServiceTest {
 
     @Test
     fun `neste utbetaling peker på forrige`() = runTest {

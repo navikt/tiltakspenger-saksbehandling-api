@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivReq
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 /** Denne ligger nærmere vedtak enn journalføring strukturmessig */
-internal fun Rammevedtak.utgåendeJournalpostRequest(
+fun Rammevedtak.utgåendeJournalpostRequest(
     pdfOgJson: PdfOgJson,
 ): String {
     return toJournalpostRequest(

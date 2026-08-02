@@ -42,7 +42,7 @@ import java.util.UUID
  * Enkelt case der man kun trenger en sak for å opprette en klagebehandling til avvisning (knyttes ikke til et vedtak).
  * Merk at det ikke persisteres søknad eller søknadsbehandling.
  */
-internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
+fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
@@ -79,7 +79,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilAvvisning(
     )
 }
 
-internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
+fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
@@ -134,7 +134,7 @@ internal fun TestDataHelper.persisterOpprettetKlagebehandlingTilVurdering(
 /**
  * Oppdaterer også brevtekst
  */
-internal fun TestDataHelper.persisterOpprettholdtKlagebehandling(
+fun TestDataHelper.persisterOpprettholdtKlagebehandling(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
@@ -194,7 +194,7 @@ internal fun TestDataHelper.persisterOpprettholdtKlagebehandling(
     return Pair(oppdatertSak, opprettholdtKlageMedBrevtekst)
 }
 
-internal fun TestDataHelper.persisterOversendtKlagebehandling(
+fun TestDataHelper.persisterOversendtKlagebehandling(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
@@ -246,7 +246,7 @@ internal fun TestDataHelper.persisterOversendtKlagebehandling(
     return Pair(oppdatertSak, oversendtKlagebehandling)
 }
 
-internal fun TestDataHelper.persisterKlagebehandlingMottattFraKA(
+fun TestDataHelper.persisterKlagebehandlingMottattFraKA(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
@@ -297,7 +297,7 @@ internal fun TestDataHelper.persisterKlagebehandlingMottattFraKA(
     return Pair(oppdatertSak, oversendtKlagebehandlingMedSvarFraKA)
 }
 
-internal fun TestDataHelper.persisterFerdigstiltKlagebehandling(
+fun TestDataHelper.persisterFerdigstiltKlagebehandling(
     sakId: SakId = SakId.random(),
     klagebehandlingId: KlagebehandlingId = KlagebehandlingId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),

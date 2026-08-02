@@ -77,7 +77,7 @@ sealed interface KanIkkeHenteKontorhistorikk {
  * Nøytral, ikke-sensitiv beskrivelse av feilen for bruk i vanlig logg og exception-meldinger.
  * Se [KanIkkeHenteNavkontor.beskrivelse] for begrunnelsen.
  */
-internal fun KanIkkeHenteKontorhistorikk.beskrivelse(): String = when (this) {
+fun KanIkkeHenteKontorhistorikk.beskrivelse(): String = when (this) {
     is KanIkkeHenteKontorhistorikk.KallFeilet -> "KallFeilet(${httpKlientError::class.simpleName})"
     is KanIkkeHenteKontorhistorikk.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
     is KanIkkeHenteKontorhistorikk.GraphQlFeil -> "GraphQlFeil"
@@ -88,7 +88,7 @@ internal fun KanIkkeHenteKontorhistorikk.beskrivelse(): String = when (this) {
  * Throwable for feillogging med stacktrace (kun sikkerlogg - kan inneholde persondata):
  * httpklient-feilens underliggende throwable, eller den ukontrollerte exceptionen for [KanIkkeHenteKontorhistorikk.UventetFeil].
  */
-internal fun KanIkkeHenteKontorhistorikk.throwableForLogg(): Throwable? = when (this) {
+fun KanIkkeHenteKontorhistorikk.throwableForLogg(): Throwable? = when (this) {
     is KanIkkeHenteKontorhistorikk.UventetFeil -> throwable
     is KanIkkeHenteKontorhistorikk.KallFeilet -> httpKlientError.throwableOrNull()
     is KanIkkeHenteKontorhistorikk.UventetHttpStatus -> httpKlientError.throwableOrNull()

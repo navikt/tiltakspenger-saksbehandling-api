@@ -21,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvSøknadPåNyttForSøknadId
 import org.junit.jupiter.api.Test
 
-internal class BehandleSøknadPåNyttTest {
+class BehandleSøknadPåNyttTest {
     /**
      * Kjører mot postgres fordi ruta er eneste prodsti til `PersonPostgresRepo.hentFnrForSøknadId`, via auditloggingen.
      * De øvrige testene i fila er tilgangskontroll og kan bli stående in-memory.

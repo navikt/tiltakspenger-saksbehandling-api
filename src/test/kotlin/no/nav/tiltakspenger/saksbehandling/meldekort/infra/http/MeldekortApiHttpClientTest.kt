@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test
  *
  * Tilsammen dekker dette alle linjene i [MeldekortApiHttpClient] (verifisert via Kover).
  */
-internal class MeldekortApiHttpClientTest {
+class MeldekortApiHttpClientTest {
 
     private fun nySak() = ObjectMother.nySakMedVedtak().first
 

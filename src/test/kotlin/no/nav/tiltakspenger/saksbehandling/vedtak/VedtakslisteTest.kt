@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdel
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import org.junit.jupiter.api.Test
 
-internal class VedtakslisteTest {
+class VedtakslisteTest {
     @Test
     fun `default antall dager for hele innvilgelsesperioden`() {
         withTestApplicationContext { tac ->

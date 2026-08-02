@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import no.nav.tiltakspenger.libs.persistering.test.common.TestDatabaseManager as LibsTestDatabaseManager
 
-internal class TestDatabaseManager(
+class TestDatabaseManager(
     config: TestDatabaseConfig = TestDatabaseConfig(),
 ) {
     private val delegate = LibsTestDatabaseManager(

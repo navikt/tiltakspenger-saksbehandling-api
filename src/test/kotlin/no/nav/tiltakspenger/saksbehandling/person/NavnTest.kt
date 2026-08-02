@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.person
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
-internal class NavnTest {
+class NavnTest {
 
     val fornavn = "Fornavn"
     val mellomnavn = "Mellomnavn"

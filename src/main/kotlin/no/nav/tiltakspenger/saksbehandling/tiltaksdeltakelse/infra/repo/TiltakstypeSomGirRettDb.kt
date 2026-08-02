@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 /**
  * @see [TiltakstypeSomGirRettDTO]
  */
-internal enum class TiltakstypeSomGirRettDb {
+enum class TiltakstypeSomGirRettDb {
     ARBEIDSFORBEREDENDE_TRENING,
     ARBEIDSMARKEDSOPPLAERING,
     ARBEIDSRETTET_REHABILITERING,
@@ -33,6 +33,6 @@ internal enum class TiltakstypeSomGirRettDb {
     fun toDomain(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.valueOf(this.name)
 }
 
-internal fun TiltakstypeSomGirRettDTO.toDb(): String = this.name
+fun TiltakstypeSomGirRettDTO.toDb(): String = this.name
 
-internal fun String.toTiltakstypeSomGirRett(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDb.valueOf(this).toDomain()
+fun String.toTiltakstypeSomGirRett(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDb.valueOf(this).toDomain()

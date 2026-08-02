@@ -64,7 +64,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
-internal class DokarkivHttpClient(
+class DokarkivHttpClient(
     baseUrl: String,
     private val clock: Clock,
     authTokenProvider: AuthTokenProvider,
@@ -219,7 +219,7 @@ internal class DokarkivHttpClient(
  * Kun disse to statusene kan nå hit (statusregelen godtar bare `201`, og feilgrenen slipper bare gjennom `409`); alt annet er en programmeringsfeil i statushåndteringen og feiler høylytt.
  * Toppnivåfunksjon slik at også feilgrenen kan dekkes av tester.
  */
-internal fun Int.tilResponseStatusTekst(): String = when (this) {
+fun Int.tilResponseStatusTekst(): String = when (this) {
     201 -> "201 Created"
     409 -> "409 Conflict"
     else -> throw IllegalStateException("Uventet statuskode $this ved journalføring mot dokarkiv - kun 201 og 409 skal kunne nå hit.")

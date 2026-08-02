@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
 
-internal class TiltakspengerArenaHttpClientTest {
+class TiltakspengerArenaHttpClientTest {
     private val baseUrl = "http://arena.test"
     private val correlationId = CorrelationId.generate()
 

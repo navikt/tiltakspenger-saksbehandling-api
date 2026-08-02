@@ -50,7 +50,7 @@ import java.time.LocalDate
  * @param genererSak funksjon som genererer sak og revurdering.
  * Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
-internal fun TestDataHelper.persisterOpprettetRevurdering(
+fun TestDataHelper.persisterOpprettetRevurdering(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> ObjectMother.saksopplysninger() },
@@ -98,7 +98,7 @@ internal fun TestDataHelper.persisterOpprettetRevurdering(
  * @param genererSak funksjon som genererer sak og revurdering.
  * Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
-internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
+fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     s: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     begrunnelse: Begrunnelse = Begrunnelse.createOrThrow("TestDataHelper.persisterRevurderingTilBeslutning"),
@@ -140,7 +140,7 @@ internal fun TestDataHelper.persisterRevurderingStansTilBeslutning(
     }
 }
 
-internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
+fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
     sak: Sak? = null,
     opprettetAv: Saksbehandler = ObjectMother.saksbehandler(),
     beslutterAv: Saksbehandler = ObjectMother.beslutter(),
@@ -175,7 +175,7 @@ internal fun TestDataHelper.persisterRevurderingStansUnderBeslutning(
  * @param genererSak funksjon som genererer sak og revurdering.
  * Den kan brukes til å lage en ny sak eller bruke en eksisterende.
  */
-internal fun TestDataHelper.persisterIverksattRevurderingStans(
+fun TestDataHelper.persisterIverksattRevurderingStans(
     sak: Sak? = null,
     beslutter: Saksbehandler = ObjectMother.beslutter(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
@@ -223,7 +223,7 @@ internal fun TestDataHelper.persisterIverksattRevurderingStans(
     return Triple(sakRepo.hentForSakId(sakMedRevurderingTilBeslutning.id)!!, stansVedtak, iverksattRevurdering)
 }
 
-internal fun TestDataHelper.persisterAvbruttRevurdering(
+fun TestDataHelper.persisterAvbruttRevurdering(
     sak: Sak? = null,
     opprettetAv: Saksbehandler = ObjectMother.saksbehandler(),
     avbruttAv: Saksbehandler = ObjectMother.saksbehandler(),
@@ -252,7 +252,7 @@ internal fun TestDataHelper.persisterAvbruttRevurdering(
     return Pair(sakRepo.hentForSakId(sakMedOpprettetRevurdering.id)!!, opprettetRevurdering)
 }
 
-internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
+fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     sak: Sak? = null,
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     beslutter: Saksbehandler = ObjectMother.beslutter(),
@@ -333,7 +333,7 @@ internal fun TestDataHelper.persisterRevurderingInnvilgelseIverksatt(
     }
 }
 
-internal fun TestDataHelper.persisterOpprettetOmgjøring(
+fun TestDataHelper.persisterOpprettetOmgjøring(
     genererSak: Triple<Sak, Rammevedtak, Rammebehandling> = persisterIverksattSøknadsbehandling(),
     saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ -> genererSak.second.rammebehandling.saksopplysninger },

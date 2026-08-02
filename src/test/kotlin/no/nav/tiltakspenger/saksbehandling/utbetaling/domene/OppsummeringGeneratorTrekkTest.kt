@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
  * Det samme bildet gjelder i prod: 3 214 av 3 482 trekkposteringer er negative.
  * `beregnTrekk` summerer derfor uansett fortegn, slik at feltet viser beløpet som faktisk trekkes.
  */
-internal class OppsummeringGeneratorTrekkTest {
+class OppsummeringGeneratorTrekkTest {
 
     /**
      * Slik et ekte trekk ser ut, og det skal telle med i `totalTrekk`.

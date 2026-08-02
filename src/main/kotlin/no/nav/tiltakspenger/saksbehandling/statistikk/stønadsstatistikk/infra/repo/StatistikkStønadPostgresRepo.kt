@@ -73,7 +73,7 @@ class StatistikkStønadPostgresRepo {
             )
         }
 
-        internal fun lagre(
+        fun lagre(
             dto: StatistikkStønadDTO,
             clock: Clock,
             tx: TransactionalSession,

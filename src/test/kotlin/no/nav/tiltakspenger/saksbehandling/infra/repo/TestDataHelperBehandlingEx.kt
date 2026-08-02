@@ -46,7 +46,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.random.Random
 
-internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
+fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     sakId: SakId = SakId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
@@ -109,7 +109,7 @@ internal fun TestDataHelper.persisterOpprettetSøknadsbehandling(
     )
 }
 
-internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
+fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
     sakId: SakId = SakId.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
     fnr: Fnr = Fnr.random(),
@@ -168,7 +168,7 @@ internal fun TestDataHelper.persisterOpprettetAutomatiskSøknadsbehandling(
     )
 }
 
-internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning(
+fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -248,7 +248,7 @@ internal fun TestDataHelper.persisterAutomatiskSøknadsbehandlingUnderBeslutning
     return sakRepo.hentForSakId(sakId)!! to behandlingRepo.hent(behandling.id)
 }
 
-internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
+fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -354,7 +354,7 @@ internal fun TestDataHelper.persisterKlarTilBeslutningSøknadsbehandling(
     return Pair(oppdatertSak, søknadsbehandlingKlarTilBeslutning)
 }
 
-internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
+fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -420,7 +420,7 @@ internal fun TestDataHelper.persisterUnderBeslutningSøknadsbehandling(
     return Pair(oppdatertSak, tilBeslutning)
 }
 
-internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
+fun TestDataHelper.persisterAvbruttSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -485,7 +485,7 @@ internal fun TestDataHelper.persisterAvbruttSøknadsbehandling(
 
 /** Skal kun persistere en helt tom sak */
 @Suppress("unused")
-internal fun TestDataHelper.persisterNySak(
+fun TestDataHelper.persisterNySak(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     saksnummer: Saksnummer = this.saksnummerGenerator.generer(),
@@ -503,7 +503,7 @@ internal fun TestDataHelper.persisterNySak(
 /**
  * Persisterer og et rammevedtak.
  */
-internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
+fun TestDataHelper.persisterIverksattSøknadsbehandling(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -584,7 +584,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandling(
     return Triple(sakRepo.hentForSakId(sak.id)!!, vedtak, oppdatertRammebehandling)
 }
 
-internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
+fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 1.januar(2023),
@@ -651,7 +651,7 @@ internal fun TestDataHelper.persisterIverksattSøknadsbehandlingAvslag(
 /**
  * Persisterer behandlingen, rammevedtaket og utbetalingen
  */
-internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
+fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehandletMeldekort(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 2.januar(2023),
@@ -723,7 +723,7 @@ internal fun TestDataHelper.persisterVedtattInnvilgetSøknadsbehandlingMedBehand
     return Tuple4(sakRepo.hentForSakId(sakId)!!, rammevedtak, meldekortvedtak, behandletMeldekort)
 }
 
-internal fun TestDataHelper.persisterRammevedtakAvslag(
+fun TestDataHelper.persisterRammevedtakAvslag(
     sakId: SakId = SakId.random(),
     fnr: Fnr = Fnr.random(),
     deltakelseFom: LocalDate = 2.januar(2023),

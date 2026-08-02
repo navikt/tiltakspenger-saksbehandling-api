@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import org.junit.jupiter.api.Test
 
-internal class EnkelPersonMapperTest {
+class EnkelPersonMapperTest {
 
     @Test
     fun test() {

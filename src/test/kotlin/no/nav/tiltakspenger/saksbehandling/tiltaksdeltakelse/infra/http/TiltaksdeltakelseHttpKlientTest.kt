@@ -22,7 +22,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-internal class TiltaksdeltakelseHttpKlientTest {
+class TiltaksdeltakelseHttpKlientTest {
     private val baseUrl = "http://tiltakspenger-tiltak.test"
     private val fnr = Fnr.random()
 

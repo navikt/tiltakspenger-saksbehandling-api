@@ -260,7 +260,7 @@ class RammebehandlingPostgresRepo(
                 ).map { it.toBehandling(session) }.asSingle,
             )
 
-        internal fun hentForSakId(
+        fun hentForSakId(
             sakId: SakId,
             session: Session,
         ): Rammebehandlinger =

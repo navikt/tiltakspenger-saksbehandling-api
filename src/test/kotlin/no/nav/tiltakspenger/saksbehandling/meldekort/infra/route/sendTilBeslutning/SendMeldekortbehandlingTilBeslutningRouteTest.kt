@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import org.junit.jupiter.api.Test
 
-internal class SendMeldekortbehandlingTilBeslutningRouteTest {
+class SendMeldekortbehandlingTilBeslutningRouteTest {
     @Test
     fun `kan sende meldekortbehandling til beslutter`() {
         runTest {

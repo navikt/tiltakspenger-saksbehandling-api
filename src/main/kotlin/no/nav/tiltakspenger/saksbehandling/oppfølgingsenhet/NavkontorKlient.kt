@@ -124,7 +124,7 @@ sealed interface KanIkkeHenteNavkontor {
  * Feiltypene bærer [Klientkall]/[HttpKlientError] med rå request/response, og en default `toString()` ville derfor lekke persondata (fnr i requesten, stedslokaliserende navkontor i responsen) til vanlig logg.
  * Vi tar kun med feiltypen, HTTP-status og httpklient-varianten (ikke sensitivt) - rådata hører hjemme i sikkerlogg.
  */
-internal fun KanIkkeHenteNavkontor.beskrivelse(): String = when (this) {
+fun KanIkkeHenteNavkontor.beskrivelse(): String = when (this) {
     is KanIkkeHenteNavkontor.KallFeilet -> "KallFeilet(${httpKlientError::class.simpleName})"
     is KanIkkeHenteNavkontor.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
     is KanIkkeHenteNavkontor.ManglerOppfolgingsenhet -> "ManglerOppfolgingsenhet"
@@ -134,7 +134,7 @@ internal fun KanIkkeHenteNavkontor.beskrivelse(): String = when (this) {
  * Hjelpefunksjon som returnerer en kopi av feilen med [KanIkkeHenteNavkontor.kontorhistorikkKall] satt.
  * Brukes av sammenligningsklienten for å berike feilstier med rådata fra ny klient.
  */
-internal fun KanIkkeHenteNavkontor.medKontorhistorikkKall(
+fun KanIkkeHenteNavkontor.medKontorhistorikkKall(
     kall: Klientkall?,
 ): KanIkkeHenteNavkontor = when (this) {
     is KanIkkeHenteNavkontor.KallFeilet -> copy(kontorhistorikkKall = kall)

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
  * Delt instans slik at alle saksnummer er unike på tvers av hele testkjøringen; saksnummer har unik indeks i sak-tabellen.
  * Skal ikke ha flere instanser; to generatorer med samme startverdi gir samme sekvens og dermed kollisjoner.
  */
-internal val delteSaksnummerGenerator = SaksnummerGeneratorForTest()
+val delteSaksnummerGenerator = SaksnummerGeneratorForTest()
 
 data class IdGenerators(
     val saksnummerGenerator: SaksnummerGeneratorForTest = delteSaksnummerGenerator,

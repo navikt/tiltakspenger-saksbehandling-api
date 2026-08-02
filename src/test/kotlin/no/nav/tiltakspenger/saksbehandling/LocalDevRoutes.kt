@@ -18,9 +18,9 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTOMapper.
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySakMedNySøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.nySøknadForFnr
 
-internal const val DEV_ROUTE = "/dev"
+const val DEV_ROUTE = "/dev"
 
-internal fun Route.localDevRoutes(applicationContext: ApplicationContext) {
+fun Route.localDevRoutes(applicationContext: ApplicationContext) {
     val applicationContext = applicationContext as LocalApplicationContext
 
     data class NySøknadBody(

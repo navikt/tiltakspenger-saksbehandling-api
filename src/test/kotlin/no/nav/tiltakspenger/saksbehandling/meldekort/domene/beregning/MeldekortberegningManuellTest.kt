@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-internal class MeldekortberegningManuellTest {
+class MeldekortberegningManuellTest {
     private val meldekort1 = nonEmptyListOf(
         OppdatertDag(29.januar(2024), IKKE_TILTAKSDAG),
         OppdatertDag(30.januar(2024), IKKE_TILTAKSDAG),

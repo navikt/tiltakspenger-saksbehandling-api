@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nySakMedVedtak
 import org.junit.jupiter.api.Test
 
-internal class MottaBrukerutfyltMeldekortServiceTest {
+class MottaBrukerutfyltMeldekortServiceTest {
 
     @Test
     fun `Kan lagre brukers meldekort med gyldig kommando`() {

@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 import java.time.Month
 import kotlin.test.assertEquals
 
-internal class SøknadDTOMapperTest {
+class SøknadDTOMapperTest {
     val internTiltaksdeltakerId = TiltaksdeltakerId.random()
 
     @Test

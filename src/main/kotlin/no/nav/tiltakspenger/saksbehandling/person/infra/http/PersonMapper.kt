@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.Networ
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.ResponsManglerData
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklientError.UkjentFeil
 
-internal fun FellesPersonklientError.mapError(): Nothing {
+fun FellesPersonklientError.mapError(): Nothing {
     when (this) {
         is AdressebeskyttelseKunneIkkeAvklares -> throw RuntimeException(
             "Feil ved henting av personopplysninger: AdressebeskyttelseKunneIkkeAvklares",

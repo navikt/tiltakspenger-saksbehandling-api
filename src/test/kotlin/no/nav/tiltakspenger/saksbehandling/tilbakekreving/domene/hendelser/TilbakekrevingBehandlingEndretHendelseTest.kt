@@ -12,7 +12,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-internal class TilbakekrevingBehandlingEndretHendelseTest {
+class TilbakekrevingBehandlingEndretHendelseTest {
 
     @Test
     fun `oppdaterer ikke behandling når url er lik verdi men ulik referanse`() {

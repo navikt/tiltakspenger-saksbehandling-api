@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import java.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
-internal fun jobber(
+fun jobber(
     isNais: Boolean,
     applicationContext: ApplicationContext,
     clock: Clock,

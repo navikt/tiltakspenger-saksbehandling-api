@@ -79,7 +79,7 @@ fun Route.overtaMeldekortbehandlingRoute(
     }
 }
 
-internal fun KunneIkkeOvertaMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
+fun KunneIkkeOvertaMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
         KunneIkkeOvertaMeldekortbehandling.BehandlingenKanIkkeVæreGodkjentEllerIkkeRett -> HttpStatusCode.BadRequest to ErrorJson(
             "Behandlingen kan ikke være godkjent eller ikke rett til tiltakspenger",

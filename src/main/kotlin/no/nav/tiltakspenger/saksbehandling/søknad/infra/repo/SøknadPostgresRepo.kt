@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
-internal class SøknadPostgresRepo(
+class SøknadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : SøknadRepo {
     override fun hentForSøknadId(søknadId: SøknadId): Søknad? =

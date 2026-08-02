@@ -21,7 +21,7 @@ import java.time.Instant
  * Vi verifiserer HTTP-flyten som denne klienten eier: at riktig endepunkt/metode kalles med `Nav-CallId`-headeren, at 200 og 409 (forventet ved re-distribusjon) gir [arrow.core.Either.Right] med [DistribusjonId], og at en [HttpKlientError] fra libs videreformidles uendret som [arrow.core.Either.Left].
  * Testene gir full linjedekning (jf. Kover-regelen i build.gradle.kts).
  */
-internal class DokdistHttpClientTest {
+class DokdistHttpClientTest {
 
     private val baseUrl = "http://dokdist.test"
     private val distribuerUri = "$baseUrl/rest/v1/distribuerjournalpost"

@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.intellij.lang.annotations.Language
 
-internal object SøknadTiltakDAO {
+object SøknadTiltakDAO {
 
     private const val ULID_PREFIX_TILTAK = "tilt"
 

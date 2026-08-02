@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
-internal class OppgaveHttpClientTest {
+class OppgaveHttpClientTest {
     private val baseUrl = "http://oppgave.test"
     private val fnr = Fnr.random()
     private val journalpostId = JournalpostId("453812134")

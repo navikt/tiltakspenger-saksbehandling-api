@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
 
-internal class SokosUtbetaldataHttpClientTest {
+class SokosUtbetaldataHttpClientTest {
     private val baseUrl = "http://utbetaldata.test"
     private val correlationId = CorrelationId.generate()
 

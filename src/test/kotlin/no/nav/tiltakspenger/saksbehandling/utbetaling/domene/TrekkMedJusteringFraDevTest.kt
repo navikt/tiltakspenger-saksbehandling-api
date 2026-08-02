@@ -27,7 +27,7 @@ import java.time.YearMonth
  *
  * Responsen er en anonymisert gjengivelse av det reelle svaret; fødselsnummer og saksnummer er byttet ut med testverdier.
  */
-internal class TrekkMedJusteringFraDevTest {
+class TrekkMedJusteringFraDevTest {
 
     private val fnr = Fnr.random()
     private val sakId = SakId.random()

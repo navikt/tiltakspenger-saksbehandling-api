@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.routes
 
 const val CALL_ID_MDC_KEY = "call-id"
 
-internal fun Application.ktorSetup(
+fun Application.ktorSetup(
     applicationContext: ApplicationContext,
     readiness: Readiness,
     devRoutes: Route.(applicationContext: ApplicationContext) -> Unit = {},

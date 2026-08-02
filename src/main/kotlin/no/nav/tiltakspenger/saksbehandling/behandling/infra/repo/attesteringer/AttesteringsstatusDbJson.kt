@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer
 
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 
-internal enum class AttesteringsstatusDbJson {
+enum class AttesteringsstatusDbJson {
     GODKJENT,
     SENDT_TILBAKE,
 }
