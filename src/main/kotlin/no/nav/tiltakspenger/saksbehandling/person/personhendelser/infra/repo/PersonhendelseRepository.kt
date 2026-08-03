@@ -71,6 +71,10 @@ class PersonhendelseRepository(
         }
     }
 
+    /**
+     * Oppgavefeltene skrives ikke her — en ny hendelse har aldri en oppgave.
+     * De settes av jobben via [lagreOppgaveId] og [oppdaterOppgaveSistSjekket].
+     */
     fun lagre(personhendelseDb: PersonhendelseDb) {
         sessionFactory.withSession { session ->
             session.run(
@@ -83,9 +87,7 @@ class PersonhendelseRepository(
                             opplysningstype,
                             personhendelse_type,
                             sak_id,
-                            oppgave_id,
-                            sist_oppdatert,
-                            oppgave_sist_sjekket
+                            sist_oppdatert
                         ) VALUES (
                             :id,
                             :fnr,
@@ -93,9 +95,7 @@ class PersonhendelseRepository(
                             :opplysningstype,
                             :personhendelse_type::jsonb,
                             :sak_id,
-                            :oppgave_id,
-                            :sist_oppdatert,
-                            :oppgave_sist_sjekket
+                            :sist_oppdatert
                         )
                     """.trimIndent(),
                     mapOf(
@@ -105,9 +105,7 @@ class PersonhendelseRepository(
                         "opplysningstype" to personhendelseDb.opplysningstype.name,
                         "personhendelse_type" to personhendelseDb.personhendelseType.toDbJson(),
                         "sak_id" to personhendelseDb.sakId.toString(),
-                        "oppgave_id" to personhendelseDb.oppgaveId?.toString(),
                         "sist_oppdatert" to nå(clock),
-                        "oppgave_sist_sjekket" to personhendelseDb.oppgaveSistSjekket,
                     ),
                 ).asUpdate,
             )

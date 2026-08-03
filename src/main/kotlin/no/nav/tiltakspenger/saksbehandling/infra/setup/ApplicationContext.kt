@@ -43,6 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.Iden
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb.IdenthendelseJobb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Consumer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseProducer
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseRepository
@@ -319,7 +320,7 @@ open class ApplicationContext(
         )
     }
 
-    open val identhendelseKafkaProducer by lazy {
+    open val identhendelseProducer: IdenthendelseProducer by lazy {
         IdenthendelseKafkaProducer(
             kafkaProducer = Producer(producerConfig = KafkaConfig.fraNaisEnv().producerConfig()),
             topic = Configuration.identhendelseTopic,
@@ -329,7 +330,7 @@ open class ApplicationContext(
     open val identhendelseJobb by lazy {
         IdenthendelseJobb(
             identhendelseRepository = identhendelseRepository,
-            identhendelseKafkaProducer = identhendelseKafkaProducer,
+            identhendelseProducer = identhendelseProducer,
             sakRepo = sakContext.sakRepo,
             søknadRepo = søknadContext.søknadRepo,
             statistikkService = statistikkContext.statistikkService,

@@ -10,23 +10,18 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkB
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkFormat
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.infra.repo.SaksstatistikkPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO
-import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.infra.repo.StatistikkStønadPostgresRepo
-import java.time.Clock
 
 // Statistikktabellene skrives av oss og leses kun av eksterne konsumenter (DVH), aldri av prodkoden vår.
 // Lesespørringene hører derfor i testlaget med egen SQL, ikke som `@TestOnly` på repoene, jf. «Data som skrives, men aldri leses ut i domenet» i `../AGENTS-backend.md`.
-// Skrivehjelperne finnes fordi noen tester må etablere en statistikkrad før de kjører jobben som endrer den, typisk identhendelser som bytter fnr.
 
-/** Etablerer en saksstatistikkrad, for tester som skal verifisere at en jobb endrer den. */
-fun PostgresSessionFactory.lagreSaksstatistikk(dto: SaksstatistikkDTO) {
-    withTransaction { tx -> SaksstatistikkPostgresRepo.lagre(dto, tx) }
-}
-
-/** Etablerer en stønadsstatistikkrad, for tester som skal verifisere at en jobb endrer den. */
-fun PostgresSessionFactory.lagreStønadsstatistikk(dto: StatistikkStønadDTO, clock: Clock) {
-    withTransaction { tx -> StatistikkStønadPostgresRepo.lagre(dto, clock, tx) }
+/** Bruker-id-ene DVH ville sett for saken i stønadstabellen. */
+fun PostgresSessionFactory.hentStønadsstatistikkBrukerIder(sakId: SakId): List<String> = withSession { session ->
+    session.run(
+        queryOf(
+            "select bruker_id from statistikk_stonad where sak_id = :sak_id",
+            mapOf("sak_id" to sakId.toString()),
+        ).map { row -> row.string("bruker_id") }.asList,
+    )
 }
 
 /** Radene DVH ville sett for saken, eldst først. */

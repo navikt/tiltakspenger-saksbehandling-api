@@ -1,599 +1,275 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
-import arrow.core.right
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import io.ktor.server.testing.ApplicationTestBuilder
+import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
+import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.august
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juni
+import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterIverksattSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseDb
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseType
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.nyPersonhendelse
+import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
+/**
+ * Tilstanden bygges gjennom prodstiene: vedtak og behandlinger lages via routene, og hendelsene kommer inn via [no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer].
+ * Jobben kjøres per id slik sveipene gjør i prod.
+ * Sveipemetodene kalles ikke: de ville plukket opp parallelle testers hendelser, jf. «Fakes er per test, jobber sveiper over hele skjemaet» i `AGENTS-backend.md`.
+ *
+ * Klokka står på 1. mai 2025, så innvilgelsesperiodene under er valgt for å ligge før, rundt og etter «nå».
+ */
 class PersonhendelseJobbTest {
-    private val oppgaveId = OppgaveId("50")
 
-    private fun nyOppgaveKlient(): OppgaveKlient = mockk<OppgaveKlient>().also {
-        coEvery { it.opprettOppgaveUtenDuplikatkontroll(any(), any()) } returns oppgaveId.right()
-    }
+    private val periodeFørNå: Periode = 1.januar(2025) til 31.mars(2025)
+    private val periodeRundtNå: Periode = 1.april(2025) til 30.juni(2025)
+    private val periodeEtterNå: Periode = 1.juni(2025) til 31.august(2025)
 
     @Test
-    fun `opprettOppgaveForPersonhendelser - ingen vedtak - sletter fra db`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                    sakId = sak.id,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+    fun `opprettOppgaveForPersonhendelse - ingen vedtak - sletter fra db`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
+            val id = konsumerDødsfallhendelse(tac, fnr, sak.id)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
-            }
+            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe emptyList()
         }
     }
 
     @Test
-    fun `opprettOppgaveForPersonhendelser - vedtak tilbake i tid - sletter fra db`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
-                val deltakelsesTom = LocalDate.now(clock).minusWeeks(2)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                    sakId = sak.id,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+    fun `opprettOppgaveForPersonhendelse - vedtak tilbake i tid - sletter fra db`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val sak = iverksettMedPeriode(tac, fnr, periodeFørNå)
+            val id = konsumerDødsfallhendelse(tac, fnr, sak)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
-            }
+            tac.personhendelseRepository.hent(sak) shouldBe emptyList()
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe emptyList()
         }
     }
 
     @Test
-    fun `opprettOppgaveForPersonhendelser - har vedtak nå - oppretter oppgave`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock = clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
-                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                    sakId = sak.id,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+    fun `opprettOppgaveForPersonhendelse - har vedtak nå - oppretter oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val sak = iverksettMedPeriode(tac, fnr, periodeRundtNå)
+            val id = konsumerDødsfallhendelse(tac, fnr, sak)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-                val personhendelser = personhendelseRepository.hent(sak.id)
-                personhendelser.size shouldBe 1
-                val personhendelseFraDb = personhendelser.first()
-                personhendelseFraDb.oppgaveId shouldBe oppgaveId
-
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.DOED) }
-            }
+            tac.personhendelseRepository.hent(sak).single().oppgaveId shouldNotBe null
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
+                listOf(fnr to Oppgavebehov.DOED)
         }
     }
 
     @Test
-    fun `opprettOppgaveForPersonhendelser - har vedtak frem i tid - oppretter oppgave`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).plusDays(3)
-                val deltakelsesTom = LocalDate.now(clock).plusMonths(2)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                    sakId = sak.id,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+    fun `opprettOppgaveForPersonhendelse - har vedtak frem i tid - oppretter oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val sak = iverksettMedPeriode(tac, fnr, periodeEtterNå)
+            val id = konsumerDødsfallhendelse(tac, fnr, sak)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-                val personhendelser = personhendelseRepository.hent(sak.id)
-                personhendelser.size shouldBe 1
-                val personhendelseFraDb = personhendelser.first()
-                personhendelseFraDb.oppgaveId shouldBe oppgaveId
-
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.DOED) }
-            }
+            tac.personhendelseRepository.hent(sak).single().oppgaveId shouldNotBe null
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
+                listOf(fnr to Oppgavebehov.DOED)
         }
     }
 
     @Test
-    fun `opprettOppgaveForPersonhendelser - har vedtak nå, adressebeskyttelse - oppretter ikke oppgave`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
-                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.ADRESSEBESKYTTELSE_V1,
-                    personhendelseType = PersonhendelseType.Adressebeskyttelse(Gradering.STRENGT_FORTROLIG.name),
-                    sakId = sak.id,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+    fun `opprettOppgaveForPersonhendelse - har vedtak nå, adressebeskyttelse - oppretter ikke oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val sak = iverksettMedPeriode(tac, fnr, periodeRundtNå)
+            val id = konsumerAdressebeskyttelseshendelse(tac, fnr, sak)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-
-                coVerify(exactly = 0) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(any(), any()) }
-            }
+            tac.personhendelseRepository.hent(sak) shouldBe emptyList()
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe emptyList()
         }
     }
 
     @Test
-    fun `opprettOppgaveForPersonhendelser - har åpen behandling, adressebeskyttelse - oppretter oppgave`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
-                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
-                testDataHelper.persisterOpprettetSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.ADRESSEBESKYTTELSE_V1,
-                    personhendelseType = PersonhendelseType.Adressebeskyttelse(Gradering.STRENGT_FORTROLIG.name),
-                    sakId = sak.id,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+    fun `opprettOppgaveForPersonhendelse - har åpen behandling, adressebeskyttelse - oppretter oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _, _) = opprettSøknadsbehandlingUnderBehandling(tac = tac, fnr = fnr)
+            val id = konsumerAdressebeskyttelseshendelse(tac, fnr, sak.id)
 
-                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-                val personhendelser = personhendelseRepository.hent(sak.id)
-                personhendelser.size shouldBe 1
-                val personhendelseFraDb = personhendelser.first()
-                personhendelseFraDb.oppgaveId shouldBe oppgaveId
-
-                coVerify(exactly = 1) {
-                    oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
-                        fnr,
-                        Oppgavebehov.ADRESSEBESKYTTELSE,
-                    )
-                }
-            }
+            tac.personhendelseRepository.hent(sak.id).single().oppgaveId shouldNotBe null
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
+                listOf(fnr to Oppgavebehov.ADRESSEBESKYTTELSE)
         }
     }
 
     @Test
     fun `opprydning - opprettet oppgave, ikke ferdigstilt - oppdaterer sist sjekket`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).plusDays(3)
-                val deltakelsesTom = LocalDate.now(clock).plusMonths(2)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                    sakId = sak.id,
-                    oppgaveId = oppgaveId,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val sak = iverksettMedPeriode(tac, fnr, periodeRundtNå)
+            val id = konsumerDødsfallhendelse(tac, fnr, sak)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            val oppgaveId = tac.personhendelseRepository.hent(sak).single().oppgaveId
+            (tac.oppgaveKlient as OppgaveFakeKlient).erFerdigstiltResponse = false
 
-                personhendelseJobb.ryddOppPersonhendelse(id)
+            tac.personhendelseJobb.ryddOppPersonhendelse(id)
 
-                val oppdatertPersonhendelseDb = personhendelseRepository.hent(sak.id).first()
-                oppdatertPersonhendelseDb shouldNotBe null
-                oppdatertPersonhendelseDb.oppgaveId shouldBe oppgaveId
-                oppdatertPersonhendelseDb.oppgaveSistSjekket?.truncatedTo(ChronoUnit.MINUTES) shouldBe nå(testDataHelper.clock)
-                    .truncatedTo(ChronoUnit.MINUTES)
-                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
-            }
+            val etterOpprydning = tac.personhendelseRepository.hent(sak).single()
+            etterOpprydning.oppgaveId shouldBe oppgaveId
+            etterOpprydning.oppgaveSistSjekket shouldNotBe null
         }
     }
 
     @Test
     fun `opprydning - opprettet oppgave, ferdigstilt - sletter fra db`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns true.right()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).plusDays(3)
-                val deltakelsesTom = LocalDate.now(clock).plusMonths(2)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelseDb = getPersonhendelseDb(
-                    id = id,
-                    fnr = fnr,
-                    opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                    personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                    sakId = sak.id,
-                    oppgaveId = oppgaveId,
-                )
-                personhendelseRepository.lagre(personhendelseDb)
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val sak = iverksettMedPeriode(tac, fnr, periodeRundtNå)
+            val id = konsumerDødsfallhendelse(tac, fnr, sak)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+            (tac.oppgaveKlient as OppgaveFakeKlient).erFerdigstiltResponse = true
 
-                personhendelseJobb.ryddOppPersonhendelse(id)
+            tac.personhendelseJobb.ryddOppPersonhendelse(id)
 
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
-            }
+            tac.personhendelseRepository.hent(sak) shouldBe emptyList()
         }
     }
 
     @Test
-    fun `opprettOppgaveForPersonhendelser - jobben plukker kun opp hendelser uten oppgave`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val id = UUID.randomUUID()
-                val idMedOppgave = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val deltakelseFom = LocalDate.now(clock).minusMonths(3)
-                val deltakelsesTom = LocalDate.now(clock).plusWeeks(2)
-                testDataHelper.persisterIverksattSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    deltakelseFom = deltakelseFom,
-                    deltakelseTom = deltakelsesTom,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        søknadstiltak = ObjectMother.søknadstiltak(
-                            deltakelseFom = deltakelseFom,
-                            deltakelseTom = deltakelsesTom,
-                        ),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                personhendelseRepository.lagre(
-                    getPersonhendelseDb(
-                        id = id,
-                        fnr = fnr,
-                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                        sakId = sak.id,
-                    ),
-                )
-                personhendelseRepository.lagre(
-                    getPersonhendelseDb(
-                        id = idMedOppgave,
-                        fnr = fnr,
-                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                        sakId = sak.id,
-                        oppgaveId = OppgaveId("99"),
-                    ),
-                )
+    fun `hentIderUtenOppgave - plukker kun opp hendelser uten oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnrUtenOppgave = Fnr.random()
+            val (sakUtenOppgave, _) = opprettSakOgSøknad(tac = tac, fnr = fnrUtenOppgave)
+            val idUtenOppgave = konsumerDødsfallhendelse(tac, fnrUtenOppgave, sakUtenOppgave.id)
+            val fnrMedOppgave = Fnr.random()
+            val sakMedOppgave = iverksettMedPeriode(tac, fnrMedOppgave, periodeRundtNå)
+            val idMedOppgave = konsumerDødsfallhendelse(tac, fnrMedOppgave, sakMedOppgave)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(idMedOppgave)
 
-                val iderUtenOppgave = personhendelseRepository.hentIderUtenOppgave()
-                iderUtenOppgave shouldContain id
-                iderUtenOppgave shouldNotContain idMedOppgave
+            val iderUtenOppgave = tac.personhendelseRepository.hentIderUtenOppgave()
 
-                personhendelseJobb.opprettOppgaveForPersonhendelse(id)
-
-                val personhendelser = personhendelseRepository.hent(sak.id)
-                personhendelser.first { it.id == id }.oppgaveId shouldBe oppgaveId
-                coVerify(exactly = 1) { oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.DOED) }
-            }
+            iderUtenOppgave shouldContain idUtenOppgave
+            iderUtenOppgave shouldNotContain idMedOppgave
         }
     }
 
     @Test
-    fun `opprydning - jobben plukker kun opp hendelser med oppgave som ikke nylig er sjekket`() {
-        val oppgaveKlient = nyOppgaveKlient()
-        coEvery { oppgaveKlient.erFerdigstilt(any()) } returns false.right()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakRepo = testDataHelper.sakRepo
-                val personhendelseJobb =
-                    PersonhendelseJobb(personhendelseRepository, sakRepo, oppgaveKlient, clock)
-                val idUtenOppgave = UUID.randomUUID()
-                val idNyligSjekket = UUID.randomUUID()
-                val idIkkeSjekket = UUID.randomUUID()
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                personhendelseRepository.lagre(
-                    getPersonhendelseDb(
-                        id = idUtenOppgave,
-                        fnr = fnr,
-                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                        sakId = sak.id,
-                    ),
-                )
-                personhendelseRepository.lagre(
-                    getPersonhendelseDb(
-                        id = idNyligSjekket,
-                        fnr = fnr,
-                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                        sakId = sak.id,
-                        oppgaveId = OppgaveId("98"),
-                        oppgaveSistSjekket = nå(clock),
-                    ),
-                )
-                personhendelseRepository.lagre(
-                    getPersonhendelseDb(
-                        id = idIkkeSjekket,
-                        fnr = fnr,
-                        opplysningstype = Opplysningstype.DOEDSFALL_V1,
-                        personhendelseType = PersonhendelseType.Doedsfall(LocalDate.now(clock)),
-                        sakId = sak.id,
-                        oppgaveId = oppgaveId,
-                    ),
-                )
+    fun `hentIderMedOppgave - plukker kun opp hendelser med oppgave som ikke nylig er sjekket`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnrUtenOppgave = Fnr.random()
+            val (sakUtenOppgave, _) = opprettSakOgSøknad(tac = tac, fnr = fnrUtenOppgave)
+            val idUtenOppgave = konsumerDødsfallhendelse(tac, fnrUtenOppgave, sakUtenOppgave.id)
 
-                val iderMedOppgave = personhendelseRepository.hentIderMedOppgave()
-                iderMedOppgave shouldContain idIkkeSjekket
-                iderMedOppgave shouldNotContain idUtenOppgave
-                iderMedOppgave shouldNotContain idNyligSjekket
+            val fnrNyligSjekket = Fnr.random()
+            val sakNyligSjekket = iverksettMedPeriode(tac, fnrNyligSjekket, periodeRundtNå)
+            val idNyligSjekket = konsumerDødsfallhendelse(tac, fnrNyligSjekket, sakNyligSjekket)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(idNyligSjekket)
+            (tac.oppgaveKlient as OppgaveFakeKlient).erFerdigstiltResponse = false
+            tac.personhendelseJobb.ryddOppPersonhendelse(idNyligSjekket)
 
-                personhendelseJobb.ryddOppPersonhendelse(idIkkeSjekket)
+            val fnrIkkeSjekket = Fnr.random()
+            val sakIkkeSjekket = iverksettMedPeriode(tac, fnrIkkeSjekket, periodeRundtNå)
+            val idIkkeSjekket = konsumerDødsfallhendelse(tac, fnrIkkeSjekket, sakIkkeSjekket)
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(idIkkeSjekket)
 
-                coVerify(exactly = 1) { oppgaveKlient.erFerdigstilt(oppgaveId) }
-                val oppdatert = personhendelseRepository.hent(sak.id).first { it.id == idIkkeSjekket }
-                oppdatert.oppgaveSistSjekket shouldNotBe null
-            }
+            val iderMedOppgave = tac.personhendelseRepository.hentIderMedOppgave()
+
+            iderMedOppgave shouldContain idIkkeSjekket
+            iderMedOppgave shouldNotContain idUtenOppgave
+            iderMedOppgave shouldNotContain idNyligSjekket
         }
     }
 
-    private fun getPersonhendelseDb(
-        id: UUID = UUID.randomUUID(),
+    /**
+     * Iverksetter en søknadsbehandling med innvilgelse i [periode] og returnerer sak-id-en.
+     * Jobbene etter iverksettelse slås av, siden testene bygger flere saker og jobbene sveiper på tvers av dem.
+     */
+    private suspend fun ApplicationTestBuilder.iverksettMedPeriode(
+        tac: TestApplicationContextMedPostgres,
         fnr: Fnr,
-        hendelseId: String = UUID.randomUUID().toString(),
-        opplysningstype: Opplysningstype,
-        personhendelseType: PersonhendelseType,
-        sakId: SakId = SakId.random(),
-        oppgaveId: OppgaveId? = null,
-        oppgaveSistSjekket: LocalDateTime? = null,
-    ) =
-        PersonhendelseDb(
-            id = id,
+        periode: Periode,
+    ): SakId {
+        val tiltaksdeltakelse = tac.tiltaksdeltakelse(periode = periode)
+        val (sak) = iverksettSøknadsbehandling(
+            tac = tac,
             fnr = fnr,
-            hendelseId = hendelseId,
-            opplysningstype = opplysningstype,
-            personhendelseType = personhendelseType,
-            sakId = sakId,
-            oppgaveId = oppgaveId,
-            oppgaveSistSjekket = oppgaveSistSjekket,
+            innvilgelsesperioder = innvilgelsesperioder(periode, tiltaksdeltakelse),
+            tiltaksdeltakelse = tiltaksdeltakelse,
+            jobber = JobberEtterIverksettelse.ingen,
         )
+        return sak.id
+    }
+
+    /** Sender en dødsfallhendelse inn via consumeren og returnerer id-en den ble lagret med. */
+    private suspend fun konsumerDødsfallhendelse(
+        tac: TestApplicationContextMedPostgres,
+        fnr: Fnr,
+        sakId: SakId,
+    ): UUID {
+        tac.leesahConsumer.consume(
+            "key",
+            nyPersonhendelse(
+                fnr = fnr,
+                doedsfall = Doedsfall(LocalDate.now(tac.clock)),
+                clock = tac.clock,
+            ),
+        )
+        return tac.personhendelseRepository.hent(sakId).single().id
+    }
+
+    /**
+     * Sender en kode 6-hendelse inn via consumeren og returnerer id-en den ble lagret med.
+     * Personen registreres som strengt fortrolig i fake-klienten først, ellers avviser servicen hendelsen.
+     */
+    private suspend fun konsumerAdressebeskyttelseshendelse(
+        tac: TestApplicationContextMedPostgres,
+        fnr: Fnr,
+        sakId: SakId,
+    ): UUID {
+        (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+            fnr = fnr,
+            personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, strengtFortrolig = true),
+        )
+        tac.leesahConsumer.consume(
+            "key",
+            nyPersonhendelse(
+                fnr = fnr,
+                adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                clock = tac.clock,
+            ),
+        )
+        return tac.personhendelseRepository.hent(sakId).single().id
+    }
 }

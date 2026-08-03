@@ -53,6 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseFakeProducer
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
@@ -179,6 +180,8 @@ sealed class TestApplicationContext(
             clock = clock,
         )
     }
+
+    override val identhendelseProducer: IdenthendelseFakeProducer by lazy { IdenthendelseFakeProducer() }
 
     override val tilgangskontrollService by lazy {
         TilgangskontrollService(

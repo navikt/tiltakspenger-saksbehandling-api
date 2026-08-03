@@ -34,14 +34,6 @@ class IdenthendelseRepository(
         }
     }
 
-    fun hent(gammeltFnr: Fnr): List<IdenthendelseDb> = sessionFactory.withSession {
-        it.run(
-            queryOf(sqlHentForGammeltFnr, gammeltFnr.verdi)
-                .map { row -> row.toIdenthendelseDb() }
-                .asList,
-        )
-    }
-
     fun hent(id: UUID): IdenthendelseDb? = sessionFactory.withSession {
         it.run(
             queryOf(sqlHentForId, id)
@@ -90,17 +82,6 @@ class IdenthendelseRepository(
         }
     }
 
-    private fun Row.toIdenthendelseDb() =
-        IdenthendelseDb(
-            id = uuid("id"),
-            gammeltFnr = Fnr.fromString(string("gammelt_fnr")),
-            nyttFnr = Fnr.fromString(string("nytt_fnr")),
-            personidenter = string("personidenter").fromDbJsonToPersonidenter(),
-            sakId = SakId.fromString(string("sak_id")),
-            produsertHendelse = localDateTimeOrNull("produsert_hendelse"),
-            oppdatertDatabase = localDateTimeOrNull("oppdatert_database"),
-        )
-
     @Language("SQL")
     private val lagreIdenthendelse =
         """
@@ -124,12 +105,20 @@ class IdenthendelseRepository(
         """.trimIndent()
 
     @Language("SQL")
-    private val sqlHentForGammeltFnr = "select * from identhendelse where gammelt_fnr = ?"
-
-    @Language("SQL")
     private val sqlHentForId = "select * from identhendelse where id = ?"
 
     @Language("SQL")
     private val sqlHentIderSomIkkeErBehandlet =
         "select id from identhendelse where produsert_hendelse is null or oppdatert_database is null"
 }
+
+fun Row.toIdenthendelseDb() =
+    IdenthendelseDb(
+        id = uuid("id"),
+        gammeltFnr = Fnr.fromString(string("gammelt_fnr")),
+        nyttFnr = Fnr.fromString(string("nytt_fnr")),
+        personidenter = string("personidenter").fromDbJsonToPersonidenter(),
+        sakId = SakId.fromString(string("sak_id")),
+        produsertHendelse = localDateTimeOrNull("produsert_hendelse"),
+        oppdatertDatabase = localDateTimeOrNull("oppdatert_database"),
+    )

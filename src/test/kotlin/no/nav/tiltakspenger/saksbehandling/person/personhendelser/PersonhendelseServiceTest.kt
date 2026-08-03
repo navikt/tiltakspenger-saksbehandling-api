@@ -1,495 +1,253 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser
 
 import arrow.core.left
-import arrow.core.right
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.coEvery
-import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import no.nav.person.pdl.leesah.Endringstype
-import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.random
-import no.nav.tiltakspenger.libs.dato.oktober
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterOpprettetSøknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.infra.repo.persisterSakOgSøknad
-import no.nav.tiltakspenger.saksbehandling.infra.repo.withMigratedDb
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
-import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseType
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
-import no.nav.tiltakspenger.saksbehandling.statistikk.lagreSaksstatistikk
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
-import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
 
+/**
+ * Tilstanden bygges gjennom prodstiene: saken opprettes via routene, og hendelser med observerbart utfall går inn via [no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer].
+ * Hendelsene som avvises med en spesifikk grunn asserters på servicens Either direkte — consumeren sluker returverdien, så e2e når ikke den forskjellen.
+ */
 class PersonhendelseServiceTest {
 
     @Test
     fun `behandlePersonhendelse - finnes ingen sak - ignorerer`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
 
-                personhendelseService.behandlePersonhendelse(
-                    getPersonhendelse(
-                        fnr = fnr,
-                        doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
-                        clock = clock,
-                    ),
-                ) shouldBe KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
-            }
+            tac.personhendelseService.behandlePersonhendelse(
+                nyPersonhendelse(
+                    fnr = fnr,
+                    doedsfall = Doedsfall(LocalDate.now(tac.clock).minusDays(1)),
+                    clock = tac.clock,
+                ),
+            ) shouldBe KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
         }
     }
 
     @Test
     fun `behandlePersonhendelse - dødsfall, finnes sak - lagrer`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelse = getPersonhendelse(
-                    fnr = fnr,
-                    doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
-                    clock = clock,
-                )
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
+            val personhendelse = nyPersonhendelse(
+                fnr = fnr,
+                doedsfall = Doedsfall(LocalDate.now(tac.clock).minusDays(1)),
+                clock = tac.clock,
+            )
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe Unit.right()
+            tac.leesahConsumer.consume("key", personhendelse)
 
-                val personhendelser = personhendelseRepository.hent(sak.id)
-                personhendelser.size shouldBe 1
-                val personhendelseDb = personhendelser.first()
-                personhendelseDb.fnr shouldBe fnr
-                personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
-                personhendelseDb.opplysningstype shouldBe Opplysningstype.DOEDSFALL_V1
-                personhendelseDb.personhendelseType shouldBe PersonhendelseType.Doedsfall(
-                    LocalDate.now(clock).minusDays(1),
-                )
-                personhendelseDb.sakId shouldBe sak.id
-                personhendelseDb.oppgaveId shouldBe null
-                personhendelseDb.oppgaveSistSjekket shouldBe null
-            }
+            val personhendelseDb = tac.personhendelseRepository.hent(sak.id).single()
+            personhendelseDb.fnr shouldBe fnr
+            personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
+            personhendelseDb.opplysningstype shouldBe Opplysningstype.DOEDSFALL_V1
+            personhendelseDb.personhendelseType shouldBe PersonhendelseType.Doedsfall(
+                LocalDate.now(tac.clock).minusDays(1),
+            )
+            personhendelseDb.sakId shouldBe sak.id
+            personhendelseDb.oppgaveId shouldBe null
+            personhendelseDb.oppgaveSistSjekket shouldBe null
         }
     }
 
     @Test
     fun `behandlePersonhendelse - forelderbarnrelasjon, skal ikke behandles`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelse = getPersonhendelse(
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
+
+            tac.personhendelseService.behandlePersonhendelse(
+                nyPersonhendelse(
                     fnr = fnr,
                     forelderBarnRelasjon = ForelderBarnRelasjon("12345678910", "BARN", "FAR"),
-                    clock = clock,
-                )
+                    clock = tac.clock,
+                ),
+            ) shouldBe KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
-                    KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
-
-                val personhendelser = personhendelseRepository.hent(sak.id)
-                personhendelser.size shouldBe 0
-            }
+            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
         }
     }
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, adressebeskyttet i PDL - oppdaterer og lagrer`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                testDataHelper.sessionFactory.lagreSaksstatistikk(
-                    behandling.genererSaksstatistikk(
-                        hendelse = StatistikkhendelseType.OPPRETTET_BEHANDLING,
-                    ).genererSaksstatistikk(
-                        gjelderKode6 = { false },
-                        versjon = "1",
-                        clock = clock,
-                    ),
-                )
-                val personhendelse = getPersonhendelse(
-                    fnr = fnr,
-                    adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
-                    clock = clock,
-                )
-                coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
-                    fnr = fnr,
-                    fødselsdato = 16.oktober(1995),
-                    fornavn = "Fornavn",
-                    mellomnavn = null,
-                    etternavn = "Etternavn",
-                    fortrolig = false,
-                    strengtFortrolig = true,
-                    strengtFortroligUtland = false,
-                    dødsdato = null,
-                )
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _, _) = opprettSøknadsbehandlingUnderBehandling(tac = tac, fnr = fnr)
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                fnr = fnr,
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, strengtFortrolig = true),
+            )
+            val personhendelse = nyPersonhendelse(
+                fnr = fnr,
+                adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                clock = tac.clock,
+            )
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe Unit.right()
+            tac.leesahConsumer.consume("key", personhendelse)
 
-                val personhendelser = personhendelseRepository.hent(sak.id)
-                personhendelser.size shouldBe 1
-                val personhendelseDb = personhendelser.first()
-                personhendelseDb.fnr shouldBe fnr
-                personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
-                personhendelseDb.opplysningstype shouldBe Opplysningstype.ADRESSEBESKYTTELSE_V1
-                personhendelseDb.personhendelseType shouldBe PersonhendelseType.Adressebeskyttelse(
-                    "STRENGT_FORTROLIG",
-                )
-                personhendelseDb.sakId shouldBe sak.id
-                personhendelseDb.oppgaveId shouldBe null
-                personhendelseDb.oppgaveSistSjekket shouldBe null
+            val personhendelseDb = tac.personhendelseRepository.hent(sak.id).single()
+            personhendelseDb.fnr shouldBe fnr
+            personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
+            personhendelseDb.opplysningstype shouldBe Opplysningstype.ADRESSEBESKYTTELSE_V1
+            personhendelseDb.personhendelseType shouldBe PersonhendelseType.Adressebeskyttelse(
+                "STRENGT_FORTROLIG",
+            )
+            personhendelseDb.sakId shouldBe sak.id
+            personhendelseDb.oppgaveId shouldBe null
+            personhendelseDb.oppgaveSistSjekket shouldBe null
 
-                val statistikkSakDTO = testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first()
-                statistikkSakDTO.fnr shouldBe fnr.verdi
-                statistikkSakDTO.opprettetAv shouldBe "-5"
-                statistikkSakDTO.saksbehandler shouldBe "-5"
-                statistikkSakDTO.ansvarligBeslutter shouldBe "-5"
+            val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
+            saksstatistikk.shouldNotBeEmpty()
+            saksstatistikk.forEach {
+                it.fnr shouldBe fnr.verdi
+                it.opprettetAv shouldBe "-5"
+                it.saksbehandler shouldBe "-5"
+                it.ansvarligBeslutter shouldBe "-5"
             }
         }
     }
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse, finnes sak, ikke adressebeskyttet i PDL - oppdaterer ikke`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                val (_, behandling, _) = testDataHelper.persisterOpprettetSøknadsbehandling(
-                    sakId = sak.id,
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                testDataHelper.sessionFactory.lagreSaksstatistikk(
-                    behandling.genererSaksstatistikk(
-                        hendelse = StatistikkhendelseType.OPPRETTET_BEHANDLING,
-                    ).genererSaksstatistikk(
-                        versjon = "1",
-                        clock = clock,
-                        gjelderKode6 = { false },
-                    ),
-                )
-                val personhendelse = getPersonhendelse(
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _, _) = opprettSøknadsbehandlingUnderBehandling(tac = tac, fnr = fnr)
+            // Registrerer en person uten gradering, siden fake-klienten ellers utleder gradering av første siffer i fnr-et.
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                fnr = fnr,
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr),
+            )
+
+            tac.personhendelseService.behandlePersonhendelse(
+                nyPersonhendelse(
                     fnr = fnr,
                     adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
-                    clock = clock,
-                )
-                coEvery { personKlient.hentEnkelPerson(fnr) } returns EnkelPerson(
-                    fnr = fnr,
+                    clock = tac.clock,
+                ),
+            ) shouldBe KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
 
-                    fødselsdato = 16.oktober(1995),
-                    fornavn = "Fornavn",
-                    mellomnavn = null,
-                    etternavn = "Etternavn",
-                    fortrolig = false,
-                    strengtFortrolig = false,
-                    strengtFortroligUtland = false,
-                    dødsdato = null,
-                )
-
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
-                    KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
-
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-                val statistikkSakDTO = testDataHelper.sessionFactory.hentSaksstatistikk(sak.id).first()
-                statistikkSakDTO.fnr shouldBe fnr.verdi
-                statistikkSakDTO.opprettetAv shouldNotBe "-5"
-                statistikkSakDTO.saksbehandler shouldNotBe "-5"
-                statistikkSakDTO.ansvarligBeslutter shouldNotBe "-5"
+            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
+            saksstatistikk.shouldNotBeEmpty()
+            saksstatistikk.forEach {
+                it.fnr shouldBe fnr.verdi
+                it.opprettetAv shouldNotBe "-5"
+                it.saksbehandler shouldNotBe "-5"
+                it.ansvarligBeslutter shouldNotBe "-5"
             }
         }
     }
 
     @Test
     fun `behandlePersonhendelse - ukjent opplysningstype, finnes sak - ignorerer`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelse = getPersonhendelse(
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
+
+            tac.personhendelseService.behandlePersonhendelse(
+                nyPersonhendelse(
                     fnr = fnr,
                     opplysningstype = "NAVN_V1",
-                    clock = clock,
-                )
+                    clock = tac.clock,
+                ),
+            ) shouldBe KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
-                    KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
-
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-            }
+            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
         }
     }
 
     @Test
     fun `behandlePersonhendelse - DOEDSFALL_V1 men doedsfall-felt er null - ignorerer`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                // DOEDSFALL_V1 uten doedsfall-payload — fanget av defensiv guard i servicen.
-                val personhendelse = getPersonhendelse(
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
+
+            // DOEDSFALL_V1 uten doedsfall-payload — fanget av defensiv guard i servicen.
+            tac.personhendelseService.behandlePersonhendelse(
+                nyPersonhendelse(
                     fnr = fnr,
                     opplysningstype = Opplysningstype.DOEDSFALL_V1.name,
-                    clock = clock,
-                )
+                    clock = tac.clock,
+                ),
+            ) shouldBe KunneIkkeBehandlePersonhendelse.PayloadMangler.left()
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
-                    KunneIkkeBehandlePersonhendelse.PayloadMangler.left()
-
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-            }
+            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
         }
     }
 
     @Test
     fun `behandlePersonhendelse - adressebeskyttelse med gradering FORTROLIG - ignorerer`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                // Vi bryr oss kun om STRENGT_FORTROLIG[_UTLAND] (kode 6). FORTROLIG (kode 7) skal ignoreres.
-                val personhendelse = getPersonhendelse(
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
+
+            // Vi bryr oss kun om STRENGT_FORTROLIG[_UTLAND] (kode 6). FORTROLIG (kode 7) skal ignoreres.
+            tac.personhendelseService.behandlePersonhendelse(
+                nyPersonhendelse(
                     fnr = fnr,
                     adressebeskyttelse = Adressebeskyttelse(Gradering.FORTROLIG),
-                    clock = clock,
-                )
+                    clock = tac.clock,
+                ),
+            ) shouldBe KunneIkkeBehandlePersonhendelse.AdressebeskyttelseErIkkeKode6.left()
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
-                    KunneIkkeBehandlePersonhendelse.AdressebeskyttelseErIkkeKode6.left()
-
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-            }
+            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
         }
     }
 
     @Test
     fun `behandlePersonhendelse - ingen av personidentene matcher en sak - ignorerer`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                // Sak finnes, men ikke for fnr-et i hendelsen.
-                val sakFnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = sakFnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = sakFnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = sakFnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val ukjentFnr = Fnr.random()
-                val personhendelse = getPersonhendelse(
+        withTestApplicationContextAndPostgres { tac ->
+            // Sak finnes, men ikke for fnr-et i hendelsen.
+            val sakFnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = sakFnr)
+            val ukjentFnr = Fnr.random()
+
+            tac.personhendelseService.behandlePersonhendelse(
+                nyPersonhendelse(
                     fnr = ukjentFnr,
-                    doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
-                    clock = clock,
-                )
+                    doedsfall = Doedsfall(LocalDate.now(tac.clock).minusDays(1)),
+                    clock = tac.clock,
+                ),
+            ) shouldBe KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
-                    KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
-
-                personhendelseRepository.hent(sak.id) shouldBe emptyList()
-            }
+            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
         }
     }
 
     @Test
     fun `behandlePersonhendelse - samme hendelse mottatt to ganger - lagrer kun første`() {
-        val personKlient = mockk<PersonKlient>()
-        withMigratedDb { testDataHelper ->
-            runBlocking {
-                val clock = testDataHelper.clock
-                val personhendelseRepository = testDataHelper.personhendelseRepository
-                val sakPostgresRepo = testDataHelper.sakRepo
-                val statistikkService = testDataHelper.statistikkService
-                val personhendelseService =
-                    PersonhendelseService(sakPostgresRepo, personhendelseRepository, personKlient, statistikkService)
-                val fnr = Fnr.random()
-                val sak = ObjectMother.nySak(fnr = fnr)
-                testDataHelper.persisterSakOgSøknad(
-                    fnr = fnr,
-                    sak = sak,
-                    søknad = ObjectMother.nyInnvilgbarSøknad(
-                        personopplysninger = ObjectMother.personSøknad(fnr = fnr),
-                        sakId = sak.id,
-                        saksnummer = sak.saksnummer,
-                    ),
-                )
-                val personhendelse = getPersonhendelse(
-                    fnr = fnr,
-                    doedsfall = Doedsfall(LocalDate.now(clock).minusDays(1)),
-                    clock = clock,
-                )
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = Fnr.random()
+            val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = fnr)
+            val personhendelse = nyPersonhendelse(
+                fnr = fnr,
+                doedsfall = Doedsfall(LocalDate.now(tac.clock).minusDays(1)),
+                clock = tac.clock,
+            )
+            tac.leesahConsumer.consume("key", personhendelse)
 
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe Unit.right()
-                personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
-                    KunneIkkeBehandlePersonhendelse.HendelseAlleredeLagret.left()
+            tac.personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
+                KunneIkkeBehandlePersonhendelse.HendelseAlleredeLagret.left()
 
-                personhendelseRepository.hent(sak.id).size shouldBe 1
-            }
+            tac.personhendelseRepository.hent(sak.id).size shouldBe 1
         }
-    }
-
-    private fun getPersonhendelse(
-        fnr: Fnr,
-        doedsfall: Doedsfall? = null,
-        forelderBarnRelasjon: ForelderBarnRelasjon? = null,
-        adressebeskyttelse: Adressebeskyttelse? = null,
-        opplysningstype: String? = null,
-        clock: Clock,
-    ): Personhendelse {
-        val personidenter = listOf("12345", fnr.verdi)
-
-        val resolvedOpplysningstype = opplysningstype ?: when {
-            doedsfall != null -> Opplysningstype.DOEDSFALL_V1.name
-            forelderBarnRelasjon != null -> "FORELDERBARNRELASJON_V1"
-            else -> Opplysningstype.ADRESSEBESKYTTELSE_V1.name
-        }
-
-        return Personhendelse(
-            "hendelseId",
-            personidenter,
-            "FREG",
-            Instant.now(clock),
-            resolvedOpplysningstype,
-            Endringstype.OPPRETTET,
-            null,
-            doedsfall,
-            forelderBarnRelasjon,
-            adressebeskyttelse,
-        )
     }
 }

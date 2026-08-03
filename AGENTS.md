@@ -51,7 +51,7 @@ Slik ser den ut i dette repoet:
 - **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i [`../AGENTS-backend.md`](../AGENTS-backend.md).
   `HjemmelForOpphørDbTest` og `TiltakDeltakerstatusDbTest` er mønsterfilene.
 
-> **Overgangsfase (per 2026-07-31):** 8 testfiler bygger fortsatt tilstand via `withMigratedDb` og `TestDataHelper`.
+> **Overgangsfase (per 2026-08-03):** kun `BenkOversiktAggregatTest` bygger fortsatt tilstand via `withMigratedDb` og `TestDataHelper`.
 > Det universet er under avvikling, og du skal ikke utvide det.
 > Trenger du ny testtilstand, bygg den gjennom prodstiene.
 > Unntaket er `PeriodeDbTest`, som blir stående — den tester en ren db-type og har ingen prodsti å bygges gjennom.

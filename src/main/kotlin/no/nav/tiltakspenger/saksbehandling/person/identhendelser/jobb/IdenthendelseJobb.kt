@@ -8,13 +8,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto
-import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
+import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseProducer
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.util.UUID
 
 class IdenthendelseJobb(
     private val identhendelseRepository: IdenthendelseRepository,
-    private val identhendelseKafkaProducer: IdenthendelseKafkaProducer,
+    private val identhendelseProducer: IdenthendelseProducer,
     private val sakRepo: SakRepo,
     private val søknadRepo: SøknadRepo,
     private val statistikkService: StatistikkService,
@@ -37,7 +37,7 @@ class IdenthendelseJobb(
         val identhendelse = identhendelseRepository.hent(identhendelseId) ?: return
 
         if (identhendelse.produsertHendelse == null) {
-            identhendelseKafkaProducer.produserIdenthendelse(identhendelse.id, identhendelse.toIdenthendelseDto())
+            identhendelseProducer.produserIdenthendelse(identhendelse.id, identhendelse.toIdenthendelseDto())
             identhendelseRepository.oppdaterProdusertHendelse(identhendelse.id)
             log.info { "Oppdatert produsert_hendelse for identhendelse med id ${identhendelse.id}" }
         }

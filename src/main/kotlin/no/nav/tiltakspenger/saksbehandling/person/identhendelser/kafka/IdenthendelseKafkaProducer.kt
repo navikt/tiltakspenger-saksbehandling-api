@@ -8,10 +8,10 @@ import java.util.UUID
 class IdenthendelseKafkaProducer(
     private val kafkaProducer: Producer<String, String>,
     private val topic: String,
-) {
+) : IdenthendelseProducer {
     private val log = KotlinLogging.logger {}
 
-    fun produserIdenthendelse(id: UUID, identhendelseDto: IdenthendelseDto) {
+    override fun produserIdenthendelse(id: UUID, identhendelseDto: IdenthendelseDto) {
         kafkaProducer.produce(topic, id.toString(), objectMapper.writeValueAsString(identhendelseDto))
         log.info { "Produserte identhendelse med id $id til topic" }
     }
