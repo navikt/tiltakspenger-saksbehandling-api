@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settPåVentOgNullstillSaksbehandler
@@ -28,12 +27,9 @@ import java.time.Clock
 fun Rammebehandling.settPåVent(
     kommando: SettRammebehandlingPåVentKommando,
     clock: Clock,
-): Pair<Rammebehandling, Statistikkhendelser> {
+): Either<KanIkkeSetteRammebehandlingPåVent, Pair<Rammebehandling, Statistikkhendelser>> {
     val endretAv = kommando.saksbehandler
-    kanSettePåVent(endretAv).onLeft {
-        it.kastVedManglendeRolle(endretAv)
-        it.kast(this.id)
-    }
+    kanSettePåVent(endretAv).onLeft { return it.left() }
     when (status) {
         UNDER_AUTOMATISK_BEHANDLING,
         UNDER_BEHANDLING,
@@ -48,8 +44,7 @@ fun Rammebehandling.settPåVent(
             val oppdatertStatus = when (status) {
                 UNDER_BESLUTNING -> KLAR_TIL_BESLUTNING
                 UNDER_BEHANDLING -> KLAR_TIL_BEHANDLING
-                UNDER_AUTOMATISK_BEHANDLING -> UNDER_AUTOMATISK_BEHANDLING
-                else -> throw IllegalStateException("Uventet status $status ved oppdatering til ventende status")
+                else -> UNDER_AUTOMATISK_BEHANDLING
             }
             val nå = nå(clock)
             val oppdatertVentestatus = ventestatus.settPåVent(
@@ -59,7 +54,9 @@ fun Rammebehandling.settPåVent(
                 status = status.toString(),
                 frist = kommando.frist,
             )
-            val (oppdatertKlagebehandling, klagestatistikk) = oppdaterKlagebehandling(kommando, clock)
+            val (oppdatertKlagebehandling, klagestatistikk) = oppdaterKlagebehandling(kommando, clock).getOrElse {
+                return it.left()
+            }
             val oppdatertRammebehandling = when (this) {
                 is Søknadsbehandling -> {
                     this.copy(
@@ -90,22 +87,22 @@ fun Rammebehandling.settPåVent(
                     hendelse = StatistikkhendelseType.BEHANDLING_SATT_PA_VENT,
                 ),
             )
-            return oppdatertRammebehandling to statistikkhendelser
+            return (oppdatertRammebehandling to statistikkhendelser).right()
         }
 
         KLAR_TIL_BEHANDLING,
         KLAR_TIL_BESLUTNING,
         VEDTATT,
         AVBRUTT,
-        -> throw IllegalStateException("Kan ikke sette behandling på vent som har status ${status.name}")
+        -> return KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(status).left()
     }
 }
 
 private fun Rammebehandling.oppdaterKlagebehandling(
     kommando: SettRammebehandlingPåVentKommando,
     clock: Clock,
-): Pair<Klagebehandling?, Statistikkhendelser> {
-    val klage = klagebehandling ?: return (null to Statistikkhendelser.empty())
+): Either<KanIkkeSetteRammebehandlingPåVent, Pair<Klagebehandling?, Statistikkhendelser>> {
+    val klage = klagebehandling ?: return (null to Statistikkhendelser.empty()).right()
     return klage.settPåVentOgNullstillSaksbehandler(
         kommando = SettKlagebehandlingPåVentKommando(
             sakId = kommando.sakId,
@@ -116,7 +113,7 @@ private fun Rammebehandling.oppdaterKlagebehandling(
         ),
         clock = clock,
         sjekkSaksbehandler = this.status != UNDER_BESLUTNING,
-    ).getOrThrow()
+    ).mapLeft { KanIkkeSetteRammebehandlingPåVent.KunneIkkeSetteKlagebehandlingenPåVent(it) }
 }
 
 /**
@@ -163,29 +160,5 @@ fun Rammebehandling.kanSettePåVent(
         VEDTATT,
         AVBRUTT,
         -> KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(status).left()
-    }
-}
-
-/**
- * [settPåVent] returnerer ikke [Either], så feilene må kastes.
- * Meldingene holdes uendret slik at kallere som forholder seg til dem ikke påvirkes.
- */
-private fun KanIkkeSetteRammebehandlingPåVent.kast(behandlingId: BehandlingId): Nothing {
-    when (this) {
-        KanIkkeSetteRammebehandlingPåVent.BehandlingenErAlleredePåVent ->
-            throw IllegalArgumentException("Behandling med id $behandlingId er allerede satt på vent")
-
-        KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandler,
-        KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandlerForBehandlingen,
-        ->
-            throw IllegalArgumentException("Du må være saksbehandler på behandlingen for å kunne sette den på vent.")
-
-        KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutter,
-        KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutterForBehandlingen,
-        ->
-            throw IllegalArgumentException("Du må være beslutter på behandlingen for å kunne sette den på vent.")
-
-        is KanIkkeSetteRammebehandlingPåVent.UgyldigStatus ->
-            throw IllegalStateException("Kan ikke sette behandling på vent som har status ${status.name}")
     }
 }

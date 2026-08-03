@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
+import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.KanIkkeSetteRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -15,7 +17,7 @@ class SettRammebehandlingPåVentService(
 
     suspend fun settBehandlingPåVent(
         kommando: SettRammebehandlingPåVentKommando,
-    ): Pair<Sak, Rammebehandling> = settRammebehandlingPåVentInternal(kommando)
+    ): Either<KanIkkeSetteRammebehandlingPåVent, Pair<Sak, Rammebehandling>> = settRammebehandlingPåVentInternal(kommando)
 
     /**
      * Brukes når klagebehandlingen setter rammebehandlingen på vent.
@@ -23,11 +25,11 @@ class SettRammebehandlingPåVentService(
      */
     suspend fun settBehandlingPåVentFraKlage(
         kommando: SettRammebehandlingPåVentKommando,
-    ): Pair<Sak, Rammebehandling> = settRammebehandlingPåVentInternal(kommando)
+    ): Either<KanIkkeSetteRammebehandlingPåVent, Pair<Sak, Rammebehandling>> = settRammebehandlingPåVentInternal(kommando)
 
     private suspend fun settRammebehandlingPåVentInternal(
         kommando: SettRammebehandlingPåVentKommando,
-    ): Pair<Sak, Rammebehandling> {
+    ): Either<KanIkkeSetteRammebehandlingPåVent, Pair<Sak, Rammebehandling>> {
         val (sak, rammebehandling) = behandlingService.hentSakOgRammebehandling(
             sakId = kommando.sakId,
             behandlingId = kommando.rammebehandlingId,
@@ -35,7 +37,7 @@ class SettRammebehandlingPåVentService(
         return rammebehandling.settPåVent(
             kommando = kommando,
             clock = clock,
-        ).let { (oppdatertRammebehandling, statistikkhendelser) ->
+        ).map { (oppdatertRammebehandling, statistikkhendelser) ->
             val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
 
             behandlingService.lagreMedStatistikk(

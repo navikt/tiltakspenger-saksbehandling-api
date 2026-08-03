@@ -1303,7 +1303,7 @@ class BenkOversiktAggregatTest {
                 venterTil = null,
                 frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
-            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).getOrFail().first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
@@ -1331,7 +1331,7 @@ class BenkOversiktAggregatTest {
                 saksbehandler = beslutter,
                 frist = LocalDate.now(fixedClock).plusWeeks(1),
             )
-            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).getOrFail().first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(
@@ -1359,7 +1359,7 @@ class BenkOversiktAggregatTest {
                 saksbehandler = beslutter,
                 frist = LocalDate.now(testDataHelper.clock).plusWeeks(1),
             )
-            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).first
+            val oppdatertBehandling = behandling.settPåVent(kommando, testDataHelper.clock).getOrFail().first
             testDataHelper.behandlingRepo.lagre(oppdatertBehandling)
 
             val (behandlingssamendrag, totalAntall, totalAntallUfiltrert) = testDataHelper.benkOversiktRepo.hentÅpneBehandlinger(

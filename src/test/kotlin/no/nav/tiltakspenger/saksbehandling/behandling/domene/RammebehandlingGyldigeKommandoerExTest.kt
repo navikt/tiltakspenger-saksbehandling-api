@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
@@ -31,7 +32,7 @@ class RammebehandlingGyldigeKommandoerExTest {
                 frist = null,
             ),
             clock = ObjectMother.clock,
-        ).first
+        ).getOrFail().first
 
     @Test
     fun `klar til behandling - saksbehandler kan tildele seg selv og avbryte`() {

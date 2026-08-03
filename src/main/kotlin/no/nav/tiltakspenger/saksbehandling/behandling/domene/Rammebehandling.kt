@@ -23,7 +23,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.kastVedManglendeRolle
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
@@ -126,9 +125,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val skalSendeVedtaksbrev: Boolean
 
-    fun inneholderSaksopplysningerInternDeltakelseId(internDeltakelseId: TiltaksdeltakerId): Boolean =
-        saksopplysninger.tiltaksdeltakelser.find { it.internDeltakelseId == internDeltakelseId } != null
-
     fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 
@@ -220,10 +216,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         saksbehandler: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeTaBehandling, Pair<Rammebehandling, Statistikkhendelser>> {
-        kanTaBehandling(saksbehandler).onLeft { feil ->
-            feil.kastVedManglendeRolle(saksbehandler)
-            return feil.left()
-        }
+        kanTaBehandling(saksbehandler).onLeft { return it.left() }
 
         val nå = nå(clock)
         return when (status) {
@@ -358,10 +351,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             return KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling.left()
         }
 
-        kanOverta(saksbehandler).onLeft { feil ->
-            feil.kastVedManglendeRolle(saksbehandler)
-            return feil.left()
-        }
+        kanOverta(saksbehandler).onLeft { return it.left() }
 
         return when (status) {
             UNDER_BEHANDLING -> {

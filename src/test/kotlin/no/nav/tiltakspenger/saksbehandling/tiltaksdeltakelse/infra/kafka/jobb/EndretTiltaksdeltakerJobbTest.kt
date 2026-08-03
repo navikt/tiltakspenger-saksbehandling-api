@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
@@ -296,7 +297,7 @@ class EndretTiltaksdeltakerJobbTest {
                 frist = null,
             )
 
-            val behandlingPaVent = behandling.settPåVent(kommando = kommando, clock = tac.clock).first as Søknadsbehandling
+            val behandlingPaVent = behandling.settPåVent(kommando = kommando, clock = tac.clock).getOrFail().first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
 
             val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(

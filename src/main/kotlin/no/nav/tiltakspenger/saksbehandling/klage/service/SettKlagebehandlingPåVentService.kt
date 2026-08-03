@@ -33,7 +33,13 @@ class SettKlagebehandlingPåVentService(
         return sak.settKlagebehandlingPåVent(
             kommando = kommando,
             clock = clock,
-            settRammebehandlingPåVent = settRammebehandlingPåVentService::settBehandlingPåVentFraKlage,
+            settRammebehandlingPåVent = { settPåVentKommando ->
+                settRammebehandlingPåVentService.settBehandlingPåVentFraKlage(settPåVentKommando).getOrElse {
+                    throw IllegalStateException(
+                        "Kunne ikke sette rammebehandling ${settPåVentKommando.rammebehandlingId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
+                    )
+                }
+            },
             settMeldekortbehandlingPåVent = { settPåVentKommando ->
                 settMeldekortbehandlingPåVentService.settPåVent(settPåVentKommando).getOrElse {
                     throw IllegalStateException(

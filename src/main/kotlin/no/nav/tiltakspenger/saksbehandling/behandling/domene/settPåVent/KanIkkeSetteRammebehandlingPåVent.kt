@@ -1,16 +1,15 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent
 
-import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.KanIkkeSetteKlagebehandlingPåVent
 
 /**
  * Mulige grunner til at en rammebehandling ikke kan settes på vent.
  *
- * Se `Rammebehandling.kanSettePåVent`.
+ * De seks første utledes av `Rammebehandling.kanSettePåVent`, og er de eneste som kan oppstå før behandlingen er endret.
+ * Den siste kan bare oppstå underveis i `Rammebehandling.settPåVent`, og har derfor ingen tilsvarende forhåndssjekk.
  */
 sealed interface KanIkkeSetteRammebehandlingPåVent : Loggbar {
     /** Behandlingen er allerede satt på vent. */
@@ -42,16 +41,11 @@ sealed interface KanIkkeSetteRammebehandlingPåVent : Loggbar {
     data class UgyldigStatus(val status: Rammebehandlingsstatus) : KanIkkeSetteRammebehandlingPåVent {
         override val loggkontekst get() = Loggkontekst("behandlingen har status $status")
     }
-}
 
-/**
- * Kaster [no.nav.tiltakspenger.saksbehandling.felles.TilgangException] dersom feilen skyldes at [saksbehandler] mangler en rolle.
- * Manglende rolle er en tilgangsfeil (403), ikke en tilstandsfeil.
- */
-fun KanIkkeSetteRammebehandlingPåVent.kastVedManglendeRolle(saksbehandler: Saksbehandler) {
-    when (this) {
-        KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandler -> krevSaksbehandlerRolle(saksbehandler)
-        KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutter -> krevBeslutterRolle(saksbehandler)
-        else -> Unit
+    /** Klagebehandlingen som henger på rammebehandlingen kunne ikke settes på vent. */
+    data class KunneIkkeSetteKlagebehandlingenPåVent(
+        val underliggende: KanIkkeSetteKlagebehandlingPåVent,
+    ) : KanIkkeSetteRammebehandlingPåVent {
+        override val loggkontekst get() = Loggkontekst("klagebehandlingen kunne ikke settes på vent: $underliggende")
     }
 }

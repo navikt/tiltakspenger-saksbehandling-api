@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.left
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
@@ -17,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.KanIkkeGj
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.KanIkkeSetteRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
@@ -188,6 +188,26 @@ class RammebehandlingTest {
             taBehandling.beslutter shouldBe beslutter.navIdent
             taBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
         }
+
+        @Test
+        fun `en bruker uten saksbehandlerrolle får feil i stedet for exception`() {
+            val behandling = ObjectMother.nyAutomatiskSøknadsbehandlingManuellBehandling()
+
+            behandling.taBehandling(
+                ObjectMother.saksbehandlerUtenTilgang(),
+                clock,
+            ) shouldBe KunneIkkeTaBehandling.MåVæreSaksbehandler.left()
+        }
+
+        @Test
+        fun `en bruker uten beslutterrolle får feil i stedet for exception`() {
+            val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning()
+
+            behandling.taBehandling(
+                ObjectMother.saksbehandler(navIdent = "annenSaksbehandler"),
+                clock,
+            ) shouldBe KunneIkkeTaBehandling.MåVæreBeslutter.left()
+        }
     }
 
     @Nested
@@ -241,6 +261,28 @@ class RammebehandlingTest {
 
             behandling.overta(annenSaksbehandler, correlationId, overtaClock).isRight() shouldBe true
         }
+
+        @Test
+        fun `en bruker uten saksbehandlerrolle får feil i stedet for exception`() {
+            val behandling = ObjectMother.nyOpprettetSøknadsbehandling()
+
+            behandling.overta(
+                saksbehandler = ObjectMother.beslutter("nyNavIdent"),
+                correlationId = correlationId,
+                clock = enUkeEtterFixedClock,
+            ) shouldBe KunneIkkeOvertaBehandling.MåVæreSaksbehandler.left()
+        }
+
+        @Test
+        fun `en bruker uten beslutterrolle får feil i stedet for exception`() {
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning()
+
+            behandling.overta(
+                saksbehandler = ObjectMother.saksbehandler("nyNavIdent"),
+                correlationId = correlationId,
+                clock = enUkeEtterFixedClock,
+            ) shouldBe KunneIkkeOvertaBehandling.MåVæreBeslutter.left()
+        }
     }
 
     @Nested
@@ -265,22 +307,21 @@ class RammebehandlingTest {
         val clock: Clock = Clock.fixed(Instant.parse("2025-08-05T12:30:00Z"), ZoneOffset.UTC)
 
         @Test
-        fun `kaster exception dersom man prøver å sette behandling (klar til behandling) på vent`() {
+        fun `kan ikke sette behandling (klar til behandling) på vent`() {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
                 .leggTilbakeRammebehandling(saksbehandler = saksbehandler, clock = clock).getOrFail().first
 
-            shouldThrow<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
-                    sakId = behandling.sakId,
-                    rammebehandlingId = behandling.id,
-                    begrunnelse = "Denne kaster exception",
-                    saksbehandler = saksbehandler,
-                    venterTil = null,
-                    frist = null,
-                )
-                behandling.settPåVent(kommando, clock)
-            }
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Denne gir en feil",
+                saksbehandler = saksbehandler,
+                venterTil = null,
+                frist = null,
+            )
+            behandling.settPåVent(kommando, clock) shouldBe
+                KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(Rammebehandlingsstatus.KLAR_TIL_BEHANDLING).left()
         }
 
         @Test
@@ -295,7 +336,7 @@ class RammebehandlingTest {
                 venterTil = null,
                 frist = null,
             )
-            val behandlingSattPåVent = behandling.settPåVent(kommando, clock).first
+            val behandlingSattPåVent = behandling.settPåVent(kommando, clock).getOrFail().first
 
             behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             behandlingSattPåVent.saksbehandler shouldBe null
@@ -308,21 +349,20 @@ class RammebehandlingTest {
         }
 
         @Test
-        fun `kaster exception dersom man prøver å sette behandling (klar til beslutning) på vent`() {
+        fun `kan ikke sette behandling (klar til beslutning) på vent`() {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
 
-            shouldThrow<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
-                    sakId = behandling.sakId,
-                    rammebehandlingId = behandling.id,
-                    begrunnelse = "Denne kaster exception",
-                    saksbehandler = saksbehandler,
-                    venterTil = null,
-                    frist = null,
-                )
-                behandling.settPåVent(kommando, clock)
-            }
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Denne gir en feil",
+                saksbehandler = saksbehandler,
+                venterTil = null,
+                frist = null,
+            )
+            behandling.settPåVent(kommando, clock) shouldBe
+                KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(Rammebehandlingsstatus.KLAR_TIL_BESLUTNING).left()
         }
 
         @Test
@@ -338,7 +378,7 @@ class RammebehandlingTest {
                 venterTil = null,
                 frist = null,
             )
-            val behandlingSattPåVent = behandling.settPåVent(kommando, clock).first
+            val behandlingSattPåVent = behandling.settPåVent(kommando, clock).getOrFail().first
 
             behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             behandlingSattPåVent.saksbehandler shouldBe behandling.saksbehandler
@@ -352,39 +392,71 @@ class RammebehandlingTest {
         }
 
         @Test
-        fun `kaster exception dersom man prøver å sette behandling (vedtatt) på vent`() {
+        fun `kan ikke sette behandling (vedtatt) på vent`() {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nyVedtattSøknadsbehandling(saksbehandler = saksbehandler)
 
-            shouldThrow<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
-                    sakId = behandling.sakId,
-                    rammebehandlingId = behandling.id,
-                    begrunnelse = "Denne kaster exception",
-                    saksbehandler = saksbehandler,
-                    venterTil = null,
-                    frist = null,
-                )
-                behandling.settPåVent(kommando, clock)
-            }
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Denne gir en feil",
+                saksbehandler = saksbehandler,
+                venterTil = null,
+                frist = null,
+            )
+            behandling.settPåVent(kommando, clock) shouldBe
+                KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(Rammebehandlingsstatus.VEDTATT).left()
         }
 
         @Test
-        fun `kaster exception dersom man prøver å sette behandling (avbrutt) på vent`() {
+        fun `kan ikke sette behandling (avbrutt) på vent`() {
             val saksbehandler = ObjectMother.saksbehandler()
             val behandling = ObjectMother.nyAvbruttSøknadsbehandling(saksbehandler = saksbehandler)
 
-            shouldThrow<IllegalStateException> {
-                val kommando = SettRammebehandlingPåVentKommando(
-                    sakId = behandling.sakId,
-                    rammebehandlingId = behandling.id,
-                    begrunnelse = "Denne kaster exception",
-                    saksbehandler = saksbehandler,
-                    venterTil = null,
-                    frist = null,
-                )
-                behandling.settPåVent(kommando, clock)
-            }
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Denne gir en feil",
+                saksbehandler = saksbehandler,
+                venterTil = null,
+                frist = null,
+            )
+            behandling.settPåVent(kommando, clock) shouldBe
+                KanIkkeSetteRammebehandlingPåVent.UgyldigStatus(Rammebehandlingsstatus.AVBRUTT).left()
+        }
+
+        @Test
+        fun `en annen saksbehandler enn den som er tildelt behandlingen får feil i stedet for exception`() {
+            val saksbehandler = ObjectMother.saksbehandler(navIdent = "Z111111")
+            val behandling = ObjectMother.nySøknadsbehandlingUnderkjent(saksbehandler = saksbehandler)
+
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Venter på mer informasjon",
+                saksbehandler = ObjectMother.saksbehandler(navIdent = "Z999999"),
+                venterTil = null,
+                frist = null,
+            )
+            behandling.settPåVent(kommando, clock) shouldBe
+                KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandlerForBehandlingen.left()
+        }
+
+        @Test
+        fun `en bruker uten saksbehandlerrolle får feil i stedet for exception`() {
+            val saksbehandler = ObjectMother.saksbehandler(navIdent = "Z111111")
+            val behandling = ObjectMother.nySøknadsbehandlingUnderkjent(saksbehandler = saksbehandler)
+
+            val kommando = SettRammebehandlingPåVentKommando(
+                sakId = behandling.sakId,
+                rammebehandlingId = behandling.id,
+                begrunnelse = "Venter på mer informasjon",
+                saksbehandler = ObjectMother.saksbehandlerUtenTilgang(),
+                venterTil = null,
+                frist = null,
+            )
+            behandling.settPåVent(kommando, clock) shouldBe
+                KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandler.left()
         }
     }
 
@@ -411,7 +483,7 @@ class RammebehandlingTest {
                             ),
                             clock,
                         )
-                    }.first
+                    }.getOrFail().first
 
                 behandlingSattPåVent.saksbehandler shouldBe null
                 behandlingSattPåVent.beslutter shouldBe null
@@ -451,7 +523,7 @@ class RammebehandlingTest {
                     venterTil = null,
                     frist = null,
                 )
-                val behandlingSattPåVent = behandling.settPåVent(kommando, clock).first
+                val behandlingSattPåVent = behandling.settPåVent(kommando, clock).getOrFail().first
 
                 behandlingSattPåVent.saksbehandler shouldBe behandling.saksbehandler
                 behandlingSattPåVent.beslutter shouldBe null
@@ -490,7 +562,7 @@ class RammebehandlingTest {
                     venterTil = nå(clock).plusWeeks(1),
                     frist = null,
                 )
-                val behandlingSattPåVent = behandling.settPåVent(kommando, clockPaVent).first
+                val behandlingSattPåVent = behandling.settPåVent(kommando, clockPaVent).getOrFail().first
                 val gjenopptaClock = Clock.fixed(Instant.parse("2025-07-01T13:30:00Z"), ZoneOffset.UTC)
 
                 behandlingSattPåVent.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER.navIdent
@@ -584,7 +656,7 @@ class RammebehandlingTest {
                         frist = null,
                     ),
                     clock,
-                ).first
+                ).getOrFail().first
 
                 behandlingPåVent.gjenoppta(
                     GjenopptaRammebehandlingKommando(
