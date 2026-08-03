@@ -104,6 +104,22 @@ class DokarkivHttpClientTest {
         dokumenter.journalpostId shouldBe JournalpostId("467010363")
     }
 
+    /**
+     * `dokumenter` er valgfri i dokarkivs kontrakt, og mangler den, har vi ingen dokumentInfoId-er å ta vare på.
+     * Journalføringen er likevel vellykket — journalpostId-en er det bærende.
+     */
+    @Test
+    fun `201 uten dokumenter gir journalpost uten dokumentInfoIder`() = runTest {
+        val transport = FakeHttpTransport().apply { leggIKøJson(dokarkivOkJson(dokumenter = "null"), statusCode = 201) }
+
+        val dokumenter = nyKlient(transport)
+            .journalførVedtaksbrevForMeldekortvedtak(ObjectMother.meldekortvedtak(opprettet = nå(fixedClock)), pdfOgJson, correlationId)
+            .getOrFail()
+
+        dokumenter.journalpostId shouldBe JournalpostId("467010363")
+        dokumenter.dokumentInfoIder shouldBe null
+    }
+
     @Test
     fun `201 uten journalpostId gir UgyldigRespons`() = runTest {
         val transport = FakeHttpTransport().apply { leggIKøJson(dokarkivOkJson(journalpostId = null), statusCode = 201) }
@@ -128,6 +144,48 @@ class DokarkivHttpClientTest {
             .getOrFail()
 
         dokumenter.dokumentInfoIder.shouldBeNull()
+    }
+
+    @Test
+    fun `dokumenter uten dokumentInfoId filtreres bort`() = runTest {
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(dokarkivOkJson(dokumenter = """[{"dokumentInfoId":null},{"dokumentInfoId":"456"}]"""), statusCode = 201)
+        }
+
+        val dokumenter = nyKlient(transport)
+            .journalførVedtaksbrevForRammevedtak(ObjectMother.nyRammevedtakInnvilgelse(), pdfOgJson, correlationId)
+            .getOrFail()
+
+        dokumenter.dokumentInfoIder shouldBe nonEmptyListOf(DokumentInfoId("456"))
+    }
+
+    @Test
+    fun `kun dokumenter uten dokumentInfoId gir null dokumentInfoIder`() = runTest {
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(dokarkivOkJson(dokumenter = """[{"dokumentInfoId":null}]"""), statusCode = 201)
+        }
+
+        val dokumenter = nyKlient(transport)
+            .journalførVedtaksbrevForRammevedtak(ObjectMother.nyRammevedtakInnvilgelse(), pdfOgJson, correlationId)
+            .getOrFail()
+
+        dokumenter.dokumentInfoIder.shouldBeNull()
+    }
+
+    @Test
+    fun `nettverksfeil gir KallFeilet med NetworkError`() = runTest {
+        val transport = FakeHttpTransport().apply {
+            leggIKøKastForAlleForsøk(java.io.IOException("simulert nettverksfeil"), maksForsøk = 4)
+        }
+
+        val feil = nyKlient(transport)
+            .journalførVedtaksbrevForRammevedtak(ObjectMother.nyRammevedtakInnvilgelse(), pdfOgJson, correlationId)
+            .swap()
+            .getOrNull()
+            .shouldNotBeNull()
+
+        feil.shouldBeInstanceOf<KunneIkkeJournalføre.KallFeilet>().feil.shouldBeInstanceOf<HttpKlientError.NetworkError>()
+        transport.mottatteKall.size shouldBe 4
     }
 
     @Test

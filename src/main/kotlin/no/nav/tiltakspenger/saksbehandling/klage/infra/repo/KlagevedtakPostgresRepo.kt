@@ -24,6 +24,11 @@ class KlagevedtakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : KlagevedtakRepo {
 
+    /**
+     * Et nytt klagevedtak er hverken journalført eller distribuert.
+     * `journalpost_id`/`journalføringstidspunkt` eies av [markerJournalført], og `distribusjon_id`/`distribusjonstidspunkt` av [markerDistribuert].
+     * De utelates derfor her, slik at en gjentatt lagring ikke kan skrive over det jobbene har satt.
+     */
     override fun lagreVedtak(
         klagevedtak: Klagevedtak,
         sessionContext: SessionContext?,
@@ -38,10 +43,6 @@ class KlagevedtakPostgresRepo(
                         sak_id,
                         klagebehandling_id,
                         opprettet,
-                        journalpost_id,
-                        journalføringstidspunkt,
-                        distribusjon_id,
-                        distribusjonstidspunkt,
                         sendt_til_datadeling,
                         vedtaksdato
                     ) values (
@@ -49,20 +50,12 @@ class KlagevedtakPostgresRepo(
                         :sak_id,
                         :klagebehandling_id,
                         :opprettet,
-                        :journalpost_id,
-                        :journalforingstidspunkt,
-                        :distribusjon_id,
-                        :distribusjonstidspunkt,
                         :sendt_til_datadeling,
                         :vedtaksdato
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         klagebehandling_id = :klagebehandling_id,
                         opprettet = :opprettet,
-                        journalpost_id = :journalpost_id,
-                        journalføringstidspunkt = :journalforingstidspunkt,
-                        distribusjon_id = :distribusjon_id,
-                        distribusjonstidspunkt = :distribusjonstidspunkt,
                         sendt_til_datadeling = :sendt_til_datadeling,
                         vedtaksdato = :vedtaksdato
                     """.trimIndent(),
@@ -71,10 +64,6 @@ class KlagevedtakPostgresRepo(
                         "sak_id" to klagevedtak.sakId.toString(),
                         "klagebehandling_id" to klagevedtak.behandling.id.toString(),
                         "opprettet" to klagevedtak.opprettet,
-                        "journalpost_id" to klagevedtak.journalpostId?.toString(),
-                        "journalforingstidspunkt" to klagevedtak.journalføringstidspunkt,
-                        "distribusjon_id" to klagevedtak.distribusjonId?.toString(),
-                        "distribusjonstidspunkt" to klagevedtak.distribusjonstidspunkt,
                         "sendt_til_datadeling" to klagevedtak.sendtTilDatadeling,
                         "vedtaksdato" to klagevedtak.vedtaksdato,
                     ),
@@ -96,7 +85,7 @@ class KlagevedtakPostgresRepo(
                     """
                     update klagevedtak set 
                         vedtaksdato = :vedtaksdato,
-                        brev_metadata = to_jsonb(:brev_metadata::jsonb),
+                        brev_metadata = :brev_metadata::jsonb,
                         journalpost_id = :journalpost_id,
                         journalføringstidspunkt = :journalforingstidspunkt
                     where id = :id

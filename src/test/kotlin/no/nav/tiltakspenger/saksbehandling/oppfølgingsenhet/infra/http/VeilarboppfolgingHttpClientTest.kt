@@ -117,6 +117,28 @@ class VeilarboppfolgingHttpClientTest {
         }
     }
 
+    /** En feil før requesten er sendt (her: token-henting som kaster) skal også ende som KallFeilet. */
+    @Test
+    fun `henter oppfølgingsenhet - feilet token-henting gir KallFeilet uten at noe kall sendes`() {
+        val transport = FakeHttpTransport()
+        val klientMedFeilendeAuth = VeilarboppfolgingHttpClient(
+            baseUrl = baseUrl,
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean): AccessToken = throw IllegalStateException("simulert token-feil")
+            },
+            clock = ObjectMother.clock,
+            transport = transport,
+        )
+
+        runTest {
+            val result = klientMedFeilendeAuth.hentOppfolgingsenhet(fnr)
+            val feil = result.fold({ it }, { null }).shouldBeInstanceOf<KanIkkeHenteNavkontor.KallFeilet>()
+            feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.AuthError>()
+        }
+
+        transport.mottatteKall shouldBe emptyList()
+    }
+
     @Test
     fun `henter oppfølgingsenhet - deserialiseringsfeil gir KallFeilet`() {
         val transport = FakeHttpTransport().apply { leggIKøStatus(statusCode = 200, body = "ikke json") }

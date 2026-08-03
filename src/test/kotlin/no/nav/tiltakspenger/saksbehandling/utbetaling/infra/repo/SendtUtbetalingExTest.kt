@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
 import io.kotest.assertions.json.shouldEqualJson
+import no.nav.tiltakspenger.libs.httpklient.authFeilUtenKall
 import no.nav.tiltakspenger.libs.json.objectMapper
+import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
 import org.junit.jupiter.api.Test
 
@@ -66,6 +68,25 @@ class SendtUtbetalingExTest {
             "request": "request",
             "response": {"key": "value"},
             "responseStatus": 202
+            }
+            """.trimIndent(),
+        )
+    }
+
+    /** En feil uten mottatt respons (f.eks. en auth-feil før kallet) har verken body eller status å lagre. */
+    @Test
+    fun `feil uten respons lagres med null for response og responseStatus`() {
+        val actual = KunneIkkeUtbetale(
+            request = "request",
+            feil = authFeilUtenKall(RuntimeException("token-veksling feilet")),
+        ).toJson()
+        objectMapper.readTree(actual)
+        actual.shouldEqualJson(
+            """
+            {
+            "request": "request",
+            "response": null,
+            "responseStatus": null
             }
             """.trimIndent(),
         )

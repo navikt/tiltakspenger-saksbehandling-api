@@ -31,11 +31,10 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilDbJson
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilRammebehandlingUtbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
@@ -69,7 +68,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
     val iverksattTidspunkt = localDateTimeOrNull("iverksatt_tidspunkt")
     val sistEndret = localDateTime("sist_endret")
     val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
-    val ventestatus = stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus()
+    val ventestatus = ventestatus()
     val venterTil = localDateTimeOrNull("venter_til")
     val sendtTilDatadeling = localDateTimeOrNull("sendt_til_datadeling")
     val fritekstTilVedtaksbrev = stringOrNull("fritekst_vedtaksbrev")?.let { FritekstTilVedtaksbrev.create(it) }
@@ -89,8 +88,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
     if ((vedtaksperiodeFraOgMed == null).xor(vedtaksperiodeTilOgMed == null)) {
         throw IllegalStateException("Både fra og med og til og med for vedtaksperiode må være satt, eller ingen av dem")
     }
-    val vedtaksperiode =
-        vedtaksperiodeFraOgMed?.let { Periode(vedtaksperiodeFraOgMed, vedtaksperiodeTilOgMed!!) }
+    val vedtaksperiode = vedtaksperiodeFraOgMed?.let { Periode(vedtaksperiodeFraOgMed, vedtaksperiodeTilOgMed!!) }
     val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
     val omgjørRammevedtak = stringOrNull("omgjør_rammevedtak").toOmgjørRammevedtak()
 
@@ -114,29 +112,33 @@ fun Row.toBehandling(session: Session): Rammebehandling {
         )
     }
 
-    val utbetalingskontroll = stringOrNull("utbetalingskontroll")
-        ?.tilRammebehandlingUtbetalingskontroll(id, meldeperiodekjeder)
+    val utbetalingskontroll =
+        stringOrNull("utbetalingskontroll")?.tilRammebehandlingUtbetalingskontroll(id, meldeperiodekjeder)
 
     when (behandlingstype) {
         Behandlingstype.SØKNADSBEHANDLING -> {
             val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
+            val manueltBehandlesGrunnerJson = stringOrNull("manuelt_behandles_grunner")
+
+            // Eksplisitt if er bevisst: elvis-varianten kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+            @Suppress("IfThenToElvis")
             val manueltBehandlesGrunner =
-                stringOrNull("manuelt_behandles_grunner")?.toManueltBehandlesGrunner() ?: emptyList()
+                if (manueltBehandlesGrunnerJson == null) emptyList() else manueltBehandlesGrunnerJson.toManueltBehandlesGrunner()
             val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
-            val resultat = when (resultatType) {
-                SøknadsbehandlingsresultatType.INNVILGELSE -> Søknadsbehandlingsresultat.Innvilgelse(
-                    barnetillegg = string("barnetillegg").toBarnetillegg(),
-                    innvilgelsesperioder = innvilgelsesperioder!!,
-                    omgjørRammevedtak = omgjørRammevedtak,
-                )
+            val resultat = resultatType?.let {
+                when (it) {
+                    SøknadsbehandlingsresultatType.INNVILGELSE -> Søknadsbehandlingsresultat.Innvilgelse(
+                        barnetillegg = string("barnetillegg").toBarnetillegg(),
+                        innvilgelsesperioder = innvilgelsesperioder!!,
+                        omgjørRammevedtak = omgjørRammevedtak,
+                    )
 
-                SøknadsbehandlingsresultatType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
-                    avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
-                    avslagsperiode = vedtaksperiode,
-                )
-
-                null -> null
+                    SøknadsbehandlingsresultatType.AVSLAG -> Søknadsbehandlingsresultat.Avslag(
+                        avslagsgrunner = string("avslagsgrunner").toAvslagsgrunnlag(),
+                        avslagsperiode = vedtaksperiode,
+                    )
+                }
             }
 
             return Søknadsbehandling(
@@ -150,8 +152,12 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 saksopplysninger = saksopplysninger,
-                søknad = søknadId?.let { SøknadDAO.hentForSøknadId(it, session) }
-                    ?: throw IllegalStateException("Fant ikke søknad for søknadsbehandling, behandlingsid $id"),
+                søknad = if (søknadId == null) {
+                    throw IllegalStateException("Fant ikke søknad for søknadsbehandling, behandlingsid $id")
+                } else {
+                    // Fremmednøkkelen behandling_soknad_id_fkey garanterer at søknaden finnes, og negativ-testen verifiserer at constrainten står.
+                    SøknadDAO.hentForSøknadId(søknadId, session)!!
+                },
                 saksbehandler = saksbehandler,
                 sendtTilBeslutning = sendtTilBeslutning,
                 beslutter = beslutter,
@@ -176,11 +182,13 @@ fun Row.toBehandling(session: Session): Rammebehandling {
         Behandlingstype.REVURDERING -> {
             val resultatType = string("resultat").tilRevurderingResultatType()
 
+            // let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+            @Suppress("SimpleRedundantLet")
             val resultat = when (resultatType) {
                 RevurderingsresultatType.STANS -> Revurderingsresultat.Stans(
-                    valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")
-                        ?.tilHjemmelForStans()
-                        ?.toNonEmptySetOrNull(),
+                    valgtHjemmel = stringOrNull("valgt_hjemmel_har_ikke_rettighet")?.let {
+                        it.tilHjemmelForStans().toNonEmptySetOrNull()
+                    },
                     harValgtStansFraFørsteDagSomGirRett = booleanOrNull("har_valgt_stans_fra_første_dag_som_gir_rett"),
                     stansperiode = vedtaksperiode,
                     omgjørRammevedtak = omgjørRammevedtak,
@@ -204,8 +212,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 RevurderingsresultatType.OMGJØRING_OPPHØR -> Omgjøringsresultat.OmgjøringOpphør(
                     vedtaksperiode = vedtaksperiode!!,
                     omgjørRammevedtak = omgjørRammevedtak,
-                    valgteHjemler = string("valgt_hjemmel_har_ikke_rettighet")
-                        .tilHjemmelForOpphør(),
+                    valgteHjemler = string("valgt_hjemmel_har_ikke_rettighet").tilHjemmelForOpphør(),
                 )
 
                 RevurderingsresultatType.OMGJØRING_IKKE_VALGT -> Omgjøringsresultat.OmgjøringIkkeValgt(
@@ -272,6 +279,8 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         is Søknadsbehandling -> this.manueltBehandlesGrunner
         is Revurdering -> null
     }
+    // let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+    @Suppress("SimpleRedundantLet")
     return mapOf(
         "id" to this.id.toString(),
         "status" to this.status.toDb(),
@@ -298,12 +307,12 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "soknad_id" to søknadId,
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
         "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
-        "beregning" to this.utbetaling?.beregning?.tilBeregningerDbJsonString(),
+        "beregning" to this.utbetaling?.let { it.beregning.tilBeregningerDbJsonString() },
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
         "utbetalingskontroll" to this.utbetalingskontroll?.tilDbJson(),
-        "navkontor" to this.utbetaling?.navkontor?.kontornummer,
-        "navkontor_navn" to this.utbetaling?.navkontor?.kontornavn,
-        "klagebehandling_id" to this.klagebehandling?.id?.toString(),
+        "navkontor" to this.utbetaling?.let { it.navkontor.kontornummer },
+        "navkontor_navn" to this.utbetaling?.let { it.navkontor.kontornavn },
+        "klagebehandling_id" to this.klagebehandling?.let { it.id.toString() },
         "automatisk_opprettet_grunn" to when (this) {
             is Revurdering -> this.automatiskOpprettetGrunn?.toDbJson()
             is Søknadsbehandling -> null

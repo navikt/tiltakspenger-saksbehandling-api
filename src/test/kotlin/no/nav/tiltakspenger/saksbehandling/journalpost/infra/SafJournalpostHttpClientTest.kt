@@ -113,32 +113,40 @@ class SafJournalpostHttpClientTest {
     @Test
     fun `hentJournalpost - andre GraphQL-feilkoder gir GraphQLFeil`() = runTest {
         val transport = FakeHttpTransport().apply {
-            leggIKøJson("""{"data":null,"errors":[{"message":"nope","extensions":{"code":"forbidden","classification":"ExecutionAborted"}},{"message":"uten extensions"}]}""")
+            // Feilen uten extensions står først slik at all-predikatet faktisk evaluerer den; med en reell feilkode først kortslutter all før den nås.
+            leggIKøJson("""{"data":null,"errors":[{"message":"uten extensions"},{"message":"nope","extensions":{"code":"forbidden","classification":"ExecutionAborted"}},{"message":"extensions uten code","extensions":{"classification":"ValidationError"}}]}""")
         }
 
         val feil = nyKlient(transport).hentJournalpost(journalpostId).swap().getOrNull().shouldNotBeNull()
 
         val graphQLFeil = feil.shouldBeInstanceOf<KanIkkeHenteJournalpost.GraphQLFeil>()
-        graphQLFeil.feilkoder shouldBe listOf("forbidden", "ukjent")
+        graphQLFeil.feilkoder shouldBe listOf("ukjent", "forbidden", "ukjent")
         // rawResponseString ligger i metadata slik at kalleren kan sende hele feilresponsen til sikkerlogg.
         graphQLFeil.httpKlientMetadata.rawResponseString.shouldNotBeNull().contains("nope") shouldBe true
-        feil.beskrivelse() shouldBe "GraphQLFeil(feilkoder=[forbidden, ukjent])"
+        feil.beskrivelse() shouldBe "GraphQLFeil(feilkoder=[ukjent, forbidden, ukjent])"
     }
 
     @Test
     fun `hentJournalpost - blanding av not_found og reell feil gir GraphQLFeil`() = runTest {
         val transport = FakeHttpTransport().apply {
-            leggIKøJson("""{"data":null,"errors":[{"message":"ikke funnet","extensions":{"code":"not_found"}},{"message":"boom","extensions":{"code":"server_error"}}]}""")
+            leggIKøJson("""{"data":null,"errors":[{"message":"ikke funnet","extensions":{"code":"not_found"}},{"message":"boom","extensions":{"code":"server_error"}},{"message":"tom extensions","extensions":{}}]}""")
         }
 
         val feil = nyKlient(transport).hentJournalpost(journalpostId).swap().getOrNull().shouldNotBeNull()
 
-        feil.shouldBeInstanceOf<KanIkkeHenteJournalpost.GraphQLFeil>().feilkoder shouldBe listOf("not_found", "server_error")
+        feil.shouldBeInstanceOf<KanIkkeHenteJournalpost.GraphQLFeil>().feilkoder shouldBe listOf("not_found", "server_error", "ukjent")
     }
 
     @Test
     fun `hentJournalpost - manglende journalpost-data uten errors betyr at journalposten ikke finnes`() = runTest {
         val transport = FakeHttpTransport().apply { leggIKøJson("""{"data":{"journalpost":null}}""") }
+
+        nyKlient(transport).hentJournalpost(journalpostId).getOrFail().shouldBeNull()
+    }
+
+    @Test
+    fun `hentJournalpost - respons uten data og uten errors betyr at journalposten ikke finnes`() = runTest {
+        val transport = FakeHttpTransport().apply { leggIKøJson("""{"data":null}""") }
 
         nyKlient(transport).hentJournalpost(journalpostId).getOrFail().shouldBeNull()
     }

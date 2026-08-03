@@ -5,11 +5,8 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import org.intellij.lang.annotations.Language
-import tools.jackson.module.kotlin.readValue
 import java.time.Clock
 import java.util.UUID
 
@@ -26,7 +23,7 @@ class IdenthendelseRepository(
                         "id" to identhendelseDb.id,
                         "gammelt_fnr" to identhendelseDb.gammeltFnr.verdi,
                         "nytt_fnr" to identhendelseDb.nyttFnr.verdi,
-                        "personidenter" to toPGObject(identhendelseDb.personidenter),
+                        "personidenter" to identhendelseDb.personidenter.toDbJson(),
                         "sak_id" to identhendelseDb.sakId.toString(),
                         "produsert_hendelse" to identhendelseDb.produsertHendelse,
                         "oppdatert_database" to identhendelseDb.oppdatertDatabase,
@@ -98,7 +95,7 @@ class IdenthendelseRepository(
             id = uuid("id"),
             gammeltFnr = Fnr.fromString(string("gammelt_fnr")),
             nyttFnr = Fnr.fromString(string("nytt_fnr")),
-            personidenter = objectMapper.readValue(string("personidenter")),
+            personidenter = string("personidenter").fromDbJsonToPersonidenter(),
             sakId = SakId.fromString(string("sak_id")),
             produsertHendelse = localDateTimeOrNull("produsert_hendelse"),
             oppdatertDatabase = localDateTimeOrNull("oppdatert_database"),
@@ -119,7 +116,7 @@ class IdenthendelseRepository(
             :id,
             :gammelt_fnr,
             :nytt_fnr,
-            :personidenter,
+            :personidenter::jsonb,
             :sak_id,
             :produsert_hendelse,
             :oppdatert_database

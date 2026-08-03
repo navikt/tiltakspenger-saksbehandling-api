@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.UtfyltMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -35,7 +34,6 @@ data class BrukersMeldekort(
     val sakId: SakId,
     val dager: List<BrukersMeldekortDag>,
     val journalpostId: JournalpostId,
-    val oppgaveId: OppgaveId?,
     val behandlesAutomatisk: Boolean,
     val behandletAutomatiskStatus: MeldekortBehandletAutomatiskStatus,
     val behandletAutomatiskForsøkshistorikk: Forsøkshistorikk,

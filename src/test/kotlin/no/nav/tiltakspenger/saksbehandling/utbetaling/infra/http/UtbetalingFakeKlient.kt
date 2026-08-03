@@ -50,6 +50,11 @@ class UtbetalingFakeKlient(
      * `sendUtbetalingerTilHelved`-jobben sveiper over alle utbetalinger i skjemaet, så en annen test ville fått sin utbetaling feilet av din fake.
      */
     var iverksettFeil: KunneIkkeUtbetale? = null,
+    /**
+     * Settes av tester som trenger at simuleringen feiler, f.eks. for at en behandling skal lagres med beregning uten simulering.
+     * Simuleringen kalles synkront fra behandlingens egne ruter og ikke fra noen sveipende jobb, så testen trenger ikke kjøre isolert.
+     */
+    var simulerFeil: KunneIkkeSimulere? = null,
 ) : Utbetalingsklient {
 
     override suspend fun iverksett(
@@ -92,6 +97,8 @@ class UtbetalingFakeKlient(
         forrigeUtbetalingId: UtbetalingId?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
+        simulerFeil?.let { return it.left() }
+
         val sak = sakRepo.hentForSakId(sakId)!!
         return sak.genererSimuleringFraBeregning(
             beregning = beregning,

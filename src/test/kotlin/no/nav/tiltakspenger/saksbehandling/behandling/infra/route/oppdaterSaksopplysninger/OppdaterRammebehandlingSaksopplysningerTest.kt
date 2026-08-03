@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
@@ -95,10 +96,20 @@ class OppdaterRammebehandlingSaksopplysningerTest {
         }
     }
 
+    /**
+     * En fersk omgjøring står som `OmgjøringIkkeValgt`, så innvilgelsen må velges før den kan nulles.
+     * Kjører mot postgres fordi det er lagringen av det nullstilte resultatet som dekkes.
+     */
     @Test
     fun `revurdering til omgjøring - skal nulle ut innvilgelsen dersom tiltaksdeltakelsen vi omgjør har blitt filtrert bort`() {
-        withTestApplicationContext { tac ->
-            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, søknadsvedtak, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingOmgjøring(tac)!!
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                vedtaksperiode = søknadsvedtak.periode,
+            )
 
             tac.oppdaterTiltaksdeltakelse(fnr = sak.fnr, tiltaksdeltakelse = null)
             val (_, oppdatertBehandling) = oppdaterSaksopplysningerForBehandlingId(
@@ -107,7 +118,9 @@ class OppdaterRammebehandlingSaksopplysningerTest {
                 behandlingId = revurdering.id,
             )
 
-            oppdatertBehandling.innvilgelsesperioder.shouldBeNull()
+            val resultat = (oppdatertBehandling as Revurdering).resultat as OmgjøringInnvilgelse
+            resultat.innvilgelsesperioder.shouldBeNull()
+            resultat.barnetillegg.shouldBeNull()
         }
     }
 }

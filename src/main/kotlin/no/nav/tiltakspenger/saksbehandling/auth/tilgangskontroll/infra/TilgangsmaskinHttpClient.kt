@@ -84,7 +84,7 @@ class TilgangsmaskinHttpClient(
             ifLeft = { feil ->
                 when {
                     // Avvist tilgang er et domeneutfall som utledes fra feiltypen, ikke en teknisk feil.
-                    feil.harStatus(403) && feil is HttpKlientError.UventetStatus ->
+                    feil is HttpKlientError.UventetStatus && feil.harStatus(403) ->
                         feil.bodySomJson<AvvistTilgangResponse>()
                             .flatMap { avvist ->
                                 // Mappingen kaster på ukjent avvisningstype; fang det som typet feil med responsens metadata i stedet for en ukontrollert exception.

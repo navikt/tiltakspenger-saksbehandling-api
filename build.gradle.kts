@@ -340,7 +340,7 @@ val httpklientKlasserMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",
     )
 
-// Hele databaselaget skal ha full linjedekning, jf. testtaksonomien i AGENTS.md.
+// Hele databaselaget skal ha full grendekning (CoverageUnit.BRANCH), jf. testtaksonomien i AGENTS.md.
 // Mønstre framfor navneliste: ny kode i databaselaget er dekket som standard, i stedet for å måtte legges til for hånd.
 // En navneliste ville dessuten mistet dekningen stille ved en pakke- eller navneendring.
 //
@@ -389,10 +389,19 @@ kover {
             }
             verify {
                 onCheck = true
+                // De to gatene utfyller hverandre og må stå side om side.
+                // Full grendekning sier ingenting om en linje uten grener, og full linjedekning sier ingenting om hvilken vei et vilkår ble tatt.
                 rule("migrerte httpklient-klienter og hele databaselaget har full linjedekning") {
                     bound {
                         minValue = 100
                         coverageUnits = CoverageUnit.LINE
+                        aggregationForGroup = AggregationType.COVERED_PERCENTAGE
+                    }
+                }
+                rule("migrerte httpklient-klienter og hele databaselaget har full grendekning") {
+                    bound {
+                        minValue = 100
+                        coverageUnits = CoverageUnit.BRANCH
                         aggregationForGroup = AggregationType.COVERED_PERCENTAGE
                     }
                 }

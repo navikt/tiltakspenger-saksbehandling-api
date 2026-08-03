@@ -5,7 +5,8 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
+import no.nav.tiltakspenger.libs.json.serialize
+import no.nav.tiltakspenger.libs.json.serializeNullable
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
@@ -100,11 +101,11 @@ object StatistikkStønadPostgresRepo {
                     "fagsystem" to dto.fagsystem,
                     "sistEndret" to nå(clock),
                     "opprettet" to nå(clock),
-                    "barnetillegg" to toPGObject(dto.barnetillegg),
+                    "barnetillegg" to serialize(dto.barnetillegg),
                     "harBarnetillegg" to dto.harBarnetillegg,
-                    "innvilgelsesperioder" to toPGObject(dto.innvilgelsesperioder),
+                    "innvilgelsesperioder" to serialize(dto.innvilgelsesperioder),
                     "omgjorRammevedtakId" to dto.omgjørRammevedtakId,
-                    "omgjorRammevedtak" to toPGObject(dto.omgjørRammevedtak),
+                    "omgjorRammevedtak" to serialize(dto.omgjørRammevedtak),
                 ),
             ).asUpdate,
         )
@@ -128,11 +129,11 @@ object StatistikkStønadPostgresRepo {
                     "gyldigFraDato" to dto.gyldigFraDatoPostering,
                     "gyldigTilDato" to dto.gyldigTilDatoPostering,
                     "utbetaling_id" to dto.utbetalingId,
-                    "vedtak_id" to toPGObject(dto.vedtakId),
+                    "vedtak_id" to serializeNullable(dto.vedtakId),
                     "opprettet" to dto.opprettet,
                     "sist_endret" to dto.sistEndret,
                     "bruker_id" to dto.brukerId,
-                    "meldeperioder" to toPGObject(dto.meldeperioder),
+                    "meldeperioder" to serialize(dto.meldeperioder),
                 ),
             ).asUpdate,
         )
@@ -187,11 +188,11 @@ private val lagreStonadSql =
         :fagsystem,
         :sistEndret,
         :opprettet,
-        :barnetillegg,
+        :barnetillegg::jsonb,
         :harBarnetillegg,
-        :innvilgelsesperioder,
+        :innvilgelsesperioder::jsonb,
         :omgjorRammevedtakId,
-        :omgjorRammevedtak
+        :omgjorRammevedtak::jsonb
         )
     """.trimIndent()
 
@@ -225,10 +226,10 @@ private val lagreUtbetalingSql =
         :gyldigFraDato,
         :gyldigTilDato,
         :utbetaling_id,
-        :vedtak_id,
+        :vedtak_id::jsonb,
         :opprettet,
         :sist_endret,
         :bruker_id,
-        :meldeperioder
+        :meldeperioder::jsonb
         )
     """.trimIndent()

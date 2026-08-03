@@ -56,6 +56,10 @@ class TiltaksdeltakerHendelsePostgresRepo(
             )
         }
 
+    /**
+     * En ny hendelse har per definisjon ingen behandling ennå.
+     * `behandling_id` settes først av [markerSomBehandletMedRevurdering], og utelates derfor her.
+     */
     fun lagre(
         tiltaksdeltakerHendelse: TiltaksdeltakerHendelse,
         melding: String,
@@ -79,7 +83,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
                             sist_oppdatert,
                             melding,
                             tiltaksdeltaker_id,
-                            behandling_id,
                             kilde
                         ) values (
                             :hendelse_id,
@@ -94,7 +97,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
                             :sist_oppdatert,
                             :melding,
                             :tiltaksdeltaker_id,
-                            :behandling_id,
                             :kilde
                         )
                     """.trimIndent(),
@@ -110,7 +112,6 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     "sist_oppdatert" to sistOppdatert,
                     "melding" to melding,
                     "tiltaksdeltaker_id" to tiltaksdeltakerHendelse.internDeltakerId.toString(),
-                    "behandling_id" to tiltaksdeltakerHendelse.behandlingId?.toString(),
                     "kilde" to kilde.name,
                 ).asUpdate,
             )

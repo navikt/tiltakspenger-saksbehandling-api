@@ -142,6 +142,18 @@ class TilgangsmaskinHttpClientTest {
         result.fold({ it }, { throw AssertionError(it) }).shouldBeInstanceOf<TilgangskontrollFeil.Uventet>()
     }
 
+    /** En feil uten mottatt respons (her: nettverksfeil) skal også ende som Uventet, ikke tolkes som avvist tilgang. */
+    @Test
+    fun `harTilgangTilPerson gir Uventet for nettverksfeil`() = runTest {
+        val fakeTransport = FakeHttpTransport()
+        val client = nyClient(texasClientMedOboVeksling(), fakeTransport)
+        fakeTransport.leggIKøKast(java.io.IOException("simulert nettverksfeil"))
+
+        val result = client.harTilgangTilPerson(Fnr.fromString("01010199999"), "token")
+
+        result.fold({ it }, { throw AssertionError(it) }).shouldBeInstanceOf<TilgangskontrollFeil.Uventet>()
+    }
+
     @Test
     fun `bygger produksjonstransport når transport ikke sendes inn`() {
         TilgangsmaskinHttpClient(

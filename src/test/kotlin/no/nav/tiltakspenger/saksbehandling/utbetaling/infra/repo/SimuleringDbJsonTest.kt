@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.trekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.ytelse
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 /**
  * Databasen inneholder to former av simuleringsfeltet, og begge må kunne leses.
@@ -131,6 +132,48 @@ class SimuleringDbJsonTest {
         val meldeperiode = dbJson.simulering!!.perMeldeperiode.single()
         meldeperiode.posteringer!!.single().beløp shouldBe 1490
         meldeperiode.simuleringsdager.all { it.posteringsdag == null } shouldBe true
+    }
+
+    /**
+     * `harJustering` fantes ikke i eldre rader og utledes da av `totalJustering`.
+     * Rader med feltet beholder den lagrede verdien — defaulten skal bare fylle hull.
+     */
+    @Test
+    fun `gammel rad uten harJustering utleder verdien av totalJustering`() {
+        //language=json
+        val medNegativJustering = """{"dato":"2025-01-06","tidligereUtbetalt":0,"nyUtbetaling":408,"totalEtterbetaling":408,"totalFeilutbetaling":0,"totalJustering":-224}"""
+        //language=json
+        val utenJustering = """{"dato":"2025-01-06","tidligereUtbetalt":0,"nyUtbetaling":408,"totalEtterbetaling":408,"totalFeilutbetaling":0}"""
+
+        deserialize<SimuleringEndringDbJson.Simuleringsdag>(medNegativJustering).harJustering shouldBe true
+        deserialize<SimuleringEndringDbJson.Simuleringsdag>(utenJustering).harJustering shouldBe false
+    }
+
+    /** Init-kontrakten: formen på raden må matche typen, ellers er raden korrupt og skal ikke slippe inn i domenet. */
+    @Test
+    fun `endring uten simulering avvises ved konstruksjon`() {
+        shouldThrow<IllegalArgumentException> {
+            SimuleringDbJson(
+                simulering = null,
+                type = SimuleringTypeDb.ENDRING,
+                simuleringstidspunkt = LocalDateTime.parse("2025-01-06T12:00:00"),
+            )
+        }.message shouldBe "Simulering må være satt for endring"
+    }
+
+    @Test
+    fun `ingen endring med simulering avvises ved konstruksjon`() {
+        shouldThrow<IllegalArgumentException> {
+            SimuleringDbJson(
+                simulering = SimuleringEndringDbJson(
+                    datoBeregnet = 6.januar(2025),
+                    totalBeløp = 0,
+                    perMeldeperiode = emptyList(),
+                ),
+                type = SimuleringTypeDb.INGEN_ENDRING,
+                simuleringstidspunkt = LocalDateTime.parse("2025-01-06T12:00:00"),
+            )
+        }.message shouldBe "Simulering må være null for ingen endring"
     }
 
     private fun Simulering.shouldVæreEndring(): Simulering.Endring {

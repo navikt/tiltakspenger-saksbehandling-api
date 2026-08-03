@@ -53,8 +53,8 @@ class MeldeperiodePostgresRepo(
                         :fra_og_med,
                         :til_og_med,
                         :antall_dager_for_periode,
-                        to_jsonb(:gir_rett::jsonb),
-                        to_jsonb(:rammevedtak::jsonb)
+                        :gir_rett::jsonb,
+                        :rammevedtak::jsonb
                     )
                     """,
                     "id" to meldeperiode.id.toString(),

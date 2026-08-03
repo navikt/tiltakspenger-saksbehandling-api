@@ -5,12 +5,9 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.infra.repo.toPGObject
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
-import tools.jackson.module.kotlin.readValue
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.UUID
@@ -94,7 +91,7 @@ class PersonhendelseRepository(
                             :fnr,
                             :hendelse_id,
                             :opplysningstype,
-                            :personhendelse_type,
+                            :personhendelse_type::jsonb,
                             :sak_id,
                             :oppgave_id,
                             :sist_oppdatert,
@@ -106,7 +103,7 @@ class PersonhendelseRepository(
                         "fnr" to personhendelseDb.fnr.verdi,
                         "hendelse_id" to personhendelseDb.hendelseId,
                         "opplysningstype" to personhendelseDb.opplysningstype.name,
-                        "personhendelse_type" to toPGObject(personhendelseDb.personhendelseType),
+                        "personhendelse_type" to personhendelseDb.personhendelseType.toDbJson(),
                         "sak_id" to personhendelseDb.sakId.toString(),
                         "oppgave_id" to personhendelseDb.oppgaveId?.toString(),
                         "sist_oppdatert" to nå(clock),
@@ -156,7 +153,7 @@ class PersonhendelseRepository(
             fnr = Fnr.fromString(string("fnr")),
             hendelseId = string("hendelse_id"),
             opplysningstype = Opplysningstype.valueOf(string("opplysningstype")),
-            personhendelseType = objectMapper.readValue(string("personhendelse_type")),
+            personhendelseType = string("personhendelse_type").fromDbJsonToPersonhendelseType(),
             sakId = SakId.fromString(string("sak_id")),
             oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
             oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),

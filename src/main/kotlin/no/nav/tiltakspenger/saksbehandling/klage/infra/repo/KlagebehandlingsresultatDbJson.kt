@@ -99,6 +99,8 @@ private data class KlagebehandlingsresultatDbJson(
     }
 }
 
+// let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+@Suppress("SimpleRedundantLet")
 fun Klagebehandlingsresultat.toDbJson(): String {
     return KlagebehandlingsresultatDbJson(
         type = when (this) {
@@ -107,18 +109,18 @@ fun Klagebehandlingsresultat.toDbJson(): String {
             is Opprettholdt -> KlagebehandlingsresultatDbEnum.OPPRETTHOLDT
         },
         omgjørBegrunnelse = (this as? Omgjør)?.begrunnelse?.verdi,
-        omgjørÅrsak = (this as? Omgjør)?.årsak?.toDbEnum(),
+        omgjørÅrsak = (this as? Omgjør)?.let { it.årsak.toDbEnum() },
         behandlingId = this.behandlingId.map { it.toString() },
-        hjemler = (this as? Opprettholdt)?.hjemler?.map { it.toDb() },
+        hjemler = (this as? Opprettholdt)?.let { o -> o.hjemler.map { it.toDb() } },
         iverksattOpprettholdelseTidspunkt = (this as? Opprettholdt)?.iverksattOpprettholdelseTidspunkt,
         brevdato = (this as? Opprettholdt)?.brevdato,
         oversendtKlageinstansenTidspunkt = (this as? Opprettholdt)?.oversendtKlageinstansenTidspunkt,
         journalpostIdInnstillingsbrev = (this as? Opprettholdt)?.journalpostIdInnstillingsbrev?.toString(),
-        dokumentInfoIder = (this as? Opprettholdt)?.dokumentInfoIder?.map { it.toString() } ?: emptyList(),
+        dokumentInfoIder = (this as? Opprettholdt)?.let { o -> o.dokumentInfoIder.map { it.toString() } } ?: emptyList(),
         journalføringstidspunktInnstillingsbrev = (this as? Opprettholdt)?.journalføringstidspunktInnstillingsbrev,
         distribusjonIdInnstillingsbrev = (this as? Opprettholdt)?.distribusjonIdInnstillingsbrev?.toString(),
         distribusjonstidspunktInnstillingsbrev = (this as? Opprettholdt)?.distribusjonstidspunktInnstillingsbrev,
-        klageinstanshendelser = (this as? Opprettholdt)?.klageinstanshendelser?.toDb() ?: emptyList(),
+        klageinstanshendelser = if (this is Opprettholdt) this.klageinstanshendelser.toDb() else emptyList(),
         ferdigstiltTidspunkt = this.ferdigstiltTidspunkt,
         begrunnelseFerdigstilling = this.begrunnelseFerdigstilling?.verdi,
         åpenBehandlingId = this.åpenBehandlingId?.toString(),

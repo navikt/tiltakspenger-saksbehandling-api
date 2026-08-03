@@ -162,7 +162,7 @@ class TiltaksdeltakerPostgresRepo(
             "select id from tiltaksdeltaker where ekstern_id = ?",
             eksternId,
         )
-            .map { row -> row.stringOrNull("id")?.let { TiltaksdeltakerId.fromString(it) } }
+            .map { row -> TiltaksdeltakerId.fromString(row.string("id")) }
             .asSingle,
     )
 

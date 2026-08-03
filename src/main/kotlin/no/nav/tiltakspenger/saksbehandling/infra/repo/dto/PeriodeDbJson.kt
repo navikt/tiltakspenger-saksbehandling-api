@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.infra.repo.dto
 
 import kotliquery.Row
 import no.nav.tiltakspenger.libs.periode.Periode
-import org.postgresql.util.PGobject
 import java.time.LocalDate
 
 /**
@@ -29,11 +28,7 @@ fun Row.periode(column: String): Periode {
     return periodeOrNull(column)!!
 }
 
-fun Row.periodeOrNull(column: String): Periode? {
-    val pgObject = underlying.getObject(column, PGobject::class.java)
-    val value = pgObject?.value ?: return null
-    return parsePeriode(value)
-}
+fun Row.periodeOrNull(column: String): Periode? = stringOrNull(column)?.let { parsePeriode(it) }
 
 private fun parsePeriode(value: String): Periode {
     val (fraOgMed, tilOgMed) = value

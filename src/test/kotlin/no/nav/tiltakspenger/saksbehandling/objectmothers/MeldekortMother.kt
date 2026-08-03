@@ -977,7 +977,6 @@ interface MeldekortMother : MotherOfAllMothers {
             sakId = sakId,
             dager = dager,
             journalpostId = JournalpostIdGeneratorSerial().generer(),
-            oppgaveId = null,
             behandlesAutomatisk = behandlesAutomatisk,
             behandletAutomatiskStatus = behandletAutomatiskStatus,
             behandletAutomatiskForsøkshistorikk = behandletAutomatiskForsøkshistorikk,

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
-import arrow.core.toNonEmptyListOrNull
+import arrow.core.toNonEmptyListOrThrow
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
@@ -19,11 +19,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.attesteringer.t
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningFraMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilBeregningerDbJsonString
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
-import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
@@ -47,6 +46,11 @@ import java.time.LocalDateTime
 class MeldekortbehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : MeldekortbehandlingRepo {
+    /**
+     * En nyopprettet meldekortbehandling har hverken begrunnelse eller avbrutt.
+     * `begrunnelse` og `avbrutt` eies av [oppdater], som oppdater- og avbryt-flytene går gjennom.
+     * Kolonnene utelates derfor her.
+     */
     override fun lagre(
         meldekortbehandling: Meldekortbehandling,
         simuleringMedMetadata: SimuleringMedMetadata?,
@@ -73,9 +77,7 @@ class MeldekortbehandlingPostgresRepo(
                         iverksatt_tidspunkt,
                         sendt_til_beslutning,
                         navkontor_navn,
-                        begrunnelse,
                         attesteringer,
-                        avbrutt,
                         ventestatus,
                         sist_endret,
                         skal_sende_vedtaksbrev,
@@ -86,9 +88,9 @@ class MeldekortbehandlingPostgresRepo(
                         :opprettet,
                         :fra_og_med,
                         :til_og_med,
-                        to_jsonb(:meldeperioder::jsonb),
-                        to_jsonb(:beregninger::jsonb),
-                        to_jsonb(:simulering::jsonb),
+                        :meldeperioder::jsonb,
+                        :beregninger::jsonb,
+                        :simulering::jsonb,
                         :simulering_metadata,
                         :saksbehandler,
                         :beslutter,
@@ -97,10 +99,8 @@ class MeldekortbehandlingPostgresRepo(
                         :iverksatt_tidspunkt,
                         :sendt_til_beslutning,
                         :navkontor_navn,
-                        :begrunnelse,
-                        to_jsonb(:attesteringer::jsonb),
-                        to_jsonb(:avbrutt::jsonb),
-                        to_jsonb(:ventestatus::jsonb),
+                        :attesteringer::jsonb,
+                        :ventestatus::jsonb,
                         :sist_endret,
                         :skal_sende_vedtaksbrev,
                         :klagebehandling_id
@@ -123,13 +123,11 @@ class MeldekortbehandlingPostgresRepo(
                     "iverksatt_tidspunkt" to meldekortbehandling.iverksattTidspunkt,
                     "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
                     "navkontor_navn" to meldekortbehandling.navkontor.kontornavn,
-                    "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
-                    "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
-                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.id?.toString(),
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -147,8 +145,8 @@ class MeldekortbehandlingPostgresRepo(
                 sqlQuery(
                     """
                     update meldekortbehandling set
-                        meldeperioder = to_jsonb(:meldeperioder::jsonb),
-                        beregninger = to_jsonb(:beregninger::jsonb),
+                        meldeperioder = :meldeperioder::jsonb,
+                        beregninger = :beregninger::jsonb,
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
                         status = :status,
@@ -156,9 +154,9 @@ class MeldekortbehandlingPostgresRepo(
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         sendt_til_beslutning = :sendt_til_beslutning,
                         begrunnelse = :begrunnelse,
-                        attesteringer = to_json(:attesteringer::jsonb),
-                        avbrutt = to_jsonb(:avbrutt::jsonb),
-                        ventestatus = to_jsonb(:ventestatus::jsonb),
+                        attesteringer = :attesteringer::jsonb,
+                        avbrutt = :avbrutt::jsonb,
+                        ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
                         klagebehandling_id = :klagebehandling_id
                     where id = :id
@@ -177,7 +175,7 @@ class MeldekortbehandlingPostgresRepo(
                     "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
-                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.id?.toString(),
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -192,13 +190,15 @@ class MeldekortbehandlingPostgresRepo(
         transactionContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(transactionContext) { tx ->
+            // let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+            @Suppress("SimpleRedundantLet")
             tx.run(
                 sqlQuery(
                     """
                     update meldekortbehandling set
-                        meldeperioder = to_jsonb(:meldeperioder::jsonb),
-                        beregninger = to_jsonb(:beregninger::jsonb),
-                        simulering = to_jsonb(:simulering::jsonb),
+                        meldeperioder = :meldeperioder::jsonb,
+                        beregninger = :beregninger::jsonb,
+                        simulering = :simulering::jsonb,
                         simulering_metadata = :simulering_metadata,
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
@@ -207,9 +207,9 @@ class MeldekortbehandlingPostgresRepo(
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
                         sendt_til_beslutning = :sendt_til_beslutning,
                         begrunnelse = :begrunnelse,
-                        attesteringer = to_json(:attesteringer::jsonb),
-                        avbrutt = to_jsonb(:avbrutt::jsonb),
-                        ventestatus = to_jsonb(:ventestatus::jsonb),
+                        attesteringer = :attesteringer::jsonb,
+                        avbrutt = :avbrutt::jsonb,
+                        ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
@@ -234,7 +234,7 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
-                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.id?.toString(),
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -466,7 +466,7 @@ class MeldekortbehandlingPostgresRepo(
             sakId: SakId,
             session: Session,
         ): Meldekortbehandlinger? {
-            return session.run(
+            val behandlinger = session.run(
                 sqlQuery(
                     """
                     select
@@ -480,11 +480,8 @@ class MeldekortbehandlingPostgresRepo(
                     """,
                     "sakId" to sakId.toString(),
                 ).map { fromRow(it, session) }.asList,
-            ).let { behandlinger ->
-                behandlinger.toNonEmptyListOrNull()?.let {
-                    Meldekortbehandlinger(it)
-                }
-            }
+            )
+            return if (behandlinger.isEmpty()) null else Meldekortbehandlinger(behandlinger.toNonEmptyListOrThrow())
         }
 
         private fun fromRow(
@@ -500,7 +497,7 @@ class MeldekortbehandlingPostgresRepo(
             val fnr = Fnr.fromString(row.string("fnr"))
             val opprettet = row.localDateTime("opprettet")
             val begrunnelse = row.stringOrNull("begrunnelse")?.let { Begrunnelse.create(it) }
-            val ventestatus = row.stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus()
+            val ventestatus = row.ventestatus()
 
             val navkontor = Navkontor(kontornummer = navkontorEnhetsnummer, kontornavn = navkontorNavn)
             val attesteringer = row.string("attesteringer").toAttesteringer().toAttesteringer()

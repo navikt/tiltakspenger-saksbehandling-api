@@ -106,7 +106,7 @@ class UtbetalingHttpKlient(
                     // 409 er et domeneutfall (dedup) som utledes fra feiltypen, ikke en suksess-status.
                     // TODO post-mvp jah: På sikt er dette en litt skjør sjekk som kan føre til at vi må endre denne sjekken dersom helved forandrer meldingen.
                     // Vi har bestilt et ønske fra helved om at vi får en json-respons med en kontraktsfestet kode, evt. at de garanterer at 409 kun brukes til dedupformål.
-                    feil.harStatus(409) && feil is HttpKlientError.UventetStatus && feil.body.contains("Iverksettingen er allerede mottatt") -> SendtUtbetaling(
+                    feil is HttpKlientError.UventetStatus && feil.harStatus(409) && feil.body.contains("Iverksettingen er allerede mottatt") -> SendtUtbetaling(
                         request = jsonPayload,
                         response = feil.body,
                         responseStatus = feil.statusCode,

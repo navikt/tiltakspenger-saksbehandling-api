@@ -410,9 +410,10 @@ class SakPostgresRepo(
         sakId: SakId,
         session: Session,
     ): Boolean =
+        // `select exists` gir alltid nøyaktig én rad, så `asSingle` kan ikke gi null.
         session.run(
             queryOf(sqlFinnes, sakId.toString()).map { row -> row.boolean("exists") }.asSingle,
-        ) ?: throw RuntimeException("Kunne ikke avgjøre om sak finnes")
+        )!!
 
     companion object {
 

@@ -90,8 +90,8 @@ private val lagreMeldekortSql =
         :behandlet_automatisk,
         :fra_og_med,
         :til_og_med,
-        to_jsonb(:meldekortdager::jsonb),
-        to_jsonb(:meldeperioder::jsonb),
+        :meldekortdager::jsonb,
+        :meldeperioder::jsonb,
         :opprettet,
         :sist_endret
         ) on conflict (meldekortbehandling_id) do update set
@@ -101,8 +101,8 @@ private val lagreMeldekortSql =
         behandlet_automatisk = :behandlet_automatisk,
         fra_og_med = :fra_og_med,
         til_og_med = :til_og_med,
-        meldekortdager = to_jsonb(:meldekortdager::jsonb),
-        meldeperioder = to_jsonb(:meldeperioder::jsonb),
+        meldekortdager = :meldekortdager::jsonb,
+        meldeperioder = :meldeperioder::jsonb,
         sist_endret = :sist_endret
     """.trimIndent()
 

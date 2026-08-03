@@ -45,7 +45,11 @@ interface Utbetalingsklient {
 }
 
 sealed interface UtbetalingResponse {
-    val request: String?
+    /**
+     * Payloaden vi selv bygde.
+     * Den finnes uansett utfall — også når kallet aldri ble sendt — så den er aldri null.
+     */
+    val request: String
     val response: String?
     val responseStatus: Int?
 }

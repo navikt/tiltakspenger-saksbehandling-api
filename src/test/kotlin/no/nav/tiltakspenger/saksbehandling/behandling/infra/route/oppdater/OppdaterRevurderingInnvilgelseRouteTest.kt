@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.oppdater
 
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.periodisering.SammenhengendePeriodisering
@@ -8,11 +10,17 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMelde
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import org.junit.jupiter.api.Test
 
 class OppdaterRevurderingInnvilgelseRouteTest {
@@ -98,6 +106,37 @@ class OppdaterRevurderingInnvilgelseRouteTest {
             oppdatertBehandling.barnetillegg shouldBe barnetillegg
             oppdatertBehandling.antallDagerPerMeldeperiode shouldBe antallDager
             oppdatertBehandling.skalSendeVedtaksbrev shouldBe false
+        }
+    }
+
+    /**
+     * Simuleringen er best effort: feiler den, lagres behandlingen med beregning uten simulering.
+     * Kjører mot postgres fordi det er lagringen og lesingen av den radformen som dekkes.
+     * Behandlingen beregnes kun når saken har utbetalte meldeperioder, derav meldekortbehandlingen i oppsettet.
+     */
+    @Test
+    fun `simuleringsfeil gir behandling med beregning uten simulering`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, _) = iverksettSøknadsbehandling(tac = tac)
+            opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+            )!!
+            val (_, revurdering, _) = startRevurderingInnvilgelse(tac = tac, sakId = sak.id)!!
+
+            tac.utbetalingFakeKlient.simulerFeil = KunneIkkeSimulere.UkjentFeil(
+                httpKlientUventetStatus(statusCode = 500, body = "simulering feilet"),
+            )
+            oppdaterRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = revurdering.id,
+                innvilgelsesperioder = innvilgelsesperioder(revurdering.saksopplysninger.tiltaksdeltakelser.first().periode!!),
+            )
+
+            val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
+            oppdatertBehandling.utbetaling.shouldNotBeNull().simulering.shouldBeNull()
         }
     }
 }

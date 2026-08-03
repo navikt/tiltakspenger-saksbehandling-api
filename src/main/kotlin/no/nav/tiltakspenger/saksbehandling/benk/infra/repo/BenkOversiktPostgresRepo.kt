@@ -347,7 +347,8 @@ class BenkOversiktPostgresRepo(
         val startet = localDateTime("startet")
         val behandlingstype = string("behandlingstype")
             .let { BehandlingssammendragTypeDb.valueOf(it) }.toDomain()
-        val status = stringOrNull("status")?.toBehandlingssammendragStatus()
+        // Alle delspørringene produserer en ikke-null status, og where-klausulens statusfilter slipper uansett aldri gjennom en null-rad.
+        val status = string("status").toBehandlingssammendragStatus()
         val saksbehandler = stringOrNull("saksbehandler")
         val beslutter = stringOrNull("beslutter")
         val sistEndret = localDateTimeOrNull("sist_endret")
@@ -357,8 +358,15 @@ class BenkOversiktPostgresRepo(
         val sattPåVentBegrunnelse = stringOrNull("sattPåVentBegrunnelse")
         val sattPåVentFrist = localDateOrNull("sattPåVentFrist")
         val resultat = stringOrNull("resultat")?.let { RammebehandlingResultatTypeDTO.valueOf(it) }
-        val erUnderkjent =
-            stringOrNull("attesteringer")?.toAttesteringer()?.lastOrNull()?.isUnderkjent() ?: false
+
+        // let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+        @Suppress("SimpleRedundantLet")
+        val sisteAttestering =
+            stringOrNull("attesteringer")?.let { it.toAttesteringer().lastOrNull() }
+
+        // Eksplisitt if er bevisst: elvis-varianten kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+        @Suppress("IfThenToElvis")
+        val erUnderkjent = if (sisteAttestering == null) false else sisteAttestering.isUnderkjent()
         val beløp = bigDecimalOrNull("beløp")
         val tilbakekrevingKilde = stringOrNull("tilbakekrevingKilde")?.let { TilbakekrevingKilde.valueOf(it) }
 

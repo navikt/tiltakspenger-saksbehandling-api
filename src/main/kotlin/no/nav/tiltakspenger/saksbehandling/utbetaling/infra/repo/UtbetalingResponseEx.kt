@@ -22,13 +22,13 @@ fun KunneIkkeUtbetale.toJson(): String {
 }
 
 private fun serialiserRequestResponse(
-    request: String?,
+    request: String,
     response: String?,
     responseStatus: Int?,
 ): String {
     return """
         {
-        "request": ${request?.toValidJson()},
+        "request": ${request.toValidJson()},
         "response": ${response?.toValidJson()},
         "responseStatus": $responseStatus
         }

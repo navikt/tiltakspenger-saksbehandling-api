@@ -24,7 +24,6 @@ class BrukersMeldekortFakeRepo(private val meldeperiodeFakeRepo: MeldeperiodeFak
             mottatt = brukersMeldekort.mottatt,
             dager = brukersMeldekort.dager,
             journalpostId = brukersMeldekort.journalpostId,
-            oppgaveId = brukersMeldekort.oppgaveId,
             behandlesAutomatisk = brukersMeldekort.behandlesAutomatisk,
             behandletAutomatiskStatus = brukersMeldekort.behandletAutomatiskStatus,
             behandletAutomatiskForsøkshistorikk = brukersMeldekort.behandletAutomatiskForsøkshistorikk,

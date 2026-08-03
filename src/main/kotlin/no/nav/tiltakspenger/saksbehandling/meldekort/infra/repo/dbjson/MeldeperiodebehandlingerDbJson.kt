@@ -87,7 +87,7 @@ private fun Meldeperiodebehandling.tilDbJson(): MeldeperiodebehandlingDbJson {
     return MeldeperiodebehandlingDbJson(
         meldeperiodeId = meldeperiode.id.toString(),
         kjedeId = meldeperiode.kjedeId.toString(),
-        brukersMeldekortId = brukersMeldekort?.id?.toString(),
+        brukersMeldekortId = brukersMeldekort?.let { it.id.toString() },
         type = type.tilDb(),
         dager = dager.map { MeldekortDagDbJson(dato = it.dato, status = it.status.toDb()) },
     )

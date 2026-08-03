@@ -185,6 +185,29 @@ class KontorhistorikkHttpklientTest {
         }
     }
 
+    /** En feil før requesten er sendt (her: token-henting som kaster) skal også ende som KallFeilet. */
+    @Test
+    fun `feilet token-henting gir Left KallFeilet uten at noe kall sendes`() {
+        val transport = FakeHttpTransport()
+        val klientMedFeilendeAuth = KontorhistorikkHttpklient(
+            baseUrl = baseUrl,
+            authTokenProvider = object : AuthTokenProvider {
+                override suspend fun hentToken(skipCache: Boolean): AccessToken = throw IllegalStateException("simulert token-feil")
+            },
+            clock = ObjectMother.clock,
+            transport = transport,
+        )
+
+        runTest {
+            val feil = klientMedFeilendeAuth.hentKontorhistorikk(fnr).leftOrNull()
+                .shouldNotBeNull()
+                .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
+            feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.AuthError>()
+        }
+
+        transport.mottatteKall shouldBe emptyList()
+    }
+
     @Test
     fun `GraphQL errors i respons gir Left GraphQlFeil`() {
         val transport = FakeHttpTransport().apply {

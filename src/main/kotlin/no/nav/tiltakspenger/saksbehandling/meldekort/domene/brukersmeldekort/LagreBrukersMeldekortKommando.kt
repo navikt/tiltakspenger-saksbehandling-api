@@ -46,7 +46,6 @@ data class LagreBrukersMeldekortKommando(
             sakId = sakId,
             dager = dager,
             journalpostId = journalpostId,
-            oppgaveId = null,
             behandlesAutomatisk = true,
             behandletAutomatiskStatus = MeldekortBehandletAutomatiskStatus.VENTER_BEHANDLING,
             behandletAutomatiskForsøkshistorikk = Forsøkshistorikk.opprett(clock = clock),

@@ -96,12 +96,36 @@ class OppgaveHttpClientTest {
     }
 
     @Test
-    fun `opprettOppgave - ukjent oppgavebehov er en programmeringsfeil og kaster`() {
+    fun `opprettOppgave - alle oppgavebehov uten journalpost er en programmeringsfeil og kaster`() {
+        val behovUtenJournalpost = listOf(
+            Oppgavebehov.ENDRET_TILTAKDELTAKER,
+            Oppgavebehov.FATT_BARN,
+            Oppgavebehov.DOED,
+            Oppgavebehov.ADRESSEBESKYTTELSE,
+        )
+
         runTest {
-            shouldThrow<IllegalArgumentException> {
-                client().opprettOppgave(fnr, journalpostId, Oppgavebehov.DOED)
+            behovUtenJournalpost.forEach { behov ->
+                shouldThrow<IllegalArgumentException> {
+                    client().opprettOppgave(fnr, journalpostId, behov)
+                }
             }
         }
+    }
+
+    /** Oppgave-APIet kan svare med et treff-antall uten å levere oppgavene — da oppretter vi heller enn å anta en id vi ikke har. */
+    @Test
+    fun `opprettOppgave - treff uten oppgaveliste - oppretter ny oppgave`() {
+        val transport = FakeHttpTransport().apply {
+            leggIKøJson(FinnOppgaveResponse(antallTreffTotalt = 1, oppgaver = emptyList()))
+            leggIKøJson(OpprettOppgaveResponse(id = 42), statusCode = 201)
+        }
+
+        runTest {
+            client(transport).opprettOppgave(fnr, journalpostId, Oppgavebehov.NY_SOKNAD) shouldBe OppgaveId("42").right()
+        }
+
+        transport.mottatteKall.size shouldBe 2
     }
 
     @Test
@@ -131,10 +155,12 @@ class OppgaveHttpClientTest {
     }
 
     @Test
-    fun `opprettOppgaveUtenDuplikatkontroll - oppgavebehov med duplikatkontroll er en programmeringsfeil og kaster`() {
+    fun `opprettOppgaveUtenDuplikatkontroll - alle oppgavebehov med duplikatkontroll er en programmeringsfeil og kaster`() {
         runTest {
-            shouldThrow<IllegalArgumentException> {
-                client().opprettOppgaveUtenDuplikatkontroll(fnr, Oppgavebehov.NYTT_MELDEKORT)
+            listOf(Oppgavebehov.NYTT_MELDEKORT, Oppgavebehov.NY_SOKNAD).forEach { behov ->
+                shouldThrow<IllegalArgumentException> {
+                    client().opprettOppgaveUtenDuplikatkontroll(fnr, behov)
+                }
             }
         }
     }

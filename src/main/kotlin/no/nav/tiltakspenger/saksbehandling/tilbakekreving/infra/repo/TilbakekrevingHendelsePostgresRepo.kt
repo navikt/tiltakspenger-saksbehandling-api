@@ -54,9 +54,9 @@ class TilbakekrevingHendelsePostgresRepo(
                         :ekstern_fagsak_id,
                         :kravgrunnlag_referanse,
                         :ekstern_behandling_id,
-                        to_jsonb(:behandling::jsonb),
+                        :behandling::jsonb,
                         :key,
-                        to_jsonb(:value::jsonb)
+                        :value::jsonb
                     )
                     ON CONFLICT (ekstern_fagsak_id, hendelse_type, opprettet) DO NOTHING
                     """.trimIndent(),
@@ -130,7 +130,7 @@ class TilbakekrevingHendelsePostgresRepo(
                     SET
                         behandlet = :behandlet,
                         sak_id = :sak_id,
-                        svar = to_jsonb(:svar::jsonb)
+                        svar = :svar::jsonb
                     WHERE id = :id AND hendelse_type = 'InfoBehov'
                     """.trimIndent(),
                     "id" to hendelseId.toString(),
@@ -221,7 +221,7 @@ class TilbakekrevingHendelsePostgresRepo(
                         ekstern_fagsak_id = :ekstern_fagsak_id,
                         kravgrunnlag_referanse = :kravgrunnlag_referanse,
                         ekstern_behandling_id = :ekstern_behandling_id,
-                        behandling = to_jsonb(:behandling::jsonb)
+                        behandling = :behandling::jsonb
                     WHERE id = :id AND hendelse_type = 'Ukjent'
                     """.trimIndent(),
                     "id" to oppdatertHendelse.id.toString(),

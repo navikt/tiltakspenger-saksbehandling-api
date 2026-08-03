@@ -113,7 +113,7 @@ class RammevedtakPostgresRepo(
                     """
                     update rammevedtak set 
                         vedtaksdato = :vedtaksdato,
-                        brev_json = to_jsonb(:brev_json::jsonb),
+                        brev_json = :brev_json::jsonb,
                         journalpost_id = :journalpost_id,
                         journalføringstidspunkt = :tidspunkt
                     where id = :id
@@ -215,7 +215,7 @@ class RammevedtakPostgresRepo(
                 queryOf(
                     """
                     update rammevedtak
-                    set omgjort_av_rammevedtak = to_jsonb(:omgjort_av_rammevedtak::jsonb)
+                    set omgjort_av_rammevedtak = :omgjort_av_rammevedtak::jsonb
                     where id = :id
                     """.trimIndent(),
                     mapOf(
@@ -264,6 +264,8 @@ class RammevedtakPostgresRepo(
             vedtak: Rammevedtak,
             session: Session,
         ) {
+            // let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+            @Suppress("SimpleRedundantLet")
             session.run(
                 sqlQuery(
                     """
@@ -294,7 +296,7 @@ class RammevedtakPostgresRepo(
                     "id" to vedtak.id.toString(),
                     "sak_id" to vedtak.sakId.toString(),
                     "behandling_id" to vedtak.rammebehandling.id.toString(),
-                    "utbetaling_id" to vedtak.utbetaling?.id?.toString(),
+                    "utbetaling_id" to vedtak.utbetaling?.let { it.id.toString() },
                     "vedtaksdato" to vedtak.vedtaksdato,
                     "fra_og_med" to vedtak.periode.fraOgMed,
                     "til_og_med" to vedtak.periode.tilOgMed,

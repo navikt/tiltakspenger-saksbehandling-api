@@ -10,9 +10,8 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toVentestatus
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.ventestatus
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.repo.toDbJson
@@ -81,7 +80,7 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                 queryOf(
                     """
                     update klagebehandling set 
-                        brev_metadata = to_jsonb(:brev_metadata::jsonb)
+                        brev_metadata = :brev_metadata::jsonb
                     where id = :id
                     """.trimIndent(),
                     mapOf(
@@ -149,7 +148,7 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                 sqlQuery(
                     """
                     update klagebehandling set
-                        kabal_metadata = to_jsonb(:metadata::jsonb)
+                        kabal_metadata = :metadata::jsonb
                     where id = :id
                     """,
                     "id" to klagebehandling.id.toString(),
@@ -232,29 +231,29 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                         :opprettet,
                         :sist_endret,
                         :status,
-                        to_jsonb(:formkrav::jsonb),
+                        :formkrav::jsonb,
                         :saksbehandler,
                         :journalpost_id,
                         :journalpost_opprettet,
-                        to_jsonb(:resultat::jsonb),
-                        to_jsonb(:brevtekst::jsonb),
+                        :resultat::jsonb,
+                        :brevtekst::jsonb,
                         :iverksatt_tidspunkt,
-                        to_jsonb(:avbrutt::jsonb),
-                        to_jsonb(:ventestatus::jsonb)
+                        :avbrutt::jsonb,
+                        :ventestatus::jsonb
                     ) on conflict (id) do update set
                         sak_id = :sak_id,
                         opprettet = :opprettet,
                         sist_endret = :sist_endret,
                         status = :status,
-                        formkrav = to_jsonb(:formkrav::jsonb),
+                        formkrav = :formkrav::jsonb,
                         saksbehandler = :saksbehandler,
                         journalpost_id = :journalpost_id,
                         journalpost_opprettet = :journalpost_opprettet,
-                        resultat = to_jsonb(:resultat::jsonb),
-                        brevtekst = to_jsonb(:brevtekst::jsonb),
+                        resultat = :resultat::jsonb,
+                        brevtekst = :brevtekst::jsonb,
                         iverksatt_tidspunkt = :iverksatt_tidspunkt,
-                        avbrutt = to_jsonb(:avbrutt::jsonb),
-                        ventestatus = to_jsonb(:ventestatus::jsonb)
+                        avbrutt = :avbrutt::jsonb,
+                        ventestatus = :ventestatus::jsonb
                     """.trimIndent(),
                     mapOf(
                         "id" to klagebehandling.id.toString(),
@@ -347,7 +346,7 @@ class KlagebehandlingPostgresRepo(private val sessionFactory: PostgresSessionFac
                 ),
                 iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt"),
                 avbrutt = row.stringOrNull("avbrutt")?.toKlagebehandlingAvbrutt(),
-                ventestatus = row.stringOrNull("ventestatus")?.toVentestatus() ?: Ventestatus(),
+                ventestatus = row.ventestatus(),
             )
         }
     }

@@ -42,7 +42,7 @@ class UtbetalingPostgresRepo(
                     """
                     update utbetaling
                     set sendt_til_utbetaling_tidspunkt = :tidspunkt, 
-                        utbetaling_metadata = to_jsonb(:metadata::jsonb)
+                        utbetaling_metadata = :metadata::jsonb
                     where id = :id
                     """,
                     "id" to utbetalingId.toString(),
@@ -62,7 +62,7 @@ class UtbetalingPostgresRepo(
                 sqlQuery(
                     """
                     update utbetaling
-                    set utbetaling_metadata = to_jsonb(:metadata::jsonb)
+                    set utbetaling_metadata = :metadata::jsonb
                     where id = :id
                     """,
                     "id" to utbetalingId.toString(),
@@ -118,7 +118,7 @@ class UtbetalingPostgresRepo(
                     """
                     update utbetaling
                     set status = :status,
-                    status_metadata = to_jsonb(:status_metadata::jsonb)
+                    status_metadata = :status_metadata::jsonb
                     where id = :id
                     """,
                     "id" to utbetalingId.toString(),
@@ -172,6 +172,10 @@ class UtbetalingPostgresRepo(
             )
         }
 
+        /**
+         * En ny utbetaling er hverken sendt eller kvittert.
+         * `sendt_til_utbetaling_tidspunkt` eies av [markerSendtTilUtbetaling] og `status` av [oppdaterUtbetalingsstatus], og utelates derfor her.
+         */
         fun lagre(utbetaling: VedtattUtbetaling, session: Session) {
             session.run(
                 sqlQuery(
@@ -182,8 +186,6 @@ class UtbetalingPostgresRepo(
                         rammevedtak_id,
                         meldekortvedtak_id,
                         forrige_utbetaling_id,
-                        sendt_til_utbetaling_tidspunkt,
-                        status,
                         status_metadata,
                         opprettet,
                         satstype
@@ -193,9 +195,7 @@ class UtbetalingPostgresRepo(
                         :rammevedtak_id,
                         :meldekortvedtak_id,
                         :forrige_utbetaling_id,
-                        :sendt_til_utbetaling_tidspunkt,
-                        :status,
-                        to_jsonb(:status_metadata::jsonb),
+                        :status_metadata::jsonb,
                         :opprettet,
                         :satstype
                     )
@@ -203,8 +203,6 @@ class UtbetalingPostgresRepo(
                     "id" to utbetaling.id.toString(),
                     "sak_id" to utbetaling.sakId.toString(),
                     "forrige_utbetaling_id" to utbetaling.forrigeUtbetalingId?.toString(),
-                    "sendt_til_utbetaling_tidspunkt" to utbetaling.sendtTilUtbetaling?.toString(),
-                    "status" to utbetaling.status?.toString(),
                     "status_metadata" to utbetaling.statusMetadata.toDbJson(),
                     "opprettet" to utbetaling.opprettet,
                     "satstype" to utbetaling.satstype.tilDb(),
@@ -226,14 +224,14 @@ class UtbetalingPostgresRepo(
 
             val beregningJson = string("beregning")
 
-            val vedtakIdOgBeregning: Pair<VedtakId, Beregning> = meldekortvedtakId?.let {
-                val vedtakId = VedtakId.fromString(it)
-                val meldekortId = MeldekortId.fromString(string("meldekort_id"))
-                vedtakId to beregningJson.tilBeregningFraMeldekortbehandling(meldekortId)
-            } ?: run {
+            val vedtakIdOgBeregning: Pair<VedtakId, Beregning> = if (meldekortvedtakId == null) {
                 val vedtakId = VedtakId.fromString(rammevedtakId!!)
                 val behandlingId = RammebehandlingId.fromString(string("behandling_id"))
                 vedtakId to beregningJson.tilBeregningFraRammebehandling(behandlingId)
+            } else {
+                val vedtakId = VedtakId.fromString(meldekortvedtakId)
+                val meldekortId = MeldekortId.fromString(string("meldekort_id"))
+                vedtakId to beregningJson.tilBeregningFraMeldekortbehandling(meldekortId)
             }
 
             return VedtattUtbetaling(

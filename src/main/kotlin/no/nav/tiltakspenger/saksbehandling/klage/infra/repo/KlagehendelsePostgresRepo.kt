@@ -17,6 +17,9 @@ class KlagehendelsePostgresRepo(
 
     /**
      * Ignorerer duplikate hendelser basert på ekstern_id, da det kan skje at samme hendelse kommer inn flere ganger fra Kafka.
+     *
+     * En ny hendelse er per definisjon ikke knyttet til sak eller klagebehandling ennå.
+     * Kolonnene settes av [no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.KnyttKlageinstansHendelseTilKlagebehandlingJobb] via [knyttHendelseTilSakOgKlagebehandling], og utelates derfor her.
      */
     override fun lagreNyHendelse(
         nyKlagehendelse: NyKlagehendelse,
@@ -32,17 +35,13 @@ class KlagehendelsePostgresRepo(
                         opprettet,
                         sist_endret,
                         ekstern_id,
-                        sak_id,
-                        klagebehandling_id,
                         mottatt_data
                     ) values (
                         :id,
                         :opprettet,
                         :sist_endret,
                         :ekstern_id,
-                        :sak_id,
-                        :klagebehandling_id,
-                        to_jsonb(:mottatt_data::jsonb)
+                        :mottatt_data::jsonb
                     )
                     on conflict (ekstern_id) do nothing
                     """.trimIndent(),
@@ -50,8 +49,6 @@ class KlagehendelsePostgresRepo(
                     "ekstern_id" to nyKlagehendelse.eksternKlagehendelseId,
                     "opprettet" to nyKlagehendelse.opprettet,
                     "sist_endret" to nyKlagehendelse.sistEndret,
-                    "sak_id" to nyKlagehendelse.sakId?.toString(),
-                    "klagebehandling_id" to nyKlagehendelse.klagebehandlingId?.toString(),
                     "mottatt_data" to """
                             {
                                 "key": "${nyKlagehendelse.key}",
@@ -63,6 +60,10 @@ class KlagehendelsePostgresRepo(
         }
     }
 
+    /**
+     * Kalles kun med en hendelse som har vært gjennom [NyKlagehendelse.leggTilSakidOgKlagebehandlingId], som setter begge referansene.
+     * Derfor `!!` framfor `?.`: en NULL her ville vært en stille nullstilling av koblingen vi nettopp fant.
+     */
     override fun knyttHendelseTilSakOgKlagebehandling(
         nyKlagehendelse: NyKlagehendelse,
         sessionContext: SessionContext?,
@@ -77,8 +78,8 @@ class KlagehendelsePostgresRepo(
                      where id = :id
                     """.trimIndent(),
                     "id" to nyKlagehendelse.klagehendelseId.toString(),
-                    "sak_id" to nyKlagehendelse.sakId?.toString(),
-                    "klagebehandling_id" to nyKlagehendelse.klagebehandlingId?.toString(),
+                    "sak_id" to nyKlagehendelse.sakId!!.toString(),
+                    "klagebehandling_id" to nyKlagehendelse.klagebehandlingId!!.toString(),
                     "sist_endret" to nyKlagehendelse.sistEndret,
                 ).asUpdate,
             )

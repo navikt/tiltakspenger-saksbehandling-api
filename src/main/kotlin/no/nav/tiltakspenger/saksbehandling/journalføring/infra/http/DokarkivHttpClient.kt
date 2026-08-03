@@ -9,7 +9,6 @@ import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.harStatus
@@ -152,7 +151,7 @@ class DokarkivHttpClient(
             ifLeft = { feil ->
                 when {
                     // Allerede journalført (dedup): samme bodyform som 201, utledes fra feiltypen.
-                    feil.harStatus(409) && feil is HttpKlientError.UventetStatus ->
+                    feil is HttpKlientError.UventetStatus && feil.harStatus(409) ->
                         feil.bodySomJson<DokarkivResponse>()
                             .mapLeft { KunneIkkeJournalføre.KallFeilet(it) }
                             .flatMap { respons ->
@@ -192,8 +191,10 @@ class DokarkivHttpClient(
             metadata = JournalførBrevMetadata(
                 requestBody = requestBody,
                 responseStatus = statusCode.tilResponseStatusTekst(),
-                responseBody = metadata.rawResponseString.orEmpty(),
-                journalføringsTidspunkt = metadata.tidsstempler.responsMottatt ?: nå(clock),
+                // TODO jah: Vurder å splitt opp HttpKlientMetadata i et sealed interface, slik at vi ikke trenger bang-bang her.
+                // Metadataen kommer alltid fra en mottatt respons (201 fra suksess-stien, 409 fra feilgrenen), og har da både rå respons-streng og responsMottatt-tidsstempel.
+                responseBody = metadata.rawResponseString!!,
+                journalføringsTidspunkt = metadata.tidsstempler.responsMottatt!!,
             ),
         ).right()
     }

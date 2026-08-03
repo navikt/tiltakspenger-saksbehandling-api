@@ -148,13 +148,14 @@ object SøknadDAO {
         søknadId: SøknadId,
         session: Session,
     ): Boolean =
+        // `select exists` gir alltid nøyaktig én rad, så `asSingle` kan ikke gi null.
         session.run(
             queryOf(
                 // language=SQL
                 "select exists(select 1 from søknad where id = ?)",
                 søknadId.toString(),
             ).map { row -> row.boolean("exists") }.asSingle,
-        ) ?: throw RuntimeException("Failed to check if søknad exists")
+        )!!
 
     /**
      *  @param søknad Lagres dersom den ikke finnes fra før, hvis den finnes, oppdateres den ikke.
@@ -179,7 +180,7 @@ object SøknadDAO {
     ) {
         val oppdaterteRader = txSession.run(
             queryOf(
-                """update søknad set avbrutt = to_jsonb(:avbrutt::jsonb) where id = :soknad_id""",
+                """update søknad set avbrutt = :avbrutt::jsonb where id = :soknad_id""",
                 mapOf(
                     "avbrutt" to avbrutt.toDbJson(),
                     "soknad_id" to søknadId.toString(),
@@ -388,7 +389,8 @@ object SøknadDAO {
     private fun spørsmålMap(søknad: Søknad) =
         periodeSpørsmålMap(søknad) + fraOgMedSpørsmålMap(søknad) + jaNeiSpørsmålMap(søknad)
 
-    private fun Row.toSakId() = stringOrNull("sak_id")?.let { SakId.fromString(it) }
+    /** `søknad.sak_id` er `not null` fra V241, så en truffet rad har alltid en sak. */
+    private fun Row.toSakId() = SakId.fromString(string("sak_id"))
 
     private fun Row.toSøknad(session: Session): Søknad {
         val id = SøknadId.fromString(string("id"))

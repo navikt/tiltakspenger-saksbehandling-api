@@ -83,7 +83,10 @@ class DatadelingHttpClient(
         meldeperioder: List<Meldeperiode>,
         correlationId: CorrelationId,
     ): Either<HttpKlientError, Unit> {
-        val sakId = meldeperioder.firstOrNull()?.sakId ?: throw IllegalStateException("Kan ikke dele tom liste med meldeperioder")
+        // TODO jah: Ikke logikk som bør bo her.
+        // Enten kan den ta inn en wrapper-liste som definerer sakId og har sin egen require (Meldeperioder f.eks.), eller så får den ta inn sakId og ha sin egen require.
+        if (meldeperioder.isEmpty()) throw IllegalStateException("Kan ikke dele tom liste med meldeperioder")
+        val sakId = meldeperioder.first().sakId
         return sendTilDatadeling(meldeperioder.toDatadelingJson(sakId), meldeperioderUri)
     }
 
