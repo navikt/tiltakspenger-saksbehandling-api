@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -65,6 +67,22 @@ class UnderkjennRammebehandlingTest {
                 oppdatertBehandling.saksbehandler shouldBe null
                 oppdatertBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
                 (oppdatertBehandling as Søknadsbehandling).automatiskSaksbehandlet shouldBe false
+                // Resultatet den automatiske saksbehandlingen kom fram til nullstilles, slik at saksbehandler tar stilling på nytt.
+                oppdatertBehandling.resultat shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `send tilbake - manuelt saksbehandlet - resultatet beholdes`() {
+        runTest {
+            withTestApplicationContext { tac ->
+                val (_, _, behandlingId, _) = this.underkjenn(tac)
+
+                val oppdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+                oppdatertBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                (oppdatertBehandling as Søknadsbehandling).automatiskSaksbehandlet shouldBe false
+                oppdatertBehandling.resultat.shouldBeInstanceOf<Søknadsbehandlingsresultat.Innvilgelse>()
             }
         }
     }

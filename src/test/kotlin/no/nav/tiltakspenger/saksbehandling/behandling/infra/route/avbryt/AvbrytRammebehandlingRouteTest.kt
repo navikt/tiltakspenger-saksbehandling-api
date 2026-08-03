@@ -1,11 +1,17 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt
 
+import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.søknad.shouldBeSøknadDTO
 import org.junit.jupiter.api.Test
 
@@ -55,6 +61,116 @@ class AvbrytRammebehandlingRouteTest {
                 barnetillegg = false,
                 avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "2025-05-01T01:02:13.456789","begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"}""",
             )
+        }
+    }
+
+    @Test
+    fun `avbryter en automatisk opprettet behandling`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(tac)
+
+            val (_, søknad, avbruttBehandling) = avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = behandling.id,
+            )!!
+
+            avbruttBehandling!!.status shouldBe Rammebehandlingsstatus.AVBRUTT
+            avbruttBehandling.avbrutt!!.saksbehandler shouldBe "Z12345"
+            avbruttBehandling.avbrutt!!.begrunnelse.value shouldBe "begrunnelse for avbryt søknad og/eller rammebehandling"
+            søknad.avbrutt shouldBe avbruttBehandling.avbrutt
+        }
+    }
+
+    @Test
+    fun `tildelt saksbehandler kan avbryte en behandling som er klar til beslutning`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+
+            avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+            )!!
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).status shouldBe Rammebehandlingsstatus.AVBRUTT
+        }
+    }
+
+    @Test
+    fun `en annen saksbehandler kan ikke avbryte en behandling som er klar til beslutning`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+
+            avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = ObjectMother.saksbehandler123(),
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen tilhører en annen saksbehandler. Overta behandlingen og prøv igjen.",
+                      "kode": "behandlingen_tildelt_annen_saksbehandler"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+        }
+    }
+
+    @Test
+    fun `tildelt beslutter kan avbryte en behandling som er under beslutning`() {
+        withTestApplicationContext { tac ->
+            // Avbryt-ruta krever saksbehandlerrolle, så beslutteren må ha begge rollene.
+            val beslutter = ObjectMother.saksbehandlerOgBeslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taBehandling(tac, sak.id, behandlingId, beslutter)!!
+
+            avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = beslutter,
+            )!!
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).status shouldBe Rammebehandlingsstatus.AVBRUTT
+        }
+    }
+
+    @Test
+    fun `saksbehandleren kan ikke avbryte en behandling som er under beslutning hos en beslutter`() {
+        withTestApplicationContext { tac ->
+            val beslutter = ObjectMother.saksbehandlerOgBeslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taBehandling(tac, sak.id, behandlingId, beslutter)!!
+
+            avbrytRammebehandling(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen tilhører en annen beslutter. Overta behandlingen og prøv igjen.",
+                      "kode": "behandlingen_tildelt_annen_beslutter"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
         }
     }
 

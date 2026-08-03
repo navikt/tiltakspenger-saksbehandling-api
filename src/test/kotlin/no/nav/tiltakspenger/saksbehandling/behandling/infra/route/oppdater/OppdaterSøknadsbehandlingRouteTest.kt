@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Avslag
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
@@ -30,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
@@ -282,6 +284,39 @@ class OppdaterSøknadsbehandlingRouteTest {
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.innvilgelsesperioder shouldBe innvilgelsesperioder
             }
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere en behandling som er tildelt en annen saksbehandler`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            val (_, _, responseJson) = oppdaterSøknadsbehandlingIkkeValgt(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                saksbehandler = ObjectMother.saksbehandler123(),
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            )
+
+            JSONObject(responseJson).getString("kode") shouldBe "behandling_eies_av_annen_saksbehandler"
+        }
+    }
+
+    @Test
+    fun `kan ikke oppdatere en behandling som ikke er under behandling`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+
+            val (_, _, responseJson) = oppdaterSøknadsbehandlingIkkeValgt(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandlingId,
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+            )
+
+            JSONObject(responseJson).getString("kode") shouldBe "behandlingen_er_ikke_i_status_under_behandling"
         }
     }
 }

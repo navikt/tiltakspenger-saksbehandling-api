@@ -22,6 +22,7 @@ interface OvertaRammebehandlingBuilder {
     /**
      * Forventer at det allerede finnes en behandling.
      * Denne fungerer både for saksbehandler og beslutter.
+     * Returnerer null dersom responsen ikke er 200 OK.
      */
     suspend fun ApplicationTestBuilder.overtaBehanding(
         tac: TestApplicationContext,
@@ -29,7 +30,8 @@ interface OvertaRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         overtarFra: String,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
-    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson> {
+        forventet: ForventetRespons? = ForventetRespons(status = 200),
+    ): Triple<Sak, Rammebehandling, RammebehandlingDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -38,10 +40,12 @@ interface OvertaRammebehandlingBuilder {
             HttpMethod.PATCH,
             "/sak/$sakId/behandling/$behandlingId/overta",
             jwt = jwt,
-            forventet = ForventetRespons(status = 200),
+            forventet = forventet,
             body = """{"overtarFra":"$overtarFra"}""",
         ).apply {
             val bodyAsText = this.body
+
+            if (statusCode != 200) return null
 
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)

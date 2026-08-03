@@ -56,7 +56,7 @@ class RammebehandlingPostgresRepoTest {
                 behandlingId = behandling.id,
                 overtarFra = "saksbehandlerSomHadde",
                 saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertar"),
-            )
+            )!!
 
             overtattBehandling.saksbehandler shouldBe "saksbehandlerSomOvertar"
         }

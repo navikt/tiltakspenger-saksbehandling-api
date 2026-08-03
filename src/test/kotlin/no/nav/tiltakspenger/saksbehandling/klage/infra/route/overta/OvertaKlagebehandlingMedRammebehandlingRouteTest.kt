@@ -167,7 +167,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 behandlingId = rammebehandling.id,
                 overtarFra = rammebehandling.saksbehandler!!,
                 saksbehandler = nySaksbehandler,
-            )
+            )!!
 
             rammebehandlingJson.get("saksbehandler") shouldBe nySaksbehandler.navIdent
             overtattRammebehandling.klagebehandling!!.saksbehandler shouldBe rammebehandling.saksbehandler
