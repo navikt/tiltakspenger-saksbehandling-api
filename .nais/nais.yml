@@ -80,6 +80,8 @@ spec:
     outbound:
       rules:
         - application: tiltakspenger-tiltak
+        - application: tiltakshistorikk
+          namespace: team-mulighetsrommet
         - application: tiltakspenger-pdfgenrs
         - application: tiltakspenger-datadeling
         - application: tiltakspenger-meldekort-api
