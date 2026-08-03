@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.AVBRUTT
@@ -19,7 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
-import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.GjenopptaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.gjenopptaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -29,6 +28,7 @@ import java.time.Clock
 
 /**
  * Kan kun gjenoppta en behandling som er satt på vent.
+ * Forutsetningene håndheves av [kanGjenoppta], og feilene derfra returneres som venstre-verdi.
  * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null.
  * Merk at det vi ikke henter saksopplysninger på nytt hvis den er sendt til beslutning.
  */
@@ -36,14 +36,11 @@ suspend fun Rammebehandling.gjenoppta(
     kommando: GjenopptaRammebehandlingKommando,
     clock: Clock,
     hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Rammebehandling, Statistikkhendelser>> {
-    kanGjenoppta(kommando.saksbehandler).onLeft {
-        it.kastVedManglendeRolle(kommando.saksbehandler)
-        it.kast()
-    }
+): Either<KanIkkeGjenopptaRammebehandling, Pair<Rammebehandling, Statistikkhendelser>> {
+    kanGjenoppta(kommando.saksbehandler).onLeft { return it.left() }
 
     return when (status) {
-        VEDTATT, AVBRUTT -> throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
+        VEDTATT, AVBRUTT -> KanIkkeGjenopptaRammebehandling.UgyldigStatus(status).left()
 
         KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> {
             gjenopptaBehandling(
@@ -95,6 +92,7 @@ suspend fun Rammebehandling.gjenoppta(
 }
 
 /**
+ * Kalles kun fra [gjenoppta], som allerede har verifisert forutsetningene via [kanGjenoppta].
  * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null.
  */
 private suspend fun Rammebehandling.gjenopptaBehandling(
@@ -104,8 +102,7 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
     oppdatertStatus: Rammebehandlingsstatus,
     clock: Clock,
     hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Rammebehandling, Statistikkhendelser>> {
-    require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
+): Either<KanIkkeGjenopptaRammebehandling, Pair<Rammebehandling, Statistikkhendelser>> {
     val nå = nå(clock)
     val oppdatertVentestatus = ventestatus.gjenoppta(
         tidspunkt = nå,
@@ -120,7 +117,9 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
             correlationId = kommando.correlationId,
         ),
         clock = clock,
-    )?.getOrThrow() ?: (null to Statistikkhendelser.empty())
+    )?.getOrElse {
+        return KanIkkeGjenopptaRammebehandling.KunneIkkeGjenopptaKlagebehandlingen(it).left()
+    } ?: (null to Statistikkhendelser.empty())
     val oppdatertRammebehandling = when (this) {
         is Søknadsbehandling -> this.copy(
             ventestatus = oppdatertVentestatus,
@@ -147,7 +146,7 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
             saksbehandler = kommando.saksbehandler,
             nyeSaksopplysninger = hentSaksopplysninger(),
             clock = clock,
-        )
+        ).mapLeft { KanIkkeGjenopptaRammebehandling.KunneIkkeOppdatereSaksopplysningene(it) }
     } else {
         oppdatertRammebehandling.right()
     }.map {
@@ -204,25 +203,5 @@ fun Rammebehandling.kanGjenoppta(
         }
 
         VEDTATT, AVBRUTT -> KanIkkeGjenopptaRammebehandling.UgyldigStatus(status).left()
-    }
-}
-
-/**
- * [gjenoppta] returnerer [KunneIkkeOppdatereSaksopplysninger] som venstre-verdi, så disse feilene må kastes.
- * Meldingene holdes uendret slik at kallere som forholder seg til dem ikke påvirkes.
- */
-private fun KanIkkeGjenopptaRammebehandling.kast(): Nothing {
-    when (this) {
-        KanIkkeGjenopptaRammebehandling.BehandlingenErIkkePåVent ->
-            throw IllegalArgumentException("Behandlingen er ikke satt på vent")
-
-        KanIkkeGjenopptaRammebehandling.MåVæreSaksbehandler ->
-            throw IllegalStateException("Må være saksbehandler for å gjenoppta behandlingen")
-
-        KanIkkeGjenopptaRammebehandling.MåVæreBeslutter ->
-            throw IllegalStateException("Må være beslutter for å gjenoppta behandlingen")
-
-        is KanIkkeGjenopptaRammebehandling.UgyldigStatus ->
-            throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
     }
 }

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.KanIkkeGjenopptaRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
@@ -515,60 +516,38 @@ class RammebehandlingTest {
         }
 
         @Test
-        fun `kaster exception dersom man prøver å gjenoppta behandling (vedtatt)`() {
+        fun `kan ikke gjenoppta en vedtatt behandling`() {
             runTest {
                 val saksbehandler = ObjectMother.saksbehandler()
                 val behandling = ObjectMother.nyVedtattSøknadsbehandling(saksbehandler = saksbehandler)
 
-                shouldThrow<IllegalStateException> {
-                    val kommando = SettRammebehandlingPåVentKommando(
+                behandling.gjenoppta(
+                    GjenopptaRammebehandlingKommando(
                         sakId = behandling.sakId,
                         rammebehandlingId = behandling.id,
-                        begrunnelse = "Denne kaster exception og skal ikke kunne bli gjenopptatt",
                         saksbehandler = saksbehandler,
-                        venterTil = null,
-                        frist = null,
-                    )
-                    val behandlingPåVent = behandling.settPåVent(kommando, clock).first
-                    behandlingPåVent.gjenoppta(
-                        GjenopptaRammebehandlingKommando(
-                            sakId = behandling.sakId,
-                            rammebehandlingId = behandling.id,
-                            saksbehandler = saksbehandler,
-                            correlationId = correlationId,
-                        ),
-                        clock,
-                    ) { behandling.saksopplysninger }
-                }
+                        correlationId = correlationId,
+                    ),
+                    clock,
+                ) { behandling.saksopplysninger } shouldBe KanIkkeGjenopptaRammebehandling.BehandlingenErIkkePåVent.left()
             }
         }
 
         @Test
-        fun `kaster exception dersom man prøver å gjenoppta behandling (avbrutt)`() {
+        fun `kan ikke gjenoppta en avbrutt behandling`() {
             runTest {
                 val saksbehandler = ObjectMother.saksbehandler()
                 val behandling = ObjectMother.nyAvbruttSøknadsbehandling(saksbehandler = saksbehandler)
 
-                shouldThrow<IllegalStateException> {
-                    val kommando = SettRammebehandlingPåVentKommando(
+                behandling.gjenoppta(
+                    GjenopptaRammebehandlingKommando(
                         sakId = behandling.sakId,
                         rammebehandlingId = behandling.id,
-                        begrunnelse = "Denne kaster exception og skal ikke kunne bli gjenopptatt",
                         saksbehandler = saksbehandler,
-                        venterTil = null,
-                        frist = null,
-                    )
-                    val behandlingPåVent = behandling.settPåVent(kommando, clock).first
-                    behandlingPåVent.gjenoppta(
-                        GjenopptaRammebehandlingKommando(
-                            sakId = behandling.sakId,
-                            rammebehandlingId = behandling.id,
-                            saksbehandler = saksbehandler,
-                            correlationId = correlationId,
-                        ),
-                        clock,
-                    ) { behandling.saksopplysninger }
-                }
+                        correlationId = correlationId,
+                    ),
+                    clock,
+                ) { behandling.saksopplysninger } shouldBe KanIkkeGjenopptaRammebehandling.BehandlingenErIkkePåVent.left()
             }
         }
 
@@ -578,17 +557,44 @@ class RammebehandlingTest {
                 val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
                 val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
 
-                shouldThrow<IllegalArgumentException> {
-                    behandling.gjenoppta(
-                        GjenopptaRammebehandlingKommando(
-                            sakId = behandling.sakId,
-                            rammebehandlingId = behandling.id,
-                            saksbehandler = beslutter,
-                            correlationId = correlationId,
-                        ),
-                        clock,
-                    ) { behandling.saksopplysninger }
-                }
+                behandling.gjenoppta(
+                    GjenopptaRammebehandlingKommando(
+                        sakId = behandling.sakId,
+                        rammebehandlingId = behandling.id,
+                        saksbehandler = beslutter,
+                        correlationId = correlationId,
+                    ),
+                    clock,
+                ) { behandling.saksopplysninger } shouldBe KanIkkeGjenopptaRammebehandling.BehandlingenErIkkePåVent.left()
+            }
+        }
+
+        @Test
+        fun `en saksbehandler uten beslutterrolle kan ikke gjenoppta en behandling som venter på beslutning`() {
+            runTest {
+                val beslutter = ObjectMother.beslutter(navIdent = "Z111111")
+                val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(beslutter = beslutter)
+                val behandlingPåVent = behandling.settPåVent(
+                    SettRammebehandlingPåVentKommando(
+                        sakId = behandling.sakId,
+                        rammebehandlingId = behandling.id,
+                        begrunnelse = "Venter på mer informasjon",
+                        saksbehandler = beslutter,
+                        venterTil = null,
+                        frist = null,
+                    ),
+                    clock,
+                ).first
+
+                behandlingPåVent.gjenoppta(
+                    GjenopptaRammebehandlingKommando(
+                        sakId = behandling.sakId,
+                        rammebehandlingId = behandling.id,
+                        saksbehandler = ObjectMother.saksbehandler(),
+                        correlationId = correlationId,
+                    ),
+                    clock,
+                ) { behandling.saksopplysninger } shouldBe KanIkkeGjenopptaRammebehandling.MåVæreBeslutter.left()
             }
         }
     }

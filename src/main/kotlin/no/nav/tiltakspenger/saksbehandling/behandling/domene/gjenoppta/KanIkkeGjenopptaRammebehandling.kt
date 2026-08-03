@@ -1,16 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta
 
-import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.KanIkkeGjenopptaKlagebehandling
 
 /**
  * Mulige grunner til at en rammebehandling ikke kan gjenopptas.
  *
- * Se `Rammebehandling.kanGjenoppta`.
+ * De fire første utledes av `Rammebehandling.kanGjenoppta`, og er de eneste som kan oppstå før behandlingen er endret.
+ * De to siste kan bare oppstå underveis i `Rammebehandling.gjenoppta`, og har derfor ingen tilsvarende forhåndssjekk.
  */
 sealed interface KanIkkeGjenopptaRammebehandling : Loggbar {
     /** Behandlingen er ikke satt på vent. */
@@ -32,16 +32,18 @@ sealed interface KanIkkeGjenopptaRammebehandling : Loggbar {
     data class UgyldigStatus(val status: Rammebehandlingsstatus) : KanIkkeGjenopptaRammebehandling {
         override val loggkontekst get() = Loggkontekst("behandlingen har status $status")
     }
-}
 
-/**
- * Kaster [no.nav.tiltakspenger.saksbehandling.felles.TilgangException] dersom feilen skyldes at [saksbehandler] mangler en rolle.
- * Manglende rolle er en tilgangsfeil (403), ikke en tilstandsfeil.
- */
-fun KanIkkeGjenopptaRammebehandling.kastVedManglendeRolle(saksbehandler: Saksbehandler) {
-    when (this) {
-        KanIkkeGjenopptaRammebehandling.MåVæreSaksbehandler -> krevSaksbehandlerRolle(saksbehandler)
-        KanIkkeGjenopptaRammebehandling.MåVæreBeslutter -> krevBeslutterRolle(saksbehandler)
-        else -> Unit
+    /** Klagebehandlingen som henger på rammebehandlingen kunne ikke gjenopptas. */
+    data class KunneIkkeGjenopptaKlagebehandlingen(
+        val underliggende: KanIkkeGjenopptaKlagebehandling,
+    ) : KanIkkeGjenopptaRammebehandling {
+        override val loggkontekst get() = Loggkontekst("klagebehandlingen kunne ikke gjenopptas: $underliggende")
+    }
+
+    /** Saksopplysningene ble hentet på nytt ved gjenopptak, men kunne ikke legges på behandlingen. */
+    data class KunneIkkeOppdatereSaksopplysningene(
+        val underliggende: KunneIkkeOppdatereSaksopplysninger,
+    ) : KanIkkeGjenopptaRammebehandling {
+        override val loggkontekst get() = Loggkontekst("saksopplysningene kunne ikke oppdateres: $underliggende")
     }
 }
