@@ -90,7 +90,12 @@ private fun KanIkkeAvbryteMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpS
             "behandlingen_tildelt_annen_saksbehandler",
         )
 
-        KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling -> HttpStatusCode.Conflict to ErrorJson(
+        KanIkkeAvbryteMeldekortbehandling.MåVæreBeslutterForMeldekortet -> HttpStatusCode.BadRequest to ErrorJson(
+            "Meldekortbehandlingen tilhører en annen beslutter. Overta behandlingen og prøv igjen.",
+            "behandlingen_tildelt_annen_beslutter",
+        )
+
+        is KanIkkeAvbryteMeldekortbehandling.UgyldigStatus -> HttpStatusCode.Conflict to ErrorJson(
             "Meldekortbehandlingen er allerede avsluttet",
             "behandlingen_ikke_under_behandling",
         )

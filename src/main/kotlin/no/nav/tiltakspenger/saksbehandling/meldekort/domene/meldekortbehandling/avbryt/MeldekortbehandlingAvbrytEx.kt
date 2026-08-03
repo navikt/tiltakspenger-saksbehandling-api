@@ -44,22 +44,39 @@ fun Meldekortbehandling.avbryt(
 /**
  * Avgjør om [saksbehandler] kan avbryte meldekortbehandlingen.
  *
- * Betingelsene speiler hva [avbryt] faktisk håndterer:
- *  - behandlingen må ha status [MeldekortbehandlingStatus.UNDER_BEHANDLING]
- *  - [saksbehandler] må være saksbehandleren som er tildelt behandlingen
+ * Betingelsene speiler hvilke tilstander [avbryt] faktisk håndterer:
+ *  - [MeldekortbehandlingStatus.UNDER_BEHANDLING]: kan avbrytes av saksbehandleren som er tildelt behandlingen.
+ *  - [MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING]: kan avbrytes av saksbehandleren som sendte behandlingen til beslutning.
+ *  - [MeldekortbehandlingStatus.UNDER_BESLUTNING]: kan avbrytes av beslutteren som er tildelt behandlingen.
  */
 fun Meldekortbehandling.kanAvbryte(
     saksbehandler: Saksbehandler,
 ): Either<KanIkkeAvbryteMeldekortbehandling, Unit> {
-    if (this.status != MeldekortbehandlingStatus.UNDER_BEHANDLING) {
-        return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
-    }
+    return when (status) {
+        MeldekortbehandlingStatus.UNDER_BEHANDLING,
+        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
+        -> {
+            if (this.saksbehandler != saksbehandler.navIdent) {
+                KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
+            } else {
+                Unit.right()
+            }
+        }
 
-    if (this.saksbehandler != saksbehandler.navIdent) {
-        return KanIkkeAvbryteMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
-    }
+        MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
+            if (this.beslutter != saksbehandler.navIdent) {
+                KanIkkeAvbryteMeldekortbehandling.MåVæreBeslutterForMeldekortet.left()
+            } else {
+                Unit.right()
+            }
+        }
 
-    return Unit.right()
+        MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
+        MeldekortbehandlingStatus.GODKJENT,
+        MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
+        MeldekortbehandlingStatus.AVBRUTT,
+        -> KanIkkeAvbryteMeldekortbehandling.UgyldigStatus(status).left()
+    }
 }
 
 /**

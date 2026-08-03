@@ -1,10 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
-import arrow.core.left
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.AvbrytMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.KanIkkeAvbryteMeldekortbehandling
@@ -20,11 +18,7 @@ class AvbrytMeldekortbehandlingService(
 ) {
     fun avbryt(kommando: AvbrytMeldekortbehandlingKommando): Either<KanIkkeAvbryteMeldekortbehandling, Pair<Sak, Meldekortbehandling>> {
         val sak: Sak = sakService.hentForSakId(kommando.sakId)
-        val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)
-
-        if (meldekortbehandling !is MeldekortUnderBehandling) {
-            return KanIkkeAvbryteMeldekortbehandling.MåVæreUnderBehandling.left()
-        }
+        val meldekortbehandling: Meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)!!
 
         return meldekortbehandling.avbryt(kommando, nå(clock)).map {
             meldekortbehandlingRepo.oppdater(it)

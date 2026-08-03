@@ -139,6 +139,41 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         skalAvbryteSøknad: Boolean,
     ): Either<KunneIkkeAvbryteBehandling, Rammebehandling>
 
+    /**
+     * Avgjør om [avbruttAv] kan avbryte behandlingen i gjeldende tilstand.
+     *
+     * Behandlingen kan avbrytes i alle aktive tilstander.
+     * I beslutningstilstandene kreves det i tillegg at [avbruttAv] er den som er tildelt behandlingen:
+     *  - [KLAR_TIL_BESLUTNING]: må være tildelt saksbehandler.
+     *  - [UNDER_BESLUTNING]: må være tildelt beslutter.
+     */
+    fun kanAvbryte(avbruttAv: Saksbehandler): Either<KunneIkkeAvbryteBehandling, Unit> {
+        return when (status) {
+            UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> Unit.right()
+
+            KLAR_TIL_BESLUTNING -> {
+                if (saksbehandler != avbruttAv.navIdent) {
+                    KunneIkkeAvbryteBehandling.MåVæreSaksbehandlerPåBehandlingen(id).left()
+                } else {
+                    Unit.right()
+                }
+            }
+
+            UNDER_BESLUTNING -> {
+                if (beslutter != avbruttAv.navIdent) {
+                    KunneIkkeAvbryteBehandling.MåVæreBeslutterPåBehandlingen(id).left()
+                } else {
+                    Unit.right()
+                }
+            }
+
+            VEDTATT, AVBRUTT -> KunneIkkeAvbryteBehandling.BehandlingKanIkkeAvbrytesITilstanden(
+                behandlingId = id,
+                status = status,
+            ).left()
+        }
+    }
+
     fun erFerdigutfylt(): Boolean
 
     /** Saksbehandler/beslutter tar behandlingen. */

@@ -184,14 +184,7 @@ data class Søknadsbehandling(
         tidspunkt: LocalDateTime,
         skalAvbryteSøknad: Boolean,
     ): Either<KunneIkkeAvbryteBehandling, Søknadsbehandling> {
-        when (status) {
-            UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> Unit
-
-            VEDTATT, AVBRUTT -> return KunneIkkeAvbryteBehandling.BehandlingKanIkkeAvbrytesITilstanden(
-                behandlingId = id,
-                status = status,
-            ).left()
-        }
+        kanAvbryte(avbruttAv).onLeft { return it.left() }
         return this.copy(
             status = AVBRUTT,
             søknad = if (skalAvbryteSøknad) this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt) else this.søknad,

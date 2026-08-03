@@ -96,6 +96,16 @@ private fun KunneIkkeAvbryteBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
         melding = "Behandlingen er allerede avsluttet.",
         kode = "behandling_kan_ikke_avbrytes_i_tilstanden",
     )
+
+    is KunneIkkeAvbryteBehandling.MåVæreSaksbehandlerPåBehandlingen -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Behandlingen tilhører en annen saksbehandler. Overta behandlingen og prøv igjen.",
+        kode = "behandlingen_tildelt_annen_saksbehandler",
+    )
+
+    is KunneIkkeAvbryteBehandling.MåVæreBeslutterPåBehandlingen -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Behandlingen tilhører en annen beslutter. Overta behandlingen og prøv igjen.",
+        kode = "behandlingen_tildelt_annen_beslutter",
+    )
 }
 
 data class AvsluttSøknadOgBehandlingBody(

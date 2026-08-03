@@ -59,6 +59,36 @@ sealed interface KunneIkkeAvbryteBehandling {
         override val loggnivå: Loggnivå = Loggnivå.INFO
     }
 
+    /**
+     * Behandlingen er sendt til beslutning (KLAR_TIL_BESLUTNING), men den som prøver å avbryte er ikke saksbehandleren som er tildelt behandlingen.
+     * Behandlingen kan kun avbrytes av den tildelte saksbehandleren i denne tilstanden.
+     *
+     * Logges som [Loggnivå.WARN]: klienten opererer på en behandling den ikke er tildelt.
+     * Skjer typisk ved en kappestrid mellom saksbehandlere, eller dersom frontend har tilbudt avbryt til feil bruker.
+     */
+    data class MåVæreSaksbehandlerPåBehandlingen(
+        val behandlingId: RammebehandlingId,
+    ) : KunneIkkeAvbryteBehandling {
+        override val beskrivelse: String =
+            "Kan ikke avbryte behandling med id $behandlingId. Behandlingen kan kun avbrytes av saksbehandleren som er tildelt den."
+        override val loggnivå: Loggnivå = Loggnivå.WARN
+    }
+
+    /**
+     * Behandlingen er under beslutning (UNDER_BESLUTNING), men den som prøver å avbryte er ikke beslutteren som er tildelt behandlingen.
+     * Behandlingen kan kun avbrytes av den tildelte beslutteren i denne tilstanden.
+     *
+     * Logges som [Loggnivå.WARN]: klienten opererer på en behandling den ikke er tildelt.
+     * Skjer typisk ved en kappestrid mellom besluttere, eller dersom frontend har tilbudt avbryt til feil bruker.
+     */
+    data class MåVæreBeslutterPåBehandlingen(
+        val behandlingId: RammebehandlingId,
+    ) : KunneIkkeAvbryteBehandling {
+        override val beskrivelse: String =
+            "Kan ikke avbryte behandling med id $behandlingId. Behandlingen kan kun avbrytes av beslutteren som er tildelt den."
+        override val loggnivå: Loggnivå = Loggnivå.WARN
+    }
+
     /** Nivå [beskrivelse] skal logges på i vanlig logg. */
     enum class Loggnivå {
         INFO,

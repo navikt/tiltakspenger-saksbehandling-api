@@ -97,6 +97,73 @@ class RammebehandlingTest {
     }
 
     @Nested
+    inner class AvbrytIBeslutning {
+        @Test
+        fun `tildelt saksbehandler kan avbryte behandling som er klar til beslutning`() {
+            val saksbehandler = ObjectMother.saksbehandler(navIdent = "SAKSBEH")
+            val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
+
+            val avbrutt = behandling.avbryt(
+                avbruttAv = saksbehandler,
+                begrunnelse = "begrunnelse".toNonBlankString(),
+                tidspunkt = 1.november(2024).atStartOfDay(),
+                skalAvbryteSøknad = true,
+            ).getOrFail()
+
+            avbrutt.status shouldBe Rammebehandlingsstatus.AVBRUTT
+        }
+
+        @Test
+        fun `en annen saksbehandler kan ikke avbryte behandling som er klar til beslutning`() {
+            val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(
+                saksbehandler = ObjectMother.saksbehandler(navIdent = "SAKSBEH"),
+            )
+
+            behandling.avbryt(
+                avbruttAv = ObjectMother.saksbehandler(navIdent = "ANNEN"),
+                begrunnelse = "begrunnelse".toNonBlankString(),
+                tidspunkt = 1.november(2024).atStartOfDay(),
+                skalAvbryteSøknad = true,
+            ) shouldBe KunneIkkeAvbryteBehandling.MåVæreSaksbehandlerPåBehandlingen(behandling.id).left()
+        }
+
+        @Test
+        fun `tildelt beslutter kan avbryte behandling som er under beslutning`() {
+            val saksbehandler = ObjectMother.saksbehandler(navIdent = "SAKSBEH")
+            val beslutter = ObjectMother.beslutter(navIdent = "BESLUTTER")
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            )
+
+            val avbrutt = behandling.avbryt(
+                avbruttAv = beslutter,
+                begrunnelse = "begrunnelse".toNonBlankString(),
+                tidspunkt = 1.november(2024).atStartOfDay(),
+                skalAvbryteSøknad = true,
+            ).getOrFail()
+
+            avbrutt.status shouldBe Rammebehandlingsstatus.AVBRUTT
+        }
+
+        @Test
+        fun `saksbehandler kan ikke avbryte behandling som er under beslutning hos en beslutter`() {
+            val saksbehandler = ObjectMother.saksbehandler(navIdent = "SAKSBEH")
+            val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
+                saksbehandler = saksbehandler,
+                beslutter = ObjectMother.beslutter(navIdent = "BESLUTTER"),
+            )
+
+            behandling.avbryt(
+                avbruttAv = saksbehandler,
+                begrunnelse = "begrunnelse".toNonBlankString(),
+                tidspunkt = 1.november(2024).atStartOfDay(),
+                skalAvbryteSøknad = true,
+            ) shouldBe KunneIkkeAvbryteBehandling.MåVæreBeslutterPåBehandlingen(behandling.id).left()
+        }
+    }
+
+    @Nested
     inner class TaBehandling {
         val clock = fixedClock
 
