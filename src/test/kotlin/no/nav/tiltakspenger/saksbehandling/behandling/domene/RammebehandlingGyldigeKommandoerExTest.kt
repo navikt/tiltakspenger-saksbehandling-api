@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 /**
  * Verifiserer at [finnGyldigeKommandoer] gir de samme svarene som `kanX`-predikatene domenet håndhever.
  */
-internal class RammebehandlingGyldigeKommandoerExTest {
+class RammebehandlingGyldigeKommandoerExTest {
     private val saksbehandler = ObjectMother.saksbehandler()
     private val annenSaksbehandler = ObjectMother.saksbehandler(navIdent = "Z99999")
     private val beslutter = ObjectMother.beslutter()
@@ -76,19 +76,22 @@ internal class RammebehandlingGyldigeKommandoerExTest {
         )
     }
 
+    /**
+     * I [Rammebehandlingsstatus.KLAR_TIL_BESLUTNING] er det saksbehandleren på behandlingen som kan avbryte.
+     * Beslutteren har ikke tatt behandlingen enda, og får derfor bare tildelingen.
+     */
     @Test
-    fun `klar til beslutning - beslutter kan tildele seg selv og avbryte`() {
+    fun `klar til beslutning - beslutter kan tildele seg selv, men ikke avbryte`() {
         val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
 
         behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
         behandling.finnGyldigeKommandoer(beslutter) shouldBe listOf(
             SaksbehandlerBehandlingKommando.TildelBeslutter,
-            SaksbehandlerBehandlingKommando.Avbryt,
         )
     }
 
     @Test
-    fun `klar til beslutning - saksbehandleren som sendte til beslutning kan ikke tildele seg selv`() {
+    fun `klar til beslutning - saksbehandleren som sendte til beslutning kan ikke tildele seg selv, men kan avbryte`() {
         val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
 
         behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
@@ -112,7 +115,7 @@ internal class RammebehandlingGyldigeKommandoerExTest {
     }
 
     @Test
-    fun `under beslutning - en annen beslutter kan overta og avbryte`() {
+    fun `under beslutning - en annen beslutter kan overta, men ikke avbryte`() {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
@@ -120,20 +123,21 @@ internal class RammebehandlingGyldigeKommandoerExTest {
 
         behandling.finnGyldigeKommandoer(annenBeslutter) shouldBe listOf(
             SaksbehandlerBehandlingKommando.OvertaBeslutter,
-            SaksbehandlerBehandlingKommando.Avbryt,
         )
     }
 
+    /**
+     * I [Rammebehandlingsstatus.UNDER_BESLUTNING] er det beslutteren på behandlingen som kan avbryte.
+     * Saksbehandleren har gitt fra seg behandlingen, og har derfor ingen gyldige kommandoer.
+     */
     @Test
-    fun `under beslutning - saksbehandleren på behandlingen kan verken overta eller legge tilbake`() {
+    fun `under beslutning - saksbehandleren på behandlingen har ingen gyldige kommandoer`() {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
         )
 
-        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
-            SaksbehandlerBehandlingKommando.Avbryt,
-        )
+        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
     }
 
     @Test
@@ -186,13 +190,13 @@ internal class RammebehandlingGyldigeKommandoerExTest {
 
         behandling.finnGyldigeKommandoer(saksbehandlerOgBeslutter) shouldBe listOf(
             SaksbehandlerBehandlingKommando.TildelBeslutter,
-            SaksbehandlerBehandlingKommando.Avbryt,
         )
     }
 
     /**
      * Avbryting har ingen rollesjekk i domenet - den håndheves i `AvbrytSøknadOgBehandlingRoute`.
-     * Testen dokumenterer dagens oppførsel: kommandoen annonseres også til en bruker uten roller.
+     * Domenet krever kun at avbryteren er tildelt behandlingen i beslutningstilstandene.
+     * Testen dokumenterer dagens oppførsel: i [Rammebehandlingsstatus.UNDER_BEHANDLING] annonseres kommandoen også til en bruker uten roller.
      */
     @Test
     fun `bruker uten roller får kun avbryt`() {
@@ -254,7 +258,6 @@ internal class RammebehandlingGyldigeKommandoerExTest {
         behandling.finnGyldigeKommandoer(beslutter) shouldBe listOf(
             SaksbehandlerBehandlingKommando.TildelBeslutter,
             SaksbehandlerBehandlingKommando.Gjenoppta,
-            SaksbehandlerBehandlingKommando.Avbryt,
         )
     }
 

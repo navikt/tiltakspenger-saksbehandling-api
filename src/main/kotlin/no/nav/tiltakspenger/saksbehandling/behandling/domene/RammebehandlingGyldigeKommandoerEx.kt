@@ -23,7 +23,7 @@ fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
         if (kanLeggeTilbakeBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter)
         if (kanSettePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.SettPåVent)
         if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
-        if (kanAvbryte().isRight()) add(SaksbehandlerBehandlingKommando.Avbryt)
+        if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avbryt)
     }
 }
 

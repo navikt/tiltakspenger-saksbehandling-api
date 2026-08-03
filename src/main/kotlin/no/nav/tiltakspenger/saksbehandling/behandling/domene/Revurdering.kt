@@ -168,7 +168,7 @@ data class Revurdering(
         tidspunkt: LocalDateTime,
         skalAvbryteSøknad: Boolean,
     ): Either<KunneIkkeAvbryteBehandling, Revurdering> {
-        kanAvbryte().onLeft { return it.left() }
+        kanAvbryte(avbruttAv).onLeft { return it.left() }
         return this.copy(
             status = AVBRUTT,
             avbrutt = Avbrutt(
