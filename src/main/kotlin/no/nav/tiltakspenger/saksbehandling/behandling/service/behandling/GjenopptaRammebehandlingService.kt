@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.KanIkkeGjenopptaRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.gjenoppta
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -20,7 +20,7 @@ class GjenopptaRammebehandlingService(
 
     suspend fun gjenopptaBehandling(
         kommando: GjenopptaRammebehandlingKommando,
-    ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> =
+    ): Either<KanIkkeGjenopptaRammebehandling, Pair<Sak, Rammebehandling>> =
         gjenopptaBehandlingInternal(kommando)
 
     /**
@@ -29,12 +29,12 @@ class GjenopptaRammebehandlingService(
      */
     suspend fun gjenopptaBehandlingFraKlage(
         kommando: GjenopptaRammebehandlingKommando,
-    ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> =
+    ): Either<KanIkkeGjenopptaRammebehandling, Pair<Sak, Rammebehandling>> =
         gjenopptaBehandlingInternal(kommando)
 
     private suspend fun gjenopptaBehandlingInternal(
         kommando: GjenopptaRammebehandlingKommando,
-    ): Either<KunneIkkeGjenopptaBehandling, Pair<Sak, Rammebehandling>> {
+    ): Either<KanIkkeGjenopptaRammebehandling, Pair<Sak, Rammebehandling>> {
         val (sakId, behandlingId, _, correlationId) = kommando
         val (sak, behandling) = behandlingService.hentSakOgRammebehandling(sakId, behandlingId)
 
@@ -57,9 +57,7 @@ class GjenopptaRammebehandlingService(
             )
         }
 
-        return behandling.gjenoppta(kommando, clock, hentSaksopplysninger).mapLeft {
-            KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger(it)
-        }.map { (oppdatertBehandling, statistikkhendelser) ->
+        return behandling.gjenoppta(kommando, clock, hentSaksopplysninger).map { (oppdatertBehandling, statistikkhendelser) ->
             val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
             behandlingService.lagreMedStatistikk(
                 oppdatertBehandling,
@@ -68,8 +66,4 @@ class GjenopptaRammebehandlingService(
             oppdatertSak to oppdatertBehandling
         }
     }
-}
-
-sealed interface KunneIkkeGjenopptaBehandling {
-    data class FeilVedOppdateringAvSaksopplysninger(val originalFeil: KunneIkkeOppdatereSaksopplysninger) : KunneIkkeGjenopptaBehandling
 }

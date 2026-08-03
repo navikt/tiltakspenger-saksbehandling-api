@@ -5,6 +5,16 @@ import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.KanIkkeTaKlagebehandling
 
 sealed interface KunneIkkeTaBehandling : Loggbar {
+    /** Utøvende bruker mangler saksbehandlerrolle. */
+    data object MåVæreSaksbehandler : KunneIkkeTaBehandling {
+        override val loggkontekst = Loggkontekst("utøvende bruker mangler saksbehandlerrolle")
+    }
+
+    /** Utøvende bruker mangler beslutterrolle. */
+    data object MåVæreBeslutter : KunneIkkeTaBehandling {
+        override val loggkontekst = Loggkontekst("utøvende bruker mangler beslutterrolle")
+    }
+
     data object SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling : KunneIkkeTaBehandling {
         override val loggkontekst = Loggkontekst("saksbehandler og beslutter kan ikke være den samme på behandlingen")
     }

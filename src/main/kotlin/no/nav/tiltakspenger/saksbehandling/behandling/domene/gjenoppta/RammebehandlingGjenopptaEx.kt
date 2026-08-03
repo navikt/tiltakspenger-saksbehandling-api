@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta
 
 import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.AVBRUTT
@@ -17,9 +19,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
-import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
-import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.GjenopptaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.gjenopptaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -29,6 +28,7 @@ import java.time.Clock
 
 /**
  * Kan kun gjenoppta en behandling som er satt på vent.
+ * Forutsetningene håndheves av [kanGjenoppta], og feilene derfra returneres som venstre-verdi.
  * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null.
  * Merk at det vi ikke henter saksopplysninger på nytt hvis den er sendt til beslutning.
  */
@@ -36,14 +36,13 @@ suspend fun Rammebehandling.gjenoppta(
     kommando: GjenopptaRammebehandlingKommando,
     clock: Clock,
     hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Rammebehandling, Statistikkhendelser>> {
-    require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
+): Either<KanIkkeGjenopptaRammebehandling, Pair<Rammebehandling, Statistikkhendelser>> {
+    kanGjenoppta(kommando.saksbehandler).onLeft { return it.left() }
 
     return when (status) {
-        VEDTATT, AVBRUTT -> throw IllegalStateException("Kan ikke gjenoppta behandling som har status ${status.name}")
+        VEDTATT, AVBRUTT -> KanIkkeGjenopptaRammebehandling.UgyldigStatus(status).left()
 
         KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> {
-            krevSaksbehandlerRolle(kommando.saksbehandler)
             gjenopptaBehandling(
                 kommando = kommando,
                 oppdatertSaksbehandler = kommando.saksbehandler.navIdent,
@@ -68,7 +67,6 @@ suspend fun Rammebehandling.gjenoppta(
                 )
             } else {
                 // En saksbehandler har tar over behandlingen fra den automatiske jobben.
-                krevSaksbehandlerRolle(kommando.saksbehandler)
                 gjenopptaBehandling(
                     kommando = kommando,
                     oppdatertSaksbehandler = kommando.saksbehandler.navIdent,
@@ -81,7 +79,6 @@ suspend fun Rammebehandling.gjenoppta(
         }
 
         KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> {
-            krevBeslutterRolle(kommando.saksbehandler)
             gjenopptaBehandling(
                 kommando = kommando,
                 oppdatertSaksbehandler = saksbehandler,
@@ -95,6 +92,7 @@ suspend fun Rammebehandling.gjenoppta(
 }
 
 /**
+ * Kalles kun fra [gjenoppta], som allerede har verifisert forutsetningene via [kanGjenoppta].
  * @param hentSaksopplysninger Henter saksopplysninger på nytt dersom denne ikke er null.
  */
 private suspend fun Rammebehandling.gjenopptaBehandling(
@@ -104,8 +102,7 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
     oppdatertStatus: Rammebehandlingsstatus,
     clock: Clock,
     hentSaksopplysninger: (suspend () -> Saksopplysninger)?,
-): Either<KunneIkkeOppdatereSaksopplysninger, Pair<Rammebehandling, Statistikkhendelser>> {
-    require(ventestatus.erSattPåVent) { "Behandlingen er ikke satt på vent" }
+): Either<KanIkkeGjenopptaRammebehandling, Pair<Rammebehandling, Statistikkhendelser>> {
     val nå = nå(clock)
     val oppdatertVentestatus = ventestatus.gjenoppta(
         tidspunkt = nå,
@@ -120,7 +117,9 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
             correlationId = kommando.correlationId,
         ),
         clock = clock,
-    )?.getOrThrow() ?: (null to Statistikkhendelser.empty())
+    )?.getOrElse {
+        return KanIkkeGjenopptaRammebehandling.KunneIkkeGjenopptaKlagebehandlingen(it).left()
+    } ?: (null to Statistikkhendelser.empty())
     val oppdatertRammebehandling = when (this) {
         is Søknadsbehandling -> this.copy(
             ventestatus = oppdatertVentestatus,
@@ -147,7 +146,7 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
             saksbehandler = kommando.saksbehandler,
             nyeSaksopplysninger = hentSaksopplysninger(),
             clock = clock,
-        )
+        ).mapLeft { KanIkkeGjenopptaRammebehandling.KunneIkkeOppdatereSaksopplysningene(it) }
     } else {
         oppdatertRammebehandling.right()
     }.map {
@@ -157,5 +156,52 @@ private suspend fun Rammebehandling.gjenopptaBehandling(
             ),
         )
         it to statistikkhendelser
+    }
+}
+
+/**
+ * Avgjør om [saksbehandler] kan gjenoppta rammebehandlingen.
+ *
+ * Betingelsene speiler hvilke tilstander [gjenoppta] faktisk håndterer:
+ *  - behandlingen må være satt på vent
+ *  - [KLAR_TIL_BEHANDLING]/[UNDER_BEHANDLING]: krever saksbehandlerrolle
+ *  - [KLAR_TIL_BESLUTNING]/[UNDER_BESLUTNING]: krever beslutterrolle
+ *  - [UNDER_AUTOMATISK_BEHANDLING]: gjenopptas enten av den automatiske saksbehandlingen, eller av en saksbehandler som overtar
+ */
+fun Rammebehandling.kanGjenoppta(
+    saksbehandler: Saksbehandler,
+): Either<KanIkkeGjenopptaRammebehandling, Unit> {
+    if (!ventestatus.erSattPåVent) {
+        return KanIkkeGjenopptaRammebehandling.BehandlingenErIkkePåVent.left()
+    }
+
+    return when (status) {
+        KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> {
+            if (!saksbehandler.erSaksbehandler()) {
+                KanIkkeGjenopptaRammebehandling.MåVæreSaksbehandler.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        UNDER_AUTOMATISK_BEHANDLING -> {
+            if (saksbehandler == AUTOMATISK_SAKSBEHANDLER) {
+                Unit.right()
+            } else if (!saksbehandler.erSaksbehandler()) {
+                KanIkkeGjenopptaRammebehandling.MåVæreSaksbehandler.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> {
+            if (!saksbehandler.erBeslutter()) {
+                KanIkkeGjenopptaRammebehandling.MåVæreBeslutter.left()
+            } else {
+                Unit.right()
+            }
+        }
+
+        VEDTATT, AVBRUTT -> KanIkkeGjenopptaRammebehandling.UgyldigStatus(status).left()
     }
 }

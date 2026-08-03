@@ -124,6 +124,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
             val klagebehandling = oppdatertRammebehandlingMedKlagebehandling.klagebehandling!!
 
             json.toString().shouldBeSøknadsbehandlingDTO(
+                gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
                 behandlingId = oppdatertRammebehandlingMedKlagebehandling.id,
                 sakId = sak.id,
                 klagebehandlingId = klagebehandling.id,

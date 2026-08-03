@@ -67,7 +67,7 @@ fun Route.overtaRammebehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                            call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                         },
                     )
                 }
@@ -116,6 +116,16 @@ fun KunneIkkeOvertaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, Error
         KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling -> HttpStatusCode.BadRequest to ErrorJson(
             "Behandlingen er under aktiv behandling og kan ikke overtas. Prøv igjen innen 1 time",
             "behandlingen_er_under_aktiv_behandling",
+        )
+
+        KunneIkkeOvertaBehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
+            "Du må være saksbehandler for å overta denne behandlingen",
+            "maa_vaere_saksbehandler",
+        )
+
+        KunneIkkeOvertaBehandling.MåVæreBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
+            "Du må være beslutter for å overta denne behandlingen",
+            "maa_vaere_beslutter",
         )
 
         is KunneIkkeOvertaBehandling.KanIkkeOvertaKlagebehandling -> this.underliggende.toStatusAndErrorJson()

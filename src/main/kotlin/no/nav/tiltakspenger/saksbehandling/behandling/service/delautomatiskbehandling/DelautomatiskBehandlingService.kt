@@ -126,7 +126,7 @@ class DelautomatiskBehandlingService(
                     frist = null,
                 ),
                 clock = clock,
-            ).let {
+            ).getOrThrow().let {
                 val statistikk = statistikkService.generer(it.second)
                 sessionFactory.withTransactionContext { tx ->
                     rammebehandlingRepo.lagre(it.first, tx)

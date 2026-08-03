@@ -97,6 +97,7 @@ class RammebehandlingDTOTest {
                 beregninger = beregninger,
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
+                kallendeSaksbehandler = ObjectMother.saksbehandler(),
             ),
         )
 
@@ -168,6 +169,7 @@ class RammebehandlingDTOTest {
                 beregninger = beregninger,
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
+                kallendeSaksbehandler = ObjectMother.saksbehandler(),
             ),
         )
 
@@ -243,6 +245,7 @@ class RammebehandlingDTOTest {
                 beregninger = beregninger,
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
+                kallendeSaksbehandler = ObjectMother.saksbehandler(),
             ),
         )
 
@@ -253,6 +256,7 @@ class RammebehandlingDTOTest {
             rammevedtakId = vedtakId,
             søknadId = søknadId,
             vedtaksperiode = null,
+            gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
             iverksattTidspunkt = null,
             attesteringer = emptyList(),
             saksbehandler = "Z12345",
@@ -309,6 +313,7 @@ class RammebehandlingDTOTest {
                 beregninger = beregninger,
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
+                kallendeSaksbehandler = ObjectMother.saksbehandler(),
             ),
         )
 
@@ -368,6 +373,7 @@ class RammebehandlingDTOTest {
                 beregninger = beregninger,
                 tilbakekrevingId = null,
                 rammevedtakId = vedtakId,
+                kallendeSaksbehandler = ObjectMother.saksbehandler(),
             ),
         )
 
@@ -475,6 +481,7 @@ class RammebehandlingDTOTest {
                 beregninger = beregninger,
                 tilbakekrevingId = null,
                 rammevedtakId = omgjøringVedtakId,
+                kallendeSaksbehandler = ObjectMother.saksbehandler(),
             ),
         )
 
@@ -482,6 +489,7 @@ class RammebehandlingDTOTest {
             sakId = sakId,
             saksnummer = saksnummer,
             behandlingId = omgjøringId,
+            gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
             rammevedtakId = omgjøringVedtakId,
             omgjørVedtak = vedtakId,
             saksbehandler = "Z12345",

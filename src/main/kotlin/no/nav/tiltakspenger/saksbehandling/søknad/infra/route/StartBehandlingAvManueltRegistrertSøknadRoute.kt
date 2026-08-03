@@ -70,6 +70,7 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
                         beregninger = sak.meldeperiodeBeregninger,
                         rammevedtakId = null,
                         tilbakekrevingId = null,
+                        kallendeSaksbehandler = saksbehandler,
                     ),
                 )
             }

@@ -3,11 +3,13 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.UtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
@@ -18,6 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.SøknadDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.toSøknadDTO
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
@@ -52,6 +56,7 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val klagebehandlingId: String?
     val tilbakekrevingId: String?
     val skalSendeVedtaksbrev: Boolean
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>
 }
 
 data class SøknadsbehandlingDTO(
@@ -82,6 +87,7 @@ data class SøknadsbehandlingDTO(
     val manueltBehandlesGrunner: List<String>,
     val kanInnvilges: Boolean,
     override val skalSendeVedtaksbrev: Boolean,
+    override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.SØKNADSBEHANDLING
@@ -115,6 +121,7 @@ data class RevurderingDTO(
     @get:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunnDTO?,
     override val skalSendeVedtaksbrev: Boolean,
+    override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
     override val type = RammebehandlingstypeDTO.REVURDERING
@@ -123,7 +130,10 @@ data class RevurderingDTO(
     override val resultat: RammebehandlingResultatTypeDTO get() = resultatDTO.resultat
 }
 
-fun Sak.tilRammebehandlingDTO(behandlingId: RammebehandlingId): RammebehandlingDTO {
+fun Sak.tilRammebehandlingDTO(
+    behandlingId: RammebehandlingId,
+    kallendeSaksbehandler: Saksbehandler,
+): RammebehandlingDTO {
     val behandling = rammebehandlinger.hentRammebehandling(behandlingId)
 
     requireNotNull(behandling) {
@@ -139,6 +149,7 @@ fun Sak.tilRammebehandlingDTO(behandlingId: RammebehandlingId): RammebehandlingD
             beregninger = meldeperiodeBeregninger,
             tilbakekrevingId = tilbakekrevingId,
             rammevedtakId = rammevedtakId,
+            kallendeSaksbehandler = kallendeSaksbehandler,
         )
 
         is Søknadsbehandling -> behandling.tilSøknadsbehandlingDTO(
@@ -146,12 +157,13 @@ fun Sak.tilRammebehandlingDTO(behandlingId: RammebehandlingId): RammebehandlingD
             beregninger = meldeperiodeBeregninger,
             tilbakekrevingId = tilbakekrevingId,
             rammevedtakId = rammevedtakId,
+            kallendeSaksbehandler = kallendeSaksbehandler,
         )
     }
 }
 
-fun Sak.tilBehandlingerDTO(): List<RammebehandlingDTO> {
-    return this.rammebehandlinger.map { this.tilRammebehandlingDTO(it.id) }
+fun Sak.tilBehandlingerDTO(kallendeSaksbehandler: Saksbehandler): List<RammebehandlingDTO> {
+    return this.rammebehandlinger.map { this.tilRammebehandlingDTO(it.id, kallendeSaksbehandler) }
 }
 
 fun Søknadsbehandling.tilSøknadsbehandlingDTO(
@@ -159,6 +171,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
     beregninger: MeldeperiodeBeregningerVedtatt,
     tilbakekrevingId: TilbakekrevingId?,
     rammevedtakId: VedtakId?,
+    kallendeSaksbehandler: Saksbehandler,
 ): SøknadsbehandlingDTO {
     return SøknadsbehandlingDTO(
         id = this.id.toString(),
@@ -188,6 +201,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         klagebehandlingId = this.klagebehandling?.id?.toString(),
         tilbakekrevingId = tilbakekrevingId?.toString(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+        gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
 
@@ -196,6 +210,7 @@ fun Revurdering.tilRevurderingDTO(
     beregninger: MeldeperiodeBeregningerVedtatt,
     tilbakekrevingId: TilbakekrevingId?,
     rammevedtakId: VedtakId?,
+    kallendeSaksbehandler: Saksbehandler,
 ): RevurderingDTO {
     return RevurderingDTO(
         id = this.id.toString(),
@@ -222,5 +237,6 @@ fun Revurdering.tilRevurderingDTO(
         tilbakekrevingId = tilbakekrevingId?.toString(),
         automatiskOpprettetGrunn = this.automatiskOpprettetGrunn?.toDTO(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+        gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }

@@ -53,7 +53,7 @@ fun Route.startRevurderingRoute(
                         correlationId = correlationId,
                         behandlingId = behandlingId,
                     )
-                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                 }
             }
         }

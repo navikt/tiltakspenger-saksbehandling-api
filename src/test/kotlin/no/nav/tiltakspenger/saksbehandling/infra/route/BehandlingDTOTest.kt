@@ -45,7 +45,7 @@ class BehandlingDTOTest {
                             frist = LocalDate.now(clock).plusWeeks(1),
                         ),
                         clock,
-                    )
+                    ).getOrFail()
                     .first.gjenoppta(
                         GjenopptaRammebehandlingKommando(
                             sakId = behandling.sakId,
@@ -65,7 +65,7 @@ class BehandlingDTOTest {
                             frist = LocalDate.now(clock).plusWeeks(1),
                         ),
                         clock,
-                    ).first
+                    ).getOrFail().first
 
                 behandlingSattPåVent.ventestatus.ventestatusHendelser.size shouldBe 3
                 behandlingSattPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
@@ -74,7 +74,7 @@ class BehandlingDTOTest {
 
                 val sak = ObjectMother.nySak(behandlinger = Rammebehandlinger(listOf(behandlingSattPåVent)))
 
-                val dto = sak.tilRammebehandlingDTO(behandlingSattPåVent.id)
+                val dto = sak.tilRammebehandlingDTO(behandlingSattPåVent.id, beslutter)
 
                 dto.ventestatus.size shouldBe 3
                 dto.ventestatus.first().erSattPåVent shouldBe true

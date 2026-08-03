@@ -1,6 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.overta
 
 sealed interface KunneIkkeOvertaBehandling {
+    /** Utøvende bruker mangler saksbehandlerrolle. */
+    data object MåVæreSaksbehandler : KunneIkkeOvertaBehandling
+
+    /** Utøvende bruker mangler beslutterrolle. */
+    data object MåVæreBeslutter : KunneIkkeOvertaBehandling
+
     data object BehandlingenKanIkkeVæreVedtattEllerAvbrutt : KunneIkkeOvertaBehandling
 
     data object BehandlingenKanIkkeVæreUnderAutomatiskBehandling : KunneIkkeOvertaBehandling

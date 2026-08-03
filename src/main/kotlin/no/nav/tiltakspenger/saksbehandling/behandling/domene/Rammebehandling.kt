@@ -33,7 +33,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -126,9 +125,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val skalSendeVedtaksbrev: Boolean
 
-    fun inneholderSaksopplysningerInternDeltakelseId(internDeltakelseId: TiltaksdeltakerId): Boolean =
-        saksopplysninger.tiltaksdeltakelser.find { it.internDeltakelseId == internDeltakelseId } != null
-
     fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 
@@ -176,18 +172,55 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     fun erFerdigutfylt(): Boolean
 
+    /**
+     * Avgjør om [saksbehandler] kan ta behandlingen.
+     *
+     * Betingelsene speiler hvilke tilstander [taBehandling] faktisk håndterer:
+     *  - [KLAR_TIL_BEHANDLING]: kan tas av en saksbehandler dersom behandlingen ikke allerede har en saksbehandler.
+     *  - [KLAR_TIL_BESLUTNING]: kan tas av en beslutter (som ikke er saksbehandleren) dersom behandlingen ikke allerede har en beslutter.
+     */
+    fun kanTaBehandling(saksbehandler: Saksbehandler): Either<KunneIkkeTaBehandling, Unit> {
+        return when (status) {
+            KLAR_TIL_BEHANDLING -> {
+                if (!saksbehandler.erSaksbehandler()) {
+                    KunneIkkeTaBehandling.MåVæreSaksbehandler.left()
+                } else if (this.saksbehandler != null) {
+                    KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler.left()
+                } else {
+                    Unit.right()
+                }
+            }
+
+            KLAR_TIL_BESLUTNING -> {
+                if (saksbehandler.navIdent == this.saksbehandler) {
+                    KunneIkkeTaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling.left()
+                } else if (!saksbehandler.erBeslutter()) {
+                    KunneIkkeTaBehandling.MåVæreBeslutter.left()
+                } else if (this.beslutter != null) {
+                    KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()
+                } else {
+                    Unit.right()
+                }
+            }
+
+            UNDER_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler.left()
+
+            UNDER_BESLUTNING -> KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()
+
+            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling(status).left()
+        }
+    }
+
     /** Saksbehandler/beslutter tar behandlingen. */
     fun taBehandling(
         saksbehandler: Saksbehandler,
         clock: Clock,
     ): Either<KunneIkkeTaBehandling, Pair<Rammebehandling, Statistikkhendelser>> {
+        kanTaBehandling(saksbehandler).onLeft { return it.left() }
+
         val nå = nå(clock)
         return when (status) {
             KLAR_TIL_BEHANDLING -> {
-                krevSaksbehandlerRolle(saksbehandler)
-                if (this.saksbehandler != null) {
-                    return KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler.left()
-                }
                 val (oppdatertKlagebehandling, klagestatistikk) = klagebehandling?.ta(
                     kommando = TaKlagebehandlingKommando(sakId, klagebehandling!!.id, saksbehandler),
                     tilknyttetBehandlingsstatus = this.status.tilTilknyttetBehandlingsstatus(),
@@ -219,14 +252,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             }
 
             KLAR_TIL_BESLUTNING -> {
-                if (saksbehandler.navIdent == this.saksbehandler) {
-                    return KunneIkkeTaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling.left()
-                }
-                krevBeslutterRolle(saksbehandler)
-                if (this.beslutter != null) {
-                    return KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()
-                }
-
                 val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
@@ -246,11 +271,69 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 Pair(oppdatertRammebehandling, statistikkhendelser).right()
             }
 
-            UNDER_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler.left()
+            UNDER_BEHANDLING,
+            UNDER_BESLUTNING,
+            VEDTATT,
+            AVBRUTT,
+            UNDER_AUTOMATISK_BEHANDLING,
+            -> throw IllegalStateException("Skal ha blitt fanget opp av kanTaBehandling. Kan ikke ta rammebehandling med status $status")
+        }
+    }
 
-            UNDER_BESLUTNING -> KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()
+    /**
+     * Avgjør om [saksbehandler] kan overta behandlingen.
+     *
+     * Betingelsene speiler hvilke tilstander [overta] faktisk håndterer:
+     *  - [UNDER_BEHANDLING]: kan overtas av en saksbehandler, gitt at behandlingen har en saksbehandler.
+     *  - [UNDER_BESLUTNING]: kan overtas av en beslutter som ikke er saksbehandleren, gitt at behandlingen har en beslutter.
+     *  - [UNDER_AUTOMATISK_BEHANDLING]: kan overtas av en saksbehandler dersom den automatiske behandlingen står på vent.
+     *
+     * Merk at [overta] i tillegg har en race-guard på at behandlingen ikke er endret det siste minuttet.
+     * Den er bevisst utelatt her, fordi den er en tidsavhengig kollisjonssjekk og ikke en regel om hvem som har lov til å overta.
+     */
+    fun kanOverta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaBehandling, Unit> {
+        return when (status) {
+            UNDER_BEHANDLING -> {
+                if (!saksbehandler.erSaksbehandler()) {
+                    KunneIkkeOvertaBehandling.MåVæreSaksbehandler.left()
+                } else if (this.saksbehandler == null) {
+                    KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
+                } else {
+                    Unit.right()
+                }
+            }
 
-            VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling(status).left()
+            UNDER_BESLUTNING -> {
+                if (!saksbehandler.erBeslutter()) {
+                    KunneIkkeOvertaBehandling.MåVæreBeslutter.left()
+                } else if (this.beslutter == null) {
+                    KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
+                } else if (this.saksbehandler == saksbehandler.navIdent) {
+                    KunneIkkeOvertaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
+                } else {
+                    Unit.right()
+                }
+            }
+
+            UNDER_AUTOMATISK_BEHANDLING -> {
+                if (this.saksbehandler != AUTOMATISK_SAKSBEHANDLER_ID || !ventestatus.erSattPåVent) {
+                    KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
+                } else if (this is Revurdering) {
+                    KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
+                } else if (!saksbehandler.erSaksbehandler()) {
+                    KunneIkkeOvertaBehandling.MåVæreSaksbehandler.left()
+                } else {
+                    Unit.right()
+                }
+            }
+
+            KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
+
+            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
+
+            VEDTATT,
+            AVBRUTT,
+            -> KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreVedtattEllerAvbrutt.left()
         }
     }
 
@@ -267,12 +350,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
         if (erSistEndretMindreEnn1MinuttSiden) {
             return KunneIkkeOvertaBehandling.BehandlingenErUnderAktivBehandling.left()
         }
+
+        kanOverta(saksbehandler).onLeft { return it.left() }
+
         return when (status) {
             UNDER_BEHANDLING -> {
-                krevSaksbehandlerRolle(saksbehandler)
-                if (this.saksbehandler == null) {
-                    return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
-                }
                 // dersom det er beslutteren som overtar behandlingen, skal dem nulles ut som beslutter
                 val beslutter = if (this.beslutter == saksbehandler.navIdent) null else this.beslutter
 
@@ -311,14 +393,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             }
 
             UNDER_BESLUTNING -> {
-                krevBeslutterRolle(saksbehandler)
-                if (this.beslutter == null) {
-                    return KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
-                }
-                if (this.saksbehandler == saksbehandler.navIdent) {
-                    return KunneIkkeOvertaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSamme.left()
-                }
-
                 val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         beslutter = saksbehandler.navIdent,
@@ -336,15 +410,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 (oppdatertRammebehandling to statistikkhendelser).right()
             }
 
-            KLAR_TIL_BEHANDLING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBehandlingForÅOverta.left()
-
-            KLAR_TIL_BESLUTNING -> KunneIkkeOvertaBehandling.BehandlingenMåVæreUnderBeslutningForÅOverta.left()
-
             UNDER_AUTOMATISK_BEHANDLING -> {
-                if (this.saksbehandler != AUTOMATISK_SAKSBEHANDLER_ID || !ventestatus.erSattPåVent) {
-                    return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
-                }
-                krevSaksbehandlerRolle(saksbehandler)
                 val oppdatertRammebehandling = when (this) {
                     is Søknadsbehandling -> this.copy(
                         status = UNDER_BEHANDLING,
@@ -352,7 +418,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                         sistEndret = nå,
                     )
 
-                    is Revurdering -> return KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
+                    is Revurdering -> throw IllegalStateException("Skal ha blitt fanget opp av kanOverta. Kan ikke overta revurdering under automatisk behandling")
                 }
                 val statistikkhendelser = Statistikkhendelser(
                     oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.OPPDATERT_SAKSBEHANDLER_BESLUTTER),
@@ -360,9 +426,11 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 (oppdatertRammebehandling to statistikkhendelser).right()
             }
 
+            KLAR_TIL_BEHANDLING,
+            KLAR_TIL_BESLUTNING,
             VEDTATT,
             AVBRUTT,
-            -> KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreVedtattEllerAvbrutt.left()
+            -> throw IllegalStateException("Skal ha blitt fanget opp av kanOverta. Kan ikke overta rammebehandling med status $status")
         }
     }
 

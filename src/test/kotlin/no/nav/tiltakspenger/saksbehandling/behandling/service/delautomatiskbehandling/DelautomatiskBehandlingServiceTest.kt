@@ -7,6 +7,7 @@ import io.ktor.util.reflect.instanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
@@ -141,7 +142,7 @@ class DelautomatiskBehandlingServiceTest {
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
                 clock = tac.clock,
-            ).first as Søknadsbehandling
+            ).getOrFail().first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
@@ -192,7 +193,7 @@ class DelautomatiskBehandlingServiceTest {
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
                 clock = tac.clock,
-            ).first as Søknadsbehandling
+            ).getOrFail().first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
@@ -243,7 +244,7 @@ class DelautomatiskBehandlingServiceTest {
             val behandlingPaVent = behandling.settPåVent(
                 kommando = kommando,
                 clock = tac.clock,
-            ).first as Søknadsbehandling
+            ).getOrFail().first as Søknadsbehandling
             tac.behandlingContext.rammebehandlingRepo.lagre(behandlingPaVent)
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING

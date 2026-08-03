@@ -15,12 +15,13 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.KanIkkeGjenopptaRammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.KunneIkkeGjenopptaBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 
 private const val GJENNOPPTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenoppta"
 
@@ -47,8 +48,14 @@ fun Route.gjenopptaRammebehandling(
                         correlationId = correlationId,
                     ),
                 ).fold(
-                    ifLeft = {
-                        call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
+                    ifLeft = { feil ->
+                        call.loggOgSvarFeil(
+                            logger = logger,
+                            operasjon = "Gjenoppta rammebehandling",
+                            feil = feil,
+                            statusOgErrorJson = feil.tilStatusOgErrorJson(),
+                            kontekst = "sakId=$sakId, behandlingId=$behandlingId",
+                        )
                     },
                     ifRight = { (sak) ->
                         auditService.logMedRammebehandlingId(
@@ -59,7 +66,7 @@ fun Route.gjenopptaRammebehandling(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                     },
                 )
             }
@@ -67,6 +74,31 @@ fun Route.gjenopptaRammebehandling(
     }
 }
 
-private fun KunneIkkeGjenopptaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    is KunneIkkeGjenopptaBehandling.FeilVedOppdateringAvSaksopplysninger -> this.originalFeil.tilStatusOgErrorJson()
+private fun KanIkkeGjenopptaRammebehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    KanIkkeGjenopptaRammebehandling.BehandlingenErIkkePåVent -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er ikke satt på vent, og kan derfor ikke gjenopptas.",
+        "behandlingen_er_ikke_paa_vent",
+    )
+
+    KanIkkeGjenopptaRammebehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være saksbehandler for å gjenoppta denne behandlingen.",
+        "maa_vaere_saksbehandler",
+    )
+
+    KanIkkeGjenopptaRammebehandling.MåVæreBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være beslutter for å gjenoppta denne behandlingen.",
+        "maa_vaere_beslutter",
+    )
+
+    is KanIkkeGjenopptaRammebehandling.UgyldigStatus -> HttpStatusCode.BadRequest to ErrorJson(
+        "Kan ikke gjenoppta behandling med status $status.",
+        "ugyldig_status_for_gjenoppta",
+    )
+
+    is KanIkkeGjenopptaRammebehandling.KunneIkkeGjenopptaKlagebehandlingen -> HttpStatusCode.BadRequest to ErrorJson(
+        "Klagebehandlingen som henger på behandlingen kunne ikke gjenopptas.",
+        "kunne_ikke_gjenoppta_klagebehandlingen",
+    )
+
+    is KanIkkeGjenopptaRammebehandling.KunneIkkeOppdatereSaksopplysningene -> this.underliggende.tilStatusOgErrorJson()
 }

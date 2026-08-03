@@ -45,7 +45,7 @@ fun Route.hentRammebehandlingRoute(
                         contextMessage = "Henter rammebehandling",
                         correlationId = correlationId,
                     )
-                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId))
+                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
                 }
             }
         }
