@@ -184,6 +184,10 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
+    /**
+     * Avbrutt-markeringen skrives ikke her — behandlingene i denne skrivestien er alltid åpne.
+     * Avbrytelse lagres av oppdateringsvarianten uten simulering.
+     */
     override fun oppdater(
         meldekortbehandling: Meldekortbehandling,
         simuleringMedMetadata: SimuleringMedMetadata?,
@@ -208,7 +212,6 @@ class MeldekortbehandlingPostgresRepo(
                         sendt_til_beslutning = :sendt_til_beslutning,
                         begrunnelse = :begrunnelse,
                         attesteringer = :attesteringer::jsonb,
-                        avbrutt = :avbrutt::jsonb,
                         ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
@@ -229,7 +232,6 @@ class MeldekortbehandlingPostgresRepo(
                     "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
                     "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
                     "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
-                    "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,

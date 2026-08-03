@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.oppdater
 
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.april
@@ -14,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdatertMeldeperiodeDTO
@@ -22,19 +25,22 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgOppdaterMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import org.junit.jupiter.api.Test
 
 class OppdaterMeldekortbehandlingRouteTest {
 
     @Test
     fun `kan oppdatere meldekortbehandling`() {
-        withTestApplicationContext { tac ->
+        // Kjøres mot postgres for å dekke skrive- og lesesiden av begrunnelsen i databaselaget.
+        withTestApplicationContextAndPostgres { tac ->
             val (_, _, _, meldekortbehandling) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
                 tac = tac,
                 begrunnelse = "oppdatert begrunnelse",
             )!!
 
             meldekortbehandling.begrunnelse!!.verdi shouldBe "oppdatert begrunnelse"
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.begrunnelse!!.verdi shouldBe "oppdatert begrunnelse"
         }
     }
 
@@ -50,6 +56,23 @@ class OppdaterMeldekortbehandlingRouteTest {
                     it harKode "meldekortperioden_kan_ikke_være_frem_i_tid"
                 },
             )
+        }
+    }
+
+    @Test
+    fun `simuleringsfeil stopper ikke oppdateringen - behandlingen lagres uten simulering`() {
+        withTestApplicationContextAndPostgres { tac ->
+            tac.utbetalingFakeKlient.simulerFeil = KunneIkkeSimulere.UkjentFeil(
+                httpKlientUventetStatus(statusCode = 500, body = "simulering feilet"),
+            )
+
+            val (_, _, _, meldekortbehandling) = this.iverksettSøknadsbehandlingOgOppdaterMeldekortbehandling(
+                tac = tac,
+            )!!
+
+            val lagret = tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!
+            lagret.simulering.shouldBeNull()
+            lagret.beregning.shouldNotBeNull()
         }
     }
 

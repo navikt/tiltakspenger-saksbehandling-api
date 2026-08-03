@@ -5,7 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.common.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periodeOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
@@ -23,8 +25,8 @@ import java.time.LocalDate
 class PeriodeDbTest {
 
     private fun withPeriodeTestTabell(test: (Session) -> Unit) {
-        withMigratedDb { testDataHelper ->
-            testDataHelper.sessionFactory.withSession { session ->
+        withMigratedDb { sessionFactory, _, _ ->
+            (sessionFactory as PostgresSessionFactory).withSession { session ->
                 session.run(
                     sqlQuery(
                         """

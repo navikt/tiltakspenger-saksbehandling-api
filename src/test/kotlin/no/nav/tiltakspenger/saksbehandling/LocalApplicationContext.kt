@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
@@ -60,6 +61,8 @@ import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.hentSøknadForSøknadId
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.hentSøknaderForFnr
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
@@ -185,11 +188,11 @@ class LocalApplicationContext(
     }
 
     private val tiltaksdeltakelseFakeKlient by lazy {
-        // TODO: Vi setter defaultTiltaksdeltakelserTilSøknadHvisDenMangler = true, som lar faken utlede tiltaksdeltakelser fra søknaden.
+        // TODO: Søknadsfallbacken lar faken utlede tiltaksdeltakelser fra søknaden.
         // Dette er en skjør snarvei som forutsetter at søknaden allerede er persistert og at internDeltakelseId bevares (se TiltaksdeltakelseFakeKlient.hentTiltaksdeltakelseFraSøknad).
         // Den slår feil for manuelt registrerte (papir) søknader, der saksopplysningene beregnes før søknaden lagres.
         // Vurder å seede tiltaksdeltakelser eksplisitt per fnr ved oppretting av søknad i stedet.
-        TiltaksdeltakelseFakeKlient(true) { søknadContext.søknadRepo }
+        TiltaksdeltakelseFakeKlient(søknadFallback = { fnr -> (sessionFactory as PostgresSessionFactory).hentSøknaderForFnr(fnr) })
     }
 
     override val tiltakContext by lazy {
@@ -366,7 +369,7 @@ class LocalApplicationContext(
             fnr = fnr,
             saksnummer = sakRepo.hentNesteSaksnummer(),
         ).also { sakRepo.opprettSak(it) }
-        søknadContext.søknadRepo.hentForSøknadId(søknadId) ?: ObjectMother.nyInnvilgbarSøknad(
+        (sessionFactory as PostgresSessionFactory).hentSøknadForSøknadId(søknadId) ?: ObjectMother.nyInnvilgbarSøknad(
             fnr = fnr,
             id = søknadId,
             søknadstiltak = søknadstiltak,

@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.erHelg
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
@@ -23,6 +24,23 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import org.junit.jupiter.api.Test
 
 class IverksettMeldekortbehandlingRouteTest {
+
+    // Kjøres mot postgres for å dekke at begrunnelsen følger med når den iverksatte behandlingen oppdateres i databasen.
+    @Test
+    fun `iverksatt meldekortbehandling beholder begrunnelsen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val (_, _, meldekortbehandling, _) = opprettOgIverksettMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                begrunnelse = "intern begrunnelse",
+            )!!
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id)!!.begrunnelse!!.verdi shouldBe "intern begrunnelse"
+        }
+    }
+
     @Test
     fun `saksbehandler kan iverksette meldekortbehandling`() {
         withTestApplicationContext { tac ->

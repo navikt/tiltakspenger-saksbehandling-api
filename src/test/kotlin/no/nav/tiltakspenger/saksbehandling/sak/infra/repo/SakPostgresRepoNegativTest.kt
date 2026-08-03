@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SakId
@@ -16,6 +17,21 @@ import org.postgresql.util.PSQLException
  * Dette er unntak (a) i testtaksonomien, jf. `AGENTS.md`.
  */
 class SakPostgresRepoNegativTest {
+
+    /**
+     * `opprettSak` er idempotent: `hentEllerOpprettSak`-flyten kan tape et kappløp om samme fnr, og gjentatt kall skal da være en no-op.
+     * Kappløpet lar seg ikke fremtvinge gjennom rutene, så testen kaller repoet direkte med saken som allerede finnes.
+     */
+    @Test
+    fun `opprettSak er en no-op når saken allerede finnes`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            tac.sakContext.sakRepo.opprettSak(sak)
+
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.saksnummer shouldBe sak.saksnummer
+        }
+    }
 
     /**
      * `SakPostgresRepo.hentForFnr` returnerer én sak eller null, og den garantien hviler på `sak_fnr_unique`.

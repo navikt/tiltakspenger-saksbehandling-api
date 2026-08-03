@@ -14,10 +14,6 @@ interface SøknadRepo {
         txContext: TransactionContext? = null,
     )
 
-    fun hentForSøknadId(søknadId: SøknadId): Søknad?
-
-    fun hentSøknaderForFnr(fnr: Fnr, disableSessionCounter: Boolean = false): List<Søknad>
-
     fun finnSakIdForTiltaksdeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): SakId?
 
     /**

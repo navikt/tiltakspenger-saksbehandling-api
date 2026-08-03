@@ -19,8 +19,21 @@ import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import java.time.Clock
 
 // Lat, slik at rene in-memory-tester aldri betaler containerstart og Flyway-migreringer.
-// Egen instans og dermed egen container: route-testene kjører jobber som endrer data på tvers av saker, og de skal ikke dele database med repo-testene i [no.nav.tiltakspenger.saksbehandling.infra.repo.TestDataHelper].
+// Dette er den eneste databasecontaineren i testsuiten; parallelle og isolerte tester bruker hvert sitt skjema i den.
 private val dbManager: TestDatabaseManager by lazy { TestDatabaseManager() }
+
+/**
+ * Gir en migrert database uten å dra opp applikasjonen.
+ * Kun for rene db-typer uten prodsti — unntak (b) i testtaksonomien, se [no.nav.tiltakspenger.saksbehandling.infra.repo.PeriodeDbTest].
+ * All annen testtilstand bygges gjennom [withTestApplicationContextAndPostgres].
+ */
+fun withMigratedDb(
+    runIsolated: Boolean = false,
+    clock: TikkendeKlokke = TikkendeKlokke(),
+    test: (SessionFactory, IdGenerators, Clock) -> Unit,
+) {
+    dbManager.withMigratedDb(runIsolated = runIsolated, clock = clock, test = test)
+}
 
 fun withTestApplicationContextAndPostgres(
     additionalConfig: Application.() -> Unit = {},

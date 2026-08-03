@@ -13,23 +13,12 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 class SøknadPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : SøknadRepo {
-    override fun hentForSøknadId(søknadId: SøknadId): Søknad? =
-        sessionFactory.withSession {
-            SøknadDAO.hentForSøknadId(søknadId, it)
-        }
-
     override fun lagre(
         søknad: Søknad,
         txContext: TransactionContext?,
     ) {
         sessionFactory.withTransaction(txContext) {
             SøknadDAO.lagreHeleSøknaden(søknad, it)
-        }
-    }
-
-    override fun hentSøknaderForFnr(fnr: Fnr, disableSessionCounter: Boolean): List<Søknad> {
-        return sessionFactory.withSession(disableSessionCounter) {
-            SøknadDAO.hentForFnr(fnr, it)
         }
     }
 

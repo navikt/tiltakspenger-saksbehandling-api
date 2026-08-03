@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meld
 import java.time.LocalDateTime
 
 interface MeldekortvedtakRepo {
-    fun lagre(vedtak: Meldekortvedtak, context: TransactionContext? = null)
+    fun lagre(vedtak: Meldekortvedtak, context: TransactionContext?)
 
     fun hentForVedtakId(vedtakId: VedtakId): Meldekortvedtak?
 

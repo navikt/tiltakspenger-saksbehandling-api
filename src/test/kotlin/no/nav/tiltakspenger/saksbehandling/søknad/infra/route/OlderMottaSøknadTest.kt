@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
+import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -51,7 +52,7 @@ class OlderMottaSøknadTest {
             val internTiltaksdeltakerId = tac.tiltakContext.tiltaksdeltakerRepo.hentInternId("123")
             internTiltaksdeltakerId shouldNotBe null
 
-            val actualSøknad = tac.søknadContext.søknadRepo.hentForSøknadId(søknadId)
+            val actualSøknad = (tac.søknadContext.søknadRepo as SøknadFakeRepo).hentForSøknadId(søknadId)
             actualSøknad shouldBe
                 InnvilgbarSøknad(
                     versjon = "3",

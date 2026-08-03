@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 
 interface TilbakekrevingBehandlingRepo {
-    fun lagre(tilbakekrevingBehandling: TilbakekrevingBehandling, sessionContext: SessionContext? = null)
+    fun lagre(tilbakekrevingBehandling: TilbakekrevingBehandling, sessionContext: SessionContext?)
 
     fun hentForTilbakeBehandlingId(id: String, sessionContext: SessionContext? = null): TilbakekrevingBehandling?
 

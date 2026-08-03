@@ -33,18 +33,6 @@ class TestDatabaseManager(
      * Brukes når man gjør operasjoner på tvers av saker.
      * Testen skal da markeres med [no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest].
      */
-    fun withMigratedDbTestDataHelper(
-        runIsolated: Boolean = false,
-        clock: TikkendeKlokke = TikkendeKlokke(),
-        test: (TestDataHelper) -> Unit,
-    ) {
-        medEventuellIsolasjon(runIsolated) {
-            delegate.withMigratedDb(runIsolated = runIsolated, clock = clock) { _, idGenerators, _ ->
-                test(TestDataHelper(delegate.dataSource(runIsolated), idGenerators, clock))
-            }
-        }
-    }
-
     fun withMigratedDb(
         runIsolated: Boolean = false,
         clock: TikkendeKlokke = TikkendeKlokke(),

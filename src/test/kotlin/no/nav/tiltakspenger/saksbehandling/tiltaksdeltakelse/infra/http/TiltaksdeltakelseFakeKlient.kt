@@ -9,16 +9,19 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 
 class TiltaksdeltakelseFakeKlient(
-    private val defaultTiltaksdeltakelserTilSøknadHvisDenMangler: Boolean = false,
-    private val søknadRepoProvider: suspend () -> SøknadRepo? = { null },
+    /**
+     * Utleder tiltaksdeltakelser fra personens lagrede søknader når ingen deltakelser er seedet for fnr-et.
+     * Brukes kun av LocalApplicationContext; testene seeder deltakelser eksplisitt via [lagre].
+     */
+    private val søknadFallback: (suspend (Fnr) -> List<Søknad>)? = null,
 ) : TiltaksdeltakelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, TiltaksdeltakelserFraRegister>())
 
@@ -28,8 +31,8 @@ class TiltaksdeltakelseFakeKlient(
         correlationId: CorrelationId,
     ): Either<HttpKlientError, TiltaksdeltakelserFraRegister> {
         return (
-            data.get()[fnr] ?: if (defaultTiltaksdeltakelserTilSøknadHvisDenMangler) {
-                hentTiltaksdeltakelseFraSøknad(fnr)
+            data.get()[fnr] ?: if (søknadFallback != null) {
+                hentTiltaksdeltakelseFraSøknad(fnr, søknadFallback)
             } else {
                 TiltaksdeltakelserFraRegister.empty()
             }
@@ -73,14 +76,16 @@ class TiltaksdeltakelseFakeKlient(
         }
     }
 
-    private suspend fun hentTiltaksdeltakelseFraSøknad(fnr: Fnr): TiltaksdeltakelserFraRegister {
+    private suspend fun hentTiltaksdeltakelseFraSøknad(
+        fnr: Fnr,
+        søknadFallback: suspend (Fnr) -> List<Søknad>,
+    ): TiltaksdeltakelserFraRegister {
         // TODO: Denne utledningen av tiltaksdeltakelser fra søknaden er skjør og henger tett sammen med søknadsflyten.
-        // Den fungerer bare når søknaden allerede er persistert i søknadRepo.
+        // Den fungerer bare når søknaden allerede er persistert.
         // For manuelt registrerte (papir) søknader beregnes saksopplysningene før søknaden lagres (se StartBehandlingAvManueltRegistrertSøknadService), så tiltaksdeltakelsen mangler på saksopplysning-tidspunktet og lister returneres tom.
         // Den forutsetter også at toTiltak()/toTiltaksdeltakelseFraRegister() bevarer internDeltakelseId slik at en påfølgende innvilgelse matcher.
-        // Vurder å seede data[fnr] eksplisitt når en søknad opprettes (både digital seed og papir-route) i stedet for å utlede fra repo.
-        val søknadRepo = søknadRepoProvider()!!
-        val søknader = søknadRepo.hentSøknaderForFnr(fnr, disableSessionCounter = true)
+        // Vurder å seede data[fnr] eksplisitt når en søknad opprettes (både digital seed og papir-route) i stedet for å utlede fra lagrede søknader.
+        val søknader = søknadFallback(fnr)
         val tiltak = søknader
             .sortedByDescending { it.opprettet }
             .mapNotNull { it.tiltak?.toTiltak() }

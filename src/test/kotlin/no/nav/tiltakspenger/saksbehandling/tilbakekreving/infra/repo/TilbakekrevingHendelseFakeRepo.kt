@@ -47,10 +47,6 @@ class TilbakekrevingHendelseFakeRepo(
         return hentUbehandledeHendelser().map { it.id }
     }
 
-    override fun hentHendelserForEksternFagsakId(eksternFagsakId: String): List<Tilbakekrevingshendelse> {
-        return data.get().values.filter { it.eksternFagsakId == eksternFagsakId }.sortedBy { it.opprettet }
-    }
-
     override fun markerInfoBehovSomBehandlet(
         hendelseId: TilbakekrevinghendelseId,
         sakId: SakId,

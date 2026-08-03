@@ -19,8 +19,6 @@ interface TilbakekrevingHendelseRepo {
 
     fun hentHendelse(hendelseId: TilbakekrevinghendelseId): Tilbakekrevingshendelse?
 
-    fun hentHendelserForEksternFagsakId(eksternFagsakId: String): List<Tilbakekrevingshendelse>
-
     fun markerInfoBehovSomBehandlet(hendelseId: TilbakekrevinghendelseId, sakId: SakId, svarJson: String, sessionContext: SessionContext? = null)
 
     fun markerEndringSomBehandlet(hendelseId: TilbakekrevinghendelseId, sakId: SakId, sessionContext: SessionContext? = null)

@@ -24,7 +24,7 @@ interface RammevedtakRepo {
 
     fun lagre(
         vedtak: Rammevedtak,
-        context: TransactionContext? = null,
+        context: TransactionContext?,
     )
 
     fun hentRammevedtakSomSkalJournalføres(limit: Int = 10): List<Rammevedtak>

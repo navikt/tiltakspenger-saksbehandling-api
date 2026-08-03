@@ -87,21 +87,6 @@ class TilbakekrevingHendelsePostgresRepo(
         }
     }
 
-    override fun hentHendelserForEksternFagsakId(eksternFagsakId: String): List<Tilbakekrevingshendelse> =
-        sessionFactory.withSession { session ->
-            session.run(
-                sqlQuery(
-                    """
-                    SELECT *
-                    FROM tilbakekreving_hendelse
-                    WHERE ekstern_fagsak_id = :ekstern_fagsak_id
-                    ORDER BY opprettet
-                    """.trimIndent(),
-                    "ekstern_fagsak_id" to eksternFagsakId,
-                ).map { row -> row.tilTilbakekrevingshendelse() }.asList,
-            )
-        }
-
     override fun hentUbehandledeHendelseIder(): List<TilbakekrevinghendelseId> =
         sessionFactory.withSession { session ->
             session.run(
@@ -268,7 +253,7 @@ private enum class HendelsetypeDb {
     Ukjent,
 }
 
-private fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
+fun Row.tilTilbakekrevingshendelse(): Tilbakekrevingshendelse {
     val hendelsestype = HendelsetypeDb.valueOf(string("hendelse_type"))
     val id = TilbakekrevinghendelseId.fromString(string("id"))
     val opprettet = localDateTime("opprettet")

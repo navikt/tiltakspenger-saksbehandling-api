@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.Tilba
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseType
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.konsumerTilbakekrevingshendelse
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.hentTilbakekrevingshendelserForEksternFagsakId
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -460,7 +461,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
 
             // Verifiser at InfoBehov hendelse er lagret og ubehandlet
-            val hendelserFørFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+            val hendelserFørFørsteKjøring = tac.sessionFactory.hentTilbakekrevingshendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
             hendelserFørFørsteKjøring.size shouldBe 1
             val infoBehov = hendelserFørFørsteKjøring.single()
             infoBehov.hendelsestype shouldBe TilbakekrevinghendelseType.InfoBehov
@@ -470,7 +471,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(infoBehov.id)
 
             // Verifiser at InfoBehov er behandlet og en ny BehandlingEndret hendelse er generert
-            val hendelserEtterFørsteKjøring = tac.tilbakekrevingHendelseRepo.hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+            val hendelserEtterFørsteKjøring = tac.sessionFactory.hentTilbakekrevingshendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
             hendelserEtterFørsteKjøring.size shouldBe 2
             val behandlingEndret = hendelserEtterFørsteKjøring.single { it.hendelsestype == TilbakekrevinghendelseType.BehandlingEndret }
             behandlingEndret.behandlet shouldBe null
@@ -482,7 +483,7 @@ class BehandleTilbakekrevingHendelserJobbTest {
             tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(behandlingEndret.id)
 
             // Verifiser at alle hendelser nå er behandlet
-            tac.tilbakekrevingHendelseRepo.hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+            tac.sessionFactory.hentTilbakekrevingshendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
                 .all { it.behandlet != null } shouldBe true
 
             // Verifiser at TilbakekrevingBehandling er opprettet i databasen
@@ -672,12 +673,12 @@ class BehandleTilbakekrevingHendelserJobbTest {
 
             // Etabler behandling via InfoBehov-flyten
             tac.tilbakekrevingProducer.produserInfoBehovVedFeilutbetaling(opphørVedtak.utbetaling!!)
-            val infoBehov = tac.tilbakekrevingHendelseRepo
-                .hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+            val infoBehov = tac.sessionFactory
+                .hentTilbakekrevingshendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
                 .single()
             tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(infoBehov.id)
-            val behandlingEndretFraInfoSvar = tac.tilbakekrevingHendelseRepo
-                .hentHendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
+            val behandlingEndretFraInfoSvar = tac.sessionFactory
+                .hentTilbakekrevingshendelserForEksternFagsakId(sakMedOpphør.saksnummer.verdi)
                 .single { it.hendelsestype == TilbakekrevinghendelseType.BehandlingEndret }
             tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(behandlingEndretFraInfoSvar.id)
 

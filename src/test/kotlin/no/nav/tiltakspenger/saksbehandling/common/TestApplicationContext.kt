@@ -148,7 +148,7 @@ sealed class TestApplicationContext(
     protected open val fellesFakeSkjermingsklient by lazy { FellesFakeSkjermingsklient() }
     protected open val fakeNavIdentClient by lazy { FakeNavIdentClient() }
     protected open val tiltaksdeltakelseFakeKlient: TiltaksdeltakelseFakeKlient by lazy {
-        TiltaksdeltakelseFakeKlient { søknadContext.søknadRepo }
+        TiltaksdeltakelseFakeKlient()
     }
     protected open val safJournalpostFakeClient by lazy { SafJournalpostFakeClient(clock) }
     open val datadelingFakeKlient by lazy { DatadelingFakeKlient() }

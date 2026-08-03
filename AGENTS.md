@@ -27,6 +27,8 @@ Taksonomien — prodstier, aggregat-disiplin og filter-krykka som motbilde — s
 Slik ser den ut i dette repoet:
 
 - **Prodstien er `withTestApplicationContextAndPostgres`** i `common/TestApplicationContextEx.kt`, sammen med route-byggerne.
+  All testtilstand bygges gjennom den; `TestDataHelper`-universet er revet, og testsuiten har én databasecontainer.
+  Rene db-typer uten prodsti bruker `withMigratedDb`-hjelperen i samme fil (`PeriodeDbTest` er eneste bruker).
 - **Aggregat-tester** merkes med `@IsolatedDatabaseTest` og `runIsolated = true`.
   Konvensjonen om at de to alltid følges ad, håndheves av `IsolatedDatabaseTestKonvensjonTest`.
   `MeldekortvedtakAggregatTest` er mønsterfila.
@@ -50,11 +52,6 @@ Slik ser den ut i dette repoet:
   Repoet har null `@TestOnly` i `src/main`, og det skal det fortsette å ha.
 - **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i [`../AGENTS-backend.md`](../AGENTS-backend.md).
   `HjemmelForOpphørDbTest` og `TiltakDeltakerstatusDbTest` er mønsterfilene.
-
-> **Overgangsfase (per 2026-08-03):** kun `BenkOversiktAggregatTest` bygger fortsatt tilstand via `withMigratedDb` og `TestDataHelper`.
-> Det universet er under avvikling, og du skal ikke utvide det.
-> Trenger du ny testtilstand, bygg den gjennom prodstiene.
-> Unntaket er `PeriodeDbTest`, som blir stående — den tester en ren db-type og har ingen prodsti å bygges gjennom.
 
 ## Lokal testdata
 

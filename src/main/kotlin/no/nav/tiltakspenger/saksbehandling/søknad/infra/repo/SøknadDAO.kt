@@ -88,24 +88,6 @@ object SøknadDAO {
                 }.asList,
             )
 
-    fun hentForFnr(
-        fnr: Fnr,
-        session: Session,
-    ): List<Søknad> =
-        session
-            .run(
-                sqlQuery(
-                    """
-                    select *
-                    from søknad s
-                    join sak on sak.id = s.sak_id where sak.fnr = :fnr
-                    """.trimIndent(),
-                    "fnr" to fnr.verdi,
-                ).map { row ->
-                    row.toSøknad(session)
-                }.asList,
-            )
-
     fun hentUbehandledeSøknadIder(limit: Int, session: Session): List<SøknadId> =
         session.run(
             sqlQuery(
@@ -392,7 +374,7 @@ object SøknadDAO {
     /** `søknad.sak_id` er `not null` fra V241, så en truffet rad har alltid en sak. */
     private fun Row.toSakId() = SakId.fromString(string("sak_id"))
 
-    private fun Row.toSøknad(session: Session): Søknad {
+    fun Row.toSøknad(session: Session): Søknad {
         val id = SøknadId.fromString(string("id"))
         val versjon = string("versjon")
         val fornavn = string("fornavn")

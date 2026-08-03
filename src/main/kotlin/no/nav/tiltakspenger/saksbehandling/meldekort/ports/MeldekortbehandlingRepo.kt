@@ -20,7 +20,7 @@ interface MeldekortbehandlingRepo {
     fun lagre(
         meldekortbehandling: Meldekortbehandling,
         simuleringMedMetadata: SimuleringMedMetadata?,
-        transactionContext: TransactionContext? = null,
+        transactionContext: TransactionContext?,
     )
 
     /** Oppdaterer ikke [no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering] eller [SimuleringMedMetadata] */

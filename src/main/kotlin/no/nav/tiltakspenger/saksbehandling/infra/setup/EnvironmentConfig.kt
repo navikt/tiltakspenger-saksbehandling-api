@@ -32,6 +32,9 @@ sealed interface EnvironmentConfig {
     val tiltakScope: String
     val tiltakUrl: String
 
+    val tiltakshistorikkScope: String
+    val tiltakshistorikkUrl: String
+
     val utbetalingScope: String
     val utbetalingUrl: String
 
@@ -120,6 +123,9 @@ data object LocalConfig : EnvironmentConfig {
     override val tiltakScope = "localhost"
     override val tiltakUrl = WIREMOCK_URL
 
+    override val tiltakshistorikkScope = "localhost"
+    override val tiltakshistorikkUrl = WIREMOCK_URL
+
     override val utbetalingScope = "localhost"
     override val utbetalingUrl = WIREMOCK_URL
 
@@ -202,6 +208,9 @@ data object DevConfig : EnvironmentConfig {
     override val tiltakScope = "dev-gcp:tpts:tiltakspenger-tiltak"
     override val tiltakUrl = "http://tiltakspenger-tiltak"
 
+    override val tiltakshistorikkScope = "dev-gcp:team-mulighetsrommet:tiltakshistorikk"
+    override val tiltakshistorikkUrl = "http://tiltakshistorikk.team-mulighetsrommet"
+
     override val utbetalingScope = "dev-gcp:helved:utsjekk"
     override val utbetalingUrl = "http://utsjekk.helved"
 
@@ -280,6 +289,9 @@ data object ProdConfig : EnvironmentConfig {
 
     override val tiltakScope = "prod-gcp:tpts:tiltakspenger-tiltak"
     override val tiltakUrl = "http://tiltakspenger-tiltak"
+
+    override val tiltakshistorikkScope = "prod-gcp:team-mulighetsrommet:tiltakshistorikk"
+    override val tiltakshistorikkUrl = "http://tiltakshistorikk.team-mulighetsrommet"
 
     override val utbetalingScope = "prod-gcp:helved:utsjekk"
     override val utbetalingUrl = "http://utsjekk.helved"

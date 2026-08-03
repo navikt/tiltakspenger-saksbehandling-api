@@ -166,8 +166,7 @@ interface OpprettBehandlingForKlageBuilder {
         ) ?: return null
 
         val søknadId = if (behandlingstype == "SØKNADSBEHANDLING_INNVILGELSE") {
-            tac.søknadContext.søknadRepo.hentSøknaderForFnr(fnr)
-                .single().id
+            sak.søknader.single().id
         } else {
             null
         }
