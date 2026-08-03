@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
@@ -161,7 +162,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             )!!
             val nySaksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling")
             clock.spol1timeFrem()
-            val (_, overtattRammebehandling, rammebehandlingJson) = overtaBehanding(
+            val (_, overtattRammebehandling, sakJson) = overtaBehanding(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
@@ -169,7 +170,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandler = nySaksbehandler,
             )!!
 
-            rammebehandlingJson.get("saksbehandler") shouldBe nySaksbehandler.navIdent
+            sakJson.rammebehandlingJson(rammebehandling.id).get("saksbehandler").asString() shouldBe nySaksbehandler.navIdent
             overtattRammebehandling.klagebehandling!!.saksbehandler shouldBe rammebehandling.saksbehandler
             overtattRammebehandling.klagebehandling!!.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
         }

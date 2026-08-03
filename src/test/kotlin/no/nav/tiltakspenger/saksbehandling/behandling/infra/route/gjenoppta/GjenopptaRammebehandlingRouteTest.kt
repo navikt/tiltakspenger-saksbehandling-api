@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
@@ -25,9 +26,9 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
         withTestApplicationContext { tac ->
             val (sak, søknad, søknadsbehandling, json) = opprettSøknadsbehandlingOgGjenoppta(tac = tac)!!
 
-            json.toString().shouldBeSøknadsbehandlingDTO(
+            json.rammebehandlingJson(søknadsbehandling!!.id).toString().shouldBeSøknadsbehandlingDTO(
                 gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
-                behandlingId = søknadsbehandling!!.id,
+                behandlingId = søknadsbehandling.id,
                 sakId = sak.id,
                 klagebehandlingId = null,
                 søknadId = søknad.id,

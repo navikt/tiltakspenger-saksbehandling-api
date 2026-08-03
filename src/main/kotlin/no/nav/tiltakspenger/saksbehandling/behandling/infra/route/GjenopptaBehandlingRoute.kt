@@ -16,12 +16,13 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.GjenopptaRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.KanIkkeGjenopptaRammebehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val GJENNOPPTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenoppta"
 
@@ -29,6 +30,7 @@ fun Route.gjenopptaRammebehandling(
     auditService: AuditService,
     gjenopptaBehandlingService: GjenopptaRammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post(GJENNOPPTA_BEHANDLING_PATH) {
@@ -66,7 +68,7 @@ fun Route.gjenopptaRammebehandling(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                     },
                 )
             }

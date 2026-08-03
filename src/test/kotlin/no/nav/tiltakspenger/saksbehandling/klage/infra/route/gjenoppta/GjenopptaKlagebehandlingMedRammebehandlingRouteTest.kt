@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
@@ -123,7 +124,7 @@ class GjenopptaKlagebehandlingMedRammebehandlingRouteTest {
 
             val klagebehandling = oppdatertRammebehandlingMedKlagebehandling.klagebehandling!!
 
-            json.toString().shouldBeSøknadsbehandlingDTO(
+            json.rammebehandlingJson(oppdatertRammebehandlingMedKlagebehandling.id).toString().shouldBeSøknadsbehandlingDTO(
                 gyldigeKommandoer = listOf("LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"),
                 behandlingId = oppdatertRammebehandlingMedKlagebehandling.id,
                 sakId = sak.id,

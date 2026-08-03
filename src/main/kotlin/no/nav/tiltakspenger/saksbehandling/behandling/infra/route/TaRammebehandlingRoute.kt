@@ -15,13 +15,14 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.toStatusAndErrorJson
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val TA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/ta"
 
@@ -29,6 +30,7 @@ fun Route.taRammebehandlingRoute(
     auditService: AuditService,
     taBehandlingService: TaRammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post(TA_BEHANDLING_PATH) {
@@ -59,7 +61,7 @@ fun Route.taRammebehandlingRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = it.first.tilRammebehandlingDTO(behandlingId, saksbehandler))
+                        call.respondJson(value = it.first.toSakDTO(saksbehandler, clock))
                     },
                 )
             }

@@ -5,14 +5,14 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
-import no.nav.tiltakspenger.saksbehandling.infra.route.RammebehandlingDTOJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.SakDTOJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
-import org.json.JSONObject
 
 interface TaRammebehandlingBuilder {
 
@@ -27,7 +27,7 @@ interface TaRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
-    ): Triple<Sak, AttesterbarBehandling, RammebehandlingDTOJson>? {
+    ): Triple<Sak, AttesterbarBehandling, SakDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = saksbehandler,
         )
@@ -43,6 +43,6 @@ interface TaRammebehandlingBuilder {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
 
-        return Triple(sak, behandling, JSONObject(response.body))
+        return Triple(sak, behandling, objectMapper.readTree(response.body))
     }
 }

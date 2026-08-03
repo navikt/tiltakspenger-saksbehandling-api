@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -84,15 +85,17 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandler = førsteSaksbehandler,
             )!!
             val nySaksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTarRammebehandling")
-            val (_, tattRammebehandling, rammebehandlingJson) = taBehandling(
+            val (_, tattRammebehandling, sakJson) = taBehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,
                 saksbehandler = nySaksbehandler,
             )!!
 
-            rammebehandlingJson.getString("saksbehandler") shouldBe nySaksbehandler.navIdent
-            rammebehandlingJson.getString("status") shouldBe "UNDER_BEHANDLING"
+            sakJson.rammebehandlingJson(rammebehandling.id).also { behandlingJson ->
+                behandlingJson.get("saksbehandler").asString() shouldBe nySaksbehandler.navIdent
+                behandlingJson.get("status").asString() shouldBe "UNDER_BEHANDLING"
+            }
             (tattRammebehandling as Rammebehandling).klagebehandling!!.saksbehandler shouldBe førsteSaksbehandler.navIdent
             tattRammebehandling.klagebehandling!!.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
         }

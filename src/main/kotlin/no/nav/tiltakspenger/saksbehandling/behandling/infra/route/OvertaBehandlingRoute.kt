@@ -17,12 +17,13 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.KunneIkkeOvertaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.OvertaRammebehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.overta.toStatusAndErrorJson
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 const val OVERTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/overta"
 
@@ -34,6 +35,7 @@ fun Route.overtaRammebehandlingRoute(
     overtaBehandlingService: OvertaRammebehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     patch(OVERTA_BEHANDLING_PATH) {
@@ -67,7 +69,7 @@ fun Route.overtaRammebehandlingRoute(
                                 correlationId = correlationId,
                             )
 
-                            call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
+                            call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                         },
                     )
                 }
