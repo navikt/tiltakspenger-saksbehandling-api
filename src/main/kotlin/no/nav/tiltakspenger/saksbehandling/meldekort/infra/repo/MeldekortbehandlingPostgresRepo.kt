@@ -49,8 +49,9 @@ class MeldekortbehandlingPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : MeldekortbehandlingRepo {
     /**
-     * En nyopprettet meldekortbehandling har hverken begrunnelse eller avbrutt.
+     * En nyopprettet meldekortbehandling har hverken begrunnelse, avbrutt eller utbetalingskontroll.
      * `begrunnelse` og `avbrutt` eies av [oppdater], som oppdater- og avbryt-flytene går gjennom.
+     * `utbetalingskontroll` settes først når behandlingen sendes til beslutter, og eies derfor også av [oppdater].
      * Kolonnene utelates derfor her.
      */
     override fun lagre(
@@ -72,7 +73,6 @@ class MeldekortbehandlingPostgresRepo(
                         beregninger,
                         simulering,
                         simulering_metadata,
-                        utbetalingskontroll,
                         saksbehandler,
                         beslutter,
                         status,
@@ -95,7 +95,6 @@ class MeldekortbehandlingPostgresRepo(
                         :beregninger::jsonb,
                         :simulering::jsonb,
                         :simulering_metadata,
-                        :utbetalingskontroll::jsonb,
                         :saksbehandler,
                         :beslutter,
                         :status,
@@ -120,7 +119,6 @@ class MeldekortbehandlingPostgresRepo(
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     // den er ferdig serialisert
                     "simulering_metadata" to simuleringMedMetadata?.originalResponseBody,
-                    "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
                     "saksbehandler" to meldekortbehandling.saksbehandler,
                     "beslutter" to meldekortbehandling.beslutter,
                     "status" to meldekortbehandling.status.toDb(),
@@ -163,7 +161,7 @@ class MeldekortbehandlingPostgresRepo(
                         avbrutt = :avbrutt::jsonb,
                         ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
-                        utbetalingskontroll = to_jsonb(:utbetalingskontroll::jsonb),
+                        utbetalingskontroll = :utbetalingskontroll::jsonb,
                         klagebehandling_id = :klagebehandling_id
                     where id = :id
                     """,
@@ -221,7 +219,7 @@ class MeldekortbehandlingPostgresRepo(
                         attesteringer = :attesteringer::jsonb,
                         ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
-                        utbetalingskontroll = to_jsonb(:utbetalingskontroll::jsonb),
+                        utbetalingskontroll = :utbetalingskontroll::jsonb,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
                         klagebehandling_id = :klagebehandling_id
