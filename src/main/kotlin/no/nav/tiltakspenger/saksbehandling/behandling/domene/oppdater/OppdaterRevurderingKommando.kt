@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater
 
 import arrow.core.NonEmptySet
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -8,6 +8,10 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import java.time.LocalDate
 

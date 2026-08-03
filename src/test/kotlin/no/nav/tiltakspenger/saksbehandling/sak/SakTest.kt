@@ -19,8 +19,8 @@ import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.AvbrytRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
-import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRammebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.enUkeEtterFixedClock
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger

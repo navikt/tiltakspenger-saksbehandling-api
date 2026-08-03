@@ -1,6 +1,7 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt
 
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 
 /**
  * Forventede feil ved avbryting av en søknadsbehandling eller revurdering (se [Rammebehandling.avbryt] og [no.nav.tiltakspenger.saksbehandling.sak.Sak.avbrytSøknadOgBehandling]).

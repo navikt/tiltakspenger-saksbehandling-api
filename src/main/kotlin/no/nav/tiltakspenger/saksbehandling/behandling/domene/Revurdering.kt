@@ -1,10 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -29,12 +25,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernBehandlingId
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Revurdering(
@@ -106,83 +100,6 @@ data class Revurdering(
             saksbehandler == null -> false
             else -> true
         }
-    }
-
-    fun oppdaterInnvilgelse(
-        kommando: OppdaterRevurderingKommando.Innvilgelse,
-        utbetaling: BehandlingUtbetaling?,
-        omgjørRammevedtak: OmgjørRammevedtak,
-        clock: Clock,
-    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-        validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
-
-        require(this.resultat is Innvilgelse)
-
-        return this.copy(
-            sistEndret = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            resultat = Innvilgelse(
-                innvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
-                barnetillegg = kommando.barnetillegg,
-                omgjørRammevedtak = omgjørRammevedtak,
-            ),
-            utbetaling = utbetaling,
-            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
-        ).also {
-            // TODO jah: Etter omgjøring, fjern denne sjekken, fjern nullstill resultat og påse at dette gjøres ved send til beslutter + iverksett.
-            require(it.resultat.erFerdigutfylt(saksopplysninger))
-        }.right()
-    }
-
-    fun oppdaterStans(
-        kommando: OppdaterRevurderingKommando.Stans,
-        førsteDagSomGirRett: LocalDate,
-        sisteDagSomGirRett: LocalDate,
-        utbetaling: BehandlingUtbetaling?,
-        omgjørRammevedtak: OmgjørRammevedtak,
-        clock: Clock,
-    ): Either<KanIkkeOppdatereBehandling, Revurdering> {
-        validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
-
-        require(this.resultat is Stans)
-
-        return this.copy(
-            sistEndret = nå(clock),
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            resultat = Stans(
-                valgtHjemmel = kommando.valgteHjemler,
-                harValgtStansFraFørsteDagSomGirRett = kommando.harValgtStansFraFørsteDagSomGirRett,
-                stansperiode = kommando.utledStansperiode(førsteDagSomGirRett, sisteDagSomGirRett),
-                omgjørRammevedtak = omgjørRammevedtak,
-            ),
-            utbetaling = utbetaling,
-            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
-        ).right()
-    }
-
-    override fun avbryt(
-        avbruttAv: Saksbehandler,
-        begrunnelse: NonBlankString,
-        tidspunkt: LocalDateTime,
-        skalAvbryteSøknad: Boolean,
-    ): Either<KunneIkkeAvbryteBehandling, Revurdering> {
-        kanAvbryte(avbruttAv).onLeft { return it.left() }
-        return this.copy(
-            status = AVBRUTT,
-            avbrutt = Avbrutt(
-                tidspunkt = tidspunkt,
-                saksbehandler = avbruttAv.navIdent,
-                begrunnelse = begrunnelse,
-            ),
-            sistEndret = tidspunkt,
-            klagebehandling = klagebehandling?.fjernBehandlingId(
-                behandlingId = id,
-                saksbehandler = avbruttAv,
-                sistEndret = tidspunkt,
-            ),
-        ).right()
     }
 
     override fun oppdaterUtbetaling(oppdatertUtbetaling: BehandlingUtbetaling?, clock: Clock): Rammebehandling {

@@ -19,8 +19,8 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeAvbryteBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.AvbrytRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.KunneIkkeAvbryteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.avslutt.AvbrytSøknadOgBehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle

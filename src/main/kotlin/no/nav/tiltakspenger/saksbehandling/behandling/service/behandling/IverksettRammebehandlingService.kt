@@ -13,10 +13,11 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.KanIkkeIverksetteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat

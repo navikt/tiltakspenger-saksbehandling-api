@@ -9,10 +9,10 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterOmgjøringKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterOmgjøringKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate

@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.AktivTilknyttetBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentAktivTilknyttetBehandling

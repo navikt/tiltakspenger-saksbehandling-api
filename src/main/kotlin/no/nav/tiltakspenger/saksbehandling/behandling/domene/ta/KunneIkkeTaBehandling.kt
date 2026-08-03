@@ -1,5 +1,6 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.ta
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.KanIkkeTaKlagebehandling

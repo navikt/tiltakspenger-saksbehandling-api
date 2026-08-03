@@ -1,11 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -19,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Avslag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat.Innvilgelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -30,7 +25,6 @@ import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernBehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -118,51 +112,6 @@ data class Søknadsbehandling(
         }
     }
 
-    /**
-     * @param utbetaling null dersom avslag eller dersom behandlingen ikke fører til en beregning.
-     */
-    fun oppdater(
-        kommando: OppdaterSøknadsbehandlingKommando,
-        clock: Clock,
-        utbetaling: BehandlingUtbetaling?,
-        omgjørRammevedtak: OmgjørRammevedtak,
-    ): Either<KanIkkeOppdatereBehandling, Søknadsbehandling> {
-        validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
-
-        val resultat = when (kommando) {
-            is OppdaterSøknadsbehandlingKommando.Avslag -> {
-                Avslag(
-                    avslagsgrunner = kommando.avslagsgrunner,
-                    avslagsperiode = this.søknad.tiltaksdeltakelseperiodeDetErSøktOm(),
-                )
-            }
-
-            is OppdaterSøknadsbehandlingKommando.Innvilgelse -> {
-                Innvilgelse(
-                    barnetillegg = kommando.barnetillegg,
-                    innvilgelsesperioder = kommando.tilInnvilgelseperioder(this),
-                    omgjørRammevedtak = omgjørRammevedtak,
-                )
-            }
-
-            is OppdaterSøknadsbehandlingKommando.IkkeValgtResultat -> null
-        }
-
-        return this.copy(
-            sistEndret = nå(clock),
-            fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
-            begrunnelseVilkårsvurdering = kommando.begrunnelseVilkårsvurdering,
-            resultat = resultat,
-            automatiskSaksbehandlet = kommando.automatiskSaksbehandlet,
-            utbetaling = utbetaling,
-            skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
-        ).also {
-            require(it.resultat?.erFerdigutfylt(saksopplysninger) != false) {
-                "Behandlingsresultatet må være ferdigutfylt etter vi oppdaterer søknadsbehandlingen"
-            }
-        }.right()
-    }
-
     fun tilManuellBehandling(
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn>,
         clock: Clock,
@@ -176,30 +125,6 @@ data class Søknadsbehandling(
             saksbehandler = null,
             manueltBehandlesGrunner = manueltBehandlesGrunner,
         )
-    }
-
-    override fun avbryt(
-        avbruttAv: Saksbehandler,
-        begrunnelse: NonBlankString,
-        tidspunkt: LocalDateTime,
-        skalAvbryteSøknad: Boolean,
-    ): Either<KunneIkkeAvbryteBehandling, Søknadsbehandling> {
-        kanAvbryte(avbruttAv).onLeft { return it.left() }
-        return this.copy(
-            status = AVBRUTT,
-            søknad = if (skalAvbryteSøknad) this.søknad.avbryt(avbruttAv, begrunnelse, tidspunkt) else this.søknad,
-            avbrutt = Avbrutt(
-                tidspunkt = tidspunkt,
-                saksbehandler = avbruttAv.navIdent,
-                begrunnelse = begrunnelse,
-            ),
-            sistEndret = tidspunkt,
-            klagebehandling = klagebehandling?.fjernBehandlingId(
-                behandlingId = id,
-                saksbehandler = avbruttAv,
-                sistEndret = tidspunkt,
-            ),
-        ).right()
     }
 
     override fun erFerdigutfylt(): Boolean {

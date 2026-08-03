@@ -1,6 +1,7 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater
 
 import arrow.core.NonEmptySet
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForOpphør
 
 sealed interface KanIkkeOppdatereBehandling {
     /** Inntil videre støtter vi ikke vedtak over allerede utbetalte perioder (gjelder søknadsbehandling) */

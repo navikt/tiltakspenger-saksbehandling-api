@@ -21,11 +21,14 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.taBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger

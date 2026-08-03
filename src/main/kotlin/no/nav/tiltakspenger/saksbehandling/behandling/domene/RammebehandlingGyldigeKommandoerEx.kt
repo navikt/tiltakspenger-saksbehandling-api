@@ -5,9 +5,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.kanAvbryte
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.kanGjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.kanLeggeTilbake
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.overta.kanOverta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.kanSettePåVent
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.kanTaBehandling
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
 
 /**

@@ -6,10 +6,11 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.taBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService

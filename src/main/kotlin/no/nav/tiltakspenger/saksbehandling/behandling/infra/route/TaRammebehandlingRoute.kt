@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeTaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller

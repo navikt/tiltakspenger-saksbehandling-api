@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeOppdatereOmgjøring
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereOmgjøring
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 
 fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {

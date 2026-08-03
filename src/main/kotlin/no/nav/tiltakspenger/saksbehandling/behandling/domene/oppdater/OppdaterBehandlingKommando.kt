@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -6,6 +6,11 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilInnvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 
 sealed interface OppdaterBehandlingKommando {

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.ta
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeTaBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandling
 
 sealed interface KanIkkeTaKlagebehandling {

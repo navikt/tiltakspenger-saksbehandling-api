@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater
 
 import arrow.core.Either
 import arrow.core.left
@@ -6,6 +6,8 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat.OmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
@@ -21,7 +23,7 @@ fun Revurdering.oppdaterOmgjøring(
 ): Either<KanIkkeOppdatereBehandling, Revurdering> {
     require(this.resultat is Omgjøringsresultat)
 
-    validerKanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
+    kanOppdatere(kommando.saksbehandler).onLeft { return it.left() }
 
     return when (kommando) {
         is OppdaterOmgjøringKommando.OmgjøringInnvilgelse -> oppdaterOmgjøringInnvilgelse(

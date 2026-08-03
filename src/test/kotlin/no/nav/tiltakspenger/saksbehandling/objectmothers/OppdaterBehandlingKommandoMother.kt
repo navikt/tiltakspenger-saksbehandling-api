@@ -16,9 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.createOrThrow
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterSøknadsbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg

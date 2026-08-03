@@ -4,14 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.NonBlankString
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
-import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeAvbryteBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.AvbrytRammebehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.KunneIkkeAvbryteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
@@ -54,14 +50,3 @@ class AvbrytSøknadOgBehandlingService(
         return oppdatertSak.right()
     }
 }
-
-/**
- * Avbryter kun tilhørende søknad dersom dette er den første søknadsbehandlingen som vurderer den søknaden.
- */
-data class AvbrytRammebehandlingKommando(
-    val saksnummer: Saksnummer,
-    val behandlingId: RammebehandlingId,
-    val avsluttetAv: Saksbehandler,
-    val correlationId: CorrelationId,
-    val begrunnelse: NonBlankString,
-)

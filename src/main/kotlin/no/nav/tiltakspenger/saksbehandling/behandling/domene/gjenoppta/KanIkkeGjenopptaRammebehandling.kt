@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta
 
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.gjenoppta.KanIkkeGjenopptaKlagebehandling

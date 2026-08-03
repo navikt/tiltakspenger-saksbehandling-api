@@ -27,11 +27,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.avbryt
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.taBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.underkjenn.underkjenn
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -62,6 +67,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.tilBeslutning as sendRammebehandlingTilBeslutning
 
 interface BehandlingMother : MotherOfAllMothers {
     /** Felles default vedtaksperiode for testdatatypene */
@@ -514,7 +520,7 @@ interface BehandlingMother : MotherOfAllMothers {
             begrunnelse = begrunnelse.toNonBlankString(),
             tidspunkt = tidspunkt,
             skalAvbryteSøknad = true,
-        ).getOrFail()
+        ).getOrFail() as Søknadsbehandling
     }
 }
 
@@ -975,7 +981,7 @@ fun Rammebehandling.tilBeslutning(
     correlationId: CorrelationId = CorrelationId.generate(),
     clock: Clock = fixedClock,
 ): Rammebehandling {
-    return this.tilBeslutning(
+    return this.sendRammebehandlingTilBeslutning(
         kommando = SendBehandlingTilBeslutningKommando(
             sakId = this.sakId,
             behandlingId = this.id,

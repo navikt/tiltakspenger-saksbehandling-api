@@ -24,8 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.utenBarnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.harKode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg

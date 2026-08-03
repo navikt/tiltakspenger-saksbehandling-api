@@ -12,8 +12,9 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeUnderkjenne
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.underkjenn.KanIkkeUnderkjenne
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.underkjenn.underkjenn
 import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering

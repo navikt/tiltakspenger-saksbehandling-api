@@ -17,9 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling.KanIkkeSendeRammebehandlingTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.KanIkkeSendeRammebehandlingTilBeslutter
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendRammebehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling
+package no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak

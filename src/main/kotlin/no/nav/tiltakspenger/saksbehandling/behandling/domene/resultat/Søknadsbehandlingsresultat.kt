@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.KunneIkkeOppdatereSaksopplysninger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 
