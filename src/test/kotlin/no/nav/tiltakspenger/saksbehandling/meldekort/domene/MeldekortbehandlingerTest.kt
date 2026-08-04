@@ -20,7 +20,7 @@ class MeldekortbehandlingerTest {
     private val andrePeriode = Periode(20.januar(2025), 2.februar(2025))
 
     @Test
-    fun `flere meldekortbehandlinger kan vaere aapne samtidig`() {
+    fun `flere meldekortbehandlinger kan vaere åpne samtidig`() {
         val sakId = SakId.random()
         val meldekortbehandlinger = shouldNotThrowAny {
             Meldekortbehandlinger(
@@ -49,7 +49,7 @@ class MeldekortbehandlingerTest {
     }
 
     @Test
-    fun `to aapne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede`() {
+    fun `to åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede`() {
         val sakId = SakId.random()
         shouldThrow<IllegalArgumentException> {
             Meldekortbehandlinger(
@@ -117,7 +117,7 @@ class MeldekortbehandlingerTest {
     }
 
     @Test
-    fun `ingen aapne meldekortbehandlinger`() {
+    fun `ingen åpne meldekortbehandlinger`() {
         val meldekortbehandlinger = Meldekortbehandlinger(verdi = emptyList())
 
         meldekortbehandlinger.åpneMeldekortbehandlinger.size shouldBe 0
