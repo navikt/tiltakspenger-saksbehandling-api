@@ -499,6 +499,7 @@ class MeldekortbehandlingPostgresRepo(
         ): Meldekortbehandling {
             val id = MeldekortId.fromString(row.string("id"))
             val sakId = SakId.fromString(row.string("sak_id"))
+
             val saksnummer =
                 Saksnummer(row.string("saksnummer"))
             val navkontorEnhetsnummer = row.string("navkontor")
@@ -513,13 +514,15 @@ class MeldekortbehandlingPostgresRepo(
 
             val saksbehandler = row.stringOrNull("saksbehandler")
 
+            val meldeperiodekjeder by lazy { MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session) }
+
             val simulering = row.stringOrNull("simulering")
-                ?.toSimuleringFraDbJson(MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session))
+                ?.toSimuleringFraDbJson(meldeperiodekjeder)
 
             val utbetalingskontroll = row.stringOrNull("utbetalingskontroll")
                 ?.tilMeldekortbehandlingUtbetalingskontroll(
                     id = id,
-                    meldeperiodekjeder = MeldeperiodePostgresRepo.hentMeldeperiodekjederForSakId(sakId, session),
+                    meldeperiodekjeder = meldeperiodekjeder,
                 )
 
             val iverksattTidspunkt = row.localDateTimeOrNull("iverksatt_tidspunkt")
@@ -531,7 +534,7 @@ class MeldekortbehandlingPostgresRepo(
             val meldeperioder = row.string("meldeperioder").tilMeldeperiodebehandlinger(
                 beregning = beregning,
                 hentMeldeperiode = { meldeperiodeId ->
-                    MeldeperiodePostgresRepo.hentForMeldeperiodeId(meldeperiodeId, session)
+                    meldeperiodekjeder.hentForMeldeperiodeId(meldeperiodeId)
                         ?: throw IllegalStateException("Fant ikke meldeperiode $meldeperiodeId for meldekortbehandling $id")
                 },
                 hentBrukersMeldekort = { meldekortId ->
