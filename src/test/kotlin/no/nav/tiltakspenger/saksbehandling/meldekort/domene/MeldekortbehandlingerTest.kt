@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandlinger
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -121,5 +122,125 @@ class MeldekortbehandlingerTest {
 
         meldekortbehandlinger.åpneMeldekortbehandlinger.size shouldBe 0
         meldekortbehandlinger.harÅpenBehandling shouldBe false
+    }
+
+    @Test
+    fun `foerste behandling paa en kjede er FOERSTE_BEHANDLING og de paafoelgende er KORRIGERING`() {
+        val sakId = SakId.random()
+
+        shouldNotThrowAny {
+            Meldekortbehandlinger(
+                verdi = listOf(
+                    ObjectMother.meldekortBehandletManuelt(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 1.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                    ObjectMother.meldekortBehandletManuelt(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 2.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.KORRIGERING,
+                    ),
+                    ObjectMother.meldekortUnderBehandling(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 3.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.KORRIGERING,
+                    ),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `foerste behandling paa en kjede kan ikke vaere KORRIGERING`() {
+        val sakId = SakId.random()
+
+        shouldThrow<IllegalArgumentException> {
+            Meldekortbehandlinger(
+                verdi = listOf(
+                    ObjectMother.meldekortUnderBehandling(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 1.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.KORRIGERING,
+                    ),
+                ),
+            )
+        }.message shouldContain "Den første behandlingen av en meldeperiodekjede må ha type FØRSTE_BEHANDLING"
+    }
+
+    @Test
+    fun `en paafoelgende behandling paa en kjede kan ikke vaere FOERSTE_BEHANDLING`() {
+        val sakId = SakId.random()
+
+        shouldThrow<IllegalArgumentException> {
+            Meldekortbehandlinger(
+                verdi = listOf(
+                    ObjectMother.meldekortBehandletManuelt(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 1.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                    ObjectMother.meldekortUnderBehandling(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 2.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                ),
+            )
+        }.message shouldContain "Den første behandlingen av en meldeperiodekjede må ha type FØRSTE_BEHANDLING"
+    }
+
+    @Test
+    fun `en avbrutt behandling teller ikke med i typerekkefoelgen`() {
+        val sakId = SakId.random()
+
+        shouldNotThrowAny {
+            Meldekortbehandlinger(
+                verdi = listOf(
+                    ObjectMother.meldekortbehandlingAvbrutt(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 1.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                    ObjectMother.meldekortUnderBehandling(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 2.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `typerekkefoelgen valideres per kjede`() {
+        val sakId = SakId.random()
+
+        shouldNotThrowAny {
+            Meldekortbehandlinger(
+                verdi = listOf(
+                    ObjectMother.meldekortBehandletManuelt(
+                        sakId = sakId,
+                        periode = førstePeriode,
+                        opprettet = 1.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                    ObjectMother.meldekortUnderBehandling(
+                        sakId = sakId,
+                        periode = andrePeriode,
+                        opprettet = 2.januar(2025).atStartOfDay(),
+                        type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    ),
+                ),
+            )
+        }
     }
 }

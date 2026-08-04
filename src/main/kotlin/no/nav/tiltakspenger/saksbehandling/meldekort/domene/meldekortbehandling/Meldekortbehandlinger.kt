@@ -204,6 +204,24 @@ data class Meldekortbehandlinger(
         require(samtidigBehandledeKjeder.isEmpty()) {
             "To åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede. Samtidig behandlede kjeder: $samtidigBehandledeKjeder - sak $sakId"
         }
+
+        ikkeAvbrutteMeldekortbehandlinger
+            .flatMap { behandling -> behandling.meldeperioder }
+            .groupBy { it.kjedeId }
+            .forEach { (kjedeId, meldeperiodebehandlinger) ->
+                val faktiskeTyper = meldeperiodebehandlinger.map { it.type }
+                val forventedeTyper = faktiskeTyper.mapIndexed { index, _ ->
+                    if (index == 0) {
+                        MeldeperiodebehandlingType.FØRSTE_BEHANDLING
+                    } else {
+                        MeldeperiodebehandlingType.KORRIGERING
+                    }
+                }
+
+                require(faktiskeTyper == forventedeTyper) {
+                    "Den første behandlingen av en meldeperiodekjede må ha type FØRSTE_BEHANDLING, og de påfølgende KORRIGERING. Kjede $kjedeId har typene $faktiskeTyper - sak $sakId"
+                }
+            }
     }
 
     companion object {
