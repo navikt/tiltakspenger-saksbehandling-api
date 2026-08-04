@@ -72,7 +72,7 @@ class TilgangsmaskinHttpClient(
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, Tilgangsvurdering> = exchangeToken(saksbehandlerToken).flatMap { oboToken ->
+    ): Either<TilgangskontrollFeil, Tilgangsvurdering> = exchangeToken(saksbehandlerToken, tilgangTilPersonUri).flatMap { oboToken ->
         httpKlient.postTekst<Unit>(
             uri = tilgangTilPersonUri,
             tekst = fnr.verdi,
@@ -108,7 +108,7 @@ class TilgangsmaskinHttpClient(
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, Map<Fnr, Boolean>> = exchangeToken(saksbehandlerToken).flatMap { oboToken ->
+    ): Either<TilgangskontrollFeil, Map<Fnr, Boolean>> = exchangeToken(saksbehandlerToken, tilgangTilPersonerUri).flatMap { oboToken ->
         httpKlient.postJson<TilgangBulkResponseDto>(
             uri = tilgangTilPersonerUri,
             body = fnrs.map { TilgangPersonRequestDto(brukerId = it.verdi) },
@@ -119,7 +119,14 @@ class TilgangsmaskinHttpClient(
             .flatMap { response -> response.tryMap { it.tilTilgangPerFnr() } }
     }.mapLeft(::tilTilgangskontrollFeil)
 
-    private suspend fun exchangeToken(saksbehandlerToken: String): Either<HttpKlientError, AccessToken> {
+    /**
+     * [uri] er kallet tokenet skulle brukes til.
+     * Uten den ville feilloggen bare visst at en tokenveksling feilet, ikke hvem vi var på vei til — stacktracen fra Texas sier ingenting om det.
+     */
+    private suspend fun exchangeToken(
+        saksbehandlerToken: String,
+        uri: URI,
+    ): Either<HttpKlientError, AccessToken> {
         return Either
             .catch {
                 texasClient.exchangeToken(
@@ -129,7 +136,7 @@ class TilgangsmaskinHttpClient(
                 )
             }
             // OBO-vekslingen feiler før noe HTTP-kall er gjort; authFeilUtenKall gir samme form som klientens egne auth-feil.
-            .mapLeft(::authFeilUtenKall)
+            .mapLeft { authFeilUtenKall(it, method = "POST", uri = uri) }
     }
 
     private fun tilTilgangskontrollFeil(feil: HttpKlientError): TilgangskontrollFeil =

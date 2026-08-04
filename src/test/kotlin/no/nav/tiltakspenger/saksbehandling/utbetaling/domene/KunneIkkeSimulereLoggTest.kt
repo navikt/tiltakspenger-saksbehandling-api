@@ -11,9 +11,13 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
+import no.nav.tiltakspenger.libs.httpklient.Tidsgrenser
+import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
+import java.net.URI
+import kotlin.time.Duration.Companion.seconds
 
 class KunneIkkeSimulereLoggTest {
 
@@ -21,6 +25,10 @@ class KunneIkkeSimulereLoggTest {
         statusCode = 500,
         body = "",
         metadata = HttpKlientMetadata(
+            method = "POST",
+            uri = URI.create("http://helved.test/simulering"),
+            uriSynlighet = UriSynlighet.VanligLogg,
+            tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
             rawRequestString = "",
             rawResponseString = null,
             requestHeaders = emptyMap(),

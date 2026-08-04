@@ -122,9 +122,10 @@ class SafJournalpostHttpClient(
     override suspend fun hentDokument(
         command: HentDokumentCommand,
     ): Either<HttpKlientError, PdfA> {
-        return exchangeOboToken(command.saksbehandlerToken).flatMap { oboToken ->
+        val uri = URI.create("$baseUrl/rest/hentdokument/${command.journalpostId}/${command.dokumentInfoId}/ARKIV")
+        return exchangeOboToken(command.saksbehandlerToken, method = "GET", uri = uri).flatMap { oboToken ->
             httpKlient.getPdf(
-                uri = URI.create("$baseUrl/rest/hentdokument/${command.journalpostId}/${command.dokumentInfoId}/ARKIV"),
+                uri = uri,
                 headere = listOf(
                     Header("X-Correlation-ID", command.correlationId.value),
                     // SAF bruker «Nav-Callid»-varianten (uten bindestrek før Id); navCallId ville gitt det andre headernavnet «Nav-Call-Id».
@@ -136,7 +137,15 @@ class SafJournalpostHttpClient(
         }
     }
 
-    private suspend fun exchangeOboToken(saksbehandlerToken: String): Either<HttpKlientError, AccessToken> {
+    /**
+     * [method] og [uri] er kallet tokenet skulle brukes til.
+     * Uten dem ville feilloggen bare visst at en tokenveksling feilet, ikke hvem vi var på vei til — stacktracen fra Texas sier ingenting om det.
+     */
+    private suspend fun exchangeOboToken(
+        saksbehandlerToken: String,
+        method: String,
+        uri: URI,
+    ): Either<HttpKlientError, AccessToken> {
         return Either
             .catch {
                 texasClient.exchangeToken(
@@ -146,7 +155,7 @@ class SafJournalpostHttpClient(
                 )
             }
             // OBO-vekslingen feiler før noe HTTP-kall er gjort; authFeilUtenKall gir samme form som klientens egne auth-feil.
-            .mapLeft(::authFeilUtenKall)
+            .mapLeft { authFeilUtenKall(it, method = method, uri = uri) }
     }
 }
 

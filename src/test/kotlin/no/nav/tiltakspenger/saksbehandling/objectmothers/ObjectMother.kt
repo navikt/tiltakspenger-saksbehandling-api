@@ -7,15 +7,19 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
+import no.nav.tiltakspenger.libs.httpklient.Tidsgrenser
+import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.Navn
 import no.nav.tiltakspenger.saksbehandling.sak.FnrGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.delteSaksnummerGenerator
+import java.net.URI
 import java.time.Clock
 import java.time.Instant
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Delt instans slik at alle fnr fra [ObjectMother.gyldigFnr] er unike på tvers av hele testkjøringen.
@@ -85,6 +89,10 @@ object ObjectMother :
         statusCode = statusCode,
         body = body,
         metadata = HttpKlientMetadata(
+            method = "POST",
+            uri = URI.create("http://test/endepunkt"),
+            uriSynlighet = UriSynlighet.VanligLogg,
+            tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
             rawRequestString = "POST http://test/endepunkt",
             rawResponseString = body,
             requestHeaders = emptyMap(),

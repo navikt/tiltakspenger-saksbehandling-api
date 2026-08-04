@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import org.junit.jupiter.api.Test
+import java.net.URI
 
 class SendtUtbetalingExTest {
 
@@ -78,7 +79,11 @@ class SendtUtbetalingExTest {
     fun `feil uten respons lagres med null for response og responseStatus`() {
         val actual = KunneIkkeUtbetale(
             request = "request",
-            feil = authFeilUtenKall(RuntimeException("token-veksling feilet")),
+            feil = authFeilUtenKall(
+                RuntimeException("token-veksling feilet"),
+                method = "POST",
+                uri = URI.create("http://helved.test/utbetalinger"),
+            ),
         ).toJson()
         objectMapper.readTree(actual)
         actual.shouldEqualJson(

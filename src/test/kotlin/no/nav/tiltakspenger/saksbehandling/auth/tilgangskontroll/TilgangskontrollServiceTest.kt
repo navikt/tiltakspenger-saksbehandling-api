@@ -15,6 +15,8 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
+import no.nav.tiltakspenger.libs.httpklient.Tidsgrenser
+import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
@@ -24,6 +26,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
+import java.net.URI
+import kotlin.time.Duration.Companion.seconds
 
 class TilgangskontrollServiceTest {
     private val fnr = Fnr.random()
@@ -39,6 +43,10 @@ class TilgangskontrollServiceTest {
             statusCode = 500,
             body = "",
             metadata = HttpKlientMetadata(
+                method = "POST",
+                uri = URI.create("http://tilgangsmaskin.test/api/v1/kjerne"),
+                uriSynlighet = UriSynlighet.VanligLogg,
+                tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
                 rawRequestString = "",
                 rawResponseString = null,
                 requestHeaders = emptyMap(),

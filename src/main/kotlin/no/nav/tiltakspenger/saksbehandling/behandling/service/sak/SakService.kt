@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
@@ -94,7 +95,14 @@ class SakService(
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteEnkelPerson, EnkelPersonMedSkjerming> {
         val erSkjermet = fellesSkjermingsklient.erSkjermetPerson(fnr, correlationId)
-            .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming.left() }
+            .getOrElse { feil ->
+                feil.httpKlientError.loggFeil(
+                    logger = logger,
+                    operasjon = "skjermingsoppslag for enkeltperson",
+                    kontekst = "CorrelationId $correlationId",
+                )
+                return KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming.left()
+            }
         val person = personService.hentEnkelPersonFnr(fnr)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }
         val personMedSkjerming =
@@ -126,7 +134,14 @@ class SakService(
         logger.debug { "Fant ${barnasFnrs.size} unike barn for person" }
 
         val erBarnSkjermet = fellesSkjermingsklient.erSkjermetPersoner(barnasFnrs, correlationId)
-            .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming.left() }
+            .getOrElse { feil ->
+                feil.httpKlientError.loggFeil(
+                    logger = logger,
+                    operasjon = "skjermingsoppslag for barn",
+                    kontekst = "Sak $sakId, ${barnasFnrs.size} barn, correlationId $correlationId",
+                )
+                return KunneIkkeHenteEnkelPerson.FeilVedKallMotSkjerming.left()
+            }
 
         val barn = personService.hentPersoner(barnasFnrs)
             .getOrElse { return KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left() }

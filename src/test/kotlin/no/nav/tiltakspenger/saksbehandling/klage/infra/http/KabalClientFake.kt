@@ -6,11 +6,15 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
+import no.nav.tiltakspenger.libs.httpklient.Tidsgrenser
+import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KabalClient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import java.net.URI
 import java.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class KabalClientFake(
     private val clock: Clock,
@@ -24,6 +28,10 @@ class KabalClientFake(
             body = Unit,
             metadata =
             HttpKlientMetadata(
+                method = "POST",
+                uri = URI.create("http://kabal.test/api/oversendelse/v4/sak"),
+                uriSynlighet = UriSynlighet.VanligLogg,
+                tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
                 rawRequestString = "{}",
                 rawResponseString = "",
                 requestHeaders = emptyMap(),

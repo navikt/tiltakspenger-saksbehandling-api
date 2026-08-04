@@ -12,9 +12,13 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
+import no.nav.tiltakspenger.libs.httpklient.Tidsgrenser
+import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import org.junit.jupiter.api.Test
 import java.io.IOException
+import java.net.URI
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class NavkontorServiceTest {
     private val fnr = Fnr.random()
@@ -69,6 +73,10 @@ class NavkontorServiceTest {
 
     /** Rå request med fnr, slik at testen fanger opp om beskrivelsen lekker request-data ([Klientkall] avledes herfra). */
     private fun metadataMedFnrIRequest() = HttpKlientMetadata(
+        method = "POST",
+        uri = URI.create("http://veilarboppfolging.test"),
+        uriSynlighet = UriSynlighet.VanligLogg,
+        tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
         rawRequestString = """POST http://veilarboppfolging.test {"fnr":"${fnr.verdi}"}""",
         rawResponseString = null,
         requestHeaders = emptyMap(),
