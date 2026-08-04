@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater
 
 import arrow.core.Either
+import arrow.core.left
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
@@ -19,6 +20,15 @@ suspend fun Sak.oppdaterMeldekort(
     clock: Clock,
 ): Either<KanIkkeOppdatereMeldekortbehandling, Triple<Sak, MeldekortUnderBehandling, SimuleringMedMetadata?>> {
     val meldekortbehandling = this.meldekortbehandlinger.hentMeldekortbehandling(kommando.meldekortId) as MeldekortUnderBehandling
+
+    this.meldekortbehandlinger.kjederMedAnnenÅpenBehandling(
+        kjedeIder = kommando.meldeperioder.map { it.kjedeId },
+        ekskluderBehandlingId = meldekortbehandling.id,
+    ).let {
+        if (it.isNotEmpty()) {
+            return KanIkkeOppdatereMeldekortbehandling.KjedeErUnderBehandling(it).left()
+        }
+    }
 
     val meldeperioder = kommando.meldeperioder.map {
         val meldeperiode = this.meldeperiodeKjeder.hentSisteMeldeperiodeForKjede(it.kjedeId)

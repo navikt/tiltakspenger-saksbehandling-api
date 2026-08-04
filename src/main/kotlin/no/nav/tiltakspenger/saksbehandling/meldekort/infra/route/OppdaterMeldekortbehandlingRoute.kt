@@ -84,5 +84,12 @@ suspend fun RoutingContext.respondWithError(meldekort: KanIkkeOppdatereMeldekort
                 kode = "meldekortperioden_kan_ikke_være_frem_i_tid",
             )
         }
+
+        is KanIkkeOppdatereMeldekortbehandling.KjedeErUnderBehandling -> {
+            call.respond400BadRequest(
+                melding = "Meldeperiodekjedene ${meldekort.kjedeIder} er allerede omfattet av en annen åpen meldekortbehandling.",
+                kode = "kjede_er_under_behandling",
+            )
+        }
     }
 }

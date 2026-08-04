@@ -107,4 +107,9 @@ sealed interface KanIkkeOppretteMeldekortbehandling {
     data class DuplikateKjeder(
         val kjedeIder: Set<MeldeperiodeKjedeId>,
     ) : KanIkkeOppretteMeldekortbehandling
+
+    /** En meldeperiodekjede kan bare være omfattet av én åpen meldekortbehandling om gangen. */
+    data class KjedeErUnderBehandling(
+        val kjedeIder: Set<MeldeperiodeKjedeId>,
+    ) : KanIkkeOppretteMeldekortbehandling
 }

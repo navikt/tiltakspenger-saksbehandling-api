@@ -244,6 +244,12 @@ fun Sak.opprettManuellMeldekortbehandling(
         }
     }
 
+    this.meldekortbehandlinger.kjederMedAnnenÅpenBehandling(kjedeIder).let {
+        if (it.isNotEmpty()) {
+            return KanIkkeOppretteMeldekortbehandling.KjedeErUnderBehandling(it).left()
+        }
+    }
+
     val meldekortId = MeldekortId.random()
 
     val meldeperiodebehandlinger = kjedeIder.map { kjedeId ->

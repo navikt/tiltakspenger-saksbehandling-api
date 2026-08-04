@@ -73,6 +73,28 @@ data class Meldekortbehandlinger(
 
     val harÅpenBehandling: Boolean by lazy { åpneMeldekortbehandlinger.isNotEmpty() }
 
+    /** Meldeperiodekjedene som er omfattet av en åpen meldekortbehandling. */
+    val kjedeIderMedÅpenBehandling: Set<MeldeperiodeKjedeId> by lazy {
+        åpneMeldekortbehandlinger.flatMap { it.kjedeIder }.toSet()
+    }
+
+    /**
+     * Finner de av [kjedeIder] som allerede er omfattet av en åpen meldekortbehandling.
+     * To åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede, siden det gir konflikter på blant annet [MeldeperiodebehandlingType].
+     * Behandlingen [ekskluderBehandlingId] holdes utenfor, slik at en åpen behandling kan oppdateres med sine egne kjeder.
+     */
+    fun kjederMedAnnenÅpenBehandling(
+        kjedeIder: Collection<MeldeperiodeKjedeId>,
+        ekskluderBehandlingId: MeldekortId? = null,
+    ): Set<MeldeperiodeKjedeId> {
+        val opptatteKjeder = åpneMeldekortbehandlinger
+            .filterNot { it.id == ekskluderBehandlingId }
+            .flatMap { it.kjedeIder }
+            .toSet()
+
+        return kjedeIder.filterTo(mutableSetOf()) { it in opptatteKjeder }
+    }
+
     fun sendTilBeslutter(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
         clock: Clock,
@@ -173,6 +195,16 @@ data class Meldekortbehandlinger(
                 "Meldekort må ha unik id"
             }
         }
+
+        verdi.filter { it.erÅpen() }
+            .flatMap { behandling -> behandling.kjedeIder.map { kjedeId -> kjedeId to behandling.id } }
+            .groupBy({ it.first }, { it.second })
+            .filterValues { it.size > 1 }
+            .also { overlappendeKjeder ->
+                require(overlappendeKjeder.isEmpty()) {
+                    "To åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede. Overlappende kjeder med tilhørende behandlinger: $overlappendeKjeder"
+                }
+            }
     }
 
     companion object {

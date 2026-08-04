@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
@@ -146,19 +147,21 @@ class OpprettMeldekortbehandlingServiceTest {
     }
 
     @Test
-    fun `Kan opprette behandling på alle kjeder selv om det finnes en åpen behandling`() {
+    fun `Kan opprette behandling på øvrige kjeder selv om det finnes en åpen behandling`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
+            val opptattKjedeId = sak.meldeperiodeKjeder.first().kjedeId
+
             tac.nyOpprettetMeldekortbehandling(
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                kjedeId = opptattKjedeId,
                 sakId = sak.id,
             )
 
-            sak.meldeperiodeKjeder.forEach {
+            sak.meldeperiodeKjeder.filterNot { it.kjedeId == opptattKjedeId }.forEach {
                 tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
                     OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                         sakId = sak.id,
@@ -172,15 +175,43 @@ class OpprettMeldekortbehandlingServiceTest {
     }
 
     @Test
-    fun `Kan opprette behandling når det finnes en åpen behandling som kan tas`() {
+    fun `Kan ikke opprette behandling på en kjede som allerede har en åpen behandling`() {
         withTestApplicationContext { tac ->
             val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
                 innvilgelsesperioder = innvilgelsesperioderTotal,
             )
 
+            val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
+
+            tac.nyOpprettetMeldekortbehandling(
+                kjedeId = kjedeId,
+                sakId = sak.id,
+            )
+
+            tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
+                OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
+                    sakId = sak.id,
+                    kjedeId = kjedeId,
+                    saksbehandler = saksbehandler(),
+                    klagebehandlingId = null,
+                ),
+            ) shouldBe KanIkkeOppretteMeldekortbehandling.KjedeErUnderBehandling(setOf(kjedeId)).left()
+        }
+    }
+
+    @Test
+    fun `Kan ikke opprette behandling når det finnes en åpen behandling som kan tas`() {
+        withTestApplicationContext { tac ->
+            val (sak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioderTotal,
+            )
+
+            val kjedeId = sak.meldeperiodeKjeder.first().kjedeId
+
             val (_, nyBehandling) = tac.nyOpprettetMeldekortbehandling(
-                kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                kjedeId = kjedeId,
                 sakId = sak.id,
             )
 
@@ -193,11 +224,11 @@ class OpprettMeldekortbehandlingServiceTest {
             tac.meldekortContext.opprettMeldekortbehandlingService.opprettBehandling(
                 OpprettMeldekortbehandlingService.OpprettMeldekortbehandlingKommando(
                     sakId = sak.id,
-                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                    kjedeId = kjedeId,
                     saksbehandler = saksbehandler(),
                     klagebehandlingId = null,
                 ),
-            ).getOrFail()
+            ) shouldBe KanIkkeOppretteMeldekortbehandling.KjedeErUnderBehandling(setOf(kjedeId)).left()
         }
     }
 }

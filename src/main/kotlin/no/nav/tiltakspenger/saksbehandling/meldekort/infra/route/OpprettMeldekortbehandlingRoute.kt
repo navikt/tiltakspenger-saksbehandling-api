@@ -119,4 +119,12 @@ fun KanIkkeOppretteMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
             kode = "duplikate_kjeder",
         ),
     )
+
+    is KanIkkeOppretteMeldekortbehandling.KjedeErUnderBehandling -> Pair(
+        HttpStatusCode.BadRequest,
+        ErrorJson(
+            melding = "Meldeperiodekjedene ${this.kjedeIder} er allerede omfattet av en åpen meldekortbehandling",
+            kode = "kjede_er_under_behandling",
+        ),
+    )
 }
