@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.kafka
 
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagehendelseRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 import java.time.Clock
 import java.util.UUID
 

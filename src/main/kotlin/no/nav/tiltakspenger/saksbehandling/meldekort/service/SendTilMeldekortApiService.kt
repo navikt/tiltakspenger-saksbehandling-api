@@ -4,8 +4,8 @@ import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortApiKlient
 
 /**
  * Sender meldeperioder som er klare for utfylling til meldekort-api, som serverer videre til bruker

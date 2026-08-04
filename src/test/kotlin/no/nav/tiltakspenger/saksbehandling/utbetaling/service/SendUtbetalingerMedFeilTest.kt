@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
 import org.junit.jupiter.api.Test
 
 /**

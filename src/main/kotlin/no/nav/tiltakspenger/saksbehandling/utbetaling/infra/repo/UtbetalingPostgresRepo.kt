@@ -19,13 +19,13 @@ import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toForsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingDetSkalHentesStatusFor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
 import java.time.LocalDateTime
 
 class UtbetalingPostgresRepo(

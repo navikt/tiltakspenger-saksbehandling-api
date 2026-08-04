@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.SøknadService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService

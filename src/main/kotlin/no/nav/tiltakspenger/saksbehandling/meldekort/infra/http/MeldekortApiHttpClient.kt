@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.SerialisertJson
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.net.URI
 import java.time.Clock

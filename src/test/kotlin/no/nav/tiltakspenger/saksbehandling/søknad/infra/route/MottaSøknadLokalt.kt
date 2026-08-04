@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ports.TiltaksdeltakerRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 
 fun nySøknadForFnr(
     fnr: Fnr,

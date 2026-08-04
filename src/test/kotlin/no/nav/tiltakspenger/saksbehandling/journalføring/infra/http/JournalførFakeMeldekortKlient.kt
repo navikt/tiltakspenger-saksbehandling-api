@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadat
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.KunneIkkeJournalføre
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.JournalførMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
 
 class JournalførFakeMeldekortKlient(
     private val journalpostIdGenerator: JournalpostIdGenerator,

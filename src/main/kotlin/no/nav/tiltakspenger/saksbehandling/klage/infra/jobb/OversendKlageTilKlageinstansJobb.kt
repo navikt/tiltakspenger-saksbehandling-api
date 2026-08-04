@@ -7,13 +7,13 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KabalClient
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentJournalpostIdForVedtakId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandlingerSomSkalOversendesKlageinstansen
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOversendtKlageinstansFeilet
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.oppdaterOversendtKlageinstansenTidspunkt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold.tilOversendtKlageTilKabalMetadata
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser

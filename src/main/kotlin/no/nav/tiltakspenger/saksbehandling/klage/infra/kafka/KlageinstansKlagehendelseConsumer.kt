@@ -8,9 +8,9 @@ import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagehendelseRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Clock
 

@@ -15,9 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaH
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
@@ -52,14 +52,14 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahCo
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkContext
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.setup.SøknadContext
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.jobb.BehandleTilbakekrevingHendelserJobb
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingProducer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports.TilbakekrevingBehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper

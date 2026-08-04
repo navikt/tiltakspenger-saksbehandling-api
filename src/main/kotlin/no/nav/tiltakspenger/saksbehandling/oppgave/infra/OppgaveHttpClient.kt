@@ -14,8 +14,8 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import java.net.URI

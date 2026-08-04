@@ -10,10 +10,10 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
 import org.junit.jupiter.api.Test
 
 class SendUtbetalingerServiceTest {

@@ -355,7 +355,7 @@ val databaselagMedDekningskrav =
         // Alt som ligger under en `infra/repo`-pakke, uansett hvor dypt: `<domene>/infra/repo/`, `<domene>/infra/repo/<mappe>/`, `infra/repo/`.
         // `*DbJson`-filene ligger alle her, og fanges av dette mønsteret.
         "no.nav.tiltakspenger.saksbehandling.*infra.repo.*",
-        // Alt som heter `*Repo`, uansett hvor det ligger — i praksis portene i `<domene>/ports`, men et repo som havner et annet sted er dekket uten at gaten må endres.
+        // Alt som heter `*Repo`, uansett hvor det ligger — i praksis portene, som bor sammen med domenekoden sin, men et repo som havner et annet sted er dekket uten at gaten må endres.
         // Suffikset tar med de syntetiske `$DefaultImpls`-broene som defaultargumenter på et interface genererer.
         "no.nav.tiltakspenger.saksbehandling.*Repo*",
     )

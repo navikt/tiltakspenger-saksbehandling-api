@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.IdenthendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseDto

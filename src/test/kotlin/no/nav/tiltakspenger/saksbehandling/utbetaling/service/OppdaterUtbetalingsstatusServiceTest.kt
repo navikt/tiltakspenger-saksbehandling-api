@@ -11,9 +11,9 @@ import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 import org.junit.jupiter.api.Test
 
 class OppdaterUtbetalingsstatusServiceTest {

@@ -10,10 +10,10 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonskli
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
 import java.time.Clock
 

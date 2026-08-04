@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentDokumentCommand
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import java.time.Clock
 
 class VisInnstillingsbrevKlagebehandlingService(

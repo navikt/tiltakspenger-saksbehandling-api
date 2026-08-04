@@ -109,10 +109,16 @@ class AggregatspørringKonsistTest {
             }
     }
 
+    /**
+     * Portene kjennes igjen på at de er `interface` med navn på `Repo`, ikke på hvor de ligger.
+     * Utledningen sto tidligere på pakkenavnet `ports`, men den infixen er fjernet — portene bor nå sammen med domenekoden de tilhører.
+     * Navnet er den samme kilden som Kover-gaten bruker (`*Repo*` i `build.gradle.kts`), og det er derfor én konvensjon å bryte, ikke to.
+     */
     private fun portmetoderMedLimit(): Set<String> =
         Konsist.scopeFromProduction().kildefiler()
             .filterNot { it.path.iEtArbeidstre() }
-            .filter { "/ports/" in it.path }
+            .flatMap { it.interfaces(includeNested = true) }
+            .filter { it.name.endsWith("Repo") }
             .flatMap { it.functions(includeNested = true) }
             .filter { funksjon -> funksjon.parameters.any { it.name == "limit" } }
             .map { it.name }

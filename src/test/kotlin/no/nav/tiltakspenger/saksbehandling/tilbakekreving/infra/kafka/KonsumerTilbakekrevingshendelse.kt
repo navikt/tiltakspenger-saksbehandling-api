@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka
 
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.hendelser.TilbakekrevinghendelseId
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports.TilbakekrevingHendelseRepo
 import java.time.Clock
 
 /**

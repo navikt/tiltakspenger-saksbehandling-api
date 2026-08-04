@@ -3,8 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.json.deserialize
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SøknadRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaKafkaMessage
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
@@ -13,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.D
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ports.TiltaksdeltakerRepo
 import java.time.Clock
 import java.util.UUID
 

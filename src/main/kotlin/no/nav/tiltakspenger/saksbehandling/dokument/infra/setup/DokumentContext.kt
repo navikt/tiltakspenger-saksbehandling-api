@@ -2,20 +2,20 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra.setup
 
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForAvslagKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForInnvilgelseKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForOpphørKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.GenererVedtaksbrevForStansKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.JournalførRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForAvslagKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForInnvilgelseKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForOpphørKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevForStansKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.JournalførRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient
-import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
-import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.GenererVedtaksbrevForMeldekortKlient
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.JournalførMeldekortKlient
+import no.nav.tiltakspenger.saksbehandling.klage.domene.GenererKlagebrevKlient
+import no.nav.tiltakspenger.saksbehandling.klage.domene.JournalførKlagebrevKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.GenererVedtaksbrevForMeldekortKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.JournalførMeldekortKlient
 import java.time.Clock
 
 open class DokumentContext(

@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.dokument
 
-import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import java.util.Base64
 
 data class PdfOgJson(

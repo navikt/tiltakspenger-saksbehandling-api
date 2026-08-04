@@ -8,8 +8,8 @@ import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.tilStatistikk
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
 import java.time.Clock
 
 /**

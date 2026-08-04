@@ -8,10 +8,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRamme
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.KanIkkeTaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.TaKlagebehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.ta.taKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService

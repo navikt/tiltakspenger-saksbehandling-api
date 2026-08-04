@@ -15,7 +15,8 @@ Les disse først.
 
 - **Databaserelaterte filer ligger under `<domene>/infra/repo/`.**
   Db-mapping hører til domenet den lagrer, ikke til en delt db-pakke.
-  Portene (repo-grensesnittene) ligger i `<domene>/ports/`, implementasjonen i `<domene>/infra/repo/`.
+  Portene (repo-grensesnittene) ligger sammen med domenekoden de tilhører — `<domene>/domene/` der vertikalen har en slik pakke, ellers `<domene>/` — og implementasjonen i `<domene>/infra/repo/`.
+  Det finnes ingen `ports`-pakke; porten er domenekode, ikke et eget lag.
 - **`felles` er domenekode, `infra` er infrastruktur.**
   De to pakkene ligger side om side rett under `no.nav.tiltakspenger.saksbehandling`, og `felles` skal verken ha en `infra`-underpakke eller importere infrastruktur.
   Mapping av en felles domenetype er infrastruktur selv om typen den mapper er felles, og hører derfor hjemme under `infra` — ikke ved siden av typen.
@@ -33,7 +34,7 @@ Slik ser den ut i dette repoet:
   Konvensjonen om at de to alltid følges ad, håndheves av `IsolatedDatabaseTestKonvensjonTest`.
   `MeldekortvedtakAggregatTest` er mønsterfila.
 - **`AggregatspørringKonsistTest` håndhever punkt 3 i taksonomien:** `hent*(limit)`-metodene på repo-portene kalles kun fra `*AggregatTest`-filer og fake-repoer, og `Int.MAX_VALUE` skal aldri sendes som limit.
-  Metodenavnene utledes fra `ports/`-pakkene, så en ny jobbspørring dekkes automatisk.
+  Metodenavnene utledes fra `*Repo`-grensesnittene, så en ny jobbspørring dekkes automatisk.
   Whitelisten i fila er arbeidslista for det som gjenstår, og en fil som er ryddet må ut av den — testen feiler ellers.
 - **Jobber som følger en iverksettelse slås av og på med `JobberEtterIverksettelse`** i route-byggerne.
   Skal en test observere en kø, må jobben som tømmer køen slås av — ellers er køen alltid tom når testen ser på den.

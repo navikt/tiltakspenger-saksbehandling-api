@@ -10,7 +10,7 @@ import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseDb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseRepository

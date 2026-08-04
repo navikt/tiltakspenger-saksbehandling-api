@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.httpklient.authFeilUtenKall
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import org.junit.jupiter.api.Test
 
 class SendtUtbetalingExTest {

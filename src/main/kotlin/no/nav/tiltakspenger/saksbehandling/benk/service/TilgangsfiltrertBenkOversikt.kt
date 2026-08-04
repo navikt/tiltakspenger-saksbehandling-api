@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.service
 
 import no.nav.tiltakspenger.saksbehandling.benk.domene.Behandlingssammendrag
-import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktRepo
 
 data class TilgangsfiltrertBenkOversikt(
     val behandlingssammendrag: List<Behandlingssammendrag>,

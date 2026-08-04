@@ -7,12 +7,12 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.OppgaveKlient
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.Oppgavebehov
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId

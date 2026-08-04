@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.PersonRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.Navn

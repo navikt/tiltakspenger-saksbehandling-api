@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
-import no.nav.tiltakspenger.saksbehandling.behandling.ports.RammevedtakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
@@ -18,6 +18,12 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonskli
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
+import no.nav.tiltakspenger.saksbehandling.klage.domene.GenererKlagebrevKlient
+import no.nav.tiltakspenger.saksbehandling.klage.domene.JournalførKlagebrevKlient
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KabalClient
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagehendelseRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.DistribuerKlagebrevJobb
 import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.JournalførKlagebrevJobb
@@ -26,12 +32,6 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.jobb.OversendKlageTilKlag
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagehendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.GenererKlagebrevKlient
-import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KabalClient
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.service.AvbrytKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.FerdigstillKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.ForhåndsvisBrevKlagebehandlingService
@@ -48,7 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.SettKlagebehandlingPåV
 import no.nav.tiltakspenger.saksbehandling.klage.service.TaKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 import no.nav.tiltakspenger.saksbehandling.klage.service.VurderKlagebehandlingService
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
@@ -57,7 +57,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.SettMeldekortbehand
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.TaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.NavIdentClient
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import java.time.Clock
 
 open class KlagebehandlingContext(

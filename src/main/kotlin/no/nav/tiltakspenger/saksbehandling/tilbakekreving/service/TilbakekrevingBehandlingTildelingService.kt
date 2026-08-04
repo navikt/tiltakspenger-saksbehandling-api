@@ -5,12 +5,12 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.leggTilbake
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.overta
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.tildeling.tildel
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports.TilbakekrevingBehandlingRepo
 import java.time.Clock
 
 class TilbakekrevingBehandlingTildelingService(

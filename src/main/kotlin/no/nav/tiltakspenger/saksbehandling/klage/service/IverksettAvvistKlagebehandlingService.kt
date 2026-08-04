@@ -3,12 +3,12 @@ package no.nav.tiltakspenger.saksbehandling.klage.service
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettAvvisningKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.KanIkkeIverksetteKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.iverksettAvvistKlagebehandling
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.time.Clock

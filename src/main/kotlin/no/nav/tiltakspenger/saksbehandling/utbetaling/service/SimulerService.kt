@@ -14,10 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.UtbetalingRepo
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.Utbetalingsklient
 
 class SimulerService(
     private val utbetalingsklient: Utbetalingsklient,

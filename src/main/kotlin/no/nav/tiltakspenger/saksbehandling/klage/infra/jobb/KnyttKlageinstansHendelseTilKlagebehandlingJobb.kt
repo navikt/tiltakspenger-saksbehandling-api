@@ -5,10 +5,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.felles.ErrorEveryNLogger
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagehendelseRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.toKlageinstanshendelse
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 import java.time.Clock
 
 class KnyttKlageinstansHendelseTilKlagebehandlingJobb(

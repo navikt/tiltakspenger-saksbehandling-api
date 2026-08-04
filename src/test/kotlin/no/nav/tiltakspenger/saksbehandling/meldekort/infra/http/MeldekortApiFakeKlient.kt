@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.http
 import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortApiKlient
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortApiKlient
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
 class MeldekortApiFakeKlient : MeldekortApiKlient {

@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatusIntern
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports.TilbakekrevingBehandlingRepo
 
 class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
     private val data = arrow.atomic.Atomic(mutableMapOf<TilbakekrevingId, TilbakekrevingBehandling>())

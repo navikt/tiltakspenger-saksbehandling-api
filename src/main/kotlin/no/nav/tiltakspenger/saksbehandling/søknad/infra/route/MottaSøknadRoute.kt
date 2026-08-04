@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Systembruker
 import no.nav.tiltakspenger.saksbehandling.felles.getSystemBrukerMapper
 import no.nav.tiltakspenger.saksbehandling.felles.krevHentEllerOpprettSakRollen
 import no.nav.tiltakspenger.saksbehandling.felles.krevLagreSoknadRollen
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.ports.TiltaksdeltakerRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 
 private val logger = KotlinLogging.logger {}
 

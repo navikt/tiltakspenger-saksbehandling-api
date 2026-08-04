@@ -7,8 +7,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktRepo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
-import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
 
 class BenkOversiktService(
     private val benkOversiktRepo: BenkOversiktRepo,

@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.MeldekortvedtakRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import java.time.LocalDateTime
 
 class MeldekortvedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : MeldekortvedtakRepo {

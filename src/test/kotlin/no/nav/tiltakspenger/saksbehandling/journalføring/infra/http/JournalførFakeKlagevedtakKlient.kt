@@ -17,9 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.KunneIkkeJournalføre
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
-import no.nav.tiltakspenger.saksbehandling.klage.ports.JournalførKlagebrevKlient
 
 class JournalførFakeKlagevedtakKlient(
     private val journalpostIdGenerator: JournalpostIdGenerator,

@@ -14,10 +14,10 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragBenk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BehandlingssammendragType
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktRepo
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktRepo.Companion.IKKE_TILDELT
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentÅpneBehandlingerCommand
 import no.nav.tiltakspenger.saksbehandling.benk.domene.TilbakekrevingKilde
-import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo
-import no.nav.tiltakspenger.saksbehandling.benk.ports.BenkOversiktRepo.Companion.IKKE_TILDELT
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
 import org.intellij.lang.annotations.Language
 

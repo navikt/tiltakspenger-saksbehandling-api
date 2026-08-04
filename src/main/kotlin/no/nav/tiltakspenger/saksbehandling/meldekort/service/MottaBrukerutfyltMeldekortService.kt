@@ -5,9 +5,9 @@ import arrow.core.left
 import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.LagreBrukersMeldekortKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.BrukersMeldekortRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldeperiodeRepo
 import java.time.Clock
 
 class MottaBrukerutfyltMeldekortService(

@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -36,7 +37,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilDbJson
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.tilMeldeperiodebehandlinger
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toDb
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.dbjson.toMeldekortbehandlingStatus
-import no.nav.tiltakspenger.saksbehandling.meldekort.ports.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.toDbJson

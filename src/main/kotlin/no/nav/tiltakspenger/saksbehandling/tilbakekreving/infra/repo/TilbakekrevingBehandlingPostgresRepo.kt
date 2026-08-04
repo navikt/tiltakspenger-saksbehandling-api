@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
-import no.nav.tiltakspenger.saksbehandling.tilbakekreving.ports.TilbakekrevingBehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingId
 
 class TilbakekrevingBehandlingPostgresRepo(

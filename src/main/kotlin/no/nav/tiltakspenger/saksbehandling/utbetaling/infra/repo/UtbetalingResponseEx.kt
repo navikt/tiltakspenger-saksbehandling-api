@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo
 
 import no.nav.tiltakspenger.libs.json.objectMapper
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.KunneIkkeUtbetale
-import no.nav.tiltakspenger.saksbehandling.utbetaling.ports.SendtUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeUtbetale
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SendtUtbetaling
 import tools.jackson.databind.node.StringNode
 
 fun SendtUtbetaling.toJson(): String {

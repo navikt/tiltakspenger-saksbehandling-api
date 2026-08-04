@@ -7,9 +7,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagehendelseRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.KlagehendelseId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.NyKlagehendelse
-import no.nav.tiltakspenger.saksbehandling.klage.ports.KlagehendelseRepo
 
 class KlagehendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
