@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -57,7 +58,8 @@ data class Meldekortbehandlinger(
 
     /** meldekort med status UNDER_BEHANDLING */
     val meldekortbehandlingerUnderBehandling: List<MeldekortUnderBehandling> by lazy {
-        verdi.filterIsInstance<MeldekortUnderBehandling>().filter { it.status == MeldekortbehandlingStatus.UNDER_BEHANDLING }
+        verdi.filterIsInstance<MeldekortUnderBehandling>()
+            .filter { it.status == MeldekortbehandlingStatus.UNDER_BEHANDLING }
     }
 
     val godkjenteMeldekort: List<Meldekortbehandling.Behandlet> by lazy {
@@ -69,8 +71,7 @@ data class Meldekortbehandlinger(
     val sisteGodkjenteMeldekort: Meldekortbehandling.Behandlet? by lazy { godkjenteMeldekort.maxByOrNull { it.opprettet } }
 
     /** Meldekort som er under behandling eller venter på beslutning */
-    val åpneMeldekortbehandlinger: List<Meldekortbehandling> by lazy { verdi.filter { it.erÅpen() } }
-
+    val åpneMeldekortbehandlinger: List<Meldekortbehandling> = verdi.filter { it.erÅpen() }
     val harÅpenBehandling: Boolean by lazy { åpneMeldekortbehandlinger.isNotEmpty() }
 
     /** Meldeperiodekjedene som er omfattet av en åpen meldekortbehandling. */
@@ -196,15 +197,13 @@ data class Meldekortbehandlinger(
             }
         }
 
-        verdi.filter { it.erÅpen() }
-            .flatMap { behandling -> behandling.kjedeIder.map { kjedeId -> kjedeId to behandling.id } }
-            .groupBy({ it.first }, { it.second })
-            .filterValues { it.size > 1 }
-            .also { overlappendeKjeder ->
-                require(overlappendeKjeder.isEmpty()) {
-                    "To åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede. Overlappende kjeder med tilhørende behandlinger: $overlappendeKjeder"
-                }
-            }
+        val samtidigBehandledeKjeder = åpneMeldekortbehandlinger
+            .flatMap { behandling -> behandling.kjedeIder }
+            .nonDistinctBy { it }
+
+        require(samtidigBehandledeKjeder.isEmpty()) {
+            "To åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede. Samtidig behandlede kjeder: $samtidigBehandledeKjeder - sak $sakId"
+        }
     }
 
     companion object {
