@@ -6,6 +6,7 @@ import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
@@ -14,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.IverksettMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.utbetalingskontroll.oppdaterUtbetalingskontrollForMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
@@ -24,12 +24,11 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 class IverksettMeldekortbehandlingService(
     val sakService: SakService,
-    val simulerService: SimulerService,
+    val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val utbetalingRepo: UtbetalingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
@@ -55,6 +54,13 @@ class IverksettMeldekortbehandlingService(
         if (meldekortbehandling.beslutter == null || meldekortbehandling.status != MeldekortbehandlingStatus.UNDER_BESLUTNING) {
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
+        // Sjekkes før kontrollsimuleringen, siden den krever at det er beslutteren på behandlingen som ber om oppdateringen.
+        if (meldekortbehandling.saksbehandler == kommando.beslutter.navIdent) {
+            return KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
+        }
+        if (meldekortbehandling.beslutter != kommando.beslutter.navIdent) {
+            return KanIkkeIverksetteMeldekortbehandling.MåVæreBeslutterForMeldekortet.left()
+        }
 
         if (!sak.harSisteMeldeperiodeVersjoner(meldekortId)) {
             logger.warn { "Kan ikke iverksette meldekortbehandling hvor meldeperiodene ikke er siste versjon av meldeperioden i saken. sakId: $sakId, meldekortId: $meldekortId" }
@@ -62,19 +68,10 @@ class IverksettMeldekortbehandlingService(
         }
 
         // Andre meldekortbehandlinger på saken kan ha blitt iverksatt siden behandlingen ble sendt til beslutter, og da er ikke tallene beslutter så på lenger de som ville blitt utbetalt.
-        val (sakMedKontroll, behandlingMedKontroll) = sak.oppdaterUtbetalingskontrollForMeldekort(
+        val (sakMedKontroll, behandlingMedKontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
+            sak = sak,
             meldekortId = meldekortId,
-            simuler = { behandling, beregning ->
-                simulerService.simulerMeldekort(
-                    behandling = behandling,
-                    forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
-                    meldeperiodeKjeder = sak.meldeperiodeKjeder,
-                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
-                    beregning = beregning,
-                    brukersNavkontor = { behandling.navkontor },
-                )
-            },
-            clock = clock,
+            saksbehandlerEllerBeslutter = kommando.beslutter,
         ).getOrElse {
             it.logg(logger, "Kontrollsimulering feilet ved iverksettelse. sakId: $sakId, meldekortId: $meldekortId")
             return KanIkkeIverksetteMeldekortbehandling.SimuleringFeil(it).left()

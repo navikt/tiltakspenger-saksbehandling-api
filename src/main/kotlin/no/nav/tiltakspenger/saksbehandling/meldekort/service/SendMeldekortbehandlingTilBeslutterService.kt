@@ -5,17 +5,16 @@ import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.utbetalingskontroll.oppdaterUtbetalingskontrollForMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
-import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 
 /**
@@ -24,7 +23,7 @@ import java.time.Clock
 class SendMeldekortbehandlingTilBeslutterService(
     private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     private val sakService: SakService,
-    private val simulerService: SimulerService,
+    private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
     private val erProd: Boolean,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -47,19 +46,10 @@ class SendMeldekortbehandlingTilBeslutterService(
             return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeSisteVersjon.left()
         }
 
-        val (sakMedKontroll, behandlingMedKontroll) = sak.oppdaterUtbetalingskontrollForMeldekort(
+        val (sakMedKontroll, behandlingMedKontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
+            sak = sak,
             meldekortId = kommando.meldekortId,
-            simuler = { behandling, beregning ->
-                simulerService.simulerMeldekort(
-                    behandling = behandling,
-                    forrigeUtbetaling = sak.utbetalinger.lastOrNull(),
-                    meldeperiodeKjeder = sak.meldeperiodeKjeder,
-                    kanSendeInnHelgForMeldekort = sak.kanSendeInnHelgForMeldekort,
-                    beregning = beregning,
-                    brukersNavkontor = { behandling.navkontor },
-                )
-            },
-            clock = clock,
+            saksbehandlerEllerBeslutter = kommando.saksbehandler,
         ).getOrElse {
             it.logg(logger, "Kontrollsimulering feilet ved send til beslutter - ${meldekortbehandling.loggkontekst(kommando.correlationId)}")
             return KanIkkeSendeMeldekortbehandlingTilBeslutter.SimuleringFeil(it).left()

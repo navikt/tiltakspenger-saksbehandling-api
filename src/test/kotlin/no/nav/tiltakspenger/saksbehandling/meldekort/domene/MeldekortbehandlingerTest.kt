@@ -20,32 +20,28 @@ class MeldekortbehandlingerTest {
     private val andrePeriode = Periode(20.januar(2025), 2.februar(2025))
 
     @Test
-    fun `flere meldekortbehandlinger kan vaere åpne samtidig`() {
+    fun `flere meldekortbehandlinger kan være åpne samtidig`() {
         val sakId = SakId.random()
+        val behandlinger = listOf(
+            ObjectMother.meldekortUnderBehandling(
+                sakId = sakId,
+                periode = førstePeriode,
+                opprettet = 1.januar(2025).atStartOfDay(),
+            ),
+            ObjectMother.meldekortUnderBehandling(
+                sakId = sakId,
+                periode = andrePeriode,
+                opprettet = 2.januar(2025).atStartOfDay(),
+            ),
+        )
+
         val meldekortbehandlinger = shouldNotThrowAny {
-            Meldekortbehandlinger(
-                verdi = listOf(
-                    ObjectMother.meldekortUnderBehandling(
-                        sakId = sakId,
-                        periode = førstePeriode,
-                        opprettet = 1.januar(2025).atStartOfDay(),
-                    ),
-                    ObjectMother.meldekortUnderBehandling(
-                        sakId = sakId,
-                        periode = andrePeriode,
-                        opprettet = 2.januar(2025).atStartOfDay(),
-                    ),
-                ),
-            )
+            Meldekortbehandlinger(verdi = behandlinger)
         }
 
-        meldekortbehandlinger.åpneMeldekortbehandlinger.size shouldBe 2
+        meldekortbehandlinger.åpneMeldekortbehandlinger shouldBe behandlinger
         meldekortbehandlinger.harÅpenBehandling shouldBe true
         meldekortbehandlinger.meldekortbehandlingerUnderBehandling.size shouldBe 2
-        meldekortbehandlinger.kjedeIderMedÅpenBehandling shouldBe setOf(
-            MeldeperiodeKjedeId.fraPeriode(førstePeriode),
-            MeldeperiodeKjedeId.fraPeriode(andrePeriode),
-        )
     }
 
     @Test
@@ -73,6 +69,11 @@ class MeldekortbehandlingerTest {
     fun `en avbrutt behandling blokkerer ikke kjeden`() {
         val sakId = SakId.random()
         val kjedeId = MeldeperiodeKjedeId.fraPeriode(førstePeriode)
+        val åpenBehandling = ObjectMother.meldekortUnderBehandling(
+            sakId = sakId,
+            periode = førstePeriode,
+            opprettet = 2.januar(2025).atStartOfDay(),
+        )
 
         val meldekortbehandlinger = shouldNotThrowAny {
             Meldekortbehandlinger(
@@ -82,20 +83,16 @@ class MeldekortbehandlingerTest {
                         periode = førstePeriode,
                         opprettet = 1.januar(2025).atStartOfDay(),
                     ),
-                    ObjectMother.meldekortUnderBehandling(
-                        sakId = sakId,
-                        periode = førstePeriode,
-                        opprettet = 2.januar(2025).atStartOfDay(),
-                    ),
+                    åpenBehandling,
                 ),
             )
         }
 
-        meldekortbehandlinger.kjedeIderMedÅpenBehandling shouldBe setOf(kjedeId)
+        meldekortbehandlinger.hentÅpenBehandlingForKjede(kjedeId) shouldBe åpenBehandling
     }
 
     @Test
-    fun `kjederMedAnnenAapenBehandling ekskluderer behandlingen selv`() {
+    fun `kjederMedAnnenÅpenBehandling ekskluderer behandlingen selv`() {
         val sakId = SakId.random()
         val kjedeId = MeldeperiodeKjedeId.fraPeriode(førstePeriode)
         val åpenBehandling = ObjectMother.meldekortUnderBehandling(
@@ -125,7 +122,7 @@ class MeldekortbehandlingerTest {
     }
 
     @Test
-    fun `foerste behandling paa en kjede er FOERSTE_BEHANDLING og de paafoelgende er KORRIGERING`() {
+    fun `første behandling på en kjede er FØRSTE_BEHANDLING og de påfølgende er KORRIGERING`() {
         val sakId = SakId.random()
 
         shouldNotThrowAny {
@@ -155,7 +152,7 @@ class MeldekortbehandlingerTest {
     }
 
     @Test
-    fun `foerste behandling paa en kjede kan ikke vaere KORRIGERING`() {
+    fun `første behandling på en kjede kan ikke være KORRIGERING`() {
         val sakId = SakId.random()
 
         shouldThrow<IllegalArgumentException> {
@@ -173,7 +170,7 @@ class MeldekortbehandlingerTest {
     }
 
     @Test
-    fun `en paafoelgende behandling paa en kjede kan ikke vaere FOERSTE_BEHANDLING`() {
+    fun `en påfølgende behandling på en kjede kan ikke være FØRSTE_BEHANDLING`() {
         val sakId = SakId.random()
 
         shouldThrow<IllegalArgumentException> {
@@ -197,7 +194,7 @@ class MeldekortbehandlingerTest {
     }
 
     @Test
-    fun `en avbrutt behandling teller ikke med i typerekkefoelgen`() {
+    fun `en avbrutt behandling teller ikke med i typerekkefølgen`() {
         val sakId = SakId.random()
 
         shouldNotThrowAny {
@@ -221,7 +218,7 @@ class MeldekortbehandlingerTest {
     }
 
     @Test
-    fun `typerekkefoelgen valideres per kjede`() {
+    fun `typerekkefølgen valideres per kjede`() {
         val sakId = SakId.random()
 
         shouldNotThrowAny {

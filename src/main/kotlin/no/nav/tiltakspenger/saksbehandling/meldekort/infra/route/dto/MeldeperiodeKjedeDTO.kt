@@ -26,6 +26,7 @@ data class MeldeperiodeKjedeDTO(
     val erKlarTilUtfylling: Boolean,
     val kanBehandles: Boolean,
     val kanIkkeBehandlesGrunn: KanIkkeBehandlesGrunnDTO?,
+    val åpenBehandlingId: String?,
 )
 
 enum class KanIkkeBehandlesGrunnDTO {
@@ -60,10 +61,10 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
             sisteBrukersMeldekort == null || sisteBehandling.sistEndret > sisteBrukersMeldekort.mottatt
         } ?: false
 
-    val harÅpenBehandlingForKjede = this.meldekortbehandlinger.kjedeIderMedÅpenBehandling.contains(kjedeId)
+    val åpenBehandling = this.meldekortbehandlinger.hentÅpenBehandlingForKjede(kjedeId)
 
     val kanIkkeBehandlesGrunn: KanIkkeBehandlesGrunnDTO? = when {
-        harÅpenBehandlingForKjede -> KanIkkeBehandlesGrunnDTO.HAR_ÅPEN_BEHANDLING
+        åpenBehandling != null -> KanIkkeBehandlesGrunnDTO.HAR_ÅPEN_BEHANDLING
 
         !sisteMeldeperiode.erKlarTilUtfylling(clock) -> KanIkkeBehandlesGrunnDTO.MELDEPERIODEN_HAR_IKKE_STARTET
 
@@ -97,5 +98,6 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
         erKlarTilUtfylling = sisteMeldeperiode.erKlarTilUtfylling(clock),
         kanBehandles = kanIkkeBehandlesGrunn == null,
         kanIkkeBehandlesGrunn = kanIkkeBehandlesGrunn,
+        åpenBehandlingId = åpenBehandling?.id?.toString(),
     )
 }

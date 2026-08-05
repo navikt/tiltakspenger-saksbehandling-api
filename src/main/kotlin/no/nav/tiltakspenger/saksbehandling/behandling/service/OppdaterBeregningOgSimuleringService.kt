@@ -21,10 +21,12 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnOpphør
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.SimuleringMedMetadata
@@ -92,6 +94,66 @@ class OppdaterBeregningOgSimuleringService(
         val oppdatertSak = sak.oppdaterRammebehandling(oppdatertBehandling)
 
         return (oppdatertSak to oppdatertBehandling).right()
+    }
+
+    suspend fun oppdaterUtbetalingskontroll(
+        sak: Sak,
+        meldekortId: MeldekortId,
+        saksbehandlerEllerBeslutter: Saksbehandler,
+    ): Either<KunneIkkeSimulere, Pair<Sak, Meldekortbehandling>> {
+        val behandling = sak.hentMeldekortbehandling(meldekortId)!!
+
+        val beregningOgSimulering = sak.beregnOgSimulerMeldekortbehandling(
+            behandling = behandling,
+            saksbehandlerEllerBeslutter = saksbehandlerEllerBeslutter,
+        ).getOrElse { return it.left() }
+
+        val utbetalingskontroll = Utbetalingskontroll(
+            beregning = beregningOgSimulering.first,
+            simulering = beregningOgSimulering.second.simulering,
+        )
+
+        val oppdatertBehandling = behandling.oppdaterUtbetalingskontroll(
+            oppdatertKontroll = utbetalingskontroll,
+            clock = clock,
+        )
+        val oppdatertSak = sak.oppdaterMeldekortbehandling(oppdatertBehandling)
+
+        return (oppdatertSak to oppdatertBehandling).right()
+    }
+
+    private suspend fun Sak.beregnOgSimulerMeldekortbehandling(
+        behandling: Meldekortbehandling,
+        saksbehandlerEllerBeslutter: Saksbehandler,
+    ): Either<KunneIkkeSimulere, Pair<Beregning, SimuleringMedMetadata>> {
+        when (behandling.status) {
+            MeldekortbehandlingStatus.UNDER_BEHANDLING -> require(saksbehandlerEllerBeslutter.navIdent == behandling.saksbehandler) {
+                "Kan kun oppdatere utbetalingskontroll på en meldekortbehandling dersom saksbehandler som ber om det er den samme som er satt på behandlingen"
+            }
+
+            MeldekortbehandlingStatus.UNDER_BESLUTNING -> require(saksbehandlerEllerBeslutter.navIdent == behandling.beslutter) {
+                "Kan kun oppdatere utbetalingskontroll på en meldekortbehandling dersom beslutter som ber om det er den samme som er satt på behandlingen"
+            }
+
+            else -> throw IllegalStateException("Meldekortbehandling må være under behandling eller beslutning for at utbetalingskontrollen skal kunne oppdateres. Status er ${behandling.status}, sakId: ${behandling.sakId}, id: ${behandling.id}")
+        }
+
+        val beregning = this.beregnMeldekort(
+            meldekortIdSomBeregnes = behandling.id,
+            meldeperioderSomBeregnes = behandling.meldeperioder.meldeperioder.map { it.dager },
+            beregningstidspunkt = nå(clock),
+        )
+
+        val simulering: SimuleringMedMetadata = simulerService.simulerMeldekort(
+            behandling = behandling,
+            forrigeUtbetaling = this.utbetalinger.lastOrNull(),
+            meldeperiodeKjeder = this.meldeperiodeKjeder,
+            kanSendeInnHelgForMeldekort = this.kanSendeInnHelgForMeldekort,
+            beregning = beregning,
+            brukersNavkontor = { behandling.navkontor },
+        ).getOrElse { return it.left() }
+
+        return (beregning to simulering).right()
     }
 
     private suspend fun Sak.oppdaterRammebehandling(

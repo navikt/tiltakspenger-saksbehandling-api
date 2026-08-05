@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.BrukersMeldekortRepo
@@ -56,6 +57,11 @@ open class MeldekortContext(
     statistikkService: StatistikkService,
     genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient,
     navIdentClient: NavIdentClient,
+    /**
+     * [no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext] henter repoene sine herfra, så den kan ikke sendes inn ferdig konstruert uten at kontekstene blir sirkulære.
+     * Provideren løses opp først når en av tjenestene under faktisk tas i bruk, og da er begge kontekstene ferdig konstruert.
+     */
+    oppdaterBeregningOgSimuleringService: () -> OppdaterBeregningOgSimuleringService,
 ) {
     open val meldekortbehandlingRepo: MeldekortbehandlingRepo by lazy {
         MeldekortbehandlingPostgresRepo(
@@ -80,7 +86,7 @@ open class MeldekortContext(
 
     val iverksettMeldekortbehandlingService by lazy {
         IverksettMeldekortbehandlingService(
-            simulerService = simulerService,
+            oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService(),
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
@@ -175,7 +181,7 @@ open class MeldekortContext(
         SendMeldekortbehandlingTilBeslutterService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
-            simulerService = simulerService,
+            oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService(),
             erProd = Configuration.isProd(),
         )
     }

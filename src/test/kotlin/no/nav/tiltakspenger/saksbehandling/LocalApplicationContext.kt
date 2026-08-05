@@ -248,7 +248,7 @@ class LocalApplicationContext(
         )
     }
 
-    override val meldekortContext by lazy {
+    override val meldekortContext: MeldekortContext by lazy {
         object : MeldekortContext(
             sessionFactory = sessionFactory,
             sakService = sakContext.sakService,
@@ -262,6 +262,7 @@ class LocalApplicationContext(
             statistikkService = statistikkContext.statistikkService,
             genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
+            oppdaterBeregningOgSimuleringService = { behandlingContext.oppdaterBeregningOgSimuleringService },
         ) {
             override val meldekortApiHttpClient: MeldekortApiKlient
                 // Ved kjøring lokalt kan vi styre kjøring av fake eller ekte API med env-var BRUK_FAKE_MELDEKORT_API
@@ -282,7 +283,7 @@ class LocalApplicationContext(
                 }
         }
     }
-    override val behandlingContext by lazy {
+    override val behandlingContext: BehandlingOgVedtakContext by lazy {
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,

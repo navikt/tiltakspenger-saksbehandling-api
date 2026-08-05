@@ -74,9 +74,8 @@ data class Meldekortbehandlinger(
     val åpneMeldekortbehandlinger: List<Meldekortbehandling> = verdi.filter { it.erÅpen() }
     val harÅpenBehandling: Boolean by lazy { åpneMeldekortbehandlinger.isNotEmpty() }
 
-    /** Meldeperiodekjedene som er omfattet av en åpen meldekortbehandling. */
-    val kjedeIderMedÅpenBehandling: Set<MeldeperiodeKjedeId> by lazy {
-        åpneMeldekortbehandlinger.flatMap { it.kjedeIder }.toSet()
+    fun hentÅpenBehandlingForKjede(kjedeId: MeldeperiodeKjedeId): Meldekortbehandling? {
+        return åpneMeldekortbehandlinger.find { it.kjedeIder.contains(kjedeId) }
     }
 
     /**
@@ -121,7 +120,7 @@ data class Meldekortbehandlinger(
     }
 
     fun hentSisteMeldekortbehandlingForKjede(kjedeId: MeldeperiodeKjedeId): Meldekortbehandling? {
-        return verdi.filter { it.kjedeIder.contains(kjedeId) }.maxByOrNull { it.opprettet }
+        return verdi.filter { it.kjedeIder.contains(kjedeId) }.maxByOrNull { it.sistEndret }
     }
 
     /**
