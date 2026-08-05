@@ -14,7 +14,8 @@ import java.time.LocalDate
 data class BrevKlageInnstillingDTO private constructor(
     val personalia: BrevPersonaliaDTO,
     val saksnummer: String,
-    val saksbehandlerNavn: String,
+    /** null når ingen saksbehandler er tildelt (forhåndsvisning); brevet viser da «ingen saksbehandler tildelt». */
+    val saksbehandlerNavn: String?,
     val datoForUtsending: String,
     val tilleggstekst: List<TittelOgTekstDTO>,
     val forhandsvisning: Boolean,
@@ -27,7 +28,7 @@ data class BrevKlageInnstillingDTO private constructor(
             tilleggstekst: Brevtekster,
             hentBrukersNavn: suspend (Fnr) -> Navn,
             hentSaksbehandlersNavn: suspend (String) -> String,
-            saksbehandlerNavIdent: String,
+            saksbehandlerNavIdent: String?,
             saksnummer: Saksnummer,
             forhåndsvisning: Boolean,
             datoForUtsending: LocalDate,
@@ -36,7 +37,7 @@ data class BrevKlageInnstillingDTO private constructor(
             innsendingsdato: LocalDate,
         ): String {
             val brukersNavn = hentBrukersNavn(fnr)
-            val saksbehandlersNavn = hentSaksbehandlersNavn(saksbehandlerNavIdent)
+            val saksbehandlersNavn = saksbehandlerNavIdent?.let { hentSaksbehandlersNavn(it) }
             return BrevKlageInnstillingDTO(
                 personalia = BrevPersonaliaDTO(
                     ident = fnr.verdi,

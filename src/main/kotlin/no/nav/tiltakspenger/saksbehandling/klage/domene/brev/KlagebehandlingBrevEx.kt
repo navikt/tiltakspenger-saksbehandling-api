@@ -41,10 +41,11 @@ suspend fun Klagebehandling.genererBrev(
     if (skalGenerereBrevKunFraBehandling()) return genererBrev(genererAvvisningsbrev, genererKlageInnstillingsbrev, vedtaksdato)
 
     val brevtekst = resultat.brevtekst
-    val saksbehandler: String = when (status) {
-        KLAR_TIL_BEHANDLING -> "-"
+    // null betyr at ingen saksbehandler er tildelt; brevet viser da «ingen saksbehandler tildelt» i signaturen.
+    val saksbehandler: String? = when (status) {
+        KLAR_TIL_BEHANDLING -> null
         UNDER_BEHANDLING -> this.saksbehandler!!
-        AVBRUTT -> this.saksbehandler ?: "-"
+        AVBRUTT -> this.saksbehandler
         VEDTATT, OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS -> throw IllegalStateException("Vi håndterer denne tilstanden over.")
     }
     val erSaksbehandlerPåBehandlingen = this.erSaksbehandlerPåBehandlingen(kommando.saksbehandler)
@@ -114,7 +115,7 @@ suspend fun Klagebehandling.genererBrev(
         }
 
         is Klagebehandlingsresultat.Opprettholdt -> {
-            require(status in listOf(OPPRETTHOLDT, OVERSENDT, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS)) {
+            require(status in listOf(OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, FERDIGSTILT, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS)) {
                 "Ved generering av endelig innstillingsbrev må klagebehandlingen være oversendt til klageinstansen. sakId=$sakId, saksnummer:$saksnummer, klagebehandlingId=$id"
             }
             genererKlageInnstillingsbrev(

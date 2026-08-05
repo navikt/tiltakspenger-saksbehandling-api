@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 typealias GenererKlageAvvisningsbrev = suspend (
     saksnummer: Saksnummer,
     fnr: Fnr,
-    saksbehandlerNavIdent: String,
+    saksbehandlerNavIdent: String?,
     tilleggstekst: Brevtekster,
     forhåndsvisning: Boolean,
 ) -> Either<KunneIkkeGenererePdf, PdfOgJson>

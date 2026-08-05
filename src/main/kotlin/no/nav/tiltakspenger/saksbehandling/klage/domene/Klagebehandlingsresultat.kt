@@ -78,12 +78,12 @@ sealed interface Klagebehandlingsresultat {
         override val ferdigstiltTidspunkt: LocalDateTime? = null
         override val begrunnelseFerdigstilling = null
 
-        /** Merk at generering av brev kan feile i tilstandene KLAR_TIL_BEHANDLING og AVBRUTT hvis [brevtekst] er null. */
+        // KLAR_TIL_BEHANDLING og AVBRUTT er ikke endelige brev: de forhåndsvises fra lagret [brevtekst] (uten kommando-input) i forhåndsvisnings-løypa.
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             return when (status) {
-                UNDER_BEHANDLING -> false
+                UNDER_BEHANDLING, KLAR_TIL_BEHANDLING, AVBRUTT -> false
 
-                KLAR_TIL_BEHANDLING, AVBRUTT, VEDTATT -> true
+                VEDTATT -> true
 
                 OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT -> throw IllegalStateException(
                     "$status er en ugyldig status for Avvist klage.",
@@ -262,12 +262,11 @@ sealed interface Klagebehandlingsresultat {
             return status == UNDER_BEHANDLING && !brevtekst.isNullOrEmpty() && iverksattOpprettholdelseTidspunkt == null
         }
 
-        /** Merk at generering av brev kan feile i tilstandene KLAR_TIL_BEHANDLING og AVBRUTT hvis [brevtekst] er null. */
+        // KLAR_TIL_BEHANDLING og AVBRUTT er ikke endelige brev: de forhåndsvises fra lagret [brevtekst] (uten kommando-input) i forhåndsvisnings-løypa.
         override fun skalGenerereBrevKunFraBehandling(status: Klagebehandlingsstatus): Boolean {
             return when (status) {
-                UNDER_BEHANDLING -> false
-                KLAR_TIL_BEHANDLING, AVBRUTT, OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT, VEDTATT -> true
-                VEDTATT -> throw IllegalStateException("$status er en ugyldig status for Opprettholdt klage. Bruk FERDIGSTILT.")
+                UNDER_BEHANDLING, KLAR_TIL_BEHANDLING, AVBRUTT -> false
+                OPPRETTHOLDT, OVERSENDT, OVERSEND_FEILET, MOTTATT_FRA_KLAGEINSTANS, OMGJØRING_ETTER_KLAGEINSTANS, FERDIGSTILT, VEDTATT -> true
             }
         }
 

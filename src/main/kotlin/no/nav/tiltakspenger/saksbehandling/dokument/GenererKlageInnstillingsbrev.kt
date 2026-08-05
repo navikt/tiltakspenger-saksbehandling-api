@@ -9,7 +9,7 @@ import java.time.LocalDate
 typealias GenererKlageInnstillingsbrev = suspend (
     saksnummer: Saksnummer,
     fnr: Fnr,
-    saksbehandlerNavIdent: String,
+    saksbehandlerNavIdent: String?,
     tilleggstekst: Brevtekster,
     forhåndsvisning: Boolean,
     innsendingsdato: LocalDate,
