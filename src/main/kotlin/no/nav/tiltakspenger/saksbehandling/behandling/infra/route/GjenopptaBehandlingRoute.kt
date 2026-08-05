@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
-private const val GJENNOPPTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenoppta"
+private const val GJENOPPTA_BEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenoppta"
 
 fun Route.gjenopptaRammebehandling(
     auditService: AuditService,
@@ -33,8 +33,8 @@ fun Route.gjenopptaRammebehandling(
     clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
-    post(GJENNOPPTA_BEHANDLING_PATH) {
-        logger.debug { "Mottatt post-request på '$GJENNOPPTA_BEHANDLING_PATH' - Gjenopptar rammebehandling." }
+    post(GJENOPPTA_BEHANDLING_PATH) {
+        logger.debug { "Mottatt post-request på '$GJENOPPTA_BEHANDLING_PATH' - Gjenopptar rammebehandling." }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->

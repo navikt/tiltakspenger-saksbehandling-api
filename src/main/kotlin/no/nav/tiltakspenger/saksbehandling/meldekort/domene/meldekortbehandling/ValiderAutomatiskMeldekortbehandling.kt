@@ -77,7 +77,7 @@ private fun Sak.validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort: BrukersM
         }
     }
 
-    if (this.meldekortbehandlinger.harÅpenBehandling) {
+    if (this.meldekortbehandlinger.hentÅpenBehandlingForKjede(kjedeId) != null) {
         return MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING.left()
     }
 

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
@@ -22,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.søknadsbehandlingIverksattMedMeldeperioder
@@ -879,6 +881,93 @@ class AutomatiskMeldekortbehandlingJobbTest {
 
                 brukersMeldekortRepo.hentForMeldekortId(tredjeMeldekort.id)!!.let {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.MÅ_BEHANDLE_NESTE_KJEDE
+                    it.behandlesAutomatisk shouldBe true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal behandle automatisk selv om saken har en åpen behandling på en annen kjede`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Saksbehandler har en åpen behandling på andre kjede.
+                val (_, åpenBehandling) = tac.nyOpprettetMeldekortbehandling(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+                )
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                service.behandleBrukersMeldekort(clock)
+
+                val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!
+                meldekortbehandlinger.godkjenteMeldekort.size shouldBe 1
+                val automatiskBehandling = meldekortbehandlinger.sisteGodkjenteMeldekort
+                automatiskBehandling.shouldBeInstanceOf<MeldekortBehandletAutomatisk>()
+                automatiskBehandling.brukersMeldekort.id shouldBe brukersMeldekort.id
+
+                // Den åpne behandlingen på andre kjede er urørt.
+                meldekortbehandlinger.hentÅpenBehandlingForKjede(sak.meldeperiodeKjeder[1].kjedeId)!!.id shouldBe åpenBehandling.id
+
+                brukersMeldekortRepo
+                    .hentForMeldekortId(brukersMeldekort.id)!!
+                    .behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.BEHANDLET
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke behandle automatisk når saken har en åpen behandling på samme kjede`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val kjede = sak.meldeperiodeKjeder.first()
+
+                // Saksbehandler har allerede tatt kjeden meldekortet gjelder.
+                tac.nyOpprettetMeldekortbehandling(
+                    sakId = sak.id,
+                    kjedeId = kjede.kjedeId,
+                )
+
+                val brukersMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = kjede.hentSisteMeldeperiode(),
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(brukersMeldekort)
+
+                service.behandleBrukersMeldekort(clock)
+
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.godkjenteMeldekort.shouldBeEmpty()
+
+                brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
+                    // Statusen kan prøves på nytt, så meldekortet plukkes opp igjen når saksbehandler er ferdig.
                     it.behandlesAutomatisk shouldBe true
                 }
             }
