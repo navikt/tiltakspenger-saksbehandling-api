@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhåndsvisVedtaksbrevRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettRammebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennRammebehandlingRoute
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterBeregningOgSimuleringMeldekortService
 import java.time.Clock
 
 fun Route.rammebehandlingRoutes(
@@ -37,7 +38,8 @@ fun Route.rammebehandlingRoutes(
     oppdaterBehandlingService: OppdaterRammebehandlingService,
     settBehandlingPåVentService: SettRammebehandlingPåVentService,
     gjenopptaBehandlingService: GjenopptaRammebehandlingService,
-    oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
+    oppdaterBeregningOgSimuleringRammebehandlingService: OppdaterBeregningOgSimuleringRammebehandlingService,
+    oppdaterBeregningOgSimuleringMeldekortService: OppdaterBeregningOgSimuleringMeldekortService,
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
 ) {
@@ -55,5 +57,11 @@ fun Route.rammebehandlingRoutes(
     oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService, clock)
     gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService, clock)
-    oppdaterSimuleringRoute(oppdaterBeregningOgSimuleringService, auditService, tilgangskontrollService, clock)
+    oppdaterSimuleringRoute(
+        oppdaterBeregningOgSimuleringRammebehandlingService,
+        oppdaterBeregningOgSimuleringMeldekortService,
+        auditService,
+        tilgangskontrollService,
+        clock,
+    )
 }

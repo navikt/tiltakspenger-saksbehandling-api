@@ -1,9 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
@@ -12,10 +17,11 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterBeregningOgSimuleringMeldekortService
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringErrorJson
 import java.time.Clock
@@ -23,7 +29,8 @@ import java.time.Clock
 private const val OPPDATER_SIMULERING_PATH = "/sak/{sakId}/behandling/{behandlingId}/oppdaterSimulering"
 
 fun Route.oppdaterSimuleringRoute(
-    oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
+    oppdaterBeregningOgSimuleringRammebehandlingService: OppdaterBeregningOgSimuleringRammebehandlingService,
+    oppdaterBeregningOgSimuleringMeldekortService: OppdaterBeregningOgSimuleringMeldekortService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
@@ -41,11 +48,21 @@ fun Route.oppdaterSimuleringRoute(
 
             krevSaksbehandlerRolle(saksbehandler)
             tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-            oppdaterBeregningOgSimuleringService.oppdaterSimulering(
-                sakId = sakId,
-                behandlingId = behandlingId,
-                saksbehandler = saksbehandler,
-            ).fold(
+            val resultat = if (behandlingId.erRammebehandlingId()) {
+                oppdaterBeregningOgSimuleringRammebehandlingService.oppdaterSimulering(
+                    sakId = sakId,
+                    behandlingId = RammebehandlingId.fromString(behandlingId.toString()),
+                    saksbehandler = saksbehandler,
+                ).map { (sak, behandling) -> sak to behandling.left() }
+            } else {
+                oppdaterBeregningOgSimuleringMeldekortService.oppdaterSimulering(
+                    sakId = sakId,
+                    meldekortId = MeldekortId.fromString(behandlingId.toString()),
+                    saksbehandler = saksbehandler,
+                ).map { (sak, behandling) -> sak to behandling.right() }
+            }
+
+            resultat.fold(
                 ifLeft = {
                     call.respondJson(it.tilSimuleringErrorJson())
                 },
@@ -77,3 +94,8 @@ fun Route.oppdaterSimuleringRoute(
         }
     }
 }
+
+private fun UlidBase.erRammebehandlingId(): Boolean = Either.catch { RammebehandlingId.fromString(this.toString()) }.fold(
+    ifLeft = { false },
+    ifRight = { true },
+)

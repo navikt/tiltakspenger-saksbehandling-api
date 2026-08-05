@@ -406,10 +406,9 @@ open class ApplicationContext(
             statistikkService = statistikkContext.statistikkService,
             genererVedtaksbrevForMeldekortKlient = dokumentContext.genererVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
-            oppdaterBeregningOgSimuleringService = { behandlingContext.oppdaterBeregningOgSimuleringService },
         )
     }
-    open val behandlingContext: BehandlingOgVedtakContext by lazy {
+    open val behandlingContext by lazy {
         BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,
             meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,

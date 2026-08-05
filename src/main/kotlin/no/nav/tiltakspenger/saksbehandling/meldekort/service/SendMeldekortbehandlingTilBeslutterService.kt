@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingManuell
@@ -23,7 +22,7 @@ import java.time.Clock
 class SendMeldekortbehandlingTilBeslutterService(
     private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     private val sakService: SakService,
-    private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
+    private val oppdaterBeregningOgSimuleringMeldekortService: OppdaterBeregningOgSimuleringMeldekortService,
     private val erProd: Boolean,
 ) {
     private val logger = KotlinLogging.logger {}
@@ -46,7 +45,7 @@ class SendMeldekortbehandlingTilBeslutterService(
             return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeSisteVersjon.left()
         }
 
-        val (sakMedKontroll, behandlingMedKontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
+        val (sakMedKontroll, behandlingMedKontroll) = oppdaterBeregningOgSimuleringMeldekortService.oppdaterUtbetalingskontroll(
             sak = sak,
             meldekortId = kommando.meldekortId,
             saksbehandlerEllerBeslutter = kommando.saksbehandler,

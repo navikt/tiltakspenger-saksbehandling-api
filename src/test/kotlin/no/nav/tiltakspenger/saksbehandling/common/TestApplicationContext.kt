@@ -297,7 +297,7 @@ sealed class TestApplicationContext(
         }
     }
 
-    override val meldekortContext: MeldekortContext by lazy {
+    override val meldekortContext by lazy {
 
         object : MeldekortContext(
             sessionFactory = sessionFactory,
@@ -312,7 +312,6 @@ sealed class TestApplicationContext(
             genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient,
             navIdentClient = personContext.navIdentClient,
             statistikkService = statistikkContext.statistikkService,
-            oppdaterBeregningOgSimuleringService = { behandlingContext.oppdaterBeregningOgSimuleringService },
         ) {
             override val meldekortApiHttpClient = meldekortApiFakeKlient
             override val meldekortbehandlingRepo: MeldekortbehandlingRepo
@@ -326,7 +325,7 @@ sealed class TestApplicationContext(
         }
     }
 
-    override val behandlingContext: BehandlingOgVedtakContext by lazy {
+    override val behandlingContext by lazy {
 
         object : BehandlingOgVedtakContext(
             sessionFactory = sessionFactory,

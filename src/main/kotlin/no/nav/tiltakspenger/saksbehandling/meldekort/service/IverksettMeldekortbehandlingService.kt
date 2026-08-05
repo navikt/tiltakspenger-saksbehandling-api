@@ -6,7 +6,6 @@ import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
@@ -28,7 +27,7 @@ import java.time.Clock
 
 class IverksettMeldekortbehandlingService(
     val sakService: SakService,
-    val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
+    val oppdaterBeregningOgSimuleringMeldekortService: OppdaterBeregningOgSimuleringMeldekortService,
     val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     val utbetalingRepo: UtbetalingRepo,
     val meldeperiodeRepo: MeldeperiodeRepo,
@@ -68,7 +67,7 @@ class IverksettMeldekortbehandlingService(
         }
 
         // Andre meldekortbehandlinger på saken kan ha blitt iverksatt siden behandlingen ble sendt til beslutter, og da er ikke tallene beslutter så på lenger de som ville blitt utbetalt.
-        val (sakMedKontroll, behandlingMedKontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
+        val (sakMedKontroll, behandlingMedKontroll) = oppdaterBeregningOgSimuleringMeldekortService.oppdaterUtbetalingskontroll(
             sak = sak,
             meldekortId = meldekortId,
             saksbehandlerEllerBeslutter = kommando.beslutter,
