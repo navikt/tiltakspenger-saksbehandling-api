@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -52,6 +53,7 @@ data class MeldekortUnderBehandling(
     override val attesteringer: Attesteringer,
     override val sendtTilBeslutning: LocalDateTime?,
     override val simulering: Simulering?,
+    override val utbetalingskontroll: Utbetalingskontroll?,
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
@@ -114,6 +116,7 @@ data class MeldekortUnderBehandling(
             fnr = this.fnr,
             opprettet = this.opprettet,
             simulering = this.simulering,
+            utbetalingskontroll = this.utbetalingskontroll,
             saksbehandler = this.saksbehandler!!,
             sendtTilBeslutning = nå(clock),
             beslutter = this.beslutter,
@@ -183,6 +186,16 @@ data class MeldekortUnderBehandling(
         return this.copy(simulering = simulering)
     }
 
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Meldekortbehandling {
+        require(status == MeldekortbehandlingStatus.UNDER_BEHANDLING) {
+            "Kan kun oppdatere utbetalingskontroll på meldekortbehandling dersom status er UNDER_BEHANDLING. Status er $status, sakId: $sakId, id: $id"
+        }
+        return this.copy(
+            utbetalingskontroll = oppdatertKontroll,
+            sistEndret = nå(clock),
+        )
+    }
+
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {
         require(this.klagebehandling?.id == klagebehandling.id) {
             "Kan ikke oppdatere meldekortbehandling $id med en annen klagebehandling enn den er knyttet til"
@@ -231,8 +244,10 @@ fun Sak.opprettManuellMeldekortbehandling(
         }
     }
 
-    validerOpprettManuellMeldekortbehandling().onLeft {
-        return KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil(it).left()
+    this.meldekortbehandlinger.kjederMedAnnenÅpenBehandling(kjedeIder).let {
+        if (it.isNotEmpty()) {
+            return KanIkkeOppretteMeldekortbehandling.KjedeErUnderBehandling(it).left()
+        }
     }
 
     val meldekortId = MeldekortId.random()
@@ -259,6 +274,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         attesteringer = Attesteringer.empty(),
         sendtTilBeslutning = null,
         simulering = null,
+        utbetalingskontroll = null,
         status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
         sistEndret = nå,
         fritekstTilVedtaksbrev = null,

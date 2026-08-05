@@ -7,15 +7,7 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 
-fun Sak.validerOpprettManuellMeldekortbehandling(): Either<ValiderOpprettMeldekortbehandlingFeil, Unit> {
-    if (this.meldekortbehandlinger.harÅpenBehandling) {
-        return ValiderOpprettMeldekortbehandlingFeil.HAR_ÅPEN_BEHANDLING.left()
-    }
-
-    return Unit.right()
-}
-
-fun Sak.validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
+fun Sak.validerAutomatiskMeldekortbehandling(brukersMeldekort: BrukersMeldekort): Either<MeldekortBehandletAutomatiskStatus, Unit> {
     validerTilstanderSomIkkeKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
     validerTilstanderSomKanPrøvesPåNytt(brukersMeldekort).onLeft { return it.left() }
     return Unit.right()
@@ -105,8 +97,4 @@ private fun Sak.kjedeHarGodkjentEllerIkkeRettMeldekortbehandling(kjedeId: Meldep
     }
 
     return harGodkjentBehandling || harBehandlingAvbruttUtenRett
-}
-
-enum class ValiderOpprettMeldekortbehandlingFeil {
-    HAR_ÅPEN_BEHANDLING,
 }

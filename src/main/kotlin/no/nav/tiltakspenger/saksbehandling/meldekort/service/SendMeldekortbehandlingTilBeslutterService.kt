@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
@@ -21,11 +22,12 @@ import java.time.Clock
 class SendMeldekortbehandlingTilBeslutterService(
     private val meldekortbehandlingRepo: MeldekortbehandlingRepo,
     private val sakService: SakService,
+    private val oppdaterBeregningOgSimuleringMeldekortService: OppdaterBeregningOgSimuleringMeldekortService,
     private val erProd: Boolean,
 ) {
     private val logger = KotlinLogging.logger {}
 
-    fun sendMeldekortTilBeslutter(
+    suspend fun sendMeldekortTilBeslutter(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
         clock: Clock,
     ): Either<KanIkkeSendeMeldekortbehandlingTilBeslutter, Pair<Sak, MeldekortbehandlingManuell>> {
@@ -43,11 +45,20 @@ class SendMeldekortbehandlingTilBeslutterService(
             return KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeSisteVersjon.left()
         }
 
-        return sak.meldekortbehandlinger.sendTilBeslutter(
+        val (sakMedKontroll, behandlingMedKontroll) = oppdaterBeregningOgSimuleringMeldekortService.oppdaterUtbetalingskontroll(
+            sak = sak,
+            meldekortId = kommando.meldekortId,
+            saksbehandlerEllerBeslutter = kommando.saksbehandler,
+        ).getOrElse {
+            it.logg(logger, "Kontrollsimulering feilet ved send til beslutter - ${meldekortbehandling.loggkontekst(kommando.correlationId)}")
+            return KanIkkeSendeMeldekortbehandlingTilBeslutter.SimuleringFeil(it).left()
+        }
+
+        return sakMedKontroll.meldekortbehandlinger.sendTilBeslutter(
             kommando = kommando,
             clock = clock,
         ).map { (meldekortbehandlinger, meldekort) ->
-            val oppdatertSak = sak.oppdaterMeldekortbehandlinger(meldekortbehandlinger)
+            val oppdatertSak = sakMedKontroll.oppdaterMeldekortbehandlinger(meldekortbehandlinger)
 
             meldekort.validerKanIverksetteUtbetaling().onLeft {
                 if (it == KanIkkeIverksetteUtbetaling.SimuleringMangler && !erProd) {
@@ -55,7 +66,11 @@ class SendMeldekortbehandlingTilBeslutterService(
                 }
 
                 it.logg(logger) { "Utbetaling på meldekortbehandlingen har et resultat som ikke kan sendes til beslutter - ${meldekort.loggkontekst(kommando.correlationId)}" }
-                return KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
+
+                // Lagrer kontrollen slik at saksbehandler ser hva som avviker, selv om behandlingen blir stående under behandling.
+                meldekortbehandlingRepo.oppdater(behandlingMedKontroll)
+
+                return KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke(it, sakMedKontroll).left()
             }
 
             meldekortbehandlingRepo.oppdater(meldekort)

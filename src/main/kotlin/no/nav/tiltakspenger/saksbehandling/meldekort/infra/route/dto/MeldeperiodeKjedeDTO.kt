@@ -25,7 +25,15 @@ data class MeldeperiodeKjedeDTO(
     val gjeldendeBeregning: MeldeperiodeBeregningDTO?,
     val erKlarTilUtfylling: Boolean,
     val kanBehandles: Boolean,
+    val kanIkkeBehandlesGrunn: KanIkkeBehandlesGrunnDTO?,
+    val åpenBehandlingId: String?,
 )
+
+enum class KanIkkeBehandlesGrunnDTO {
+    HAR_ÅPEN_BEHANDLING,
+    MELDEPERIODEN_HAR_IKKE_STARTET,
+    INGEN_DAGER_GIR_RETT,
+}
 
 fun Sak.tilMeldeperiodeKjederDTO(clock: Clock): List<MeldeperiodeKjedeDTO> {
     return this.meldeperiodeKjeder.map {
@@ -44,7 +52,7 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
 
     val sisteBrukersMeldekort = brukersMeldekort.lastOrNull()
 
-    val meldekortbehandlinger = this.meldekortbehandlinger
+    val ikkeAvbrutteBehandlinger = this.meldekortbehandlinger
         .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
 
     val harBehandletSiste = this.meldekortbehandlinger
@@ -52,6 +60,21 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
         ?.let { sisteBehandling ->
             sisteBrukersMeldekort == null || sisteBehandling.sistEndret > sisteBrukersMeldekort.mottatt
         } ?: false
+
+    val åpenBehandling = this.meldekortbehandlinger.hentÅpenBehandlingForKjede(kjedeId)
+
+    val kanIkkeBehandlesGrunn: KanIkkeBehandlesGrunnDTO? = when {
+        åpenBehandling != null -> KanIkkeBehandlesGrunnDTO.HAR_ÅPEN_BEHANDLING
+
+        !sisteMeldeperiode.erKlarTilUtfylling(clock) -> KanIkkeBehandlesGrunnDTO.MELDEPERIODEN_HAR_IKKE_STARTET
+
+        // Et ubehandlet meldekort fra bruker gjør at saksbehandler må kunne behandle kjeden, også når meldeperioden ikke lengre gir rett.
+        brukersMeldekort.isNotEmpty() && !harBehandletSiste -> null
+
+        sisteMeldeperiode.ingenDagerGirRett -> KanIkkeBehandlesGrunnDTO.INGEN_DAGER_GIR_RETT
+
+        else -> null
+    }
 
     return MeldeperiodeKjedeDTO(
         id = meldeperiodeKjede.kjedeId.toString(),
@@ -61,8 +84,8 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
             .perioderMedVerdi.toList().map { it.verdi.typeNavn }
             .distinct(),
         sisteMeldeperiode = sisteMeldeperiode.toMeldeperiodeDTO(),
-        meldekortbehandlingIder = meldekortbehandlinger.map { it.id.toString() },
-        meldekortbehandlingStatus = meldekortbehandlinger.lastOrNull()?.status?.toStatusDTO(),
+        meldekortbehandlingIder = ikkeAvbrutteBehandlinger.map { it.id.toString() },
+        meldekortbehandlingStatus = ikkeAvbrutteBehandlinger.lastOrNull()?.status?.toStatusDTO(),
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
         brukersMeldekortStatus = when (brukersMeldekort.size) {
             0 -> IKKE_MOTTATT
@@ -73,6 +96,8 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
             .hentSisteForKjedeId(kjedeId)
             ?.tilMeldeperiodeBeregningDTO(),
         erKlarTilUtfylling = sisteMeldeperiode.erKlarTilUtfylling(clock),
-        kanBehandles = sisteMeldeperiode.kanBehandles(clock) || (brukersMeldekort.isNotEmpty() && !harBehandletSiste),
+        kanBehandles = kanIkkeBehandlesGrunn == null,
+        kanIkkeBehandlesGrunn = kanIkkeBehandlesGrunn,
+        åpenBehandlingId = åpenBehandling?.id?.toString(),
     )
 }

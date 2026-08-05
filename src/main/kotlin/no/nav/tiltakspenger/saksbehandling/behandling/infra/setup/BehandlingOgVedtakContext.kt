@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
@@ -145,7 +145,7 @@ open class BehandlingOgVedtakContext(
             sakService = sakService,
             clock = clock,
             statistikkService = statistikkService,
-            oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService,
+            oppdaterBeregningOgSimuleringRammebehandlingService = oppdaterBeregningOgSimuleringRammebehandlingService,
         )
     }
 
@@ -153,7 +153,7 @@ open class BehandlingOgVedtakContext(
         SendRammebehandlingTilBeslutningService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
-            oppdaterBeregningOgSimuleringService = oppdaterBeregningOgSimuleringService,
+            oppdaterBeregningOgSimuleringRammebehandlingService = oppdaterBeregningOgSimuleringRammebehandlingService,
             clock = clock,
             sessionFactory = sessionFactory,
             statistikkService = statistikkService,
@@ -261,11 +261,10 @@ open class BehandlingOgVedtakContext(
         )
     }
 
-    val oppdaterBeregningOgSimuleringService by lazy {
-        OppdaterBeregningOgSimuleringService(
+    val oppdaterBeregningOgSimuleringRammebehandlingService by lazy {
+        OppdaterBeregningOgSimuleringRammebehandlingService(
             sakService = sakService,
             rammebehandlingRepo = rammebehandlingRepo,
-            meldekortbehandlingRepo = meldekortbehandlingRepo,
             simulerService = simulerService,
             sessionFactory = sessionFactory,
             clock = clock,

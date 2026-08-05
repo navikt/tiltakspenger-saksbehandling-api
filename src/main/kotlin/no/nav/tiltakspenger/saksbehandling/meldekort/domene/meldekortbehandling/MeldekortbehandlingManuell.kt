@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.AttesteringId
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
@@ -57,6 +58,7 @@ data class MeldekortbehandlingManuell(
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val simulering: Simulering?,
+    override val utbetalingskontroll: Utbetalingskontroll?,
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val skalSendeVedtaksbrev: Boolean,
@@ -222,6 +224,7 @@ data class MeldekortbehandlingManuell(
             attesteringer = attesteringer,
             begrunnelse = begrunnelse,
             simulering = simulering,
+            utbetalingskontroll = utbetalingskontroll,
             sendtTilBeslutning = sendtTilBeslutning,
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
             sistEndret = nå(clock),
@@ -235,6 +238,16 @@ data class MeldekortbehandlingManuell(
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {
         throw IllegalStateException("Kan ikke oppdatere simulering for status $status. SakId: $sakId, meldekortId: $id")
+    }
+
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Meldekortbehandling {
+        require(status == MeldekortbehandlingStatus.UNDER_BESLUTNING) {
+            "Kan kun oppdatere utbetalingskontroll på en behandlet meldekortbehandling dersom status er UNDER_BESLUTNING. Status er $status, sakId: $sakId, id: $id"
+        }
+        return this.copy(
+            utbetalingskontroll = oppdatertKontroll,
+            sistEndret = nå(clock),
+        )
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {
@@ -273,6 +286,7 @@ data class MeldekortbehandlingManuell(
             attesteringer = this.attesteringer,
             sendtTilBeslutning = this.sendtTilBeslutning,
             simulering = null,
+            utbetalingskontroll = null,
             status = MeldekortbehandlingStatus.UNDER_BEHANDLING,
             sistEndret = tidspunkt,
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,

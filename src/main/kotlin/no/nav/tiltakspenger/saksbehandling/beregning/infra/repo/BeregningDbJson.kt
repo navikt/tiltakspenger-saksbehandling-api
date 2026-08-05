@@ -209,6 +209,10 @@ fun BeregningDbJson.tilBeregningFraRammebehandling(behandlingId: Rammebehandling
     return tilBeregning(BeregningKilde.BeregningKildeRammebehandling(behandlingId))
 }
 
+fun BeregningDbJson.tilBeregningFraMeldekortbehandling(meldekortId: MeldekortId): Beregning {
+    return tilBeregning(BeregningKilde.BeregningKildeMeldekort(meldekortId))
+}
+
 fun String.tilBeregningFraMeldekortbehandling(meldekortId: MeldekortId): Beregning {
     return tilBeregningDbJson().tilBeregning(BeregningKilde.BeregningKildeMeldekort(meldekortId))
 }

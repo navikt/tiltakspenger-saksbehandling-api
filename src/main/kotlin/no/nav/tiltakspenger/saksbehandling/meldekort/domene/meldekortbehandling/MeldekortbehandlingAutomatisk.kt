@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.beregning.beregnMeldekort
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
@@ -63,6 +64,9 @@ data class MeldekortBehandletAutomatisk(
     override val ventestatus: Ventestatus = Ventestatus()
     override val klagebehandling: Klagebehandling? = null
 
+    /** Automatiske behandlinger går rett til iverksettelse uten et steg der grunnlaget kan rekke å endre seg. */
+    override val utbetalingskontroll: Utbetalingskontroll? = null
+
     override val beregning: Beregning get() = meldeperioder.beregning!!
 
     val brukersMeldekort: BrukersMeldekort by lazy { meldeperioder.single().brukersMeldekort!! }
@@ -86,6 +90,10 @@ data class MeldekortBehandletAutomatisk(
         throw IllegalStateException("Kan ikke oppdatere simulering på automatisk behandlet meldekort")
     }
 
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Meldekortbehandling {
+        throw IllegalStateException("Kan ikke oppdatere utbetalingskontroll på automatisk behandlet meldekort")
+    }
+
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {
         throw IllegalStateException("Automatisk behandlet meldekort kan ikke ha klagebehandling")
     }
@@ -97,7 +105,7 @@ suspend fun Sak.opprettAutomatiskMeldekortbehandling(
     clock: Clock,
     simuler: suspend (behandling: Meldekortbehandling, navkontor: Navkontor) -> Either<KunneIkkeSimulere, SimuleringMedMetadata>,
 ): Either<MeldekortBehandletAutomatiskStatus, Pair<MeldekortBehandletAutomatisk, SimuleringMedMetadata?>> {
-    validerOpprettAutomatiskMeldekortbehandling(brukersMeldekort).onLeft {
+    validerAutomatiskMeldekortbehandling(brukersMeldekort).onLeft {
         return it.left()
     }
 

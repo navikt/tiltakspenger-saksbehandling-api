@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.beregning.infra.repo
 
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
@@ -13,7 +14,7 @@ private data class UtbetalingskontrollDbJson(
     val simulering: SimuleringDbJson,
 )
 
-fun Utbetalingskontroll.tilDbJson(): String {
+fun Utbetalingskontroll.tilUtbetalingskontrollDbJson(): String {
     return UtbetalingskontrollDbJson(
         beregning = this.beregning.tilBeregningDbJson(),
         simulering = this.simulering.toSimuleringDbJson(),
@@ -25,6 +26,15 @@ fun String.tilRammebehandlingUtbetalingskontroll(id: RammebehandlingId, meldeper
 
     return Utbetalingskontroll(
         beregning = dbJson.beregning.tilBeregningFraRammebehandling(id),
+        simulering = dbJson.simulering.toDomain(meldeperiodekjeder),
+    )
+}
+
+fun String.tilMeldekortbehandlingUtbetalingskontroll(id: MeldekortId, meldeperiodekjeder: MeldeperiodeKjeder): Utbetalingskontroll {
+    val dbJson = deserialize<UtbetalingskontrollDbJson>(this)
+
+    return Utbetalingskontroll(
+        beregning = dbJson.beregning.tilBeregningFraMeldekortbehandling(id),
         simulering = dbJson.simulering.toDomain(meldeperiodekjeder),
     )
 }

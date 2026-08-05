@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMel
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.LeggTilbakeMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterBeregningOgSimuleringMeldekortService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OppdaterMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OpprettMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.OvertaMeldekortbehandlingService
@@ -78,8 +79,19 @@ open class MeldekortContext(
         )
     }
 
+    val oppdaterBeregningOgSimuleringMeldekortService by lazy {
+        OppdaterBeregningOgSimuleringMeldekortService(
+            sakService = sakService,
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
+            simulerService = simulerService,
+            sessionFactory = sessionFactory,
+            clock = clock,
+        )
+    }
+
     val iverksettMeldekortbehandlingService by lazy {
         IverksettMeldekortbehandlingService(
+            oppdaterBeregningOgSimuleringMeldekortService = oppdaterBeregningOgSimuleringMeldekortService,
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             meldeperiodeRepo = meldeperiodeRepo,
             sessionFactory = sessionFactory,
@@ -174,6 +186,7 @@ open class MeldekortContext(
         SendMeldekortbehandlingTilBeslutterService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
             sakService = sakService,
+            oppdaterBeregningOgSimuleringMeldekortService = oppdaterBeregningOgSimuleringMeldekortService,
             erProd = Configuration.isProd(),
         )
     }

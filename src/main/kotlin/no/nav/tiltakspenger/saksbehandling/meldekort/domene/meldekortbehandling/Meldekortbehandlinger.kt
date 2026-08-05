@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nonDistinctBy
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -18,7 +19,6 @@ import java.time.Clock
 /**
  * Består av ingen, én eller flere [Meldekortbehandling].
  * Vil være tom fram til første innvilgede søknadsbehandling.
- * Kun en behandling kan være under behandling (åpen) til enhver tid.
  * Merk at [verdi] inneholder alle meldekortbehandlinger, inkludert de som er avbrutt, og bør ikke brukes direkte!
  */
 data class Meldekortbehandlinger(
@@ -57,8 +57,9 @@ data class Meldekortbehandlinger(
     }
 
     /** meldekort med status UNDER_BEHANDLING */
-    val meldekortUnderBehandling: MeldekortUnderBehandling? by lazy {
-        verdi.singleOrNullOrThrow { it.status == MeldekortbehandlingStatus.UNDER_BEHANDLING } as MeldekortUnderBehandling?
+    val meldekortbehandlingerUnderBehandling: List<MeldekortUnderBehandling> by lazy {
+        verdi.filterIsInstance<MeldekortUnderBehandling>()
+            .filter { it.status == MeldekortbehandlingStatus.UNDER_BEHANDLING }
     }
 
     val godkjenteMeldekort: List<Meldekortbehandling.Behandlet> by lazy {
@@ -70,9 +71,29 @@ data class Meldekortbehandlinger(
     val sisteGodkjenteMeldekort: Meldekortbehandling.Behandlet? by lazy { godkjenteMeldekort.maxByOrNull { it.opprettet } }
 
     /** Meldekort som er under behandling eller venter på beslutning */
-    val åpenMeldekortbehandling: Meldekortbehandling? by lazy { this.singleOrNullOrThrow { it.erÅpen() } }
+    val åpneMeldekortbehandlinger: List<Meldekortbehandling> = verdi.filter { it.erÅpen() }
+    val harÅpenBehandling: Boolean by lazy { åpneMeldekortbehandlinger.isNotEmpty() }
 
-    val harÅpenBehandling: Boolean by lazy { åpenMeldekortbehandling != null }
+    fun hentÅpenBehandlingForKjede(kjedeId: MeldeperiodeKjedeId): Meldekortbehandling? {
+        return åpneMeldekortbehandlinger.find { it.kjedeIder.contains(kjedeId) }
+    }
+
+    /**
+     * Finner de av [kjedeIder] som allerede er omfattet av en åpen meldekortbehandling.
+     * To åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede, siden det gir konflikter på blant annet [MeldeperiodebehandlingType].
+     * Behandlingen [ekskluderBehandlingId] holdes utenfor, slik at en åpen behandling kan oppdateres med sine egne kjeder.
+     */
+    fun kjederMedAnnenÅpenBehandling(
+        kjedeIder: Collection<MeldeperiodeKjedeId>,
+        ekskluderBehandlingId: MeldekortId? = null,
+    ): Set<MeldeperiodeKjedeId> {
+        val opptatteKjeder = åpneMeldekortbehandlinger
+            .filterNot { it.id == ekskluderBehandlingId }
+            .flatMap { it.kjedeIder }
+            .toSet()
+
+        return kjedeIder.filterTo(mutableSetOf()) { it in opptatteKjeder }
+    }
 
     fun sendTilBeslutter(
         kommando: SendMeldekortbehandlingTilBeslutterKommando,
@@ -99,7 +120,7 @@ data class Meldekortbehandlinger(
     }
 
     fun hentSisteMeldekortbehandlingForKjede(kjedeId: MeldeperiodeKjedeId): Meldekortbehandling? {
-        return verdi.filter { it.kjedeIder.contains(kjedeId) }.maxByOrNull { it.opprettet }
+        return verdi.filter { it.kjedeIder.contains(kjedeId) }.maxByOrNull { it.sistEndret }
     }
 
     /**
@@ -169,15 +190,37 @@ data class Meldekortbehandlinger(
             }
         }
 
-        require(verdi.count { it.erÅpen() } <= 1) {
-            "Kun ett meldekort på saken kan være åpen om gangen"
-        }
-
         verdi.map { it.id }.also {
             require(it.size == it.distinct().size) {
                 "Meldekort må ha unik id"
             }
         }
+
+        val samtidigBehandledeKjeder = åpneMeldekortbehandlinger
+            .flatMap { behandling -> behandling.kjedeIder }
+            .nonDistinctBy { it }
+
+        require(samtidigBehandledeKjeder.isEmpty()) {
+            "To åpne meldekortbehandlinger kan ikke omfatte samme meldeperiodekjede. Samtidig behandlede kjeder: $samtidigBehandledeKjeder - sak $sakId"
+        }
+
+        ikkeAvbrutteMeldekortbehandlinger
+            .flatMap { behandling -> behandling.meldeperioder }
+            .groupBy { it.kjedeId }
+            .forEach { (kjedeId, meldeperiodebehandlinger) ->
+                val faktiskeTyper = meldeperiodebehandlinger.map { it.type }
+                val forventedeTyper = faktiskeTyper.mapIndexed { index, _ ->
+                    if (index == 0) {
+                        MeldeperiodebehandlingType.FØRSTE_BEHANDLING
+                    } else {
+                        MeldeperiodebehandlingType.KORRIGERING
+                    }
+                }
+
+                require(faktiskeTyper == forventedeTyper) {
+                    "Den første behandlingen av en meldeperiodekjede må ha type FØRSTE_BEHANDLING, og de påfølgende KORRIGERING. Kjede $kjedeId har typene $faktiskeTyper - sak $sakId"
+                }
+            }
     }
 
     companion object {

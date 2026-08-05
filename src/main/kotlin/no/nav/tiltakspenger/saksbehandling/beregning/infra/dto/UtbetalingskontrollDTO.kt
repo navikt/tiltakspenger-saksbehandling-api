@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.beregning.infra.dto
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.erLik
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
@@ -43,9 +44,15 @@ sealed interface UtbetalingskontrollDTO {
 fun Utbetalingskontroll.tilUtbetalingskontrollDTO(
     behandlingUtbetaling: BehandlingUtbetaling?,
     beregninger: MeldeperiodeBeregningerVedtatt,
-): UtbetalingskontrollDTO {
-    val behandlingSimulering = behandlingUtbetaling?.simulering
+): UtbetalingskontrollDTO = tilUtbetalingskontrollDTO(
+    behandlingSimulering = behandlingUtbetaling?.simulering,
+    beregninger = beregninger,
+)
 
+fun Utbetalingskontroll.tilUtbetalingskontrollDTO(
+    behandlingSimulering: Simulering?,
+    beregninger: MeldeperiodeBeregningerVedtatt,
+): UtbetalingskontrollDTO {
     if (behandlingSimulering != null && this.tidspunkt < behandlingSimulering.simuleringstidspunkt) {
         return UtbetalingskontrollDTO.UtbetalingskontrollUtdatertDTO(
             tidspunkt = this.tidspunkt,

@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.tilBeslutning
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.meldeperioderErGyldigeForHelg
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -25,7 +25,7 @@ import java.time.Clock
 
 class SendRammebehandlingTilBeslutningService(
     private val sakService: SakService,
-    private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
+    private val oppdaterBeregningOgSimuleringRammebehandlingService: OppdaterBeregningOgSimuleringRammebehandlingService,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val statistikkService: StatistikkService,
@@ -46,7 +46,7 @@ class SendRammebehandlingTilBeslutningService(
                 .left()
         }
 
-        val (_, behandlingMedUtbetalingskontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
+        val (_, behandlingMedUtbetalingskontroll) = oppdaterBeregningOgSimuleringRammebehandlingService.oppdaterUtbetalingskontroll(
             sak,
             behandlingId,
             kommando.saksbehandler,

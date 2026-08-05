@@ -37,16 +37,40 @@ fun Route.meldekortRoutes(
     forhåndsvisBrevMeldekortbehandlingService: ForhåndsvisBrevMeldekortbehandlingService,
 ) {
     iverksettMeldekortRoute(iverksettMeldekortbehandlingService, auditService, clock, tilgangskontrollService)
-    sendMeldekortTilBeslutningRoute(sendMeldekortbehandlingTilBeslutterService, auditService, clock, tilgangskontrollService)
+    sendMeldekortTilBeslutningRoute(
+        sendMeldekortbehandlingTilBeslutterService,
+        auditService,
+        clock,
+        tilgangskontrollService,
+    )
     oppdaterMeldekortbehandlingRoute(oppdaterMeldekortbehandlingService, auditService, clock, tilgangskontrollService)
     opprettMeldekortbehandlingRoute(opprettMeldekortbehandlingService, auditService, tilgangskontrollService)
     overtaMeldekortbehandlingRoute(overtaMeldekortbehandlingService, auditService, tilgangskontrollService, clock)
     mottaMeldekortRoute(mottaBrukerutfyltMeldekortService)
     taMeldekortbehandlingRoute(auditService, taMeldekortbehandlingService, tilgangskontrollService, clock)
-    underkjennMeldekortbehandlingRoute(underkjennMeldekortbehandlingService, auditService, tilgangskontrollService)
-    leggTilbakeMeldekortbehandlingRoute(auditService, leggTilbakeMeldekortbehandlingService, tilgangskontrollService, clock)
-    avbrytMeldekortbehandlingRoute(auditService, avbrytMeldekortbehandlingService, tilgangskontrollService)
-    settMeldekortbehandlingPåVentRoute(auditService, settMeldekortbehandlingPåVentService, tilgangskontrollService, clock)
+    underkjennMeldekortbehandlingRoute(
+        underkjennMeldekortbehandlingService,
+        auditService,
+        tilgangskontrollService,
+        clock,
+    )
+    leggTilbakeMeldekortbehandlingRoute(
+        auditService,
+        leggTilbakeMeldekortbehandlingService,
+        tilgangskontrollService,
+        clock,
+    )
+    avbrytMeldekortbehandlingRoute(auditService, avbrytMeldekortbehandlingService, tilgangskontrollService, clock)
+    settMeldekortbehandlingPåVentRoute(
+        auditService,
+        settMeldekortbehandlingPåVentService,
+        tilgangskontrollService,
+        clock,
+    )
     gjenopptaMeldekortbehandlingRoute(auditService, gjenopptaMeldekortbehandlingService, tilgangskontrollService, clock)
-    forhåndsvisBrevMeldekortbehandlingRoute(forhåndsvisBrevMeldekortbehandlingService, auditService, tilgangskontrollService)
+    forhåndsvisBrevMeldekortbehandlingRoute(
+        forhåndsvisBrevMeldekortbehandlingService,
+        auditService,
+        tilgangskontrollService,
+    )
 }

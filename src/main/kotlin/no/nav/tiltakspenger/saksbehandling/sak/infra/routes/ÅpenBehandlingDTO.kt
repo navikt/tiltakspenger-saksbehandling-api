@@ -32,7 +32,7 @@ fun Sak.tilÅpneBehandlingerDTO(): List<ÅpenBehandlingDTO> {
     return (
         this.åpneSøknaderUtenBehandling() +
             this.åpneRammebehandlinger() +
-            this.åpenMeldekortbehandling() +
+            this.åpneMeldekortbehandlinger() +
             this.åpneKlagebehandlinger() +
             this.åpneTilbakekrevinger()
         )
@@ -62,15 +62,10 @@ private fun Sak.åpneRammebehandlinger(): List<Pair<ÅpenBehandlingDTO, LocalDat
     }
 }
 
-private fun Sak.åpenMeldekortbehandling(): List<Pair<ÅpenBehandlingDTO, LocalDateTime>> {
-    val åpenMeldekortbehandling = this.meldekortbehandlinger.åpenMeldekortbehandling ?: return emptyList()
-
-    return listOf(
-        ÅpenBehandlingDTO(
-            åpenMeldekortbehandling.id.toString(),
-            ÅpenBehandlingTypeDTO.MELDEKORT,
-        ) to åpenMeldekortbehandling.opprettet,
-    )
+private fun Sak.åpneMeldekortbehandlinger(): List<Pair<ÅpenBehandlingDTO, LocalDateTime>> {
+    return this.meldekortbehandlinger.åpneMeldekortbehandlinger.map {
+        ÅpenBehandlingDTO(it.id.toString(), ÅpenBehandlingTypeDTO.MELDEKORT) to it.opprettet
+    }
 }
 
 private fun Sak.åpneKlagebehandlinger(): List<Pair<ÅpenBehandlingDTO, LocalDateTime>> {

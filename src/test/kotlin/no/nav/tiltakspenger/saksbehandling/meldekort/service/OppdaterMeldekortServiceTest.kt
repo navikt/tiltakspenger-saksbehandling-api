@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.throwables.shouldThrow
@@ -10,16 +11,21 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.KanIkkeOppdatereMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode.OppdatertDag
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.DELTATT_UTEN_LØNN_I_TILTAKET
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_RETT_TIL_TILTAKSPENGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.oppdater.OppdaterMeldekortbehandlingKommando.Status.IKKE_TILTAKSDAG
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.meldekortbehandlingOpprettet
+import no.nav.tiltakspenger.saksbehandling.objectmothers.tilOppdaterMeldekortKommando
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -32,7 +38,7 @@ class OppdaterMeldekortServiceTest {
         runTest {
             withTestApplicationContext { tac ->
                 val sak = tac.meldekortbehandlingOpprettet()
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = nonEmptyListOf(
                         OppdatertDag(
@@ -70,7 +76,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed.minusDays(1)
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -120,7 +126,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -171,7 +177,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -221,7 +227,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 val dager = OppdaterMeldekortbehandlingKommando.OppdatertMeldeperiode(
                     dager = dager(
@@ -272,7 +278,7 @@ class OppdaterMeldekortServiceTest {
                 val sak = tac.meldekortbehandlingOpprettet(
                     innvilgelsesperiode = Periode(3.januar(2023), 31.januar(2023)),
                 )
-                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortUnderBehandling!!
+                val ikkeUtfyltMeldekort = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
                 val førsteDag = ikkeUtfyltMeldekort.fraOgMed
                 tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
                     OppdaterMeldekortbehandlingKommando(
@@ -308,6 +314,44 @@ class OppdaterMeldekortServiceTest {
                     ),
                     clock,
                 ).getOrFail()
+            }
+        }
+    }
+
+    @Test
+    fun `Kan ikke oppdatere en behandling med en kjede som har en annen åpen behandling`() {
+        val clock = TikkendeKlokke()
+        runTest {
+            withTestApplicationContext { tac ->
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    innvilgelsesperioder = ObjectMother.innvilgelsesperioder(
+                        Periode(6.januar(2025), 2.februar(2025)),
+                    ),
+                )
+
+                val (_, behandlingPåFørsteKjede) = tac.nyOpprettetMeldekortbehandling(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder.first().kjedeId,
+                )
+                val (_, behandlingPåAndreKjede) = tac.nyOpprettetMeldekortbehandling(
+                    sakId = sak.id,
+                    kjedeId = sak.meldeperiodeKjeder[1].kjedeId,
+                )
+
+                val førsteKjedeId = behandlingPåFørsteKjede.kjedeIder.single()
+
+                tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                    kommando = ObjectMother.oppdaterMeldekortKommando(
+                        sakId = sak.id,
+                        meldekortId = behandlingPåAndreKjede.id,
+                        saksbehandler = ObjectMother.saksbehandler(),
+                        meldeperioder = behandlingPåFørsteKjede
+                            .tilOppdaterMeldekortKommando(ObjectMother.saksbehandler())
+                            .meldeperioder,
+                    ),
+                    clock = clock,
+                ) shouldBe KanIkkeOppdatereMeldekortbehandling.KjedeErUnderBehandling(setOf(førsteKjedeId)).left()
             }
         }
     }

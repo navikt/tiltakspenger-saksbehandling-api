@@ -525,7 +525,7 @@ class IverksettRevurderingTest {
                 sessionFactory = tac.sessionFactory,
                 sakService = tac.sakContext.sakService,
                 clock = klokkeFørSøknadsbehandlingsvedtaket,
-                oppdaterBeregningOgSimuleringService = tac.behandlingContext.oppdaterBeregningOgSimuleringService,
+                oppdaterBeregningOgSimuleringRammebehandlingService = tac.behandlingContext.oppdaterBeregningOgSimuleringRammebehandlingService,
                 statistikkService = tac.statistikkContext.statistikkService,
             )
 

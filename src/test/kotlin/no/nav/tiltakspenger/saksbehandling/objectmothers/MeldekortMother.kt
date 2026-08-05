@@ -153,6 +153,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 type = type,
                 meldekortbehandlingId = id,
             ),
+            utbetalingskontroll = null,
             ventestatus = ventestatus,
             klagebehandling = null,
         )
@@ -288,6 +289,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 type = type,
                 meldekortbehandlingId = id,
             ),
+            utbetalingskontroll = null,
             ventestatus = Ventestatus(),
             klagebehandling = null,
         )
@@ -711,6 +713,7 @@ interface MeldekortMother : MotherOfAllMothers {
                         type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                         meldekortbehandlingId = meldekortId,
                     ),
+                    utbetalingskontroll = null,
                     ventestatus = Ventestatus(),
                     klagebehandling = null,
                 ),
@@ -813,6 +816,12 @@ interface MeldekortMother : MotherOfAllMothers {
 
         val dager = kommando.meldeperioder.first().tilUtfyltMeldeperiode(meldeperiode)
 
+        val type = if (this.hentIkkeAvbrutteBehandlingerForKjede(kjedeId).isEmpty()) {
+            MeldeperiodebehandlingType.FØRSTE_BEHANDLING
+        } else {
+            MeldeperiodebehandlingType.KORRIGERING
+        }
+
         val meldekortbehandlinger = this.leggTil(
             MeldekortUnderBehandling(
                 id = meldekortId,
@@ -834,9 +843,10 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperiode = dager,
                     beregning = null,
                     brukersMeldekort = null,
-                    type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    type = type,
                     meldekortbehandlingId = meldekortId,
                 ),
+                utbetalingskontroll = null,
                 ventestatus = Ventestatus(),
                 klagebehandling = null,
             ),
@@ -852,7 +862,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 Meldeperiodebehandling(
                     dager = it.tilUtfyltMeldeperiode(meldeperiode),
                     brukersMeldekort = null,
-                    type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                    type = type,
                     meldekortbehandlingId = meldekortId,
                 )
             },

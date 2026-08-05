@@ -96,14 +96,6 @@ fun KanIkkeOppretteMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
         ),
     )
 
-    is KanIkkeOppretteMeldekortbehandling.ValiderOpprettFeil -> Pair(
-        HttpStatusCode.BadRequest,
-        ErrorJson(
-            melding = "Meldeperiodekjeden er i en tilstand som ikke tillater å opprette en behandling: ${this.feil}",
-            kode = this.feil.toString(),
-        ),
-    )
-
     is KanIkkeOppretteMeldekortbehandling.SaksbehandlerMismatch -> Pair(
         HttpStatusCode.InternalServerError,
         ErrorJson(
@@ -125,6 +117,14 @@ fun KanIkkeOppretteMeldekortbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
         ErrorJson(
             melding = "Samme meldeperiodekjede kan bare sendes inn én gang: ${this.kjedeIder}",
             kode = "duplikate_kjeder",
+        ),
+    )
+
+    is KanIkkeOppretteMeldekortbehandling.KjedeErUnderBehandling -> Pair(
+        HttpStatusCode.BadRequest,
+        ErrorJson(
+            melding = "Meldeperiodekjedene ${this.kjedeIder} er allerede omfattet av en åpen meldekortbehandling",
+            kode = "kjede_er_under_behandling",
         ),
     )
 }

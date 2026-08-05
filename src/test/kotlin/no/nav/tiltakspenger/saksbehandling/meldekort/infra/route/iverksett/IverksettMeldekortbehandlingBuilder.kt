@@ -151,6 +151,7 @@ interface IverksettMeldekortbehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
+        medJsonBody: ((jsonBody: String) -> Unit)? = null,
     ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
             saksbehandler = beslutter,
@@ -163,6 +164,9 @@ interface IverksettMeldekortbehandlingBuilder {
             forventet = forventet,
         ).apply {
             val bodyAsText = body
+            if (medJsonBody != null) {
+                medJsonBody(bodyAsText)
+            }
             if (statusCode != 200) return null
             val jsonObject: MeldeperiodeKjedeDTOJson = JSONObject(bodyAsText)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!

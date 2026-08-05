@@ -21,8 +21,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.AvbrytMeldekortbehandlingKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.avbryt.KanIkkeAvbryteMeldekortbehandling
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val AVBRYT_MELDEKORTBEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/avbryt"
 
@@ -34,6 +35,7 @@ fun Route.avbrytMeldekortbehandlingRoute(
     auditService: AuditService,
     avbrytMeldekortbehandlingService: AvbrytMeldekortbehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger {}
     post(AVBRYT_MELDEKORTBEHANDLING_PATH) {
@@ -68,11 +70,9 @@ fun Route.avbrytMeldekortbehandlingRoute(
                             )
 
                             call.respondJson(
-                                value = behandling.tilMeldekortbehandlingDTO(
-                                    beregninger = sak.meldeperiodeBeregninger,
-                                    hentVedtak = { null },
-                                    hentTilbakekreving = { null },
-                                    kallendeSaksbehandler = saksbehandler,
+                                value = sak.toSakDTO(
+                                    saksbehandler = saksbehandler,
+                                    clock = clock,
                                 ),
                             )
                         },

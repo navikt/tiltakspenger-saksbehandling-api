@@ -39,10 +39,6 @@ data class Meldeperiode(
         return periode.fraOgMed <= LocalDate.now(clock)
     }
 
-    fun kanBehandles(clock: Clock): Boolean {
-        return erKlarTilUtfylling(clock) && !ingenDagerGirRett
-    }
-
     fun erLik(meldeperiode: Meldeperiode): Boolean {
         /*
          Må oppdaters dersom det kommer nytt felt som vi har lyst å sammenligne på, men er bedre at det ikke opprettes nye meldeperioder

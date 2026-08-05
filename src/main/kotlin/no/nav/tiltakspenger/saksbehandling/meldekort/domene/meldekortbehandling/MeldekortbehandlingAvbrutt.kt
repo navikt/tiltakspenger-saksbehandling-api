@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
+import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -12,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Simulering
+import java.time.Clock
 import java.time.LocalDateTime
 
 /**
@@ -46,6 +48,9 @@ data class MeldekortbehandlingAvbrutt(
 
     override val beslutter = null
 
+    /** En avbrutt behandling skal aldri videre i flyten, så kontrollen er uten verdi og beholdes ikke. */
+    override val utbetalingskontroll: Utbetalingskontroll? = null
+
     init {
         initKlagebehandling()
     }
@@ -56,6 +61,10 @@ data class MeldekortbehandlingAvbrutt(
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {
         throw IllegalStateException("Kan ikke oppdatere simulering på avbrutt meldekortbehandling")
+    }
+
+    override fun oppdaterUtbetalingskontroll(oppdatertKontroll: Utbetalingskontroll?, clock: Clock): Meldekortbehandling {
+        throw IllegalStateException("Kan ikke oppdatere utbetalingskontroll på avbrutt meldekortbehandling")
     }
 
     override fun oppdaterKlagebehandling(klagebehandling: Klagebehandling): Meldekortbehandling {

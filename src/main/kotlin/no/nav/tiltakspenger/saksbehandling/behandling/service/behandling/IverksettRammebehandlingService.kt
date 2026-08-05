@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
-import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
@@ -48,7 +48,7 @@ class IverksettRammebehandlingService(
     private val sessionFactory: SessionFactory,
     private val sakService: SakService,
     private val clock: Clock,
-    private val oppdaterBeregningOgSimuleringService: OppdaterBeregningOgSimuleringService,
+    private val oppdaterBeregningOgSimuleringRammebehandlingService: OppdaterBeregningOgSimuleringRammebehandlingService,
     private val statistikkService: StatistikkService,
 ) {
     private val logger = KotlinLogging.logger { }
@@ -69,7 +69,7 @@ class IverksettRammebehandlingService(
             ).left()
         }
 
-        val (_, behandlingMedUtbetalingskontroll) = oppdaterBeregningOgSimuleringService.oppdaterUtbetalingskontroll(
+        val (_, behandlingMedUtbetalingskontroll) = oppdaterBeregningOgSimuleringRammebehandlingService.oppdaterUtbetalingskontroll(
             sak,
             rammebehandlingId,
             beslutter,

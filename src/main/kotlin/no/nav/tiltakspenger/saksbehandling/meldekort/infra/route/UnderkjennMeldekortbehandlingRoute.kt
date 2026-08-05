@@ -20,8 +20,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.underkjenn.KanIkkeUnderkjenneMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.underkjenn.UnderkjennMeldekortbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.tilMeldekortbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.UnderkjennMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 const val UNDERKJENN_MELDEKORT_BEHANDLING_PATH = "/sak/{sakId}/meldekort/{meldekortId}/underkjenn"
 
@@ -31,6 +32,7 @@ fun Route.underkjennMeldekortbehandlingRoute(
     underkjennMeldekortbehandlingService: UnderkjennMeldekortbehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
     post(UNDERKJENN_MELDEKORT_BEHANDLING_PATH) {
@@ -55,7 +57,7 @@ fun Route.underkjennMeldekortbehandlingRoute(
                         ifLeft = {
                             call.respondJson(statusAndValue = it.toErrorJson())
                         },
-                        ifRight = { (sak, behandling) ->
+                        ifRight = { (sak) ->
                             auditService.logMedMeldekortId(
                                 meldekortId = meldekortId,
                                 navIdent = saksbehandler.navIdent,
@@ -65,12 +67,7 @@ fun Route.underkjennMeldekortbehandlingRoute(
                             )
 
                             call.respondJson(
-                                value = behandling.tilMeldekortbehandlingDTO(
-                                    beregninger = sak.meldeperiodeBeregninger,
-                                    hentVedtak = { null },
-                                    hentTilbakekreving = { null },
-                                    kallendeSaksbehandler = saksbehandler,
-                                ),
+                                value = sak.toSakDTO(saksbehandler, clock),
                             )
                         },
                     )

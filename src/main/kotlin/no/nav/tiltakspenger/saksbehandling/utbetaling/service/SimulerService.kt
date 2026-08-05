@@ -32,12 +32,15 @@ class SimulerService(
      *
      * @param forrigeUtbetaling er null dersom det ikke finnes en tidligere utbetaling
      * @param behandling Forventer at behandling.beregning og behandling.saksbehandler er oppdatert
+     * @param beregning defaulter til beregningen på behandlingen.
+     * Ved kontrollsimulering sendes en fersk beregning inn, siden den skal simuleres uten å endre behandlingen.
      */
     suspend fun simulerMeldekort(
         behandling: Meldekortbehandling,
         forrigeUtbetaling: VedtattUtbetaling?,
         meldeperiodeKjeder: MeldeperiodeKjeder,
         kanSendeInnHelgForMeldekort: Boolean,
+        beregning: Beregning = behandling.beregning!!,
         brukersNavkontor: (suspend () -> Navkontor)?,
     ): Either<KunneIkkeSimulere, SimuleringMedMetadata> {
         return simuler(
@@ -46,7 +49,7 @@ class SimulerService(
             behandlingId = behandling.id,
             fnr = behandling.fnr,
             saksbehandler = behandling.saksbehandler!!,
-            beregning = behandling.beregning!!,
+            beregning = beregning,
             forrigeUtbetaling = forrigeUtbetaling,
             meldeperiodeKjeder = meldeperiodeKjeder,
             brukersNavkontor = brukersNavkontor,

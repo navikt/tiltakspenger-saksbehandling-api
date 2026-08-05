@@ -29,9 +29,9 @@ data class Meldekortvedtaksliste(
     }
 
     val meldeperiodebehandlingTidslinje: Periodisering<Meldeperiodebehandling> by lazy {
-        tidslinje.flatMapPeriodisering { (vedtak) ->
-            vedtak.meldeperiodebehandlinger.map { PeriodeMedVerdi(it, it.periode) }.tilPeriodisering()
-        }
+        tidslinje.perioderMedVerdi.flatMap { (vedtak) ->
+            vedtak.meldeperiodebehandlinger.map { PeriodeMedVerdi(it, it.periode) }
+        }.tilPeriodisering()
     }
 
     /**
