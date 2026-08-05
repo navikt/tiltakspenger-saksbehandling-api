@@ -5,10 +5,15 @@ import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.MeldeperiodeBeregningDTO
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBeregningDTO
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingAvbrutt
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.BEHANDLET
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.IKKE_MOTTATT
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.KORRIGERING_AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.KORRIGERING_BEHANDLET
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.KORRIGERING_UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.KORRIGERING_VENTER_BEHANDLING
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.BrukersMeldekortStatusDTO.VENTER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -55,11 +60,15 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
     val ikkeAvbrutteBehandlinger = this.meldekortbehandlinger
         .hentIkkeAvbrutteBehandlingerForKjede(kjedeId)
 
-    val harBehandletSiste = this.meldekortbehandlinger
-        .hentSisteMeldekortbehandlingForKjede(kjedeId)
-        ?.let { sisteBehandling ->
-            sisteBrukersMeldekort == null || sisteBehandling.sistEndret > sisteBrukersMeldekort.mottatt
-        } ?: false
+    val sisteBehandling = this.meldekortbehandlinger.hentSisteMeldekortbehandlingForKjede(kjedeId)
+
+    val harBehandletSiste = sisteBehandling
+        ?.let { sisteBrukersMeldekort == null || it.sistEndret > sisteBrukersMeldekort.mottatt }
+        ?: false
+
+    val sisteBehandlingErAvbrutt = sisteBehandling is MeldekortbehandlingAvbrutt
+
+    val sisteBehandlingErÅpen = sisteBehandling?.erÅpen() ?: false
 
     val åpenBehandling = this.meldekortbehandlinger.hentÅpenBehandlingForKjede(kjedeId)
 
@@ -89,8 +98,20 @@ private fun Sak.tilMeldeperiodeKjedeDTO(kjedeId: MeldeperiodeKjedeId, clock: Clo
         brukersMeldekort = brukersMeldekort.map { it.toBrukersMeldekortDTO() },
         brukersMeldekortStatus = when (brukersMeldekort.size) {
             0 -> IKKE_MOTTATT
-            1 -> if (harBehandletSiste) BEHANDLET else VENTER_BEHANDLING
-            else -> if (harBehandletSiste) KORRIGERING_BEHANDLET else KORRIGERING_VENTER_BEHANDLING
+
+            1 -> when {
+                !harBehandletSiste -> VENTER_BEHANDLING
+                sisteBehandlingErÅpen -> UNDER_BEHANDLING
+                sisteBehandlingErAvbrutt -> AVBRUTT
+                else -> BEHANDLET
+            }
+
+            else -> when {
+                !harBehandletSiste -> KORRIGERING_VENTER_BEHANDLING
+                sisteBehandlingErÅpen -> KORRIGERING_UNDER_BEHANDLING
+                sisteBehandlingErAvbrutt -> KORRIGERING_AVBRUTT
+                else -> KORRIGERING_BEHANDLET
+            }
         },
         gjeldendeBeregning = meldeperiodeBeregninger
             .hentSisteForKjedeId(kjedeId)
