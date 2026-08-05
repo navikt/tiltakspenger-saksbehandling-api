@@ -70,7 +70,7 @@ class SendMeldekortbehandlingTilBeslutterService(
                 // Lagrer kontrollen slik at saksbehandler ser hva som avviker, selv om behandlingen blir stående under behandling.
                 meldekortbehandlingRepo.oppdater(behandlingMedKontroll)
 
-                return KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke(it).left()
+                return KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke(it, sakMedKontroll).left()
             }
 
             meldekortbehandlingRepo.oppdater(meldekort)

@@ -80,7 +80,7 @@ class IverksettMeldekortbehandlingService(
             it.logg(logger) { "Utbetaling på meldekortbehandlingen har et resultat som ikke kan iverksettes. sakId: $sakId, meldekortId: $meldekortId" }
             // Lagrer kontrollen slik at beslutter ser hva som avviker.
             meldekortbehandlingRepo.oppdater(behandlingMedKontroll)
-            return KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke(it).left()
+            return KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke(it, sakMedKontroll).left()
         }
 
         return (behandlingMedKontroll as MeldekortbehandlingManuell).iverksettMeldekort(kommando.beslutter, clock, kommando.correlationId).map { (iverksattMeldekortbehandling, klagestatistikk) ->

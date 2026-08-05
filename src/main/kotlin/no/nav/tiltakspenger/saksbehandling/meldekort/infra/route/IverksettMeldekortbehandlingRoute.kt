@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
@@ -21,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.iverksett.KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.IverksettMeldekortbehandlingService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SakDTO
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringErrorJson
@@ -80,7 +84,7 @@ fun Route.iverksettMeldekortRoute(
                             )
 
                             is KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke -> call.respondJson(
-                                statusAndValue = it.feil.tilErrorJson(),
+                                statusAndValue = it.tilErrorJsonMedSak(saksbehandler, clock),
                             )
                         }
                     },
@@ -98,4 +102,15 @@ fun Route.iverksettMeldekortRoute(
             }
         }
     }
+}
+
+private fun KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke.tilErrorJsonMedSak(
+    saksbehandler: Saksbehandler,
+    clock: Clock,
+): Pair<HttpStatusCode, ErrorJsonMedData<SakDTO>> = this.feil.tilErrorJson().let { (status, errorJson) ->
+    status to ErrorJsonMedData(
+        melding = errorJson.melding,
+        kode = errorJson.kode,
+        data = this.sak.toSakDTO(saksbehandler, clock),
+    )
 }

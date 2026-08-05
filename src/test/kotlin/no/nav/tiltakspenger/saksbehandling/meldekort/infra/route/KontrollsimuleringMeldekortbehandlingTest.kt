@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
+import io.kotest.assertions.json.shouldContainJsonKey
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.til
@@ -199,7 +201,10 @@ class KontrollsimuleringMeldekortbehandlingTest {
                 meldekortId = andreBehandling.id,
                 beslutter = beslutter,
                 forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
-                medJsonBody = { it harKode "simulering_endret" },
+                medJsonBody = {
+                    it harKode "simulering_endret"
+                    it harUtbetalingskontrollPåMeldekortbehandling andreBehandling.id
+                },
             )
 
             // Kontrollen lagres slik at beslutter ser hva som avviker, og behandlingen blir stående til beslutning.
@@ -281,7 +286,10 @@ class KontrollsimuleringMeldekortbehandlingTest {
                 meldekortId = andreBehandling.id,
                 saksbehandler = saksbehandler,
                 forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
-                medJsonBody = { it harKode "simulering_endret" },
+                medJsonBody = {
+                    it harKode "simulering_endret"
+                    it harUtbetalingskontrollPåMeldekortbehandling andreBehandling.id
+                },
             )
 
             val behandlingEtter = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
@@ -308,4 +316,11 @@ class KontrollsimuleringMeldekortbehandlingTest {
             },
         )
     }
+}
+
+/**
+ * Feilresponsen skal inneholde den oppdaterte saken under `data`, slik at klienten kan vise avviket uten å hente saken på nytt.
+ */
+private infix fun String.harUtbetalingskontrollPåMeldekortbehandling(meldekortId: MeldekortId) {
+    this.shouldContainJsonKey("$.data.meldekortbehandlinger.$meldekortId.utbetalingskontroll")
 }

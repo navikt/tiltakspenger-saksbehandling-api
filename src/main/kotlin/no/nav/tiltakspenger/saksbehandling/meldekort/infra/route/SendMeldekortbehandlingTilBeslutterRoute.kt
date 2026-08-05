@@ -1,9 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJsonMedData
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withMeldekortId
@@ -19,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SendMeldekortbehandlingTilBeslutterService
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SakDTO
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilSimuleringErrorJson
@@ -68,7 +72,7 @@ fun Route.sendMeldekortTilBeslutningRoute(
                             is KanIkkeSendeMeldekortbehandlingTilBeslutter.KanIkkeOppdatere -> respondWithError(it.underliggende)
 
                             is KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke -> call.respondJson(
-                                statusAndValue = it.feil.tilErrorJson(),
+                                statusAndValue = it.tilErrorJsonMedSak(saksbehandler, clock),
                             )
 
                             is KanIkkeSendeMeldekortbehandlingTilBeslutter.SimuleringFeil -> call.respondJson(
@@ -97,4 +101,15 @@ fun Route.sendMeldekortTilBeslutningRoute(
             }
         }
     }
+}
+
+private fun KanIkkeSendeMeldekortbehandlingTilBeslutter.UtbetalingStøttesIkke.tilErrorJsonMedSak(
+    saksbehandler: Saksbehandler,
+    clock: Clock,
+): Pair<HttpStatusCode, ErrorJsonMedData<SakDTO>> = this.feil.tilErrorJson().let { (status, errorJson) ->
+    status to ErrorJsonMedData(
+        melding = errorJson.melding,
+        kode = errorJson.kode,
+        data = this.sak.toSakDTO(saksbehandler, clock),
+    )
 }
