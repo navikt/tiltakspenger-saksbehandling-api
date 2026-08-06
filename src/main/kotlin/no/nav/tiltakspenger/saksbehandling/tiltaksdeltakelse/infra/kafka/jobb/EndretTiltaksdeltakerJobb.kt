@@ -173,8 +173,7 @@ class EndretTiltaksdeltakerJobb(
                 // Dersom innvilgelsen fra vedtaket har utløpt, sjekker vi om det fortsatt var gjeldende innvilgelse på den datoen.
                 // Hvis ikke, sjekker vi fra dagens dato.
                 //
-                // Hensikten er at vi skal behandle endringen selv om det opprinnelige vedtaket er utløpt før vi fikk endringsmeldingen,
-                // men ikke dersom vedtaket allerede er stanset eller opphørt i den relevante perioden
+                // Hensikten er at vi skal behandle endringen selv om det opprinnelige vedtaket er utløpt før vi fikk endringsmeldingen, men ikke dersom vedtaket allerede er stanset eller opphørt i den relevante perioden
                 val harRettIRelevantPeriode by lazy {
                     val sisteInnvilgetDato = vedtak.innvilgelsesperioder!!.tilOgMed
                     val dagensDato = LocalDate.now(clock)
