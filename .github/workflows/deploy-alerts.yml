@@ -1,6 +1,7 @@
 name: Deploy alerts
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,27 +9,14 @@ on:
       - .nais/alerts.yml
       - .github/workflows/deploy-alerts.yml
 
+# Minste privilegium: toppnivået nullstiller alle token-rettigheter, hver jobb deklarerer eksplisitt det den trenger.
+permissions: {}
+
+# Delte workflows i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
 jobs:
-  deploy:
-    name: Deploy to nais
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cluster: [ prod, dev ]
+  deploy-alerts:
+    name: Deploy alerts til nais
+    uses: navikt/tiltakspenger/.github/workflows/deploy-alerts.yml@main
     permissions:
       contents: read
       id-token: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          # Deploysteget leser kun manifestfiler - tokenet trengs ikke videre.
-          persist-credentials: false
-
-      - uses: nais/deploy/actions/deploy@2d18f050f07b6a007864c6a57070ed915d571beb # v2
-        env:
-          CLUSTER: ${{ matrix.cluster }}-gcp
-          RESOURCE: .nais/alerts.yml
-          VAR: datasource=${{ matrix.cluster }}-gcp-loki
-          VARS: .nais/vars/${{ matrix.cluster }}.yml
-          PRINT_PAYLOAD: true
