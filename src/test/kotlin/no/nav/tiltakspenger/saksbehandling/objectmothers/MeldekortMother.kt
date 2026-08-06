@@ -149,7 +149,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = dager,
                 beregning = null,
-                brukersMeldekort = null,
+                brukersMeldekort = emptyList(),
                 type = type,
                 meldekortbehandlingId = id,
             ),
@@ -212,7 +212,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
                 beregning = null,
-                brukersMeldekort = null,
+                brukersMeldekort = emptyList(),
                 type = type,
                 meldekortbehandlingId = id,
             ),
@@ -285,7 +285,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = dager,
                 beregning = meldekortperiodeBeregning,
-                brukersMeldekort = null,
+                brukersMeldekort = emptyList(),
                 type = type,
                 meldekortbehandlingId = id,
             ),
@@ -340,7 +340,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = brukersMeldekort.tilUtfyltMeldeperiode(),
                 beregning = beregning,
-                brukersMeldekort = brukersMeldekort,
+                brukersMeldekort = listOf(brukersMeldekort),
                 type = type,
                 meldekortbehandlingId = id,
             ),
@@ -709,7 +709,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     meldeperioder = Meldeperiodebehandlinger(
                         meldeperiode = dager,
                         beregning = null,
-                        brukersMeldekort = null,
+                        brukersMeldekort = emptyList(),
                         type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                         meldekortbehandlingId = meldekortId,
                     ),
@@ -729,7 +729,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperioder = kommando.meldeperioder.map {
                 Meldeperiodebehandling(
                     dager = it.tilUtfyltMeldeperiode(meldeperiode),
-                    brukersMeldekort = null,
+                    brukersMeldekort = emptyList(),
                     type = MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
                     meldekortbehandlingId = meldekortId,
                 )
@@ -842,7 +842,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 meldeperioder = Meldeperiodebehandlinger(
                     meldeperiode = dager,
                     beregning = null,
-                    brukersMeldekort = null,
+                    brukersMeldekort = emptyList(),
                     type = type,
                     meldekortbehandlingId = meldekortId,
                 ),
@@ -861,7 +861,7 @@ interface MeldekortMother : MotherOfAllMothers {
             meldeperioder = kommando.meldeperioder.map {
                 Meldeperiodebehandling(
                     dager = it.tilUtfyltMeldeperiode(meldeperiode),
-                    brukersMeldekort = null,
+                    brukersMeldekort = emptyList(),
                     type = type,
                     meldekortbehandlingId = meldekortId,
                 )

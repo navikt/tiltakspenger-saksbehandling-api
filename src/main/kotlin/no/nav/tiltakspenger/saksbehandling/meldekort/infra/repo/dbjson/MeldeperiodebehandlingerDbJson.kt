@@ -23,7 +23,7 @@ import java.time.LocalDate
 private data class MeldeperiodebehandlingDbJson(
     val meldeperiodeId: String,
     val kjedeId: String,
-    val brukersMeldekortId: String?,
+    val brukersMeldekortIder: List<String>,
     val type: String,
     val dager: List<MeldekortDagDbJson>,
 ) {
@@ -34,8 +34,11 @@ private data class MeldeperiodebehandlingDbJson(
         meldekortbehandlingId: MeldekortId,
     ): Meldeperiodebehandling {
         val meldeperiode = hentMeldeperiode(MeldeperiodeId.fromString(this.meldeperiodeId))
-        val brukersMeldekort = this.brukersMeldekortId?.let {
-            hentBrukersMeldekort(MeldekortId.fromString(it))
+        val brukersMeldekort = this.brukersMeldekortIder.map {
+            val brukersMeldekortId = MeldekortId.fromString(it)
+            requireNotNull(hentBrukersMeldekort(brukersMeldekortId)) {
+                "Fant ikke brukers meldekort $brukersMeldekortId for meldekortbehandling $meldekortbehandlingId"
+            }
         }
 
         return Meldeperiodebehandling(
@@ -87,7 +90,7 @@ private fun Meldeperiodebehandling.tilDbJson(): MeldeperiodebehandlingDbJson {
     return MeldeperiodebehandlingDbJson(
         meldeperiodeId = meldeperiode.id.toString(),
         kjedeId = meldeperiode.kjedeId.toString(),
-        brukersMeldekortId = brukersMeldekort?.let { it.id.toString() },
+        brukersMeldekortIder = brukersMeldekort.map { it.id.toString() },
         type = type.tilDb(),
         dager = dager.map { MeldekortDagDbJson(dato = it.dato, status = it.status.toDb()) },
     )

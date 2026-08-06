@@ -53,7 +53,7 @@ class MeldekortbehandlingPostgresRepoNegativTest {
             }
 
             shouldThrowWithMessage<IllegalArgumentException>(
-                "Fant ikke brukers meldekort for automatisk meldekortbehandling $meldekortbehandlingId",
+                "Fant ikke brukers meldekort ${brukersMeldekort.id} for meldekortbehandling $meldekortbehandlingId",
             ) {
                 tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)
             }

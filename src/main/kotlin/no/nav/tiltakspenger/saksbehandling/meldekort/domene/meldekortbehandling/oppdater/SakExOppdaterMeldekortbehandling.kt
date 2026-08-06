@@ -52,7 +52,7 @@ suspend fun Sak.oppdaterMeldekort(
 
                 Meldeperiodebehandling(
                     dager = utfylt,
-                    brukersMeldekort = null,
+                    brukersMeldekort = emptyList(),
                     type = if (tidligereBehandlingerForKjede.isEmpty()) {
                         MeldeperiodebehandlingType.FØRSTE_BEHANDLING
                     } else {

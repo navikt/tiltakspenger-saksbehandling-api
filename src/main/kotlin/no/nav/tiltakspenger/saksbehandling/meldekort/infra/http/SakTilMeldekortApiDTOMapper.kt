@@ -54,7 +54,9 @@ private fun Meldekortvedtak.tilMeldekortApiDTO(): SakTilMeldekortApiDTO.Meldekor
             SakTilMeldekortApiDTO.MeldekortvedtakDTO.MeldeperiodebehandlingDTO(
                 meldeperiodeId = it.meldeperiodebehandling.meldeperiodeId.toString(),
                 meldeperiodeKjedeId = it.meldeperiodebehandling.kjedeId.toString(),
-                brukersMeldekortId = it.meldeperiodebehandling.brukersMeldekort?.id?.toString(),
+                // TODO: oppdater libs + mk-api til å håndtere liste med id'er
+                // (Denne brukes ikke til noe i mk-api ennå)
+                brukersMeldekortId = it.meldeperiodebehandling.brukersMeldekort.lastOrNull()?.id?.toString(),
                 periodeDTO = it.meldeperiodebehandling.periode.toDTO(),
                 dager = it.meldeperiodeberegning!!.dager.map { dag -> dag.tilMeldekortApiDTO() },
             )

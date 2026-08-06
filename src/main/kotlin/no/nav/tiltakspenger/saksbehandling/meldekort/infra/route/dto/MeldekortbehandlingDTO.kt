@@ -87,8 +87,8 @@ data class MeldekortbehandlingDTO(
 data class MeldeperiodebehandlingDTO(
     val meldeperiodeId: String,
     val kjedeId: String,
-    /** Foreløpig satt kun for automatiske behandlinger som er knyttet til et brukers meldekort. */
-    val brukersMeldekortId: String?,
+    /** Meldekortene fra bruker som denne meldeperiodebehandlingen behandler, sortert eldst først. */
+    val brukersMeldekortIder: List<String>,
     val periode: PeriodeDTO,
     val dager: List<MeldekortDagDTO>,
     val beregning: MeldeperiodeBeregningDTO?,
@@ -146,7 +146,7 @@ private fun MeldeperiodebehandlingMedBeregning.tilMeldeperiodebehandlingDTO(): M
     return MeldeperiodebehandlingDTO(
         meldeperiodeId = meldeperiodebehandling.meldeperiodeId.toString(),
         kjedeId = meldeperiodebehandling.kjedeId.toString(),
-        brukersMeldekortId = meldeperiodebehandling.brukersMeldekort?.id?.toString(),
+        brukersMeldekortIder = meldeperiodebehandling.brukersMeldekort.map { it.id.toString() },
         periode = meldeperiodebehandling.periode.toDTO(),
         dager = meldeperiodebehandling.dager.tilMeldekortDagerDTO(),
         beregning = meldeperiodeberegning?.tilMeldeperiodeBeregningDTO(),

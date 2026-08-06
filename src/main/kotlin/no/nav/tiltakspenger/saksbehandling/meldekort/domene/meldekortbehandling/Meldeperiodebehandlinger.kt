@@ -30,7 +30,7 @@ data class Meldeperiodebehandlinger(
     constructor(
         meldeperiode: UtfyltMeldeperiode,
         beregning: Beregning?,
-        brukersMeldekort: BrukersMeldekort?,
+        brukersMeldekort: List<BrukersMeldekort>,
         type: MeldeperiodebehandlingType,
         meldekortbehandlingId: MeldekortId,
     ) : this(
@@ -56,7 +56,7 @@ data class Meldeperiodebehandlinger(
         this.flatMap { it.meldeperiode.rammevedtak.verdier }.distinct().toNonEmptyListOrThrow()
     }
 
-    val brukersMeldekort: List<BrukersMeldekort> by lazy { this.mapNotNull { it.brukersMeldekort } }
+    val brukersMeldekort: List<BrukersMeldekort> by lazy { this.flatMap { it.brukersMeldekort } }
 
     val ingenDagerGirRett: Boolean by lazy { this.all { it.meldeperiode.ingenDagerGirRett } }
 

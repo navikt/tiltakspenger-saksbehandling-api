@@ -556,10 +556,6 @@ class MeldekortbehandlingPostgresRepo(
 
             return when (val status = row.string("status").toMeldekortbehandlingStatus()) {
                 MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET -> {
-                    requireNotNull(meldeperioder.single().brukersMeldekort) {
-                        "Fant ikke brukers meldekort for automatisk meldekortbehandling $id"
-                    }
-
                     MeldekortBehandletAutomatisk(
                         id = id,
                         sakId = sakId,

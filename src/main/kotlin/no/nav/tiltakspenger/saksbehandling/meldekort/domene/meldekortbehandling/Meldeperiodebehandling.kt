@@ -12,8 +12,11 @@ import java.time.LocalDate
 
 data class Meldeperiodebehandling(
     val dager: UtfyltMeldeperiode,
-    /** Foreløpig er kun automatiske behandlinger eksplisitt tilknyttet et brukers meldekort */
-    val brukersMeldekort: BrukersMeldekort?,
+    /**
+     * Meldekortene fra bruker som denne meldeperiodebehandlingen behandler, sortert eldst først.
+     * Tom liste betyr at behandlingen ikke er knyttet til noe meldekort fra bruker.
+     */
+    val brukersMeldekort: List<BrukersMeldekort>,
     val type: MeldeperiodebehandlingType,
     val meldekortbehandlingId: MeldekortId,
 ) {
@@ -32,10 +35,13 @@ data class Meldeperiodebehandling(
     val erFullstendigUtfylt: Boolean by lazy { dager.erFullstendigUtfylt }
 
     init {
-        if (brukersMeldekort != null) {
-            require(kjedeId == brukersMeldekort.kjedeId) {
-                "Brukers meldekort må tilhøre samme meldeperiodekjede som behandlingen - forventet $kjedeId, fant ${brukersMeldekort.kjedeId}"
+        brukersMeldekort.forEach {
+            require(kjedeId == it.kjedeId) {
+                "Brukers meldekort må tilhøre samme meldeperiodekjede som behandlingen - forventet $kjedeId, fant ${it.kjedeId}"
             }
+        }
+        require(brukersMeldekort.map { it.id }.distinct().size == brukersMeldekort.size) {
+            "Samme meldekort fra bruker kan ikke behandles flere ganger i én meldeperiodebehandling - fant ${brukersMeldekort.map { it.id }}"
         }
     }
 }
@@ -46,7 +52,7 @@ fun Meldeperiode.tilMeldeperiodebehandling(
 ): Meldeperiodebehandling {
     return Meldeperiodebehandling(
         dager = this.tilUtfyltMeldeperiode(),
-        brukersMeldekort = null,
+        brukersMeldekort = emptyList(),
         type = type,
         meldekortbehandlingId = meldekortbehandlingId,
     )
@@ -58,7 +64,7 @@ fun BrukersMeldekort.tilMeldeperiodebehandling(
 ): Meldeperiodebehandling {
     return Meldeperiodebehandling(
         dager = this.tilUtfyltMeldeperiode(),
-        brukersMeldekort = this,
+        brukersMeldekort = listOf(this),
         type = type,
         meldekortbehandlingId = meldekortbehandlingId,
     )

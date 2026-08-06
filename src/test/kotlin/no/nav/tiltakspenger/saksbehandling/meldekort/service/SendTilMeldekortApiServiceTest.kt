@@ -191,7 +191,7 @@ class SendTilMeldekortApiServiceTest {
             vedtakDto.meldeperiodebehandlinger.zip(meldekortvedtak.meldeperiodebehandlinger).forEach { (dto, behandling) ->
                 dto.meldeperiodeId shouldBe behandling.meldeperiodeId.toString()
                 dto.meldeperiodeKjedeId shouldBe behandling.kjedeId.toString()
-                dto.brukersMeldekortId shouldBe behandling.brukersMeldekort?.id?.toString()
+                dto.brukersMeldekortId shouldBe behandling.brukersMeldekort.lastOrNull()?.id?.toString()
                 dto.periodeDTO.fraOgMed shouldBe behandling.periode.fraOgMed.toString()
                 dto.periodeDTO.tilOgMed shouldBe behandling.periode.tilOgMed.toString()
                 dto.dager shouldHaveSize 14

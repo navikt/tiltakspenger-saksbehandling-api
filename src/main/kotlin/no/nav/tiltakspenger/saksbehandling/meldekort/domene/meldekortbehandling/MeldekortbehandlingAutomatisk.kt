@@ -69,9 +69,12 @@ data class MeldekortBehandletAutomatisk(
 
     override val beregning: Beregning get() = meldeperioder.beregning!!
 
-    val brukersMeldekort: BrukersMeldekort by lazy { meldeperioder.single().brukersMeldekort!! }
+    val brukersMeldekort: BrukersMeldekort by lazy { meldeperioder.single().brukersMeldekort.single() }
 
     init {
+        require(meldeperioder.single().brukersMeldekort.size == 1) {
+            "En automatisk behandling må være knyttet til nøyaktig ett meldekort fra bruker"
+        }
         require(!harKorrigering) {
             "Vi støtter ikke automatisk behandling av korrigering fra bruker"
         }

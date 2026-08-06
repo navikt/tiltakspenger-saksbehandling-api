@@ -94,7 +94,7 @@ private fun MeldeperiodebehandlingMedBeregning.toDatadelingMeldeperiodeDTO(total
         totalDifferanse = totalDifferanse,
         fraOgMed = meldeperiodebehandling.fraOgMed,
         tilOgMed = meldeperiodebehandling.tilOgMed,
-        mottattTidspunkt = meldeperiodebehandling.brukersMeldekort?.mottatt,
+        mottattTidspunkt = meldeperiodebehandling.brukersMeldekort.lastOrNull()?.mottatt,
     )
 
 private fun MeldekortDag.toDatadelingMeldekortDagDTO() = DatadelingGodkjentMeldekortJson.MeldekortDagDTO(
