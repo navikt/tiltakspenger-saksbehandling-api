@@ -285,8 +285,7 @@ class RammebehandlingPostgresRepo(
                 queryOf(
                     """
                     update behandling set
-                        virkningsperiode_fra_og_med = :virkningsperiode_fra_og_med,
-                        virkningsperiode_til_og_med = :virkningsperiode_til_og_med,
+                        vedtaksperiode = :vedtaksperiode::periode,
                         status = :status,
                         sist_endret = :sist_endret,
                         saksbehandler = :saksbehandler,
@@ -340,8 +339,7 @@ class RammebehandlingPostgresRepo(
                     insert into behandling (
                         id,
                         sak_id,
-                        virkningsperiode_fra_og_med,
-                        virkningsperiode_til_og_med,
+                        vedtaksperiode,
                         status,
                         sist_endret,
                         opprettet,
@@ -380,8 +378,7 @@ class RammebehandlingPostgresRepo(
                     ) values (
                         :id,
                         :sak_id,
-                        :virkningsperiode_fra_og_med,
-                        :virkningsperiode_til_og_med,
+                        :vedtaksperiode::periode,
                         :status,
                         :sist_endret,
                         :opprettet,

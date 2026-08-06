@@ -4,6 +4,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periodeOrNull
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingAarsak
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingResultat
@@ -65,8 +66,8 @@ private fun Row.tilSaksstatistikkDTO() =
         saksbehandler = stringOrNull("saksbehandler"),
         ansvarligBeslutter = stringOrNull("ansvarligbeslutter"),
         tilbakekrevingsbeløp = doubleOrNull("tilbakekrevingsbelop"),
-        funksjonellPeriodeFom = localDateOrNull("funksjonellperiode_fra_og_med"),
-        funksjonellPeriodeTom = localDateOrNull("funksjonellperiode_til_og_med"),
+        funksjonellPeriodeFom = periodeOrNull("funksjonellperiode")?.fraOgMed,
+        funksjonellPeriodeTom = periodeOrNull("funksjonellperiode")?.tilOgMed,
         avsender = string("avsender"),
         versjon = string("versjon"),
         hendelse = string("hendelse"),

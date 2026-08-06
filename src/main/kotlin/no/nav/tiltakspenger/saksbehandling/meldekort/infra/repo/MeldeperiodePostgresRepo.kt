@@ -9,11 +9,12 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.MeldeperiodeKjeder
@@ -39,8 +40,7 @@ class MeldeperiodePostgresRepo(
                         kjede_id,
                         sak_id,
                         opprettet,
-                        fra_og_med,
-                        til_og_med,
+                        periode,
                         antall_dager_for_periode,
                         gir_rett,
                         rammevedtak
@@ -50,8 +50,7 @@ class MeldeperiodePostgresRepo(
                         :kjede_id,
                         :sak_id,
                         :opprettet,
-                        :fra_og_med,
-                        :til_og_med,
+                        :periode::periode,
                         :antall_dager_for_periode,
                         :gir_rett::jsonb,
                         :rammevedtak::jsonb
@@ -62,8 +61,7 @@ class MeldeperiodePostgresRepo(
                     "kjede_id" to meldeperiode.kjedeId.toString(),
                     "sak_id" to meldeperiode.sakId.toString(),
                     "opprettet" to meldeperiode.opprettet,
-                    "fra_og_med" to meldeperiode.periode.fraOgMed,
-                    "til_og_med" to meldeperiode.periode.tilOgMed,
+                    "periode" to meldeperiode.periode.tilDbPeriode(),
                     "antall_dager_for_periode" to meldeperiode.maksAntallDagerForMeldeperiode,
                     "gir_rett" to meldeperiode.girRett.toDbJson(),
                     "rammevedtak" to meldeperiode.rammevedtak.toDbJson(),
@@ -129,7 +127,7 @@ class MeldeperiodePostgresRepo(
                     from meldeperiode m 
                     join sak s on s.id = m.sak_id
                     where m.sak_id = :sak_id
-                    order by m.fra_og_med, m.versjon
+                    order by (m.periode).fra_og_med, m.versjon
                     """,
                     "sak_id" to sakId.toString(),
                 ).map { row -> fromRow(row) }.asList,
@@ -147,10 +145,7 @@ class MeldeperiodePostgresRepo(
                 saksnummer = Saksnummer(row.string("saksnummer")),
                 fnr = Fnr.fromString(row.string("fnr")),
                 opprettet = row.localDateTime("opprettet"),
-                periode = Periode(
-                    fraOgMed = row.localDate("fra_og_med"),
-                    tilOgMed = row.localDate("til_og_med"),
-                ),
+                periode = row.periode("periode"),
                 maksAntallDagerForMeldeperiode = row.int("antall_dager_for_periode"),
                 girRett = row.string("gir_rett").fromDbJsonToGirRett(),
                 rammevedtak = row.string("rammevedtak").toPeriodiserteVedtakId() as IkkeTomPeriodisering,

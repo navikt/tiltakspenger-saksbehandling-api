@@ -7,6 +7,8 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.UlidBase.Companion.random
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import org.intellij.lang.annotations.Language
@@ -46,8 +48,7 @@ object SøknadTiltakDAO {
                     "ekstern_id" to søknadstiltak.id,
                     "typekode" to søknadstiltak.typeKode.name,
                     "typenavn" to søknadstiltak.typeNavn,
-                    "deltakelse_fra_og_med" to søknadstiltak.deltakelseFom,
-                    "deltakelse_til_og_med" to søknadstiltak.deltakelseTom,
+                    "deltakelse" to tilDbPeriode(søknadstiltak.deltakelseFom, søknadstiltak.deltakelseTom),
                     "tiltaksdeltaker_id" to søknadstiltak.tiltaksdeltakerId.toString(),
                 ),
             ).asUpdate,
@@ -65,13 +66,12 @@ object SøknadTiltakDAO {
         val eksternId = string("ekstern_id")
         val typekode = string("typekode")
         val typenavn = string("typenavn")
-        val deltakelseFom = localDate("deltakelse_fra_og_med")
-        val deltakelseTom = localDate("deltakelse_til_og_med")
+        val deltakelse = periode("deltakelse")
         val tiltaksdeltakerId = string("tiltaksdeltaker_id")
         return Søknadstiltak(
             id = eksternId,
-            deltakelseFom = deltakelseFom,
-            deltakelseTom = deltakelseTom,
+            deltakelseFom = deltakelse.fraOgMed,
+            deltakelseTom = deltakelse.tilOgMed,
             typeKode = TiltakResponsDTO.TiltakTypeDTO.valueOf(typekode),
             typeNavn = typenavn,
             tiltaksdeltakerId = TiltaksdeltakerId.fromString(tiltaksdeltakerId),
@@ -93,8 +93,7 @@ object SøknadTiltakDAO {
             ekstern_id,
             typekode,
             typenavn,
-            deltakelse_fra_og_med,
-            deltakelse_til_og_med,
+            deltakelse,
             tiltaksdeltaker_id
         ) values (
             :id,
@@ -102,8 +101,7 @@ object SøknadTiltakDAO {
             :ekstern_id,
             :typekode,
             :typenavn,
-            :deltakelse_fra_og_med,
-            :deltakelse_til_og_med,
+            :deltakelse::periode,
             :tiltaksdeltaker_id
         )
         """.trimIndent()

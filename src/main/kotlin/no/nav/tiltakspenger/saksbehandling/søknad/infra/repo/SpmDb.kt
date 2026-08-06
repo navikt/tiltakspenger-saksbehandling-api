@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.repo
 
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import java.time.LocalDate
 
@@ -15,7 +16,7 @@ const val IKKE_BESVART = "IKKE_BESVART"
 
 const val JA_SUFFIX = "_ja"
 const val FOM_SUFFIX = "_fom"
-const val TOM_SUFFIX = "_tom"
+const val PERIODE_SUFFIX = "_periode"
 const val TYPE_SUFFIX = "_type"
 
 fun tilPeriodeSpm(
@@ -55,8 +56,7 @@ fun Map<String, Søknad.PeriodeSpm>.toPeriodeSpmParams(): Map<String, Any?> =
             listOf(
                 k + TYPE_SUFFIX to lagrePeriodeSpmType(v),
                 k + JA_SUFFIX to lagrePeriodeSpmJa(v),
-                k + FOM_SUFFIX to lagrePeriodeSpmFra(v),
-                k + TOM_SUFFIX to lagrePeriodeSpmTil(v),
+                k + PERIODE_SUFFIX to lagrePeriodeSpmPeriode(v),
             )
         }.associate {
             it.first to it.second as Any?
@@ -97,15 +97,9 @@ fun lagrePeriodeSpmJa(periodeSpm: Søknad.PeriodeSpm) =
         is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> false
     }
 
-fun lagrePeriodeSpmFra(periodeSpm: Søknad.PeriodeSpm) =
+fun lagrePeriodeSpmPeriode(periodeSpm: Søknad.PeriodeSpm): String? =
     when (periodeSpm) {
-        is Søknad.PeriodeSpm.Ja -> periodeSpm.fraOgMed
-        is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> null
-    }
-
-fun lagrePeriodeSpmTil(periodeSpm: Søknad.PeriodeSpm) =
-    when (periodeSpm) {
-        is Søknad.PeriodeSpm.Ja -> periodeSpm.tilOgMed
+        is Søknad.PeriodeSpm.Ja -> tilDbPeriode(periodeSpm.fraOgMed, periodeSpm.tilOgMed)
         is Søknad.PeriodeSpm.Nei, Søknad.PeriodeSpm.IkkeBesvart -> null
     }
 

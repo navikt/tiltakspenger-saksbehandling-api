@@ -89,11 +89,11 @@ class SøknadPostgresRepoNegativTest {
     }
 
     /**
-     * Den manuelt satte søknadsperioden lagres som to kolonner som alltid settes sammen.
-     * Er bare den ene satt, har vi ingen periode å bygge, og mappingen faller tilbake på ingen periode framfor å gjette på den andre enden.
+     * Den manuelt satte søknadsperioden lagres som én `periode`-kolonne, og domenet avviser en periode som mangler den ene enden.
+     * Mappingen leser kolonnen med `periodeOrNull` i tillit til den garantien, så testen verifiserer at constrainten faktisk finnes.
      */
     @Test
-    fun `en halvt satt manuell søknadsperiode leses som ingen periode`() {
+    fun `manuelt satt søknadsperiode kan ikke mangle den ene enden`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak) = opprettSakOgSøknad(tac)
             startBehandlingAvManueltRegistrertSøknad(
@@ -106,18 +106,18 @@ class SøknadPostgresRepoNegativTest {
                 .søknader.single { it.journalpostId == "journalpost-halv-periode" }
             papirsøknad.manueltSattSøknadsperiode shouldNotBe null
 
-            tac.sessionFactory.withSession { session ->
-                session.run(
-                    queryOf(
-                        "update søknad set manuelt_satt_soknadsperiode_til_og_med = null where id = :id",
-                        mapOf("id" to papirsøknad.id.toString()),
-                    ).asUpdate,
-                )
+            val feil = shouldThrow<org.postgresql.util.PSQLException> {
+                tac.sessionFactory.withSession { session ->
+                    session.run(
+                        queryOf(
+                            "update søknad set manuelt_satt_soknadsperiode = '(2025-01-01,)'::periode where id = :id",
+                            mapOf("id" to papirsøknad.id.toString()),
+                        ).asUpdate,
+                    )
+                }
             }
 
-            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
-                .søknader.single { it.journalpostId == "journalpost-halv-periode" }
-                .manueltSattSøknadsperiode shouldBe null
+            feil.message shouldContain "periode_check"
         }
     }
 

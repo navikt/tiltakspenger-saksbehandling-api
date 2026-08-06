@@ -24,28 +24,26 @@ import org.junit.jupiter.api.Test
 class RammebehandlingPostgresRepoNegativTest {
 
     /**
-     * Vedtaksperioden lagres som to kolonner som alltid settes sammen.
-     * Er bare den ene satt, har vi ingen periode å bygge, og mappingen skal si fra i stedet for å gjette.
+     * Vedtaksperioden lagres som én `periode`-kolonne, og domenet avviser en periode som mangler den ene enden.
+     * Mappingen leser kolonnen med `periodeOrNull` i tillit til den garantien, så testen verifiserer at constrainten faktisk finnes.
      */
     @Test
-    fun `kaster når bare den ene enden av vedtaksperioden er satt`() {
+    fun `vedtaksperiode kan ikke mangle den ene enden`() {
         withTestApplicationContextAndPostgres { tac ->
-            val (sak, _, rammevedtak) = iverksettSøknadsbehandling(tac = tac)
+            val (_, _, rammevedtak) = iverksettSøknadsbehandling(tac = tac)
 
-            tac.sessionFactory.withSession { session ->
-                session.run(
-                    queryOf(
-                        "update behandling set virkningsperiode_til_og_med = null where id = :id",
-                        mapOf("id" to rammevedtak.behandlingId.toString()),
-                    ).asUpdate,
-                )
+            val feil = shouldThrow<org.postgresql.util.PSQLException> {
+                tac.sessionFactory.withSession { session ->
+                    session.run(
+                        queryOf(
+                            "update behandling set vedtaksperiode = '(2025-01-01,)'::periode where id = :id",
+                            mapOf("id" to rammevedtak.behandlingId.toString()),
+                        ).asUpdate,
+                    )
+                }
             }
 
-            shouldThrowWithMessage<IllegalStateException>(
-                "Både fra og med og til og med for vedtaksperiode må være satt, eller ingen av dem",
-            ) {
-                tac.sakContext.sakRepo.hentForSakId(sak.id)
-            }
+            feil.message!! shouldContain "periode_check"
         }
     }
 

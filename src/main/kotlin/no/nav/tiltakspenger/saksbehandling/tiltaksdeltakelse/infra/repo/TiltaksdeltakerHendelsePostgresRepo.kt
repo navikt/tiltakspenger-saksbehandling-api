@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.åpenPeriodeOrNull
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -76,8 +78,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                         insert into tiltaksdeltaker_kafka (
                             hendelse_id,
                             deltaker_id,
-                            deltakelse_fra_og_med,
-                            deltakelse_til_og_med,
+                            deltakelse,
                             dager_per_uke,
                             deltakelsesprosent,
                             deltakerstatus,
@@ -90,8 +91,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                         ) values (
                             :hendelse_id,
                             :deltaker_id,
-                            :deltakelse_fra_og_med,
-                            :deltakelse_til_og_med,
+                            :deltakelse::periode_open,
                             :dager_per_uke,
                             :deltakelsesprosent,
                             :deltakerstatus,
@@ -105,8 +105,10 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     """.trimIndent(),
                     "hendelse_id" to tiltaksdeltakerHendelse.id.toString(),
                     "deltaker_id" to tiltaksdeltakerHendelse.eksternDeltakerId,
-                    "deltakelse_fra_og_med" to tiltaksdeltakerHendelse.deltakelseFraOgMed,
-                    "deltakelse_til_og_med" to tiltaksdeltakerHendelse.deltakelseTilOgMed,
+                    "deltakelse" to tilDbPeriode(
+                        tiltaksdeltakerHendelse.deltakelseFraOgMed,
+                        tiltaksdeltakerHendelse.deltakelseTilOgMed,
+                    ),
                     "dager_per_uke" to tiltaksdeltakerHendelse.dagerPerUke,
                     "deltakelsesprosent" to tiltaksdeltakerHendelse.deltakelsesprosent,
                     "deltakerstatus" to tiltaksdeltakerHendelse.deltakerstatus.name,
@@ -179,11 +181,12 @@ class TiltaksdeltakerHendelsePostgresRepo(
  * Mappingen brukes av prodspørringene i [TiltaksdeltakerHendelsePostgresRepo], så den hører hjemme her.
  */
 fun Row.tilTiltaksdeltakerHendelse(): TiltaksdeltakerHendelse {
+    val deltakelse = åpenPeriodeOrNull("deltakelse")
     return TiltaksdeltakerHendelse(
         id = TiltaksdeltakerHendelseId.fromString(string("hendelse_id")),
         eksternDeltakerId = string("deltaker_id"),
-        deltakelseFraOgMed = localDateOrNull("deltakelse_fra_og_med"),
-        deltakelseTilOgMed = localDateOrNull("deltakelse_til_og_med"),
+        deltakelseFraOgMed = deltakelse?.fraOgMed,
+        deltakelseTilOgMed = deltakelse?.tilOgMed,
         dagerPerUke = floatOrNull("dager_per_uke"),
         deltakelsesprosent = floatOrNull("deltakelsesprosent"),
         deltakerstatus = TiltakDeltakerstatus.valueOf(string("deltakerstatus")),

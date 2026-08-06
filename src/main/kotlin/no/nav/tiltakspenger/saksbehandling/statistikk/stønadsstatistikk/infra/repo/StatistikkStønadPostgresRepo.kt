@@ -7,6 +7,8 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.json.serializeNullable
+import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkUtbetalingDTO
 import org.intellij.lang.annotations.Language
@@ -96,8 +98,7 @@ object StatistikkStønadPostgresRepo {
                     "vedtakId" to dto.vedtakId,
                     "type" to dto.vedtaksType,
                     "vedtakDato" to dto.vedtakDato,
-                    "vedtaksperiode_fra_og_med" to dto.vedtaksperiodeFraOgMed,
-                    "vedtaksperiode_til_og_med" to dto.vedtaksperiodeTilOgMed,
+                    "vedtaksperiode" to Periode(dto.vedtaksperiodeFraOgMed, dto.vedtaksperiodeTilOgMed).tilDbPeriode(),
                     "fagsystem" to dto.fagsystem,
                     "sistEndret" to nå(clock),
                     "opprettet" to nå(clock),
@@ -158,8 +159,7 @@ private val lagreStonadSql =
         vedtak_id,
         type,
         vedtak_dato,
-        vedtaksperiode_fra_og_med,
-        vedtaksperiode_til_og_med,
+        vedtaksperiode,
         fagsystem,
         sist_endret,
         opprettet,
@@ -183,8 +183,7 @@ private val lagreStonadSql =
         :vedtakId,
         :type,
         :vedtakDato,
-        :vedtaksperiode_fra_og_med,
-        :vedtaksperiode_til_og_med,
+        :vedtaksperiode::periode,
         :fagsystem,
         :sistEndret,
         :opprettet,
