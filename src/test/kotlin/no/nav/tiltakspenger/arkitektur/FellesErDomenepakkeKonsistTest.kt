@@ -26,10 +26,14 @@ class FellesErDomenepakkeKonsistTest {
     /**
      * Filer i `felles` som fortsatt importerer infrastruktur.
      *
-     * `Tilgangskontroll.kt` leser AD-rollene sine fra `infra.setup.Configuration`.
-     * Å rydde det er en designendring — konfigurasjonen må inn i domenet i stedet for å hentes derfra — og ikke en mekanisk flytting, så den står her til den tas.
+     * Oppføringen peker på en TODO i fila, som sier hvorfor den står her og hva som skal til for å komme ut.
+     * Begrunnelsen står der og ikke her, slik at den som åpner fila ser den — en whitelist ingen leser, er ingen arbeidsliste.
+     * Ingen av oppføringene er ment å være permanente; en som er det, skal si det eksplisitt her i stedet for å peke på en TODO.
      */
-    private val filerSomVenterPåOpprydding = setOf("Tilgangskontroll.kt")
+    private val filerSomVenterPåOpprydding = setOf(
+        // Se TODO i fila: leser AD-rollene fra `infra.setup.Configuration`, avhengigheten må snus.
+        "Tilgangskontroll.kt",
+    )
 
     @Test
     fun `felles har ingen infra-underpakker`() {

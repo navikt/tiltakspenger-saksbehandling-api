@@ -12,6 +12,10 @@ import no.nav.tiltakspenger.saksbehandling.person.personhendelser.Personhendelse
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 
+// TODO: Fila står i whitelisten til GenererteWiretyperKonsistTest.
+//  Konsumenten skal kjenne Avro-typene fra PDL — den er kanten mot Kafka — men den ligger i `kafka/` og ikke `infra/kafka/`, så regelen leser den som domenekode.
+//  Unntaket er ikke målet: flytt fila til `person/personhendelser/infra/kafka/`, så faller det bort av seg selv.
+
 /**
  * Konsument for pdl.leesah-v1 (PDL personhendelser for hele Norges befolkning).
  * For identhendelser (som er en egen topic), se: [no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Consumer].

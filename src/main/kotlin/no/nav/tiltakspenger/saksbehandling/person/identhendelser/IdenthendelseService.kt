@@ -13,6 +13,9 @@ import no.nav.tiltakspenger.saksbehandling.person.toPersonident
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.util.UUID
 
+// TODO: Fila står i whitelisten til GenererteWiretyperKonsistTest fordi servicen tar imot Avro-typen `Aktor` fra PDL.
+//  Unntaket er ikke målet: servicen skal se vår egen modell, ikke kildens skjema.
+//  Fiksen henger sammen med at vertikalen mangler en domenetype — `IdenthendelseDb` går i dag helt inn i servicen — så oversettingen legges i AktorV2Consumer samtidig som den domenetypen kommer på plass.
 class IdenthendelseService(
     private val sakRepo: SakRepo,
     private val identhendelseRepository: IdenthendelseRepository,

@@ -28,20 +28,18 @@ class GenererteWiretyperKonsistTest {
     /**
      * Filer utenfor `infra` som fortsatt kjenner de genererte typene.
      *
-     * `LeesahConsumer.kt` og `AktorV2Consumer.kt` *skal* kjenne dem — de er kanten mot Kafka — men de ligger i `kafka/` i stedet for `infra/kafka/`.
-     * Kuren er å flytte dem, ikke å gjøre unntak for konsumenter.
-     *
-     * `PersonhendelseService.kt` er et ekte brudd: den tar imot `LeesahPersonhendelse` og gjør både filtrering og mapping på PDLs type.
-     * Oversettingen hører hjemme i konsumenten, slik at servicen kun ser vår egen `Personhendelse`.
-     *
-     * `IdenthendelseService.kt` og `Personident.kt` er samme brudd i identhendelse-vertikalen — sistnevnte er en domenetype som bygges rett fra `aktor.v2.Identifikator`.
-     * De to kan ikke ryddes før vertikalen har en egen domenetype for identhendelser; i dag går `IdenthendelseDb` helt inn i servicen.
+     * Hver av dem har en TODO øverst som sier hvorfor den står her og hva som skal til for å komme ut.
+     * Begrunnelsen står der og ikke her, slik at den som åpner fila ser den — en whitelist ingen leser, er ingen arbeidsliste.
+     * Ingen av oppføringene er ment å være permanente; en som er det, skal si det eksplisitt her i stedet for å peke på en TODO.
      */
     private val filerSomVenterPåOpprydding = setOf(
-        "PersonhendelseService.kt",
+        // Se TODO i fila: kanten mot Kafka, men ligger i `kafka/` og ikke `infra/kafka/`.
         "LeesahConsumer.kt",
         "AktorV2Consumer.kt",
+        // Se TODO i fila: tar imot PDLs type i stedet for vår egen.
+        "PersonhendelseService.kt",
         "IdenthendelseService.kt",
+        // Se TODO i fila: domenetypen ligger i samme fil som mappingen fra kildens skjema.
         "Personident.kt",
     )
 

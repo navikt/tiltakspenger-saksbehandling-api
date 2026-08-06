@@ -11,6 +11,10 @@ import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 
+// TODO: Fila står i whitelisten til FellesErDomenepakkeKonsistTest fordi den leser AD-rollene sine fra `infra.setup.Configuration`.
+//  Unntaket er ikke målet: domenekode skal ikke hente konfigurasjon fra infrastrukturen.
+//  Fiks: snu avhengigheten og la infrastrukturen sende rollene inn i stedet for at domenet slår dem opp.
+
 /**
  * Brukes for å mappe verifisert saksbehandler-token til Saksbehandler
  */

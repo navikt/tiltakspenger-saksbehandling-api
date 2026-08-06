@@ -26,6 +26,17 @@ Les disse først.
   Mapping av en felles domenetype er infrastruktur selv om typen den mapper er felles, og hører derfor hjemme under `infra` — ikke ved siden av typen.
   Håndheves av `FellesErDomenepakkeKonsistTest`, som har en whitelist-ratchet for det som gjenstår.
 
+## Whitelister i konsistregler
+
+En whitelist er en arbeidsliste, ikke et smutthull, og den skal kunne leses fra begge kanter.
+
+- **Fila som står i whitelisten har en TODO** som sier hvilken regel den er unntatt fra, at unntaket ikke er målet, og hva som skal til for å komme ut.
+  Begrunnelsen bor i fila og ikke i regelen, slik at den som åpner fila ser den.
+- **Oppføringen i whitelisten peker tilbake på den TODO-en** med én linje, i stedet for å gjenta begrunnelsen.
+- **Er unntaket permanent, sier oppføringen det eksplisitt** og forklarer hvorfor, i stedet for å peke på en TODO som aldri skal tas.
+  Slike skal det være svært få av; er du i tvil, er den ikke permanent.
+- **Ratchet-testen tvinger en ryddet fil ut av whitelisten**, så en oppføring kan ikke bli stående og stilltiende dekke over et nytt brudd.
+
 ## Testtaksonomi
 
 Taksonomien — prodstier, aggregat-disiplin og filter-krykka som motbilde — står i [`../AGENTS-backend.md`](../AGENTS-backend.md#testtaksonomi-prodstier-og-aggregat-disiplin).

@@ -10,6 +10,9 @@ import org.intellij.lang.annotations.Language
 import java.time.Clock
 import java.util.UUID
 
+// TODO: Klassen står i whitelisten til RepoKonvensjonKonsistTest fordi suffikset skal være `PostgresRepo`, ikke `Repository`.
+//  Unntaket er ikke målet, men omdøpingen alene gjør ikke nytte: den slår på interface-kravet i samme regel.
+//  Porten kan ikke lages før vertikalen har en domenetype — repoet snakker `IdenthendelseDb` i dag — så ta de to sammen.
 class IdenthendelseRepository(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,

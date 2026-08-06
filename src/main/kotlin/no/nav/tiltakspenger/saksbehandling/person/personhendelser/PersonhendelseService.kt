@@ -24,8 +24,10 @@ class PersonhendelseService(
     private val log = KotlinLogging.logger { }
 
     suspend fun behandlePersonhendelse(
-        // TODO jah: Generelt, aldri generert kode inn i domenet. Dette må ut i infra og eventuelt lages flere interne domenemodeller.
-        //  Forslag til konsis-regel: Bannlys import no.nav.person.pdl.leesah i domenet.
+        // TODO jah: Generelt, aldri generert kode inn i domenet.
+        //  Dette må ut i infra og eventuelt lages flere interne domenemodeller.
+        //  Regelen finnes som GenererteWiretyperKonsistTest, men fila står i whitelisten dens til dette er gjort — unntaket er ikke målet.
+        //  Fiks: la LeesahConsumer oversette til vår egen Personhendelse, så servicen aldri ser LeesahPersonhendelse.
         personhendelse: LeesahPersonhendelse,
     ): Either<KunneIkkeBehandlePersonhendelse, Unit> {
         try {

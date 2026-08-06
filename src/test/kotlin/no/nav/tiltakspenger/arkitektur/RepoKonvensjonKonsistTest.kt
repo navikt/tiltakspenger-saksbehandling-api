@@ -25,17 +25,22 @@ import java.nio.file.Path
 class RepoKonvensjonKonsistTest {
 
     /**
-     * `TiltaksdeltakerHendelsePostgresRepo` mangler interface.
-     * Porten kan ikke lages før `TiltaksdeltakerHendelse` er en domenetype — den ligger i `infra/kafka/hendelse` i dag, og porten ville dratt infra-typen med seg inn i domenet.
+     * Begge whitelistene under peker på en TODO i fila, som sier hvorfor den står der og hva som skal til for å komme ut.
+     * Begrunnelsen står der og ikke her, slik at den som åpner fila ser den — en whitelist ingen leser, er ingen arbeidsliste.
+     * Ingen av oppføringene er ment å være permanente; en som er det, skal si det eksplisitt her i stedet for å peke på en TODO.
+     *
+     * De to reglene er bevisst ortogonale: navneregelen ser alle `*Repository`, interface-regelen kun de som alt heter `*Repo`.
+     * `IdenthendelseRepository` står derfor kun i den første — omdøpingen er det som slipper den inn i den andre.
      */
-    private val filerUtenInterfaceSomVenterPåOpprydding = setOf("TiltaksdeltakerHendelsePostgresRepo.kt")
+    private val filerUtenInterfaceSomVenterPåOpprydding = setOf(
+        // Se TODO i fila: porten venter på at `TiltaksdeltakerHendelse` blir en domenetype.
+        "TiltaksdeltakerHendelsePostgresRepo.kt",
+    )
 
-    /**
-     * `IdenthendelseRepository` har feil suffiks.
-     * Omdøpingen henger sammen med interface-kravet: heter den `IdenthendelsePostgresRepo`, slår regelen over inn, og porten kan ikke lages før vertikalen har en domenetype — repoet snakker `IdenthendelseDb` i dag.
-     * De to reglene er derfor bevisst ortogonale: navneregelen ser alle `*Repository`, interface-regelen kun de som alt heter `*Repo`.
-     */
-    private val filerMedFeilSuffiksSomVenterPåOpprydding = setOf("IdenthendelseRepository.kt")
+    private val filerMedFeilSuffiksSomVenterPåOpprydding = setOf(
+        // Se TODO i fila: omdøping og interface må tas sammen.
+        "IdenthendelseRepository.kt",
+    )
 
     @Test
     fun `repoer heter Repo, ikke Repository`() {

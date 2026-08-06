@@ -15,6 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendels
 import java.time.Clock
 import java.time.LocalDateTime
 
+// TODO: Klassen står i whitelisten til RepoKonvensjonKonsistTest fordi den ikke har et `Repo`-grensesnitt.
+//  Unntaket er ikke målet: et repo som nås fra en service skal nås gjennom en port i domenet.
+//  Fiksen henger sammen med at `TiltaksdeltakerHendelse` ligger i `infra/kafka/hendelse` — en port ville dratt infra-typen inn i domenet, så typen må flyttes først.
 class TiltaksdeltakerHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
