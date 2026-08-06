@@ -7,38 +7,62 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.Opplysningstype
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.Personhendelse
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseMedOppgaveId
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseRepo
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.UUID
 
-class PersonhendelseRepository(
+class PersonhendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
-) {
-    fun hent(sakId: SakId): List<PersonhendelseDb> {
+) : PersonhendelseRepo {
+    override fun hent(sakId: SakId): List<Personhendelse> {
         return sessionFactory.withSession {
             it.run(
                 queryOf(
                     """select * from personhendelse where sak_id = :sak_id""",
                     mapOf("sak_id" to sakId.toString()),
-                ).map { row -> row.toPersonhendelseDb() }.asList,
+                ).map { row -> row.toPersonhendelseDb().toDomain() }.asList,
             )
         }
     }
 
-    fun hent(id: UUID): PersonhendelseDb? {
+    override fun hent(id: UUID): Personhendelse? {
         return sessionFactory.withSession {
             it.run(
                 queryOf(
                     """select * from personhendelse where id = :id""",
                     mapOf("id" to id),
-                ).map { row -> row.toPersonhendelseDb() }.asSingle,
+                ).map { row -> row.toPersonhendelseDb().toDomain() }.asSingle,
             )
         }
     }
 
-    fun hentIderUtenOppgave(): List<UUID> {
+    override fun hentMedOppgaveId(id: UUID): PersonhendelseMedOppgaveId? {
+        return sessionFactory.withSession {
+            it.run(
+                queryOf(
+                    """
+                        select hendelse_id, oppgave_id
+                        from personhendelse
+                        where id = :id
+                          and oppgave_id is not null
+                    """.trimIndent(),
+                    mapOf("id" to id),
+                ).map { row ->
+                    PersonhendelseMedOppgaveId(
+                        hendelseId = row.string("hendelse_id"),
+                        oppgaveId = OppgaveId(row.string("oppgave_id")),
+                    )
+                }.asSingle,
+            )
+        }
+    }
+
+    override fun hentIderUtenOppgave(): List<UUID> {
         return sessionFactory.withSession {
             it.run(
                 queryOf(
@@ -48,11 +72,8 @@ class PersonhendelseRepository(
         }
     }
 
-    /**
-     * Henter kun de hvor oppgave_sist_sjekket er null eller oppgave_sist_sjekket < [oppgaveSistSjekket]
-     */
-    fun hentIderMedOppgave(
-        oppgaveSistSjekket: LocalDateTime = nå(clock).minusHours(1),
+    override fun hentIderMedOppgave(
+        oppgaveSistSjekket: LocalDateTime,
     ): List<UUID> {
         return sessionFactory.withSession {
             it.run(
@@ -71,11 +92,8 @@ class PersonhendelseRepository(
         }
     }
 
-    /**
-     * Oppgavefeltene skrives ikke her — en ny hendelse har aldri en oppgave.
-     * De settes av jobben via [lagreOppgaveId] og [oppdaterOppgaveSistSjekket].
-     */
-    fun lagre(personhendelseDb: PersonhendelseDb) {
+    override fun lagre(personhendelse: Personhendelse) {
+        val personhendelseDb = personhendelse.toDb()
         sessionFactory.withSession { session ->
             session.run(
                 queryOf(
@@ -100,11 +118,11 @@ class PersonhendelseRepository(
                     """.trimIndent(),
                     mapOf(
                         "id" to personhendelseDb.id,
-                        "fnr" to personhendelseDb.fnr.verdi,
+                        "fnr" to personhendelseDb.fnr,
                         "hendelse_id" to personhendelseDb.hendelseId,
-                        "opplysningstype" to personhendelseDb.opplysningstype.name,
-                        "personhendelse_type" to personhendelseDb.personhendelseType.toDbJson(),
-                        "sak_id" to personhendelseDb.sakId.toString(),
+                        "opplysningstype" to personhendelseDb.opplysningstype,
+                        "personhendelse_type" to personhendelseDb.personhendelseType,
+                        "sak_id" to personhendelseDb.sakId,
                         "sist_oppdatert" to nå(clock),
                     ),
                 ).asUpdate,
@@ -112,7 +130,7 @@ class PersonhendelseRepository(
         }
     }
 
-    fun slett(id: UUID) {
+    override fun slett(id: UUID) {
         sessionFactory.withSession {
             it.run(
                 queryOf(
@@ -123,7 +141,7 @@ class PersonhendelseRepository(
         }
     }
 
-    fun lagreOppgaveId(id: UUID, oppgaveId: OppgaveId) {
+    override fun lagreOppgaveId(id: UUID, oppgaveId: OppgaveId) {
         sessionFactory.withSession {
             it.run(
                 queryOf(
@@ -134,7 +152,7 @@ class PersonhendelseRepository(
         }
     }
 
-    fun oppdaterOppgaveSistSjekket(id: UUID) {
+    override fun oppdaterOppgaveSistSjekket(id: UUID) {
         sessionFactory.withSession {
             it.run(
                 queryOf(
@@ -148,13 +166,38 @@ class PersonhendelseRepository(
     private fun Row.toPersonhendelseDb(): PersonhendelseDb {
         return PersonhendelseDb(
             id = uuid("id"),
-            fnr = Fnr.fromString(string("fnr")),
+            fnr = string("fnr"),
             hendelseId = string("hendelse_id"),
-            opplysningstype = Opplysningstype.valueOf(string("opplysningstype")),
-            personhendelseType = string("personhendelse_type").fromDbJsonToPersonhendelseType(),
-            sakId = SakId.fromString(string("sak_id")),
-            oppgaveId = stringOrNull("oppgave_id")?.let { OppgaveId(it) },
-            oppgaveSistSjekket = localDateTimeOrNull("oppgave_sist_sjekket"),
+            opplysningstype = string("opplysningstype"),
+            personhendelseType = string("personhendelse_type"),
+            sakId = string("sak_id"),
         )
     }
 }
+
+private data class PersonhendelseDb(
+    val id: UUID,
+    val fnr: String,
+    val hendelseId: String,
+    val opplysningstype: String,
+    val personhendelseType: String,
+    val sakId: String,
+) {
+    fun toDomain() = Personhendelse(
+        id = id,
+        fnr = Fnr.fromString(fnr),
+        hendelseId = hendelseId,
+        opplysningstype = Opplysningstype.valueOf(opplysningstype),
+        personhendelseType = personhendelseType.fromDbJsonToPersonhendelseType(),
+        sakId = SakId.fromString(sakId),
+    )
+}
+
+private fun Personhendelse.toDb() = PersonhendelseDb(
+    id = id,
+    fnr = fnr.verdi,
+    hendelseId = hendelseId,
+    opplysningstype = opplysningstype.name,
+    personhendelseType = personhendelseType.toDbJson(),
+    sakId = sakId.toString(),
+)

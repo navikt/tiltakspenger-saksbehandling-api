@@ -146,12 +146,14 @@ class RammebehandlingPostgresRepo(
                     """
                     update behandling set
                         saksbehandler = :nySaksbehandler,
+                        status = :status,
                         beslutter = CASE WHEN beslutter = :nySaksbehandler THEN null ELSE beslutter END,
                         sist_endret = :sist_endret
-                    where id = :id and saksbehandler = :lagretSaksbehandler and status = 'UNDER_BEHANDLING'
+                    where id = :id and saksbehandler = :lagretSaksbehandler and status in ('UNDER_BEHANDLING', 'UNDER_AUTOMATISK_BEHANDLING')
                     """,
                     "id" to rammebehandling.id.toString(),
                     "nySaksbehandler" to rammebehandling.saksbehandler,
+                    "status" to rammebehandling.status.toDb(),
                     "lagretSaksbehandler" to nåværendeSaksbehandler,
                     "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,

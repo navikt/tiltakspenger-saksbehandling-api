@@ -17,6 +17,10 @@ Les disse først.
   Db-mapping hører til domenet den lagrer, ikke til en delt db-pakke.
   Portene (repo-grensesnittene) ligger sammen med domenekoden de tilhører — `<domene>/domene/` der vertikalen har en slik pakke, ellers `<domene>/` — og implementasjonen i `<domene>/infra/repo/`.
   Det finnes ingen `ports`-pakke; porten er domenekode, ikke et eget lag.
+- **Repo som nås fra en service må ha et interface.**
+  Grensesnittet heter `<Noe>Repo` og ligger i domenet, implementasjonen `<Noe>PostgresRepo` og ligger i `<domene>/infra/repo/`.
+  Et `PostgresRepo` uten interface er lov, men da må det være et `object`, og alle funksjonene må ta inn en `Session` eller `TransactionalSession`.
+  De to typene er infrastruktur, så et slikt repo kan i praksis bare kalles fra infralaget.
 - **`felles` er domenekode, `infra` er infrastruktur.**
   De to pakkene ligger side om side rett under `no.nav.tiltakspenger.saksbehandling`, og `felles` skal verken ha en `infra`-underpakke eller importere infrastruktur.
   Mapping av en felles domenetype er infrastruktur selv om typen den mapper er felles, og hører derfor hjemme under `infra` — ikke ved siden av typen.

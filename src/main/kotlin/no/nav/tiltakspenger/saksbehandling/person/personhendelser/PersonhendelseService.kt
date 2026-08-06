@@ -5,30 +5,28 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseDb
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseRepository
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseType
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import java.util.UUID
+import no.nav.person.pdl.leesah.Personhendelse as LeesahPersonhendelse
 
 class PersonhendelseService(
     private val sakRepo: SakRepo,
-    private val personhendelseRepository: PersonhendelseRepository,
+    private val personhendelseRepo: PersonhendelseRepo,
     private val personKlient: PersonKlient,
     private val statistikkService: StatistikkService,
 ) {
     private val log = KotlinLogging.logger { }
 
     suspend fun behandlePersonhendelse(
-        personhendelse: Personhendelse,
+        // TODO jah: Generelt, aldri generert kode inn i domenet. Dette må ut i infra og eventuelt lages flere interne domenemodeller.
+        //  Forslag til konsis-regel: Bannlys import no.nav.person.pdl.leesah i domenet.
+        personhendelse: LeesahPersonhendelse,
     ): Either<KunneIkkeBehandlePersonhendelse, Unit> {
         try {
             // pdl.leesah-v1 inneholder mange opplysningstyper vi ikke bryr oss om (NAVN_V1, FOLKEREGISTERIDENTIFIKATOR_V1, BOSTEDSADRESSE_V1, ...).
@@ -77,7 +75,7 @@ class PersonhendelseService(
                     return KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
                 }
             try {
-                val lagredeHendelser = personhendelseRepository.hent(sakId)
+                val lagredeHendelser = personhendelseRepo.hent(sakId)
                 // TODO jah: Dette blir ikke riktig.
                 // Det er greit å deduppe på hendelseId, men her forkaster vi potensielt viktig informasjon.
                 // Dette må gjøres om litt mer helhetlig.
@@ -95,7 +93,7 @@ class PersonhendelseService(
                     // Mangler og en transaksjon.
                     oppdaterStatistikk(sakId, personhendelse)
                 }
-                personhendelseRepository.lagre(personhendelse.toPersonhendelseDb(fnr, sakId))
+                personhendelseRepo.lagre(personhendelse.toPersonhendelse(fnr, sakId))
                 log.info { "Lagret hendelse for hendelseId ${personhendelse.hendelseId}" }
                 return Unit.right()
             } catch (e: Exception) {
@@ -110,7 +108,7 @@ class PersonhendelseService(
 
     private fun oppdaterStatistikk(
         sakId: SakId,
-        personhendelse: Personhendelse,
+        personhendelse: LeesahPersonhendelse,
     ) {
         log.info { "Person har adressebeskyttelse, oppdaterer statistikktabeller. HendelseId ${personhendelse.hendelseId}" }
         statistikkService.oppdaterAdressebeskyttelse(sakId)
@@ -122,20 +120,18 @@ class PersonhendelseService(
         return pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland
     }
 
-    private fun Personhendelse.toPersonhendelseDb(fnr: Fnr, sakId: SakId): PersonhendelseDb {
-        return PersonhendelseDb(
+    private fun LeesahPersonhendelse.toPersonhendelse(fnr: Fnr, sakId: SakId): Personhendelse {
+        return Personhendelse(
             id = UUID.randomUUID(),
             fnr = fnr,
             hendelseId = hendelseId,
             opplysningstype = Opplysningstype.valueOf(opplysningstype),
             personhendelseType = toPersonhendelseType(),
             sakId = sakId,
-            oppgaveId = null,
-            oppgaveSistSjekket = null,
         )
     }
 
-    private fun Personhendelse.toPersonhendelseType(): PersonhendelseType {
+    private fun LeesahPersonhendelse.toPersonhendelseType(): PersonhendelseType {
         return if (doedsfall != null) {
             PersonhendelseType.Doedsfall(
                 doedsdato = doedsfall.doedsdato,

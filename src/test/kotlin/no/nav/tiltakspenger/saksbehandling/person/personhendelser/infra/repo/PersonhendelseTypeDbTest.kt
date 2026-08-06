@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseType
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 

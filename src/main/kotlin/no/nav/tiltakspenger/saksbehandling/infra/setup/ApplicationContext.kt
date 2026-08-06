@@ -45,8 +45,9 @@ import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Co
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseKafkaProducer
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseProducer
 import no.nav.tiltakspenger.saksbehandling.person.infra.setup.PersonContext
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseService
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseRepository
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb.PersonhendelseJobb
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer
 import no.nav.tiltakspenger.saksbehandling.sak.infra.setup.SakContext
@@ -257,8 +258,8 @@ open class ApplicationContext(
         )
     }
 
-    open val personhendelseRepository: PersonhendelseRepository by lazy {
-        PersonhendelseRepository(
+    open val personhendelseRepo: PersonhendelseRepo by lazy {
+        PersonhendelsePostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             clock = clock,
         )
@@ -267,7 +268,7 @@ open class ApplicationContext(
     open val personhendelseService: PersonhendelseService by lazy {
         PersonhendelseService(
             sakRepo = sakContext.sakRepo,
-            personhendelseRepository = personhendelseRepository,
+            personhendelseRepo = personhendelseRepo,
             personKlient = personContext.personKlient,
             statistikkService = statistikkContext.statistikkService,
         )
@@ -297,7 +298,7 @@ open class ApplicationContext(
 
     open val personhendelseJobb by lazy {
         PersonhendelseJobb(
-            personhendelseRepository = personhendelseRepository,
+            personhendelseRepo = personhendelseRepo,
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
             clock = clock,

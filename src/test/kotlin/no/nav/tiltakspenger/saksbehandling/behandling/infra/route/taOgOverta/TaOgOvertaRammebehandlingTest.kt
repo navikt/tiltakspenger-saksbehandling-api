@@ -1,18 +1,23 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta
 
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class TaOgOvertaRammebehandlingTest {
 
@@ -113,7 +118,7 @@ class TaOgOvertaRammebehandlingTest {
 
     @Test
     fun `saksbehandler kan overta behandling`() {
-        withTestApplicationContext { tac ->
+        withTestApplicationContextAndPostgres { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
             val behandlingId = behandling.id
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
@@ -135,6 +140,43 @@ class TaOgOvertaRammebehandlingTest {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                     it.saksbehandler shouldBe "Z12345"
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `saksbehandler kan overta automatisk behandling som er satt på vent`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val iDag = LocalDate.now(tac.clock)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
+                tac = tac,
+                tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+                    fom = iDag.plusDays(3),
+                    tom = iDag.plusMonths(3),
+                    status = TiltakDeltakerstatus.VenterPåOppstart,
+                ),
+            )
+            tac.behandlingContext.delautomatiskBehandlingService.behandleAutomatisk(
+                behandling,
+                CorrelationId.generate(),
+            )
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+                it.ventestatus.erSattPåVent shouldBe true
+                it.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
+            }
+            tac.clock.spol1timeFrem()
+
+            overtaBehanding(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandling.id,
+                overtarFra = AUTOMATISK_SAKSBEHANDLER_ID,
+            )!!
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "Z12345"
             }
         }
     }
@@ -226,7 +268,7 @@ class TaOgOvertaRammebehandlingTest {
 
     /**
      * Kjører mot postgres fordi den er grunnsettet for `taBehandlingBeslutter` og `overtaBeslutter` i [no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo].
-     * Saksbehandlervarianten over dekkes av andre route-tester mot postgres, og kan bli stående in-memory.
+     * Saksbehandlervarianten over kjører også mot postgres for å dekke begge tillatte kildestatuser.
      */
     @Test
     fun `beslutter kan ta og overta behandling`() {

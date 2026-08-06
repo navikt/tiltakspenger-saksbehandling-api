@@ -13,8 +13,6 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseType
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
@@ -55,16 +53,14 @@ class PersonhendelseServiceTest {
 
             tac.leesahConsumer.consume("key", personhendelse)
 
-            val personhendelseDb = tac.personhendelseRepository.hent(sak.id).single()
-            personhendelseDb.fnr shouldBe fnr
-            personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
-            personhendelseDb.opplysningstype shouldBe Opplysningstype.DOEDSFALL_V1
-            personhendelseDb.personhendelseType shouldBe PersonhendelseType.Doedsfall(
+            val lagretPersonhendelse = tac.personhendelseRepo.hent(sak.id).single()
+            lagretPersonhendelse.fnr shouldBe fnr
+            lagretPersonhendelse.hendelseId shouldBe personhendelse.hendelseId
+            lagretPersonhendelse.opplysningstype shouldBe Opplysningstype.DOEDSFALL_V1
+            lagretPersonhendelse.personhendelseType shouldBe PersonhendelseType.Doedsfall(
                 LocalDate.now(tac.clock).minusDays(1),
             )
-            personhendelseDb.sakId shouldBe sak.id
-            personhendelseDb.oppgaveId shouldBe null
-            personhendelseDb.oppgaveSistSjekket shouldBe null
+            lagretPersonhendelse.sakId shouldBe sak.id
         }
     }
 
@@ -82,7 +78,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
 
-            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -103,16 +99,14 @@ class PersonhendelseServiceTest {
 
             tac.leesahConsumer.consume("key", personhendelse)
 
-            val personhendelseDb = tac.personhendelseRepository.hent(sak.id).single()
-            personhendelseDb.fnr shouldBe fnr
-            personhendelseDb.hendelseId shouldBe personhendelse.hendelseId
-            personhendelseDb.opplysningstype shouldBe Opplysningstype.ADRESSEBESKYTTELSE_V1
-            personhendelseDb.personhendelseType shouldBe PersonhendelseType.Adressebeskyttelse(
+            val lagretPersonhendelse = tac.personhendelseRepo.hent(sak.id).single()
+            lagretPersonhendelse.fnr shouldBe fnr
+            lagretPersonhendelse.hendelseId shouldBe personhendelse.hendelseId
+            lagretPersonhendelse.opplysningstype shouldBe Opplysningstype.ADRESSEBESKYTTELSE_V1
+            lagretPersonhendelse.personhendelseType shouldBe PersonhendelseType.Adressebeskyttelse(
                 "STRENGT_FORTROLIG",
             )
-            personhendelseDb.sakId shouldBe sak.id
-            personhendelseDb.oppgaveId shouldBe null
-            personhendelseDb.oppgaveSistSjekket shouldBe null
+            lagretPersonhendelse.sakId shouldBe sak.id
 
             val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
             saksstatistikk.shouldNotBeEmpty()
@@ -144,7 +138,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
 
-            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
             val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
             saksstatistikk.shouldNotBeEmpty()
             saksstatistikk.forEach {
@@ -170,7 +164,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()
 
-            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -189,7 +183,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.PayloadMangler.left()
 
-            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -208,7 +202,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.AdressebeskyttelseErIkkeKode6.left()
 
-            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -228,7 +222,7 @@ class PersonhendelseServiceTest {
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.IngenSakForPersonidenter.left()
 
-            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
         }
     }
 
@@ -247,7 +241,7 @@ class PersonhendelseServiceTest {
             tac.personhendelseService.behandlePersonhendelse(personhendelse) shouldBe
                 KunneIkkeBehandlePersonhendelse.HendelseAlleredeLagret.left()
 
-            tac.personhendelseRepository.hent(sak.id).size shouldBe 1
+            tac.personhendelseRepo.hent(sak.id).size shouldBe 1
         }
     }
 }

@@ -10,6 +10,7 @@ import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.august
@@ -25,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.hentPersonhendelseOppgaveSistSjekket
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.nyPersonhendelse
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -56,7 +58,7 @@ class PersonhendelseJobbTest {
 
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-            tac.personhendelseRepository.hent(sak.id) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe emptyList()
         }
     }
@@ -70,7 +72,7 @@ class PersonhendelseJobbTest {
 
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-            tac.personhendelseRepository.hent(sak) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak) shouldBe emptyList()
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe emptyList()
         }
     }
@@ -84,7 +86,7 @@ class PersonhendelseJobbTest {
 
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-            tac.personhendelseRepository.hent(sak).single().oppgaveId shouldNotBe null
+            tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId shouldNotBe null
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
                 listOf(fnr to Oppgavebehov.DOED)
         }
@@ -99,7 +101,7 @@ class PersonhendelseJobbTest {
 
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-            tac.personhendelseRepository.hent(sak).single().oppgaveId shouldNotBe null
+            tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId shouldNotBe null
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
                 listOf(fnr to Oppgavebehov.DOED)
         }
@@ -114,7 +116,7 @@ class PersonhendelseJobbTest {
 
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-            tac.personhendelseRepository.hent(sak) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak) shouldBe emptyList()
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe emptyList()
         }
     }
@@ -128,7 +130,7 @@ class PersonhendelseJobbTest {
 
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
-            tac.personhendelseRepository.hent(sak.id).single().oppgaveId shouldNotBe null
+            tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId shouldNotBe null
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
                 listOf(fnr to Oppgavebehov.ADRESSEBESKYTTELSE)
         }
@@ -141,14 +143,13 @@ class PersonhendelseJobbTest {
             val sak = iverksettMedPeriode(tac, fnr, periodeRundtNå)
             val id = konsumerDødsfallhendelse(tac, fnr, sak)
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
-            val oppgaveId = tac.personhendelseRepository.hent(sak).single().oppgaveId
+            val oppgaveId = tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId
             (tac.oppgaveKlient as OppgaveFakeKlient).erFerdigstiltResponse = false
 
             tac.personhendelseJobb.ryddOppPersonhendelse(id)
 
-            val etterOpprydning = tac.personhendelseRepository.hent(sak).single()
-            etterOpprydning.oppgaveId shouldBe oppgaveId
-            etterOpprydning.oppgaveSistSjekket shouldNotBe null
+            tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId shouldBe oppgaveId
+            tac.sessionFactory.hentPersonhendelseOppgaveSistSjekket(id) shouldNotBe null
         }
     }
 
@@ -163,7 +164,7 @@ class PersonhendelseJobbTest {
 
             tac.personhendelseJobb.ryddOppPersonhendelse(id)
 
-            tac.personhendelseRepository.hent(sak) shouldBe emptyList()
+            tac.personhendelseRepo.hent(sak) shouldBe emptyList()
         }
     }
 
@@ -178,7 +179,7 @@ class PersonhendelseJobbTest {
             val idMedOppgave = konsumerDødsfallhendelse(tac, fnrMedOppgave, sakMedOppgave)
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(idMedOppgave)
 
-            val iderUtenOppgave = tac.personhendelseRepository.hentIderUtenOppgave()
+            val iderUtenOppgave = tac.personhendelseRepo.hentIderUtenOppgave()
 
             iderUtenOppgave shouldContain idUtenOppgave
             iderUtenOppgave shouldNotContain idMedOppgave
@@ -204,7 +205,7 @@ class PersonhendelseJobbTest {
             val idIkkeSjekket = konsumerDødsfallhendelse(tac, fnrIkkeSjekket, sakIkkeSjekket)
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(idIkkeSjekket)
 
-            val iderMedOppgave = tac.personhendelseRepository.hentIderMedOppgave()
+            val iderMedOppgave = tac.personhendelseRepo.hentIderMedOppgave(nå(tac.clock).minusHours(1))
 
             iderMedOppgave shouldContain idIkkeSjekket
             iderMedOppgave shouldNotContain idUtenOppgave
@@ -246,7 +247,7 @@ class PersonhendelseJobbTest {
                 clock = tac.clock,
             ),
         )
-        return tac.personhendelseRepository.hent(sakId).single().id
+        return tac.personhendelseRepo.hent(sakId).single().id
     }
 
     /**
@@ -270,6 +271,6 @@ class PersonhendelseJobbTest {
                 clock = tac.clock,
             ),
         )
-        return tac.personhendelseRepository.hent(sakId).single().id
+        return tac.personhendelseRepo.hent(sakId).single().id
     }
 }

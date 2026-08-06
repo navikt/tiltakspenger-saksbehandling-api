@@ -2,13 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseDb
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo.PersonhendelseRepository
-import no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.Opplysningstype
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.Opplysningstype
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.Personhendelse
+import no.nav.tiltakspenger.saksbehandling.person.personhendelser.PersonhendelseRepo
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.vedtak.harInnvilgetTiltakspengerEtterDato
 import no.nav.tiltakspenger.saksbehandling.vedtak.harInnvilgetTiltakspengerPåDato
@@ -17,7 +18,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class PersonhendelseJobb(
-    private val personhendelseRepository: PersonhendelseRepository,
+    private val personhendelseRepo: PersonhendelseRepo,
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
     private val clock: Clock,
@@ -25,7 +26,7 @@ class PersonhendelseJobb(
     private val log = KotlinLogging.logger {}
 
     suspend fun opprettOppgaveForPersonhendelser() {
-        val personhendelseIder = personhendelseRepository.hentIderUtenOppgave()
+        val personhendelseIder = personhendelseRepo.hentIderUtenOppgave()
         personhendelseIder.forEach { id ->
             try {
                 opprettOppgaveForPersonhendelse(id)
@@ -36,12 +37,12 @@ class PersonhendelseJobb(
     }
 
     suspend fun opprettOppgaveForPersonhendelse(personhendelseId: UUID) {
-        val personhendelse = personhendelseRepository.hent(personhendelseId) ?: return
+        val personhendelse = personhendelseRepo.hent(personhendelseId) ?: return
         val sak = sakRepo.hentForSakId(personhendelse.sakId)!!
         if ((!personhendelse.gjelderAdressebeskyttelse() && mottarTiltakspengerNaEllerIFremtiden(sak)) ||
             (personhendelse.gjelderAdressebeskyttelse() && sak.behandlinger.harEnEllerFlereÅpneBehandlinger)
         ) {
-            val oppgavebehov = personhendelse.finnOppgavebehov() ?: return
+            val oppgavebehov = personhendelse.finnOppgavebehov()
 
             log.info { "Oppretter oppgave for hendelse med id ${personhendelse.hendelseId}" }
             val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
@@ -51,16 +52,16 @@ class PersonhendelseJobb(
                 feil.loggFeil(log, "opprettelse av gosysoppgave for personhendelse", "hendelseId: ${personhendelse.hendelseId}")
                 return
             }
-            personhendelseRepository.lagreOppgaveId(personhendelse.id, oppgaveId)
+            personhendelseRepo.lagreOppgaveId(personhendelse.id, oppgaveId)
             log.info { "Lagret oppgaveId $oppgaveId for personhendelse med hendelsesId ${personhendelse.hendelseId}" }
         } else {
-            personhendelseRepository.slett(personhendelse.id)
+            personhendelseRepo.slett(personhendelse.id)
             log.info { "Skal ikke opprette oppgave, slettet personhendelse med hendelsesId ${personhendelse.hendelseId}" }
         }
     }
 
     suspend fun opprydning() {
-        val personhendelseIder = personhendelseRepository.hentIderMedOppgave()
+        val personhendelseIder = personhendelseRepo.hentIderMedOppgave(nå(clock).minusHours(1))
         personhendelseIder.forEach { id ->
             try {
                 ryddOppPersonhendelse(id)
@@ -71,9 +72,9 @@ class PersonhendelseJobb(
     }
 
     suspend fun ryddOppPersonhendelse(personhendelseId: UUID) {
-        val personhendelse = personhendelseRepository.hent(personhendelseId) ?: return
+        val personhendelse = personhendelseRepo.hentMedOppgaveId(personhendelseId) ?: return
         val hendelseId = personhendelse.hendelseId
-        val oppgaveId = personhendelse.oppgaveId ?: return
+        val oppgaveId = personhendelse.oppgaveId
 
         val ferdigstilt = oppgaveKlient.erFerdigstilt(oppgaveId).getOrElse { feil ->
             feil.loggFeil(log, "sjekk av om gosysoppgave er ferdigstilt", "oppgaveId: $oppgaveId, hendelseId: $hendelseId")
@@ -81,10 +82,10 @@ class PersonhendelseJobb(
         }
         if (ferdigstilt) {
             log.info { "Oppgave med id $oppgaveId er ferdigstilt, sletter innslag for personhendelse med hendelseId $hendelseId" }
-            personhendelseRepository.slett(personhendelse.id)
+            personhendelseRepo.slett(personhendelseId)
         } else {
             log.info { "Oppgave med id $oppgaveId er ikke ferdigstilt, oppdaterer sist sjekket for personhendelse med hendelseId $hendelseId" }
-            personhendelseRepository.oppdaterOppgaveSistSjekket(personhendelse.id)
+            personhendelseRepo.oppdaterOppgaveSistSjekket(personhendelseId)
         }
     }
 
@@ -93,7 +94,7 @@ class PersonhendelseJobb(
         dato: LocalDate = LocalDate.now(clock),
     ): Boolean = sak.harInnvilgetTiltakspengerPåDato(dato) || sak.harInnvilgetTiltakspengerEtterDato(dato)
 
-    private fun PersonhendelseDb.finnOppgavebehov(): Oppgavebehov? =
+    private fun Personhendelse.finnOppgavebehov(): Oppgavebehov =
         when (opplysningstype) {
             Opplysningstype.DOEDSFALL_V1 -> Oppgavebehov.DOED
             Opplysningstype.ADRESSEBESKYTTELSE_V1 -> Oppgavebehov.ADRESSEBESKYTTELSE
