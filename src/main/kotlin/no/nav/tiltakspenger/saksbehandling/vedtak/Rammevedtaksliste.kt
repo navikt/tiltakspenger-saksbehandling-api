@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
-import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.InnvilgelsesperiodeVerdi
@@ -144,7 +143,7 @@ data class Rammevedtaksliste(
     }
 
     fun harInnvilgetTiltakspengerPåDato(dato: LocalDate): Boolean {
-        return innvilgelsesperioder.any { it.periode.inneholder(dato) }
+        return innvilgelsesperioder.hentVerdiForDag(dato) != null
     }
 
     fun harInnvilgetTiltakspengerEtterDato(dato: LocalDate): Boolean {
@@ -164,10 +163,6 @@ data class Rammevedtaksliste(
                 it.periode,
             )
         }
-    }
-
-    val tiltakstypeperioder: Periodisering<TiltakstypeSomGirRettDTO> by lazy {
-        valgteTiltaksdeltakelser.mapVerdi { verdi, _ -> verdi.typeKode }
     }
 
     /**

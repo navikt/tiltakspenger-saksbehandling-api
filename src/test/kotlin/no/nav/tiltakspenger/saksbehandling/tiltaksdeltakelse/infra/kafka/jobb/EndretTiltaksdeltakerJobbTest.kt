@@ -12,9 +12,13 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
@@ -26,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppgaveId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -583,6 +588,383 @@ class EndretTiltaksdeltakerJobbTest {
                 tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(førsteTiltaksdeltakerId)
 
                 tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser().none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+            }
+        }
+
+        @Test
+        fun `innvilgelse + stans (fra midt i perioden) lager ikke oppgave eller revurdering`() {
+            withTestApplicationContextAndPostgres { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                // Stansen dekker kun halen av innvilgelsen, så deltakelsen ligger fremdeles på den innvilgede tidslinja frem til stansen.
+                iverksettRevurderingStans(
+                    tac = tac,
+                    sakId = sak.id,
+                    stansFraOgMed = 1.april(2025),
+                )
+
+                val behandlingerFørHendelse = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id }
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = deltakelsesTom.minusDays(2),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
+
+                val oppdatertTiltaksdeltakerHendelse =
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id).shouldNotBeNull()
+                oppdatertTiltaksdeltakerHendelse.oppgaveId.shouldBeNull()
+                oppdatertTiltaksdeltakerHendelse.behandlingId.shouldBeNull()
+
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser()
+                    .none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+
+                tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe behandlingerFørHendelse
+            }
+        }
+
+        @Test
+        fun `innvilgelse uten stans - samme endring oppretter revurdering`() {
+            withTestApplicationContextAndPostgres { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = deltakelsesTom.minusDays(2),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
+
+                val oppdatertTiltaksdeltakerHendelse =
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id).shouldNotBeNull()
+                oppdatertTiltaksdeltakerHendelse.oppgaveId.shouldBeNull()
+
+                val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+                val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+                revurdering.id shouldBe oppdatertTiltaksdeltakerHendelse.behandlingId
+            }
+        }
+
+        @Test
+        fun `utløpt innvilgelse uten stans - forlengelse oppretter revurdering`() {
+            withTestApplicationContextAndPostgres { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+
+                // Vedtaket er utløpt på dagens dato (1. mai 2025), men var gjeldende innvilgelse da det utløp.
+                val deltakelsesTom = 31.mars(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = 30.juni(2025),
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
+
+                val oppdatertTiltaksdeltakerHendelse =
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id).shouldNotBeNull()
+
+                val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+                val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+                revurdering.id shouldBe oppdatertTiltaksdeltakerHendelse.behandlingId
+                revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
+                    .endringer.any { it is TiltaksdeltakerEndring.Forlengelse } shouldBe true
+            }
+        }
+
+        @Test
+        fun `utløpt innvilgelse som ble stanset - forlengelse ignoreres`() {
+            withTestApplicationContextAndPostgres { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 31.mars(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                // Stansen gjør at vedtaket ikke lenger var gjeldende innvilgelse da det utløp.
+                iverksettRevurderingStans(
+                    tac = tac,
+                    sakId = sak.id,
+                    stansFraOgMed = 1.mars(2025),
+                )
+
+                val behandlingerFørHendelse = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id }
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = 30.juni(2025),
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
+
+                val oppdatertTiltaksdeltakerHendelse =
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id).shouldNotBeNull()
+                oppdatertTiltaksdeltakerHendelse.oppgaveId.shouldBeNull()
+                oppdatertTiltaksdeltakerHendelse.behandlingId.shouldBeNull()
+
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser()
+                    .none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+
+                tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe behandlingerFørHendelse
+            }
+        }
+
+        @Test
+        fun `stans frem i tid, fortsatt rett i dag - endring behandles`() {
+            withTestApplicationContextAndPostgres { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 31.desember(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                // Stansen ligger frem i tid, så bruker har fortsatt rett på dagens dato (1. mai 2025).
+                iverksettRevurderingStans(
+                    tac = tac,
+                    sakId = sak.id,
+                    stansFraOgMed = 1.juli(2025),
+                )
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = 1.juni(2025),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
+
+                val oppdatertTiltaksdeltakerHendelse =
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id).shouldNotBeNull()
+
+                val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+                val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+                revurdering.id shouldBe oppdatertTiltaksdeltakerHendelse.behandlingId
+            }
+        }
+
+        @Test
+        fun `omgjøring til opphør av halen - endring ignoreres`() {
+            withTestApplicationContextAndPostgres { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 5.mai(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak, _, rammevedtak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                // Opphøret dekker vedtakets siste dag og dagens dato, på samme måte som en stans ville gjort.
+                iverksettOmgjøringOpphør(
+                    tac = tac,
+                    sakId = sak.id,
+                    rammevedtakIdSomOmgjøres = rammevedtak.id,
+                    vedtaksperiode = 1.april(2025) til deltakelsesTom,
+                )
+
+                val behandlingerFørHendelse = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id }
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = deltakelsesTom.minusDays(2),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
+
+                val oppdatertTiltaksdeltakerHendelse =
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id).shouldNotBeNull()
+                oppdatertTiltaksdeltakerHendelse.oppgaveId.shouldBeNull()
+                oppdatertTiltaksdeltakerHendelse.behandlingId.shouldBeNull()
+
+                tac.sessionFactory.hentUbehandledeTiltaksdeltakerHendelser()
+                    .none { it.id == tiltaksdeltakerHendelse.id } shouldBe true
+
+                tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe behandlingerFørHendelse
+            }
+        }
+
+        @Test
+        fun `omgjøring til opphør frem i tid, fortsatt rett i dag - endring behandles`() {
+            withTestApplicationContextAndPostgres { tac ->
+                val fnr = Fnr.random()
+                val tiltaksdeltakerId = TiltaksdeltakerId.random()
+                val deltakelseFom = 5.januar(2025)
+                val deltakelsesTom = 31.desember(2025)
+                val deltakelsesperiode = deltakelseFom til deltakelsesTom
+
+                val tiltaksdeltakelse = tiltaksdeltakelse(
+                    periode = deltakelsesperiode,
+                    internDeltakelseId = tiltaksdeltakerId,
+                )
+
+                val (sak, _, rammevedtak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    fnr = fnr,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelsesperiode, tiltaksdeltakelse),
+                    tiltaksdeltakelse = tiltaksdeltakelse,
+                )
+
+                // Vedtaket er delvis opphørt, men ikke på dagens dato (1. mai 2025).
+                iverksettOmgjøringOpphør(
+                    tac = tac,
+                    sakId = sak.id,
+                    rammevedtakIdSomOmgjøres = rammevedtak.id,
+                    vedtaksperiode = 1.juli(2025) til deltakelsesTom,
+                )
+
+                val tiltaksdeltakerHendelse = getTiltaksdeltakerHendelse(
+                    sakId = sak.id,
+                    fom = deltakelseFom,
+                    tom = 1.juni(2025),
+                    deltakerstatus = TiltakDeltakerstatus.Avbrutt,
+                    tiltaksdeltakerId = tiltaksdeltakerId,
+                )
+                tac.tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    "melding",
+                    TiltaksdeltakerHendelseKilde.Komet,
+                    nå(tac.clock).minusMinutes(20),
+                )
+
+                tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(tiltaksdeltakerId)
+
+                val oppdatertTiltaksdeltakerHendelse =
+                    tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id).shouldNotBeNull()
+
+                val sisteBehandling = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last()
+                val revurdering = sisteBehandling.shouldBeInstanceOf<Revurdering>()
+                revurdering.id shouldBe oppdatertTiltaksdeltakerHendelse.behandlingId
             }
         }
 
