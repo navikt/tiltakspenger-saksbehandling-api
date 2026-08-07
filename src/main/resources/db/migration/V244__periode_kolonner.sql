@@ -12,6 +12,7 @@ CREATE DOMAIN periode_open AS periode_datoer
 
 -- De gamle fra/til-kolonnene beholdes her og droppes senere, slik at denne migreringen er ikke-destruktiv.
 -- De gamle kolonnene skrives ikke lenger av koden, så de som var NOT NULL må bli nullable.
+-- Det skjer i V245: rammevedtak har en DEFERRABLE INITIALLY DEFERRED fremmednøkkel (utbetaling_id), så en UPDATE som treffer rader legger utsatte trigger-eventer i kø til commit, og en ALTER i samme transaksjon feiler med "pending trigger events".
 
 -- behandling: kolonnene het virkningsperiode_*, men innholdet er vedtaksperioden (jf. TODO i RammebehandlingDb).
 ALTER TABLE behandling
@@ -24,28 +25,16 @@ ALTER TABLE meldekortbehandling
     ADD COLUMN periode periode;
 UPDATE meldekortbehandling
 SET periode = ROW (fra_og_med, til_og_med)::periode;
-ALTER TABLE meldekortbehandling
-    ALTER COLUMN periode SET NOT NULL,
-    ALTER COLUMN fra_og_med DROP NOT NULL,
-    ALTER COLUMN til_og_med DROP NOT NULL;
 
 ALTER TABLE meldeperiode
     ADD COLUMN periode periode;
 UPDATE meldeperiode
 SET periode = ROW (fra_og_med, til_og_med)::periode;
-ALTER TABLE meldeperiode
-    ALTER COLUMN periode SET NOT NULL,
-    ALTER COLUMN fra_og_med DROP NOT NULL,
-    ALTER COLUMN til_og_med DROP NOT NULL;
 
 ALTER TABLE rammevedtak
     ADD COLUMN periode periode;
 UPDATE rammevedtak
 SET periode = ROW (fra_og_med, til_og_med)::periode;
-ALTER TABLE rammevedtak
-    ALTER COLUMN periode SET NOT NULL,
-    ALTER COLUMN fra_og_med DROP NOT NULL,
-    ALTER COLUMN til_og_med DROP NOT NULL;
 
 -- Statistikk-tabellene (statistikk_meldekort, statistikk_sak, statistikk_stonad) beholder fra/til-kolonnene sine.
 -- De har eksterne konsumenter som ikke kjenner de egendefinerte periode-typene våre.
@@ -79,9 +68,6 @@ ALTER TABLE søknadstiltak
     ADD COLUMN deltakelse_periode periode;
 UPDATE søknadstiltak
 SET deltakelse_periode = ROW (deltakelse_fra_og_med, deltakelse_til_og_med)::periode;
-ALTER TABLE søknadstiltak
-    ALTER COLUMN deltakelse_periode SET NOT NULL,
-    ALTER COLUMN deltakelse_fra_og_med DROP NOT NULL;
 
 -- Tiltaksdeltakerhendelser kan mangle den ene eller begge endene, derav periode_open.
 ALTER TABLE tiltaksdeltaker_kafka

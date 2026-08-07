@@ -90,4 +90,6 @@ data class BenkTilbakekreving(
     val beløp: BigDecimal,
     val kilde: BenkTilbakekrevingKilde,
     val kravgrunnlagPeriode: Periode,
+    /** Lenke til behandlingen i tilbakekrevingsløsningen, slik personoversikten bruker den. */
+    val url: String,
 ) : BenkV2Behandling
