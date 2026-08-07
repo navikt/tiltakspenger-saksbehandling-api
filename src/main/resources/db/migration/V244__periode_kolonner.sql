@@ -10,44 +10,35 @@ CREATE DOMAIN periode_open AS periode_datoer
         (VALUE).fra_og_med <= (VALUE).til_og_med
     );
 
+-- De gamle fra/til-kolonnene beholdes her og droppes i V245, slik at denne migreringen er ikke-destruktiv.
+
 -- behandling: kolonnene het virkningsperiode_*, men innholdet er vedtaksperioden (jf. TODO i RammebehandlingDb).
 ALTER TABLE behandling
     ADD COLUMN vedtaksperiode periode;
 UPDATE behandling
 SET vedtaksperiode = ROW (virkningsperiode_fra_og_med, virkningsperiode_til_og_med)::periode
 WHERE virkningsperiode_fra_og_med IS NOT NULL;
-ALTER TABLE behandling
-    DROP COLUMN virkningsperiode_fra_og_med,
-    DROP COLUMN virkningsperiode_til_og_med;
 
 ALTER TABLE meldekortbehandling
     ADD COLUMN periode periode;
 UPDATE meldekortbehandling
 SET periode = ROW (fra_og_med, til_og_med)::periode;
 ALTER TABLE meldekortbehandling
-    ALTER COLUMN periode SET NOT NULL,
-    DROP COLUMN fra_og_med,
-    DROP COLUMN til_og_med;
+    ALTER COLUMN periode SET NOT NULL;
 
 ALTER TABLE meldeperiode
     ADD COLUMN periode periode;
 UPDATE meldeperiode
 SET periode = ROW (fra_og_med, til_og_med)::periode;
 ALTER TABLE meldeperiode
-    ALTER COLUMN periode SET NOT NULL,
-    DROP COLUMN fra_og_med,
-    DROP COLUMN til_og_med;
--- idx_meldeperiode_periode forsvant med de gamle kolonnene og gjenskapes på feltene i den nye.
-CREATE INDEX idx_meldeperiode_periode ON meldeperiode (((periode).fra_og_med), ((periode).til_og_med));
+    ALTER COLUMN periode SET NOT NULL;
 
 ALTER TABLE rammevedtak
     ADD COLUMN periode periode;
 UPDATE rammevedtak
 SET periode = ROW (fra_og_med, til_og_med)::periode;
 ALTER TABLE rammevedtak
-    ALTER COLUMN periode SET NOT NULL,
-    DROP COLUMN fra_og_med,
-    DROP COLUMN til_og_med;
+    ALTER COLUMN periode SET NOT NULL;
 
 -- Statistikk-tabellene (statistikk_meldekort, statistikk_sak, statistikk_stonad) beholder fra/til-kolonnene sine.
 -- De har eksterne konsumenter som ikke kjenner de egendefinerte periode-typene våre.
@@ -76,36 +67,13 @@ SET kvp_periode                   = CASE WHEN kvp_fom IS NULL AND kvp_tom IS NUL
     gjenlevendepensjon_periode    = CASE WHEN gjenlevendepensjon_fom IS NULL AND gjenlevendepensjon_tom IS NULL THEN NULL ELSE ROW (gjenlevendepensjon_fom, gjenlevendepensjon_tom)::periode_open END,
     trygd_og_pensjon_periode      = CASE WHEN trygd_og_pensjon_fom IS NULL AND trygd_og_pensjon_tom IS NULL THEN NULL ELSE ROW (trygd_og_pensjon_fom, trygd_og_pensjon_tom)::periode_open END,
     manuelt_satt_soknadsperiode   = CASE WHEN manuelt_satt_soknadsperiode_fra_og_med IS NULL THEN NULL ELSE ROW (manuelt_satt_soknadsperiode_fra_og_med, manuelt_satt_soknadsperiode_til_og_med)::periode END;
-ALTER TABLE søknad
-    DROP COLUMN kvp_fom,
-    DROP COLUMN kvp_tom,
-    DROP COLUMN intro_fom,
-    DROP COLUMN intro_tom,
-    DROP COLUMN institusjon_fom,
-    DROP COLUMN institusjon_tom,
-    DROP COLUMN sykepenger_fom,
-    DROP COLUMN sykepenger_tom,
-    DROP COLUMN supplerende_alder_fom,
-    DROP COLUMN supplerende_alder_tom,
-    DROP COLUMN supplerende_flyktning_fom,
-    DROP COLUMN supplerende_flyktning_tom,
-    DROP COLUMN jobbsjansen_fom,
-    DROP COLUMN jobbsjansen_tom,
-    DROP COLUMN gjenlevendepensjon_fom,
-    DROP COLUMN gjenlevendepensjon_tom,
-    DROP COLUMN trygd_og_pensjon_fom,
-    DROP COLUMN trygd_og_pensjon_tom,
-    DROP COLUMN manuelt_satt_soknadsperiode_fra_og_med,
-    DROP COLUMN manuelt_satt_soknadsperiode_til_og_med;
 
 ALTER TABLE søknadstiltak
     ADD COLUMN deltakelse periode;
 UPDATE søknadstiltak
 SET deltakelse = ROW (deltakelse_fra_og_med, deltakelse_til_og_med)::periode;
 ALTER TABLE søknadstiltak
-    ALTER COLUMN deltakelse SET NOT NULL,
-    DROP COLUMN deltakelse_fra_og_med,
-    DROP COLUMN deltakelse_til_og_med;
+    ALTER COLUMN deltakelse SET NOT NULL;
 
 -- Tiltaksdeltakerhendelser kan mangle den ene eller begge endene, derav periode_open.
 ALTER TABLE tiltaksdeltaker_kafka
@@ -114,6 +82,3 @@ UPDATE tiltaksdeltaker_kafka
 SET deltakelse = ROW (deltakelse_fra_og_med, deltakelse_til_og_med)::periode_open
 WHERE deltakelse_fra_og_med IS NOT NULL
    OR deltakelse_til_og_med IS NOT NULL;
-ALTER TABLE tiltaksdeltaker_kafka
-    DROP COLUMN deltakelse_fra_og_med,
-    DROP COLUMN deltakelse_til_og_med;
