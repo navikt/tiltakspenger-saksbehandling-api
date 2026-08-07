@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.repo.BenkV2FakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
@@ -77,6 +78,7 @@ open class TestApplicationContextMedInMemoryDb(
     override val personRepoOverride = personFakeRepo
     override val sakRepoOverride = sakFakeRepo
     override val benkOversiktRepoOverride = benkOversiktFakeRepo
+    override val benkV2RepoOverride = BenkV2FakeRepo()
     override val tiltaksdeltakerRepoOverride = tiltaksdeltakerFakeRepo
     override val statistikkRepoOverride = statistikkFakeRepo
     override val søknadRepoOverride = søknadFakeRepo
