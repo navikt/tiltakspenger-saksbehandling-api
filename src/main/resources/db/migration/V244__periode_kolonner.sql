@@ -49,32 +49,8 @@ ALTER TABLE rammevedtak
     DROP COLUMN fra_og_med,
     DROP COLUMN til_og_med;
 
-ALTER TABLE statistikk_meldekort
-    ADD COLUMN periode periode;
-UPDATE statistikk_meldekort
-SET periode = ROW (fra_og_med, til_og_med)::periode;
-ALTER TABLE statistikk_meldekort
-    ALTER COLUMN periode SET NOT NULL,
-    DROP COLUMN fra_og_med,
-    DROP COLUMN til_og_med;
-
-ALTER TABLE statistikk_sak
-    ADD COLUMN funksjonellperiode periode;
-UPDATE statistikk_sak
-SET funksjonellperiode = ROW (funksjonellperiode_fra_og_med, funksjonellperiode_til_og_med)::periode
-WHERE funksjonellperiode_fra_og_med IS NOT NULL;
-ALTER TABLE statistikk_sak
-    DROP COLUMN funksjonellperiode_fra_og_med,
-    DROP COLUMN funksjonellperiode_til_og_med;
-
-ALTER TABLE statistikk_stonad
-    ADD COLUMN vedtaksperiode periode;
-UPDATE statistikk_stonad
-SET vedtaksperiode = ROW (vedtaksperiode_fra_og_med, vedtaksperiode_til_og_med)::periode
-WHERE vedtaksperiode_fra_og_med IS NOT NULL;
-ALTER TABLE statistikk_stonad
-    DROP COLUMN vedtaksperiode_fra_og_med,
-    DROP COLUMN vedtaksperiode_til_og_med;
+-- Statistikk-tabellene (statistikk_meldekort, statistikk_sak, statistikk_stonad) beholder fra/til-kolonnene sine.
+-- De har eksterne konsumenter som ikke kjenner de egendefinerte periode-typene våre.
 
 -- Søknadens periodespørsmål kan være åpne i den ene enden, derav periode_open.
 ALTER TABLE søknad

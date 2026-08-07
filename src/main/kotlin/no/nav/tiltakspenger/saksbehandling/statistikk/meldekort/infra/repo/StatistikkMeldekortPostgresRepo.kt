@@ -5,9 +5,7 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO.StatistikkMeldekortDag
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO.StatistikkMeldeperiode
@@ -53,7 +51,8 @@ object StatistikkMeldekortPostgresRepo {
                     "saksnummer" to dto.saksnummer,
                     "vedtatt_tidspunkt" to dto.vedtattTidspunkt,
                     "behandlet_automatisk" to dto.behandletAutomatisk,
-                    "periode" to Periode(dto.fraOgMed, dto.tilOgMed).tilDbPeriode(),
+                    "fra_og_med" to dto.fraOgMed,
+                    "til_og_med" to dto.tilOgMed,
                     "meldekortdager" to dto.meldekortdager.tilMeldekortdagerDbJson().let { serialize(it) },
                     "meldeperioder" to dto.meldeperioder.tilMeldeperioderDbJson().let { serialize(it) },
                     "opprettet" to dto.opprettet,
@@ -75,7 +74,8 @@ private val lagreMeldekortSql =
         saksnummer,
         vedtatt_tidspunkt,
         behandlet_automatisk,
-        periode,
+        fra_og_med,
+        til_og_med,
         meldekortdager,
         meldeperioder,
         opprettet,
@@ -88,7 +88,8 @@ private val lagreMeldekortSql =
         :saksnummer,
         :vedtatt_tidspunkt,
         :behandlet_automatisk,
-        :periode::periode,
+        :fra_og_med,
+        :til_og_med,
         :meldekortdager::jsonb,
         :meldeperioder::jsonb,
         :opprettet,
@@ -98,7 +99,8 @@ private val lagreMeldekortSql =
         sak_id = :sak_id,
         vedtatt_tidspunkt = :vedtatt_tidspunkt,
         behandlet_automatisk = :behandlet_automatisk,
-        periode = :periode::periode,
+        fra_og_med = :fra_og_med,
+        til_og_med = :til_og_med,
         meldekortdager = :meldekortdager::jsonb,
         meldeperioder = :meldeperioder::jsonb,
         sist_endret = :sist_endret

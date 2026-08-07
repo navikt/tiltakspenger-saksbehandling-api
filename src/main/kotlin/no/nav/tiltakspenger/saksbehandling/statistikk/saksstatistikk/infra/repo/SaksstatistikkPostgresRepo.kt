@@ -5,7 +5,6 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO
 import org.intellij.lang.annotations.Language
 
@@ -84,7 +83,8 @@ object SaksstatistikkPostgresRepo {
                     "saksbehandler" to dto.saksbehandler,
                     "ansvarligBeslutter" to dto.ansvarligBeslutter,
                     "tilbakekrevingsbelop" to dto.tilbakekrevingsbeløp,
-                    "funksjonellperiode" to tilDbPeriode(dto.funksjonellPeriodeFom, dto.funksjonellPeriodeTom),
+                    "funksjonellPeriodeFom" to dto.funksjonellPeriodeFom,
+                    "funksjonellPeriodeTom" to dto.funksjonellPeriodeTom,
                     "hendelse" to dto.hendelse,
                     "avsender" to dto.avsender,
                     "versjon" to dto.versjon,
@@ -124,7 +124,8 @@ object SaksstatistikkPostgresRepo {
             saksbehandler,
             ansvarligBeslutter,
             tilbakekrevingsbelop,
-            funksjonellperiode,
+            funksjonellperiode_fra_og_med,
+            funksjonellperiode_til_og_med,
             hendelse,
             avsender,
             versjon,
@@ -157,7 +158,8 @@ object SaksstatistikkPostgresRepo {
             :saksbehandler,
             :ansvarligBeslutter,
             :tilbakekrevingsbelop,
-            :funksjonellperiode::periode,
+            :funksjonellPeriodeFom,
+            :funksjonellPeriodeTom,
             :hendelse,
             :avsender,
             :versjon,

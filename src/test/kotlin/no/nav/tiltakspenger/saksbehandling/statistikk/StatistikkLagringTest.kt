@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import org.junit.jupiter.api.Test
@@ -59,7 +58,8 @@ class StatistikkLagringTest {
                 it.string("saksnummer") shouldBe saksnummer
                 it.string("vedtak_id") shouldBe rammevedtak.id.toString()
                 it.string("soknad_id") shouldBe søknad.id.toString()
-                it.string("vedtaksperiode") shouldBe rammevedtak.periode.tilDbPeriode()
+                it.localDate("vedtaksperiode_fra_og_med") shouldBe rammevedtak.periode.fraOgMed
+                it.localDate("vedtaksperiode_til_og_med") shouldBe rammevedtak.periode.tilOgMed
                 it.boolean("har_barnetillegg") shouldBe false
                 it.string("fagsystem") shouldBe "TPSAK"
             }
@@ -86,7 +86,8 @@ class StatistikkLagringTest {
                 it.string("saksnummer") shouldBe saksnummer
                 it.string("meldekortbehandling_id") shouldBe meldekortbehandling.id.toString()
                 it.boolean("behandlet_automatisk") shouldBe false
-                it.string("periode") shouldBe meldekortbehandling.periode.tilDbPeriode()
+                it.localDate("fra_og_med") shouldBe meldekortbehandling.periode.fraOgMed
+                it.localDate("til_og_med") shouldBe meldekortbehandling.periode.tilOgMed
                 it.string("meldeperioder") shouldContain "meldeperiodeKjedeId"
                 it.string("meldekortdager") shouldContain "dato"
             }
