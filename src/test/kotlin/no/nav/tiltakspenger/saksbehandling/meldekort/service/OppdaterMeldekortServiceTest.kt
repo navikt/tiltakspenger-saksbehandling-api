@@ -59,6 +59,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalAkkumulereMeldekort = false,
                         ),
                         clock,
                     )
@@ -109,6 +110,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalAkkumulereMeldekort = false,
                         ),
                         clock,
                     )
@@ -160,6 +162,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalAkkumulereMeldekort = false,
                         ),
                         clock,
                     )
@@ -210,6 +213,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalAkkumulereMeldekort = false,
                         ),
                         clock,
                     )
@@ -261,6 +265,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalAkkumulereMeldekort = false,
                         ),
                         clock,
                     )
@@ -311,6 +316,7 @@ class OppdaterMeldekortServiceTest {
                         begrunnelse = null,
                         fritekstTilVedtaksbrev = null,
                         skalSendeVedtaksbrev = true,
+                        skalAkkumulereMeldekort = false,
                     ),
                     clock,
                 ).getOrFail()
@@ -352,6 +358,33 @@ class OppdaterMeldekortServiceTest {
                     ),
                     clock = clock,
                 ) shouldBe KanIkkeOppdatereMeldekortbehandling.KjedeErUnderBehandling(setOf(førsteKjedeId)).left()
+            }
+        }
+    }
+
+    @Test
+    fun `kan sette og fjerne skalAkkumulereMeldekort-flagget`() {
+        val clock = TikkendeKlokke()
+        runTest {
+            withTestApplicationContext { tac ->
+                val saksbehandler = ObjectMother.saksbehandler()
+                val sak = tac.meldekortbehandlingOpprettet(saksbehandler = saksbehandler)
+                val behandling = sak.meldekortbehandlinger.meldekortbehandlingerUnderBehandling.single()
+                behandling.skalAkkumulereMeldekort shouldBe false
+
+                tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                    kommando = behandling.tilOppdaterMeldekortKommando(saksbehandler, skalAkkumulereMeldekort = true),
+                    clock = clock,
+                ).getOrFail().second.skalAkkumulereMeldekort shouldBe true
+
+                tac.meldekortContext.meldekortbehandlingRepo.hent(behandling.id)!!.skalAkkumulereMeldekort shouldBe true
+
+                tac.meldekortContext.oppdaterMeldekortbehandlingService.oppdaterMeldekort(
+                    kommando = behandling.tilOppdaterMeldekortKommando(saksbehandler, skalAkkumulereMeldekort = false),
+                    clock = clock,
+                ).getOrFail().second.skalAkkumulereMeldekort shouldBe false
+
+                tac.meldekortContext.meldekortbehandlingRepo.hent(behandling.id)!!.skalAkkumulereMeldekort shouldBe false
             }
         }
     }

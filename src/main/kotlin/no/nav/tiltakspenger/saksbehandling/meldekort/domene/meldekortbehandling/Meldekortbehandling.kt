@@ -50,6 +50,12 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
 
+    /**
+     * Dersom true akkumuleres meldeperioder fra brukers meldekort som ikke kan behandles automatisk inn i denne behandlingen, slik at saksbehandler kan behandle dem samlet.
+     * Kan kun være true mens behandlingen er KLAR_TIL_BEHANDLING eller UNDER_BEHANDLING - se [initSkalAkkumulereMeldekort].
+     */
+    val skalAkkumulereMeldekort: Boolean
+
     val meldeperioder: Meldeperiodebehandlinger
 
     /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */
@@ -167,6 +173,20 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
                 eksisterendeBeregninger = beregninger,
                 simulering = simulering,
             )
+        }
+    }
+
+    /**
+     * Validerer invarianten for [skalAkkumulereMeldekort] for alle tilstander.
+     * Kalles fra init-blokken i hver konkret implementasjon, på samme måte som [initKlagebehandling].
+     */
+    fun initSkalAkkumulereMeldekort() {
+        require(
+            !skalAkkumulereMeldekort ||
+                status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING ||
+                status == MeldekortbehandlingStatus.UNDER_BEHANDLING,
+        ) {
+            "skalAkkumulereMeldekort kan kun være true når status er KLAR_TIL_BEHANDLING eller UNDER_BEHANDLING, men status var $status. sakId: $sakId, saksnummer: $saksnummer, meldekortbehandlingId: $id"
         }
     }
 

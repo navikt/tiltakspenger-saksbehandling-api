@@ -40,6 +40,7 @@ data class MeldekortbehandlingAvbrutt(
     override val skalSendeVedtaksbrev: Boolean,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
+    override val skalAkkumulereMeldekort: Boolean = false,
 ) : Meldekortbehandling {
     override val iverksattTidspunkt = null
     override val sendtTilBeslutning = null
@@ -52,6 +53,7 @@ data class MeldekortbehandlingAvbrutt(
     override val utbetalingskontroll: Utbetalingskontroll? = null
 
     init {
+        initSkalAkkumulereMeldekort()
         initKlagebehandling()
     }
 
