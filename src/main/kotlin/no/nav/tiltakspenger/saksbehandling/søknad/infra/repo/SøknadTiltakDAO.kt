@@ -48,7 +48,7 @@ object SøknadTiltakDAO {
                     "ekstern_id" to søknadstiltak.id,
                     "typekode" to søknadstiltak.typeKode.name,
                     "typenavn" to søknadstiltak.typeNavn,
-                    "deltakelse" to tilDbPeriode(søknadstiltak.deltakelseFom, søknadstiltak.deltakelseTom),
+                    "deltakelse_periode" to tilDbPeriode(søknadstiltak.deltakelseFom, søknadstiltak.deltakelseTom),
                     "tiltaksdeltaker_id" to søknadstiltak.tiltaksdeltakerId.toString(),
                 ),
             ).asUpdate,
@@ -66,7 +66,7 @@ object SøknadTiltakDAO {
         val eksternId = string("ekstern_id")
         val typekode = string("typekode")
         val typenavn = string("typenavn")
-        val deltakelse = periode("deltakelse")
+        val deltakelse = periode("deltakelse_periode")
         val tiltaksdeltakerId = string("tiltaksdeltaker_id")
         return Søknadstiltak(
             id = eksternId,
@@ -93,7 +93,7 @@ object SøknadTiltakDAO {
             ekstern_id,
             typekode,
             typenavn,
-            deltakelse,
+            deltakelse_periode,
             tiltaksdeltaker_id
         ) values (
             :id,
@@ -101,7 +101,7 @@ object SøknadTiltakDAO {
             :ekstern_id,
             :typekode,
             :typenavn,
-            :deltakelse::periode,
+            :deltakelse_periode::periode,
             :tiltaksdeltaker_id
         )
         """.trimIndent()

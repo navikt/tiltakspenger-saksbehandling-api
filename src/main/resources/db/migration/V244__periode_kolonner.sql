@@ -10,7 +10,8 @@ CREATE DOMAIN periode_open AS periode_datoer
         (VALUE).fra_og_med <= (VALUE).til_og_med
     );
 
--- De gamle fra/til-kolonnene beholdes her og droppes i V245, slik at denne migreringen er ikke-destruktiv.
+-- De gamle fra/til-kolonnene beholdes her og droppes senere, slik at denne migreringen er ikke-destruktiv.
+-- De gamle kolonnene skrives ikke lenger av koden, så de som var NOT NULL må bli nullable.
 
 -- behandling: kolonnene het virkningsperiode_*, men innholdet er vedtaksperioden (jf. TODO i RammebehandlingDb).
 ALTER TABLE behandling
@@ -24,21 +25,27 @@ ALTER TABLE meldekortbehandling
 UPDATE meldekortbehandling
 SET periode = ROW (fra_og_med, til_og_med)::periode;
 ALTER TABLE meldekortbehandling
-    ALTER COLUMN periode SET NOT NULL;
+    ALTER COLUMN periode SET NOT NULL,
+    ALTER COLUMN fra_og_med DROP NOT NULL,
+    ALTER COLUMN til_og_med DROP NOT NULL;
 
 ALTER TABLE meldeperiode
     ADD COLUMN periode periode;
 UPDATE meldeperiode
 SET periode = ROW (fra_og_med, til_og_med)::periode;
 ALTER TABLE meldeperiode
-    ALTER COLUMN periode SET NOT NULL;
+    ALTER COLUMN periode SET NOT NULL,
+    ALTER COLUMN fra_og_med DROP NOT NULL,
+    ALTER COLUMN til_og_med DROP NOT NULL;
 
 ALTER TABLE rammevedtak
     ADD COLUMN periode periode;
 UPDATE rammevedtak
 SET periode = ROW (fra_og_med, til_og_med)::periode;
 ALTER TABLE rammevedtak
-    ALTER COLUMN periode SET NOT NULL;
+    ALTER COLUMN periode SET NOT NULL,
+    ALTER COLUMN fra_og_med DROP NOT NULL,
+    ALTER COLUMN til_og_med DROP NOT NULL;
 
 -- Statistikk-tabellene (statistikk_meldekort, statistikk_sak, statistikk_stonad) beholder fra/til-kolonnene sine.
 -- De har eksterne konsumenter som ikke kjenner de egendefinerte periode-typene våre.
@@ -69,16 +76,17 @@ SET kvp_periode                   = CASE WHEN kvp_fom IS NULL AND kvp_tom IS NUL
     manuelt_satt_soknadsperiode   = CASE WHEN manuelt_satt_soknadsperiode_fra_og_med IS NULL THEN NULL ELSE ROW (manuelt_satt_soknadsperiode_fra_og_med, manuelt_satt_soknadsperiode_til_og_med)::periode END;
 
 ALTER TABLE søknadstiltak
-    ADD COLUMN deltakelse periode;
+    ADD COLUMN deltakelse_periode periode;
 UPDATE søknadstiltak
-SET deltakelse = ROW (deltakelse_fra_og_med, deltakelse_til_og_med)::periode;
+SET deltakelse_periode = ROW (deltakelse_fra_og_med, deltakelse_til_og_med)::periode;
 ALTER TABLE søknadstiltak
-    ALTER COLUMN deltakelse SET NOT NULL;
+    ALTER COLUMN deltakelse_periode SET NOT NULL,
+    ALTER COLUMN deltakelse_fra_og_med DROP NOT NULL;
 
 -- Tiltaksdeltakerhendelser kan mangle den ene eller begge endene, derav periode_open.
 ALTER TABLE tiltaksdeltaker_kafka
-    ADD COLUMN deltakelse periode_open;
+    ADD COLUMN deltakelse_periode periode_open;
 UPDATE tiltaksdeltaker_kafka
-SET deltakelse = ROW (deltakelse_fra_og_med, deltakelse_til_og_med)::periode_open
+SET deltakelse_periode = ROW (deltakelse_fra_og_med, deltakelse_til_og_med)::periode_open
 WHERE deltakelse_fra_og_med IS NOT NULL
    OR deltakelse_til_og_med IS NOT NULL;

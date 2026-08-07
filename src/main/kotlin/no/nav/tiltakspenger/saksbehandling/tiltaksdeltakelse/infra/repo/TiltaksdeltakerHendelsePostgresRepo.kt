@@ -78,7 +78,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                         insert into tiltaksdeltaker_kafka (
                             hendelse_id,
                             deltaker_id,
-                            deltakelse,
+                            deltakelse_periode,
                             dager_per_uke,
                             deltakelsesprosent,
                             deltakerstatus,
@@ -91,7 +91,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                         ) values (
                             :hendelse_id,
                             :deltaker_id,
-                            :deltakelse::periode_open,
+                            :deltakelse_periode::periode_open,
                             :dager_per_uke,
                             :deltakelsesprosent,
                             :deltakerstatus,
@@ -105,7 +105,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
                     """.trimIndent(),
                     "hendelse_id" to tiltaksdeltakerHendelse.id.toString(),
                     "deltaker_id" to tiltaksdeltakerHendelse.eksternDeltakerId,
-                    "deltakelse" to tilDbPeriode(
+                    "deltakelse_periode" to tilDbPeriode(
                         tiltaksdeltakerHendelse.deltakelseFraOgMed,
                         tiltaksdeltakerHendelse.deltakelseTilOgMed,
                     ),
@@ -181,7 +181,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
  * Mappingen brukes av prodspørringene i [TiltaksdeltakerHendelsePostgresRepo], så den hører hjemme her.
  */
 fun Row.tilTiltaksdeltakerHendelse(): TiltaksdeltakerHendelse {
-    val deltakelse = åpenPeriodeOrNull("deltakelse")
+    val deltakelse = åpenPeriodeOrNull("deltakelse_periode")
     return TiltaksdeltakerHendelse(
         id = TiltaksdeltakerHendelseId.fromString(string("hendelse_id")),
         eksternDeltakerId = string("deltaker_id"),
