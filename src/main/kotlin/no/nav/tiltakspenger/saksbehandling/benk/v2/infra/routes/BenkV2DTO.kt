@@ -90,12 +90,6 @@ enum class BenkKlagebehandlingResultatDTO {
     OPPRETTHOLDT,
 }
 
-enum class BenkMeldekortTypeDTO {
-    MELDEKORTBEHANDLING,
-    INNSENDT_MELDEKORT,
-    KORRIGERT_MELDEKORT,
-}
-
 enum class BenkTilbakekrevingStatusDTO {
     OPPRETTET,
     TIL_FORHÅNDSVARSEL,
@@ -111,6 +105,16 @@ enum class BenkTilbakekrevingKildeDTO {
     MELDEKORT,
 }
 
+enum class BenkV2BehandlingstypeDTO {
+    SØKNADSBEHANDLING,
+    REVURDERING,
+    MELDEKORTBEHANDLING,
+    INNSENDT_MELDEKORT,
+    KORRIGERT_MELDEKORT,
+    KLAGEBEHANDLING,
+    TILBAKEKREVING,
+}
+
 data class BenkV2VentestatusDTO(
     val erSattPåVent: Boolean,
     val begrunnelse: String?,
@@ -123,6 +127,7 @@ data class BenkV2PeriodeDTO(
 )
 
 sealed interface BenkV2BehandlingDTO {
+    val type: BenkV2BehandlingstypeDTO
     val id: String
     val sakId: String
     val fnr: String
@@ -136,6 +141,7 @@ sealed interface BenkV2BehandlingDTO {
 }
 
 data class BenkSøknadsbehandlingDTO(
+    override val type: BenkV2BehandlingstypeDTO = BenkV2BehandlingstypeDTO.SØKNADSBEHANDLING,
     override val id: String,
     override val sakId: String,
     override val fnr: String,
@@ -154,6 +160,7 @@ data class BenkSøknadsbehandlingDTO(
 ) : BenkV2BehandlingDTO
 
 data class BenkRevurderingDTO(
+    override val type: BenkV2BehandlingstypeDTO = BenkV2BehandlingstypeDTO.REVURDERING,
     override val id: String,
     override val sakId: String,
     override val fnr: String,
@@ -170,6 +177,7 @@ data class BenkRevurderingDTO(
 ) : BenkV2BehandlingDTO
 
 data class BenkMeldekortDTO(
+    override val type: BenkV2BehandlingstypeDTO,
     override val id: String,
     override val sakId: String,
     override val fnr: String,
@@ -181,7 +189,6 @@ data class BenkMeldekortDTO(
     override val erUnderkjent: Boolean,
     override val ventestatus: BenkV2VentestatusDTO,
     val status: BenkV2BehandlingsstatusDTO,
-    val type: BenkMeldekortTypeDTO,
     val periode: BenkV2PeriodeDTO,
     val beløp: Int?,
     val mottattTidspunkt: String?,
@@ -189,6 +196,7 @@ data class BenkMeldekortDTO(
 ) : BenkV2BehandlingDTO
 
 data class BenkKlagebehandlingDTO(
+    override val type: BenkV2BehandlingstypeDTO = BenkV2BehandlingstypeDTO.KLAGEBEHANDLING,
     override val id: String,
     override val sakId: String,
     override val fnr: String,
@@ -205,6 +213,7 @@ data class BenkKlagebehandlingDTO(
 ) : BenkV2BehandlingDTO
 
 data class BenkTilbakekrevingDTO(
+    override val type: BenkV2BehandlingstypeDTO = BenkV2BehandlingstypeDTO.TILBAKEKREVING,
     override val id: String,
     override val sakId: String,
     override val fnr: String,
@@ -390,10 +399,10 @@ private fun BenkKlagebehandlingResultat.toDTO(): BenkKlagebehandlingResultatDTO 
     BenkKlagebehandlingResultat.OPPRETTHOLDT -> BenkKlagebehandlingResultatDTO.OPPRETTHOLDT
 }
 
-private fun BenkMeldekortType.toDTO(): BenkMeldekortTypeDTO = when (this) {
-    BenkMeldekortType.MELDEKORTBEHANDLING -> BenkMeldekortTypeDTO.MELDEKORTBEHANDLING
-    BenkMeldekortType.INNSENDT_MELDEKORT -> BenkMeldekortTypeDTO.INNSENDT_MELDEKORT
-    BenkMeldekortType.KORRIGERT_MELDEKORT -> BenkMeldekortTypeDTO.KORRIGERT_MELDEKORT
+private fun BenkMeldekortType.toDTO(): BenkV2BehandlingstypeDTO = when (this) {
+    BenkMeldekortType.MELDEKORTBEHANDLING -> BenkV2BehandlingstypeDTO.MELDEKORTBEHANDLING
+    BenkMeldekortType.INNSENDT_MELDEKORT -> BenkV2BehandlingstypeDTO.INNSENDT_MELDEKORT
+    BenkMeldekortType.KORRIGERT_MELDEKORT -> BenkV2BehandlingstypeDTO.KORRIGERT_MELDEKORT
 }
 
 private fun BenkTilbakekrevingStatus.toDTO(): BenkTilbakekrevingStatusDTO = when (this) {

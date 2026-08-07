@@ -46,6 +46,7 @@ class HentBenkV2RouteTest {
                   "oversikt": {
                     "behandlinger": [
                       {
+                        "type": "SØKNADSBEHANDLING",
                         "id": "${behandling.id}",
                         "sakId": "${sak.id}",
                         "fnr": "${søknad.fnr.verdi}",
