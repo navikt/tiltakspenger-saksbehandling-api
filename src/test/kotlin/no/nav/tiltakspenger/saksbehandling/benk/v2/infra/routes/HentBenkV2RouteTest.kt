@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import org.junit.jupiter.api.Test
 
@@ -29,7 +29,7 @@ class HentBenkV2RouteTest {
     @IsolatedDatabaseTest
     fun `søknadsfanen svarer med fanen, antall per fane og oversikten`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak, søknad) = opprettSakOgSøknad(tac = tac)
+            val (sak, søknad, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
             val respons = hentBenk(tac, """{"tab": "SØKNADER", "sortering": "kravtidspunkt,ASC"}""")
 
@@ -46,11 +46,12 @@ class HentBenkV2RouteTest {
                   "oversikt": {
                     "behandlinger": [
                       {
+                        "id": "${behandling.id}",
                         "sakId": "${sak.id}",
                         "fnr": "${søknad.fnr.verdi}",
                         "saksnummer": "${sak.saksnummer.verdi}",
-                        "startet": "${søknad.opprettet}",
-                        "sistEndret": "${søknad.opprettet}",
+                        "startet": "${behandling.opprettet}",
+                        "sistEndret": "${behandling.sistEndret}",
                         "saksbehandler": null,
                         "beslutter": null,
                         "erUnderkjent": false,
@@ -62,7 +63,8 @@ class HentBenkV2RouteTest {
                         "status": "KLAR_TIL_BEHANDLING",
                         "søknadstype": "DIGITAL",
                         "kravtidspunkt": "${søknad.opprettet}",
-                        "resultat": null
+                        "resultat": null,
+                        "gyldigeKommandoer": ["TildelSaksbehandler", "Avbryt"]
                       }
                     ],
                     "totalAntall": 1,
@@ -79,7 +81,7 @@ class HentBenkV2RouteTest {
     @IsolatedDatabaseTest
     fun `filtre fra body slår gjennom til spørringen`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            opprettSakOgSøknad(tac = tac)
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
 
             hentBenk(
@@ -94,6 +96,19 @@ class HentBenkV2RouteTest {
         }
     }
 
+    @Test
+    @IsolatedDatabaseTest
+    fun `raden viser kommandoene den innloggede saksbehandleren kan utføre`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
+
+            val respons = hentBenk(tac, """{"tab": "SØKNADER"}""")
+
+            objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
+                .toString() shouldEqualJson """["LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"]"""
+        }
+    }
+
     /**
      * Fanenavn, filterverdi og sorteringskolonne kommer fra en url brukeren kan redigere.
      * Da skal benken svare med noe fornuftig framfor en 400, ellers står saksbehandleren igjen med en tom side.
@@ -102,7 +117,7 @@ class HentBenkV2RouteTest {
     @IsolatedDatabaseTest
     fun `ukjente verdier gir default framfor feil`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            opprettSakOgSøknad(tac = tac)
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
             val respons = hentBenk(
                 tac,
@@ -144,5 +159,5 @@ class HentBenkV2RouteTest {
 
     private fun String.antallIOversikten(): Int = objectMapper.readTree(this)["oversikt"]["totalAntall"].asInt()
 
-    private fun String.fane(): String = objectMapper.readTree(this)["tab"].textValue()
+    private fun String.fane(): String = objectMapper.readTree(this)["tab"].stringValue()
 }

@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.benk.v2.infra.repo
 import kotliquery.Row
 import kotliquery.Session
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.MeldekortId
+import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.periode.Periode
@@ -42,6 +44,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Sortering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Ventestatus
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Command
+import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
+import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import org.intellij.lang.annotations.Language
 
 /**
@@ -228,46 +232,29 @@ class BenkV2PostgresRepo(
         /**
          * Fellesfeltene hver fane må produsere, i tillegg til sine egne.
          * Aliasene er kontrakten mellom spørringene og [tilFelles].
+         *
+         * Søknadsfanen viser bare åpne søknadsbehandlinger.
+         * Søknader som ingen har tatt tak i ennå, er ikke behandlinger og hører ikke hjemme på benken.
          */
         @Language("PostgreSQL")
         const val SØKNADER = """
             select
                 sa.id                       as sak_id,
-                sø.fnr                      as fnr,
+                sa.fnr                      as fnr,
                 sa.saksnummer               as saksnummer,
-                sø.opprettet                as startet,
-                sø.opprettet                as sist_endret,
-                null::text                  as saksbehandler,
-                null::text                  as beslutter,
-                false                       as er_underkjent,
-                false                       as er_satt_på_vent,
-                null::text                  as vente_begrunnelse,
-                null::date                  as vente_frist,
-                'KLAR_TIL_BEHANDLING'::text as status,
+                b.opprettet                 as startet,
+                b.sist_endret               as sist_endret,
+                b.saksbehandler             as saksbehandler,
+                b.beslutter                 as beslutter,
+                coalesce(b.attesteringer->'attesteringer'->-1->>'status' = 'SENDT_TILBAKE', false) as er_underkjent,
+                coalesce((b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false) as er_satt_på_vent,
+                b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
+                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
+                b.status::text              as status,
                 sø.soknadstype::text        as søknadstype,
                 sø.opprettet                as kravtidspunkt,
-                null::text                  as resultat
-            from søknad sø
-                join sak sa on sø.sak_id = sa.id
-            where sø.avbrutt is null
-              and not exists (select 1 from behandling b where b.soknad_id = sø.id)
-            union all
-            select
-                sa.id,
-                sa.fnr,
-                sa.saksnummer,
-                b.opprettet,
-                b.sist_endret,
-                b.saksbehandler,
-                b.beslutter,
-                coalesce(b.attesteringer->'attesteringer'->-1->>'status' = 'SENDT_TILBAKE', false),
-                coalesce((b.ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent')::boolean, false),
-                b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse',
-                (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date,
-                b.status::text,
-                sø.soknadstype::text,
-                sø.opprettet,
-                b.resultat::text
+                b.resultat::text            as resultat,
+                b.id                        as id
             from behandling b
                 join søknad sø on sø.id = b.soknad_id
                 join sak sa on b.sak_id = sa.id
@@ -292,7 +279,8 @@ class BenkV2PostgresRepo(
                 b.ventestatus->'ventestatusHendelser'->-1->>'begrunnelse'   as vente_begrunnelse,
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
                 b.status::text              as status,
-                b.resultat::text            as resultat
+                b.resultat::text            as resultat,
+                b.id                        as id
             from behandling b
                 join sak sa on b.sak_id = sa.id
             where b.avbrutt is null
@@ -330,7 +318,8 @@ class BenkV2PostgresRepo(
                     from jsonb_array_elements(m.beregninger->'beregninger') beregning,
                          jsonb_array_elements(beregning->'dager') dag
                 )                               as beløp,
-                null::timestamp with time zone  as mottatt_tidspunkt
+                null::timestamp with time zone  as mottatt_tidspunkt,
+                m.id                            as id
             from meldekortbehandling m
                 join sak s on m.sak_id = s.id
             where m.avbrutt is null
@@ -358,7 +347,8 @@ class BenkV2PostgresRepo(
                 mp.fra_og_med,
                 mp.til_og_med,
                 null::int,
-                siste.mottatt
+                siste.mottatt,
+                siste.id
             from (
                 select distinct on (sak_id, meldeperiode_kjede_id)
                     id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt
@@ -406,7 +396,8 @@ class BenkV2PostgresRepo(
                     (k.formkrav->>'innsendingsdato')::date::timestamp with time zone,
                     k.opprettet
                 )                           as kravtidspunkt,
-                k.resultat->>'type'         as resultat
+                k.resultat->>'type'         as resultat,
+                k.id                        as id
             from klagebehandling k
                 join sak s on k.sak_id = s.id
             where k.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'MOTTATT_FRA_KLAGEINSTANS')
@@ -447,7 +438,8 @@ class BenkV2PostgresRepo(
                     else 'MELDEKORT'::text
                 end                             as kilde,
                 (tb.kravgrunnlag_periode::periode_datoer).fra_og_med as periode_fra_og_med,
-                (tb.kravgrunnlag_periode::periode_datoer).til_og_med as periode_til_og_med
+                (tb.kravgrunnlag_periode::periode_datoer).til_og_med as periode_til_og_med,
+                tb.id                           as id
             from tilbakekreving_behandling tb
                 join sak s on tb.sak_id = s.id
                 join utbetaling u on tb.utbetaling_id = u.id
@@ -467,28 +459,37 @@ class BenkV2PostgresRepo(
             )
         """
 
+        /**
+         * Alle basespørringene produserer `er_satt_på_vent`, så filteret er felles.
+         */
+        const val PÅ_VENT_FILTER = "(not :skjul_pa_vent or not er_satt_på_vent)"
+
         const val SØKNADER_FILTER = """
             (:status::text is null or status = :status::text)
             and (:soknadstype::text is null or søknadstype = :soknadstype::text)
             and $SAKSBEHANDLER_FILTER
+            and $PÅ_VENT_FILTER
         """
 
         const val REVURDERINGER_FILTER = """
             (:status::text is null or status = :status::text)
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
+            and $PÅ_VENT_FILTER
         """
 
         const val MELDEKORT_FILTER = """
             (:status::text is null or status = :status::text)
             and (:type::text is null or type = :type::text)
             and $SAKSBEHANDLER_FILTER
+            and $PÅ_VENT_FILTER
         """
 
         const val KLAGE_FILTER = """
             (:status::text is null or status = :status::text)
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
+            and $PÅ_VENT_FILTER
         """
 
         const val TILBAKEKREVING_FILTER = """
@@ -496,6 +497,7 @@ class BenkV2PostgresRepo(
             and (:kilde::text is null or kilde = :kilde::text)
             and beløp >= :minstebelop
             and $SAKSBEHANDLER_FILTER
+            and $PÅ_VENT_FILTER
         """
     }
 }
@@ -512,7 +514,10 @@ private fun <K : BenkV2SorteringKolonne> BenkV2Sortering<K>.tilOrderBy(kolonneTi
  */
 private fun Enum<*>?.tilParam(): String? = this?.name
 
-private fun BenkV2Filtrering.tilParams(): Array<Pair<String, Any?>> = arrayOf("saksbehandler" to saksbehandler)
+private fun BenkV2Filtrering.tilParams(): Array<Pair<String, Any?>> = arrayOf(
+    "saksbehandler" to saksbehandler,
+    "skjul_pa_vent" to skjulPåVent,
+)
 
 private fun <T : Enum<T>> Row.enumOrNull(column: String, entries: List<T>): T? {
     val verdi = stringOrNull(column) ?: return null
@@ -545,6 +550,7 @@ private fun Row.tilBehandlingsstatus(): BenkV2Behandlingsstatus =
 
 private fun Row.tilSøknadsbehandling(): BenkSøknadsbehandling = BenkSøknadsbehandling(
     felles = tilFelles(),
+    id = RammebehandlingId.fromString(string("id")),
     status = tilBehandlingsstatus(),
     søknadstype = enum("søknadstype", BenkSøknadstype.entries),
     kravtidspunkt = localDateTime("kravtidspunkt"),
@@ -553,12 +559,14 @@ private fun Row.tilSøknadsbehandling(): BenkSøknadsbehandling = BenkSøknadsbe
 
 private fun Row.tilRevurdering(): BenkRevurdering = BenkRevurdering(
     felles = tilFelles(),
+    id = RammebehandlingId.fromString(string("id")),
     status = tilBehandlingsstatus(),
     resultat = enumOrNull("resultat", BenkRevurderingResultat.entries),
 )
 
 private fun Row.tilMeldekort(): BenkMeldekort = BenkMeldekort(
     felles = tilFelles(),
+    id = MeldekortId.fromString(string("id")),
     status = tilBehandlingsstatus(),
     type = enum("type", BenkMeldekortType.entries),
     periode = tilPeriode(),
@@ -568,6 +576,7 @@ private fun Row.tilMeldekort(): BenkMeldekort = BenkMeldekort(
 
 private fun Row.tilKlagebehandling(): BenkKlagebehandling = BenkKlagebehandling(
     felles = tilFelles(),
+    id = KlagebehandlingId.fromString(string("id")),
     status = tilBehandlingsstatus(),
     kravtidspunkt = localDateTime("kravtidspunkt"),
     resultat = enumOrNull("resultat", BenkKlagebehandlingResultat.entries),
@@ -575,6 +584,7 @@ private fun Row.tilKlagebehandling(): BenkKlagebehandling = BenkKlagebehandling(
 
 private fun Row.tilTilbakekreving(): BenkTilbakekreving = BenkTilbakekreving(
     felles = tilFelles(),
+    id = TilbakekrevingId.fromString(string("id")),
     status = enum("status", BenkTilbakekrevingStatus.entries),
     beløp = bigDecimal("beløp"),
     kilde = enum("kilde", BenkTilbakekrevingKilde.entries),

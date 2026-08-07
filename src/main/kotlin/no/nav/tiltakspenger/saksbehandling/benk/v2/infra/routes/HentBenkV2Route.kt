@@ -72,11 +72,12 @@ fun Route.hentBenkV2Route(
                             status = body.filters.behandlingsstatus(),
                             søknadstype = body.filters.søknadstype.tilEnum(BenkSøknadstype.entries),
                             saksbehandler = body.filters.saksbehandler,
+                            skjulPåVent = body.filters.skjulPåVent,
                         ),
                         body.sortering(BenkSøknaderKolonne.entries, BenkSøknaderKolonne.KRAVTIDSPUNKT),
                     ),
                     saksbehandlerToken = token,
-                ).toDTO(fane)
+                )
 
                 BenkV2Fane.REVURDERINGER -> benkV2Service.hentRevurderinger(
                     command = body.tilCommand(
@@ -86,11 +87,12 @@ fun Route.hentBenkV2Route(
                             status = body.filters.behandlingsstatus(),
                             resultat = body.filters.resultat.tilEnum(BenkRevurderingResultat.entries),
                             saksbehandler = body.filters.saksbehandler,
+                            skjulPåVent = body.filters.skjulPåVent,
                         ),
                         body.sortering(BenkRevurderingerKolonne.entries, BenkRevurderingerKolonne.STARTET),
                     ),
                     saksbehandlerToken = token,
-                ).toDTO(fane)
+                )
 
                 BenkV2Fane.MELDEKORT -> benkV2Service.hentMeldekort(
                     command = body.tilCommand(
@@ -100,11 +102,12 @@ fun Route.hentBenkV2Route(
                             status = body.filters.behandlingsstatus(),
                             type = body.filters.type.tilEnum(BenkMeldekortType.entries),
                             saksbehandler = body.filters.saksbehandler,
+                            skjulPåVent = body.filters.skjulPåVent,
                         ),
                         body.sortering(BenkMeldekortKolonne.entries, BenkMeldekortKolonne.PERIODE),
                     ),
                     saksbehandlerToken = token,
-                ).toDTO(fane)
+                )
 
                 BenkV2Fane.KLAGE -> benkV2Service.hentKlager(
                     command = body.tilCommand(
@@ -114,11 +117,12 @@ fun Route.hentBenkV2Route(
                             status = body.filters.behandlingsstatus(),
                             resultat = body.filters.resultat.tilEnum(BenkKlagebehandlingResultat.entries),
                             saksbehandler = body.filters.saksbehandler,
+                            skjulPåVent = body.filters.skjulPåVent,
                         ),
                         body.sortering(BenkKlageKolonne.entries, BenkKlageKolonne.KRAVTIDSPUNKT),
                     ),
                     saksbehandlerToken = token,
-                ).toDTO(fane)
+                )
 
                 BenkV2Fane.TILBAKEKREVING -> benkV2Service.hentTilbakekrevinger(
                     command = body.tilCommand(
@@ -129,12 +133,13 @@ fun Route.hentBenkV2Route(
                             kilde = body.filters.kilde.tilEnum(BenkTilbakekrevingKilde.entries),
                             saksbehandler = body.filters.saksbehandler,
                             minstebeløp = body.filters.minstebeløp(),
+                            skjulPåVent = body.filters.skjulPåVent,
                         ),
                         body.sortering(BenkTilbakekrevingKolonne.entries, BenkTilbakekrevingKolonne.STARTET),
                     ),
                     saksbehandlerToken = token,
-                ).toDTO(fane)
-            }
+                )
+            }.toDTO(fane, saksbehandler)
 
             call.respondJson(value = respons)
         }
@@ -160,6 +165,7 @@ private data class HentBenkV2Body(
         val kilde: String? = null,
         val saksbehandler: String? = null,
         val kunOverMinstebeløp: Boolean = false,
+        val skjulPåVent: Boolean = false,
     ) {
         fun behandlingsstatus(): BenkV2Behandlingsstatus? = status.tilEnum(BenkV2Behandlingsstatus.entries)
 

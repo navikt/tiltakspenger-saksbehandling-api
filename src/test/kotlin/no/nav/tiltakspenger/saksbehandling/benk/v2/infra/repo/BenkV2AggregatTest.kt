@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkKlagebehandlingResultat
@@ -31,11 +32,13 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Sortering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Command
+import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
@@ -46,6 +49,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilOpprettholdelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgSettPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
@@ -83,72 +87,76 @@ class BenkV2AggregatTest {
         saksbehandler: String? = null,
         kolonne: BenkSøknaderKolonne = BenkSøknaderKolonne.KRAVTIDSPUNKT,
         retning: BenkV2SorteringRetning = BenkV2SorteringRetning.ASC,
-    ) = command(BenkSøknaderFiltrering(status, søknadstype, saksbehandler), kolonne, retning)
+        skjulPåVent: Boolean = false,
+    ) = command(BenkSøknaderFiltrering(status, søknadstype, saksbehandler, skjulPåVent), kolonne, retning)
 
     private fun revurderingerCommand(
         status: BenkV2Behandlingsstatus? = null,
         resultat: BenkRevurderingResultat? = null,
         saksbehandler: String? = null,
-    ) = command(BenkRevurderingerFiltrering(status, resultat, saksbehandler), BenkRevurderingerKolonne.STARTET)
+        skjulPåVent: Boolean = false,
+    ) = command(BenkRevurderingerFiltrering(status, resultat, saksbehandler, skjulPåVent), BenkRevurderingerKolonne.STARTET)
 
     private fun meldekortCommand(
         status: BenkV2Behandlingsstatus? = null,
         type: BenkMeldekortType? = null,
         saksbehandler: String? = null,
-    ) = command(BenkMeldekortFiltrering(status, type, saksbehandler), BenkMeldekortKolonne.PERIODE)
+        skjulPåVent: Boolean = false,
+    ) = command(BenkMeldekortFiltrering(status, type, saksbehandler, skjulPåVent), BenkMeldekortKolonne.PERIODE)
 
     private fun klageCommand(
         status: BenkV2Behandlingsstatus? = null,
         resultat: BenkKlagebehandlingResultat? = null,
         saksbehandler: String? = null,
-    ) = command(BenkKlageFiltrering(status, resultat, saksbehandler), BenkKlageKolonne.KRAVTIDSPUNKT)
+        skjulPåVent: Boolean = false,
+    ) = command(BenkKlageFiltrering(status, resultat, saksbehandler, skjulPåVent), BenkKlageKolonne.KRAVTIDSPUNKT)
 
     private fun tilbakekrevingCommand(
         status: BenkTilbakekrevingStatus? = null,
         kilde: BenkTilbakekrevingKilde? = null,
         saksbehandler: String? = null,
         minstebeløp: Long = 0,
+        skjulPåVent: Boolean = false,
     ) = command(
-        BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp),
+        BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp, skjulPåVent),
         BenkTilbakekrevingKolonne.STARTET,
     )
 
     @Test
     @IsolatedDatabaseTest
-    fun `søknadsfanen viser både søknader uten behandling og åpne søknadsbehandlinger`() {
+    fun `søknadsfanen viser åpne søknadsbehandlinger, men ikke søknader uten behandling`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sakUtenBehandling, søknad) = opprettSakOgSøknad(tac = tac)
-            val (sakUnderBehandling, _, underBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            // Søknader som ingen har tatt tak i, er ikke behandlinger og skal ikke ligge på benken.
+            opprettSakOgSøknad(tac = tac)
+            val (sakUnderBehandling, søknad, underBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
             // Iverksatte behandlinger er ferdige, og skal ikke ligge på benken.
             iverksettSøknadsbehandling(tac = tac)
 
             val oversikt = tac.benkV2Context.benkV2Repo.hentSøknader(søknaderCommand())
 
-            oversikt.totalAntall shouldBe 2
-            oversikt.totalAntallUfiltrert shouldBe 2
-            oversikt.behandlinger.size shouldBe 2
+            oversikt.totalAntall shouldBe 1
+            oversikt.totalAntallUfiltrert shouldBe 1
 
-            val utenBehandling = oversikt.behandlinger.single { it.felles.sakId == sakUtenBehandling.id }
-            utenBehandling.felles.fnr shouldBe søknad.fnr
-            utenBehandling.felles.saksnummer shouldBe søknad.saksnummer
-            utenBehandling.felles.startet shouldBe søknad.opprettet
-            utenBehandling.felles.sistEndret shouldBe søknad.opprettet
-            utenBehandling.felles.saksbehandler shouldBe null
-            utenBehandling.felles.beslutter shouldBe null
-            utenBehandling.felles.erUnderkjent shouldBe false
-            utenBehandling.felles.ventestatus.erSattPåVent shouldBe false
-            utenBehandling.felles.ventestatus.begrunnelse shouldBe null
-            utenBehandling.felles.ventestatus.frist shouldBe null
-            utenBehandling.status shouldBe BenkV2Behandlingsstatus.KLAR_TIL_BEHANDLING
-            utenBehandling.søknadstype shouldBe BenkSøknadstype.DIGITAL
-            utenBehandling.kravtidspunkt shouldBe søknad.opprettet
-            utenBehandling.resultat shouldBe null
-
-            val medBehandling = oversikt.behandlinger.single { it.felles.sakId == sakUnderBehandling.id }
-            medBehandling.status shouldBe BenkV2Behandlingsstatus.UNDER_BEHANDLING
-            medBehandling.resultat shouldBe BenkSøknadsbehandlingResultat.INNVILGELSE
-            medBehandling.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
-            medBehandling.felles.startet shouldBe underBehandling.opprettet
+            val rad = oversikt.behandlinger.single()
+            rad.id shouldBe underBehandling.id
+            rad.felles.sakId shouldBe sakUnderBehandling.id
+            rad.felles.fnr shouldBe søknad.fnr
+            rad.felles.saksnummer shouldBe søknad.saksnummer
+            rad.felles.startet shouldBe underBehandling.opprettet
+            rad.felles.sistEndret shouldBe underBehandling.sistEndret
+            rad.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+            rad.felles.beslutter shouldBe null
+            rad.felles.erUnderkjent shouldBe false
+            rad.felles.ventestatus.erSattPåVent shouldBe false
+            rad.felles.ventestatus.begrunnelse shouldBe null
+            rad.felles.ventestatus.frist shouldBe null
+            rad.status shouldBe BenkV2Behandlingsstatus.UNDER_BEHANDLING
+            rad.søknadstype shouldBe BenkSøknadstype.DIGITAL
+            rad.kravtidspunkt shouldBe søknad.opprettet
+            rad.resultat shouldBe BenkSøknadsbehandlingResultat.INNVILGELSE
+            // Kommandoene på raden er de samme reglene som på selve behandlingen — dette pinner speilingen.
+            rad.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
+                underBehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler())
         }
     }
 
@@ -172,9 +180,28 @@ class BenkV2AggregatTest {
 
     @Test
     @IsolatedDatabaseTest
+    fun `skjulPåVent tar bort behandlingene som er satt på vent`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val (sakPåVent) = opprettSøknadsbehandlingOgSettPåVent(tac = tac)!!
+
+            val repo = tac.benkV2Context.benkV2Repo
+
+            repo.hentSøknader(søknaderCommand()).totalAntall shouldBe 2
+
+            val filtrert = repo.hentSøknader(søknaderCommand(skjulPåVent = true))
+
+            filtrert.totalAntall shouldBe 1
+            filtrert.totalAntallUfiltrert shouldBe 2
+            filtrert.behandlinger.none { it.felles.sakId == sakPåVent.id } shouldBe true
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
     fun `søknadsfanen filtrerer på status, søknadstype og saksbehandler`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            opprettSakOgSøknad(tac = tac)
+            val (sakKlarTilBehandling) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
             val (sakUnderBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
             val repo = tac.benkV2Context.benkV2Repo
 
@@ -193,7 +220,10 @@ class BenkV2AggregatTest {
                 it.totalAntall shouldBe 1
                 it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
             }
-            repo.hentSøknader(søknaderCommand(saksbehandler = BenkV2Filtrering.IKKE_TILDELT)).totalAntall shouldBe 1
+            repo.hentSøknader(søknaderCommand(saksbehandler = BenkV2Filtrering.IKKE_TILDELT)).let {
+                it.totalAntall shouldBe 1
+                it.behandlinger.single().felles.sakId shouldBe sakKlarTilBehandling.id
+            }
         }
     }
 
@@ -201,11 +231,11 @@ class BenkV2AggregatTest {
     @IsolatedDatabaseTest
     fun `søknadsfanen sorterer stigende og synkende, og respekterer limit`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            // Søknadene mottas med samme tidsstempel, så fnr er den eneste kolonnen sorteringen kan observeres på her.
+            // Behandlingene opprettes med samme tidsstempel, så fnr er den eneste kolonnen sorteringen kan observeres på her.
             val fnrEn = Fnr.fromString("01019012345")
             val fnrTo = Fnr.fromString("02019012345")
-            opprettSakOgSøknad(tac = tac, fnr = fnrTo)
-            opprettSakOgSøknad(tac = tac, fnr = fnrEn)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = fnrTo)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = fnrEn)
             val repo = tac.benkV2Context.benkV2Repo
 
             fun kommando(retning: BenkV2SorteringRetning) =
@@ -238,8 +268,11 @@ class BenkV2AggregatTest {
             oversikt.behandlinger.single().let {
                 it.felles.sakId shouldBe sak.id
                 it.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+                it.id shouldBe revurdering.id
                 it.status shouldBe BenkV2Behandlingsstatus.UNDER_BEHANDLING
                 it.resultat shouldBe BenkRevurderingResultat.STANS
+                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
+                    revurdering.finnGyldigeKommandoer(ObjectMother.saksbehandler())
             }
 
             repo.hentRevurderinger(revurderingerCommand(resultat = BenkRevurderingResultat.STANS)).totalAntall shouldBe 1
@@ -268,12 +301,15 @@ class BenkV2AggregatTest {
 
             oversikt.totalAntall shouldBe 2
             oversikt.behandlinger.single { it.felles.sakId == sakUtenBeregning.id }.let {
+                it.id shouldBe meldekortbehandling.id
                 it.type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
                 it.status shouldBe BenkV2Behandlingsstatus.UNDER_BEHANDLING
                 it.periode shouldBe meldekortbehandling.periode
                 it.beløp shouldBe null
                 it.mottattTidspunkt shouldBe null
                 it.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
+                    meldekortbehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler())
             }
             oversikt.behandlinger.single { it.felles.sakId == sakMedBeregning.id }.let {
                 it.status shouldBe BenkV2Behandlingsstatus.KLAR_TIL_BESLUTNING
@@ -315,6 +351,7 @@ class BenkV2AggregatTest {
                 BenkMeldekortType.INNSENDT_MELDEKORT,
             )
             oversikt.behandlinger.first().let {
+                it.id shouldBe korrigering.id
                 it.felles.startet shouldBe korrigering.mottatt
                 it.mottattTidspunkt shouldBe korrigering.mottatt
                 it.beløp shouldBe null
@@ -322,6 +359,10 @@ class BenkV2AggregatTest {
                 it.felles.saksbehandler shouldBe null
             }
             oversikt.behandlinger.last().mottattTidspunkt shouldBe innsendt.mottatt
+            // Meldekort som venter på at noen starter en behandling, har ingen behandling å utføre kommandoer på.
+            oversikt.behandlinger.forEach {
+                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe emptyList()
+            }
 
             repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.KORRIGERT_MELDEKORT)).totalAntall shouldBe 1
             repo.hentMeldekort(meldekortCommand(saksbehandler = BenkV2Filtrering.IKKE_TILDELT)).totalAntall shouldBe 2
@@ -341,6 +382,7 @@ class BenkV2AggregatTest {
 
             oversikt.totalAntall shouldBe 2
             oversikt.behandlinger.single { it.felles.sakId == sakAvvist.id }.let {
+                it.id shouldBe klageAvvist.id
                 it.felles.saksbehandler shouldBe saksbehandler.navIdent
                 it.felles.beslutter shouldBe null
                 it.felles.erUnderkjent shouldBe false
@@ -373,6 +415,7 @@ class BenkV2AggregatTest {
 
             oversikt.totalAntall shouldBe 2
             oversikt.behandlinger.single { it.felles.sakId == sakTilBehandling.id }.let {
+                it.id shouldBe tilBehandling.id
                 it.status shouldBe BenkTilbakekrevingStatus.TIL_BEHANDLING
                 it.kilde shouldBe BenkTilbakekrevingKilde.MELDEKORT
                 it.beløp shouldBe tilBehandling.totaltFeilutbetaltBeløp
@@ -381,6 +424,8 @@ class BenkV2AggregatTest {
                 it.felles.beslutter shouldBe null
                 it.felles.erUnderkjent shouldBe false
                 it.felles.ventestatus.erSattPåVent shouldBe false
+                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
+                    tilBehandling.gyldigeKommandoer(ObjectMother.saksbehandler())
             }
             oversikt.behandlinger.single { it.felles.sakId == sakTilGodkjenning.id }.status shouldBe
                 BenkTilbakekrevingStatus.TIL_GODKJENNING
@@ -407,7 +452,7 @@ class BenkV2AggregatTest {
     @IsolatedDatabaseTest
     fun `antall per fane telles uten filter`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            opprettSakOgSøknad(tac = tac)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
             oppdaterRevurderingStans(tac = tac, sakId = sak.id, behandlingId = revurdering.id)
             iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac)

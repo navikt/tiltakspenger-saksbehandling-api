@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes
 
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkKlagebehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkMeldekort
@@ -17,8 +18,11 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Behandling
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Behandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Fane
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Ventestatus
+import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.benk.v2.service.BenkV2Respons
 import no.nav.tiltakspenger.saksbehandling.benk.v2.service.TilgangsfiltrertBenkV2Oversikt
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import java.math.BigDecimal
 
 /**
@@ -119,6 +123,7 @@ data class BenkV2PeriodeDTO(
 )
 
 sealed interface BenkV2BehandlingDTO {
+    val id: String
     val sakId: String
     val fnr: String
     val saksnummer: String
@@ -131,6 +136,7 @@ sealed interface BenkV2BehandlingDTO {
 }
 
 data class BenkSøknadsbehandlingDTO(
+    override val id: String,
     override val sakId: String,
     override val fnr: String,
     override val saksnummer: String,
@@ -144,9 +150,11 @@ data class BenkSøknadsbehandlingDTO(
     val søknadstype: BenkSøknadstypeDTO,
     val kravtidspunkt: String,
     val resultat: BenkSøknadsbehandlingResultatDTO?,
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
 
 data class BenkRevurderingDTO(
+    override val id: String,
     override val sakId: String,
     override val fnr: String,
     override val saksnummer: String,
@@ -158,9 +166,11 @@ data class BenkRevurderingDTO(
     override val ventestatus: BenkV2VentestatusDTO,
     val status: BenkV2BehandlingsstatusDTO,
     val resultat: BenkRevurderingResultatDTO?,
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
 
 data class BenkMeldekortDTO(
+    override val id: String,
     override val sakId: String,
     override val fnr: String,
     override val saksnummer: String,
@@ -175,9 +185,11 @@ data class BenkMeldekortDTO(
     val periode: BenkV2PeriodeDTO,
     val beløp: Int?,
     val mottattTidspunkt: String?,
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
 
 data class BenkKlagebehandlingDTO(
+    override val id: String,
     override val sakId: String,
     override val fnr: String,
     override val saksnummer: String,
@@ -193,6 +205,7 @@ data class BenkKlagebehandlingDTO(
 ) : BenkV2BehandlingDTO
 
 data class BenkTilbakekrevingDTO(
+    override val id: String,
     override val sakId: String,
     override val fnr: String,
     override val saksnummer: String,
@@ -206,6 +219,7 @@ data class BenkTilbakekrevingDTO(
     val beløp: BigDecimal,
     val kilde: BenkTilbakekrevingKildeDTO,
     val kravgrunnlagPeriode: BenkV2PeriodeDTO,
+    val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
 
 fun BenkV2Fane.toDTO(): BenkV2FaneDTO = when (this) {
@@ -224,22 +238,24 @@ fun BenkV2AntallPerFane.toDTO(): Map<BenkV2FaneDTO, Int> = mapOf(
     BenkV2FaneDTO.TILBAKEKREVING to tilbakekreving,
 )
 
-fun <T : BenkV2Behandling> BenkV2Respons<T>.toDTO(fane: BenkV2Fane): BenkV2ResponsDTO = BenkV2ResponsDTO(
-    tab = fane.toDTO(),
-    antallPerTab = antallPerFane.toDTO(),
-    oversikt = oversikt.toDTO(),
-)
+fun <T : BenkV2Behandling> BenkV2Respons<T>.toDTO(fane: BenkV2Fane, saksbehandler: Saksbehandler): BenkV2ResponsDTO =
+    BenkV2ResponsDTO(
+        tab = fane.toDTO(),
+        antallPerTab = antallPerFane.toDTO(),
+        oversikt = oversikt.toDTO(saksbehandler),
+    )
 
-private fun <T : BenkV2Behandling> TilgangsfiltrertBenkV2Oversikt<T>.toDTO(): BenkV2OversiktDTO = BenkV2OversiktDTO(
-    behandlinger = behandlinger.map { it.toDTO() },
+private fun <T : BenkV2Behandling> TilgangsfiltrertBenkV2Oversikt<T>.toDTO(saksbehandler: Saksbehandler): BenkV2OversiktDTO = BenkV2OversiktDTO(
+    behandlinger = behandlinger.map { it.toDTO(saksbehandler) },
     totalAntall = totalAntall,
     totalAntallUfiltrert = totalAntallUfiltrert,
     antallFiltrertPgaTilgang = antallFiltrertPgaTilgang,
     limit = limit,
 )
 
-private fun BenkV2Behandling.toDTO(): BenkV2BehandlingDTO = when (this) {
+private fun BenkV2Behandling.toDTO(saksbehandler: Saksbehandler): BenkV2BehandlingDTO = when (this) {
     is BenkSøknadsbehandling -> BenkSøknadsbehandlingDTO(
+        id = id.toString(),
         sakId = felles.sakId.toString(),
         fnr = felles.fnr.verdi,
         saksnummer = felles.saksnummer.verdi,
@@ -253,9 +269,11 @@ private fun BenkV2Behandling.toDTO(): BenkV2BehandlingDTO = when (this) {
         søknadstype = søknadstype.toDTO(),
         kravtidspunkt = kravtidspunkt.toString(),
         resultat = resultat?.toDTO(),
+        gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
     )
 
     is BenkRevurdering -> BenkRevurderingDTO(
+        id = id.toString(),
         sakId = felles.sakId.toString(),
         fnr = felles.fnr.verdi,
         saksnummer = felles.saksnummer.verdi,
@@ -267,9 +285,11 @@ private fun BenkV2Behandling.toDTO(): BenkV2BehandlingDTO = when (this) {
         ventestatus = felles.ventestatus.toDTO(),
         status = status.toDTO(),
         resultat = resultat?.toDTO(),
+        gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
     )
 
     is BenkMeldekort -> BenkMeldekortDTO(
+        id = id.toString(),
         sakId = felles.sakId.toString(),
         fnr = felles.fnr.verdi,
         saksnummer = felles.saksnummer.verdi,
@@ -284,9 +304,11 @@ private fun BenkV2Behandling.toDTO(): BenkV2BehandlingDTO = when (this) {
         periode = BenkV2PeriodeDTO(periode.fraOgMed.toString(), periode.tilOgMed.toString()),
         beløp = beløp,
         mottattTidspunkt = mottattTidspunkt?.toString(),
+        gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
     )
 
     is BenkKlagebehandling -> BenkKlagebehandlingDTO(
+        id = id.toString(),
         sakId = felles.sakId.toString(),
         fnr = felles.fnr.verdi,
         saksnummer = felles.saksnummer.verdi,
@@ -302,6 +324,7 @@ private fun BenkV2Behandling.toDTO(): BenkV2BehandlingDTO = when (this) {
     )
 
     is BenkTilbakekreving -> BenkTilbakekrevingDTO(
+        id = id.toString(),
         sakId = felles.sakId.toString(),
         fnr = felles.fnr.verdi,
         saksnummer = felles.saksnummer.verdi,
@@ -318,6 +341,7 @@ private fun BenkV2Behandling.toDTO(): BenkV2BehandlingDTO = when (this) {
             kravgrunnlagPeriode.fraOgMed.toString(),
             kravgrunnlagPeriode.tilOgMed.toString(),
         ),
+        gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
     )
 }
 

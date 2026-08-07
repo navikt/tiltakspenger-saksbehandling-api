@@ -10,9 +10,12 @@ import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
  *
  * [saksbehandler] er ett felt som treffer både saksbehandler og beslutter, fordi benken har én nedtrekksliste for de to.
  * Verdien [IKKE_TILDELT] betyr at behandlingen ikke er plukket opp av noen.
+ *
+ * [skjulPåVent] tar bort behandlingene som er satt på vent, for saksbehandlere som vil se køen av det som faktisk kan jobbes med.
  */
 sealed interface BenkV2Filtrering {
     val saksbehandler: String?
+    val skjulPåVent: Boolean
 
     companion object {
         const val IKKE_TILDELT: String = "IKKE_TILDELT"
@@ -23,24 +26,28 @@ data class BenkSøknaderFiltrering(
     val status: BenkV2Behandlingsstatus?,
     val søknadstype: BenkSøknadstype?,
     override val saksbehandler: String?,
+    override val skjulPåVent: Boolean = false,
 ) : BenkV2Filtrering
 
 data class BenkRevurderingerFiltrering(
     val status: BenkV2Behandlingsstatus?,
     val resultat: BenkRevurderingResultat?,
     override val saksbehandler: String?,
+    override val skjulPåVent: Boolean = false,
 ) : BenkV2Filtrering
 
 data class BenkMeldekortFiltrering(
     val status: BenkV2Behandlingsstatus?,
     val type: BenkMeldekortType?,
     override val saksbehandler: String?,
+    override val skjulPåVent: Boolean = false,
 ) : BenkV2Filtrering
 
 data class BenkKlageFiltrering(
     val status: BenkV2Behandlingsstatus?,
     val resultat: BenkKlagebehandlingResultat?,
     override val saksbehandler: String?,
+    override val skjulPåVent: Boolean = false,
 ) : BenkV2Filtrering
 
 data class BenkTilbakekrevingFiltrering(
@@ -48,6 +55,7 @@ data class BenkTilbakekrevingFiltrering(
     val kilde: BenkTilbakekrevingKilde?,
     override val saksbehandler: String?,
     val minstebeløp: Long,
+    override val skjulPåVent: Boolean = false,
 ) : BenkV2Filtrering
 
 /**
