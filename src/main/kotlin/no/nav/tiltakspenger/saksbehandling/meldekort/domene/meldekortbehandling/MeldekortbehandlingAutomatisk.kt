@@ -46,6 +46,7 @@ data class MeldekortBehandletAutomatisk(
     override val status: MeldekortbehandlingStatus,
     override val sistEndret: LocalDateTime,
     override val meldeperioder: Meldeperiodebehandlinger,
+    override val skalAkkumulereMeldekort: Boolean = false,
 ) : Meldekortbehandling.Behandlet {
     // Automatiske behandlinger iverksettes umiddelbart
     override val iverksattTidspunkt = opprettet
@@ -87,6 +88,7 @@ data class MeldekortBehandletAutomatisk(
         require(meldeperioder.size == 1) {
             "Automatiske meldekortbehandlinger skal kun ha en meldeperiode"
         }
+        initSkalAkkumulereMeldekort()
     }
 
     override fun oppdaterSimulering(simulering: Simulering?): Meldekortbehandling {

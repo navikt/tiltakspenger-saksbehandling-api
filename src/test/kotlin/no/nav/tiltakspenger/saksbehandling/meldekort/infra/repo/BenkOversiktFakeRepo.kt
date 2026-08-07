@@ -53,8 +53,6 @@ class BenkOversiktFakeRepo(
         BehandlingssammendragType.REVURDERING -> Behandlingstype.REVURDERING
 
         BehandlingssammendragType.MELDEKORTBEHANDLING,
-        BehandlingssammendragType.INNSENDT_MELDEKORT,
-        BehandlingssammendragType.KORRIGERT_MELDEKORT,
         BehandlingssammendragType.KLAGEBEHANDLING,
         BehandlingssammendragType.TILBAKEKREVING,
         -> throw IllegalArgumentException("$this er ikke en behandlingstype")

@@ -172,15 +172,6 @@ class BenkV2GyldigeKommandoerTest {
     inner class Meldekort {
 
         @Test
-        fun `innsendt meldekort har ingen kommandoer`() {
-            meldekort(
-                status = BenkV2Behandlingsstatus.KLAR_TIL_BEHANDLING,
-                felles = felles(),
-                type = BenkMeldekortType.INNSENDT_MELDEKORT,
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
-        }
-
-        @Test
         fun `klar til behandling kan tildeles, men ikke avbrytes`() {
             meldekort(BenkV2Behandlingsstatus.KLAR_TIL_BEHANDLING, felles())
                 .finnGyldigeKommandoer(saksbehandler) shouldBe listOf(TildelSaksbehandler)

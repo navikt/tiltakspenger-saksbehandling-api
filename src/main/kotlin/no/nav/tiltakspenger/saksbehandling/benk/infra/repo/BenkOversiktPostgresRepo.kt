@@ -133,51 +133,6 @@ class BenkOversiktPostgresRepo(
                                'UNDER_BESLUTNING')
         """
 
-        @Language("PostgreSQL")
-        const val ÅPNE_MELDEKORT_TIL_BEHANDLING = """
-            with sisteUbehandledeManuelleMeldekortPerKjede as (
-                select distinct on (sak_id, meldeperiode_kjede_id)
-                    id, sak_id, meldeperiode_kjede_id, mottatt
-                from meldekort_bruker
-                where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
-                order by sak_id, meldeperiode_kjede_id, mottatt desc
-            )
-            select 
-                s.id                           as sakId,
-                s.fnr                          as fnr,
-                s.saksnummer                   as saksnummer,
-                siste.mottatt                      as startet,
-                case when exists (
-                    select 1 from meldekort_bruker tidligere
-                    where tidligere.sak_id = siste.sak_id
-                      and tidligere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
-                      and tidligere.id != siste.id
-                ) then 'KORRIGERT_MELDEKORT' else 'INNSENDT_MELDEKORT' end as behandlingstype,
-                'KLAR_TIL_BEHANDLING'          as status,
-                null                           as saksbehandler,
-                null                           as beslutter,
-                null                           as resultat,
-                null::boolean                  as erSattPåVent,
-                null                           as sattPåVentBegrunnelse,
-                null::date                     as sattPåVentFrist,
-                null::timestamp with time zone as sist_endret,
-                null::jsonb                    as attesteringer,
-                null::numeric                  as beløp,
-                null::text                     as tilbakekrevingKilde
-            from sisteUbehandledeManuelleMeldekortPerKjede siste
-            join sak s on s.id = siste.sak_id
-            /*
-             * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere
-             * eller samtidig med innsendingen - da er meldekortet potensielt allerede tatt stilling til.
-             */
-            where not exists (
-                select 1 from meldekortbehandling mb
-                where mb.sak_id = siste.sak_id
-                  and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', siste.meldeperiode_kjede_id))
-                  and mb.sist_endret >= siste.mottatt
-            )
-        """
-
         // Vi bruker utbetalingens opprettet tidspunkt her, ettersom tilbake-behandlingene har mange nesten-identiske tidspunkt pga batching
         @Language("PostgreSQL")
         const val ÅPNE_TILBAKEKREVINGER = """
@@ -252,7 +207,6 @@ class BenkOversiktPostgresRepo(
                         åpneSøknadsbehandlinger as (${BenkSpørringer.ÅPNE_SØKNADSBEHANDLINGER}),
                         åpneRevurderinger as (${BenkSpørringer.ÅPNE_REVURDERINGER}),
                         åpneMeldekortbehandlinger as (${BenkSpørringer.ÅPNE_MELDEKORTBEHANDLINGER}),
-                        åpneMeldekortTilBehandling as (${BenkSpørringer.ÅPNE_MELDEKORT_TIL_BEHANDLING}),
                         åpneKlager as (${BenkSpørringer.ÅPNE_KLAGER}),
                         åpneTilbakekrevinger as (${BenkSpørringer.ÅPNE_TILBAKEKREVINGER}),
                         slåttSammen as (
@@ -263,8 +217,6 @@ class BenkOversiktPostgresRepo(
                             select * from åpneRevurderinger
                             union all
                             select * from åpneMeldekortbehandlinger
-                            union all
-                            select * from åpneMeldekortTilBehandling
                             union all
                             select * from åpneKlager
                             union all
@@ -324,7 +276,6 @@ class BenkOversiktPostgresRepo(
                     åpneSøknadsbehandlinger as (${BenkSpørringer.ÅPNE_SØKNADSBEHANDLINGER}),
                     åpneRevurderinger as (${BenkSpørringer.ÅPNE_REVURDERINGER}),
                     åpneMeldekortbehandlinger as (${BenkSpørringer.ÅPNE_MELDEKORTBEHANDLINGER}),
-                    åpneMeldekortTilBehandling as (${BenkSpørringer.ÅPNE_MELDEKORT_TIL_BEHANDLING}),
                     åpneKlager as (${BenkSpørringer.ÅPNE_KLAGER}),
                     åpneTilbakekrevinger as (${BenkSpørringer.ÅPNE_TILBAKEKREVINGER})
                 select
@@ -332,7 +283,6 @@ class BenkOversiktPostgresRepo(
                   + (select count(*) from åpneSøknadsbehandlinger)
                   + (select count(*) from åpneRevurderinger)
                   + (select count(*) from åpneMeldekortbehandlinger)
-                  + (select count(*) from åpneMeldekortTilBehandling)
                   + (select count(*) from åpneKlager)
                   + (select count(*) from åpneTilbakekrevinger) as total_unfiltered_count
                 """.trimIndent(),
@@ -426,8 +376,6 @@ private enum class BehandlingssammendragTypeDb {
     SØKNADSBEHANDLING,
     REVURDERING,
     MELDEKORTBEHANDLING,
-    INNSENDT_MELDEKORT,
-    KORRIGERT_MELDEKORT,
     KLAGEBEHANDLING,
     TILBAKEKREVING,
     ;
@@ -436,8 +384,6 @@ private enum class BehandlingssammendragTypeDb {
         SØKNADSBEHANDLING -> BehandlingssammendragType.SØKNADSBEHANDLING
         REVURDERING -> BehandlingssammendragType.REVURDERING
         MELDEKORTBEHANDLING -> BehandlingssammendragType.MELDEKORTBEHANDLING
-        INNSENDT_MELDEKORT -> BehandlingssammendragType.INNSENDT_MELDEKORT
-        KORRIGERT_MELDEKORT -> BehandlingssammendragType.KORRIGERT_MELDEKORT
         KLAGEBEHANDLING -> BehandlingssammendragType.KLAGEBEHANDLING
         TILBAKEKREVING -> BehandlingssammendragType.TILBAKEKREVING
     }

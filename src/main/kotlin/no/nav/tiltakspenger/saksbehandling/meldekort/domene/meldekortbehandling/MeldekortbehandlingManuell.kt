@@ -65,6 +65,7 @@ data class MeldekortbehandlingManuell(
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
+    override val skalAkkumulereMeldekort: Boolean = false,
 ) : Meldekortbehandling.Behandlet {
     override val avbrutt: Avbrutt? = null
     override val beregning: Beregning get() = meldeperioder.beregning!!
@@ -111,6 +112,7 @@ data class MeldekortbehandlingManuell(
 //            "Alle meldeperioder i behandlingen må være fullstendig utfylt for manuelle meldekortbehandlinger (id: $id / sakId: $sakId)"
 //        }
 
+        initSkalAkkumulereMeldekort()
         initKlagebehandling()
     }
 
@@ -233,6 +235,7 @@ data class MeldekortbehandlingManuell(
             meldeperioder = this.meldeperioder,
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
+            skalAkkumulereMeldekort = false,
         ).right()
     }
 
@@ -294,6 +297,7 @@ data class MeldekortbehandlingManuell(
             skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
+            skalAkkumulereMeldekort = false,
         )
     }
 }
