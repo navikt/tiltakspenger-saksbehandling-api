@@ -219,6 +219,7 @@ data class BenkTilbakekrevingDTO(
     val beløp: BigDecimal,
     val kilde: BenkTilbakekrevingKildeDTO,
     val kravgrunnlagPeriode: BenkV2PeriodeDTO,
+    val url: String,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
 
@@ -341,6 +342,7 @@ private fun BenkV2Behandling.toDTO(saksbehandler: Saksbehandler): BenkV2Behandli
             kravgrunnlagPeriode.fraOgMed.toString(),
             kravgrunnlagPeriode.tilOgMed.toString(),
         ),
+        url = url,
         gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
     )
 }

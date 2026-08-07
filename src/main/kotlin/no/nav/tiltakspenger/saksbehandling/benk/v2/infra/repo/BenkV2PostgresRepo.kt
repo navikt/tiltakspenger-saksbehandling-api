@@ -308,8 +308,8 @@ class BenkV2PostgresRepo(
                 (m.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
                 m.status::text                  as status,
                 'MELDEKORTBEHANDLING'::text     as type,
-                m.fra_og_med                    as periode_fra_og_med,
-                m.til_og_med                    as periode_til_og_med,
+                (m.periode::periode_datoer).fra_og_med  as periode_fra_og_med,
+                (m.periode::periode_datoer).til_og_med  as periode_til_og_med,
                 (
                     select sum(
                         (dag->'beregningsdag'->>'beløp')::int
@@ -344,8 +344,8 @@ class BenkV2PostgresRepo(
                       and tidligere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
                       and tidligere.id != siste.id
                 ) then 'KORRIGERT_MELDEKORT'::text else 'INNSENDT_MELDEKORT'::text end,
-                mp.fra_og_med,
-                mp.til_og_med,
+                (mp.periode::periode_datoer).fra_og_med,
+                (mp.periode::periode_datoer).til_og_med,
                 null::int,
                 siste.mottatt,
                 siste.id
@@ -439,7 +439,8 @@ class BenkV2PostgresRepo(
                 end                             as kilde,
                 (tb.kravgrunnlag_periode::periode_datoer).fra_og_med as periode_fra_og_med,
                 (tb.kravgrunnlag_periode::periode_datoer).til_og_med as periode_til_og_med,
-                tb.id                           as id
+                tb.id                           as id,
+                tb.url                          as url
             from tilbakekreving_behandling tb
                 join sak s on tb.sak_id = s.id
                 join utbetaling u on tb.utbetaling_id = u.id
@@ -589,4 +590,5 @@ private fun Row.tilTilbakekreving(): BenkTilbakekreving = BenkTilbakekreving(
     beløp = bigDecimal("beløp"),
     kilde = enum("kilde", BenkTilbakekrevingKilde.entries),
     kravgrunnlagPeriode = tilPeriode(),
+    url = string("url"),
 )

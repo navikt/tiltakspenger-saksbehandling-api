@@ -87,6 +87,7 @@ class BenkV2GyldigeKommandoerTest {
         beløp = BigDecimal(5000),
         kilde = BenkTilbakekrevingKilde.MELDEKORT,
         kravgrunnlagPeriode = Periode(LocalDate.of(2025, 1, 6), LocalDate.of(2025, 1, 19)),
+        url = "https://tilbakekreving.example.com",
     )
 
     @Nested

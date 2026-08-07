@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
@@ -32,6 +31,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilUtbetalingsko
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.repo.booleanOrNull
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periodeOrNull
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.ventestatus
@@ -81,14 +82,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
         session = session,
     )
 
-    // TODO: Rename virkningsperiode_fra_og_med -> vedtaksperiode_fra_og_med og virkningsperiode_til_og_med -> vedtaksperiode_til_og_med
-    val vedtaksperiodeFraOgMed = localDateOrNull("virkningsperiode_fra_og_med")
-    val vedtaksperiodeTilOgMed = localDateOrNull("virkningsperiode_til_og_med")
-
-    if ((vedtaksperiodeFraOgMed == null).xor(vedtaksperiodeTilOgMed == null)) {
-        throw IllegalStateException("Både fra og med og til og med for vedtaksperiode må være satt, eller ingen av dem")
-    }
-    val vedtaksperiode = vedtaksperiodeFraOgMed?.let { Periode(vedtaksperiodeFraOgMed, vedtaksperiodeTilOgMed!!) }
+    val vedtaksperiode = periodeOrNull("vedtaksperiode")
     val søknadId = stringOrNull("soknad_id")?.let { SøknadId.fromString(it) }
     val omgjørRammevedtak = stringOrNull("omgjør_rammevedtak").toOmgjørRammevedtak()
 
@@ -288,8 +282,7 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "iverksatt_tidspunkt" to this.iverksattTidspunkt,
         "sendt_til_datadeling" to this.sendtTilDatadeling,
         "oppgave_id" to null,
-        "virkningsperiode_fra_og_med" to this.vedtaksperiode?.fraOgMed,
-        "virkningsperiode_til_og_med" to this.vedtaksperiode?.tilOgMed,
+        "vedtaksperiode" to this.vedtaksperiode?.tilDbPeriode(),
         "saksbehandler" to this.saksbehandler,
         "beslutter" to this.beslutter,
         "attesteringer" to this.attesteringer.toDbJson(),

@@ -8,9 +8,10 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periodeOrNull
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
@@ -213,49 +214,39 @@ object SøknadDAO {
                     har_sokt_om_barnetillegg_type,
                     kvp_type,
                     kvp_ja,
-                    kvp_fom,
-                    kvp_tom,
+                    kvp_periode,
                     intro_type,
                     intro_ja,
-                    intro_fom,
-                    intro_tom,
+                    intro_periode,
                     institusjon_type,
                     institusjon_ja,
-                    institusjon_fom,
-                    institusjon_tom,
+                    institusjon_periode,
                     sykepenger_type,
                     sykepenger_ja,
-                    sykepenger_fom,
-                    sykepenger_tom,
+                    sykepenger_periode,
                     supplerende_alder_type,
                     supplerende_alder_ja,
-                    supplerende_alder_fom,
-                    supplerende_alder_tom,
+                    supplerende_alder_periode,
                     supplerende_flyktning_type,
                     supplerende_flyktning_ja,
-                    supplerende_flyktning_fom,
-                    supplerende_flyktning_tom,
+                    supplerende_flyktning_periode,
                     jobbsjansen_type,
                     jobbsjansen_ja,
-                    jobbsjansen_fom,
-                    jobbsjansen_tom,
+                    jobbsjansen_periode,
                     gjenlevendepensjon_type,
                     gjenlevendepensjon_ja,
-                    gjenlevendepensjon_fom,
-                    gjenlevendepensjon_tom,
+                    gjenlevendepensjon_periode,
                     alderspensjon_type,
                     alderspensjon_ja,
                     alderspensjon_fom,
                     trygd_og_pensjon_type,
                     trygd_og_pensjon_ja,
-                    trygd_og_pensjon_fom,
-                    trygd_og_pensjon_tom,
+                    trygd_og_pensjon_periode,
                     etterlonn_type,
                     vedlegg,
                     oppgave_id,
                     soknadstype,
-                    manuelt_satt_soknadsperiode_fra_og_med,
-                    manuelt_satt_soknadsperiode_til_og_med,
+                    manuelt_satt_soknadsperiode,
                     manuelt_satt_tiltak,
                     behandlingsarsak,
                     manuelt_registrert
@@ -273,49 +264,39 @@ object SøknadDAO {
                     :har_sokt_om_barnetillegg_type,
                     :kvp_type,
                     :kvp_ja,
-                    :kvp_fom,
-                    :kvp_tom,
+                    :kvp_periode::periode_open,
                     :intro_type,
                     :intro_ja,
-                    :intro_fom,
-                    :intro_tom,
+                    :intro_periode::periode_open,
                     :institusjon_type,
                     :institusjon_ja,
-                    :institusjon_fom,
-                    :institusjon_tom,
+                    :institusjon_periode::periode_open,
                     :sykepenger_type,
                     :sykepenger_ja,
-                    :sykepenger_fom,
-                    :sykepenger_tom,
+                    :sykepenger_periode::periode_open,
                     :supplerende_alder_type,
                     :supplerende_alder_ja,
-                    :supplerende_alder_fom,
-                    :supplerende_alder_tom,
+                    :supplerende_alder_periode::periode_open,
                     :supplerende_flyktning_type,
                     :supplerende_flyktning_ja,
-                    :supplerende_flyktning_fom,
-                    :supplerende_flyktning_tom,
+                    :supplerende_flyktning_periode::periode_open,
                     :jobbsjansen_type,
                     :jobbsjansen_ja,
-                    :jobbsjansen_fom,
-                    :jobbsjansen_tom,
+                    :jobbsjansen_periode::periode_open,
                     :gjenlevendepensjon_type,
                     :gjenlevendepensjon_ja,
-                    :gjenlevendepensjon_fom,
-                    :gjenlevendepensjon_tom,
+                    :gjenlevendepensjon_periode::periode_open,
                     :alderspensjon_type,
                     :alderspensjon_ja,
                     :alderspensjon_fom,
                     :trygd_og_pensjon_type,
                     :trygd_og_pensjon_ja,
-                    :trygd_og_pensjon_fom,
-                    :trygd_og_pensjon_tom,
+                    :trygd_og_pensjon_periode::periode_open,
                     :etterlonn_type,
                     :vedlegg,
                     :oppgave_id,
                     :soknadstype,
-                    :manuelt_satt_soknadsperiode_fra_og_med,
-                    :manuelt_satt_soknadsperiode_til_og_med,
+                    :manuelt_satt_soknadsperiode::periode,
                     :manuelt_satt_tiltak,
                     :behandlingsarsak,
                     :manuelt_registrert
@@ -336,8 +317,7 @@ object SøknadDAO {
                         "tidsstempel_hos_oss" to søknad.tidsstempelHosOss,
                         "oppgave_id" to null,
                         "soknadstype" to søknad.søknadstype.toDbValue(),
-                        "manuelt_satt_soknadsperiode_fra_og_med" to søknad.manueltSattSøknadsperiode?.fraOgMed,
-                        "manuelt_satt_soknadsperiode_til_og_med" to søknad.manueltSattSøknadsperiode?.tilOgMed,
+                        "manuelt_satt_soknadsperiode" to søknad.manueltSattSøknadsperiode?.tilDbPeriode(),
                         "manuelt_satt_tiltak" to søknad.manueltSattTiltak,
                         "behandlingsarsak" to søknad.behandlingsarsak?.name,
                         "manuelt_registrert" to søknad.manueltRegistrert,
@@ -403,17 +383,7 @@ object SøknadDAO {
         val trygdOgPensjon = periodeSpm(TRYGD_OG_PENSJON_FELT)
         val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
         val søknadstype = string("soknadstype").toSøknadstype()
-        val manueltSattSøknadsperiodeFraOgMed = localDateOrNull("manuelt_satt_soknadsperiode_fra_og_med")
-        val manueltSattSøknadsperiodeTilOgMed = localDateOrNull("manuelt_satt_soknadsperiode_til_og_med")
-        val manueltSattSøknadsperiode =
-            if (manueltSattSøknadsperiodeFraOgMed != null && manueltSattSøknadsperiodeTilOgMed != null) {
-                Periode(
-                    fraOgMed = manueltSattSøknadsperiodeFraOgMed,
-                    tilOgMed = manueltSattSøknadsperiodeTilOgMed,
-                )
-            } else {
-                null
-            }
+        val manueltSattSøknadsperiode = periodeOrNull("manuelt_satt_soknadsperiode")
         val manueltSattTiltak = stringOrNull("manuelt_satt_tiltak")
         val behandlingsarsak = stringOrNull("behandlingsarsak")?.let { Behandlingsarsak.valueOf(it) }
         val manueltRegistrert = boolean("manuelt_registrert")

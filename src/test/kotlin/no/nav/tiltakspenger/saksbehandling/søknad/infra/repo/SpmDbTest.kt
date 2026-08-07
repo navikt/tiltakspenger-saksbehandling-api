@@ -83,20 +83,18 @@ class SpmDbTest {
     }
 
     @Test
-    fun `periodespørsmål blir til fire kolonneverdier`() {
+    fun `periodespørsmål blir til tre kolonneverdier`() {
         mapOf("kvp" to Søknad.PeriodeSpm.Ja(fraOgMed, tilOgMed)).toPeriodeSpmParams() shouldBe
             mapOf(
                 "kvp_type" to "JA",
                 "kvp_ja" to true,
-                "kvp_fom" to fraOgMed,
-                "kvp_tom" to tilOgMed,
+                "kvp_periode" to "(2025-01-01,2025-01-31)",
             )
         mapOf("kvp" to Søknad.PeriodeSpm.Nei).toPeriodeSpmParams() shouldBe
             mapOf(
                 "kvp_type" to "NEI",
                 "kvp_ja" to false,
-                "kvp_fom" to null,
-                "kvp_tom" to null,
+                "kvp_periode" to null,
             )
     }
 

@@ -1023,7 +1023,7 @@ class EndretTiltaksdeltakerJobbTest {
                     id = andreEksternId,
                     sakId = sak.id,
                     fom = andreDeltakelseFom,
-                    tom = LocalDate.now(tac.clock),
+                    tom = andreDeltakelsesTom,
                     deltakerstatus = TiltakDeltakerstatus.Avbrutt,
                     tiltaksdeltakerId = andreTiltaksdeltakerId,
                 )

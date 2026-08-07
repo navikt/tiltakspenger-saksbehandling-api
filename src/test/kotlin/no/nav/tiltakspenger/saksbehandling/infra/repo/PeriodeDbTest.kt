@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.common.withMigratedDb
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periodeOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.ÅpenPeriodeDb
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.åpenPeriodeOrNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -33,7 +35,8 @@ class PeriodeDbTest {
                         CREATE TEMP TABLE IF NOT EXISTS test_periode (
                             id SERIAL PRIMARY KEY,
                             name TEXT,
-                            p periode
+                            p periode,
+                            p_open periode_open
                         );
                         TRUNCATE test_periode RESTART IDENTITY
                         """.trimIndent(),
@@ -364,6 +367,91 @@ class PeriodeDbTest {
                 ).map { row -> row.string("name") }.asList,
             )
             periodsOverlappingFebToApr shouldBe listOf("q1", "q2")
+        }
+    }
+
+    @Test
+    fun `tilDbPeriode med nullable datoer pinner composit-literalen`() {
+        tilDbPeriode(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)) shouldBe "(2026-01-01,2026-01-31)"
+        tilDbPeriode(LocalDate.of(2026, 1, 1), null) shouldBe "(2026-01-01,)"
+        tilDbPeriode(null, LocalDate.of(2026, 1, 31)) shouldBe "(,2026-01-31)"
+        tilDbPeriode(null, null) shouldBe null
+    }
+
+    @Test
+    fun `periode_open skal persistere og gjenopprette en periode som mangler den ene enden`() {
+        withPeriodeTestTabell { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    INSERT INTO test_periode (name, p_open) VALUES
+                        ('uten-til', :utenTil::periode_open),
+                        ('uten-fra', :utenFra::periode_open),
+                        ('begge', :begge::periode_open),
+                        ('ingen', NULL)
+                    """.trimIndent(),
+                    "utenTil" to tilDbPeriode(LocalDate.of(2026, 1, 1), null),
+                    "utenFra" to tilDbPeriode(null, LocalDate.of(2026, 1, 31)),
+                    "begge" to tilDbPeriode(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)),
+                ).asUpdate,
+            )
+
+            val resultat = session.run(
+                sqlQuery(
+                    """
+                    SELECT name, p_open FROM test_periode
+                    """.trimIndent(),
+                ).map { row -> row.string("name") to row.åpenPeriodeOrNull("p_open") }.asList,
+            ).toMap()
+
+            resultat["uten-til"] shouldBe ÅpenPeriodeDb(LocalDate.of(2026, 1, 1), null)
+            resultat["uten-fra"] shouldBe ÅpenPeriodeDb(null, LocalDate.of(2026, 1, 31))
+            resultat["begge"] shouldBe ÅpenPeriodeDb(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31))
+            resultat["ingen"] shouldBe null
+        }
+    }
+
+    @Test
+    fun `periode_open skal avvise ugyldig periode hvor fra_og_med er etter til_og_med`() {
+        withPeriodeTestTabell { session ->
+            val exception = shouldThrow<org.postgresql.util.PSQLException> {
+                session.run(
+                    sqlQuery(
+                        """
+                        INSERT INTO test_periode (p_open) VALUES (ROW('2026-01-31', '2026-01-01')::periode_open)
+                        """.trimIndent(),
+                    ).asUpdate,
+                )
+            }
+
+            exception.message shouldContain "periode_open_check"
+        }
+    }
+
+    @Test
+    fun `periode_open skal kunne castes til daterange med åpen ende`() {
+        withPeriodeTestTabell { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    INSERT INTO test_periode (p_open) VALUES (:periode::periode_open)
+                    """.trimIndent(),
+                    "periode" to tilDbPeriode(LocalDate.of(2026, 1, 1), null),
+                ).asUpdate,
+            )
+
+            val result = session.run(
+                sqlQuery(
+                    """
+                    SELECT
+                        lower(p_open::daterange) as lower_bound,
+                        upper(p_open::daterange) as upper_bound
+                    FROM test_periode WHERE id = 1
+                    """.trimIndent(),
+                ).map { row -> row.localDate("lower_bound") to row.localDateOrNull("upper_bound") }.asSingle,
+            )
+
+            result shouldBe (LocalDate.of(2026, 1, 1) to null)
         }
     }
 }

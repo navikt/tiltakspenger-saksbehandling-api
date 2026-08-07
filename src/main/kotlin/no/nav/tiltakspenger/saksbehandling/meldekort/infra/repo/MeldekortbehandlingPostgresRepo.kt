@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilMeldekortbeha
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.repo.tilUtbetalingskontrollDbJson
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.toAttesteringer
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.ventestatus
@@ -67,8 +68,7 @@ class MeldekortbehandlingPostgresRepo(
                         id,
                         sak_id,
                         opprettet,
-                        fra_og_med,
-                        til_og_med,
+                        periode,
                         meldeperioder,
                         beregninger,
                         simulering,
@@ -89,8 +89,7 @@ class MeldekortbehandlingPostgresRepo(
                         :id,
                         :sak_id,
                         :opprettet,
-                        :fra_og_med,
-                        :til_og_med,
+                        :periode::periode,
                         :meldeperioder::jsonb,
                         :beregninger::jsonb,
                         :simulering::jsonb,
@@ -112,8 +111,7 @@ class MeldekortbehandlingPostgresRepo(
                     "id" to meldekortbehandling.id.toString(),
                     "sak_id" to meldekortbehandling.sakId.toString(),
                     "opprettet" to meldekortbehandling.opprettet,
-                    "fra_og_med" to meldekortbehandling.fraOgMed,
-                    "til_og_med" to meldekortbehandling.tilOgMed,
+                    "periode" to meldekortbehandling.periode.tilDbPeriode(),
                     "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
                     "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),

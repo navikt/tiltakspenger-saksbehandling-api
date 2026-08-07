@@ -6,7 +6,6 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -14,6 +13,8 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
@@ -275,8 +276,7 @@ class RammevedtakPostgresRepo(
                         behandling_id,
                         utbetaling_id,
                         vedtaksdato, 
-                        fra_og_med, 
-                        til_og_med, 
+                        periode, 
                         saksbehandler, 
                         beslutter,
                         opprettet
@@ -286,8 +286,7 @@ class RammevedtakPostgresRepo(
                         :behandling_id,
                         :utbetaling_id,
                         :vedtaksdato, 
-                        :fra_og_med, 
-                        :til_og_med, 
+                        :periode::periode, 
                         :saksbehandler, 
                         :beslutter,
                         :opprettet
@@ -298,8 +297,7 @@ class RammevedtakPostgresRepo(
                     "behandling_id" to vedtak.rammebehandling.id.toString(),
                     "utbetaling_id" to vedtak.utbetaling?.let { it.id.toString() },
                     "vedtaksdato" to vedtak.vedtaksdato,
-                    "fra_og_med" to vedtak.periode.fraOgMed,
-                    "til_og_med" to vedtak.periode.tilOgMed,
+                    "periode" to vedtak.periode.tilDbPeriode(),
                     "saksbehandler" to vedtak.saksbehandler,
                     "beslutter" to vedtak.beslutter,
                     "opprettet" to vedtak.opprettet,
@@ -321,7 +319,7 @@ class RammevedtakPostgresRepo(
                     session,
                 )!!,
                 vedtaksdato = localDateOrNull("vedtaksdato"),
-                periode = Periode(fraOgMed = localDate("fra_og_med"), tilOgMed = localDate("til_og_med")),
+                periode = periode("periode"),
                 journalpostId = stringOrNull("journalpost_id")?.let { JournalpostId(it) },
                 journalføringstidspunkt = localDateTimeOrNull("journalføringstidspunkt"),
                 distribusjonId = stringOrNull("distribusjon_id")?.let { DistribusjonId(it) },
