@@ -128,6 +128,7 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: UtfyltMeldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
         skalSendeVedtaksbrev: Boolean = false,
+        skalAkkumulereMeldekort: Boolean = false,
         ventestatus: Ventestatus = Ventestatus(),
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
@@ -146,6 +147,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = sistEndret,
             fritekstTilVedtaksbrev = null,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalAkkumulereMeldekort = skalAkkumulereMeldekort,
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = dager,
                 beregning = null,
@@ -618,6 +620,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 begrunnelse = begrunnelse,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalAkkumulereMeldekort = false,
             )
         }
 
@@ -716,6 +719,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     utbetalingskontroll = null,
                     ventestatus = Ventestatus(),
                     klagebehandling = null,
+                    skalAkkumulereMeldekort = false,
                 ),
             ),
         )
@@ -849,6 +853,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 utbetalingskontroll = null,
                 ventestatus = Ventestatus(),
                 klagebehandling = null,
+                skalAkkumulereMeldekort = false,
             ),
         )
 
@@ -1033,6 +1038,7 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalAkkumulereMeldekort: Boolean = false,
     ): OppdaterMeldekortbehandlingKommando {
         return OppdaterMeldekortbehandlingKommando(
             sakId = sakId,
@@ -1043,6 +1049,7 @@ interface MeldekortMother : MotherOfAllMothers {
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalAkkumulereMeldekort = skalAkkumulereMeldekort,
         )
     }
 
@@ -1066,12 +1073,14 @@ interface MeldekortMother : MotherOfAllMothers {
 
 fun Meldekortbehandling.tilOppdaterMeldekortKommando(
     saksbehandler: Saksbehandler,
+    skalAkkumulereMeldekort: Boolean = this.skalAkkumulereMeldekort,
 ): OppdaterMeldekortbehandlingKommando {
     return ObjectMother.oppdaterMeldekortKommando(
         sakId = sakId,
         meldekortId = id,
         saksbehandler = saksbehandler,
         meldeperioder = meldeperioder.map { it.tilOppdatertMeldeperiode() }.toNonEmptyListOrNull()!!,
+        skalAkkumulereMeldekort = skalAkkumulereMeldekort,
     )
 }
 

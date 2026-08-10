@@ -28,8 +28,6 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
  *
  * Reglene speiler `Rammebehandling.finnGyldigeKommandoer`, `Meldekortbehandling.finnGyldigeKommandoer` og `TilbakekrevingBehandling.gyldigeKommandoer`, men regnes ut fra radens felter — benken laster ikke de fulle behandlingene.
  * Speilingen er pinnet mot de ekte reglene i `BenkV2AggregatTest`; endres reglene der, skal testene si ifra.
- *
- * Rader uten behandling — innsendte eller korrigerte meldekort som venter på at noen starter en behandling — har ingen kommandoer, fordi kommandoene alle er handlinger på en behandling.
  */
 
 fun BenkSøknadsbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> =
@@ -39,11 +37,7 @@ fun BenkRevurdering.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
     finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
 
 fun BenkMeldekort.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> =
-    if (type == BenkMeldekortType.MELDEKORTBEHANDLING) {
-        finnGyldigeMeldekortKommandoer(felles, status, saksbehandler)
-    } else {
-        emptyList()
-    }
+    finnGyldigeMeldekortKommandoer(felles, status, saksbehandler)
 
 fun BenkTilbakekreving.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
     val navIdent = saksbehandler.navIdent

@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -61,6 +60,7 @@ data class MeldekortUnderBehandling(
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
+    override val skalAkkumulereMeldekort: Boolean,
 ) : Meldekortbehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
@@ -87,6 +87,7 @@ data class MeldekortUnderBehandling(
             begrunnelse = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
+            skalAkkumulereMeldekort = kommando.skalAkkumulereMeldekort,
             sistEndret = nå(clock),
         )
 
@@ -207,24 +208,9 @@ data class MeldekortUnderBehandling(
         require(status == MeldekortbehandlingStatus.UNDER_BEHANDLING || status == MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING) {
             "Status på meldekort under behandling må være UNDER_BEHANDLING eller KLAR_TIL_BEHANDLING"
         }
+        initSkalAkkumulereMeldekort()
         initKlagebehandling()
     }
-}
-
-fun Sak.opprettManuellMeldekortbehandling(
-    kjedeId: MeldeperiodeKjedeId,
-    navkontor: Navkontor,
-    saksbehandler: Saksbehandler,
-    klagebehandlingId: KlagebehandlingId?,
-    clock: Clock,
-): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, MeldekortUnderBehandling>> {
-    return opprettManuellMeldekortbehandling(
-        kjedeIder = nonEmptyListOf(kjedeId),
-        navkontor = navkontor,
-        saksbehandler = saksbehandler,
-        klagebehandlingId = klagebehandlingId,
-        clock = clock,
-    )
 }
 
 /**
@@ -284,6 +270,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         ),
         skalSendeVedtaksbrev = true,
         ventestatus = Ventestatus(),
+        skalAkkumulereMeldekort = false,
         klagebehandling = klagebehandlingId?.let {
             val klagebehandling = hentKlagebehandling(it)
 

@@ -4,7 +4,9 @@ import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.nå
@@ -28,10 +30,12 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostg
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingType
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOpprettholdtKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
@@ -41,8 +45,6 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilOpprettholdelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgMottaOppretholdtKlagebehandlingFraKa
@@ -54,11 +56,13 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
@@ -114,7 +118,7 @@ class BenkOversiktAggregatTest {
      * Sender en behandling_endret-hendelse fra tilbakekrevingskomponenten og kjører hendelsejobben, slik hendelsene flyter i prod.
      * Dekker tilstandene tilbakekreving-builderne ikke har egne funksjoner for: venter, styrt beløp, OPPRETTET uten videre flyt og AVSLUTTET.
      */
-    private suspend fun sendTilbakekrevingHendelseOgKjørJobb(
+    private fun sendTilbakekrevingHendelseOgKjørJobb(
         tac: TestApplicationContextMedPostgres,
         sak: Sak,
         tilbakeBehandlingId: String,
@@ -210,6 +214,21 @@ class BenkOversiktAggregatTest {
             journalpostId = UUID.randomUUID().toString(),
         )
         return oppdatertSak to brukersMeldekort!!
+    }
+
+    /** Tar en eksisterende meldekortbehandling gjennom hele saksbehandlingsflyten via rutene, fram til iverksettelse. */
+    private suspend fun ApplicationTestBuilder.iverksettEksisterendeMeldekortbehandling(
+        tac: TestApplicationContextMedPostgres,
+        sakId: SakId,
+        meldekortId: MeldekortId,
+    ) {
+        val saksbehandler = ObjectMother.saksbehandler()
+        val beslutter = ObjectMother.beslutter()
+        taMeldekortbehanding(tac = tac, sakId = sakId, meldekortId = meldekortId, saksbehandlerEllerBeslutter = saksbehandler)
+        oppdaterMeldekortbehandling(tac = tac, sakId = sakId, meldekortId = meldekortId, saksbehandler = saksbehandler)
+        sendMeldekortbehandlingTilBeslutning(tac = tac, sakId = sakId, meldekortId = meldekortId, saksbehandler = saksbehandler)
+        taMeldekortbehanding(tac = tac, sakId = sakId, meldekortId = meldekortId, saksbehandlerEllerBeslutter = beslutter)
+        iverksettMeldekortbehandling(tac = tac, sakId = sakId, meldekortId = meldekortId, beslutter = beslutter)
     }
 
     @Test
@@ -426,83 +445,51 @@ class BenkOversiktAggregatTest {
             // Utbetalingen fra den automatiske behandlingen må bekreftes før jobben tar flere kort på saken.
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
             tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
-            val (sak1MedKorrigering, andreMeldekortSak1) = mottaManueltMeldekortForKjede(tac, sak1Iverksatt, kjedeIndeks = 0)
-            // Kjede to kan behandles når kjede én er ferdig, så kortet der faller til manuell behandling.
-            val (sak1MedMeldekortForEnAnnenPeriode, tredjeMeldekortSak1) = mottaManueltMeldekortForKjede(
-                tac,
-                sak1Iverksatt,
-                kjedeIndeks = 1,
-            )
+            // Korrigeringen på kjede én og kortet på kjede to faller begge til manuell behandling.
+            mottaManueltMeldekortForKjede(tac, sak1Iverksatt, kjedeIndeks = 0)
+            mottaManueltMeldekortForKjede(tac, sak1Iverksatt, kjedeIndeks = 1)
             val (sak2Iverksatt) = iverksettSøknadsbehandling(tac = tac)
-            val (sak2, førsteMeldekortSak2) = mottaManueltMeldekortForKjede(tac, sak2Iverksatt, kjedeIndeks = 0)
+            mottaManueltMeldekortForKjede(tac, sak2Iverksatt, kjedeIndeks = 0)
             // Jobben tar ett kort per sak per kjøring, så den kjøres til køen er drenert — som cron-intervallet i prod.
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            // Meldekortene jobben ga opp er akkumulert inn i én åpen meldekortbehandling per sak, og det er behandlingene som ligger på benken.
+            val akkumulertBehandlingSak1 = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak1Iverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
+            val akkumulertBehandlingSak2 = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak2Iverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
 
             val (actual, totalAntall, totalAntallUfiltrert) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
-            totalAntall shouldBe 3
-            totalAntallUfiltrert shouldBe 3
-            actual.size shouldBe 3
+            totalAntall shouldBe 2
+            totalAntallUfiltrert shouldBe 2
+            actual.size shouldBe 2
 
-            actual.let {
-                it.first() shouldBe Behandlingssammendrag(
-                    sakId = sak1MedKorrigering.id,
-                    fnr = sak1MedKorrigering.fnr,
-                    saksnummer = sak1MedKorrigering.saksnummer,
-                    startet = andreMeldekortSak1.mottatt,
-                    kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.KORRIGERT_MELDEKORT,
-                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
-                    saksbehandler = null,
-                    beslutter = null,
-                    sistEndret = null,
-                    erSattPåVent = false,
-                    sattPåVentBegrunnelse = null,
-                    sattPåVentFrist = null,
-                    resultat = null,
-                    erUnderkjent = false,
-                    beløp = null,
-                )
-                it[1] shouldBe Behandlingssammendrag(
-                    sakId = sak1MedMeldekortForEnAnnenPeriode.id,
-                    fnr = sak1MedMeldekortForEnAnnenPeriode.fnr,
-                    saksnummer = sak1MedMeldekortForEnAnnenPeriode.saksnummer,
-                    startet = tredjeMeldekortSak1.mottatt,
-                    kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
-                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
-                    saksbehandler = null,
-                    beslutter = null,
-                    sistEndret = null,
-                    erSattPåVent = false,
-                    sattPåVentBegrunnelse = null,
-                    sattPåVentFrist = null,
-                    resultat = null,
-                    erUnderkjent = false,
-                    beløp = null,
-                )
-                it.last() shouldBe Behandlingssammendrag(
-                    sakId = sak2.id,
-                    fnr = sak2.fnr,
-                    saksnummer = sak2.saksnummer,
-                    startet = førsteMeldekortSak2.mottatt,
-                    kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
-                    status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
-                    saksbehandler = null,
-                    beslutter = null,
-                    sistEndret = null,
-                    erSattPåVent = false,
-                    sattPåVentBegrunnelse = null,
-                    sattPåVentFrist = null,
-                    resultat = null,
-                    erUnderkjent = false,
-                    beløp = null,
-                )
-            }
+            actual shouldBe listOf(akkumulertBehandlingSak1, akkumulertBehandlingSak2)
+                .sortedBy { it.opprettet }
+                .map { behandling ->
+                    Behandlingssammendrag(
+                        sakId = behandling.sakId,
+                        fnr = behandling.fnr,
+                        saksnummer = behandling.saksnummer,
+                        startet = behandling.opprettet,
+                        kravtidspunkt = null,
+                        behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
+                        status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
+                        saksbehandler = null,
+                        beslutter = null,
+                        sistEndret = behandling.sistEndret,
+                        erSattPåVent = false,
+                        sattPåVentBegrunnelse = null,
+                        sattPåVentFrist = null,
+                        resultat = null,
+                        erUnderkjent = false,
+                        beløp = null,
+                    )
+                }
         }
     }
 
@@ -514,8 +501,11 @@ class BenkOversiktAggregatTest {
             runIsolated = true,
         ) { tac ->
             val (sakAIverksatt) = iverksettSøknadsbehandling(tac = tac)
-            val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = mottaManueltMeldekortForKjede(tac, sakAIverksatt)
+            // Meldekortet jobben gir opp akkumuleres inn i en ny manuell behandling, og det er behandlingen som ligger på benken.
+            val (sakMedInnsendtBrukersMeldekort) = mottaManueltMeldekortForKjede(tac, sakAIverksatt)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+            val akkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakAIverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
             val (sakMedOpprettetMeldekortbehandling, _, _, opprettetMeldekortbehandling, _) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac)!!
             val (sakMedMeldekortbehandlingTilBeslutning, _, _, meldekortbehandlingTilBeslutning, _) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(tac = tac)!!
             iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac)!!
@@ -527,23 +517,23 @@ class BenkOversiktAggregatTest {
             totalAntall shouldBe 3
             totalAntallUfiltrert shouldBe 3
             actual.size shouldBe 3
-            tac.verifiserViHar3Meldekortbehandlinger()
+            tac.verifiserViHarNMeldekortbehandlinger(4)
 
             actual.let {
                 it.first() shouldBe Behandlingssammendrag(
                     sakId = sakMedInnsendtBrukersMeldekort.id,
                     fnr = sakMedInnsendtBrukersMeldekort.fnr,
                     saksnummer = sakMedInnsendtBrukersMeldekort.saksnummer,
-                    startet = brukersMeldekort.mottatt,
+                    startet = akkumulertBehandling.opprettet,
                     kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
                     status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                     saksbehandler = null,
                     beslutter = null,
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
-                    sistEndret = null,
+                    sistEndret = akkumulertBehandling.sistEndret,
                     resultat = null,
                     erUnderkjent = false,
                     beløp = null,
@@ -644,15 +634,12 @@ class BenkOversiktAggregatTest {
             runIsolated = true,
         ) { tac ->
             val (sakIverksatt) = iverksettSøknadsbehandling(tac = tac)
-            val (_, brukersMeldekort) = mottaManueltMeldekortForKjede(tac, sakIverksatt)
+            mottaManueltMeldekortForKjede(tac, sakIverksatt)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
-            opprettOgIverksettMeldekortbehandling(
-                tac = tac,
-                sakId = sakIverksatt.id,
-                kjedeId = brukersMeldekort.kjedeId,
-            )!!
-            val (sakMedKorrigertMeldekort, korrigertMeldekort) = mottaManueltMeldekortForKjede(tac, sakIverksatt)
-            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            // Meldekortet er akkumulert inn i en ny behandling, og det er den som ligger på benken.
+            val akkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakIverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
 
             val (actual, totalAntall, totalAntallUfiltrert) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
@@ -662,16 +649,16 @@ class BenkOversiktAggregatTest {
             totalAntallUfiltrert shouldBe 1
             actual shouldBe listOf(
                 Behandlingssammendrag(
-                    sakId = sakMedKorrigertMeldekort.id,
-                    fnr = sakMedKorrigertMeldekort.fnr,
-                    saksnummer = sakMedKorrigertMeldekort.saksnummer,
-                    startet = korrigertMeldekort.mottatt,
+                    sakId = sakIverksatt.id,
+                    fnr = sakIverksatt.fnr,
+                    saksnummer = sakIverksatt.saksnummer,
+                    startet = akkumulertBehandling.opprettet,
                     kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.KORRIGERT_MELDEKORT,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
                     status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                     saksbehandler = null,
                     beslutter = null,
-                    sistEndret = null,
+                    sistEndret = akkumulertBehandling.sistEndret,
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
@@ -681,11 +668,34 @@ class BenkOversiktAggregatTest {
                 ),
             )
 
-            opprettOgIverksettMeldekortbehandling(
-                tac = tac,
-                sakId = sakIverksatt.id,
-                kjedeId = brukersMeldekort.kjedeId,
-            )!!
+            // Når behandlingen er iverksatt er meldekortet tatt stilling til, og ingenting ligger igjen på benken.
+            iverksettEksisterendeMeldekortbehandling(tac, sakIverksatt.id, akkumulertBehandling.id)
+
+            val (actualEtterIverksetting, totalAntallEtterIverksetting, totalAntallUfiltrertEtterIverksetting) =
+                tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntallEtterIverksetting shouldBe 0
+            totalAntallUfiltrertEtterIverksetting shouldBe 0
+            actualEtterIverksetting shouldBe emptyList()
+
+            // En korrigering som jobben gir opp akkumuleres inn i en ny behandling, som igjen er den som ligger på benken.
+            mottaManueltMeldekortForKjede(tac, sakIverksatt)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            val nyAkkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakIverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
+
+            val (actualKorrigering, totalAntallKorrigering, totalAntallUfiltrertKorrigering) =
+                tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
+
+            totalAntallKorrigering shouldBe 1
+            totalAntallUfiltrertKorrigering shouldBe 1
+            actualKorrigering.single().let {
+                it.behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
+                it.startet shouldBe nyAkkumulertBehandling.opprettet
+            }
+
+            iverksettEksisterendeMeldekortbehandling(tac, sakIverksatt.id, nyAkkumulertBehandling.id)
 
             val (actualEtterIverksettingIgjen, totalAntallEtterIverksettingIgjen, totalAntallUfiltrertEtterIverksettingIgjen) =
                 tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(newCommand())
@@ -704,8 +714,12 @@ class BenkOversiktAggregatTest {
             runIsolated = true,
         ) { tac ->
             val (sakIverksatt) = iverksettSøknadsbehandling(tac = tac)
-            val (sakMedInnsendtBrukersMeldekort, brukersMeldekort) = mottaManueltMeldekortForKjede(tac, sakIverksatt)
+            mottaManueltMeldekortForKjede(tac, sakIverksatt)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            // Meldekortet er akkumulert inn i en ny behandling, og det er den som ligger på benken.
+            val akkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakIverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
 
             val (actualFørBehandling, totalAntallFørBehandling, totalAntallUfiltrertFørBehandling) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
@@ -714,16 +728,16 @@ class BenkOversiktAggregatTest {
             totalAntallUfiltrertFørBehandling shouldBe 1
             actualFørBehandling shouldBe listOf(
                 Behandlingssammendrag(
-                    sakId = sakMedInnsendtBrukersMeldekort.id,
-                    fnr = sakMedInnsendtBrukersMeldekort.fnr,
-                    saksnummer = sakMedInnsendtBrukersMeldekort.saksnummer,
-                    startet = brukersMeldekort.mottatt,
+                    sakId = sakIverksatt.id,
+                    fnr = sakIverksatt.fnr,
+                    saksnummer = sakIverksatt.saksnummer,
+                    startet = akkumulertBehandling.opprettet,
                     kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.INNSENDT_MELDEKORT,
+                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
                     status = BehandlingssammendragStatus.KLAR_TIL_BEHANDLING,
                     saksbehandler = null,
                     beslutter = null,
-                    sistEndret = null,
+                    sistEndret = akkumulertBehandling.sistEndret,
                     erSattPåVent = false,
                     sattPåVentBegrunnelse = null,
                     sattPåVentFrist = null,
@@ -733,39 +747,14 @@ class BenkOversiktAggregatTest {
                 ),
             )
 
-            val (sakEtterBehandling, behandling, _) = opprettMeldekortbehandlingForSakId(
+            // Behandlingen må være tatt av en saksbehandler før den kan avbrytes.
+            taMeldekortbehanding(
                 tac = tac,
                 sakId = sakIverksatt.id,
-                kjedeId = brukersMeldekort.kjedeId,
-            )!!
-
-            val (actualEtterBehandling, totalAntallEtterBehandling, totalAntallUfiltrertEtterBehandling) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
-                newCommand(),
+                meldekortId = akkumulertBehandling.id,
+                saksbehandlerEllerBeslutter = ObjectMother.saksbehandler(),
             )
-            totalAntallEtterBehandling shouldBe 1
-            totalAntallUfiltrertEtterBehandling shouldBe 1
-            actualEtterBehandling shouldBe listOf(
-                Behandlingssammendrag(
-                    sakId = sakEtterBehandling.id,
-                    fnr = sakEtterBehandling.fnr,
-                    saksnummer = sakEtterBehandling.saksnummer,
-                    startet = behandling.opprettet,
-                    kravtidspunkt = null,
-                    behandlingstype = BehandlingssammendragType.MELDEKORTBEHANDLING,
-                    status = BehandlingssammendragStatus.UNDER_BEHANDLING,
-                    saksbehandler = behandling.saksbehandler,
-                    beslutter = null,
-                    sistEndret = behandling.sistEndret,
-                    erSattPåVent = false,
-                    sattPåVentBegrunnelse = null,
-                    sattPåVentFrist = null,
-                    resultat = null,
-                    erUnderkjent = behandling.erUnderkjent,
-                    beløp = null,
-                ),
-            )
-
-            avbrytMeldekortbehandling(tac = tac, sakId = sakEtterBehandling.id, meldekortId = behandling.id)!!
+            avbrytMeldekortbehandling(tac = tac, sakId = sakIverksatt.id, meldekortId = akkumulertBehandling.id)!!
 
             val (actualEtterAvbrytelse, totalAntallEtterAvbrytelse, totalAntallUfiltrertEtterAvbrytelse) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
@@ -779,28 +768,18 @@ class BenkOversiktAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `henter ikke meldekort der en behandling ble endret etter at meldekortet var mottatt`() {
+    fun `korrigering på kjede med åpen behandling knyttes til behandlingen uten å havne på benken`() {
         withTestApplicationContextAndPostgres(
             clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
             runIsolated = true,
         ) { tac ->
             val (sakIverksatt) = iverksettSøknadsbehandling(tac = tac)
-            val (_, brukersMeldekort) = mottaManueltMeldekortForKjede(tac, sakIverksatt)
+            val (_, førsteMeldekort) = mottaManueltMeldekortForKjede(tac, sakIverksatt)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
-            val (actualMedNyttMeldekort, totalAntallMedNyttMeldekort, totalAntallUfiltrertMedNyttMeldekort) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
-                newCommand(),
-            )
-
-            totalAntallMedNyttMeldekort shouldBe 1
-            totalAntallUfiltrertMedNyttMeldekort shouldBe 1
-            actualMedNyttMeldekort.single().behandlingstype shouldBe BehandlingssammendragType.INNSENDT_MELDEKORT
-
-            val (sakEtterBehandling, behandling, _) = opprettMeldekortbehandlingForSakId(
-                tac = tac,
-                sakId = sakIverksatt.id,
-                kjedeId = brukersMeldekort.kjedeId,
-            )!!
+            // Meldekortet er akkumulert inn i en ny behandling, og det er den som ligger på benken.
+            val akkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakIverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
 
             val (actualMedNyBehandling, totalAntallMedNyBehandling, totalAntallUfiltrertMedNyBehandling) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
@@ -810,36 +789,50 @@ class BenkOversiktAggregatTest {
             totalAntallUfiltrertMedNyBehandling shouldBe 1
             actualMedNyBehandling.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
 
-            // Bruker sender en korrigering.
-            // Fraværet gjør at den automatiske jobben markerer den for manuell behandling selv om kjeden har en åpen behandling.
-            mottaManueltMeldekortForKjede(tac, sakEtterBehandling)
+            // Saksbehandler tar behandlingen.
+            taMeldekortbehanding(
+                tac = tac,
+                sakId = sakIverksatt.id,
+                meldekortId = akkumulertBehandling.id,
+                saksbehandlerEllerBeslutter = ObjectMother.saksbehandler(),
+            )
+
+            // Bruker sender en korrigering på samme kjede.
+            // Den kan ikke behandles automatisk mens behandlingen er åpen, og prøves på nytt en stund før den havner i behandlingen.
+            val (_, korrigering) = mottaManueltMeldekortForKjede(tac, sakIverksatt)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
             val (actualMedKorrigeringFraBruker, totalAntallMedNyKorrigeringFraBruker, totalAntallUfiltrertMedNyKorrigeringFraBruker) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
-            // Korrigeringen skal vises inntil meldekortbehandlingen er oppdatert
-            totalAntallMedNyKorrigeringFraBruker shouldBe 2
-            totalAntallUfiltrertMedNyKorrigeringFraBruker shouldBe 2
-            actualMedKorrigeringFraBruker[0].behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
-            actualMedKorrigeringFraBruker[1].behandlingstype shouldBe BehandlingssammendragType.KORRIGERT_MELDEKORT
+            // Korrigeringen vises ikke på benken mens den prøves på nytt - kun behandlingen ligger der.
+            totalAntallMedNyKorrigeringFraBruker shouldBe 1
+            totalAntallUfiltrertMedNyKorrigeringFraBruker shouldBe 1
+            actualMedKorrigeringFraBruker.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
 
-            oppdaterMeldekortbehandling(tac = tac, sakId = sakEtterBehandling.id, meldekortId = behandling.id)!!
+            // Når jobben har gitt opp knyttes korrigeringen til behandlingen - den havner fortsatt ikke på benken.
+            // Klokka må stå på en hverdag innenfor økonomisystemets åpningstider, ellers hopper jobben over alle meldekort.
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(fixedClockAt(5.mai(2025).atTime(12, 0)))
 
-            val (actualMedOppdatertBehandling, totalAntallMedOppdatertBehandling, totalAntallUfiltrertMedOppdatertBehandling) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
+            tac.meldekortContext.meldekortbehandlingRepo.hent(akkumulertBehandling.id)!!.let { behandling ->
+                behandling.meldeperioder.single().brukersMeldekort.map { it.id } shouldBe
+                    listOf(førsteMeldekort.id, korrigering.id)
+            }
+
+            val (actualEtterKnytting, totalAntallEtterKnytting, totalAntallUfiltrertEtterKnytting) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
-            totalAntallMedOppdatertBehandling shouldBe 1
-            totalAntallUfiltrertMedOppdatertBehandling shouldBe 1
-            actualMedOppdatertBehandling.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
+            totalAntallEtterKnytting shouldBe 1
+            totalAntallUfiltrertEtterKnytting shouldBe 1
+            actualEtterKnytting.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
         }
     }
 
     @Test
     @IsolatedDatabaseTest
-    fun `første meldekort i en kjede er 'INNSENDT_MELDEKORT', deretter er det 'KORRIGERT_MELDEKORT'`() {
+    fun `første meldekort i en kjede er 'FØRSTE_BEHANDLING', deretter er det 'KORRIGERING' i den akkumulerte behandlingen`() {
         withTestApplicationContextAndPostgres(
             clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
             runIsolated = true,
@@ -847,7 +840,7 @@ class BenkOversiktAggregatTest {
             val (sakIverksatt) = iverksettSøknadsbehandling(tac = tac)
 
             // Bruker sender første meldekort i kjeden, og det behandles automatisk uten å innom benken.
-            // Et rent meldekort vises aldri som INNSENDT_MELDEKORT: ruta markerer det for automatisk behandling, og jobben tar det.
+            // Et rent meldekort vises aldri på benken: ruta markerer det for automatisk behandling, og jobben tar det.
             mottaAutomatiskMeldekortForKjede(tac, sakIverksatt, kjedeIndeks = 0)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
@@ -860,32 +853,39 @@ class BenkOversiktAggregatTest {
             antallEtterAutomatiskBehandling shouldBe 0
             actualEtterAutomatiskBehandling shouldBe emptyList()
 
-            // Bruker sender korrigering i samme kjede
+            // Bruker sender korrigering i samme kjede, som jobben gir opp - den akkumuleres inn i en ny behandling.
             mottaManueltMeldekortForKjede(tac, sakIverksatt, kjedeIndeks = 0)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            val akkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakIverksatt.id)!!
+                .åpneMeldekortbehandlinger.single()
+            akkumulertBehandling.meldeperioder.single().type shouldBe MeldeperiodebehandlingType.KORRIGERING
 
             val (actualEtterKorrigering, antallEtterKorrigering) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
-            // Korrigeringen skal ligge på benken selv om det forrige meldekortet i kjeden
-            // hadde behandlet_automatisk_status = BEHANDLET
+            // Det er den akkumulerte behandlingen som ligger på benken, ikke selve korrigeringen.
             antallEtterKorrigering shouldBe 1
-            actualEtterKorrigering.single().behandlingstype shouldBe BehandlingssammendragType.KORRIGERT_MELDEKORT
+            actualEtterKorrigering.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
 
-            // Første kort i en annen kjede som faller til manuell behandling, vises som INNSENDT_MELDEKORT.
+            // Første kort i en annen kjede som faller til manuell behandling, akkumuleres inn i samme behandling.
             mottaManueltMeldekortForKjede(tac, sakIverksatt, kjedeIndeks = 1)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(akkumulertBehandling.id)!!.let { behandling ->
+                behandling.meldeperioder.map { it.type } shouldBe listOf(
+                    MeldeperiodebehandlingType.KORRIGERING,
+                    MeldeperiodebehandlingType.FØRSTE_BEHANDLING,
+                )
+            }
 
             val (actualEtterFørsteIAnnenKjede, antallEtterFørsteIAnnenKjede) = tac.benkOversiktContext.benkOversiktRepo.hentÅpneBehandlinger(
                 newCommand(),
             )
 
-            antallEtterFørsteIAnnenKjede shouldBe 2
-            actualEtterFørsteIAnnenKjede.map { it.behandlingstype } shouldBe listOf(
-                BehandlingssammendragType.KORRIGERT_MELDEKORT,
-                BehandlingssammendragType.INNSENDT_MELDEKORT,
-            )
+            antallEtterFørsteIAnnenKjede shouldBe 1
+            actualEtterFørsteIAnnenKjede.single().behandlingstype shouldBe BehandlingssammendragType.MELDEKORTBEHANDLING
         }
     }
 
@@ -1451,12 +1451,12 @@ class BenkOversiktAggregatTest {
     }
 }
 
-private fun TestApplicationContextMedPostgres.verifiserViHar3Meldekortbehandlinger() {
+private fun TestApplicationContextMedPostgres.verifiserViHarNMeldekortbehandlinger(antall: Int) {
     sessionFactory.withSession { session ->
         session.run(
             queryOf("SELECT COUNT(*) FROM meldekortbehandling", emptyMap()).map {
                 it.int(1)
             }.asSingle,
-        ) shouldBe 3
+        ) shouldBe antall
     }
 }

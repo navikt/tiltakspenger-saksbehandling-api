@@ -109,8 +109,6 @@ enum class BenkV2BehandlingstypeDTO {
     SØKNADSBEHANDLING,
     REVURDERING,
     MELDEKORTBEHANDLING,
-    INNSENDT_MELDEKORT,
-    KORRIGERT_MELDEKORT,
     KLAGEBEHANDLING,
     TILBAKEKREVING,
 }
@@ -401,8 +399,6 @@ private fun BenkKlagebehandlingResultat.toDTO(): BenkKlagebehandlingResultatDTO 
 
 private fun BenkMeldekortType.toDTO(): BenkV2BehandlingstypeDTO = when (this) {
     BenkMeldekortType.MELDEKORTBEHANDLING -> BenkV2BehandlingstypeDTO.MELDEKORTBEHANDLING
-    BenkMeldekortType.INNSENDT_MELDEKORT -> BenkV2BehandlingstypeDTO.INNSENDT_MELDEKORT
-    BenkMeldekortType.KORRIGERT_MELDEKORT -> BenkV2BehandlingstypeDTO.KORRIGERT_MELDEKORT
 }
 
 private fun BenkTilbakekrevingStatus.toDTO(): BenkTilbakekrevingStatusDTO = when (this) {

@@ -22,6 +22,9 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingR
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.akkumuler.AkkumulertMeldekort
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.akkumuler.akkumulerMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.opprettAutomatiskMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.opprettVedtak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
@@ -128,24 +131,75 @@ class AutomatiskMeldekortbehandlingJobb(
 
         if (skalPrøvePåNytt) {
             logger.info { "$logMsg - Denne vil prøves på nytt" }
-        } else {
-            logger.at(status.loggnivå) { message = logMsg }
-
-            // Ved Left hopper vi over statusoppdateringen under, slik at meldekortet (og dermed gosysoppgaven) prøves på nytt neste kjøring.
-            // Oppgaveopprettelsen har allerede logget.
-            meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker()
-                .getOrElse { return }
+            brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
+                meldekortId = meldekort.id,
+                status = status,
+                behandlesAutomatisk = true,
+                metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(
+                    delays = venteIntervaller,
+                    clock = clock,
+                ),
+            )
+            return
         }
 
-        brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
-            meldekortId = meldekort.id,
-            status = status,
-            behandlesAutomatisk = skalPrøvePåNytt,
-            metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(
-                delays = venteIntervaller,
-                clock = clock,
-            ),
+        logger.at(status.loggnivå) { message = logMsg }
+
+        // Ved Left hopper vi over akkumuleringen og statusoppdateringen under, slik at meldekortet (og dermed gosysoppgaven) prøves på nytt neste kjøring.
+        // Oppgaveopprettelsen har allerede logget.
+        meldekort.opprettOppgaveHvisAdressebeskyttetEllerSkjermetBruker()
+            .getOrElse { return }
+
+        akkumulerMeldekortTilManuellBehandling(status, meldekort, clock)
+    }
+
+    /**
+     * Meldekortet skal ikke lenger behandles automatisk.
+     * Meldeperioden akkumuleres inn i en åpen meldekortbehandling med [Meldekortbehandling.skalAkkumulereMeldekort] satt - eller en ny slik behandling - slik at saksbehandler kan behandle den manuelt.
+     */
+    private suspend fun akkumulerMeldekortTilManuellBehandling(
+        status: MeldekortBehandletAutomatiskStatus,
+        meldekort: BrukersMeldekort,
+        clock: Clock,
+    ) {
+        val sak = sakRepo.hentForSakId(meldekort.sakId)
+
+        require(sak != null) {
+            "Fant ikke sak for mottatt meldekort med id ${meldekort.id}, sakId ${meldekort.sakId}"
+        }
+
+        val akkumulert = sak.akkumulerMeldekort(
+            brukersMeldekort = meldekort,
+            hentNavkontor = { fnr ->
+                navkontorService.hentNavkontor(
+                    fnr = fnr,
+                    loggkontekst = "sakId: ${sak.id}, saksnummer: ${sak.saksnummer.verdi}",
+                )
+            },
+            clock = clock,
         )
+
+        sessionFactory.withTransactionContext { tx ->
+            when (akkumulert) {
+                is AkkumulertMeldekort.NyBehandling -> meldekortbehandlingRepo.lagre(akkumulert.behandling, null, tx)
+                is AkkumulertMeldekort.NullstiltBehandling -> meldekortbehandlingRepo.oppdater(akkumulert.behandling, null, tx)
+                is AkkumulertMeldekort.KunKnyttetTilBehandling -> meldekortbehandlingRepo.oppdater(akkumulert.behandling, tx)
+            }
+            brukersMeldekortRepo.oppdaterAutomatiskBehandletStatus(
+                meldekortId = meldekort.id,
+                status = status,
+                behandlesAutomatisk = false,
+                metadata = meldekort.behandletAutomatiskForsøkshistorikk.inkrementer(
+                    delays = venteIntervaller,
+                    clock = clock,
+                ),
+                sessionContext = tx,
+            )
+        }
+
+        logger.info {
+            "Akkumulerte meldeperiode ${meldekort.meldeperiodeId} fra brukers meldekort ${meldekort.id} inn i meldekortbehandling ${akkumulert.behandling.id} på sak ${sak.id}"
+        }
     }
 
     private suspend fun opprettMeldekortbehandling(

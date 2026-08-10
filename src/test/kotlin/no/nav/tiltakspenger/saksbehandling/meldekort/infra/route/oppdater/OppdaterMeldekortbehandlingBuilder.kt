@@ -59,6 +59,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalAkkumulereMeldekort: Boolean = false,
         vedtaksperiode: Periode = 1.til(10.april(2025)),
         tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
             fom = vedtaksperiode.fraOgMed,
@@ -90,6 +91,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalAkkumulereMeldekort = skalAkkumulereMeldekort,
             forventet = forventet,
             medJsonBody = medJsonBody,
         ) ?: return null
@@ -116,6 +118,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalAkkumulereMeldekort: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         medJsonBody: ((String) -> Unit)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
@@ -131,6 +134,7 @@ interface OppdaterMeldekortbehandlingBuilder {
             sakId = sakId,
             meldekortId = opprettetMeldekortbehandling.id,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalAkkumulereMeldekort = skalAkkumulereMeldekort,
             saksbehandler = saksbehandler,
             meldeperioder = meldeperioder,
             begrunnelse = begrunnelse,
@@ -153,6 +157,7 @@ interface OppdaterMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalAkkumulereMeldekort: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         medJsonBody: ((String) -> Unit)? = null,
     ): Triple<Sak, MeldekortUnderBehandling, MeldeperiodeKjedeDTOJson>? {
@@ -176,7 +181,8 @@ interface OppdaterMeldekortbehandlingBuilder {
                 "begrunnelse":${if (begrunnelse != null) "\"$begrunnelse\"" else null},
                 "tekstTilVedtaksbrev":${if (tekstTilVedtaksbrev != null) "\"$tekstTilVedtaksbrev\"" else null},
                 "meldeperioder":$meldeperioderIBody,
-                "skalSendeVedtaksbrev":$skalSendeVedtaksbrev
+                "skalSendeVedtaksbrev":$skalSendeVedtaksbrev,
+                "skalAkkumulereMeldekort":$skalAkkumulereMeldekort
                 }
             """.trimIndent(),
         )

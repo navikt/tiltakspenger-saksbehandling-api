@@ -34,12 +34,11 @@ enum class BenkKlagebehandlingResultat {
 }
 
 /**
- * Meldekortfanen samler både meldekortbehandlinger saksbehandler har startet, og meldekort fra bruker som venter på behandling.
+ * Meldekortfanen viser åpne meldekortbehandlinger.
+ * Meldekort fra bruker som ikke kan behandles automatisk akkumuleres inn i en meldekortbehandling, så rene innsendinger vises ikke som egne rader.
  */
 enum class BenkMeldekortType {
     MELDEKORTBEHANDLING,
-    INNSENDT_MELDEKORT,
-    KORRIGERT_MELDEKORT,
 }
 
 /**

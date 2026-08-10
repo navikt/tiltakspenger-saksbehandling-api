@@ -84,7 +84,8 @@ class MeldekortbehandlingPostgresRepo(
                         ventestatus,
                         sist_endret,
                         skal_sende_vedtaksbrev,
-                        klagebehandling_id
+                        klagebehandling_id,
+                        skal_akkumulere_meldekort
                     ) values (
                         :id,
                         :sak_id,
@@ -105,7 +106,8 @@ class MeldekortbehandlingPostgresRepo(
                         :ventestatus::jsonb,
                         :sist_endret,
                         :skal_sende_vedtaksbrev,
-                        :klagebehandling_id
+                        :klagebehandling_id,
+                        :skal_akkumulere_meldekort
                     )
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -129,6 +131,7 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
+                    "skal_akkumulere_meldekort" to meldekortbehandling.skalAkkumulereMeldekort,
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -148,6 +151,7 @@ class MeldekortbehandlingPostgresRepo(
                     update meldekortbehandling set
                         meldeperioder = :meldeperioder::jsonb,
                         beregninger = :beregninger::jsonb,
+                        periode = :periode::periode,
                         saksbehandler = :saksbehandler,
                         beslutter = :beslutter,
                         status = :status,
@@ -160,12 +164,14 @@ class MeldekortbehandlingPostgresRepo(
                         ventestatus = :ventestatus::jsonb,
                         sist_endret = :sist_endret,
                         utbetalingskontroll = :utbetalingskontroll::jsonb,
-                        klagebehandling_id = :klagebehandling_id
+                        klagebehandling_id = :klagebehandling_id,
+                        skal_akkumulere_meldekort = :skal_akkumulere_meldekort
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
                     "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
                     "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
+                    "periode" to meldekortbehandling.periode.tilDbPeriode(),
                     "saksbehandler" to meldekortbehandling.saksbehandler,
                     "beslutter" to meldekortbehandling.beslutter,
                     "status" to meldekortbehandling.status.toDb(),
@@ -179,6 +185,7 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
+                    "skal_akkumulere_meldekort" to meldekortbehandling.skalAkkumulereMeldekort,
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -205,6 +212,7 @@ class MeldekortbehandlingPostgresRepo(
                     update meldekortbehandling set
                         meldeperioder = :meldeperioder::jsonb,
                         beregninger = :beregninger::jsonb,
+                        periode = :periode::periode,
                         simulering = :simulering::jsonb,
                         simulering_metadata = :simulering_metadata,
                         saksbehandler = :saksbehandler,
@@ -220,12 +228,14 @@ class MeldekortbehandlingPostgresRepo(
                         utbetalingskontroll = :utbetalingskontroll::jsonb,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
-                        klagebehandling_id = :klagebehandling_id
+                        klagebehandling_id = :klagebehandling_id,
+                        skal_akkumulere_meldekort = :skal_akkumulere_meldekort
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
                     "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
                     "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
+                    "periode" to meldekortbehandling.periode.tilDbPeriode(),
                     "simulering" to simuleringMedMetadata?.toDbJson(),
                     "simulering_metadata" to simuleringMedMetadata?.originalResponseBody,
                     "saksbehandler" to meldekortbehandling.saksbehandler,
@@ -242,6 +252,7 @@ class MeldekortbehandlingPostgresRepo(
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
+                    "skal_akkumulere_meldekort" to meldekortbehandling.skalAkkumulereMeldekort,
                 ).asUpdate,
             )
             meldekortbehandling.klagebehandling?.let {
@@ -546,6 +557,7 @@ class MeldekortbehandlingPostgresRepo(
             }
 
             val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
+            val skalAkkumulereMeldekort = row.boolean("skal_akkumulere_meldekort")
             val klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
                 // Foreign key-en meldekortbehandling_klagebehandling_id_fkey garanterer at klagebehandlingen finnes.
                 // Tilstanden kan dermed ikke konstrueres, heller ikke ved å mutere databasen direkte, så en throw med melding ville blitt stående som udekket kode.
@@ -565,6 +577,7 @@ class MeldekortbehandlingPostgresRepo(
                         status = status,
                         sistEndret = sistEndret,
                         meldeperioder = meldeperioder,
+                        skalAkkumulereMeldekort = skalAkkumulereMeldekort,
                     )
                 }
 
@@ -591,6 +604,7 @@ class MeldekortbehandlingPostgresRepo(
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
+                        skalAkkumulereMeldekort = skalAkkumulereMeldekort,
                     )
                 }
 
@@ -615,6 +629,7 @@ class MeldekortbehandlingPostgresRepo(
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
+                        skalAkkumulereMeldekort = skalAkkumulereMeldekort,
                     )
                 }
 
@@ -637,6 +652,7 @@ class MeldekortbehandlingPostgresRepo(
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
+                        skalAkkumulereMeldekort = skalAkkumulereMeldekort,
                     )
                 }
             }

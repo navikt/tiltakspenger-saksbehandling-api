@@ -317,7 +317,6 @@ class BenkV2AggregatTest {
             }
 
             repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.MELDEKORTBEHANDLING)).totalAntall shouldBe 2
-            repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.INNSENDT_MELDEKORT)).totalAntall shouldBe 0
             repo.hentMeldekort(
                 meldekortCommand(status = BenkV2Behandlingsstatus.KLAR_TIL_BESLUTNING),
             ).totalAntall shouldBe 1
@@ -327,45 +326,43 @@ class BenkV2AggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `meldekortfanen viser innsendte og korrigerte meldekort som venter på behandling`() {
+    fun `meldekortfanen viser akkumulert meldekortbehandling for meldekort som venter på behandling`() {
         withTestApplicationContextAndPostgres(
             clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
             runIsolated = true,
         ) { tac ->
             val (sak) = iverksettSøknadsbehandling(tac = tac)
-            // Første kort i kjeden behandles automatisk; korrigeringen etterpå faller til manuell behandling og havner på benken.
+            // Første kort i kjeden behandles automatisk; korrigeringen etterpå faller til manuell behandling.
             mottaAutomatiskMeldekortForKjede(tac, sak, kjedeIndeks = 0)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
             tac.utbetalingContext.sendUtbetalingerService.sendUtbetalingerTilHelved()
             tac.utbetalingContext.oppdaterUtbetalingsstatusService.oppdaterUtbetalingsstatus()
-            val (_, korrigering) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
-            val (_, innsendt) = mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 1)
+            mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 0)
+            mottaManueltMeldekortForKjede(tac, sak, kjedeIndeks = 1)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
             val repo = tac.benkV2Context.benkV2Repo
 
+            // Meldekortene jobben ga opp er akkumulert inn i én åpen meldekortbehandling, og det er den som vises i fanen.
+            val akkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sak.id)!!
+                .åpneMeldekortbehandlinger.single()
+
             val oversikt = repo.hentMeldekort(meldekortCommand())
 
-            oversikt.behandlinger.map { it.type } shouldBe listOf(
-                BenkMeldekortType.KORRIGERT_MELDEKORT,
-                BenkMeldekortType.INNSENDT_MELDEKORT,
-            )
-            oversikt.behandlinger.first().let {
-                it.id shouldBe korrigering.id
-                it.felles.startet shouldBe korrigering.mottatt
-                it.mottattTidspunkt shouldBe korrigering.mottatt
-                it.beløp shouldBe null
+            oversikt.behandlinger.single().let {
+                it.id shouldBe akkumulertBehandling.id
+                it.type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
                 it.status shouldBe BenkV2Behandlingsstatus.KLAR_TIL_BEHANDLING
+                it.periode shouldBe akkumulertBehandling.periode
+                it.beløp shouldBe null
+                it.mottattTidspunkt shouldBe null
                 it.felles.saksbehandler shouldBe null
-            }
-            oversikt.behandlinger.last().mottattTidspunkt shouldBe innsendt.mottatt
-            // Meldekort som venter på at noen starter en behandling, har ingen behandling å utføre kommandoer på.
-            oversikt.behandlinger.forEach {
-                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe emptyList()
+                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
+                    akkumulertBehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler())
             }
 
-            repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.KORRIGERT_MELDEKORT)).totalAntall shouldBe 1
-            repo.hentMeldekort(meldekortCommand(saksbehandler = BenkV2Filtrering.IKKE_TILDELT)).totalAntall shouldBe 2
+            repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.MELDEKORTBEHANDLING)).totalAntall shouldBe 1
+            repo.hentMeldekort(meldekortCommand(saksbehandler = BenkV2Filtrering.IKKE_TILDELT)).totalAntall shouldBe 1
         }
     }
 

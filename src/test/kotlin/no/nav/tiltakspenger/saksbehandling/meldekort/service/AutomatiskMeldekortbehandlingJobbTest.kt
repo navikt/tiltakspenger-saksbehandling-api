@@ -18,11 +18,13 @@ import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortDagStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.BrukersMeldekort.Companion.MAKS_SAMMENHENGENDE_GODKJENT_FRAVÆR_DAGER
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.InnmeldtStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatisk
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.nyOpprettetMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb.Companion.MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -98,7 +100,13 @@ class AutomatiskMeldekortbehandlingJobbTest {
             lagret.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
             // Markert som ikke-automatisk, slik at jobben ikke plukker den opp igjen.
             lagret.behandlesAutomatisk shouldBe false
-            tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakMedForMyeFravær.id) shouldBe null
+
+            // Meldeperioden er akkumulert inn i en ny manuell behandling - pinner også rundturen gjennom postgres for skalAkkumulereMeldekort=true.
+            val akkumulertBehandling = tac.meldekortContext.meldekortbehandlingRepo.hentForSakId(sakMedForMyeFravær.id)!!.single()
+            akkumulertBehandling.skalAkkumulereMeldekort shouldBe true
+            akkumulertBehandling.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+            akkumulertBehandling.saksbehandler shouldBe null
+            akkumulertBehandling.meldeperioder.single().brukersMeldekort.single().id shouldBe meldekortMedForMyeFravær.id
         }
     }
 
@@ -166,9 +174,17 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(clock)
 
-                val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)
+                // Meldeperioden akkumuleres inn i en ny manuell behandling.
+                // Innsendingen har for mange registrerte dager til å brukes som utfylling, så dagene er blanke.
+                val meldekortbehandlinger = meldekortbehandlingRepo.hentForSakId(sak.id)!!
 
-                meldekortbehandlinger shouldBe null
+                val akkumulertBehandling = meldekortbehandlinger.single()
+                akkumulertBehandling.skalAkkumulereMeldekort shouldBe true
+                akkumulertBehandling.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+                akkumulertBehandling.meldeperioder.single().let { meldeperiodebehandling ->
+                    meldeperiodebehandling.brukersMeldekort.single().id shouldBe brukersMeldekort.id
+                    meldeperiodebehandling.dager.none { it.status == MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET } shouldBe true
+                }
             }
         }
     }
@@ -604,7 +620,12 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 service.behandleBrukersMeldekort(clock)
 
-                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                // Meldeperioden akkumuleres inn i en ny manuell behandling, med brukers innsending som utfylling.
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.single().let { akkumulertBehandling ->
+                    akkumulertBehandling.skalAkkumulereMeldekort shouldBe true
+                    akkumulertBehandling.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+                    akkumulertBehandling.meldeperioder.single().brukersMeldekort.single().id shouldBe brukersMeldekort.id
+                }
 
                 val lagretMeldekort = brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!
                 lagretMeldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.KAN_IKKE_MELDE_HELG
@@ -706,7 +727,12 @@ class AutomatiskMeldekortbehandlingJobbTest {
                 brukersMeldekortRepo.lagre(brukersMeldekort)
                 service.behandleBrukersMeldekort(clock)
 
-                meldekortbehandlingRepo.hentForSakId(sak.id) shouldBe null
+                // Meldeperioden akkumuleres inn i en ny manuell behandling, med brukers innsending som utfylling.
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.single().let { akkumulertBehandling ->
+                    akkumulertBehandling.skalAkkumulereMeldekort shouldBe true
+                    akkumulertBehandling.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+                    akkumulertBehandling.meldeperioder.single().brukersMeldekort.single().id shouldBe brukersMeldekort.id
+                }
 
                 val lagretMeldekort = brukersMeldekortRepo.hentForMeldekortId(brukersMeldekort.id)!!
                 lagretMeldekort.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.FOR_MANGE_DAGER_GODKJENT_FRAVÆR
@@ -969,6 +995,186 @@ class AutomatiskMeldekortbehandlingJobbTest {
                     it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
                     // Statusen kan prøves på nytt, så meldekortet plukkes opp igjen når saksbehandler er ferdig.
                     it.behandlesAutomatisk shouldBe true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal akkumulere flere permanent feilede meldekort i samme behandling`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                // Begge meldekortene har for mange registrerte dager til å behandles automatisk.
+                val brukersMeldekort1 = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder[0].hentSisteMeldeperiode(),
+                    dager = List(14) {
+                        BrukersMeldekort.BrukersMeldekortDag(
+                            dato = sak.meldeperiodeKjeder[0].hentSisteMeldeperiode().periode.fraOgMed.plusDays(it.toLong()),
+                            status = if (it < 11) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        )
+                    },
+                )
+                val brukersMeldekort2 = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = sak.meldeperiodeKjeder[1].hentSisteMeldeperiode(),
+                    dager = List(14) {
+                        BrukersMeldekort.BrukersMeldekortDag(
+                            dato = sak.meldeperiodeKjeder[1].hentSisteMeldeperiode().periode.fraOgMed.plusDays(it.toLong()),
+                            status = if (it < 11) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        )
+                    },
+                )
+
+                brukersMeldekortRepo.lagre(brukersMeldekort1)
+                brukersMeldekortRepo.lagre(brukersMeldekort2)
+
+                // Jobben behandler kun ett meldekort per sak for hvert kall.
+                service.behandleBrukersMeldekort(clock)
+                service.behandleBrukersMeldekort(clock)
+
+                val akkumulertBehandling = meldekortbehandlingRepo.hentForSakId(sak.id)!!.single()
+                akkumulertBehandling.skalAkkumulereMeldekort shouldBe true
+                akkumulertBehandling.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING
+                akkumulertBehandling.saksbehandler shouldBe null
+
+                akkumulertBehandling.meldeperioder.size shouldBe 2
+                akkumulertBehandling.meldeperioder.map { it.kjedeId } shouldBe listOf(
+                    sak.meldeperiodeKjeder[0].kjedeId,
+                    sak.meldeperiodeKjeder[1].kjedeId,
+                )
+                akkumulertBehandling.meldeperioder.flatMap { it.brukersMeldekort }.map { it.id } shouldBe
+                    listOf(brukersMeldekort1.id, brukersMeldekort2.id)
+            }
+        }
+    }
+
+    @Test
+    fun `skal knytte nytt brukersmeldekort til eksisterende meldeperiodebehandling når kjeden allerede akkumuleres`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+                // Første innsending har for mange registrerte dager - akkumuleres med blank utfylling.
+                val førsteMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    dager = List(14) {
+                        BrukersMeldekort.BrukersMeldekortDag(
+                            dato = meldeperiode.periode.fraOgMed.plusDays(it.toLong()),
+                            status = if (it < 11) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        )
+                    },
+                )
+                brukersMeldekortRepo.lagre(førsteMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                val akkumulertBehandling = meldekortbehandlingRepo.hentForSakId(sak.id)!!.single()
+                akkumulertBehandling.meldeperioder.single().dager
+                    .none { it.status == MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET } shouldBe true
+
+                // Andre innsending på samme kjede kan ikke behandles mens behandlingen er åpen, og havner til slutt i samme behandling.
+                val andreMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(andreMeldekort)
+                service.behandleBrukersMeldekort(clock = fixedClockAt(nå(clock).plusSeconds(1) + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING))
+
+                brukersMeldekortRepo.hentForMeldekortId(andreMeldekort.id)!!.let {
+                    it.behandletAutomatiskStatus shouldBe MeldekortBehandletAutomatiskStatus.HAR_ÅPEN_BEHANDLING
+                    it.behandlesAutomatisk shouldBe false
+                }
+
+                // Behandlingen er ikke tatt av en saksbehandler, så dagene erstattes med den siste innsendingen.
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.single().let { behandling ->
+                    behandling.meldeperioder.single().let { meldeperiodebehandling ->
+                        meldeperiodebehandling.brukersMeldekort.map { it.id } shouldBe listOf(førsteMeldekort.id, andreMeldekort.id)
+                        meldeperiodebehandling.dager.any { it.status == MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET } shouldBe true
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `skal ikke erstatte dager i akkumulerende behandling som er tatt av en saksbehandler`() {
+        runTest {
+            withTestApplicationContext(clock = clock) { tac ->
+                val meldekortbehandlingRepo = tac.meldekortContext.meldekortbehandlingRepo
+                val brukersMeldekortRepo = tac.meldekortContext.brukersMeldekortRepo
+                val service = tac.meldekortContext.automatiskMeldekortbehandlingJobb
+
+                val sak = tac.søknadsbehandlingIverksattMedMeldeperioder(
+                    periode = vedtaksperiode,
+                    clock = clock,
+                )
+
+                val meldeperiode = sak.meldeperiodeKjeder.first().hentSisteMeldeperiode()
+
+                // Første innsending har for mange registrerte dager - akkumuleres med blank utfylling.
+                val førsteMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    dager = List(14) {
+                        BrukersMeldekort.BrukersMeldekortDag(
+                            dato = meldeperiode.periode.fraOgMed.plusDays(it.toLong()),
+                            status = if (it < 11) InnmeldtStatus.DELTATT_UTEN_LØNN_I_TILTAKET else InnmeldtStatus.IKKE_BESVART,
+                        )
+                    },
+                )
+                brukersMeldekortRepo.lagre(førsteMeldekort)
+                service.behandleBrukersMeldekort(clock)
+
+                val akkumulertBehandling = meldekortbehandlingRepo.hentForSakId(sak.id)!!.single()
+
+                // Saksbehandler tar behandlingen.
+                tac.meldekortContext.taMeldekortbehandlingService.taMeldekortbehandling(
+                    sakId = sak.id,
+                    meldekortId = akkumulertBehandling.id,
+                    saksbehandler = ObjectMother.saksbehandler(),
+                )
+
+                // Andre innsending på samme kjede havner til slutt i samme behandling.
+                val andreMeldekort = ObjectMother.brukersMeldekort(
+                    behandlesAutomatisk = true,
+                    sakId = sak.id,
+                    meldeperiode = meldeperiode,
+                    mottatt = nå(clock),
+                )
+                brukersMeldekortRepo.lagre(andreMeldekort)
+                service.behandleBrukersMeldekort(clock = fixedClockAt(nå(clock).plusSeconds(1) + MAKS_DELAY_FOR_AUTOMATISK_BEHANDLING))
+
+                // Siden behandlingen er tatt, beholdes dagene - brukers meldekort knyttes bare til meldeperiodebehandlingen.
+                meldekortbehandlingRepo.hentForSakId(sak.id)!!.single().let { behandling ->
+                    behandling.meldeperioder.single().let { meldeperiodebehandling ->
+                        meldeperiodebehandling.brukersMeldekort.map { it.id } shouldBe listOf(førsteMeldekort.id, andreMeldekort.id)
+                        meldeperiodebehandling.dager.none { it.status == MeldekortDagStatus.DELTATT_UTEN_LØNN_I_TILTAKET } shouldBe true
+                    }
                 }
             }
         }

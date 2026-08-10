@@ -324,50 +324,6 @@ class BenkV2PostgresRepo(
                 join sak s on m.sak_id = s.id
             where m.avbrutt is null
               and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
-            union all
-            select
-                s.id,
-                s.fnr,
-                s.saksnummer,
-                siste.mottatt,
-                siste.mottatt,
-                null::text,
-                null::text,
-                false,
-                false,
-                null::text,
-                null::date,
-                'KLAR_TIL_BEHANDLING'::text,
-                case when exists (
-                    select 1 from meldekort_bruker tidligere
-                    where tidligere.sak_id = siste.sak_id
-                      and tidligere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
-                      and tidligere.id != siste.id
-                ) then 'KORRIGERT_MELDEKORT'::text else 'INNSENDT_MELDEKORT'::text end,
-                (mp.periode::periode_datoer).fra_og_med,
-                (mp.periode::periode_datoer).til_og_med,
-                null::int,
-                siste.mottatt,
-                siste.id
-            from (
-                select distinct on (sak_id, meldeperiode_kjede_id)
-                    id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt
-                from meldekort_bruker
-                where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
-                order by sak_id, meldeperiode_kjede_id, mottatt desc
-            ) siste
-                join sak s on s.id = siste.sak_id
-                join meldeperiode mp on mp.id = siste.meldeperiode_id
-            /*
-             * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere enn eller samtidig med innsendingen.
-             * Da er meldekortet potensielt allerede tatt stilling til.
-             */
-            where not exists (
-                select 1 from meldekortbehandling mb
-                where mb.sak_id = siste.sak_id
-                  and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', siste.meldeperiode_kjede_id))
-                  and mb.sist_endret >= siste.mottatt
-            )
         """
 
         /**
