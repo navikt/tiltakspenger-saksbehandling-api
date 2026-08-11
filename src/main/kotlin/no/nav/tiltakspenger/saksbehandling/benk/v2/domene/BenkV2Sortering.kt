@@ -82,6 +82,7 @@ enum class BenkTilbakekrevingKolonne(override val verdi: String) : BenkV2Sorteri
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
     VENTESTATUS_FRIST("ventestatus_frist"),
+    KRAVGRUNNLAG_PERIODE("kravgrunnlag_periode"),
 }
 
 /**

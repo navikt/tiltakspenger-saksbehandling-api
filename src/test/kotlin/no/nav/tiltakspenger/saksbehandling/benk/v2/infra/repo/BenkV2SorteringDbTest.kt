@@ -83,6 +83,7 @@ class BenkV2SorteringDbTest {
             BenkTilbakekrevingKolonne.SIST_ENDRET to "sist_endret",
             BenkTilbakekrevingKolonne.SAKSBEHANDLER to "saksbehandler",
             BenkTilbakekrevingKolonne.VENTESTATUS_FRIST to "vente_frist",
+            BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE to "periode_fra_og_med",
         )
     }
 

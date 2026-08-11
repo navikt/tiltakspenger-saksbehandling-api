@@ -69,6 +69,7 @@ fun BenkTilbakekrevingKolonne.toDbString(): String = when (this) {
     BenkTilbakekrevingKolonne.SIST_ENDRET -> "sist_endret"
     BenkTilbakekrevingKolonne.SAKSBEHANDLER -> "saksbehandler"
     BenkTilbakekrevingKolonne.VENTESTATUS_FRIST -> "vente_frist"
+    BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE -> "periode_fra_og_med"
 }
 
 fun BenkV2SorteringRetning.toDbString(): String = when (this) {

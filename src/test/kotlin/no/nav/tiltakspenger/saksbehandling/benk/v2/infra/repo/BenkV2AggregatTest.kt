@@ -120,9 +120,10 @@ class BenkV2AggregatTest {
         saksbehandler: String? = null,
         minstebeløp: Long = 0,
         skjulPåVent: Boolean = false,
+        kolonne: BenkTilbakekrevingKolonne = BenkTilbakekrevingKolonne.STARTET,
     ) = command(
         BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp, skjulPåVent),
-        BenkTilbakekrevingKolonne.STARTET,
+        kolonne,
     )
 
     @Test
@@ -508,6 +509,10 @@ class BenkV2AggregatTest {
             // Minstebeløpsfilteret er benkens eneste tallfilter, og skal kutte begge veier.
             repo.hentTilbakekrevinger(tilbakekrevingCommand(minstebeløp = 1)).totalAntall shouldBe 2
             repo.hentTilbakekrevinger(tilbakekrevingCommand(minstebeløp = 1_000_000)).totalAntall shouldBe 0
+            // Begge behandlingene får samme klokke-styrte kravgrunnlagperiode, så rekkefølgen er ikke observerbar — spørringen skal bare gå gjennom.
+            repo.hentTilbakekrevinger(
+                tilbakekrevingCommand(kolonne = BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE),
+            ).totalAntall shouldBe 2
         }
     }
 

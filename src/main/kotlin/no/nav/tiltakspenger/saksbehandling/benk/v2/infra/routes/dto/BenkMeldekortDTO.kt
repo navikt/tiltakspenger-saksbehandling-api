@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkMeldekortType
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.finnGyldigeKommandoer
@@ -30,7 +31,7 @@ data class BenkMeldekortDTO(
     override val erUnderkjent: Boolean,
     override val ventestatus: BenkV2VentestatusDTO,
     val status: BenkV2BehandlingsstatusDTO,
-    val meldeperioder: List<BenkV2PeriodeDTO>,
+    val meldeperioder: List<PeriodeDTO>,
     val beløp: Int?,
     val mottattTidspunkt: String?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
@@ -49,7 +50,7 @@ fun BenkMeldekort.toDTO(saksbehandler: Saksbehandler): BenkMeldekortDTO = BenkMe
     ventestatus = felles.ventestatus.toDTO(),
     status = status.toDTO(),
     type = type.toDTO(),
-    meldeperioder = meldeperioder.map { BenkV2PeriodeDTO(it.fraOgMed.toString(), it.tilOgMed.toString()) },
+    meldeperioder = meldeperioder.map { PeriodeDTO(it.fraOgMed.toString(), it.tilOgMed.toString()) },
     beløp = beløp,
     mottattTidspunkt = mottattTidspunkt?.toString(),
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),

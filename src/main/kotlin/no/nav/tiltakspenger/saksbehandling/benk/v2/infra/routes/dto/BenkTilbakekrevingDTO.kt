@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkTilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkTilbakekrevingStatus
@@ -39,7 +40,7 @@ data class BenkTilbakekrevingDTO(
     val status: BenkTilbakekrevingStatusDTO,
     val beløp: BigDecimal,
     val kilde: BenkTilbakekrevingKildeDTO,
-    val kravgrunnlagPeriode: BenkV2PeriodeDTO,
+    val kravgrunnlagPeriode: PeriodeDTO,
     val url: String,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
@@ -58,7 +59,7 @@ fun BenkTilbakekreving.toDTO(saksbehandler: Saksbehandler): BenkTilbakekrevingDT
     status = status.toDTO(),
     beløp = beløp,
     kilde = kilde.toDTO(),
-    kravgrunnlagPeriode = BenkV2PeriodeDTO(
+    kravgrunnlagPeriode = PeriodeDTO(
         kravgrunnlagPeriode.fraOgMed.toString(),
         kravgrunnlagPeriode.tilOgMed.toString(),
     ),
