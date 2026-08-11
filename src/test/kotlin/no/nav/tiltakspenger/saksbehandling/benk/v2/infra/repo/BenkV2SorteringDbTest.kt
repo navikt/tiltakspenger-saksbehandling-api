@@ -49,7 +49,7 @@ class BenkV2SorteringDbTest {
         BenkMeldekortKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
             BenkMeldekortKolonne.FNR to "fnr",
             BenkMeldekortKolonne.TYPE to "type",
-            BenkMeldekortKolonne.PERIODE to "periode_fra_og_med",
+            BenkMeldekortKolonne.PERIODE to "meldeperioder",
             BenkMeldekortKolonne.BELØP to "beløp",
             BenkMeldekortKolonne.STATUS to "status",
             BenkMeldekortKolonne.MOTTATT to "mottatt_tidspunkt",
@@ -83,7 +83,7 @@ class BenkV2SorteringDbTest {
             BenkTilbakekrevingKolonne.SIST_ENDRET to "sist_endret",
             BenkTilbakekrevingKolonne.SAKSBEHANDLER to "saksbehandler",
             BenkTilbakekrevingKolonne.VENTESTATUS_FRIST to "vente_frist",
-            BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE to "periode_fra_og_med",
+            BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE to "kravgrunnlag_periode",
         )
     }
 

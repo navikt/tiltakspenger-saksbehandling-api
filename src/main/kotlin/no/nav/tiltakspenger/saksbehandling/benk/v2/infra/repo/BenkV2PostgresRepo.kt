@@ -45,6 +45,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Sortering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Ventestatus
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Kommando
+import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import org.intellij.lang.annotations.Language
@@ -310,7 +311,6 @@ class BenkV2PostgresRepo(
                 (m.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
                 m.status::text                  as status,
                 'MELDEKORTBEHANDLING'::text     as type,
-                (m.periode::periode_datoer).fra_og_med  as periode_fra_og_med,
                 (
                     select jsonb_agg(el ->> 'kjedeId' order by el ->> 'kjedeId')
                     from jsonb_array_elements(m.meldeperioder) el
@@ -349,7 +349,6 @@ class BenkV2PostgresRepo(
                       and tidligere.meldeperiode_kjede_id = siste.meldeperiode_kjede_id
                       and tidligere.id != siste.id
                 ) then 'KORRIGERT_MELDEKORT'::text else 'INNSENDT_MELDEKORT'::text end,
-                (mp.periode::periode_datoer).fra_og_med,
                 jsonb_build_array(mp.kjede_id),
                 null::int,
                 siste.mottatt,
@@ -450,8 +449,7 @@ class BenkV2PostgresRepo(
                     then 'RAMMEVEDTAK'::text
                     else 'MELDEKORT'::text
                 end                             as kilde,
-                (tb.kravgrunnlag_periode::periode_datoer).fra_og_med as periode_fra_og_med,
-                (tb.kravgrunnlag_periode::periode_datoer).til_og_med as periode_til_og_med,
+                tb.kravgrunnlag_periode         as kravgrunnlag_periode,
                 tb.id                           as id,
                 tb.url                          as url
             from tilbakekreving_behandling tb
@@ -557,8 +555,6 @@ private fun Row.tilFelles(): BenkV2Behandlingsfelles = BenkV2Behandlingsfelles(
     ),
 )
 
-private fun Row.tilPeriode(): Periode = Periode(localDate("periode_fra_og_med"), localDate("periode_til_og_med"))
-
 private fun Row.tilBehandlingsstatus(): BenkV2Behandlingsstatus =
     enum("status", BenkV2Behandlingsstatus.entries)
 
@@ -612,6 +608,6 @@ private fun Row.tilTilbakekreving(): BenkTilbakekreving = BenkTilbakekreving(
     status = enum("status", BenkTilbakekrevingStatus.entries),
     beløp = bigDecimal("beløp"),
     kilde = enum("kilde", BenkTilbakekrevingKilde.entries),
-    kravgrunnlagPeriode = tilPeriode(),
+    kravgrunnlagPeriode = periode("kravgrunnlag_periode"),
     url = string("url"),
 )

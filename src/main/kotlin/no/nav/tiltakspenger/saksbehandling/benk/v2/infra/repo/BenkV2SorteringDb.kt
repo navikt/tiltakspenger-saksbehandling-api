@@ -40,12 +40,20 @@ fun BenkRevurderingerKolonne.toDbString(): String = when (this) {
 
 fun BenkMeldekortKolonne.toDbString(): String = when (this) {
     BenkMeldekortKolonne.FNR -> "fnr"
+
     BenkMeldekortKolonne.TYPE -> "type"
-    BenkMeldekortKolonne.PERIODE -> "periode_fra_og_med"
+
+    // Jsonb-arrayen er aggregert kronologisk, og sammenlignes elementvis — sorteringen treffer altså tidligste meldeperiode først.
+    BenkMeldekortKolonne.PERIODE -> "meldeperioder"
+
     BenkMeldekortKolonne.BELØP -> "beløp"
+
     BenkMeldekortKolonne.STATUS -> "status"
+
     BenkMeldekortKolonne.MOTTATT -> "mottatt_tidspunkt"
+
     BenkMeldekortKolonne.SAKSBEHANDLER -> "saksbehandler"
+
     BenkMeldekortKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
@@ -62,14 +70,23 @@ fun BenkKlageKolonne.toDbString(): String = when (this) {
 
 fun BenkTilbakekrevingKolonne.toDbString(): String = when (this) {
     BenkTilbakekrevingKolonne.FNR -> "fnr"
+
     BenkTilbakekrevingKolonne.BELØP -> "beløp"
+
     BenkTilbakekrevingKolonne.KILDE -> "kilde"
+
     BenkTilbakekrevingKolonne.STATUS -> "status"
+
     BenkTilbakekrevingKolonne.STARTET -> "startet"
+
     BenkTilbakekrevingKolonne.SIST_ENDRET -> "sist_endret"
+
     BenkTilbakekrevingKolonne.SAKSBEHANDLER -> "saksbehandler"
+
     BenkTilbakekrevingKolonne.VENTESTATUS_FRIST -> "vente_frist"
-    BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE -> "periode_fra_og_med"
+
+    // Composit-typen periode sammenlignes feltvis, altså fra_og_med først og deretter til_og_med.
+    BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE -> "kravgrunnlag_periode"
 }
 
 fun BenkV2SorteringRetning.toDbString(): String = when (this) {
