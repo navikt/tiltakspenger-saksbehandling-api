@@ -33,9 +33,11 @@ enum class BenkSøknaderKolonne(override val verdi: String) : BenkV2SorteringKol
     SØKNADSTYPE("søknadstype"),
     STATUS("status"),
     KRAVTIDSPUNKT("kravtidspunkt"),
+    RESULTAT("resultat"),
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
     BESLUTTER("beslutter"),
+    VENTESTATUS_FRIST("ventestatus_frist"),
 }
 
 enum class BenkRevurderingerKolonne(override val verdi: String) : BenkV2SorteringKolonne {
@@ -46,6 +48,7 @@ enum class BenkRevurderingerKolonne(override val verdi: String) : BenkV2Sorterin
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
     BESLUTTER("beslutter"),
+    VENTESTATUS_FRIST("ventestatus_frist"),
 }
 
 enum class BenkMeldekortKolonne(override val verdi: String) : BenkV2SorteringKolonne {
@@ -56,6 +59,7 @@ enum class BenkMeldekortKolonne(override val verdi: String) : BenkV2SorteringKol
     STATUS("status"),
     MOTTATT("mottatt"),
     SAKSBEHANDLER("saksbehandler"),
+    VENTESTATUS_FRIST("ventestatus_frist"),
 }
 
 enum class BenkKlageKolonne(override val verdi: String) : BenkV2SorteringKolonne {
@@ -66,6 +70,7 @@ enum class BenkKlageKolonne(override val verdi: String) : BenkV2SorteringKolonne
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
     BESLUTTER("beslutter"),
+    VENTESTATUS_FRIST("ventestatus_frist"),
 }
 
 enum class BenkTilbakekrevingKolonne(override val verdi: String) : BenkV2SorteringKolonne {
@@ -76,6 +81,7 @@ enum class BenkTilbakekrevingKolonne(override val verdi: String) : BenkV2Sorteri
     STARTET("startet"),
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
+    VENTESTATUS_FRIST("ventestatus_frist"),
 }
 
 /**

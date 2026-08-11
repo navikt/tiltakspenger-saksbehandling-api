@@ -72,7 +72,7 @@ class BenkV2GyldigeKommandoerTest {
         id = MeldekortId.random(),
         status = status,
         type = type,
-        periode = Periode(LocalDate.of(2025, 1, 6), LocalDate.of(2025, 1, 19)),
+        meldeperioder = listOf(Periode(LocalDate.of(2025, 1, 6), LocalDate.of(2025, 1, 19))),
         beløp = null,
         mottattTidspunkt = null,
     )

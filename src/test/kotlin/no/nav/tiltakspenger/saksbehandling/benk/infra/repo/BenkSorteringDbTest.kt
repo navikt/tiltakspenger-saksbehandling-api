@@ -28,6 +28,7 @@ class BenkSorteringDbTest {
             BenkSorteringKolonne.SAKSBEHANDLER to "saksbehandler",
             BenkSorteringKolonne.BESLUTTER to "beslutter",
             BenkSorteringKolonne.BELØP to "beløp",
+            BenkSorteringKolonne.RESULTAT to "resultat",
         )
     }
 

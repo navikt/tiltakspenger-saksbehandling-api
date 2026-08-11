@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -47,6 +48,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Kommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import org.intellij.lang.annotations.Language
+import java.time.LocalDate
 
 /**
  * Spørringene bak benk v2.
@@ -309,7 +311,10 @@ class BenkV2PostgresRepo(
                 m.status::text                  as status,
                 'MELDEKORTBEHANDLING'::text     as type,
                 (m.periode::periode_datoer).fra_og_med  as periode_fra_og_med,
-                (m.periode::periode_datoer).til_og_med  as periode_til_og_med,
+                (
+                    select jsonb_agg(el ->> 'kjedeId' order by el ->> 'kjedeId')
+                    from jsonb_array_elements(m.meldeperioder) el
+                )                               as meldeperioder,
                 (
                     select sum(
                         (dag->'beregningsdag'->>'beløp')::int
@@ -345,7 +350,7 @@ class BenkV2PostgresRepo(
                       and tidligere.id != siste.id
                 ) then 'KORRIGERT_MELDEKORT'::text else 'INNSENDT_MELDEKORT'::text end,
                 (mp.periode::periode_datoer).fra_og_med,
-                (mp.periode::periode_datoer).til_og_med,
+                jsonb_build_array(mp.kjede_id),
                 null::int,
                 siste.mottatt,
                 siste.id
@@ -578,10 +583,20 @@ private fun Row.tilMeldekort(): BenkMeldekort = BenkMeldekort(
     id = MeldekortId.fromString(string("id")),
     status = tilBehandlingsstatus(),
     type = enum("type", BenkMeldekortType.entries),
-    periode = tilPeriode(),
+    meldeperioder = tilMeldeperioder(),
     beløp = intOrNull("beløp"),
     mottattTidspunkt = localDateTimeOrNull("mottatt_tidspunkt"),
 )
+
+/**
+ * Kjede-id-ene er periode-strenger på formatet «fraOgMed/tilOgMed», og parses direkte framfor å gå via MeldeperiodeKjedeId.
+ * Init-blokken der krever fjorten dager fra mandag til søndag, og benken skal ikke feile på en fremtidig kjede som ikke følger det.
+ */
+private fun Row.tilMeldeperioder(): List<Periode> =
+    deserialize<List<String>>(string("meldeperioder")).map { kjedeId ->
+        val (fraOgMed, tilOgMed) = kjedeId.split("/")
+        Periode(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+    }
 
 private fun Row.tilKlagebehandling(): BenkKlagebehandling = BenkKlagebehandling(
     felles = tilFelles(),

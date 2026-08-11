@@ -68,7 +68,11 @@ data class BenkMeldekort(
     val id: MeldekortId,
     val status: BenkV2Behandlingsstatus,
     val type: BenkMeldekortType,
-    val periode: Periode,
+    /**
+     * Kjedene raden dekker, i kronologisk rekkefølge.
+     * Én for innsendte og korrigerte meldekort, én eller flere for meldekortbehandlinger.
+     */
+    val meldeperioder: List<Periode>,
     /** Beregnet beløp for meldekortbehandlinger som er beregnet, ellers null. */
     val beløp: Int?,
     /** Tidspunktet bruker sendte inn meldekortet, kun for innsendte og korrigerte meldekort. */

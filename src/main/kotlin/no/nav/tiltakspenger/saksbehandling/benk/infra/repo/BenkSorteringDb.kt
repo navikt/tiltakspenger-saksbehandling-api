@@ -20,6 +20,7 @@ fun BenkSorteringKolonne.toDbString(): String =
         BenkSorteringKolonne.SAKSBEHANDLER -> "saksbehandler"
         BenkSorteringKolonne.BESLUTTER -> "beslutter"
         BenkSorteringKolonne.BELØP -> "beløp"
+        BenkSorteringKolonne.RESULTAT -> "resultat"
     }
 
 fun SorteringRetning.toDbString(): String =

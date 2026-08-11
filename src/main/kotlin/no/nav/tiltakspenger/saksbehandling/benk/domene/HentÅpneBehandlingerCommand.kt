@@ -44,6 +44,7 @@ enum class BenkSorteringKolonne {
     SAKSBEHANDLER,
     BESLUTTER,
     BELØP,
+    RESULTAT,
     ;
 
     companion object {

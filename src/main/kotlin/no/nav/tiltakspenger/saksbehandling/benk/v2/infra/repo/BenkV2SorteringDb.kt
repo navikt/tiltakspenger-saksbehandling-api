@@ -20,9 +20,11 @@ fun BenkSøknaderKolonne.toDbString(): String = when (this) {
     BenkSøknaderKolonne.SØKNADSTYPE -> "søknadstype"
     BenkSøknaderKolonne.STATUS -> "status"
     BenkSøknaderKolonne.KRAVTIDSPUNKT -> "kravtidspunkt"
+    BenkSøknaderKolonne.RESULTAT -> "resultat"
     BenkSøknaderKolonne.SIST_ENDRET -> "sist_endret"
     BenkSøknaderKolonne.SAKSBEHANDLER -> "saksbehandler"
     BenkSøknaderKolonne.BESLUTTER -> "beslutter"
+    BenkSøknaderKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
 fun BenkRevurderingerKolonne.toDbString(): String = when (this) {
@@ -33,6 +35,7 @@ fun BenkRevurderingerKolonne.toDbString(): String = when (this) {
     BenkRevurderingerKolonne.SIST_ENDRET -> "sist_endret"
     BenkRevurderingerKolonne.SAKSBEHANDLER -> "saksbehandler"
     BenkRevurderingerKolonne.BESLUTTER -> "beslutter"
+    BenkRevurderingerKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
 fun BenkMeldekortKolonne.toDbString(): String = when (this) {
@@ -43,6 +46,7 @@ fun BenkMeldekortKolonne.toDbString(): String = when (this) {
     BenkMeldekortKolonne.STATUS -> "status"
     BenkMeldekortKolonne.MOTTATT -> "mottatt_tidspunkt"
     BenkMeldekortKolonne.SAKSBEHANDLER -> "saksbehandler"
+    BenkMeldekortKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
 fun BenkKlageKolonne.toDbString(): String = when (this) {
@@ -53,6 +57,7 @@ fun BenkKlageKolonne.toDbString(): String = when (this) {
     BenkKlageKolonne.SIST_ENDRET -> "sist_endret"
     BenkKlageKolonne.SAKSBEHANDLER -> "saksbehandler"
     BenkKlageKolonne.BESLUTTER -> "beslutter"
+    BenkKlageKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
 fun BenkTilbakekrevingKolonne.toDbString(): String = when (this) {
@@ -63,6 +68,7 @@ fun BenkTilbakekrevingKolonne.toDbString(): String = when (this) {
     BenkTilbakekrevingKolonne.STARTET -> "startet"
     BenkTilbakekrevingKolonne.SIST_ENDRET -> "sist_endret"
     BenkTilbakekrevingKolonne.SAKSBEHANDLER -> "saksbehandler"
+    BenkTilbakekrevingKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
 fun BenkV2SorteringRetning.toDbString(): String = when (this) {

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
@@ -46,11 +47,13 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.mottaMeldekortRequest
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilAvvisning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgKlagebehandlingTilOpprettholdelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgSettPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
@@ -256,6 +259,42 @@ class BenkV2AggregatTest {
 
     @Test
     @IsolatedDatabaseTest
+    fun `søknadsfanen sorterer på ventestatusfrist, med rader uten frist sist uansett retning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sakSent) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = 10.januar(2026))!!
+            val (sakTidlig) = opprettSøknadsbehandlingOgSettPåVent(tac = tac, frist = 5.januar(2026))!!
+            val (sakIkkePåVent) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            val repo = tac.benkV2Context.benkV2Repo
+
+            fun sorterteSaker(retning: BenkV2SorteringRetning) =
+                repo.hentSøknader(søknaderCommand(kolonne = BenkSøknaderKolonne.VENTESTATUS_FRIST, retning = retning))
+                    .behandlinger.map { it.felles.sakId }
+
+            sorterteSaker(BenkV2SorteringRetning.ASC) shouldBe listOf(sakTidlig.id, sakSent.id, sakIkkePåVent.id)
+            sorterteSaker(BenkV2SorteringRetning.DESC) shouldBe listOf(sakSent.id, sakTidlig.id, sakIkkePåVent.id)
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `søknadsfanen sorterer på resultat, med rader uten resultat sist uansett retning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sakAvslag) = opprettSøknadsbehandlingUnderBehandlingMedAvslag(tac = tac)
+            val (sakInnvilgelse) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val (sakUtenResultat) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            val repo = tac.benkV2Context.benkV2Repo
+
+            fun sorterteSaker(retning: BenkV2SorteringRetning) =
+                repo.hentSøknader(søknaderCommand(kolonne = BenkSøknaderKolonne.RESULTAT, retning = retning))
+                    .behandlinger.map { it.felles.sakId }
+
+            sorterteSaker(BenkV2SorteringRetning.ASC) shouldBe listOf(sakAvslag.id, sakInnvilgelse.id, sakUtenResultat.id)
+            sorterteSaker(BenkV2SorteringRetning.DESC) shouldBe listOf(sakInnvilgelse.id, sakAvslag.id, sakUtenResultat.id)
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
     fun `revurderingsfanen viser åpne revurderinger`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
@@ -304,7 +343,7 @@ class BenkV2AggregatTest {
                 it.id shouldBe meldekortbehandling.id
                 it.type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
                 it.status shouldBe BenkV2Behandlingsstatus.UNDER_BEHANDLING
-                it.periode shouldBe meldekortbehandling.periode
+                it.meldeperioder shouldBe listOf(meldekortbehandling.periode)
                 it.beløp shouldBe null
                 it.mottattTidspunkt shouldBe null
                 it.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
@@ -322,6 +361,26 @@ class BenkV2AggregatTest {
                 meldekortCommand(status = BenkV2Behandlingsstatus.KLAR_TIL_BESLUTNING),
             ).totalAntall shouldBe 1
             repo.hentMeldekort(meldekortCommand(saksbehandler = BenkV2Filtrering.IKKE_TILDELT)).totalAntall shouldBe 0
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen viser alle meldeperiodene en behandling dekker, i kronologisk rekkefølge`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak) = iverksettSøknadsbehandling(tac = tac)
+            val kjeder = sak.meldeperiodeKjeder.take(2)
+
+            opprettMeldekortbehandlingForSakId(
+                tac = tac,
+                sakId = sak.id,
+                // Sender i omvendt rekkefølge for å verifisere at benken sorterer dem.
+                kjedeIder = kjeder.reversed().map { it.kjedeId },
+            )!!
+
+            val oversikt = tac.benkV2Context.benkV2Repo.hentMeldekort(meldekortCommand())
+
+            oversikt.behandlinger.single().meldeperioder shouldBe kjeder.map { it.periode }
         }
     }
 
@@ -354,11 +413,15 @@ class BenkV2AggregatTest {
                 it.id shouldBe korrigering.id
                 it.felles.startet shouldBe korrigering.mottatt
                 it.mottattTidspunkt shouldBe korrigering.mottatt
+                it.meldeperioder shouldBe listOf(sak.meldeperiodeKjeder[0].periode)
                 it.beløp shouldBe null
                 it.status shouldBe BenkV2Behandlingsstatus.KLAR_TIL_BEHANDLING
                 it.felles.saksbehandler shouldBe null
             }
-            oversikt.behandlinger.last().mottattTidspunkt shouldBe innsendt.mottatt
+            oversikt.behandlinger.last().let {
+                it.mottattTidspunkt shouldBe innsendt.mottatt
+                it.meldeperioder shouldBe listOf(sak.meldeperiodeKjeder[1].periode)
+            }
             // Meldekort som venter på at noen starter en behandling, har ingen behandling å utføre kommandoer på.
             oversikt.behandlinger.forEach {
                 it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe emptyList()
