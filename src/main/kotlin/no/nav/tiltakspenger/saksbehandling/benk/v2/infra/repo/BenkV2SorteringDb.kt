@@ -50,9 +50,11 @@ fun BenkMeldekortKolonne.toDbString(): String = when (this) {
 
     BenkMeldekortKolonne.STATUS -> "status"
 
-    BenkMeldekortKolonne.MOTTATT -> "mottatt_tidspunkt"
+    BenkMeldekortKolonne.SIST_ENDRET -> "sist_endret"
 
     BenkMeldekortKolonne.SAKSBEHANDLER -> "saksbehandler"
+
+    BenkMeldekortKolonne.BESLUTTER -> "beslutter"
 
     BenkMeldekortKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
@@ -64,7 +66,6 @@ fun BenkKlageKolonne.toDbString(): String = when (this) {
     BenkKlageKolonne.KRAVTIDSPUNKT -> "kravtidspunkt"
     BenkKlageKolonne.SIST_ENDRET -> "sist_endret"
     BenkKlageKolonne.SAKSBEHANDLER -> "saksbehandler"
-    BenkKlageKolonne.BESLUTTER -> "beslutter"
     BenkKlageKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
@@ -82,6 +83,8 @@ fun BenkTilbakekrevingKolonne.toDbString(): String = when (this) {
     BenkTilbakekrevingKolonne.SIST_ENDRET -> "sist_endret"
 
     BenkTilbakekrevingKolonne.SAKSBEHANDLER -> "saksbehandler"
+
+    BenkTilbakekrevingKolonne.BESLUTTER -> "beslutter"
 
     BenkTilbakekrevingKolonne.VENTESTATUS_FRIST -> "vente_frist"
 

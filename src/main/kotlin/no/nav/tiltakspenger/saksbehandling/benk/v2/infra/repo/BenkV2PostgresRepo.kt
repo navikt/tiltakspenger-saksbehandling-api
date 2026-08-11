@@ -323,7 +323,6 @@ class BenkV2PostgresRepo(
                     from jsonb_array_elements(m.beregninger->'beregninger') beregning,
                          jsonb_array_elements(beregning->'dager') dag
                 )                               as beløp,
-                null::timestamp with time zone  as mottatt_tidspunkt,
                 m.id                            as id
             from meldekortbehandling m
                 join sak s on m.sak_id = s.id
@@ -351,7 +350,6 @@ class BenkV2PostgresRepo(
                 ) then 'KORRIGERT_MELDEKORT'::text else 'INNSENDT_MELDEKORT'::text end,
                 jsonb_build_array(mp.kjede_id),
                 null::int,
-                siste.mottatt,
                 siste.id
             from (
                 select distinct on (sak_id, meldeperiode_kjede_id)
@@ -581,7 +579,6 @@ private fun Row.tilMeldekort(): BenkMeldekort = BenkMeldekort(
     type = enum("type", BenkMeldekortType.entries),
     meldeperioder = tilMeldeperioder(),
     beløp = intOrNull("beløp"),
-    mottattTidspunkt = localDateTimeOrNull("mottatt_tidspunkt"),
 )
 
 /**

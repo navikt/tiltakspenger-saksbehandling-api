@@ -33,7 +33,6 @@ data class BenkMeldekortDTO(
     val status: BenkV2BehandlingsstatusDTO,
     val meldeperioder: List<PeriodeDTO>,
     val beløp: Int?,
-    val mottattTidspunkt: String?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
 
@@ -52,7 +51,6 @@ fun BenkMeldekort.toDTO(saksbehandler: Saksbehandler): BenkMeldekortDTO = BenkMe
     type = type.toDTO(),
     meldeperioder = meldeperioder.map { PeriodeDTO(it.fraOgMed.toString(), it.tilOgMed.toString()) },
     beløp = beløp,
-    mottattTidspunkt = mottattTidspunkt?.toString(),
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
 )
 

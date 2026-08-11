@@ -346,7 +346,6 @@ class BenkV2AggregatTest {
                 it.status shouldBe BenkV2Behandlingsstatus.UNDER_BEHANDLING
                 it.meldeperioder shouldBe listOf(meldekortbehandling.periode)
                 it.beløp shouldBe null
-                it.mottattTidspunkt shouldBe null
                 it.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
                 it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
                     meldekortbehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler())
@@ -413,14 +412,14 @@ class BenkV2AggregatTest {
             oversikt.behandlinger.first().let {
                 it.id shouldBe korrigering.id
                 it.felles.startet shouldBe korrigering.mottatt
-                it.mottattTidspunkt shouldBe korrigering.mottatt
+                it.felles.sistEndret shouldBe korrigering.mottatt
                 it.meldeperioder shouldBe listOf(sak.meldeperiodeKjeder[0].periode)
                 it.beløp shouldBe null
                 it.status shouldBe BenkV2Behandlingsstatus.KLAR_TIL_BEHANDLING
                 it.felles.saksbehandler shouldBe null
             }
             oversikt.behandlinger.last().let {
-                it.mottattTidspunkt shouldBe innsendt.mottatt
+                it.felles.sistEndret shouldBe innsendt.mottatt
                 it.meldeperioder shouldBe listOf(sak.meldeperiodeKjeder[1].periode)
             }
             // Meldekort som venter på at noen starter en behandling, har ingen behandling å utføre kommandoer på.

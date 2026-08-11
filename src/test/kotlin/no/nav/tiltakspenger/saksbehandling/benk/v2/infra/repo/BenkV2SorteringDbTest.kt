@@ -52,8 +52,9 @@ class BenkV2SorteringDbTest {
             BenkMeldekortKolonne.PERIODE to "meldeperioder",
             BenkMeldekortKolonne.BELØP to "beløp",
             BenkMeldekortKolonne.STATUS to "status",
-            BenkMeldekortKolonne.MOTTATT to "mottatt_tidspunkt",
+            BenkMeldekortKolonne.SIST_ENDRET to "sist_endret",
             BenkMeldekortKolonne.SAKSBEHANDLER to "saksbehandler",
+            BenkMeldekortKolonne.BESLUTTER to "beslutter",
             BenkMeldekortKolonne.VENTESTATUS_FRIST to "vente_frist",
         )
     }
@@ -67,7 +68,6 @@ class BenkV2SorteringDbTest {
             BenkKlageKolonne.KRAVTIDSPUNKT to "kravtidspunkt",
             BenkKlageKolonne.SIST_ENDRET to "sist_endret",
             BenkKlageKolonne.SAKSBEHANDLER to "saksbehandler",
-            BenkKlageKolonne.BESLUTTER to "beslutter",
             BenkKlageKolonne.VENTESTATUS_FRIST to "vente_frist",
         )
     }
@@ -82,6 +82,7 @@ class BenkV2SorteringDbTest {
             BenkTilbakekrevingKolonne.STARTET to "startet",
             BenkTilbakekrevingKolonne.SIST_ENDRET to "sist_endret",
             BenkTilbakekrevingKolonne.SAKSBEHANDLER to "saksbehandler",
+            BenkTilbakekrevingKolonne.BESLUTTER to "beslutter",
             BenkTilbakekrevingKolonne.VENTESTATUS_FRIST to "vente_frist",
             BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE to "kravgrunnlag_periode",
         )

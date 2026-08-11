@@ -57,8 +57,9 @@ enum class BenkMeldekortKolonne(override val verdi: String) : BenkV2SorteringKol
     PERIODE("periode"),
     BELØP("beløp"),
     STATUS("status"),
-    MOTTATT("mottatt"),
+    SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
+    BESLUTTER("beslutter"),
     VENTESTATUS_FRIST("ventestatus_frist"),
 }
 
@@ -69,7 +70,6 @@ enum class BenkKlageKolonne(override val verdi: String) : BenkV2SorteringKolonne
     KRAVTIDSPUNKT("kravtidspunkt"),
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
-    BESLUTTER("beslutter"),
     VENTESTATUS_FRIST("ventestatus_frist"),
 }
 
@@ -81,6 +81,7 @@ enum class BenkTilbakekrevingKolonne(override val verdi: String) : BenkV2Sorteri
     STARTET("startet"),
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
+    BESLUTTER("beslutter"),
     VENTESTATUS_FRIST("ventestatus_frist"),
     KRAVGRUNNLAG_PERIODE("kravgrunnlag_periode"),
 }

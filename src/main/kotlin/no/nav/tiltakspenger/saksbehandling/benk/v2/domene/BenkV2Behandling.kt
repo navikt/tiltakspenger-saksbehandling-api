@@ -75,8 +75,6 @@ data class BenkMeldekort(
     val meldeperioder: List<Periode>,
     /** Beregnet beløp for meldekortbehandlinger som er beregnet, ellers null. */
     val beløp: Int?,
-    /** Tidspunktet bruker sendte inn meldekortet, kun for innsendte og korrigerte meldekort. */
-    val mottattTidspunkt: LocalDateTime?,
 ) : BenkV2Behandling
 
 data class BenkKlagebehandling(
