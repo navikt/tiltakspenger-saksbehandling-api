@@ -174,7 +174,8 @@ class TilbakekrevingConsumerTest {
                         "behandlingId": "rev-123",
                         "årsak": "KORRIGERING",
                         "årsakTilFeilutbetaling": "Feil utregning",
-                        "vedtaksdato": "2024-01-10"
+                        "vedtaksdato": "2024-01-10",
+                        "url": "https://www.nav.no/asdf"
                     },
                     "utvidPerioder": [],
                     "behandlendeEnhet": "4100"

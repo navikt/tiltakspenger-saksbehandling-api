@@ -911,5 +911,6 @@ class BehandleTilbakekrevingHendelserJobbTest {
             sessionFactory = sessionFactory,
             clock = clock,
             erDev = true,
+            frontendUrl = "https://nav.no",
         )
 }

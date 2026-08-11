@@ -48,6 +48,7 @@ class BehandleTilbakekrevingHendelserJobb(
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     private val erDev: Boolean,
+    private val frontendUrl: String,
 ) {
     private val logger = KotlinLogging.logger {}
 
@@ -257,6 +258,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 årsak = TilbakekrevingInfoSvarDTO.TilbakekrevingRevurderingÅrsak.KORRIGERING,
                 årsakTilFeilutbetaling = this.begrunnelse?.verdi,
                 vedtaksdato = this.iverksattTidspunkt!!.toLocalDate(),
+                url = "$frontendUrl/sak/${this.saksnummer}/meldekortbehandling/${this.id}",
             ),
             utvidPerioder = listOf(
                 TilbakekrevingUtvidPeriode(
@@ -290,6 +292,7 @@ class BehandleTilbakekrevingHendelserJobb(
                 årsak = TilbakekrevingInfoSvarDTO.TilbakekrevingRevurderingÅrsak.NYE_OPPLYSNINGER,
                 årsakTilFeilutbetaling = this.begrunnelseVilkårsvurdering?.verdi,
                 vedtaksdato = this.iverksattTidspunkt!!.toLocalDate(),
+                url = "$frontendUrl/sak/${this.saksnummer}/behandling/${this.id}",
             ),
             utvidPerioder = listOf(
                 TilbakekrevingUtvidPeriode(

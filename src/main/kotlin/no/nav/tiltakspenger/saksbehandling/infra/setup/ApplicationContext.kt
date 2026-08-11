@@ -586,6 +586,7 @@ open class ApplicationContext(
             sessionFactory = sessionFactory,
             clock = clock,
             erDev = erDev,
+            frontendUrl = Configuration.saksbehandlingFrontendUrl,
         )
     }
 }

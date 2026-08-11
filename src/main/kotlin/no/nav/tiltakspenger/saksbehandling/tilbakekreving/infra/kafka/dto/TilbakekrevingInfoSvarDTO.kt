@@ -29,11 +29,15 @@ data class TilbakekrevingInfoSvarDTO(
         PERSON,
     }
 
+    /**
+     *  [url] Url til rammebehandling eller meldekortbehandling i vårt system som utløste tilbakekrevingen
+     * */
     data class TilbakekrevingRevurdering(
         val behandlingId: String,
         val årsak: TilbakekrevingRevurderingÅrsak,
         val årsakTilFeilutbetaling: String?,
         val vedtaksdato: LocalDate,
+        val url: String,
     )
 
     enum class TilbakekrevingRevurderingÅrsak {

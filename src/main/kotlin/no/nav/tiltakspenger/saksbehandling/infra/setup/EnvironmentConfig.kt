@@ -86,6 +86,8 @@ sealed interface EnvironmentConfig {
     val aktorV2Topic: String
     val identhendelseTopic: String
     val tilbakekrevingTopic: String
+
+    val saksbehandlingFrontendUrl: String
 }
 
 data object LocalConfig : EnvironmentConfig {
@@ -177,6 +179,8 @@ data object LocalConfig : EnvironmentConfig {
     override val aktorV2Topic = "pdl.aktor"
     override val identhendelseTopic = "tpts.identhendelse"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
+
+    override val saksbehandlingFrontendUrl = "http://localhost:3000"
 }
 
 data object DevConfig : EnvironmentConfig {
@@ -259,6 +263,8 @@ data object DevConfig : EnvironmentConfig {
     override val aktorV2Topic = "pdl.aktor-v2"
     override val identhendelseTopic = "tpts.identhendelse-v1"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
+
+    override val saksbehandlingFrontendUrl = "https://tiltakspenger-saksbehandling.ansatt.dev.nav.no"
 }
 
 data object ProdConfig : EnvironmentConfig {
@@ -341,4 +347,6 @@ data object ProdConfig : EnvironmentConfig {
     override val aktorV2Topic = "pdl.aktor-v2"
     override val identhendelseTopic = "tpts.identhendelse-v1"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
+
+    override val saksbehandlingFrontendUrl = "https://tiltakspenger-saksbehandling.ansatt.nav.no"
 }

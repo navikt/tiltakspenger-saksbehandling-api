@@ -42,6 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
@@ -449,11 +450,13 @@ class BenkV2AggregatTest {
             val saksbehandler = ObjectMother.saksbehandler("saksbehandlerKlagebehandling")
             val (sakAvvist, klageAvvist) = opprettSakOgKlagebehandlingTilAvvisning(tac = tac)!!
             val (sakMedResultat, _, klageMedResultat) = opprettSakOgKlagebehandlingTilOpprettholdelse(tac = tac)!!
+            val (sakTilVurdering, _, _, klageTilVurdering) =
+                iverksettSøknadsbehandlingOgOpprettKlagebehandlingTilVurdering(tac = tac)!!
             val repo = tac.benkV2Context.benkV2Repo
 
             val oversikt = repo.hentKlager(klageCommand())
 
-            oversikt.totalAntall shouldBe 2
+            oversikt.totalAntall shouldBe 3
             oversikt.behandlinger.single { it.felles.sakId == sakAvvist.id }.let {
                 it.id shouldBe klageAvvist.id
                 it.felles.saksbehandler shouldBe saksbehandler.navIdent
@@ -467,11 +470,16 @@ class BenkV2AggregatTest {
                 it.resultat shouldBe BenkKlagebehandlingResultat.OPPRETTHOLDT
                 it.felles.sistEndret shouldBe klageMedResultat.sistEndret
             }
+            // En klage med oppfylte formkrav som ikke er vurdert ennå, har ikke noe resultat.
+            oversikt.behandlinger.single { it.felles.sakId == sakTilVurdering.id }.let {
+                it.id shouldBe klageTilVurdering.id
+                it.resultat shouldBe null
+            }
 
             repo.hentKlager(klageCommand(resultat = BenkKlagebehandlingResultat.OPPRETTHOLDT)).totalAntall shouldBe 1
             repo.hentKlager(klageCommand(resultat = BenkKlagebehandlingResultat.OMGJØR)).totalAntall shouldBe 0
-            repo.hentKlager(klageCommand(status = BenkV2Behandlingsstatus.UNDER_BEHANDLING)).totalAntall shouldBe 2
-            repo.hentKlager(klageCommand(saksbehandler = saksbehandler.navIdent)).totalAntall shouldBe 2
+            repo.hentKlager(klageCommand(status = BenkV2Behandlingsstatus.UNDER_BEHANDLING)).totalAntall shouldBe 3
+            repo.hentKlager(klageCommand(saksbehandler = saksbehandler.navIdent)).totalAntall shouldBe 3
             repo.hentKlager(klageCommand(saksbehandler = BenkV2Filtrering.IKKE_TILDELT)).totalAntall shouldBe 0
         }
     }
