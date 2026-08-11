@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import org.junit.jupiter.api.Test
 
 /**
- * Prodstien til benk v2: én post mot `/benk` gir én fane pluss antallet i alle fanene.
+ * Prodstien til benk v2: én post per fane under `/benk` gir fanen pluss antallet i alle fanene.
  *
  * Testen pinner json-en, fordi det er den som er kontrakten mot frontendens `lib/benk/v2/typer`.
  * Kjører isolert, siden benken sveiper over hele skjemaet og ellers ville se andre testers saker.
@@ -31,7 +31,7 @@ class HentBenkV2RouteTest {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, søknad, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
-            val respons = hentBenk(tac, """{"tab": "SØKNADER", "sortering": "kravtidspunkt,ASC"}""")
+            val respons = hentBenk(tac, "/benk/soknader", """{"sortering": "kravtidspunkt,ASC"}""")
 
             respons shouldEqualJson """
                 {
@@ -72,7 +72,8 @@ class HentBenkV2RouteTest {
                     "totalAntallUfiltrert": 1,
                     "antallFiltrertPgaTilgang": 0,
                     "limit": 500
-                  }
+                  },
+                  "error": null
                 }
             """.trimIndent()
         }
@@ -87,13 +88,15 @@ class HentBenkV2RouteTest {
 
             hentBenk(
                 tac,
-                """{"tab": "SØKNADER", "filters": {"status": "UNDER_BEHANDLING"}}""",
+                "/benk/soknader",
+                """{"filters": {"status": "UNDER_BEHANDLING"}}""",
             ).let { it.antallIOversikten() shouldBe 1 }
             hentBenk(
                 tac,
-                """{"tab": "SØKNADER", "filters": {"saksbehandler": "IKKE_TILDELT"}}""",
+                "/benk/soknader",
+                """{"filters": {"saksbehandler": "IKKE_TILDELT"}}""",
             ).let { it.antallIOversikten() shouldBe 1 }
-            hentBenk(tac, """{"tab": "SØKNADER"}""").let { it.antallIOversikten() shouldBe 2 }
+            hentBenk(tac, "/benk/soknader", """{}""").let { it.antallIOversikten() shouldBe 2 }
         }
     }
 
@@ -103,7 +106,7 @@ class HentBenkV2RouteTest {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
 
-            val respons = hentBenk(tac, """{"tab": "SØKNADER"}""")
+            val respons = hentBenk(tac, "/benk/soknader", """{}""")
 
             objectMapper.readTree(respons)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
                 .toString() shouldEqualJson """["LeggTilbakeSaksbehandler", "SettPåVent", "Avbryt"]"""
@@ -111,22 +114,65 @@ class HentBenkV2RouteTest {
     }
 
     /**
-     * Fanenavn, filterverdi og sorteringskolonne kommer fra en url brukeren kan redigere.
-     * Da skal benken svare med noe fornuftig framfor en 400, ellers står saksbehandleren igjen med en tom side.
+     * Fanenavnet og filterverdiene kommer fra en url brukeren kan redigere.
+     * Da skal benken svare med en standardvisning og et error-felt frontenden kan vise, framfor en 400 og en tom side.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `ukjente verdier gir default framfor feil`() {
+    fun `feilskrevet fane i url-en gir søknadsfanen med error`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            val respons = hentBenk(tac, "/benk/tull", """{}""")
+
+            respons.fane() shouldBe "SØKNADER"
+            respons.antallIOversikten() shouldBe 1
+            respons.error() shouldBe "Fanen finnes ikke, så søknadsfanen vises"
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `ugyldige filterverdier i body gir standardvisningen med error`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
             val respons = hentBenk(
                 tac,
-                """{"tab": "TULL", "sortering": "drop_table,TULL", "filters": {"status": "TULL", "søknadstype": "TULL"}}""",
+                "/benk/soknader",
+                """{"filters": {"status": "TULL", "søknadstype": "TULL"}}""",
             )
 
             respons.fane() shouldBe "SØKNADER"
             respons.antallIOversikten() shouldBe 1
+            respons.error() shouldBe "Noen av filterverdiene kunne ikke tolkes, så standardvisningen brukes"
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `ukjent sorteringskolonne gir default sortering uten error`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            val respons = hentBenk(tac, "/benk/soknader", """{"sortering": "drop_table,TULL"}""")
+
+            respons.antallIOversikten() shouldBe 1
+            respons.error() shouldBe null
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `bar benk-url svarer med søknadsfanen`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            val respons = hentBenk(tac, "/benk", """{"tab": "SØKNADER"}""")
+
+            respons.fane() shouldBe "SØKNADER"
+            respons.antallIOversikten() shouldBe 1
+            respons.error() shouldBe null
         }
     }
 
@@ -134,10 +180,17 @@ class HentBenkV2RouteTest {
     @IsolatedDatabaseTest
     fun `alle fanene svarer`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            listOf("SØKNADER", "REVURDERINGER", "MELDEKORT", "KLAGE", "TILBAKEKREVING").forEach { fane ->
-                hentBenk(tac, """{"tab": "$fane"}""").let {
+            mapOf(
+                "soknader" to "SØKNADER",
+                "revurderinger" to "REVURDERINGER",
+                "meldekort" to "MELDEKORT",
+                "klage" to "KLAGE",
+                "tilbakekreving" to "TILBAKEKREVING",
+            ).forEach { (path, fane) ->
+                hentBenk(tac, "/benk/$path", """{}""").let {
                     it.fane() shouldBe fane
                     it.antallIOversikten() shouldBe 0
+                    it.error() shouldBe null
                 }
             }
         }
@@ -145,13 +198,14 @@ class HentBenkV2RouteTest {
 
     private suspend fun ApplicationTestBuilder.hentBenk(
         tac: TestApplicationContextMedPostgres,
+        path: String,
         body: String,
     ): String {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
         return defaultRequestWithAssertions(
             HttpMethod.POST,
-            "/benk",
+            path,
             jwt = jwt,
             forventet = ForventetRespons(status = 200, contentType = "application/json; charset=UTF-8"),
             body = body,
@@ -161,4 +215,6 @@ class HentBenkV2RouteTest {
     private fun String.antallIOversikten(): Int = objectMapper.readTree(this)["oversikt"]["totalAntall"].asInt()
 
     private fun String.fane(): String = objectMapper.readTree(this)["tab"].stringValue()
+
+    private fun String.error(): String? = objectMapper.readTree(this)["error"].stringValue()
 }

@@ -25,7 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Filtrering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Oversikt
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Repo
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringKolonne
-import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Command
+import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Kommando
 
 /**
  * Henter én fane av benken, og tar bort radene saksbehandler ikke har tilgang til.
@@ -40,34 +40,34 @@ class BenkV2Service(
     private val logger = KotlinLogging.logger { }
 
     suspend fun hentSøknader(
-        command: HentBenkV2Command<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
+        command: HentBenkV2Kommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         saksbehandlerToken: String,
     ): BenkV2Respons<BenkSøknadsbehandling> = hentFane(command, saksbehandlerToken) { benkV2Repo.hentSøknader(it) }
 
     suspend fun hentRevurderinger(
-        command: HentBenkV2Command<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
+        command: HentBenkV2Kommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         saksbehandlerToken: String,
     ): BenkV2Respons<BenkRevurdering> = hentFane(command, saksbehandlerToken) { benkV2Repo.hentRevurderinger(it) }
 
     suspend fun hentMeldekort(
-        command: HentBenkV2Command<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
+        command: HentBenkV2Kommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         saksbehandlerToken: String,
     ): BenkV2Respons<BenkMeldekort> = hentFane(command, saksbehandlerToken) { benkV2Repo.hentMeldekort(it) }
 
     suspend fun hentKlager(
-        command: HentBenkV2Command<BenkKlageFiltrering, BenkKlageKolonne>,
+        command: HentBenkV2Kommando<BenkKlageFiltrering, BenkKlageKolonne>,
         saksbehandlerToken: String,
     ): BenkV2Respons<BenkKlagebehandling> = hentFane(command, saksbehandlerToken) { benkV2Repo.hentKlager(it) }
 
     suspend fun hentTilbakekrevinger(
-        command: HentBenkV2Command<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
+        command: HentBenkV2Kommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         saksbehandlerToken: String,
     ): BenkV2Respons<BenkTilbakekreving> = hentFane(command, saksbehandlerToken) { benkV2Repo.hentTilbakekrevinger(it) }
 
     private suspend fun <F : BenkV2Filtrering, K : BenkV2SorteringKolonne, T : BenkV2Behandling> hentFane(
-        command: HentBenkV2Command<F, K>,
+        command: HentBenkV2Kommando<F, K>,
         saksbehandlerToken: String,
-        hent: (HentBenkV2Command<F, K>) -> BenkV2Oversikt<T>,
+        hent: (HentBenkV2Kommando<F, K>) -> BenkV2Oversikt<T>,
     ): BenkV2Respons<T> {
         val antallPerFane = benkV2Repo.hentAntallPerFane()
         val oversikt = hent(command)

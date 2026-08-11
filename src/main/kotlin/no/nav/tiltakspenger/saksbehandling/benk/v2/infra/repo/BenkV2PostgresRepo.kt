@@ -43,7 +43,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Repo
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Sortering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Ventestatus
-import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Command
+import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Kommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import org.intellij.lang.annotations.Language
@@ -66,7 +66,7 @@ class BenkV2PostgresRepo(
 ) : BenkV2Repo {
 
     override fun hentSøknader(
-        command: HentBenkV2Command<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
+        command: HentBenkV2Kommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkSøknadsbehandling> = sessionFactory.withSession(sessionContext) { session ->
@@ -84,7 +84,7 @@ class BenkV2PostgresRepo(
     }
 
     override fun hentRevurderinger(
-        command: HentBenkV2Command<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
+        command: HentBenkV2Kommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkRevurdering> = sessionFactory.withSession(sessionContext) { session ->
@@ -102,7 +102,7 @@ class BenkV2PostgresRepo(
     }
 
     override fun hentMeldekort(
-        command: HentBenkV2Command<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
+        command: HentBenkV2Kommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkMeldekort> = sessionFactory.withSession(sessionContext) { session ->
@@ -120,7 +120,7 @@ class BenkV2PostgresRepo(
     }
 
     override fun hentKlager(
-        command: HentBenkV2Command<BenkKlageFiltrering, BenkKlageKolonne>,
+        command: HentBenkV2Kommando<BenkKlageFiltrering, BenkKlageKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkKlagebehandling> = sessionFactory.withSession(sessionContext) { session ->
@@ -138,7 +138,7 @@ class BenkV2PostgresRepo(
     }
 
     override fun hentTilbakekrevinger(
-        command: HentBenkV2Command<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
+        command: HentBenkV2Kommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkTilbakekreving> = sessionFactory.withSession(sessionContext) { session ->
@@ -358,16 +358,24 @@ class BenkV2PostgresRepo(
             ) siste
                 join sak s on s.id = siste.sak_id
                 join meldeperiode mp on mp.id = siste.meldeperiode_id
-            /*
-             * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere enn eller samtidig med innsendingen.
-             * Da er meldekortet potensielt allerede tatt stilling til.
-             */
-            where not exists (
-                select 1 from meldekortbehandling mb
-                where mb.sak_id = siste.sak_id
-                  and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', siste.meldeperiode_kjede_id))
-                  and mb.sist_endret >= siste.mottatt
-            )
+                /*
+                 * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere enn eller samtidig med innsendingen.
+                 * Da er meldekortet potensielt allerede tatt stilling til.
+                 *
+                 * Skrevet som en lateral framfor `not exists` for å tvinge ett indeksoppslag per meldekort.
+                 * Som anti-join la planleggeren en hash over hele meldekortbehandling — inkludert all historikk — fordi `@>` ikke kan være en hash-condition.
+                 * Målt mot Postgres 17 ved 50k meldekortbehandlinger: 21ms som anti-join, 7ms som lateral.
+                 * sak_id-betingelsen er bærende: kjedeId er bare datointervallet, og er ikke unik på tvers av saker.
+                 * Det telles framfor `limit 1` + null-sjekk fordi IDE-analysen feilaktig flagger null-sjekken som alltid false — den modellerer ikke null-paddingen fra left join.
+                 */
+                left join lateral (
+                    select count(*) as antall
+                    from meldekortbehandling mb
+                    where mb.sak_id = siste.sak_id
+                      and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', siste.meldeperiode_kjede_id))
+                      and mb.sist_endret >= siste.mottatt
+                ) behandlet on true
+            where behandlet.antall = 0
         """
 
         /**

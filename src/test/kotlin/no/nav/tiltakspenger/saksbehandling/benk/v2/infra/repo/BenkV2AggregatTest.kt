@@ -31,7 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Filtrering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Sortering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2SorteringRetning
-import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Command
+import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Kommando
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
@@ -74,7 +74,7 @@ class BenkV2AggregatTest {
         filtrering: F,
         kolonne: K,
         retning: BenkV2SorteringRetning = BenkV2SorteringRetning.ASC,
-    ) = HentBenkV2Command(
+    ) = HentBenkV2Kommando(
         filtrering = filtrering,
         sortering = BenkV2Sortering(kolonne, retning),
         saksbehandler = ObjectMother.saksbehandler(),

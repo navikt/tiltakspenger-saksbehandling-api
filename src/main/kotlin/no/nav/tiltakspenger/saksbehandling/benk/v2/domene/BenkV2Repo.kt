@@ -12,31 +12,31 @@ interface BenkV2Repo {
     }
 
     fun hentSøknader(
-        command: HentBenkV2Command<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
+        command: HentBenkV2Kommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         sessionContext: SessionContext? = null,
         limit: Int = DEFAULT_LIMIT,
     ): BenkV2Oversikt<BenkSøknadsbehandling>
 
     fun hentRevurderinger(
-        command: HentBenkV2Command<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
+        command: HentBenkV2Kommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         sessionContext: SessionContext? = null,
         limit: Int = DEFAULT_LIMIT,
     ): BenkV2Oversikt<BenkRevurdering>
 
     fun hentMeldekort(
-        command: HentBenkV2Command<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
+        command: HentBenkV2Kommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         sessionContext: SessionContext? = null,
         limit: Int = DEFAULT_LIMIT,
     ): BenkV2Oversikt<BenkMeldekort>
 
     fun hentKlager(
-        command: HentBenkV2Command<BenkKlageFiltrering, BenkKlageKolonne>,
+        command: HentBenkV2Kommando<BenkKlageFiltrering, BenkKlageKolonne>,
         sessionContext: SessionContext? = null,
         limit: Int = DEFAULT_LIMIT,
     ): BenkV2Oversikt<BenkKlagebehandling>
 
     fun hentTilbakekrevinger(
-        command: HentBenkV2Command<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
+        command: HentBenkV2Kommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         sessionContext: SessionContext? = null,
         limit: Int = DEFAULT_LIMIT,
     ): BenkV2Oversikt<BenkTilbakekreving>

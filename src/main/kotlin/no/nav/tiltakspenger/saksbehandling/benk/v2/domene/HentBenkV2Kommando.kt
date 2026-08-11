@@ -62,7 +62,7 @@ data class BenkTilbakekrevingFiltrering(
  * Ett kall henter én fane.
  * Kommandoen er derfor generisk over fanens filter og fanens sorteringskolonner, slik at feil kombinasjon ikke kompilerer.
  */
-data class HentBenkV2Command<F : BenkV2Filtrering, K : BenkV2SorteringKolonne>(
+data class HentBenkV2Kommando<F : BenkV2Filtrering, K : BenkV2SorteringKolonne>(
     val filtrering: F,
     val sortering: BenkV2Sortering<K>,
     override val saksbehandler: Saksbehandler,

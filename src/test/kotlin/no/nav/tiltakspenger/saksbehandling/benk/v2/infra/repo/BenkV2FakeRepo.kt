@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkTilbakekrevingKolo
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2AntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Oversikt
 import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Repo
-import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Command
+import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Kommando
 
 /**
  * Benk v2 har ingen in-memory-implementasjon, og skal ikke få en.
@@ -33,31 +33,31 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.HentBenkV2Command
 class BenkV2FakeRepo : BenkV2Repo {
 
     override fun hentSøknader(
-        command: HentBenkV2Command<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
+        command: HentBenkV2Kommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkSøknadsbehandling> = kreverPostgres()
 
     override fun hentRevurderinger(
-        command: HentBenkV2Command<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
+        command: HentBenkV2Kommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkRevurdering> = kreverPostgres()
 
     override fun hentMeldekort(
-        command: HentBenkV2Command<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
+        command: HentBenkV2Kommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkMeldekort> = kreverPostgres()
 
     override fun hentKlager(
-        command: HentBenkV2Command<BenkKlageFiltrering, BenkKlageKolonne>,
+        command: HentBenkV2Kommando<BenkKlageFiltrering, BenkKlageKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkKlagebehandling> = kreverPostgres()
 
     override fun hentTilbakekrevinger(
-        command: HentBenkV2Command<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
+        command: HentBenkV2Kommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
     ): BenkV2Oversikt<BenkTilbakekreving> = kreverPostgres()
