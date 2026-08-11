@@ -25,6 +25,7 @@ sealed interface BenkV2Filtrering {
 data class BenkSøknaderFiltrering(
     val status: BenkV2Behandlingsstatus?,
     val søknadstype: BenkSøknadstype?,
+    val resultat: BenkSøknadsbehandlingResultat?,
     override val saksbehandler: String?,
     override val skjulPåVent: Boolean = false,
 ) : BenkV2Filtrering

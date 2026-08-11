@@ -37,7 +37,7 @@ data class BenkSøknadsbehandlingDTO(
     val status: BenkV2BehandlingsstatusDTO,
     val søknadstype: BenkSøknadstypeDTO,
     val kravtidspunkt: String,
-    val resultat: BenkSøknadsbehandlingResultatDTO?,
+    val resultat: BenkSøknadsbehandlingResultatDTO,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkV2BehandlingDTO
 
@@ -55,7 +55,7 @@ fun BenkSøknadsbehandling.toDTO(saksbehandler: Saksbehandler): BenkSøknadsbeha
     status = status.toDTO(),
     søknadstype = søknadstype.toDTO(),
     kravtidspunkt = kravtidspunkt.toString(),
-    resultat = resultat?.toDTO(),
+    resultat = resultat.toDTO(),
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),
 )
 
@@ -79,4 +79,10 @@ fun BenkSøknadstypeDTO.tilDomene(): BenkSøknadstype = when (this) {
     BenkSøknadstypeDTO.PAPIR_FRIHAND -> BenkSøknadstype.PAPIR_FRIHAND
     BenkSøknadstypeDTO.MODIA -> BenkSøknadstype.MODIA
     BenkSøknadstypeDTO.ANNET -> BenkSøknadstype.ANNET
+}
+
+fun BenkSøknadsbehandlingResultatDTO.tilDomene(): BenkSøknadsbehandlingResultat = when (this) {
+    BenkSøknadsbehandlingResultatDTO.INNVILGELSE -> BenkSøknadsbehandlingResultat.INNVILGELSE
+    BenkSøknadsbehandlingResultatDTO.AVSLAG -> BenkSøknadsbehandlingResultat.AVSLAG
+    BenkSøknadsbehandlingResultatDTO.IKKE_VALGT -> BenkSøknadsbehandlingResultat.IKKE_VALGT
 }

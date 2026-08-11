@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.tilSortering
 import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto.BenkKlagebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto.BenkMeldekortTypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto.BenkRevurderingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto.BenkSøknadsbehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto.BenkSøknadstypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto.BenkTilbakekrevingKildeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.routes.dto.BenkTilbakekrevingStatusDTO
@@ -90,6 +91,7 @@ private suspend fun RoutingContext.svarMedSøknader(
             filtrering = BenkSøknaderFiltrering(
                 status = body.filters.status?.tilDomene(),
                 søknadstype = body.filters.søknadstype?.tilDomene(),
+                resultat = body.filters.resultat?.tilDomene(),
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
             ),
@@ -231,6 +233,7 @@ private data class HentSøknaderBody(
     data class Filters(
         val status: BenkV2BehandlingsstatusDTO? = null,
         val søknadstype: BenkSøknadstypeDTO? = null,
+        val resultat: BenkSøknadsbehandlingResultatDTO? = null,
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
     )

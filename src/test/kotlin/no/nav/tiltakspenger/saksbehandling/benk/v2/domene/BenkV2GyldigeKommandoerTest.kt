@@ -60,7 +60,7 @@ class BenkV2GyldigeKommandoerTest {
         status = status,
         søknadstype = BenkSøknadstype.DIGITAL,
         kravtidspunkt = felles.startet,
-        resultat = null,
+        resultat = BenkSøknadsbehandlingResultat.IKKE_VALGT,
     )
 
     private fun meldekort(

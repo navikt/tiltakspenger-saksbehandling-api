@@ -52,7 +52,8 @@ data class BenkSøknadsbehandling(
     val status: BenkV2Behandlingsstatus,
     val søknadstype: BenkSøknadstype,
     val kravtidspunkt: LocalDateTime,
-    val resultat: BenkSøknadsbehandlingResultat?,
+    /** Basen lagrer null fram til noe er valgt — benken kaller det [BenkSøknadsbehandlingResultat.IKKE_VALGT]. */
+    val resultat: BenkSøknadsbehandlingResultat,
 ) : BenkV2Behandling
 
 data class BenkRevurdering(

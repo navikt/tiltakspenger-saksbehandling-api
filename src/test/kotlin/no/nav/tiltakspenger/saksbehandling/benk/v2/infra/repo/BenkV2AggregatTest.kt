@@ -87,11 +87,12 @@ class BenkV2AggregatTest {
     private fun søknaderCommand(
         status: BenkV2Behandlingsstatus? = null,
         søknadstype: BenkSøknadstype? = null,
+        resultat: BenkSøknadsbehandlingResultat? = null,
         saksbehandler: String? = null,
         kolonne: BenkSøknaderKolonne = BenkSøknaderKolonne.KRAVTIDSPUNKT,
         retning: BenkV2SorteringRetning = BenkV2SorteringRetning.ASC,
         skjulPåVent: Boolean = false,
-    ) = command(BenkSøknaderFiltrering(status, søknadstype, saksbehandler, skjulPåVent), kolonne, retning)
+    ) = command(BenkSøknaderFiltrering(status, søknadstype, resultat, saksbehandler, skjulPåVent), kolonne, retning)
 
     private fun revurderingerCommand(
         status: BenkV2Behandlingsstatus? = null,
@@ -203,7 +204,7 @@ class BenkV2AggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `søknadsfanen filtrerer på status, søknadstype og saksbehandler`() {
+    fun `søknadsfanen filtrerer på status, søknadstype, resultat og saksbehandler`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sakKlarTilBehandling) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
             val (sakUnderBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
@@ -219,6 +220,15 @@ class BenkV2AggregatTest {
                 it.totalAntall shouldBe 0
                 it.totalAntallUfiltrert shouldBe 2
                 it.behandlinger shouldBe emptyList()
+            }
+            repo.hentSøknader(søknaderCommand(resultat = BenkSøknadsbehandlingResultat.INNVILGELSE)).let {
+                it.totalAntall shouldBe 1
+                it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
+            }
+            repo.hentSøknader(søknaderCommand(resultat = BenkSøknadsbehandlingResultat.AVSLAG)).totalAntall shouldBe 0
+            repo.hentSøknader(søknaderCommand(resultat = BenkSøknadsbehandlingResultat.IKKE_VALGT)).let {
+                it.totalAntall shouldBe 1
+                it.behandlinger.single().felles.sakId shouldBe sakKlarTilBehandling.id
             }
             repo.hentSøknader(søknaderCommand(saksbehandler = ObjectMother.saksbehandler().navIdent)).let {
                 it.totalAntall shouldBe 1
@@ -278,19 +288,19 @@ class BenkV2AggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `søknadsfanen sorterer på resultat, med rader uten resultat sist uansett retning`() {
+    fun `søknadsfanen sorterer på resultat, der ikke-valgt er en vanlig verdi`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sakAvslag) = opprettSøknadsbehandlingUnderBehandlingMedAvslag(tac = tac)
             val (sakInnvilgelse) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
-            val (sakUtenResultat) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            val (sakIkkeValgt) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
             val repo = tac.benkV2Context.benkV2Repo
 
             fun sorterteSaker(retning: BenkV2SorteringRetning) =
                 repo.hentSøknader(søknaderCommand(kolonne = BenkSøknaderKolonne.RESULTAT, retning = retning))
                     .behandlinger.map { it.felles.sakId }
 
-            sorterteSaker(BenkV2SorteringRetning.ASC) shouldBe listOf(sakAvslag.id, sakInnvilgelse.id, sakUtenResultat.id)
-            sorterteSaker(BenkV2SorteringRetning.DESC) shouldBe listOf(sakInnvilgelse.id, sakAvslag.id, sakUtenResultat.id)
+            sorterteSaker(BenkV2SorteringRetning.ASC) shouldBe listOf(sakAvslag.id, sakIkkeValgt.id, sakInnvilgelse.id)
+            sorterteSaker(BenkV2SorteringRetning.DESC) shouldBe listOf(sakInnvilgelse.id, sakIkkeValgt.id, sakAvslag.id)
         }
     }
 

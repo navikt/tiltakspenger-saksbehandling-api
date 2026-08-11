@@ -79,6 +79,7 @@ class BenkV2PostgresRepo(
             params = command.filtrering.tilParams() + arrayOf(
                 "status" to command.filtrering.status.tilParam(),
                 "soknadstype" to command.filtrering.søknadstype.tilParam(),
+                "resultat" to command.filtrering.resultat.tilParam(),
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
@@ -238,6 +239,8 @@ class BenkV2PostgresRepo(
          *
          * Søknadsfanen viser bare åpne søknadsbehandlinger.
          * Søknader som ingen har tatt tak i ennå, er ikke behandlinger og hører ikke hjemme på benken.
+         *
+         * Resultatet er null i basen fram til saksbehandler har valgt noe — benken kaller det IKKE_VALGT, slik at filter og visning har en reell verdi å forholde seg til.
          */
         @Language("PostgreSQL")
         const val SØKNADER = """
@@ -256,7 +259,7 @@ class BenkV2PostgresRepo(
                 b.status::text              as status,
                 sø.soknadstype::text        as søknadstype,
                 sø.opprettet                as kravtidspunkt,
-                b.resultat::text            as resultat,
+                coalesce(b.resultat, 'IKKE_VALGT') as resultat,
                 b.id                        as id
             from behandling b
                 join søknad sø on sø.id = b.soknad_id
@@ -477,6 +480,7 @@ class BenkV2PostgresRepo(
         const val SØKNADER_FILTER = """
             (:status::text is null or status = :status::text)
             and (:soknadstype::text is null or søknadstype = :soknadstype::text)
+            and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
         """
@@ -562,7 +566,7 @@ private fun Row.tilSøknadsbehandling(): BenkSøknadsbehandling = BenkSøknadsbe
     status = tilBehandlingsstatus(),
     søknadstype = enum("søknadstype", BenkSøknadstype.entries),
     kravtidspunkt = localDateTime("kravtidspunkt"),
-    resultat = enumOrNull("resultat", BenkSøknadsbehandlingResultat.entries),
+    resultat = enum("resultat", BenkSøknadsbehandlingResultat.entries),
 )
 
 private fun Row.tilRevurdering(): BenkRevurdering = BenkRevurdering(
