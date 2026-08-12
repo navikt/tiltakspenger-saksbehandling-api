@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
  * `null` betyr «ikke filtrert».
  *
  * [saksbehandler] er ett felt som treffer både saksbehandler og beslutter, fordi benken har én nedtrekksliste for de to.
- * Verdien [IKKE_TILDELT] betyr at behandlingen ikke er plukket opp av noen.
+ * Verdien [IKKE_TILDELT] betyr at saksbehandler eller beslutter (eller begge) ikke er tildelt.
+ * [IKKE_TILDELT_SAKSBEHANDLER] treffer raden som ikke har saksbehandler.
+ * [IKKE_TILDELT_BESLUTTER] treffer raden som har saksbehandler, men ikke beslutter.
  *
  * [skjulPåVent] tar bort behandlingene som er satt på vent, for saksbehandlere som vil se køen av det som faktisk kan jobbes med.
  *
@@ -23,6 +25,8 @@ sealed interface BenkFiltrering {
 
     companion object {
         const val IKKE_TILDELT: String = "IKKE_TILDELT"
+        const val IKKE_TILDELT_SAKSBEHANDLER: String = "IKKE_TILDELT_SAKSBEHANDLER"
+        const val IKKE_TILDELT_BESLUTTER: String = "IKKE_TILDELT_BESLUTTER"
     }
 }
 

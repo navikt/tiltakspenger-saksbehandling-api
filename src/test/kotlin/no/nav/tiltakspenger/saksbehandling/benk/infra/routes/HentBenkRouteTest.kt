@@ -103,6 +103,11 @@ class HentBenkRouteTest {
                 tac,
                 "/benk/soknader",
                 """{"filters": {"saksbehandler": "IKKE_TILDELT"}}""",
+            ).let { it.antallIOversikten() shouldBe 2 }
+            hentBenk(
+                tac,
+                "/benk/soknader",
+                """{"filters": {"saksbehandler": "IKKE_TILDELT_SAKSBEHANDLER"}}""",
             ).let { it.antallIOversikten() shouldBe 1 }
             hentBenk(tac, "/benk/soknader", """{}""").let { it.antallIOversikten() shouldBe 2 }
         }

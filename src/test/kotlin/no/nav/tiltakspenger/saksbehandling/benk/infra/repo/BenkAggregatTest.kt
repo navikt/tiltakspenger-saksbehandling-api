@@ -267,9 +267,14 @@ class BenkAggregatTest {
                 it.totalAntall shouldBe 1
                 it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
             }
-            repo.hentSøknader(søknaderCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).let {
+            repo.hentSøknader(søknaderCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).totalAntall shouldBe 2
+            repo.hentSøknader(søknaderCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER)).let {
                 it.totalAntall shouldBe 1
                 it.behandlinger.single().felles.sakId shouldBe sakKlarTilBehandling.id
+            }
+            repo.hentSøknader(søknaderCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_BESLUTTER)).let {
+                it.totalAntall shouldBe 1
+                it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
             }
         }
     }
@@ -292,6 +297,36 @@ class BenkAggregatTest {
             oversikt.behandlinger.single { it.felles.sakId == sakUnderBeslutning.id }.let {
                 it.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
                 it.felles.beslutter shouldBe saksbehandlerOgBeslutter.navIdent
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `søknadsfanen filtrerer på ikke-tildelt saksbehandler, beslutter eller begge`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            // Ingen av rollene tildelt — treffes av IKKE_TILDELT og IKKE_TILDELT_SAKSBEHANDLER.
+            val (sakKlarTilBehandling) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            // Kun saksbehandler tildelt — treffes av IKKE_TILDELT og IKKE_TILDELT_BESLUTTER.
+            val (sakUnderBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            // Begge rollene tildelt — treffes ikke av noen av filtrene.
+            val (sakUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            taBehandling(tac, sakUnderBeslutning.id, underBeslutningId, ObjectMother.beslutter())
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentSøknader(søknaderCommand()).totalAntall shouldBe 3
+            repo.hentSøknader(søknaderCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).let {
+                it.totalAntall shouldBe 2
+                it.behandlinger.map { b -> b.felles.sakId }.toSet() shouldBe
+                    setOf(sakKlarTilBehandling.id, sakUnderBehandling.id)
+            }
+            repo.hentSøknader(søknaderCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER)).let {
+                it.totalAntall shouldBe 1
+                it.behandlinger.single().felles.sakId shouldBe sakKlarTilBehandling.id
+            }
+            repo.hentSøknader(søknaderCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_BESLUTTER)).let {
+                it.totalAntall shouldBe 1
+                it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
             }
         }
     }
@@ -466,6 +501,9 @@ class BenkAggregatTest {
             ).totalAntall shouldBe 0
             repo.hentRevurderinger(
                 revurderingerCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT),
+            ).totalAntall shouldBe 1
+            repo.hentRevurderinger(
+                revurderingerCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER),
             ).totalAntall shouldBe 0
         }
     }
@@ -523,7 +561,10 @@ class BenkAggregatTest {
             repo.hentMeldekort(
                 meldekortCommand(status = BenkBehandlingsstatus.KLAR_TIL_BESLUTNING),
             ).totalAntall shouldBe 1
-            repo.hentMeldekort(meldekortCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).totalAntall shouldBe 0
+            repo.hentMeldekort(meldekortCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).totalAntall shouldBe 2
+            repo.hentMeldekort(
+                meldekortCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER),
+            ).totalAntall shouldBe 0
         }
     }
 
@@ -769,7 +810,8 @@ class BenkAggregatTest {
             repo.hentKlager(klageCommand(resultat = BenkKlagebehandlingResultat.OMGJØR)).totalAntall shouldBe 0
             repo.hentKlager(klageCommand(status = BenkBehandlingsstatus.UNDER_BEHANDLING)).totalAntall shouldBe 3
             repo.hentKlager(klageCommand(saksbehandler = saksbehandler.navIdent)).totalAntall shouldBe 3
-            repo.hentKlager(klageCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).totalAntall shouldBe 0
+            repo.hentKlager(klageCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).totalAntall shouldBe 3
+            repo.hentKlager(klageCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER)).totalAntall shouldBe 0
         }
     }
 
@@ -855,6 +897,9 @@ class BenkAggregatTest {
             repo.hentTilbakekrevinger(
                 tilbakekrevingCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT),
             ).totalAntall shouldBe 2
+            repo.hentTilbakekrevinger(
+                tilbakekrevingCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_BESLUTTER),
+            ).totalAntall shouldBe 0
             // Minstebeløpsfilteret er benkens eneste tallfilter, og skal kutte begge veier.
             repo.hentTilbakekrevinger(tilbakekrevingCommand(minstebeløp = 1)).totalAntall shouldBe 2
             repo.hentTilbakekrevinger(tilbakekrevingCommand(minstebeløp = 1_000_000)).totalAntall shouldBe 0

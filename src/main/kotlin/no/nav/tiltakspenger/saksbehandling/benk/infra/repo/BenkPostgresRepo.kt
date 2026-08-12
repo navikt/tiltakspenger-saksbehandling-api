@@ -482,13 +482,17 @@ class BenkPostgresRepo(
 
         /**
          * Én nedtrekksliste på benken dekker både saksbehandler og beslutter, så filteret treffer begge.
-         * `IKKE_TILDELT` betyr at ingen har plukket opp behandlingen, altså at saksbehandler er tom.
+         * `IKKE_TILDELT` betyr at minst én av rollene er ledig, altså at saksbehandler eller beslutter er tom.
+         * `IKKE_TILDELT_SAKSBEHANDLER` treffer raden som ikke har saksbehandler.
+         * `IKKE_TILDELT_BESLUTTER` treffer raden som har saksbehandler, men ikke beslutter.
          */
         const val SAKSBEHANDLER_FILTER = """
             (
                 :saksbehandler::text is null
-                or (:saksbehandler::text = 'IKKE_TILDELT' and saksbehandler is null)
-                or (:saksbehandler::text <> 'IKKE_TILDELT'
+                or (:saksbehandler::text = 'IKKE_TILDELT' and (saksbehandler is null or beslutter is null))
+                or (:saksbehandler::text = 'IKKE_TILDELT_SAKSBEHANDLER' and saksbehandler is null)
+                or (:saksbehandler::text = 'IKKE_TILDELT_BESLUTTER' and saksbehandler is not null and beslutter is null)
+                or (:saksbehandler::text not in ('IKKE_TILDELT', 'IKKE_TILDELT_SAKSBEHANDLER', 'IKKE_TILDELT_BESLUTTER')
                     and (saksbehandler = :saksbehandler::text or beslutter = :saksbehandler::text))
             )
         """
