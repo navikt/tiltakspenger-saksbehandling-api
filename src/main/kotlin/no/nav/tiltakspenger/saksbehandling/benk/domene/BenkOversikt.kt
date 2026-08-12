@@ -7,11 +7,15 @@ import no.nav.tiltakspenger.libs.common.Fnr
  *
  * [totalAntall] er antallet som matcher filteret, altså før [BenkRepo.DEFAULT_LIMIT] kutter.
  * [totalAntallUfiltrert] er antallet i fanen uten filter, slik at benken kan si hvor mange filteret tok bort.
+ *
+ * [saksbehandlere] og [besluttere] er identene som er tildelt en rad i fanen, uten filter — nedtrekkslisten i benken viser dem som filtervalg.
  */
 data class BenkOversikt<T : BenkBehandling>(
     val behandlinger: List<T>,
     val totalAntall: Int,
     val totalAntallUfiltrert: Int,
+    val saksbehandlere: List<String>,
+    val besluttere: List<String>,
 ) {
     fun isEmpty(): Boolean = behandlinger.isEmpty()
 

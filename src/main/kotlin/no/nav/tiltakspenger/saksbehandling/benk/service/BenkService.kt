@@ -80,6 +80,8 @@ class BenkService(
                     totalAntall = oversikt.totalAntall,
                     totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
                     antallFiltrertPgaTilgang = 0,
+                    saksbehandlere = oversikt.saksbehandlere,
+                    besluttere = oversikt.besluttere,
                 ),
             )
         }
@@ -99,6 +101,8 @@ class BenkService(
                 totalAntall = oversikt.totalAntall,
                 totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
                 antallFiltrertPgaTilgang = oversikt.behandlinger.size - medTilgang.behandlinger.size,
+                saksbehandlere = oversikt.saksbehandlere,
+                besluttere = oversikt.besluttere,
             ),
         )
     }

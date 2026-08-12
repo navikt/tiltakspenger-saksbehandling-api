@@ -198,7 +198,9 @@ class BenkPostgresRepo(
     /**
      * Kjører de to spørringene én fane består av.
      *
-     * `!!` på tellespørringen er trygt: den er en ren aggregering uten `from`-tabell, og gir alltid nøyaktig én rad.
+     * Tellespørringen er én aggregering over basespørringen, og gir alltid nøyaktig én rad — også når fanen er tom.
+     * Den gir begge totalene og identlistene i samme skann, slik at listene ikke koster et eget gjennomløp av basen.
+     * Identene er ufiltrerte: nedtrekkslisten skal vise hvem som finnes i fanen, ikke bare hvem det allerede er filtrert på.
      */
     private fun <T : BenkBehandling> Session.hentFane(
         @Language("PostgreSQL") base: String,
@@ -212,11 +214,20 @@ class BenkPostgresRepo(
             sqlQuery(
                 """
                 select
-                    (select count(*) from ($base) ufiltrert)                     as total_ufiltrert,
-                    (select count(*) from ($base) filtrert where $filterSql)     as total_filtrert
+                    count(*)                                                 as total_ufiltrert,
+                    count(*) filter (where $filterSql)                       as total_filtrert,
+                    coalesce(to_jsonb(array_agg(distinct saksbehandler) filter (where saksbehandler is not null)), '[]'::jsonb) as saksbehandlere,
+                    coalesce(to_jsonb(array_agg(distinct beslutter) filter (where beslutter is not null)), '[]'::jsonb)         as besluttere
+                from ($base) fane
                 """.trimIndent(),
                 *params,
-            ).map { it.int("total_ufiltrert") to it.int("total_filtrert") }.asSingle,
+            ).map {
+                Triple(
+                    it.int("total_ufiltrert") to it.int("total_filtrert"),
+                    deserialize<List<String>>(it.string("saksbehandlere")).sorted(),
+                    deserialize<List<String>>(it.string("besluttere")).sorted(),
+                )
+            }.asSingle,
         )!!
 
         val behandlinger = run(
@@ -234,8 +245,10 @@ class BenkPostgresRepo(
 
         return BenkOversikt(
             behandlinger = behandlinger,
-            totalAntall = totaler.second,
-            totalAntallUfiltrert = totaler.first,
+            totalAntall = totaler.first.second,
+            totalAntallUfiltrert = totaler.first.first,
+            saksbehandlere = totaler.second,
+            besluttere = totaler.third,
         )
     }
 

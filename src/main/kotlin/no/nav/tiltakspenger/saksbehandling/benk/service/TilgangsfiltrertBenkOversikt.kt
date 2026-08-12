@@ -10,12 +10,16 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
  * [totalAntall] og [totalAntallUfiltrert] er tellinger fra databasen, og er derfor ikke tilgangsfiltrert.
  * Benken bruker dem til å si hvor mye filtervalgene tok bort, mens [antallFiltrertPgaTilgang] sier hvor mye tilgangen tok bort.
  * De to tallene svarer på hvert sitt spørsmål, og skal derfor ikke slås sammen.
+ *
+ * [saksbehandlere] og [besluttere] er identene tildelt en rad i fanen, ufiltrert — de er kollegaer av saksbehandler, så tilgangsfiltreringen gjelder dem ikke.
  */
 data class TilgangsfiltrertBenkOversikt<T : BenkBehandling>(
     val behandlinger: List<T>,
     val totalAntall: Int,
     val totalAntallUfiltrert: Int,
     val antallFiltrertPgaTilgang: Int,
+    val saksbehandlere: List<String>,
+    val besluttere: List<String>,
 ) {
     val limit = BenkRepo.DEFAULT_LIMIT
 }

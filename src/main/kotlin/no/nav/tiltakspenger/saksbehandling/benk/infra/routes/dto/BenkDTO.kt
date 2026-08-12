@@ -37,6 +37,9 @@ data class BenkOversiktDTO(
     val totalAntallUfiltrert: Int,
     val antallFiltrertPgaTilgang: Int,
     val limit: Int,
+    /** Identene tildelt en rad i fanen, ufiltrert — valgene i benkens nedtrekksliste for saksbehandler/beslutter. */
+    val saksbehandlere: List<String>,
+    val besluttere: List<String>,
 )
 
 enum class BenkFaneDTO {
@@ -120,6 +123,8 @@ private fun <T : BenkBehandling> TilgangsfiltrertBenkOversikt<T>.toDTO(saksbehan
     totalAntallUfiltrert = totalAntallUfiltrert,
     antallFiltrertPgaTilgang = antallFiltrertPgaTilgang,
     limit = limit,
+    saksbehandlere = saksbehandlere,
+    besluttere = besluttere,
 )
 
 private fun BenkBehandling.toDTO(saksbehandler: Saksbehandler): BenkBehandlingDTO = when (this) {

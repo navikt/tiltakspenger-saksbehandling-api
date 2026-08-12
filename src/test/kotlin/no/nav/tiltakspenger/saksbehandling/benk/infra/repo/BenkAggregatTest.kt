@@ -298,6 +298,34 @@ class BenkAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
+    fun `søknadsfanen gir identene som er tildelt en rad i fanen, ufiltrert`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            // To rader med samme saksbehandler for å pinne at listen er distinct.
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val (sakTilBeslutning, _, tilBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(
+                tac = tac,
+                saksbehandler = ObjectMother.saksbehandler("Z999999"),
+            )
+            taBehandling(tac, sakTilBeslutning.id, tilBeslutningId, ObjectMother.beslutter())
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentSøknader(søknaderCommand()).let {
+                it.saksbehandlere shouldBe listOf("Z12345", "Z999999")
+                it.besluttere shouldBe listOf("B12345")
+            }
+
+            // Listene er ufiltrerte: en ident som filteret tar bort, skal fortsatt være et valg i nedtrekkslisten.
+            repo.hentSøknader(søknaderCommand(saksbehandler = "Z999999")).let {
+                it.totalAntall shouldBe 1
+                it.saksbehandlere shouldBe listOf("Z12345", "Z999999")
+                it.besluttere shouldBe listOf("B12345")
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
     fun `søknadsfanen skjuler behandlinger innlogget saksbehandler har sendt til beslutning`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             // Kommandoens saksbehandler er ObjectMother.saksbehandler(), som også er standarden i byggerne.

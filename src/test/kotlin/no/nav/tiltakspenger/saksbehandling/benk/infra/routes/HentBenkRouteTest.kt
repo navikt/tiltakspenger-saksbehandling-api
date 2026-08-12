@@ -77,7 +77,9 @@ class HentBenkRouteTest {
                     "totalAntall": 1,
                     "totalAntallUfiltrert": 1,
                     "antallFiltrertPgaTilgang": 0,
-                    "limit": 500
+                    "limit": 500,
+                    "saksbehandlere": [],
+                    "besluttere": []
                   },
                   "error": null
                 }
