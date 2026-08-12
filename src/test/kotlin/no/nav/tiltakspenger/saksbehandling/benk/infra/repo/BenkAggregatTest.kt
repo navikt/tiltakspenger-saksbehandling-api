@@ -66,6 +66,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
@@ -110,21 +111,34 @@ class BenkAggregatTest {
         kolonne: BenkSøknaderKolonne = BenkSøknaderKolonne.KRAVTIDSPUNKT,
         retning: BenkSorteringRetning = BenkSorteringRetning.ASC,
         skjulPåVent: Boolean = false,
-    ) = command(BenkSøknaderFiltrering(status, søknadstype, resultat, saksbehandler, skjulPåVent), kolonne, retning)
+        skjulEgneTilBeslutning: Boolean = false,
+    ) = command(
+        BenkSøknaderFiltrering(status, søknadstype, resultat, saksbehandler, skjulPåVent, skjulEgneTilBeslutning),
+        kolonne,
+        retning,
+    )
 
     private fun revurderingerCommand(
         status: BenkBehandlingsstatus? = null,
         resultat: BenkRevurderingResultat? = null,
         saksbehandler: String? = null,
         skjulPåVent: Boolean = false,
-    ) = command(BenkRevurderingerFiltrering(status, resultat, saksbehandler, skjulPåVent), BenkRevurderingerKolonne.STARTET)
+        skjulEgneTilBeslutning: Boolean = false,
+    ) = command(
+        BenkRevurderingerFiltrering(status, resultat, saksbehandler, skjulPåVent, skjulEgneTilBeslutning),
+        BenkRevurderingerKolonne.STARTET,
+    )
 
     private fun meldekortCommand(
         status: BenkBehandlingsstatus? = null,
         type: BenkMeldekortType? = null,
         saksbehandler: String? = null,
         skjulPåVent: Boolean = false,
-    ) = command(BenkMeldekortFiltrering(status, type, saksbehandler, skjulPåVent), BenkMeldekortKolonne.PERIODE)
+        skjulEgneTilBeslutning: Boolean = false,
+    ) = command(
+        BenkMeldekortFiltrering(status, type, saksbehandler, skjulPåVent, skjulEgneTilBeslutning),
+        BenkMeldekortKolonne.PERIODE,
+    )
 
     private fun klageCommand(
         status: BenkBehandlingsstatus? = null,
@@ -139,9 +153,10 @@ class BenkAggregatTest {
         saksbehandler: String? = null,
         minstebeløp: Long = 0,
         skjulPåVent: Boolean = false,
+        skjulEgneTilBeslutning: Boolean = false,
         kolonne: BenkTilbakekrevingKolonne = BenkTilbakekrevingKolonne.STARTET,
     ) = command(
-        BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp, skjulPåVent),
+        BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp, skjulPåVent, skjulEgneTilBeslutning),
         kolonne,
     )
 
@@ -283,6 +298,34 @@ class BenkAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
+    fun `søknadsfanen skjuler behandlinger innlogget saksbehandler har sendt til beslutning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            // Kommandoens saksbehandler er ObjectMother.saksbehandler(), som også er standarden i byggerne.
+            val (sakEgenTilBeslutning) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            val (sakEgenUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            taBehandling(tac, sakEgenUnderBeslutning.id, underBeslutningId, ObjectMother.beslutter())
+            val (sakAnnensTilBeslutning) = sendSøknadsbehandlingTilBeslutning(
+                tac = tac,
+                saksbehandler = ObjectMother.saksbehandler("enAnnenSaksbehandler"),
+            )
+            val (sakEgenUnderBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentSøknader(søknaderCommand()).totalAntall shouldBe 4
+
+            repo.hentSøknader(søknaderCommand(skjulEgneTilBeslutning = true)).let {
+                it.totalAntall shouldBe 2
+                it.totalAntallUfiltrert shouldBe 4
+                it.behandlinger.none { rad -> rad.felles.sakId == sakEgenTilBeslutning.id } shouldBe true
+                it.behandlinger.none { rad -> rad.felles.sakId == sakEgenUnderBeslutning.id } shouldBe true
+                it.behandlinger.map { rad -> rad.felles.sakId }.toSet() shouldBe
+                    setOf(sakAnnensTilBeslutning.id, sakEgenUnderBehandling.id)
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
     fun `søknadsfanen sorterer stigende og synkende, og respekterer limit`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             // Behandlingene opprettes med samme tidsstempel, så fnr er den eneste kolonnen sorteringen kan observeres på her.
@@ -396,6 +439,27 @@ class BenkAggregatTest {
             repo.hentRevurderinger(
                 revurderingerCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT),
             ).totalAntall shouldBe 0
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `revurderingsfanen skjuler behandlinger innlogget saksbehandler har sendt til beslutning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
+            oppdaterRevurderingStans(tac = tac, sakId = sak.id, behandlingId = revurdering.id)
+            sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurdering.id)
+            // En revurdering under behandling hos samme saksbehandler skal fortsatt vises.
+            val (sakUnderBehandling) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentRevurderinger(revurderingerCommand()).totalAntall shouldBe 2
+
+            repo.hentRevurderinger(revurderingerCommand(skjulEgneTilBeslutning = true)).let {
+                it.totalAntall shouldBe 1
+                it.totalAntallUfiltrert shouldBe 2
+                it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
+            }
         }
     }
 
@@ -528,6 +592,25 @@ class BenkAggregatTest {
             repo.hentMeldekort(meldekortCommand(skjulPåVent = true)).let {
                 it.totalAntall shouldBe 0
                 it.totalAntallUfiltrert shouldBe 1
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `meldekortfanen skjuler behandlinger innlogget saksbehandler har sendt til beslutning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(tac = tac)!!
+            // En meldekortbehandling under behandling hos samme saksbehandler skal fortsatt vises.
+            val (sakUnderBehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac)!!
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 2
+
+            repo.hentMeldekort(meldekortCommand(skjulEgneTilBeslutning = true)).let {
+                it.totalAntall shouldBe 1
+                it.totalAntallUfiltrert shouldBe 2
+                it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
             }
         }
     }
@@ -813,6 +896,48 @@ class BenkAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
+    fun `tilbakekrevingsfanen skjuler behandlinger innlogget saksbehandler har sendt til godkjenning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sakTilGodkjenning, tilBehandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sakTilGodkjenning.id,
+                tilbakekrevingId = tilBehandling.id,
+                saksbehandler = ObjectMother.saksbehandler(),
+            )!!
+            sendTilbakekrevingHendelseOgKjørJobb(
+                tac = tac,
+                sak = tac.sakContext.sakRepo.hentForSakId(sakTilGodkjenning.id)!!,
+                tilbakeBehandlingId = tilBehandling.tilbakeBehandlingId,
+                behandlingsstatus = "TIL_GODKJENNING",
+                forrigeBehandlingsstatus = "TIL_BEHANDLING",
+            )
+            // En behandling under behandling hos samme saksbehandler skal fortsatt vises.
+            val (sakUnderBehandling, underBehandling) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sakUnderBehandling.id,
+                tilbakekrevingId = underBehandling.id,
+                saksbehandler = ObjectMother.saksbehandler(),
+            )!!
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentTilbakekrevinger(tilbakekrevingCommand()).let {
+                it.totalAntall shouldBe 2
+                it.behandlinger.single { rad -> rad.felles.sakId == sakTilGodkjenning.id }.status shouldBe
+                    BenkTilbakekrevingStatus.TIL_GODKJENNING
+            }
+
+            repo.hentTilbakekrevinger(tilbakekrevingCommand(skjulEgneTilBeslutning = true)).let {
+                it.totalAntall shouldBe 1
+                it.totalAntallUfiltrert shouldBe 2
+                it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
     fun `tilbakekrevingsfanen viser opprettede behandlinger, men ikke avsluttede`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             // Legacy-benken viste ikke OPPRETTET; v2 viser den bevisst, slik at saksbehandler ser behandlingen før noen har tatt den.
@@ -869,7 +994,7 @@ class BenkAggregatTest {
      * Sender en behandling_endret-hendelse fra tilbakekrevingskomponenten og kjører hendelsejobben, slik hendelsene flyter i prod.
      * Dekker tilstandene tilbakekreving-builderne ikke har egne funksjoner for: venter, OPPRETTET uten videre flyt og AVSLUTTET.
      */
-    private suspend fun sendTilbakekrevingHendelseOgKjørJobb(
+    private fun sendTilbakekrevingHendelseOgKjørJobb(
         tac: TestApplicationContextMedPostgres,
         sak: Sak,
         tilbakeBehandlingId: String,

@@ -94,6 +94,7 @@ private suspend fun RoutingContext.svarMedSøknader(
                 resultat = body.filters.resultat?.tilDomene(),
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
+                skjulEgneTilBeslutning = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkSøknaderKolonne.entries, BenkSøknaderKolonne.KRAVTIDSPUNKT),
             saksbehandler = saksbehandler,
@@ -117,6 +118,7 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
                 resultat = body.filters.resultat?.tilDomene(),
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
+                skjulEgneTilBeslutning = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkRevurderingerKolonne.entries, BenkRevurderingerKolonne.STARTET),
             saksbehandler = saksbehandler,
@@ -140,6 +142,7 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
                 type = body.filters.type?.tilDomene(),
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
+                skjulEgneTilBeslutning = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkMeldekortKolonne.entries, BenkMeldekortKolonne.PERIODE),
             saksbehandler = saksbehandler,
@@ -187,6 +190,7 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
                 saksbehandler = body.filters.saksbehandler,
                 minstebeløp = body.filters.minstebeløp(),
                 skjulPåVent = body.filters.skjulPåVent,
+                skjulEgneTilBeslutning = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkTilbakekrevingKolonne.entries, BenkTilbakekrevingKolonne.STARTET),
             saksbehandler = saksbehandler,
@@ -236,6 +240,7 @@ private data class HentSøknaderBody(
         val resultat: BenkSøknadsbehandlingResultatDTO? = null,
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
+        val skjulEgneTilBeslutning: Boolean = false,
     )
 }
 
@@ -248,6 +253,7 @@ private data class HentRevurderingerBody(
         val resultat: BenkRevurderingResultatDTO? = null,
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
+        val skjulEgneTilBeslutning: Boolean = false,
     )
 }
 
@@ -260,6 +266,7 @@ private data class HentMeldekortBody(
         val type: BenkMeldekortTypeDTO? = null,
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
+        val skjulEgneTilBeslutning: Boolean = false,
     )
 }
 
@@ -285,6 +292,7 @@ private data class HentTilbakekrevingBody(
         val saksbehandler: String? = null,
         val kunOverMinstebeløp: Boolean = false,
         val skjulPåVent: Boolean = false,
+        val skjulEgneTilBeslutning: Boolean = false,
     ) {
         fun minstebeløp(): Long = if (kunOverMinstebeløp) {
             TilbakekrevingBehandling.MINSTEBELØP_FOR_TILBAKEKREVING

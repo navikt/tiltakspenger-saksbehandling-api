@@ -72,11 +72,6 @@ data class BenkVentestatusDTO(
     val frist: String?,
 )
 
-data class BenkPeriodeDTO(
-    val fraOgMed: String,
-    val tilOgMed: String,
-)
-
 sealed interface BenkBehandlingDTO {
     val type: BenkBehandlingstypeDTO
     val id: String

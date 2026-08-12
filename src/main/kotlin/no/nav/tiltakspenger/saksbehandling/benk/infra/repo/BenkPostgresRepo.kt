@@ -80,6 +80,8 @@ class BenkPostgresRepo(
                 "status" to command.filtrering.status.tilParam(),
                 "soknadstype" to command.filtrering.søknadstype.tilParam(),
                 "resultat" to command.filtrering.resultat.tilParam(),
+                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
@@ -98,6 +100,8 @@ class BenkPostgresRepo(
             params = command.filtrering.tilParams() + arrayOf(
                 "status" to command.filtrering.status.tilParam(),
                 "resultat" to command.filtrering.resultat.tilParam(),
+                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
@@ -116,6 +120,8 @@ class BenkPostgresRepo(
             params = command.filtrering.tilParams() + arrayOf(
                 "status" to command.filtrering.status.tilParam(),
                 "type" to command.filtrering.type.tilParam(),
+                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
@@ -153,6 +159,8 @@ class BenkPostgresRepo(
                 "status" to command.filtrering.status.tilParam(),
                 "kilde" to command.filtrering.kilde.tilParam(),
                 "minstebelop" to command.filtrering.minstebeløp,
+                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
@@ -477,12 +485,36 @@ class BenkPostgresRepo(
          */
         const val PÅ_VENT_FILTER = "(not :skjul_pa_vent or not er_satt_på_vent)"
 
+        /**
+         * Saksbehandler kan ikke beslutte sin egen behandling, så radene hen allerede har sendt til beslutning er støy i køen hens.
+         * `is distinct from` i stedet for `<>` fordi en rad uten tildelt saksbehandler aldri skal filtreres bort av dette filteret.
+         */
+        const val EGNE_TIL_BESLUTNING_FILTER = """
+            (
+                not :skjul_egne_til_beslutning
+                or saksbehandler is distinct from :innlogget_saksbehandler
+                or status not in ('KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
+            )
+        """
+
+        /**
+         * Samme filter som [EGNE_TIL_BESLUTNING_FILTER], men med tilbakekrevingens egne statuser for godkjenningssteget.
+         */
+        const val EGNE_TIL_GODKJENNING_FILTER = """
+            (
+                not :skjul_egne_til_beslutning
+                or saksbehandler is distinct from :innlogget_saksbehandler
+                or status not in ('TIL_GODKJENNING', 'UNDER_GODKJENNING')
+            )
+        """
+
         const val SØKNADER_FILTER = """
             (:status::text is null or status = :status::text)
             and (:soknadstype::text is null or søknadstype = :soknadstype::text)
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $EGNE_TIL_BESLUTNING_FILTER
         """
 
         const val REVURDERINGER_FILTER = """
@@ -490,6 +522,7 @@ class BenkPostgresRepo(
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $EGNE_TIL_BESLUTNING_FILTER
         """
 
         const val MELDEKORT_FILTER = """
@@ -497,6 +530,7 @@ class BenkPostgresRepo(
             and (:type::text is null or type = :type::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $EGNE_TIL_BESLUTNING_FILTER
         """
 
         const val KLAGE_FILTER = """
@@ -512,6 +546,7 @@ class BenkPostgresRepo(
             and beløp >= :minstebelop
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $EGNE_TIL_GODKJENNING_FILTER
         """
     }
 }

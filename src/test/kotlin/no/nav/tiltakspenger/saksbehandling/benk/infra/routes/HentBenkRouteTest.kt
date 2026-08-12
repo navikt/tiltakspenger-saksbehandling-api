@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import org.junit.jupiter.api.Test
 
 /**
@@ -178,6 +179,20 @@ class HentBenkRouteTest {
             respons.fane() shouldBe "SØKNADER"
             respons.antallIOversikten() shouldBe 1
             respons.error() shouldBe null
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `skjulEgneTilBeslutning tar bort behandlingene innlogget saksbehandler har sendt til beslutning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            hentBenk(tac, "/benk/soknader", """{"filters": {"skjulEgneTilBeslutning": true}}""")
+                .let { it.antallIOversikten() shouldBe 1 }
+            hentBenk(tac, "/benk/soknader", """{}""")
+                .let { it.antallIOversikten() shouldBe 2 }
         }
     }
 
