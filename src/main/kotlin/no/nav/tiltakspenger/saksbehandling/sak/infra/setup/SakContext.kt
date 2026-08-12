@@ -7,8 +7,6 @@ import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktRepo
-import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkOversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import java.time.Clock
@@ -40,11 +38,6 @@ open class SakContext(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             saksnummerGenerator = saksnummerGenerator,
             clock = clock,
-        )
-    }
-    open val benkOversiktRepo: BenkOversiktRepo by lazy {
-        BenkOversiktPostgresRepo(
-            sessionFactory = sessionFactory as PostgresSessionFactory,
         )
     }
 }

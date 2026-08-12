@@ -23,10 +23,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktRepo
-import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
-import no.nav.tiltakspenger.saksbehandling.benk.v2.domene.BenkV2Repo
-import no.nav.tiltakspenger.saksbehandling.benk.v2.setup.BenkV2Context
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
+import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
@@ -212,8 +210,7 @@ sealed class TestApplicationContext(
     // InMemory-subklassen overstyrer med fake-repoer.
     protected open val personRepoOverride: PersonRepo? = null
     protected open val sakRepoOverride: SakRepo? = null
-    protected open val benkOversiktRepoOverride: BenkOversiktRepo? = null
-    protected open val benkV2RepoOverride: BenkV2Repo? = null
+    protected open val benkRepoOverride: BenkRepo? = null
     protected open val tiltaksdeltakerRepoOverride: TiltaksdeltakerRepo? = null
     protected open val statistikkRepoOverride: StatistikkRepo? = null
     protected open val søknadRepoOverride: SøknadRepo? = null
@@ -295,8 +292,6 @@ sealed class TestApplicationContext(
             // Den delte, atomiske generatoren gir globalt unike saksnummer, og dato-prefiks-spørringen i hentNesteSaksnummer treffer da aldri.
             override val saksnummerGenerator: SaksnummerGenerator = delteSaksnummerGenerator
             override val sakRepo: SakRepo get() = sakRepoOverride ?: super.sakRepo
-            override val benkOversiktRepo: BenkOversiktRepo
-                get() = benkOversiktRepoOverride ?: super.benkOversiktRepo
         }
     }
 
@@ -400,25 +395,12 @@ sealed class TestApplicationContext(
         }
     }
 
-    override val benkOversiktContext by lazy {
-
-        object : BenkOversiktContext(
+    override val benkContext by lazy {
+        object : BenkContext(
             sessionFactory = sessionFactory,
             tilgangskontrollService = tilgangskontrollService,
         ) {
-            override val benkOversiktRepo: BenkOversiktRepo
-                get() = benkOversiktRepoOverride ?: super.benkOversiktRepo
-        }
-    }
-
-    override val benkV2Context by lazy {
-
-        object : BenkV2Context(
-            sessionFactory = sessionFactory,
-            tilgangskontrollService = tilgangskontrollService,
-        ) {
-            override val benkV2Repo: BenkV2Repo
-                get() = benkV2RepoOverride ?: super.benkV2Repo
+            override val benkRepo: BenkRepo get() = benkRepoOverride ?: super.benkRepo
         }
     }
 

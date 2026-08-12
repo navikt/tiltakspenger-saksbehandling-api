@@ -19,8 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
-import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkOversiktContext
-import no.nav.tiltakspenger.saksbehandling.benk.v2.setup.BenkV2Context
+import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
@@ -483,15 +482,8 @@ open class ApplicationContext(
         )
     }
 
-    open val benkOversiktContext by lazy {
-        BenkOversiktContext(
-            sessionFactory = sessionFactory,
-            tilgangskontrollService = tilgangskontrollService,
-        )
-    }
-
-    open val benkV2Context by lazy {
-        BenkV2Context(
+    open val benkContext by lazy {
+        BenkContext(
             sessionFactory = sessionFactory,
             tilgangskontrollService = tilgangskontrollService,
         )

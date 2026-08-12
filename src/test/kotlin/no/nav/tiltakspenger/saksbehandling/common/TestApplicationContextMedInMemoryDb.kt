@@ -6,10 +6,9 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingFakeRepo
-import no.nav.tiltakspenger.saksbehandling.benk.v2.infra.repo.BenkV2FakeRepo
+import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkFakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagebehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakFakeRepo
-import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BenkOversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
@@ -55,8 +54,6 @@ open class TestApplicationContextMedInMemoryDb(
     private val tiltaksdeltakerFakeRepo = TiltaksdeltakerFakeRepo()
     private val tilbakekrevingBehandlingFakeRepo = TilbakekrevingBehandlingFakeRepo()
     val tilbakekrevingHendelseFakeRepo = TilbakekrevingHendelseFakeRepo(clock)
-    private val benkOversiktFakeRepo =
-        BenkOversiktFakeRepo(søknadFakeRepo, rammebehandlingFakeRepo, meldekortbehandlingFakeRepo, klagebehandlingFakeRepo)
     private val sakFakeRepo =
         SakFakeRepo(
             behandlingRepo = rammebehandlingFakeRepo,
@@ -77,8 +74,7 @@ open class TestApplicationContextMedInMemoryDb(
     // Hekt fake-repoer på override-hookene fra basisklassen
     override val personRepoOverride = personFakeRepo
     override val sakRepoOverride = sakFakeRepo
-    override val benkOversiktRepoOverride = benkOversiktFakeRepo
-    override val benkV2RepoOverride = BenkV2FakeRepo()
+    override val benkRepoOverride = BenkFakeRepo()
     override val tiltaksdeltakerRepoOverride = tiltaksdeltakerFakeRepo
     override val statistikkRepoOverride = statistikkFakeRepo
     override val søknadRepoOverride = søknadFakeRepo

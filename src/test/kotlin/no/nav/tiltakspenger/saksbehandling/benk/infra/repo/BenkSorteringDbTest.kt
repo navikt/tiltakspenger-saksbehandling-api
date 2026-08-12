@@ -1,42 +1,98 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
-import no.nav.tiltakspenger.saksbehandling.benk.domene.SorteringRetning
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringRetning
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import org.junit.jupiter.api.Test
 
 /**
- * **Enhetstest framfor e2e, bevisst valgt.**
- * Sorteringsvalget blir til et `order by`-ledd, med én gren per kolonne.
- * Én benk-forespørsel har én sortering, så det ville tatt atten route-kall å nå alle grenene — for en mapping som ikke rører postgres.
- *
- * Testen pinner strengene som settes inn i spørringen.
- * Det er ikke lagret data, men navnene må matche kolonnene og aliasene i `BenkOversiktPostgresRepo`.
- * Blir de usynkrone, feiler spørringen først i produksjon.
+ * Pinner strengene som havner i `order by`-leddet.
+ * Mappingen er den eneste veien et kolonnenavn kommer inn i sql-en, så en stille omdøping her er en ødelagt spørring.
  */
 class BenkSorteringDbTest {
 
     @Test
-    fun `sorteringskolonnene blir til kolonnenavnene i spørringen`() {
-        BenkSorteringKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
-            BenkSorteringKolonne.STARTET to "startet",
-            BenkSorteringKolonne.SIST_ENDRET to "sist_endret",
-            BenkSorteringKolonne.FRIST to "sattPåVentFrist",
-            BenkSorteringKolonne.FNR to "fnr",
-            BenkSorteringKolonne.BEHANDLINGSTYPE to "behandlingstype",
-            BenkSorteringKolonne.STATUS to "status",
-            BenkSorteringKolonne.SAKSBEHANDLER to "saksbehandler",
-            BenkSorteringKolonne.BESLUTTER to "beslutter",
-            BenkSorteringKolonne.BELØP to "beløp",
-            BenkSorteringKolonne.RESULTAT to "resultat",
+    fun `søknadskolonner`() {
+        BenkSøknaderKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
+            BenkSøknaderKolonne.FNR to "fnr",
+            BenkSøknaderKolonne.SØKNADSTYPE to "søknadstype",
+            BenkSøknaderKolonne.STATUS to "status",
+            BenkSøknaderKolonne.KRAVTIDSPUNKT to "kravtidspunkt",
+            BenkSøknaderKolonne.RESULTAT to "resultat",
+            BenkSøknaderKolonne.SIST_ENDRET to "sist_endret",
+            BenkSøknaderKolonne.SAKSBEHANDLER to "saksbehandler",
+            BenkSøknaderKolonne.BESLUTTER to "beslutter",
+            BenkSøknaderKolonne.VENTESTATUS_FRIST to "vente_frist",
         )
     }
 
     @Test
-    fun `sorteringsretningene blir til ASC og DESC`() {
-        SorteringRetning.entries.associateWith { it.toDbString() } shouldBe mapOf(
-            SorteringRetning.ASC to "ASC",
-            SorteringRetning.DESC to "DESC",
+    fun `revurderingskolonner`() {
+        BenkRevurderingerKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
+            BenkRevurderingerKolonne.FNR to "fnr",
+            BenkRevurderingerKolonne.RESULTAT to "resultat",
+            BenkRevurderingerKolonne.STATUS to "status",
+            BenkRevurderingerKolonne.STARTET to "startet",
+            BenkRevurderingerKolonne.SIST_ENDRET to "sist_endret",
+            BenkRevurderingerKolonne.SAKSBEHANDLER to "saksbehandler",
+            BenkRevurderingerKolonne.BESLUTTER to "beslutter",
+            BenkRevurderingerKolonne.VENTESTATUS_FRIST to "vente_frist",
+        )
+    }
+
+    @Test
+    fun `meldekortkolonner`() {
+        BenkMeldekortKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
+            BenkMeldekortKolonne.FNR to "fnr",
+            BenkMeldekortKolonne.TYPE to "type",
+            BenkMeldekortKolonne.PERIODE to "meldeperioder",
+            BenkMeldekortKolonne.BELØP to "beløp",
+            BenkMeldekortKolonne.STATUS to "status",
+            BenkMeldekortKolonne.SIST_ENDRET to "sist_endret",
+            BenkMeldekortKolonne.SAKSBEHANDLER to "saksbehandler",
+            BenkMeldekortKolonne.BESLUTTER to "beslutter",
+            BenkMeldekortKolonne.VENTESTATUS_FRIST to "vente_frist",
+        )
+    }
+
+    @Test
+    fun `klagekolonner`() {
+        BenkKlageKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
+            BenkKlageKolonne.FNR to "fnr",
+            BenkKlageKolonne.RESULTAT to "resultat",
+            BenkKlageKolonne.STATUS to "status",
+            BenkKlageKolonne.KRAVTIDSPUNKT to "kravtidspunkt",
+            BenkKlageKolonne.SIST_ENDRET to "sist_endret",
+            BenkKlageKolonne.SAKSBEHANDLER to "saksbehandler",
+            BenkKlageKolonne.VENTESTATUS_FRIST to "vente_frist",
+        )
+    }
+
+    @Test
+    fun `tilbakekrevingskolonner`() {
+        BenkTilbakekrevingKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
+            BenkTilbakekrevingKolonne.FNR to "fnr",
+            BenkTilbakekrevingKolonne.BELØP to "beløp",
+            BenkTilbakekrevingKolonne.KILDE to "kilde",
+            BenkTilbakekrevingKolonne.STATUS to "status",
+            BenkTilbakekrevingKolonne.STARTET to "startet",
+            BenkTilbakekrevingKolonne.SIST_ENDRET to "sist_endret",
+            BenkTilbakekrevingKolonne.SAKSBEHANDLER to "saksbehandler",
+            BenkTilbakekrevingKolonne.BESLUTTER to "beslutter",
+            BenkTilbakekrevingKolonne.VENTESTATUS_FRIST to "vente_frist",
+            BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE to "kravgrunnlag_periode",
+        )
+    }
+
+    @Test
+    fun `sorteringsretning`() {
+        BenkSorteringRetning.entries.associateWith { it.toDbString() } shouldBe mapOf(
+            BenkSorteringRetning.ASC to "ASC",
+            BenkSorteringRetning.DESC to "DESC",
         )
     }
 }
