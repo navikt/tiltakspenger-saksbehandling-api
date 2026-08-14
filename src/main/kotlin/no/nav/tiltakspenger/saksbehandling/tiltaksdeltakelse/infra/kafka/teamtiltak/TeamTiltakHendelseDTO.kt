@@ -4,13 +4,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import java.time.LocalDate
 import java.util.UUID
 
-data class AvtaleDto(
+data class TeamTiltakHendelseDTO(
     val avtaleId: UUID,
     val hendelseType: HendelseType,
     val avtaleStatus: AvtaleStatus,
@@ -105,23 +105,23 @@ data class AvtaleDto(
         )
 }
 
-fun AvtaleDto.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
+private fun TeamTiltakHendelseDTO.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
     this.avtaleStatus.toDeltakerStatusDTO(feilregistrert).toDomain()
 
-fun AvtaleDto.AvtaleStatus.toDeltakerStatusDTO(feilregistrert: Boolean): DeltakerStatusDTO = when (this) {
-    AvtaleDto.AvtaleStatus.PÅBEGYNT -> DeltakerStatusDTO.PABEGYNT_REGISTRERING
+private fun TeamTiltakHendelseDTO.AvtaleStatus.toDeltakerStatusDTO(feilregistrert: Boolean): DeltakerStatusDTO = when (this) {
+    TeamTiltakHendelseDTO.AvtaleStatus.PÅBEGYNT -> DeltakerStatusDTO.PABEGYNT_REGISTRERING
 
-    AvtaleDto.AvtaleStatus.MANGLER_GODKJENNING -> DeltakerStatusDTO.SOKT_INN
+    TeamTiltakHendelseDTO.AvtaleStatus.MANGLER_GODKJENNING -> DeltakerStatusDTO.SOKT_INN
 
-    AvtaleDto.AvtaleStatus.KLAR_FOR_OPPSTART -> DeltakerStatusDTO.VENTER_PA_OPPSTART
+    TeamTiltakHendelseDTO.AvtaleStatus.KLAR_FOR_OPPSTART -> DeltakerStatusDTO.VENTER_PA_OPPSTART
 
-    AvtaleDto.AvtaleStatus.GJENNOMFØRES -> DeltakerStatusDTO.DELTAR
+    TeamTiltakHendelseDTO.AvtaleStatus.GJENNOMFØRES -> DeltakerStatusDTO.DELTAR
 
-    AvtaleDto.AvtaleStatus.AVSLUTTET -> DeltakerStatusDTO.HAR_SLUTTET
+    TeamTiltakHendelseDTO.AvtaleStatus.AVSLUTTET -> DeltakerStatusDTO.HAR_SLUTTET
 
-    AvtaleDto.AvtaleStatus.AVBRUTT -> DeltakerStatusDTO.AVBRUTT
+    TeamTiltakHendelseDTO.AvtaleStatus.AVBRUTT -> DeltakerStatusDTO.AVBRUTT
 
-    AvtaleDto.AvtaleStatus.ANNULLERT -> if (feilregistrert) {
+    TeamTiltakHendelseDTO.AvtaleStatus.ANNULLERT -> if (feilregistrert) {
         DeltakerStatusDTO.FEILREGISTRERT
     } else {
         DeltakerStatusDTO.IKKE_AKTUELL

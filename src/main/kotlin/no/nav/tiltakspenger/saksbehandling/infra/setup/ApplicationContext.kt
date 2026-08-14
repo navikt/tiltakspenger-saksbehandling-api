@@ -62,10 +62,8 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.Tilbakekre
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.TiltaksdeltakerService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.ArenaDeltakerMapper
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TiltaksdeltakerTeamTiltakConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
@@ -215,16 +213,6 @@ open class ApplicationContext(
             clock = clock,
         )
     }
-    open val tiltaksdeltakerService: TiltaksdeltakerService by lazy {
-        TiltaksdeltakerService(
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
-            søknadRepo = søknadContext.søknadRepo,
-            arenaDeltakerMapper = ArenaDeltakerMapper(),
-            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
-            clock = clock,
-        )
-    }
-
     open val endretTiltaksdeltakerJobb by lazy {
         EndretTiltaksdeltakerJobb(
             tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
@@ -238,21 +226,28 @@ open class ApplicationContext(
 
     open val tiltaksdeltakerArenaConsumer by lazy {
         TiltaksdeltakerArenaConsumer(
-            tiltaksdeltakerService = tiltaksdeltakerService,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            søknadRepo = søknadContext.søknadRepo,
+            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            clock = clock,
             topic = Configuration.arenaTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )
     }
     open val tiltaksdeltakerKometConsumer by lazy {
         TiltaksdeltakerKometConsumer(
-            tiltaksdeltakerService = tiltaksdeltakerService,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            søknadRepo = søknadContext.søknadRepo,
+            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             topic = Configuration.kometTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )
     }
     open val tiltaksdeltakerTeamTiltakConsumer by lazy {
         TiltaksdeltakerTeamTiltakConsumer(
-            tiltaksdeltakerService = tiltaksdeltakerService,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            søknadRepo = søknadContext.søknadRepo,
+            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             topic = Configuration.teamTiltakTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
         )

@@ -5,13 +5,13 @@ import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO
 import no.nav.tiltakspenger.libs.tiltak.toDeltakerStatusDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toDomain
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseId
 import java.time.LocalDate
 import java.util.UUID
 
-data class DeltakerV1Dto(
+data class KometTiltakHendelseDTO(
     val id: UUID,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,

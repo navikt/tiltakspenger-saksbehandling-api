@@ -40,7 +40,9 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.EndretTiltaksdeltakerJobb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.getTiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentUbehandledeTiltaksdeltakerHendelser

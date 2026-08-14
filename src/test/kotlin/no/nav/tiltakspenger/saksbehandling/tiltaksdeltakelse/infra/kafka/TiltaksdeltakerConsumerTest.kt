@@ -15,9 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelseKilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.DeltakerV1Dto
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.AvtaleDto
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TeamTiltakHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.getTiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelserForEksternId
@@ -28,10 +28,10 @@ import java.util.UUID
 /**
  * Tilstanden bygges gjennom prodstiene: sak og søknad opprettes via routene, og meldingene kommer inn via consumerne for Arena, Komet og Team Tiltak slik de gjør i nais.
  */
-class TiltaksdeltakerServiceTest {
+class TiltaksdeltakerConsumerTest {
 
     @Test
-    fun `behandleMottattArenadeltaker - finnes ingen sak - ignorerer`() {
+    fun `arena - finnes ingen tiltaksdeltaker - ignorerer`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakerId = arenaDeltakerId()
 
@@ -42,7 +42,25 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattArenadeltaker - finnes sak, ikke lagret melding - lagrer`() {
+    fun `arena - finnes tiltaksdeltaker, men ingen sak - ignorerer`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakerId = arenaDeltakerId()
+            val id = "TA$deltakerId"
+            val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = id)
+            tac.tiltakContext.tiltaksdeltakerRepo.lagre(
+                id = tiltaksdeltakelse.internDeltakelseId,
+                eksternId = tiltaksdeltakelse.eksternDeltakelseId,
+                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+            )
+
+            tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
+
+            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).shouldBeEmpty()
+        }
+    }
+
+    @Test
+    fun `arena - finnes sak, ikke lagret melding - lagrer`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
@@ -64,7 +82,7 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattArenadeltaker - finnes sak, har eksternId - oppdaterer eksternId og lagrer`() {
+    fun `arena - finnes sak, har eksternId - oppdaterer eksternId og lagrer`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
@@ -95,7 +113,7 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattArenadeltaker - finnes sak for arena-eksternId - lagrer ikke`() {
+    fun `arena - finnes sak for arena-eksternId - lagrer ikke`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
@@ -114,7 +132,7 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattArenadeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
+    fun `arena - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
@@ -148,7 +166,7 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattKometdeltaker - finnes ingen sak - ignorerer`() {
+    fun `komet - finnes ingen tiltaksdeltaker - ignorerer`() {
         withTestApplicationContextAndPostgres { tac ->
             val kometDeltaker = getKometDeltaker()
 
@@ -159,7 +177,25 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattKometdeltaker - finnes sak, ikke lagret melding - lagrer`() {
+    fun `komet - finnes tiltaksdeltaker, men ingen sak - ignorerer`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val kometDeltaker = getKometDeltaker()
+            val deltakerId = kometDeltaker.id
+            val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId.toString())
+            tac.tiltakContext.tiltaksdeltakerRepo.lagre(
+                id = tiltaksdeltakelse.internDeltakelseId,
+                eksternId = tiltaksdeltakelse.eksternDeltakelseId,
+                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+            )
+
+            tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+
+            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString()).shouldBeEmpty()
+        }
+    }
+
+    @Test
+    fun `komet - finnes sak, ikke lagret melding - lagrer`() {
         withTestApplicationContextAndPostgres { tac ->
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
@@ -181,7 +217,7 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattKometdeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
+    fun `komet - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
         withTestApplicationContextAndPostgres { tac ->
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
@@ -215,7 +251,7 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattTeamTiltakdeltaker - finnes ingen sak - ignorerer`() {
+    fun `team tiltak - finnes ingen tiltaksdeltaker - ignorerer`() {
         withTestApplicationContextAndPostgres { tac ->
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
@@ -227,7 +263,25 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattTeamTiltakdeltaker - finnes sak, ikke lagret melding - lagrer`() {
+    fun `team tiltak - finnes tiltaksdeltaker, men ingen sak - ignorerer`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val teamTiltakDeltaker = getTeamTiltakDeltaker()
+            val deltakerId = teamTiltakDeltaker.avtaleId.toString()
+            val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId)
+            tac.tiltakContext.tiltaksdeltakerRepo.lagre(
+                id = tiltaksdeltakelse.internDeltakelseId,
+                eksternId = tiltaksdeltakelse.eksternDeltakelseId,
+                tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+            )
+
+            tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
+
+            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).shouldBeEmpty()
+        }
+    }
+
+    @Test
+    fun `team tiltak - finnes sak, ikke lagret melding - lagrer`() {
         withTestApplicationContextAndPostgres { tac ->
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
@@ -249,7 +303,7 @@ class TiltaksdeltakerServiceTest {
     }
 
     @Test
-    fun `behandleMottattTeamTiltakdeltaker - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
+    fun `team tiltak - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
         withTestApplicationContextAndPostgres { tac ->
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
@@ -284,7 +338,7 @@ class TiltaksdeltakerServiceTest {
 
     /**
      * Etablerer en tidligere behandlet hendelse med oppgave for deltakeren.
-     * Oppgave-id-en settes normalt av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.EndretTiltaksdeltakerJobb]; her lagres den direkte for å slippe å dra i gang hele jobben, jf. samme mønster i EndretTiltaksdeltakerJobbTest.
+     * Oppgave-id-en settes normalt av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.EndretTiltaksdeltakerJobb]; her lagres den direkte for å slippe å dra i gang hele jobben, jf. samme mønster i EndretTiltaksdeltakerJobbTest.
      */
     private fun lagreHendelseMedOppgave(
         tac: TestApplicationContextMedPostgres,
@@ -336,21 +390,21 @@ class TiltaksdeltakerServiceTest {
 
     private fun arenaDeltakerId() = (100_000_000..999_999_999).random().toString()
 
-    private fun getKometDeltaker(): DeltakerV1Dto =
-        DeltakerV1Dto(
+    private fun getKometDeltaker(): KometTiltakHendelseDTO =
+        KometTiltakHendelseDTO(
             id = UUID.randomUUID(),
             startDato = LocalDate.of(2024, 10, 14),
             sluttDato = LocalDate.of(2025, 8, 10),
-            status = DeltakerV1Dto.DeltakerStatusDto(type = KometDeltakerStatusTypeDTO.DELTAR),
+            status = KometTiltakHendelseDTO.DeltakerStatusDto(type = KometDeltakerStatusTypeDTO.DELTAR),
             dagerPerUke = 2.0F,
             prosentStilling = 50.0F,
         )
 
-    private fun getTeamTiltakDeltaker(): AvtaleDto =
-        AvtaleDto(
+    private fun getTeamTiltakDeltaker(): TeamTiltakHendelseDTO =
+        TeamTiltakHendelseDTO(
             avtaleId = UUID.randomUUID(),
-            hendelseType = AvtaleDto.HendelseType.ENDRET,
-            avtaleStatus = AvtaleDto.AvtaleStatus.GJENNOMFØRES,
+            hendelseType = TeamTiltakHendelseDTO.HendelseType.ENDRET,
+            avtaleStatus = TeamTiltakHendelseDTO.AvtaleStatus.GJENNOMFØRES,
             startDato = LocalDate.of(2024, 10, 14),
             sluttDato = LocalDate.of(2025, 8, 10),
             stillingprosent = 80.0,

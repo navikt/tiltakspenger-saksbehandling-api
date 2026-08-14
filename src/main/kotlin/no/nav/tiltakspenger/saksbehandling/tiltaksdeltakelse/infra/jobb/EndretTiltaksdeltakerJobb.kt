@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRe
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
 import java.time.Clock
 import java.time.LocalDate

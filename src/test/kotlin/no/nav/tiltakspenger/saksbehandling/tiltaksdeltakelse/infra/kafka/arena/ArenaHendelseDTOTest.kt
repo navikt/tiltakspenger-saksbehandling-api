@@ -6,13 +6,13 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import org.junit.jupiter.api.Test
 
-class ArenaKafkaMessageTest {
+class ArenaHendelseDTOTest {
 
     @Test
     fun `serialisering og deserialisering av ArenaKafkaMessage med after`() {
-        val original = ArenaKafkaMessage(
-            opType = OperationType.U,
-            after = ArenaDeltakerKafka(
+        val original = ArenaHendelseDTO(
+            opType = ArenaOperationType.U,
+            after = ArenaDeltakerDTO(
                 DELTAKERSTATUSKODE = ArenaDeltakerStatusType.GJENN,
                 DATO_FRA = "2024-10-14 00:00:00",
                 DATO_TIL = "2025-08-10 00:00:00",
@@ -23,20 +23,20 @@ class ArenaKafkaMessageTest {
         )
 
         val json = serialize(original)
-        val deserialized = deserialize<ArenaKafkaMessage>(json)
+        val deserialized = deserialize<ArenaHendelseDTO>(json)
 
         deserialized shouldBe original
     }
 
     @Test
     fun `serialisering og deserialisering av ArenaKafkaMessage uten after`() {
-        val original = ArenaKafkaMessage(
-            opType = OperationType.D,
+        val original = ArenaHendelseDTO(
+            opType = ArenaOperationType.D,
             after = null,
         )
 
         val json = serialize(original)
-        val deserialized = deserialize<ArenaKafkaMessage>(json)
+        val deserialized = deserialize<ArenaHendelseDTO>(json)
 
         deserialized shouldBe original
     }
@@ -58,10 +58,10 @@ class ArenaKafkaMessageTest {
              }
         """.trimIndent()
 
-        val deserialized = deserialize<ArenaKafkaMessage>(json)
+        val deserialized = deserialize<ArenaHendelseDTO>(json)
 
-        deserialized.opType shouldBe OperationType.U
-        deserialized.after shouldBe ArenaDeltakerKafka(
+        deserialized.opType shouldBe ArenaOperationType.U
+        deserialized.after shouldBe ArenaDeltakerDTO(
             DELTAKERSTATUSKODE = ArenaDeltakerStatusType.GJENN,
             DATO_FRA = "2024-10-14 00:00:00",
             DATO_TIL = "2025-08-10 00:00:00",
@@ -88,9 +88,9 @@ class ArenaKafkaMessageTest {
              }
         """.trimIndent()
 
-        val deserialized = deserialize<ArenaKafkaMessage>(json)
+        val deserialized = deserialize<ArenaHendelseDTO>(json)
         val reserialized = serialize(deserialized)
-        val redeserialized = deserialize<ArenaKafkaMessage>(reserialized)
+        val redeserialized = deserialize<ArenaHendelseDTO>(reserialized)
 
         redeserialized shouldBe deserialized
     }

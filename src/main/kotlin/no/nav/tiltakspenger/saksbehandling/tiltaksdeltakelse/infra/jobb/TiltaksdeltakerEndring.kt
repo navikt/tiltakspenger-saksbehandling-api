@@ -1,13 +1,13 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.EndretDeltakelsesmengde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.EndretSluttdato
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.EndretStartdato
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb.TiltaksdeltakerEndring.Forlengelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretDeltakelsesmengde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretSluttdato
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretStartdato
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Forlengelse
 import java.time.LocalDate
 
 sealed interface TiltaksdeltakerEndring {

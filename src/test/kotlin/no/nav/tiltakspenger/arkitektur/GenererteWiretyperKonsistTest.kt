@@ -15,7 +15,7 @@ import kotlin.io.path.walk
  *
  * Klassene under `no.nav.person.pdl.*` genereres fra skjemaene i `src/main/avro/` og er PDLs kontrakt, ikke vår modell.
  * Lekker de inn i domenet, arver vi et skjema vi ikke eier: feltene er nullbare fordi Avro krever det, navnene er PDLs, og en skjemaendring hos dem slår rett inn i domenekoden vår.
- * Infrastrukturen skal oversette dem til våre egne typer i kanten, slik `TiltaksdeltakerService` gjør med sine Kafka-DTO-er.
+ * Infrastrukturen skal oversette dem til våre egne typer i kanten, slik tiltaksdeltaker-consumerne gjør med sine Kafka-DTO-er.
  *
  * Navnerommene leses ut av skjemafilene i stedet for å stå i en liste her.
  * Et nytt Avro-skjema er da dekket uten at noen husker å oppdatere regelen — og `skanningen finner navnerommene` fanger det om utledningen slutter å virke.

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.hendelse
+package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse
 
 enum class TiltaksdeltakerHendelseKilde {
     Arena,
