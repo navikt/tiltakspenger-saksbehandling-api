@@ -53,7 +53,7 @@ dependencies {
     // Uten dette havner både netty-codec (4.1) og netty-codec-base (4.2) på classpath med
     // duplikate baseklasser (ByteToMessageDecoder m.fl.), som med `-cp lib/*` lastes i feil
     // rekkefølge og brekker HTTP-pipelinen.
-    implementation(platform("io.netty:netty-bom:4.2.16.Final"))
+    implementation(platform("io.netty:netty-bom:4.2.17.Final"))
 
     // Vår egen kode er på jackson3 (tools.jackson), men jackson 2 kommer inn transitivt via
     // Confluents kafka-avro-serializer (kafka-schema-registry-client avhenger av jackson-databind)
