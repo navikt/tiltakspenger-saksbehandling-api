@@ -40,7 +40,7 @@ data class Saksopplysninger(
      */
     fun harOverlappendeTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId, tiltaksperiode: Periode): Boolean {
         return tiltaksdeltakelser.any {
-            it.internDeltakelseId != internDeltakelseId && (it.overlapperMedPeriode(tiltaksperiode) ?: true)
+            it.internDeltakelseId != internDeltakelseId && (it.overlapperMed(tiltaksperiode) ?: true)
         }
     }
 

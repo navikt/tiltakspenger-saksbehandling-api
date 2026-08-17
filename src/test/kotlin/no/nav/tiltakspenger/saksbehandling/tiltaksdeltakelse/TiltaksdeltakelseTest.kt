@@ -15,131 +15,131 @@ import java.util.UUID
 
 class TiltaksdeltakelseTest {
     @Test
-    fun `overlapperMedPeriode - begge datoene mangler - returnerer null`() {
+    fun `overlapperMed - begge datoene mangler - returnerer null`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(null, null)
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe null
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe null
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe null
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe null
     }
 
     @Test
-    fun `overlapperMedPeriode - fom mangler, tom er før perioden - returnerer false`() {
+    fun `overlapperMed - fom mangler, tom er før perioden - returnerer false`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(null, 3.desember(2024))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe false
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe false
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe false
     }
 
     @Test
-    fun `overlapperMedPeriode - fom mangler, tom er i perioden - returnerer true`() {
+    fun `overlapperMed - fom mangler, tom er i perioden - returnerer true`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(null, 3.mai(2025))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe true
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe true
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe true
     }
 
     @Test
-    fun `overlapperMedPeriode - fom mangler, tom er etter perioden - returnerer null`() {
+    fun `overlapperMed - fom mangler, tom er etter perioden - returnerer null`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(null, 3.mai(2026))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe null
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe null
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe null
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe null
     }
 
     @Test
-    fun `overlapperMedPeriode - tom mangler, fom er før perioden - returnerer null`() {
+    fun `overlapperMed - tom mangler, fom er før perioden - returnerer null`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.desember(2024), null)
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe null
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe null
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe null
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe null
     }
 
     @Test
-    fun `overlapperMedPeriode - tom mangler, fom er i perioden - returnerer true`() {
+    fun `overlapperMed - tom mangler, fom er i perioden - returnerer true`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.mai(2025), null)
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe true
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe true
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe true
     }
 
     @Test
-    fun `overlapperMedPeriode - tom mangler, fom er etter perioden - returnerer false`() {
+    fun `overlapperMed - tom mangler, fom er etter perioden - returnerer false`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.mai(2026), null)
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe false
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe false
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe false
     }
 
     @Test
-    fun `overlapperMedPeriode - fom og tom er før perioden - returnerer false`() {
+    fun `overlapperMed - fom og tom er før perioden - returnerer false`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.februar(2024), 1.juni(2024))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe false
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe false
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe false
     }
 
     @Test
-    fun `overlapperMedPeriode - fom og tom er etter perioden - returnerer false`() {
+    fun `overlapperMed - fom og tom er etter perioden - returnerer false`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.februar(2026), 1.juni(2026))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe false
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe false
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe false
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe false
     }
 
     @Test
-    fun `overlapperMedPeriode - fom og tom er innenfor perioden - returnerer true`() {
+    fun `overlapperMed - fom og tom er innenfor perioden - returnerer true`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.februar(2025), 1.juni(2025))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe true
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe true
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe true
     }
 
     @Test
-    fun `overlapperMedPeriode - fom er før, tom er innenfor perioden - returnerer true`() {
+    fun `overlapperMed - fom er før, tom er innenfor perioden - returnerer true`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.februar(2024), 1.juni(2025))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe true
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe true
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe true
     }
 
     @Test
-    fun `overlapperMedPeriode - tom er etter, fom er innenfor perioden - returnerer true`() {
+    fun `overlapperMed - tom er etter, fom er innenfor perioden - returnerer true`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.februar(2025), 1.juni(2026))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe true
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe true
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe true
     }
 
     @Test
-    fun `overlapperMedPeriode - fom er før, tom er etter perioden - returnerer true`() {
+    fun `overlapperMed - fom er før, tom er etter perioden - returnerer true`() {
         val periode = Periode(1.januar(2025), 1.oktober(2025))
         val tiltaksdeltakelse = getTiltaksdeltakelse(3.februar(2024), 1.juni(2026))
 
-        tiltaksdeltakelse.overlapperMedPeriode(periode) shouldBe true
+        tiltaksdeltakelse.overlapperMed(periode) shouldBe true
         tiltaksdeltakelse.overlapperMed(getTiltaksdeltakelse(periode)) shouldBe true
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe true
     }
