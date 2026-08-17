@@ -148,7 +148,7 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.4.10")
-    testImplementation(platform("org.junit:junit-bom:6.1.2"))
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
