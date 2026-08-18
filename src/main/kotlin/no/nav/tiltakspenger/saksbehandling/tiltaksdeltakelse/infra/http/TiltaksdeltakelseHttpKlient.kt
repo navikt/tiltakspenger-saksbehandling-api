@@ -43,6 +43,7 @@ class TiltaksdeltakelseHttpKlient(
     timeout: Duration = 60.seconds,
     transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : TiltaksdeltakelseKlient {
+
     private val httpKlient: HttpKlient = HttpKlient(
         clock = clock,
         config = HttpKlientConfig(
@@ -51,10 +52,6 @@ class TiltaksdeltakelseHttpKlient(
         ),
         transport = transport,
     )
-
-    companion object {
-        const val NAV_CALL_ID_HEADER = "Nav-Call-Id"
-    }
 
     private val tiltakshistorikkUri = URI.create("$baseUrl/azure/tiltakshistorikk")
 
