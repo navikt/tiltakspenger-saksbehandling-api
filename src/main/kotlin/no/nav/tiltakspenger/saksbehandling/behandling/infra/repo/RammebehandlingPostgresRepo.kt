@@ -127,6 +127,31 @@ class RammebehandlingPostgresRepo(
         }
     }
 
+    override fun angreBehandling(
+        rammebehandling: Rammebehandling,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            rammebehandling.klagebehandling?.also {
+                KlagebehandlingPostgresRepo.taBehandling(it, tx)
+            }
+            tx.run(
+                sqlQuery(
+                    """
+                    update behandling set
+                        status = :status,
+                        sist_endret = :sist_endret
+                    where id = :id and saksbehandler is not null and status = 'KLAR_TIL_BESLUTNING'
+                    """,
+                    "id" to rammebehandling.id.toString(),
+                    "saksbehandler" to rammebehandling.saksbehandler,
+                    "status" to rammebehandling.status.toDb(),
+                    "sist_endret" to rammebehandling.sistEndret,
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     /**
      * En ny saksbehandler overtar for [nåværendeSaksbehandler].
      * Dersom det ikke er en saksbehandler på behandlingen, bruk [taBehandlingSaksbehandler]

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.AngreRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService
@@ -211,6 +212,16 @@ open class BehandlingOgVedtakContext(
             rammebehandlingRepo = rammebehandlingRepo,
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
+            clock = clock,
+        )
+    }
+
+    val angreRammebehandlingService by lazy {
+        AngreRammebehandlingService(
+            behandlingService = rammebehandlingService,
+            rammebehandlingRepo = rammebehandlingRepo,
+            sessionFactory = sessionFactory,
+            statistikkService = statistikkService,
             clock = clock,
         )
     }

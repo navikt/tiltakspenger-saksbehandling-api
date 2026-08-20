@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.routes
 
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.angre.AngreRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt.AvbrytRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt.BehandleSøknadPåNyttBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.ForhåndsvisRammevedtaksbrevTestbuilder
@@ -101,6 +102,7 @@ object RouteBehandlingBuilder :
     OpprettholdKlagebehandlingBuilder,
     ForhåndsvisBrevKlagebehandlingBuilder,
     TaRammebehandlingBuilder,
+    AngreRammebehandlingBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,
     UnderkjennRammebehandlingBuilder,

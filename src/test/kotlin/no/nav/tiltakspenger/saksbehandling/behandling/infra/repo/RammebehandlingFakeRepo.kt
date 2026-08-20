@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import java.time.LocalDateTime
@@ -94,6 +95,22 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
 
         data.get()[behandlingId] = rammebehandling
 
+        return true
+    }
+
+    override fun angreBehandling(
+        rammebehandling: Rammebehandling,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        val behandlingId = rammebehandling.id
+        val behandling = data.get()[behandlingId]
+        if (behandling == null ||
+            behandling.saksbehandler == null ||
+            behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+        ) {
+            return false
+        }
+        data.get()[behandlingId] = rammebehandling
         return true
     }
 

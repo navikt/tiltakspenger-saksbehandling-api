@@ -174,4 +174,5 @@ enum class StatistikkhendelseType(val value: String) {
     BEHANDLING_GJENOPPTATT("behandling_gjenopptatt"),
     SOKNAD_BEHANDLET_PA_NYTT("søknad_behandlet_på_nytt"),
     OVERSENDT_KA("klagebehandling_oversendt_ka"),
+    SAKSBEHANDLER_ANGRER("saksbehandler_angrer"),
 }

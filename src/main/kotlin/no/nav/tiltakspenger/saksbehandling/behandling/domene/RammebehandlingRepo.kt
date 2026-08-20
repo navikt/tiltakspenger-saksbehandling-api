@@ -36,6 +36,11 @@ interface RammebehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean
 
+    fun angreBehandling(
+        rammebehandling: Rammebehandling,
+        transactionContext: TransactionContext?,
+    ): Boolean
+
     fun overtaSaksbehandler(
         rammebehandling: Rammebehandling,
         nåværendeSaksbehandler: String,

@@ -106,4 +106,37 @@ class RammebehandlingPostgresRepoTest {
             ) shouldBe false
         }
     }
+
+    /**
+     * `angreBehandling` har en `where`-vakt på både eierskap og status: `saksbehandler is not null and status = 'KLAR_TIL_BESLUTNING'`.
+     * Behandlingen er under behandling, så vakten slår ikke til.
+     * Sann-siden er dekket av `AngreRammebehandlingRouteTest`.
+     */
+    @Test
+    fun `angreBehandling gir false når behandlingen ikke er klar til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac = tac)
+
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(behandling, null) shouldBe false
+        }
+    }
+
+    /**
+     * En rammebehandling som er opprettet fra en klage bærer klagebehandlingen med seg.
+     * Da berører `angreBehandling` klagebehandlingen i samme transaksjon, før den optimistiske låsen slår til.
+     * Denne testen dekker derfor både den koblede grenen og det tapte kappløpet.
+     */
+    @Test
+    fun `angreBehandling gir false når den klagekoblede behandlingen ikke er klar til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, rammebehandlingMedKlagebehandling, _) =
+                iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling(tac = tac)!!
+            rammebehandlingMedKlagebehandling.klagebehandling.shouldNotBeNull()
+
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(
+                rammebehandlingMedKlagebehandling,
+                null,
+            ) shouldBe false
+        }
+    }
 }

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.forhånds
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.iverksettRammebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.underkjennRammebehandlingRoute
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.AngreRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
@@ -33,6 +34,7 @@ fun Route.rammebehandlingRoutes(
     forhåndsvisVedtaksbrevService: ForhåndsvisRammevedtaksbrevService,
     startRevurderingService: StartRevurderingService,
     taBehandlingService: TaRammebehandlingService,
+    angreRammebehandlingService: AngreRammebehandlingService,
     overtaBehandlingService: OvertaRammebehandlingService,
     leggTilbakeBehandlingService: LeggTilbakeRammebehandlingService,
     oppdaterBehandlingService: OppdaterRammebehandlingService,
@@ -51,6 +53,7 @@ fun Route.rammebehandlingRoutes(
     forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService, tilgangskontrollService)
     startRevurderingRoute(startRevurderingService, auditService, tilgangskontrollService)
     taRammebehandlingRoute(auditService, taBehandlingService, tilgangskontrollService, clock)
+    angreRammebehandlingRoute(auditService, angreRammebehandlingService, tilgangskontrollService, clock)
     underkjennRammebehandlingRoute(auditService, behandlingService, tilgangskontrollService)
     overtaRammebehandlingRoute(overtaBehandlingService, auditService, tilgangskontrollService, clock)
     leggTilbakeRammebehandlingRoute(auditService, leggTilbakeBehandlingService, tilgangskontrollService, clock)
