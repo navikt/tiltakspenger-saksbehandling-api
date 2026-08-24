@@ -37,8 +37,8 @@ buildscript {
             add("classpath", "org.apache.commons:commons-lang3:3.18.0")
             // Avro drar inn en gammel jackson-bom her. Buildscript-classpathen er en egen
             // konfigurasjon, så `implementation(platform(...))` i dependencies-blokka når den ikke.
-            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.1")
-            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.1")
+            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.2")
+            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.2")
         }
     }
 }
