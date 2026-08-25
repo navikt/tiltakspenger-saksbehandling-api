@@ -32,7 +32,7 @@ buildscript {
             // Versjonene er skrevet ut fordi buildscript-blokka evalueres før script-valene finnes;
             // hold dem i sync med `avroVersion` og `jackson2Version`.
             // Kodeinjeksjon i Avros Java-SDK (GHSA-rp46-r563-jrc7).
-            add("classpath", "org.apache.avro:avro-compiler:1.12.1")
+            add("classpath", "org.apache.avro:avro-compiler:1.12.2")
             // Ukontrollert rekursjon på lange inndata (GHSA-j288-q9x7-2f5v).
             add("classpath", "org.apache.commons:commons-lang3:3.18.0")
             // Avro drar inn en gammel jackson-bom her. Buildscript-classpathen er en egen
