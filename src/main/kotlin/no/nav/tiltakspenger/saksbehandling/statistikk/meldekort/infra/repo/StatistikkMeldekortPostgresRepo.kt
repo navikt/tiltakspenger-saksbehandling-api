@@ -44,7 +44,6 @@ object StatistikkMeldekortPostgresRepo {
             queryOf(
                 lagreMeldekortSql,
                 mapOf(
-                    "meldeperiode_kjede_id" to dto.meldeperiodeKjedeId,
                     "sak_id" to dto.sakId,
                     "meldekortbehandling_id" to dto.meldekortbehandlingId,
                     "bruker_id" to dto.brukerId,
@@ -53,7 +52,6 @@ object StatistikkMeldekortPostgresRepo {
                     "behandlet_automatisk" to dto.behandletAutomatisk,
                     "fra_og_med" to dto.fraOgMed,
                     "til_og_med" to dto.tilOgMed,
-                    "meldekortdager" to dto.meldekortdager.tilMeldekortdagerDbJson().let { serialize(it) },
                     "meldeperioder" to dto.meldeperioder.tilMeldeperioderDbJson().let { serialize(it) },
                     "opprettet" to dto.opprettet,
                     "sist_endret" to dto.sistEndret,
@@ -67,7 +65,6 @@ object StatistikkMeldekortPostgresRepo {
 private val lagreMeldekortSql =
     """
         insert into statistikk_meldekort (
-        meldeperiode_kjede_id,
         sak_id,
         meldekortbehandling_id,
         bruker_id,
@@ -76,12 +73,10 @@ private val lagreMeldekortSql =
         behandlet_automatisk,
         fra_og_med,
         til_og_med,
-        meldekortdager,
         meldeperioder,
         opprettet,
         sist_endret
         ) values (
-        :meldeperiode_kjede_id,
         :sak_id,
         :meldekortbehandling_id,
         :bruker_id,
@@ -90,18 +85,15 @@ private val lagreMeldekortSql =
         :behandlet_automatisk,
         :fra_og_med,
         :til_og_med,
-        :meldekortdager::jsonb,
         :meldeperioder::jsonb,
         :opprettet,
         :sist_endret
         ) on conflict (meldekortbehandling_id) do update set
-        meldeperiode_kjede_id = :meldeperiode_kjede_id,
         sak_id = :sak_id,
         vedtatt_tidspunkt = :vedtatt_tidspunkt,
         behandlet_automatisk = :behandlet_automatisk,
         fra_og_med = :fra_og_med,
         til_og_med = :til_og_med,
-        meldekortdager = :meldekortdager::jsonb,
         meldeperioder = :meldeperioder::jsonb,
         sist_endret = :sist_endret
     """.trimIndent()

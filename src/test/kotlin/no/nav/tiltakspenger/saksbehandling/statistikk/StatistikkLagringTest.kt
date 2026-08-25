@@ -89,7 +89,6 @@ class StatistikkLagringTest {
                 it.localDate("fra_og_med") shouldBe meldekortbehandling.periode.fraOgMed
                 it.localDate("til_og_med") shouldBe meldekortbehandling.periode.tilOgMed
                 it.string("meldeperioder") shouldContain "meldeperiodeKjedeId"
-                it.string("meldekortdager") shouldContain "dato"
             }
         }
     }

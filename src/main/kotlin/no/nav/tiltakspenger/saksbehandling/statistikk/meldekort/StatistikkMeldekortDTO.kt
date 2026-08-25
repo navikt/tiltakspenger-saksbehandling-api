@@ -23,10 +23,6 @@ data class StatistikkMeldekortDTO(
     val opprettet: LocalDateTime,
     val sistEndret: LocalDateTime,
     val meldeperioder: List<StatistikkMeldeperiode>,
-
-    // TODO: fjernes når statistikk har tatt i bruk meldeperioder
-    val meldeperiodeKjedeId: String,
-    val meldekortdager: List<StatistikkMeldekortDag>,
 ) {
 
     data class StatistikkMeldeperiode(
@@ -63,11 +59,8 @@ data class StatistikkMeldekortDTO(
 }
 
 fun Meldekortbehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): GenererMeldekortstatistikk {
-    val legacyMeldeperiode = meldeperioder.first()
-
     return GenererMeldekortstatistikk {
         StatistikkMeldekortDTO(
-            meldeperiodeKjedeId = legacyMeldeperiode.kjedeId.toString(),
             sakId = sakId.toString(),
             meldekortbehandlingId = id.toString(),
             brukerId = fnr.verdi,
@@ -76,7 +69,6 @@ fun Meldekortbehandling.Behandlet.tilStatistikkMeldekortDTO(clock: Clock): Gener
             behandletAutomatisk = this is MeldekortBehandletAutomatisk,
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
-            meldekortdager = legacyMeldeperiode.dager.map { it.tilStatistikkMeldekortDag() },
             meldeperioder = meldeperioder.map { it.tilStatistikkMeldeperiode() },
             opprettet = opprettet,
             sistEndret = nå(clock),
