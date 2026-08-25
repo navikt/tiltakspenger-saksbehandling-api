@@ -87,6 +87,9 @@ sealed interface EnvironmentConfig {
     val identhendelseTopic: String
     val tilbakekrevingTopic: String
 
+    val leesahAvroSerializablePackage: String
+    val aktorV2AvroSerializablePackage: String
+
     val saksbehandlingFrontendUrl: String
 }
 
@@ -180,6 +183,9 @@ data object LocalConfig : EnvironmentConfig {
     override val identhendelseTopic = "tpts.identhendelse"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
 
+    override val leesahAvroSerializablePackage = "no.nav.person.pdl.leesah"
+    override val aktorV2AvroSerializablePackage = "no.nav.person.pdl.aktor.v2"
+
     override val saksbehandlingFrontendUrl = "http://localhost:3000"
 }
 
@@ -264,6 +270,9 @@ data object DevConfig : EnvironmentConfig {
     override val identhendelseTopic = "tpts.identhendelse-v1"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
 
+    override val leesahAvroSerializablePackage = "no.nav.person.pdl.leesah"
+    override val aktorV2AvroSerializablePackage = "no.nav.person.pdl.aktor.v2"
+
     override val saksbehandlingFrontendUrl = "https://tiltakspenger-saksbehandling.ansatt.dev.nav.no"
 }
 
@@ -347,6 +356,9 @@ data object ProdConfig : EnvironmentConfig {
     override val aktorV2Topic = "pdl.aktor-v2"
     override val identhendelseTopic = "tpts.identhendelse-v1"
     override val tilbakekrevingTopic = "tilbake.privat-tilbakekreving-tiltakspenger"
+
+    override val leesahAvroSerializablePackage = "no.nav.person.pdl.leesah"
+    override val aktorV2AvroSerializablePackage = "no.nav.person.pdl.aktor.v2"
 
     override val saksbehandlingFrontendUrl = "https://tiltakspenger-saksbehandling.ansatt.nav.no"
 }

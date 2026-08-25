@@ -34,4 +34,9 @@ object Configuration : EnvironmentConfig by hentConfigForMiljø() {
     data class DataBaseConf(val url: String)
 
     fun database(): DataBaseConf = DataBaseConf(url = dbJdbcUrl)
+
+    val avroSerializablePackages: String = listOf(
+        leesahAvroSerializablePackage,
+        aktorV2AvroSerializablePackage,
+    ).joinToString(",")
 }

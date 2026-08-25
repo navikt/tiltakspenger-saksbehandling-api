@@ -14,6 +14,7 @@ import java.time.Clock
 
 fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
+    System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", Configuration.avroSerializablePackages)
 
     val log = KotlinLogging.logger {}
 
