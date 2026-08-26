@@ -7,7 +7,7 @@ import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakPostgresRepo
 import java.time.Clock
 
@@ -15,7 +15,7 @@ open class SakContext(
     sessionFactory: SessionFactory,
     fellesSkjermingsklient: FellesSkjermingsklient,
     personService: PersonService,
-    profile: Profile,
+    environmentProfile: EnvironmentProfile,
     clock: Clock,
 ) {
     val sakService: SakService by lazy {
@@ -27,10 +27,10 @@ open class SakContext(
         )
     }
     open val saksnummerGenerator: SaksnummerGenerator by lazy {
-        when (profile) {
-            Profile.LOCAL -> SaksnummerGenerator.Local
-            Profile.DEV -> SaksnummerGenerator.Dev
-            Profile.PROD -> SaksnummerGenerator.Prod
+        when (environmentProfile) {
+            EnvironmentProfile.LOCAL -> SaksnummerGenerator.Local
+            EnvironmentProfile.DEV -> SaksnummerGenerator.Dev
+            EnvironmentProfile.PROD -> SaksnummerGenerator.Prod
         }
     }
     open val sakRepo: SakRepo by lazy {

@@ -33,7 +33,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
@@ -285,7 +285,7 @@ sealed class TestApplicationContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
-            profile = Profile.LOCAL,
+            environmentProfile = EnvironmentProfile.LOCAL,
             clock = clock,
         ) {
             // Dato-baserte saksnummer (SaksnummerGenerator.Local) kolliderer under parallellkjøring, siden alle tester med samme klokkedato får samme startnummer og hentNesteSaksnummer gjør select-max-pluss-én uten lås.

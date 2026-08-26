@@ -80,7 +80,7 @@ class BenkPostgresRepo(
                 "status" to command.filtrering.status.tilParam(),
                 "soknadstype" to command.filtrering.søknadstype.tilParam(),
                 "resultat" to command.filtrering.resultat.tilParam(),
-                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
                 "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
@@ -100,7 +100,7 @@ class BenkPostgresRepo(
             params = command.filtrering.tilParams() + arrayOf(
                 "status" to command.filtrering.status.tilParam(),
                 "resultat" to command.filtrering.resultat.tilParam(),
-                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
                 "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
@@ -120,7 +120,7 @@ class BenkPostgresRepo(
             params = command.filtrering.tilParams() + arrayOf(
                 "status" to command.filtrering.status.tilParam(),
                 "type" to command.filtrering.type.tilParam(),
-                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
                 "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
@@ -159,7 +159,7 @@ class BenkPostgresRepo(
                 "status" to command.filtrering.status.tilParam(),
                 "kilde" to command.filtrering.kilde.tilParam(),
                 "minstebelop" to command.filtrering.minstebeløp,
-                "skjul_egne_til_beslutning" to command.filtrering.skjulEgneTilBeslutning,
+                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
                 "innlogget_saksbehandler" to command.saksbehandler.navIdent,
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
@@ -506,22 +506,26 @@ class BenkPostgresRepo(
          * Saksbehandler kan ikke beslutte sin egen behandling, så radene hen allerede har sendt til beslutning er støy i køen hens.
          * `is distinct from` i stedet for `<>` fordi en rad uten tildelt saksbehandler aldri skal filtreres bort av dette filteret.
          */
-        const val EGNE_TIL_BESLUTNING_FILTER = """
+        const val VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER = """
             (
-                not :skjul_egne_til_beslutning
-                or saksbehandler is distinct from :innlogget_saksbehandler
-                or status not in ('KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
+                not :skjul_venter_pa_annen_saksbehandler
+                or (saksbehandler is distinct from :innlogget_saksbehandler
+                and status in ('KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING'))
+                or (beslutter is distinct from :innlogget_saksbehandler
+                and status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING'))
             )
         """
 
         /**
-         * Samme filter som [EGNE_TIL_BESLUTNING_FILTER], men med tilbakekrevingens egne statuser for godkjenningssteget.
+         * Samme filter som [VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER], men med tilbakekrevingens egne statuser for godkjenningssteget.
          */
-        const val EGNE_TIL_GODKJENNING_FILTER = """
+        const val TILBAKEKREVING_VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER = """
             (
-                not :skjul_egne_til_beslutning
-                or saksbehandler is distinct from :innlogget_saksbehandler
-                or status not in ('TIL_GODKJENNING', 'UNDER_GODKJENNING')
+                not :skjul_venter_pa_annen_saksbehandler
+                or (saksbehandler is distinct from :innlogget_saksbehandler
+                and status in ('TIL_GODKJENNING', 'UNDER_GODKJENNING'))
+                or (beslutter is distinct from :innlogget_saksbehandler
+                and status in ('TIL_BEHANDLING', 'UNDER_BEHANDLING'))
             )
         """
 
@@ -531,7 +535,7 @@ class BenkPostgresRepo(
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
-            and $EGNE_TIL_BESLUTNING_FILTER
+            and $VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
 
         const val REVURDERINGER_FILTER = """
@@ -539,7 +543,7 @@ class BenkPostgresRepo(
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
-            and $EGNE_TIL_BESLUTNING_FILTER
+            and $VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
 
         const val MELDEKORT_FILTER = """
@@ -547,7 +551,7 @@ class BenkPostgresRepo(
             and (:type::text is null or type = :type::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
-            and $EGNE_TIL_BESLUTNING_FILTER
+            and $VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
 
         const val KLAGE_FILTER = """
@@ -563,7 +567,7 @@ class BenkPostgresRepo(
             and beløp >= :minstebelop
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
-            and $EGNE_TIL_GODKJENNING_FILTER
+            and $TILBAKEKREVING_VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
     }
 }

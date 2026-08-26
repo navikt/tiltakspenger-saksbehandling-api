@@ -28,7 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
-import no.nav.tiltakspenger.saksbehandling.infra.setup.Profile
+import no.nav.tiltakspenger.saksbehandling.infra.setup.EnvironmentProfile
 import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorRandom
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
@@ -219,14 +219,14 @@ class LocalApplicationContext(
         TiltakspengerArenaFakeClient()
     }
 
-    override val profile by lazy { Profile.LOCAL }
+    val environmentProfile by lazy { EnvironmentProfile.LOCAL }
 
     override val sakContext by lazy {
         object : SakContext(
             sessionFactory = sessionFactory,
             personService = personContext.personService,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
-            profile = profile,
+            environmentProfile = environmentProfile,
             clock = clock,
         ) {}
     }

@@ -1,13 +1,13 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
-enum class Profile {
+enum class EnvironmentProfile {
     LOCAL,
     DEV,
     PROD,
 }
 
 sealed interface EnvironmentConfig {
-    val profile: Profile
+    val environmentProfile: EnvironmentProfile
     val httpPort: Int
     val logbackConfigurationFile: String
 
@@ -102,7 +102,7 @@ data object LocalConfig : EnvironmentConfig {
      * */
     private const val WIREMOCK_URL = "http://host.docker.internal:8091"
 
-    override val profile = Profile.LOCAL
+    override val environmentProfile = EnvironmentProfile.LOCAL
     override val httpPort = 8080
     override val logbackConfigurationFile = "logback.local.xml"
 
@@ -190,7 +190,7 @@ data object LocalConfig : EnvironmentConfig {
 }
 
 data object DevConfig : EnvironmentConfig {
-    override val profile = Profile.DEV
+    override val environmentProfile = EnvironmentProfile.DEV
     override val httpPort = 8080
     override val logbackConfigurationFile = "logback.xml"
 
@@ -277,7 +277,7 @@ data object DevConfig : EnvironmentConfig {
 }
 
 data object ProdConfig : EnvironmentConfig {
-    override val profile = Profile.PROD
+    override val environmentProfile = EnvironmentProfile.PROD
     override val httpPort = 8080
     override val logbackConfigurationFile = "logback.xml"
 

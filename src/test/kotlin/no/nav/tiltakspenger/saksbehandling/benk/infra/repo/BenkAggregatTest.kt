@@ -111,9 +111,9 @@ class BenkAggregatTest {
         kolonne: BenkSøknaderKolonne = BenkSøknaderKolonne.KRAVTIDSPUNKT,
         retning: BenkSorteringRetning = BenkSorteringRetning.ASC,
         skjulPåVent: Boolean = false,
-        skjulEgneTilBeslutning: Boolean = false,
+        skjulVenterPåAnnenSaksbehandler: Boolean = false,
     ) = command(
-        BenkSøknaderFiltrering(status, søknadstype, resultat, saksbehandler, skjulPåVent, skjulEgneTilBeslutning),
+        BenkSøknaderFiltrering(status, søknadstype, resultat, saksbehandler, skjulPåVent, skjulVenterPåAnnenSaksbehandler),
         kolonne,
         retning,
     )
@@ -123,9 +123,9 @@ class BenkAggregatTest {
         resultat: BenkRevurderingResultat? = null,
         saksbehandler: String? = null,
         skjulPåVent: Boolean = false,
-        skjulEgneTilBeslutning: Boolean = false,
+        skjulVenterPåAnnenSaksbehandler: Boolean = false,
     ) = command(
-        BenkRevurderingerFiltrering(status, resultat, saksbehandler, skjulPåVent, skjulEgneTilBeslutning),
+        BenkRevurderingerFiltrering(status, resultat, saksbehandler, skjulPåVent, skjulVenterPåAnnenSaksbehandler),
         BenkRevurderingerKolonne.STARTET,
     )
 
@@ -134,9 +134,9 @@ class BenkAggregatTest {
         type: BenkMeldekortType? = null,
         saksbehandler: String? = null,
         skjulPåVent: Boolean = false,
-        skjulEgneTilBeslutning: Boolean = false,
+        skjulVenterPåAnnenSaksbehandler: Boolean = false,
     ) = command(
-        BenkMeldekortFiltrering(status, type, saksbehandler, skjulPåVent, skjulEgneTilBeslutning),
+        BenkMeldekortFiltrering(status, type, saksbehandler, skjulPåVent, skjulVenterPåAnnenSaksbehandler),
         BenkMeldekortKolonne.PERIODE,
     )
 
@@ -153,10 +153,10 @@ class BenkAggregatTest {
         saksbehandler: String? = null,
         minstebeløp: Long = 0,
         skjulPåVent: Boolean = false,
-        skjulEgneTilBeslutning: Boolean = false,
+        skjulVenterPåAnnenSaksbehandler: Boolean = false,
         kolonne: BenkTilbakekrevingKolonne = BenkTilbakekrevingKolonne.STARTET,
     ) = command(
-        BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp, skjulPåVent, skjulEgneTilBeslutning),
+        BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp, skjulPåVent, skjulVenterPåAnnenSaksbehandler),
         kolonne,
     )
 
@@ -376,7 +376,7 @@ class BenkAggregatTest {
 
             repo.hentSøknader(søknaderCommand()).totalAntall shouldBe 4
 
-            repo.hentSøknader(søknaderCommand(skjulEgneTilBeslutning = true)).let {
+            repo.hentSøknader(søknaderCommand(skjulVenterPåAnnenSaksbehandler = true)).let {
                 it.totalAntall shouldBe 2
                 it.totalAntallUfiltrert shouldBe 4
                 it.behandlinger.none { rad -> rad.felles.sakId == sakEgenTilBeslutning.id } shouldBe true
@@ -521,7 +521,7 @@ class BenkAggregatTest {
 
             repo.hentRevurderinger(revurderingerCommand()).totalAntall shouldBe 2
 
-            repo.hentRevurderinger(revurderingerCommand(skjulEgneTilBeslutning = true)).let {
+            repo.hentRevurderinger(revurderingerCommand(skjulVenterPåAnnenSaksbehandler = true)).let {
                 it.totalAntall shouldBe 1
                 it.totalAntallUfiltrert shouldBe 2
                 it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
@@ -676,7 +676,7 @@ class BenkAggregatTest {
 
             repo.hentMeldekort(meldekortCommand()).totalAntall shouldBe 2
 
-            repo.hentMeldekort(meldekortCommand(skjulEgneTilBeslutning = true)).let {
+            repo.hentMeldekort(meldekortCommand(skjulVenterPåAnnenSaksbehandler = true)).let {
                 it.totalAntall shouldBe 1
                 it.totalAntallUfiltrert shouldBe 2
                 it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id
@@ -1001,7 +1001,7 @@ class BenkAggregatTest {
                     BenkTilbakekrevingStatus.TIL_GODKJENNING
             }
 
-            repo.hentTilbakekrevinger(tilbakekrevingCommand(skjulEgneTilBeslutning = true)).let {
+            repo.hentTilbakekrevinger(tilbakekrevingCommand(skjulVenterPåAnnenSaksbehandler = true)).let {
                 it.totalAntall shouldBe 1
                 it.totalAntallUfiltrert shouldBe 2
                 it.behandlinger.single().felles.sakId shouldBe sakUnderBehandling.id

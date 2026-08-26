@@ -365,13 +365,13 @@ open class ApplicationContext(
             clock = clock,
         )
     }
-    open val profile by lazy { Configuration.profile }
+    open val profile by lazy { Configuration.environmentProfile }
     open val sakContext by lazy {
         SakContext(
             sessionFactory = sessionFactory,
             fellesSkjermingsklient = personContext.fellesSkjermingsklient,
             personService = personContext.personService,
-            profile = profile,
+            environmentProfile = profile,
             clock = clock,
         )
     }

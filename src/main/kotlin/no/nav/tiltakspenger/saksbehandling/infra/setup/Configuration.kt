@@ -23,11 +23,11 @@ object Configuration : EnvironmentConfig by hentConfigForMiljø() {
             AdRolle(Saksbehandlerrolle.DRIFT, roleDrift),
         )
 
-    fun isNais(): Boolean = profile != Profile.LOCAL
+    fun isNais(): Boolean = environmentProfile != EnvironmentProfile.LOCAL
 
-    fun isProd(): Boolean = profile == Profile.PROD
+    fun isProd(): Boolean = environmentProfile == EnvironmentProfile.PROD
 
-    fun isDev(): Boolean = profile == Profile.DEV
+    fun isDev(): Boolean = environmentProfile == EnvironmentProfile.DEV
 
     fun gitHash(): String = appImage.substringAfterLast(":")
 
