@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.UNDER_FORHÅNDSVARSLING
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus.UNDER_GODKJENNING
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Avbryt
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
@@ -90,6 +91,9 @@ private fun finnGyldigeRammebehandlingKommandoer(
     return buildList {
         if (status == KLAR_TIL_BEHANDLING && erSaksbehandler && felles.saksbehandler == null) {
             add(TildelSaksbehandler)
+        }
+        if (status == KLAR_TIL_BESLUTNING && felles.saksbehandler == navIdent) {
+            add(AngreSendTilBeslutning)
         }
         if (status == KLAR_TIL_BESLUTNING && erBeslutter && felles.beslutter == null && felles.saksbehandler != navIdent) {
             add(TildelBeslutter)

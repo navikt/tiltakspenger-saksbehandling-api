@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.AngreSendTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Avbryt
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.Gjenoppta
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommando.LeggTilbakeBeslutter
@@ -133,7 +134,7 @@ class BenkGyldigeKommandoerTest {
             søknadsbehandling(
                 BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(AngreSendTilBeslutning, Avbryt)
         }
 
         @Test
