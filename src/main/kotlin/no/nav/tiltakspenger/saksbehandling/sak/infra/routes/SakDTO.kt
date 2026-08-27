@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilBehandlingerDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingerDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.KlagevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.tilKlagebehandlingDTO
@@ -79,7 +79,7 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
 
     åpneBehandlinger = this.tilÅpneBehandlingerDTO(),
 
-    rammebehandlinger = this.tilBehandlingerDTO(saksbehandler),
+    rammebehandlinger = this.tilRammebehandlingerDTO(saksbehandler),
     klagebehandlinger = this.behandlinger.klagebehandlinger.map { it.tilKlagebehandlingDTO() },
     tilbakekrevinger = this.tilbakekrevinger.map {
         it.tilTilbakekrevingBehandlingDTO(utbetalinger.hentUtbetaling(it.utbetalingId)!!, saksbehandler)

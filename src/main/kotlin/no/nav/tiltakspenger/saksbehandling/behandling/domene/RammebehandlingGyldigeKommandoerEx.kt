@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.kanAngreBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.avbryt.kanAvbryte
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenoppta.kanGjenoppta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.kanLeggeTilbake
@@ -20,6 +21,7 @@ fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
     return buildList {
         if (kanTildeleSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
         if (kanTildeleBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelBeslutter)
+        if (kanAngreBehandling(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning)
         if (kanOvertaSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.OvertaSaksbehandler)
         if (kanOvertaBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.OvertaBeslutter)
         if (kanLeggeTilbakeSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.LeggTilbakeSaksbehandler)

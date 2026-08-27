@@ -162,7 +162,7 @@ fun Sak.tilRammebehandlingDTO(
     }
 }
 
-fun Sak.tilBehandlingerDTO(kallendeSaksbehandler: Saksbehandler): List<RammebehandlingDTO> {
+fun Sak.tilRammebehandlingerDTO(kallendeSaksbehandler: Saksbehandler): List<RammebehandlingDTO> {
     return this.rammebehandlinger.map { this.tilRammebehandlingDTO(it.id, kallendeSaksbehandler) }
 }
 

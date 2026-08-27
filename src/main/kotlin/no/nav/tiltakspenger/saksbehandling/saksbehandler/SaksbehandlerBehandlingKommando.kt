@@ -8,6 +8,7 @@ package no.nav.tiltakspenger.saksbehandling.saksbehandler
 enum class SaksbehandlerBehandlingKommando {
     TildelSaksbehandler,
     TildelBeslutter,
+    AngreSendTilBeslutning,
     OvertaSaksbehandler,
     OvertaBeslutter,
     LeggTilbakeSaksbehandler,
@@ -28,6 +29,7 @@ enum class SaksbehandlerBehandlingKommando {
             SettPåVent -> SaksbehandlerBehandlingKommandoDTO.SettPåVent
             Gjenoppta -> SaksbehandlerBehandlingKommandoDTO.Gjenoppta
             Avbryt -> SaksbehandlerBehandlingKommandoDTO.Avbryt
+            AngreSendTilBeslutning -> SaksbehandlerBehandlingKommandoDTO.AngreSendTilBeslutning
         }
     }
 }
@@ -35,6 +37,7 @@ enum class SaksbehandlerBehandlingKommando {
 enum class SaksbehandlerBehandlingKommandoDTO {
     TildelSaksbehandler,
     TildelBeslutter,
+    AngreSendTilBeslutning,
     OvertaSaksbehandler,
     OvertaBeslutter,
     LeggTilbakeSaksbehandler,

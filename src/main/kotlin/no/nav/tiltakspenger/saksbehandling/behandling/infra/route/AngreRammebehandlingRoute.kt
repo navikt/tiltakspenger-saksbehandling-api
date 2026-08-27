@@ -51,7 +51,7 @@ fun Route.angreRammebehandlingRoute(
                             kontekst = "sakId=$sakId, behandlingId=$behandlingId",
                         )
                     },
-                    ifRight = {
+                    ifRight = { (sak) ->
                         auditService.logMedRammebehandlingId(
                             behandlingId = behandlingId,
                             navIdent = saksbehandler.navIdent,
@@ -60,7 +60,7 @@ fun Route.angreRammebehandlingRoute(
                             correlationId = correlationId,
                         )
 
-                        call.respondJson(value = it.first.toSakDTO(saksbehandler, clock))
+                        call.respondJson(value = sak.toSakDTO(saksbehandler, clock))
                     },
                 )
             }

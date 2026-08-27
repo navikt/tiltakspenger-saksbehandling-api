@@ -96,6 +96,7 @@ class RammebehandlingGyldigeKommandoerExTest {
         val behandling = ObjectMother.nySøknadsbehandlingKlarTilBeslutning(saksbehandler = saksbehandler)
 
         behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.AngreSendTilBeslutning,
             SaksbehandlerBehandlingKommando.Avbryt,
         )
     }
