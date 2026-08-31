@@ -21,7 +21,9 @@ data class SaksbehandlerDTO(
 
         // Systemadministrator (oss)
         DRIFT,
+
         BESLUTTER,
+        VEILEDER,
     }
 }
 
@@ -40,6 +42,8 @@ private fun Saksbehandlerrolle.toRolleDTO(): SaksbehandlerDTO.RolleDTO =
         Saksbehandlerrolle.BESLUTTER -> SaksbehandlerDTO.RolleDTO.BESLUTTER
 
         Saksbehandlerrolle.DRIFT -> SaksbehandlerDTO.RolleDTO.DRIFT
+
+        Saksbehandlerrolle.VEILEDER -> SaksbehandlerDTO.RolleDTO.VEILEDER
 
         // Disse rollene har vi ikke noe forhold til lengre, tilgangskontroll skjer via tilgangsmaskinen
         Saksbehandlerrolle.FORTROLIG_ADRESSE -> SaksbehandlerDTO.RolleDTO.FORTROLIG_ADRESSE

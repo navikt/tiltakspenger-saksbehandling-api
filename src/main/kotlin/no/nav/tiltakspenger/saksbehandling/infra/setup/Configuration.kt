@@ -21,6 +21,7 @@ object Configuration : EnvironmentConfig by hentConfigForMiljø() {
             AdRolle(Saksbehandlerrolle.SAKSBEHANDLER, roleSaksbehandler),
             AdRolle(Saksbehandlerrolle.BESLUTTER, roleBeslutter),
             AdRolle(Saksbehandlerrolle.DRIFT, roleDrift),
+            AdRolle(Saksbehandlerrolle.VEILEDER, roleVeileder),
         )
 
     fun isNais(): Boolean = environmentProfile != EnvironmentProfile.LOCAL

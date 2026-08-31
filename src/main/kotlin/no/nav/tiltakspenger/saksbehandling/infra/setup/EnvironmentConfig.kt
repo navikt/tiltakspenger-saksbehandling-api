@@ -14,6 +14,7 @@ sealed interface EnvironmentConfig {
     val roleSaksbehandler: String
     val roleBeslutter: String
     val roleDrift: String
+    val roleVeileder: String
 
     val electorPath: String
     val appImage: String
@@ -109,6 +110,7 @@ data object LocalConfig : EnvironmentConfig {
     override val roleSaksbehandler = "1b3a2c4d-d620-4fcf-a29b-a6cdadf29680"
     override val roleBeslutter = "79985315-b2de-40b8-a740-9510796993c6"
     override val roleDrift = "c511113e-5b22-49e7-b9c4-eeb23b01f518"
+    override val roleVeileder = "13d39d54-4af9-44a8-a57c-e223df62ab86"
 
     // Brukes ikke lokalt
     override val electorPath = ""
@@ -197,6 +199,7 @@ data object DevConfig : EnvironmentConfig {
     override val roleSaksbehandler: String = System.getenv("ROLE_SAKSBEHANDLER")
     override val roleBeslutter: String = System.getenv("ROLE_BESLUTTER")
     override val roleDrift: String = System.getenv("ROLE_DRIFT")
+    override val roleVeileder: String = System.getenv("ROLE_VEILEDER")
 
     override val electorPath: String = System.getenv("ELECTOR_PATH")
     override val appImage: String = System.getenv("NAIS_APP_IMAGE")
@@ -284,6 +287,7 @@ data object ProdConfig : EnvironmentConfig {
     override val roleSaksbehandler: String = System.getenv("ROLE_SAKSBEHANDLER")
     override val roleBeslutter: String = System.getenv("ROLE_BESLUTTER")
     override val roleDrift: String = System.getenv("ROLE_DRIFT")
+    override val roleVeileder: String = System.getenv("ROLE_VEILEDER")
 
     override val electorPath: String = System.getenv("ELECTOR_PATH")
     override val appImage: String = System.getenv("NAIS_APP_IMAGE")
