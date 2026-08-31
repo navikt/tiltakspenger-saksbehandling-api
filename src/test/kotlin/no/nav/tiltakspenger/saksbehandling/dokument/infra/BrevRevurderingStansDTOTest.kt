@@ -166,8 +166,8 @@ class BrevRevurderingStansDTOTest {
     }
 
     /**
-     * Fasit for brevtekstene som flyter videre til pdfgen/pdfgenrs (feltet `valgtHjemmelTekst`).
-     * Endres en tekst her, må testdataene i tiltakspenger-pdfgen/tiltakspenger-pdfgenrs (`data/tpts/stansvedtak.json`) oppdateres tilsvarende.
+     * Fasit for brevtekstene som flyter videre til pdfgenrs (feltet `valgtHjemmelTekst`).
+     * Endres en tekst her, må testdataene i tiltakspenger-pdfgenrs (`data/tpts/stansvedtak.json`) oppdateres tilsvarende.
      */
     private fun HjemmelForStans.forventetTekst(medBarnetillegg: Boolean): String {
         val ytelse = if (medBarnetillegg) "tiltakspenger og barnetillegg" else "tiltakspenger"

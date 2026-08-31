@@ -9,7 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.GenererVedtaksbrevF
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.JournalførRammevedtaksbrevKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.Dokumentdistribusjonsklient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenrsHttpClient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.GenererKlagebrevKlient
@@ -45,16 +45,16 @@ open class DokumentContext(
     open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { dokarkivClient }
     open val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient by lazy { dokarkivClient }
     open val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient by lazy { dokarkivClient }
-    private val pdfgen by lazy {
-        PdfgenHttpClient(
+    private val pdfgenrs by lazy {
+        PdfgenrsHttpClient(
             basePdfgenrsUrl = Configuration.pdfgenrsUrl,
             clock = clock,
         )
     }
-    open val genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient by lazy { pdfgen }
-    open val genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient by lazy { pdfgen }
-    open val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient by lazy { pdfgen }
-    open val genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient by lazy { pdfgen }
-    open val genererVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient by lazy { pdfgen }
-    open val genererKlagebrevKlient: GenererKlagebrevKlient by lazy { pdfgen }
+    open val genererVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient by lazy { pdfgenrs }
+    open val genererVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient by lazy { pdfgenrs }
+    open val genererVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient by lazy { pdfgenrs }
+    open val genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient by lazy { pdfgenrs }
+    open val genererVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient by lazy { pdfgenrs }
+    open val genererKlagebrevKlient: GenererKlagebrevKlient by lazy { pdfgenrs }
 }

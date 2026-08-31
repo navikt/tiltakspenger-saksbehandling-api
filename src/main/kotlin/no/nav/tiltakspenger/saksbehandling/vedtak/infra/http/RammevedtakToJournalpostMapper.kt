@@ -37,7 +37,7 @@ private fun Rammevedtak.toJournalpostRequest(
         dokumenter = listOf(
             DokarkivRequest.JournalpostDokument(
                 tittel = tittel,
-                // TODO jah:brevkode bør være bakt inn i PdfOgJson og settes samtidig som vi mottar PDFen fra pdfgen.
+                // TODO jah:brevkode bør være bakt inn i PdfOgJson og settes samtidig som vi mottar PDF-en fra pdfgenrs.
                 brevkode = "RAMMEVEDTAK-TILTAKSPENGER",
                 dokumentvarianter = listOf(
                     ArkivPDF(

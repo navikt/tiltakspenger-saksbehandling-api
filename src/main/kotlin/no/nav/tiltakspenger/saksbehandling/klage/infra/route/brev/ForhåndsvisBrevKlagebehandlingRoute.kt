@@ -73,7 +73,7 @@ fun Route.forhåndsvisBrevKlagebehandlingRoute(
 
 private fun KanIkkeForhåndsviseBrev.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
-        is KanIkkeForhåndsviseBrev.FeilMotPdfgen -> Pair(
+        is KanIkkeForhåndsviseBrev.FeilMotPdfgenrs -> Pair(
             HttpStatusCode.InternalServerError,
             ErrorJson(
                 "Feil ved generering av PDF. Feilen er blitt logget. Vennligst prøv igjen senere.",

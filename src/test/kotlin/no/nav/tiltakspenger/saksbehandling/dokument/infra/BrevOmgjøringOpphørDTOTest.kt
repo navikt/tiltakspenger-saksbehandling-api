@@ -211,8 +211,8 @@ class BrevOmgjøringOpphørDTOTest {
     }
 
     /**
-     * Fasit for brevtekstene som flyter videre til pdfgen/pdfgenrs (feltet `valgtHjemmelTekst`).
-     * Endres en tekst her, må testdataene i tiltakspenger-pdfgen/tiltakspenger-pdfgenrs (`data/tpts/opphørVedtak.json`/`vedtakOpphør.json`) oppdateres tilsvarende.
+     * Fasit for brevtekstene som flyter videre til pdfgenrs (feltet `valgtHjemmelTekst`).
+     * Endres en tekst her, må testdataene i tiltakspenger-pdfgenrs (`data/tpts/opphørVedtak.json`/`vedtakOpphør.json`) oppdateres tilsvarende.
      */
     private fun HjemmelForOpphør.forventetTekst(medBarnetillegg: Boolean): String {
         val ytelse = if (medBarnetillegg) "tiltakspenger og barnetillegg" else "tiltakspenger"

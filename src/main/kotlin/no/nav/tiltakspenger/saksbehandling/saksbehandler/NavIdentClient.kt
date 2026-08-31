@@ -55,7 +55,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Midlertidig bro for brevgenereringskoden, som fortsatt har en throw-basert kontrakt (`suspend (String) -> String` inn i brev-DTO-byggerne).
  * Logger feilen (én logghendelse: vanlig logg + sikkerlogg) og kaster med en nøytral melding.
- * Fjernes når brevgenereringen migreres til `Either` som del av PdfgenHttpClient-migreringen (#1661).
+ * Fjernes når brevgenereringen migreres til `Either` som del av PdfgenrsHttpClient-migreringen (#1661).
  */
 suspend fun NavIdentClient.hentNavnForNavIdentEllerKast(navIdent: String): String {
     return hentNavnForNavIdent(navIdent).getOrElse { feil ->

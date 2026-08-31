@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevForMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.GenererFakeVedtaksbrevKlient
-import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenHttpClient
+import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenrsHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
@@ -79,7 +79,7 @@ import java.time.Clock
  * Bruk service-funksjoner og hjelpemetoder for å legge til data.
  */
 class LocalApplicationContext(
-    usePdfGen: Boolean,
+    usePdfgenrs: Boolean,
     clock: Clock,
 ) : ApplicationContext(gitHash = "fake-git-hash", clock = clock, erDev = false) {
 
@@ -96,8 +96,8 @@ class LocalApplicationContext(
 
     @Suppress("MemberVisibilityCanBePrivate")
     val distribusjonIdGenerator = DistribusjonIdGenerator()
-    private val realPdfGen = if (usePdfGen) {
-        PdfgenHttpClient(
+    private val realPdfgenrs = if (usePdfgenrs) {
+        PdfgenrsHttpClient(
             basePdfgenrsUrl = Configuration.pdfgenrsUrl,
             clock = clock,
         )
@@ -115,16 +115,16 @@ class LocalApplicationContext(
 
     private val personFakeKlient = PersonFakeKlient(clock)
     private val genererFakeVedtaksbrevForMeldekortKlient: GenererVedtaksbrevForMeldekortKlient =
-        realPdfGen ?: GenererFakeVedtaksbrevForMeldekortKlient()
+        realPdfgenrs ?: GenererFakeVedtaksbrevForMeldekortKlient()
 
     private val genererFakeVedtaksbrevForInnvilgelseKlient: GenererVedtaksbrevForInnvilgelseKlient =
-        realPdfGen ?: GenererFakeVedtaksbrevKlient()
+        realPdfgenrs ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForAvslagKlient: GenererVedtaksbrevForAvslagKlient =
-        realPdfGen ?: GenererFakeVedtaksbrevKlient()
+        realPdfgenrs ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient =
-        realPdfGen ?: GenererFakeVedtaksbrevKlient()
+        realPdfgenrs ?: GenererFakeVedtaksbrevKlient()
     private val genererFakeVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient =
-        realPdfGen ?: GenererFakeVedtaksbrevKlient()
+        realPdfgenrs ?: GenererFakeVedtaksbrevKlient()
     private val journalførFakeMeldekortKlient = JournalførFakeMeldekortKlient(journalpostIdGenerator)
     private val journalførFakeRammevedtaksbrevKlient = JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
     private val journalførFakeKlagevedtaksbrevKlient =
@@ -172,7 +172,7 @@ class LocalApplicationContext(
             override val brukHttpsMotGraph = false
             override val personKlient = personFakeKlient
             override val fellesSkjermingsklient = fellesFakeSkjermingsklient
-            override val navIdentClient = if (usePdfGen) FakeNavIdentClient() else super.navIdentClient
+            override val navIdentClient = if (usePdfgenrs) FakeNavIdentClient() else super.navIdentClient
         }
 
     override val dokumentContext by lazy {

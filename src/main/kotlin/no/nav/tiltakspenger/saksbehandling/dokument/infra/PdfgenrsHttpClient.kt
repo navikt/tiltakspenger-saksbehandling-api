@@ -46,22 +46,21 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Har ansvar for å konvertere domene til JSON som sendes til https://github.com/navikt/tiltakspenger-pdfgen for å generere PDF.
+ * Har ansvar for å konvertere domene til JSON som sendes til https://github.com/navikt/tiltakspenger-pdfgenrs for å generere PDF.
  *
- * Kildekode: https://github.com/navikt/tiltakspenger-pdfgen og https://github.com/navikt/tiltakspenger-pdfgenrs
+ * Kildekode: https://github.com/navikt/tiltakspenger-pdfgenrs
  * Dokumentasjon: README-ene i kildekode-repoene
  * API-spec: -
  * Slack: #tiltakspenger-værsågod (eget team)
  * Teamkatalog: https://teamkatalogen.nav.no/team/15bca3d2-2584-4167-85ba-faab1f1cfb53
  *
- * pdfgen er en intern tjeneste uten autentisering, derfor [KlientAuth.Ingen].
+ * pdfgenrs er en intern tjeneste uten autentisering, derfor [KlientAuth.Ingen].
  *
  * Klienten logger ikke feil selv: den bærer HTTP-konteksten videre via [KunneIkkeGenererePdf], og feillogging gjøres én gang i kallende service/jobb via [no.nav.tiltakspenger.libs.httpklient.loggFeil].
- * Unntaket er en midlertidig info-linje i [runParallel] som sammenligner responstiden til pdfgen og pdfgenrs; den fjernes sammen med pdfgenrs-verifiseringen.
  *
  * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
-class PdfgenHttpClient(
+class PdfgenrsHttpClient(
     basePdfgenrsUrl: String,
     clock: Clock,
     connectTimeout: Duration = 1.seconds,
@@ -112,7 +111,7 @@ class PdfgenHttpClient(
                     tilleggstekst = tilleggstekst,
                 )
 
-                pdfgenRequest(jsonPayload = { json }, uri = pdfgenrsRevurderingInnvilgelseUri)
+                pdfgenrsRequest(jsonPayload = { json }, uri = pdfgenrsRevurderingInnvilgelseUri)
             }
 
             is Søknadsbehandling -> {
@@ -122,7 +121,7 @@ class PdfgenHttpClient(
                     vedtaksdato = vedtaksdato,
                     tilleggstekst = tilleggstekst,
                 )
-                pdfgenRequest(jsonPayload = { json }, uri = pdfgenrsVedtakInnvilgelseUri)
+                pdfgenrsRequest(jsonPayload = { json }, uri = pdfgenrsVedtakInnvilgelseUri)
             }
         }
     }
@@ -156,7 +155,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakInnvilgelseUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakInnvilgelseUri)
     }
 
     override suspend fun genererInnvilgetRevurderingBrevForhåndsvisning(
@@ -188,7 +187,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsRevurderingInnvilgelseUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsRevurderingInnvilgelseUri)
     }
 
     override suspend fun genererMeldekortvedtakBrev(
@@ -205,7 +204,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakRsUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = meldekortvedtakRsUri)
     }
 
     override suspend fun genererMeldekortvedtakBrev(
@@ -214,7 +213,7 @@ class PdfgenHttpClient(
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {
         val jsonPayload = suspend { kommando.tilBrevMeldekortvedtakJson(hentSaksbehandlersNavn) }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = meldekortvedtakRsUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = meldekortvedtakRsUri)
     }
 
     override suspend fun genererStansBrev(
@@ -233,7 +232,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsStansvedtakUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsStansvedtakUri)
     }
 
     override suspend fun genererStansBrevForhåndsvisning(
@@ -267,7 +266,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsStansvedtakUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsStansvedtakUri)
     }
 
     override suspend fun genererAvslagsVedtaksbrev(
@@ -302,7 +301,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakAvslagUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakAvslagUri)
     }
 
     override suspend fun genererAvslagsVedtaksbrev(
@@ -319,7 +318,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakAvslagUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsVedtakAvslagUri)
     }
 
     override suspend fun genererAvvisningsvedtak(
@@ -345,7 +344,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageAvvisUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageAvvisUri)
     }
 
     override suspend fun genererInnstillingsbrev(
@@ -375,7 +374,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageInnstillingUrl)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsKlageInnstillingUrl)
     }
 
     override suspend fun genererOpphørBrev(
@@ -394,7 +393,7 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsOpphørUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsOpphørUri)
     }
 
     override suspend fun genererOpphørBrevForhåndsvisning(
@@ -428,14 +427,14 @@ class PdfgenHttpClient(
             )
         }
 
-        return pdfgenRequest(jsonPayload = jsonPayload, uri = pdfgenrsOpphørUri)
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsOpphørUri)
     }
 
     /**
      * Payloaden bygges før HTTP-kallet, og feil derfra (f.eks. navneoppslag som kaster) propagerer som exceptions akkurat som før migreringen.
      * Payloaden serialiseres av kallerne og sendes verbatim ([SerialisertJson]) fordi nøyaktig samme JSON persisteres sammen med PDF-en ([PdfOgJson]).
      */
-    private suspend fun pdfgenRequest(
+    private suspend fun pdfgenrsRequest(
         jsonPayload: suspend () -> String,
         uri: URI,
     ): Either<KunneIkkeGenererePdf, PdfOgJson> {

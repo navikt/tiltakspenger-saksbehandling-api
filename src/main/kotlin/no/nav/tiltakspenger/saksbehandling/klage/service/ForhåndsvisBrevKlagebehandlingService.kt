@@ -65,7 +65,7 @@ class ForhåndsvisBrevKlagebehandlingService(
                 "generering av forhåndsvisning av klagebrev",
                 "SakId: ${kommando.sakId}, klagebehandlingId: ${kommando.klagebehandlingId}",
             )
-            KanIkkeForhåndsviseBrev.FeilMotPdfgen
+            KanIkkeForhåndsviseBrev.FeilMotPdfgenrs
         }
     }
 }

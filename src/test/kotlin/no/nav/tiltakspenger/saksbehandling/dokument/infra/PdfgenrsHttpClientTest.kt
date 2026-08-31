@@ -43,9 +43,9 @@ import org.junit.jupiter.api.Test
 
 /**
  * Tester klienten mot `FakeHttpTransport` slik at hele den reelle `HttpKlient`-pipelinen kjører (statusregel, Accept-header, binær dekoding, metadata).
- * Hver metode øves i begge modi: prod (kun pdfgen) og local/dev (pdfgen + pdfgenrs i parallell).
+ * Hver metode øves mot pdfgenrs.
  */
-class PdfgenHttpClientTest {
+class PdfgenrsHttpClientTest {
 
     // %PDF-magic etterfulgt av bytes som er ugyldige som UTF-8, slik at charset-dekoding underveis ville korruptert innholdet.
     private val pdfBytes = byteArrayOf(0x25, 0x50, 0x44, 0x46, 0xFF.toByte(), 0xFE.toByte())
@@ -55,7 +55,7 @@ class PdfgenHttpClientTest {
     private val saksnummer = Saksnummer.genererSaknummer(3.desember(2025), "4050")
     private val brevtekster = Brevtekster(listOf(TittelOgTekst("Tittel", "Tekst")))
 
-    private fun nyKlient(transport: FakeHttpTransport) = PdfgenHttpClient(
+    private fun nyKlient(transport: FakeHttpTransport) = PdfgenrsHttpClient(
         basePdfgenrsUrl = "http://pdfgenrs",
         clock = fixedClock,
         transport = transport,
@@ -71,7 +71,7 @@ class PdfgenHttpClientTest {
      */
     private fun verifiserKunPdfgenrs(
         endepunkt: String,
-        kall: suspend (PdfgenHttpClient) -> Either<KunneIkkeGenererePdf, PdfOgJson>,
+        kall: suspend (PdfgenrsHttpClient) -> Either<KunneIkkeGenererePdf, PdfOgJson>,
     ) = runTest {
         val transport = transportMedPdf(antallSvar = 1)
         val resultat = kall(nyKlient(transport)).getOrFail()
@@ -267,7 +267,7 @@ class PdfgenHttpClientTest {
 
     @Test
     fun `bygger default transport når transport ikke sendes inn`() {
-        PdfgenHttpClient(
+        PdfgenrsHttpClient(
             basePdfgenrsUrl = "http://pdfgenrs",
             clock = fixedClock,
         )
@@ -378,7 +378,7 @@ class PdfgenHttpClientTest {
     }
 
     @Test
-    fun `feilstatus fra pdfgen gir KunneIkkeGenererePdf med PII-fri toString`() = runTest {
+    fun `feilstatus fra pdfgenrs gir KunneIkkeGenererePdf med PII-fri toString`() = runTest {
         val transport = FakeHttpTransport().apply { leggIKøStatus(500, body = "internal server error") }
         val fnr = Fnr.random()
 
@@ -392,9 +392,9 @@ class PdfgenHttpClientTest {
         feil.toString() shouldBe "KunneIkkeGenererePdf(feil=UventetStatus, statusCode=500)"
     }
 
-    private suspend fun innstillingsbrev(klient: PdfgenHttpClient) = klient.genererInnstillingsbrev(fnr = Fnr.random())
+    private suspend fun innstillingsbrev(klient: PdfgenrsHttpClient) = klient.genererInnstillingsbrev(fnr = Fnr.random())
 
-    private suspend fun PdfgenHttpClient.genererInnstillingsbrev(fnr: Fnr): Either<KunneIkkeGenererePdf, PdfOgJson> =
+    private suspend fun PdfgenrsHttpClient.genererInnstillingsbrev(fnr: Fnr): Either<KunneIkkeGenererePdf, PdfOgJson> =
         genererInnstillingsbrev(
             saksnummer = saksnummer,
             fnr = fnr,

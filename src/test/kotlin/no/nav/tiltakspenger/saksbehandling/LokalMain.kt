@@ -24,7 +24,7 @@ fun main() {
     }
 
     val clock = Clock.system(zoneIdOslo)
-    val localApplicationContext = LocalApplicationContext(usePdfGen = true, clock)
+    val localApplicationContext = LocalApplicationContext(usePdfgenrs = true, clock)
     start(
         log = log,
         host = "127.0.0.1",
