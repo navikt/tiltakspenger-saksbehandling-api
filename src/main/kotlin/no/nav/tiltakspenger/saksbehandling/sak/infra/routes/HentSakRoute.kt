@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
@@ -76,7 +75,6 @@ fun Route.søkFnrSaksnummerOgSakIdRoute(
             val correlationId = call.correlationId()
             val fnr = sak.fnr
 
-            krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
             tilgangskontrollService.harTilgangTilPerson(fnr, token, saksbehandler)
 
             auditService.logMedBrukerId(

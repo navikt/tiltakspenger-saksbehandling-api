@@ -106,7 +106,7 @@ fun Rammebehandling.taBehandling(
 fun Rammebehandling.kanTaBehandling(saksbehandler: Saksbehandler): Either<KunneIkkeTaBehandling, Unit> {
     return when (status) {
         KLAR_TIL_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KunneIkkeTaBehandling.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler != null) {
                 KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler.left()
@@ -118,7 +118,7 @@ fun Rammebehandling.kanTaBehandling(saksbehandler: Saksbehandler): Either<KunneI
         KLAR_TIL_BESLUTNING -> {
             if (saksbehandler.navIdent == this.saksbehandler) {
                 KunneIkkeTaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling.left()
-            } else if (!saksbehandler.erBeslutter()) {
+            } else if (!saksbehandler.erBeslutter) {
                 KunneIkkeTaBehandling.MåVæreBeslutter.left()
             } else if (this.beslutter != null) {
                 KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter.left()

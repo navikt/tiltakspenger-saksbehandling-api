@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.nonEmptySetOf
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.januar
@@ -317,6 +318,36 @@ class OppdaterSøknadsbehandlingRouteTest {
             )
 
             JSONObject(responseJson).getString("kode") shouldBe "behandlingen_er_ikke_i_status_under_behandling"
+        }
+    }
+
+    /**
+     * Veileder og utvikler er leseroller og skal ikke kunne endre en behandling.
+     * Rollesjekken skjer før tilgangskontroll og domenelogikk, så feilen er den samme uansett behandlingens tilstand.
+     */
+    @Test
+    fun `veileder og utvikler får 403 ved oppdatering av behandling`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            listOf(ObjectMother.veileder(), ObjectMother.utvikler()).forEach { leserolle ->
+                val (_, _, responseJson) = oppdaterSøknadsbehandlingIkkeValgt(
+                    tac = tac,
+                    sakId = sak.id,
+                    behandlingId = behandling.id,
+                    saksbehandler = leserolle,
+                    forventet = ForventetRespons(403, contentType = "application/json; charset=UTF-8"),
+                )
+
+                JSONObject(responseJson).apply {
+                    getString("kode") shouldBe "tilgang_nektet_krev_rolle"
+                    getString("melding") shouldContain "mangler rollen SAKSBEHANDLER"
+                }
+            }
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
+                it.fritekstTilVedtaksbrev.shouldBeNull()
+            }
         }
     }
 }

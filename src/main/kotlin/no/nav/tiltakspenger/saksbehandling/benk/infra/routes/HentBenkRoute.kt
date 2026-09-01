@@ -39,7 +39,6 @@ import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.tilDomene
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 
@@ -205,7 +204,6 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
 private suspend fun RoutingContext.autentiser(): Pair<Saksbehandler, String>? {
     val token = call.principal<TexasPrincipalInternal>()?.token ?: return null
     val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return null
-    krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
     return saksbehandler to token
 }
 

@@ -118,7 +118,7 @@ fun Meldekortbehandling.kanSettePåVent(
 
     return when (status) {
         UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeSetteMeldekortbehandlingPåVent.MåVæreSaksbehandlerForMeldekortet.left()
@@ -128,7 +128,7 @@ fun Meldekortbehandling.kanSettePåVent(
         }
 
         UNDER_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutter.left()
             } else if (this.beslutter != saksbehandler.navIdent) {
                 KanIkkeSetteMeldekortbehandlingPåVent.MåVæreBeslutterForMeldekortet.left()

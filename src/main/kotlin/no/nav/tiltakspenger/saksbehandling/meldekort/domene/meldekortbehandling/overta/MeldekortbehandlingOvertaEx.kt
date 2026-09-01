@@ -83,7 +83,7 @@ fun Meldekortbehandling.kanOverta(
 ): Either<KunneIkkeOvertaMeldekortbehandling, Unit> {
     return when (status) {
         UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KunneIkkeOvertaMeldekortbehandling.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler == null) {
                 KunneIkkeOvertaMeldekortbehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
@@ -93,7 +93,7 @@ fun Meldekortbehandling.kanOverta(
         }
 
         UNDER_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KunneIkkeOvertaMeldekortbehandling.MåVæreBeslutter.left()
             } else if (this.beslutter == null) {
                 KunneIkkeOvertaMeldekortbehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
