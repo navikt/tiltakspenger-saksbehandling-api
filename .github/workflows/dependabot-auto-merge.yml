@@ -17,12 +17,12 @@ concurrency:
 jobs:
   dependabot:
     # Selve logikken bor i den delte workflowen i metarepoet, se navikt/tiltakspenger#31.
-    # Konvensjoner og caller-eksempel: https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+    # Konvensjoner og caller-eksempel: https://github.com/navikt/tiltakspenger-workflows/blob/main/.github/workflows/README.md
     # contents: write for å merge PR-en, pull-requests: write for gh pr merge.
     permissions:
       contents: write
       pull-requests: write
-    uses: navikt/tiltakspenger/.github/workflows/dependabot-auto-merge.yml@main
+    uses: navikt/tiltakspenger-workflows/.github/workflows/dependabot-auto-merge.yml@main
     # Send kun det den delte workflowen trenger - `secrets: inherit` ville eksponert alle Dependabot-secrets (også org-delte) for metarepoets workflow.
     secrets:
       SLACK_VARSEL_WEBHOOK_URL: ${{ secrets.SLACK_VARSEL_WEBHOOK_URL }}

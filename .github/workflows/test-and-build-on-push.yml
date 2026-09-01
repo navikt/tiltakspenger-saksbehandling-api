@@ -42,8 +42,8 @@ permissions: {}
 jobs:
   build:
     name: Test and build
-    # Delt workflow i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
-    uses: navikt/tiltakspenger/.github/workflows/test-og-bygg-gradle.yml@main
+    # Delt workflow i metarepoet, se https://github.com/navikt/tiltakspenger-workflows/blob/main/.github/workflows/README.md
+    uses: navikt/tiltakspenger-workflows/.github/workflows/test-og-bygg-gradle.yml@main
     # id-token: write brukes kun av den delte workflowens image-jobb (OIDC mot nais), men kan ikke droppes her: GitHub validerer deklarerte jobb-permissions mot callerens grant ved oppstart, før skip-betingelser evalueres (startup_failure uten, verifisert 2026-07-30).
     permissions:
       contents: read

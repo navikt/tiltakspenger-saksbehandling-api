@@ -1,7 +1,7 @@
 name: Dependency submission
 
 # Sender avhengighetsgrafen fra main til GitHub slik at Dependabot også ser transitive avhengigheter.
-# Delte workflows i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+# Delte workflows i metarepoet, se https://github.com/navikt/tiltakspenger-workflows/blob/main/.github/workflows/README.md
 
 on:
   push:
@@ -27,4 +27,4 @@ jobs:
     # contents: write er for dependency submission-API-et; jobben pusher aldri kode.
     permissions:
       contents: write
-    uses: navikt/tiltakspenger/.github/workflows/dependency-submission-gradle.yml@main
+    uses: navikt/tiltakspenger-workflows/.github/workflows/dependency-submission-gradle.yml@main

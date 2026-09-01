@@ -15,7 +15,7 @@ permissions: {}
 jobs:
   lint:
     # Delt workflow i metarepoet: actionlint + zizmor (begge blokkerende).
-    # Konvensjoner: https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+    # Konvensjoner: https://github.com/navikt/tiltakspenger-workflows/blob/main/.github/workflows/README.md
     permissions:
       contents: read
-    uses: navikt/tiltakspenger/.github/workflows/lint-workflows.yml@main
+    uses: navikt/tiltakspenger-workflows/.github/workflows/lint-workflows.yml@main

@@ -12,11 +12,11 @@ on:
 # Minste privilegium: toppnivået nullstiller alle token-rettigheter, hver jobb deklarerer eksplisitt det den trenger.
 permissions: {}
 
-# Delte workflows i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+# Delte workflows i metarepoet, se https://github.com/navikt/tiltakspenger-workflows/blob/main/.github/workflows/README.md
 jobs:
   deploy-alerts:
     name: Deploy alerts til nais
-    uses: navikt/tiltakspenger/.github/workflows/deploy-alerts.yml@main
+    uses: navikt/tiltakspenger-workflows/.github/workflows/deploy-alerts.yml@main
     permissions:
       contents: read
       id-token: write

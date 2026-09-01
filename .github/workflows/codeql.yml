@@ -14,10 +14,10 @@ permissions: {}
 
 jobs:
   analyze:
-    # Delt workflow i metarepoet, se https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md
+    # Delt workflow i metarepoet, se https://github.com/navikt/tiltakspenger-workflows/blob/main/.github/workflows/README.md
     # security-events: write for opplasting til code scanning.
     permissions:
       actions: read
       contents: read
       security-events: write
-    uses: navikt/tiltakspenger/.github/workflows/codeql-gradle.yml@main
+    uses: navikt/tiltakspenger-workflows/.github/workflows/codeql-gradle.yml@main
