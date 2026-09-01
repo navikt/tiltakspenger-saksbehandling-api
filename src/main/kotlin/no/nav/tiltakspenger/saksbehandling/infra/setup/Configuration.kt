@@ -16,13 +16,14 @@ private fun hentConfigForMiljø(): EnvironmentConfig {
 }
 
 object Configuration : EnvironmentConfig by hentConfigForMiljø() {
-    fun alleAdRoller(): List<AdRolle> =
+    val alleAdRoller: List<AdRolle> by lazy {
         listOf(
             AdRolle(Saksbehandlerrolle.SAKSBEHANDLER, roleSaksbehandler),
             AdRolle(Saksbehandlerrolle.BESLUTTER, roleBeslutter),
-            AdRolle(Saksbehandlerrolle.DRIFT, roleDrift),
             AdRolle(Saksbehandlerrolle.VEILEDER, roleVeileder),
+            AdRolle(Saksbehandlerrolle.UTVIKLER, roleUtvikler),
         )
+    }
 
     fun isNais(): Boolean = environmentProfile != EnvironmentProfile.LOCAL
 

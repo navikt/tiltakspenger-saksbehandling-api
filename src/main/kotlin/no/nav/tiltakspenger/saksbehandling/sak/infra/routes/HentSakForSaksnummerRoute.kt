@@ -15,7 +15,6 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withSaksnummer
 import java.time.Clock
@@ -32,8 +31,6 @@ fun Route.hentSakForSaksnummerRoute(
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@get
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSaksnummer { saksnummer ->
-            krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-
             val sak = try {
                 sakService.hentForSaksnummer(saksnummer)
             } catch (e: Exception) {

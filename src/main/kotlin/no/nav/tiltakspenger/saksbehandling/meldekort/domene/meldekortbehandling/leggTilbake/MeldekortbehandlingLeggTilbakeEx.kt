@@ -83,7 +83,7 @@ fun Meldekortbehandling.kanLeggeTilbake(
 ): Either<KanIkkeLeggeTilbakeMeldekortbehandling, Unit> {
     return when (status) {
         UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreSaksbehandlerForMeldekortet.left()
@@ -93,7 +93,7 @@ fun Meldekortbehandling.kanLeggeTilbake(
         }
 
         UNDER_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreBeslutter.left()
             } else if (this.beslutter != saksbehandler.navIdent) {
                 KanIkkeLeggeTilbakeMeldekortbehandling.MåVæreBeslutterForMeldekortet.left()

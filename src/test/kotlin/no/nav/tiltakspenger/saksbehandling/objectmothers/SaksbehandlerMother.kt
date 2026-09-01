@@ -29,7 +29,7 @@ interface SaksbehandlerMother : MotherOfAllMothers {
     )
 
     fun saksbehandlerUtenTilgang(
-        navIdent: String = "U12345",
+        navIdent: String = "X12345",
         brukernavn: String = "Sak Behandler",
         epost: String = "Sak.Behandler@nav.no",
     ) = saksbehandler(
@@ -54,7 +54,12 @@ interface SaksbehandlerMother : MotherOfAllMothers {
         navIdent: String = "A12345",
         brukernavn: String = "Sak McBeslutterface",
         epost: String = "Sak.Behandler@nav.no",
-        roller: Saksbehandlerroller = Saksbehandlerroller(listOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.BESLUTTER)),
+        roller: Saksbehandlerroller = Saksbehandlerroller(
+            listOf(
+                Saksbehandlerrolle.SAKSBEHANDLER,
+                Saksbehandlerrolle.BESLUTTER,
+            ),
+        ),
         klientId: String = "klientId",
         klientnavn: String = "klientnavn",
         @Suppress("UNCHECKED_CAST") scopes: GenerellSystembrukerroller<GenerellSystembrukerrolle> = Systembrukerroller(
@@ -65,65 +70,6 @@ interface SaksbehandlerMother : MotherOfAllMothers {
         brukernavn = brukernavn,
         epost = epost,
         roller = roller,
-        klientId = klientId,
-        klientnavn = klientnavn,
-        scopes = scopes,
-    )
-
-    fun beslutter123(
-        klientId: String = "klientId",
-        klientnavn: String = "klientnavn",
-        @Suppress("UNCHECKED_CAST") scopes: GenerellSystembrukerroller<GenerellSystembrukerrolle> = Systembrukerroller(
-            emptySet(),
-        ) as GenerellSystembrukerroller<GenerellSystembrukerrolle>,
-    ) = Saksbehandler(
-        navIdent = "123",
-        brukernavn = "Test Testesen",
-        epost = "Test.Testesen@nav.no",
-        roller = Saksbehandlerroller(listOf(Saksbehandlerrolle.BESLUTTER)),
-        klientId = klientId,
-        klientnavn = klientnavn,
-        scopes = scopes,
-    )
-
-    fun saksbehandlerMedKode6(
-        navIdent: String = "Z12345",
-        brukernavn: String = "Sak Behandler",
-        epost: String = "Sak.Behandler@nav.no",
-        klientId: String = "klientId",
-        klientnavn: String = "klientnavn",
-        @Suppress("UNCHECKED_CAST") scopes: GenerellSystembrukerroller<GenerellSystembrukerrolle> = Systembrukerroller(
-            emptySet(),
-        ) as GenerellSystembrukerroller<GenerellSystembrukerrolle>,
-    ) = Saksbehandler(
-        navIdent = navIdent,
-        epost = epost,
-        brukernavn = brukernavn,
-        roller = Saksbehandlerroller(
-            listOf(
-                Saksbehandlerrolle.SAKSBEHANDLER,
-                Saksbehandlerrolle.STRENGT_FORTROLIG_ADRESSE,
-            ),
-        ),
-        klientId = klientId,
-        klientnavn = klientnavn,
-        scopes = scopes,
-    )
-
-    fun saksbehandlerMedKode7(
-        navIdent: String = "Z12345",
-        brukernavn: String = "Sak Behandler",
-        epost: String = "Sak.Behandler@nav.no",
-        klientId: String = "klientId",
-        klientnavn: String = "klientnavn",
-        @Suppress("UNCHECKED_CAST") scopes: GenerellSystembrukerroller<GenerellSystembrukerrolle> = Systembrukerroller(
-            emptySet(),
-        ) as GenerellSystembrukerroller<GenerellSystembrukerrolle>,
-    ) = Saksbehandler(
-        navIdent = navIdent,
-        epost = epost,
-        brukernavn = brukernavn,
-        roller = Saksbehandlerroller(listOf(Saksbehandlerrolle.SAKSBEHANDLER, Saksbehandlerrolle.FORTROLIG_ADRESSE)),
         klientId = klientId,
         klientnavn = klientnavn,
         scopes = scopes,
@@ -145,4 +91,18 @@ interface SaksbehandlerMother : MotherOfAllMothers {
             klientnavn = klientnavn,
             scopes = scopes,
         )
+
+    fun veileder() = saksbehandler(
+        navIdent = "V12345",
+        brukernavn = "Vei Leder",
+        epost = "Vei.Leder@nav.no",
+        roller = Saksbehandlerroller(listOf(Saksbehandlerrolle.VEILEDER)),
+    )
+
+    fun utvikler() = saksbehandler(
+        navIdent = "U12345",
+        brukernavn = "Ut Vikler",
+        epost = "Ut.Vikler@nav.no",
+        roller = Saksbehandlerroller(listOf(Saksbehandlerrolle.UTVIKLER)),
+    )
 }

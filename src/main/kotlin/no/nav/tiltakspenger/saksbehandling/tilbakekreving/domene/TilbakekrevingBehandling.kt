@@ -65,8 +65,8 @@ data class TilbakekrevingBehandling(
     }
 
     fun gyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
-        val erSaksbehandler = saksbehandler.erSaksbehandler()
-        val erBeslutter = saksbehandler.erBeslutter()
+        val erSaksbehandler = saksbehandler.erSaksbehandler
+        val erBeslutter = saksbehandler.erBeslutter
         val navIdent = saksbehandler.navIdent
 
         val tildeltSaksbehandler = this.saksbehandler

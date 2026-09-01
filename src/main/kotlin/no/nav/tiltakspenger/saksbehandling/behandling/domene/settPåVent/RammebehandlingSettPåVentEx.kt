@@ -136,7 +136,7 @@ fun Rammebehandling.kanSettePåVent(
         UNDER_AUTOMATISK_BEHANDLING -> Unit.right()
 
         UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeSetteRammebehandlingPåVent.MåVæreSaksbehandlerForBehandlingen.left()
@@ -146,7 +146,7 @@ fun Rammebehandling.kanSettePåVent(
         }
 
         UNDER_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutter.left()
             } else if (this.beslutter != saksbehandler.navIdent) {
                 KanIkkeSetteRammebehandlingPåVent.MåVæreBeslutterForBehandlingen.left()

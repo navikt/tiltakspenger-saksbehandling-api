@@ -7,23 +7,15 @@ data class SaksbehandlerDTO(
     val navIdent: String,
     val brukernavn: String,
     val epost: String,
-    val roller: List<RolleDTO>,
+    val roller: List<SaksbehandlerRolleDTO>,
 ) {
-    @Suppress("unused")
-    enum class RolleDTO {
+
+    enum class SaksbehandlerRolleDTO {
         SAKSBEHANDLER,
-        FORTROLIG_ADRESSE,
-        STRENGT_FORTROLIG_ADRESSE,
-        SKJERMING,
-        HENT_ELLER_OPPRETT_SAK,
-        LAGRE_SOKNAD,
-        LAGRE_MELDEKORT,
-
-        // Systemadministrator (oss)
-        DRIFT,
-
         BESLUTTER,
         VEILEDER,
+        UTVIKLER,
+        TILBAKEKREVING,
     }
 }
 
@@ -35,20 +27,11 @@ fun Saksbehandler.toSaksbehandlerDTO(): SaksbehandlerDTO =
         roller = roller.map { it.toRolleDTO() },
     )
 
-private fun Saksbehandlerrolle.toRolleDTO(): SaksbehandlerDTO.RolleDTO =
+private fun Saksbehandlerrolle.toRolleDTO(): SaksbehandlerDTO.SaksbehandlerRolleDTO =
     when (this) {
-        Saksbehandlerrolle.SAKSBEHANDLER -> SaksbehandlerDTO.RolleDTO.SAKSBEHANDLER
-
-        Saksbehandlerrolle.BESLUTTER -> SaksbehandlerDTO.RolleDTO.BESLUTTER
-
-        Saksbehandlerrolle.DRIFT -> SaksbehandlerDTO.RolleDTO.DRIFT
-
-        Saksbehandlerrolle.VEILEDER -> SaksbehandlerDTO.RolleDTO.VEILEDER
-
-        // Disse rollene har vi ikke noe forhold til lengre, tilgangskontroll skjer via tilgangsmaskinen
-        Saksbehandlerrolle.FORTROLIG_ADRESSE -> SaksbehandlerDTO.RolleDTO.FORTROLIG_ADRESSE
-
-        Saksbehandlerrolle.STRENGT_FORTROLIG_ADRESSE -> SaksbehandlerDTO.RolleDTO.STRENGT_FORTROLIG_ADRESSE
-
-        Saksbehandlerrolle.SKJERMING -> SaksbehandlerDTO.RolleDTO.SKJERMING
+        Saksbehandlerrolle.SAKSBEHANDLER -> SaksbehandlerDTO.SaksbehandlerRolleDTO.SAKSBEHANDLER
+        Saksbehandlerrolle.BESLUTTER -> SaksbehandlerDTO.SaksbehandlerRolleDTO.BESLUTTER
+        Saksbehandlerrolle.VEILEDER -> SaksbehandlerDTO.SaksbehandlerRolleDTO.VEILEDER
+        Saksbehandlerrolle.UTVIKLER -> SaksbehandlerDTO.SaksbehandlerRolleDTO.UTVIKLER
+        Saksbehandlerrolle.TILBAKEKREVING -> SaksbehandlerDTO.SaksbehandlerRolleDTO.TILBAKEKREVING
     }

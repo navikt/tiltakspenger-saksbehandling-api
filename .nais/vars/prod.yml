@@ -21,9 +21,11 @@ azure:
       id: 6c6ce2e8-b2e2-4c4b-8194-215c8e27a5c7
     - name: ROLE_BESLUTTER
       id: de518927-f657-4f37-9a64-14fdfd968dd2
-    - name: ROLE_DRIFT
-      id: 0405ed09-1248-47f7-a6e3-e998bc90feca
+    - name: ROLE_UTVIKLER
+      id: 744c1280-242b-40a2-8580-71fd70d8638f
     - name: ROLE_VEILEDER
       id: 8779ba24-87e0-455b-91af-76c2a1ae83e4
+    - name: ROLE_TILBAKEKREVING
+      id: 651186df-f798-4537-84ab-3da8bd0a7a4a
 replicas: 2
 kafka-pool: "nav-prod"

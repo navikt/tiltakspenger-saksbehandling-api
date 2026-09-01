@@ -141,7 +141,7 @@ fun Rammebehandling.overta(
 fun Rammebehandling.kanOverta(saksbehandler: Saksbehandler): Either<KunneIkkeOvertaBehandling, Unit> {
     return when (status) {
         UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KunneIkkeOvertaBehandling.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler == null) {
                 KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnSaksbehandlerForÅOverta.left()
@@ -151,7 +151,7 @@ fun Rammebehandling.kanOverta(saksbehandler: Saksbehandler): Either<KunneIkkeOve
         }
 
         UNDER_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KunneIkkeOvertaBehandling.MåVæreBeslutter.left()
             } else if (this.beslutter == null) {
                 KunneIkkeOvertaBehandling.BehandlingenErIkkeKnyttetTilEnBeslutterForÅOverta.left()
@@ -167,7 +167,7 @@ fun Rammebehandling.kanOverta(saksbehandler: Saksbehandler): Either<KunneIkkeOve
                 KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
             } else if (this is Revurdering) {
                 KunneIkkeOvertaBehandling.BehandlingenKanIkkeVæreUnderAutomatiskBehandling.left()
-            } else if (!saksbehandler.erSaksbehandler()) {
+            } else if (!saksbehandler.erSaksbehandler) {
                 KunneIkkeOvertaBehandling.MåVæreSaksbehandler.left()
             } else {
                 Unit.right()

@@ -178,7 +178,7 @@ fun Rammebehandling.kanGjenoppta(
 
     return when (status) {
         KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KanIkkeGjenopptaRammebehandling.MåVæreSaksbehandler.left()
             } else {
                 Unit.right()
@@ -188,7 +188,7 @@ fun Rammebehandling.kanGjenoppta(
         UNDER_AUTOMATISK_BEHANDLING -> {
             if (saksbehandler == AUTOMATISK_SAKSBEHANDLER) {
                 Unit.right()
-            } else if (!saksbehandler.erSaksbehandler()) {
+            } else if (!saksbehandler.erSaksbehandler) {
                 KanIkkeGjenopptaRammebehandling.MåVæreSaksbehandler.left()
             } else {
                 Unit.right()
@@ -196,7 +196,7 @@ fun Rammebehandling.kanGjenoppta(
         }
 
         KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KanIkkeGjenopptaRammebehandling.MåVæreBeslutter.left()
             } else {
                 Unit.right()

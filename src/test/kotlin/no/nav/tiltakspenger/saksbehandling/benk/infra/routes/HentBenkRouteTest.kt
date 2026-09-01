@@ -4,6 +4,7 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -233,6 +234,26 @@ class HentBenkRouteTest {
         }
     }
 
+    /**
+     * Veileder og utvikler er leseroller — de skal kunne se benken, men ikke utføre kommandoene i den.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `veileder og utvikler har tilgang til benken`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            listOf(ObjectMother.veileder(), ObjectMother.utvikler()).forEach { leserolle ->
+                hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = leserolle)
+                    .let {
+                        it.antallIOversikten() shouldBe 1
+                        objectMapper.readTree(it)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
+                            .toString() shouldEqualJson """[]"""
+                    }
+            }
+        }
+    }
+
     @Test
     @IsolatedDatabaseTest
     fun `alle fanene svarer`() {
@@ -257,6 +278,7 @@ class HentBenkRouteTest {
         tac: TestApplicationContextMedPostgres,
         path: String,
         body: String,
+        saksbehandler: Saksbehandler = this@HentBenkRouteTest.saksbehandler,
     ): String {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)

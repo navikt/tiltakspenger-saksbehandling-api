@@ -31,42 +31,51 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
  * Speilingen er pinnet mot de ekte reglene i `BenkAggregatTest`; endres reglene der, skal testene si ifra.
  *
  * Rader uten behandling — innsendte eller korrigerte meldekort som venter på at noen starter en behandling — har ingen kommandoer, fordi kommandoene alle er handlinger på en behandling.
+ *
+ * Leseroller (veileder, utvikler) kan se benken, men ikke utføre kommandoene — radene deres har derfor alltid en tom kommandoliste.
  */
 
-fun BenkSøknadsbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> =
-    finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
+fun BenkSøknadsbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
+    if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
+}
 
-fun BenkRevurdering.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> =
-    finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
+fun BenkRevurdering.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
+    if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
+    return finnGyldigeRammebehandlingKommandoer(felles, status, saksbehandler)
+}
 
-fun BenkMeldekort.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> =
-    if (type == BenkMeldekortType.MELDEKORTBEHANDLING) {
+fun BenkMeldekort.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
+    if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
+    return if (type == BenkMeldekortType.MELDEKORTBEHANDLING) {
         finnGyldigeMeldekortKommandoer(felles, status, saksbehandler)
     } else {
         emptyList()
     }
+}
 
 fun BenkTilbakekreving.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
+    if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
     val navIdent = saksbehandler.navIdent
     return buildList {
         when (status) {
             TIL_FORHÅNDSVARSEL, TIL_BEHANDLING ->
-                if (saksbehandler.erSaksbehandler()) add(TildelSaksbehandler)
+                if (saksbehandler.erSaksbehandler) add(TildelSaksbehandler)
 
             UNDER_FORHÅNDSVARSLING, UNDER_BEHANDLING ->
                 if (felles.saksbehandler == navIdent) {
                     add(LeggTilbakeSaksbehandler)
-                } else if (saksbehandler.erSaksbehandler()) {
+                } else if (saksbehandler.erSaksbehandler) {
                     add(OvertaSaksbehandler)
                 }
 
             TIL_GODKJENNING ->
-                if (saksbehandler.erBeslutter() && navIdent != felles.saksbehandler) add(TildelBeslutter)
+                if (saksbehandler.erBeslutter && navIdent != felles.saksbehandler) add(TildelBeslutter)
 
             UNDER_GODKJENNING ->
                 if (felles.beslutter == navIdent) {
                     add(LeggTilbakeBeslutter)
-                } else if (saksbehandler.erBeslutter() && navIdent != felles.saksbehandler) {
+                } else if (saksbehandler.erBeslutter && navIdent != felles.saksbehandler) {
                     add(OvertaBeslutter)
                 }
 
@@ -84,8 +93,8 @@ private fun finnGyldigeRammebehandlingKommandoer(
     saksbehandler: Saksbehandler,
 ): List<SaksbehandlerBehandlingKommando> {
     val navIdent = saksbehandler.navIdent
-    val erSaksbehandler = saksbehandler.erSaksbehandler()
-    val erBeslutter = saksbehandler.erBeslutter()
+    val erSaksbehandler = saksbehandler.erSaksbehandler
+    val erBeslutter = saksbehandler.erBeslutter
     val erSattPåVent = felles.ventestatus.erSattPåVent
 
     return buildList {
@@ -149,8 +158,8 @@ private fun finnGyldigeMeldekortKommandoer(
     saksbehandler: Saksbehandler,
 ): List<SaksbehandlerBehandlingKommando> {
     val navIdent = saksbehandler.navIdent
-    val erSaksbehandler = saksbehandler.erSaksbehandler()
-    val erBeslutter = saksbehandler.erBeslutter()
+    val erSaksbehandler = saksbehandler.erSaksbehandler
+    val erBeslutter = saksbehandler.erBeslutter
     val erSattPåVent = felles.ventestatus.erSattPåVent
 
     return buildList {

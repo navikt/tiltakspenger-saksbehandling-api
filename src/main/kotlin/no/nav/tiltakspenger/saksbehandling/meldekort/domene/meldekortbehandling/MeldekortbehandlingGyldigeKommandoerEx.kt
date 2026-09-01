@@ -15,8 +15,10 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandling
 
 /**
  * Handlinger som en saksbehandler/beslutter kan utføre på en meldekortbehandling.
+ * Leseroller (veileder, utvikler) kan se behandlingen, men ikke utføre kommandoer på den — de får derfor alltid en tom liste.
  */
 fun Meldekortbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<SaksbehandlerBehandlingKommando> {
+    if (!saksbehandler.erSaksbehandlerEllerBeslutter) return emptyList()
     return buildList {
         if (kanTildeleSaksbehandler(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelSaksbehandler)
         if (kanTildeleBeslutter(saksbehandler)) add(SaksbehandlerBehandlingKommando.TildelBeslutter)

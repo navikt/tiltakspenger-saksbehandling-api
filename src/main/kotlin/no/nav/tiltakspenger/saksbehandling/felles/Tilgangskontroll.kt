@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 /**
  * Brukes for å mappe verifisert saksbehandler-token til Saksbehandler
  */
-fun autoriserteBrukerroller() = Configuration.alleAdRoller()
+fun autoriserteBrukerroller() = Configuration.alleAdRoller
 
 /**
  * Brukes for å mappe verifisert systembruker-token til Systembruker

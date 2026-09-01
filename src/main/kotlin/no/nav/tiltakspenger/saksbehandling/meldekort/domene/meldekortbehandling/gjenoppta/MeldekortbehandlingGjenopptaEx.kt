@@ -115,7 +115,7 @@ fun Meldekortbehandling.kanGjenoppta(
     }
     return when (status) {
         KLAR_TIL_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KanIkkeGjenopptaMeldekortbehandling.MåVæreSaksbehandler.left()
             } else {
                 Unit.right()
@@ -123,7 +123,7 @@ fun Meldekortbehandling.kanGjenoppta(
         }
 
         UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KanIkkeGjenopptaMeldekortbehandling.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeGjenopptaMeldekortbehandling.MåVæreSaksbehandlerSomEierBehandlingen.left()
@@ -133,7 +133,7 @@ fun Meldekortbehandling.kanGjenoppta(
         }
 
         KLAR_TIL_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KanIkkeGjenopptaMeldekortbehandling.MåVæreBeslutter.left()
             } else if (this.saksbehandler == saksbehandler.navIdent) {
                 KanIkkeGjenopptaMeldekortbehandling.BeslutterKanIkkeVæreSammeSomSaksbehandler.left()

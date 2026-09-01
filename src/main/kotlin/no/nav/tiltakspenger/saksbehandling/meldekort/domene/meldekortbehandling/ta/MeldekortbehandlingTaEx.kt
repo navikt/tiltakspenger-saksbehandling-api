@@ -86,7 +86,7 @@ fun Meldekortbehandling.kanTaMeldekortbehandling(
         MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING -> {
             if (this.saksbehandler != null) {
                 KanIkkeTaMeldekortbehandling.HarAlleredeSaksbehandler.left()
-            } else if (!saksbehandler.erSaksbehandler()) {
+            } else if (!saksbehandler.erSaksbehandler) {
                 KanIkkeTaMeldekortbehandling.MåVæreSaksbehandler.left()
             } else {
                 Unit.right()
@@ -98,7 +98,7 @@ fun Meldekortbehandling.kanTaMeldekortbehandling(
                 KanIkkeTaMeldekortbehandling.HarAlleredeBeslutter.left()
             } else if (this.saksbehandler == saksbehandler.navIdent) {
                 KanIkkeTaMeldekortbehandling.BeslutterKanIkkeVæreSammeSomSaksbehandler.left()
-            } else if (!saksbehandler.erBeslutter()) {
+            } else if (!saksbehandler.erBeslutter) {
                 KanIkkeTaMeldekortbehandling.MåVæreBeslutter.left()
             } else {
                 Unit.right()

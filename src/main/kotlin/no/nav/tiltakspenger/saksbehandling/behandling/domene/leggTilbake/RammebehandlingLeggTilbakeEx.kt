@@ -116,7 +116,7 @@ fun Rammebehandling.kanLeggeTilbake(
 ): Either<KanIkkeLeggeTilbakeRammebehandling, Unit> {
     return when (status) {
         UNDER_BEHANDLING -> {
-            if (!saksbehandler.erSaksbehandler()) {
+            if (!saksbehandler.erSaksbehandler) {
                 KanIkkeLeggeTilbakeRammebehandling.MåVæreSaksbehandler.left()
             } else if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeLeggeTilbakeRammebehandling.MåVæreSaksbehandlerForBehandlingen.left()
@@ -126,7 +126,7 @@ fun Rammebehandling.kanLeggeTilbake(
         }
 
         UNDER_BESLUTNING -> {
-            if (!saksbehandler.erBeslutter()) {
+            if (!saksbehandler.erBeslutter) {
                 KanIkkeLeggeTilbakeRammebehandling.MåVæreBeslutter.left()
             } else if (this.beslutter != saksbehandler.navIdent) {
                 KanIkkeLeggeTilbakeRammebehandling.MåVæreBeslutterForBehandlingen.left()

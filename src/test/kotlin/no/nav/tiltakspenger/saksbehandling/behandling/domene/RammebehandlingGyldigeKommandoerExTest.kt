@@ -196,17 +196,21 @@ class RammebehandlingGyldigeKommandoerExTest {
     }
 
     /**
-     * Avbryting har ingen rollesjekk i domenet - den håndheves i `AvbrytSøknadOgBehandlingRoute`.
-     * Domenet krever kun at avbryteren er tildelt behandlingen i beslutningstilstandene.
-     * Testen dokumenterer dagens oppførsel: i [Rammebehandlingsstatus.UNDER_BEHANDLING] annonseres kommandoen også til en bruker uten roller.
+     * Avbryting har ingen rollesjekk i `kanAvbryte` - den håndheves i `AvbrytSøknadOgBehandlingRoute`.
+     * Kommandoen skal likevel ikke annonseres til leseroller eller brukere uten roller, så [finnGyldigeKommandoer] shortcircuiter dem til en tom liste.
      */
     @Test
-    fun `bruker uten roller får kun avbryt`() {
-        val behandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
+    fun `bruker uten saksbehandler- eller beslutterrolle får ingen gyldige kommandoer`() {
+        val underBehandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
+        val klarTilBehandling = ObjectMother.nyOpprettetSøknadsbehandling(saksbehandler = saksbehandler)
+            .leggTilbakeRammebehandling(saksbehandler, ObjectMother.clock).getOrNull()!!.first
 
-        behandling.finnGyldigeKommandoer(utenRoller) shouldBe listOf(
-            SaksbehandlerBehandlingKommando.Avbryt,
-        )
+        klarTilBehandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+        listOf(underBehandling, klarTilBehandling).forEach { behandling ->
+            listOf(utenRoller, ObjectMother.veileder(), ObjectMother.utvikler()).forEach { bruker ->
+                behandling.finnGyldigeKommandoer(bruker) shouldBe emptyList()
+            }
+        }
     }
 
     /**
