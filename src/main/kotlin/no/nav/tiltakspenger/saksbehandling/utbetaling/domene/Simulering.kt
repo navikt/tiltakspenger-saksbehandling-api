@@ -320,7 +320,8 @@ fun Simulering?.erLik(other: Simulering?): Boolean = this.finnUlikheter(other, f
  * Eldre lagrede simuleringer har posteringene splittet opp per dag.
  * Mot en fersk kontrollsimulering gir det forskjell i form uten forskjell i innhold, og det fanges her med vilje: tallene beslutter så på skal være tallene som iverksettes, og saksbehandler løser det med «Oppdater simulering».
  *
- * [fraOgMed] fraOgMed dato for behandlingen som simuleringene er kjørt fra. Tidligere meldeperioder enn dette er ikke relevante for behandlingen, og forkastes fra kontrollsimuleringen.
+ * [fraOgMed] fraOgMed dato for behandlingen som simuleringene er kjørt fra.
+ * Tidligere meldeperioder enn dette er ikke relevante for behandlingen, og forkastes fra kontrollsimuleringen.
  * Obs: tidligere meldeperioder kan i noen tilfeller allikevel påvirke sammenligningen, dersom simuleringen i utgangspunktet ikke viste noen endringer.
  */
 fun Simulering?.finnUlikheter(kontrollsimulering: Simulering?, fraOgMed: LocalDate?): List<String> {
