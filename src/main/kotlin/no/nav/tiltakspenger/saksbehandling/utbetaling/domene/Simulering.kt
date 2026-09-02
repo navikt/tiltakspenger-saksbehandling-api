@@ -307,7 +307,7 @@ enum class Posteringstype {
     MOTPOSTERING,
 }
 
-fun Simulering?.erLik(other: Simulering?): Boolean = this.finnUlikheter(other).isEmpty()
+fun Simulering?.erLik(other: Simulering?): Boolean = this.finnUlikheter(other, fraOgMed = null).isEmpty()
 
 /**
  * Finner ulikhetene mellom simuleringen fra beregningen og kontrollsimuleringen.
@@ -319,8 +319,11 @@ fun Simulering?.erLik(other: Simulering?): Boolean = this.finnUlikheter(other).i
  *
  * Eldre lagrede simuleringer har posteringene splittet opp per dag.
  * Mot en fersk kontrollsimulering gir det forskjell i form uten forskjell i innhold, og det fanges her med vilje: tallene beslutter så på skal være tallene som iverksettes, og saksbehandler løser det med «Oppdater simulering».
+ *
+ * [fraOgMed] fraOgMed dato for behandlingen som simuleringene er kjørt fra. Tidligere meldeperioder enn dette er ikke relevante for behandlingen, og forkastes fra kontrollsimuleringen.
+ * Obs: tidligere meldeperioder kan i noen tilfeller allikevel påvirke sammenligningen, dersom simuleringen i utgangspunktet ikke viste noen endringer.
  */
-fun Simulering?.finnUlikheter(kontrollsimulering: Simulering?): List<String> {
+fun Simulering?.finnUlikheter(kontrollsimulering: Simulering?, fraOgMed: LocalDate?): List<String> {
     if (this == null && kontrollsimulering == null) {
         return emptyList()
     }
@@ -330,11 +333,17 @@ fun Simulering?.finnUlikheter(kontrollsimulering: Simulering?): List<String> {
     }
 
     if (this is Simulering.Endring && kontrollsimulering is Simulering.Endring) {
-        if (this.simuleringPerMeldeperiode.size != kontrollsimulering.simuleringPerMeldeperiode.size) {
-            return listOf("Ulikt antall meldeperioder: beregnet=${this.simuleringPerMeldeperiode.size}, kontroll=${kontrollsimulering.simuleringPerMeldeperiode.size}")
+        val kontrollsimuleringPerioder = if (fraOgMed != null) {
+            kontrollsimulering.simuleringPerMeldeperiode.filter { it.meldeperiode.periode.tilOgMed >= fraOgMed }
+        } else {
+            kontrollsimulering.simuleringPerMeldeperiode
         }
 
-        return this.simuleringPerMeldeperiode.toList().zip(kontrollsimulering.simuleringPerMeldeperiode).flatMap { (beregnet, kontroll) ->
+        if (this.simuleringPerMeldeperiode.size != kontrollsimuleringPerioder.size) {
+            return listOf("Ulikt antall meldeperioder: beregnet=${this.simuleringPerMeldeperiode.size}, kontroll=${kontrollsimuleringPerioder.size}")
+        }
+
+        return this.simuleringPerMeldeperiode.toList().zip(kontrollsimuleringPerioder).flatMap { (beregnet, kontroll) ->
             beregnet.finnUlikheter(kontroll)
         }
     }

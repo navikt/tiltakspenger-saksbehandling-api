@@ -27,7 +27,7 @@ fun Meldekortbehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverkset
     // Mangler simuleringen på behandlingen, er det [KanIkkeIverksetteUtbetaling.SimuleringMangler] som er den dekkende feilen, og den håndteres lenger ned.
     val kontrollsimulering = this.utbetalingskontroll?.simulering
     if (simulering != null && kontrollsimulering != null) {
-        simulering.finnUlikheter(kontrollsimulering).toNonEmptyListOrNull()?.let {
+        simulering.finnUlikheter(kontrollsimulering, fraOgMed).toNonEmptyListOrNull()?.let {
             return KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer(it).left()
         }
     }
@@ -49,7 +49,7 @@ fun Rammebehandling.validerKanIverksetteUtbetaling(): Either<KanIkkeIverksetteUt
     val simulering = this.utbetaling?.simulering
     val kontrollSimulering = this.utbetalingskontroll?.simulering
 
-    simulering.finnUlikheter(kontrollSimulering).toNonEmptyListOrNull()?.let {
+    simulering.finnUlikheter(kontrollSimulering, vedtaksperiode?.fraOgMed).toNonEmptyListOrNull()?.let {
         return KanIkkeIverksetteUtbetaling.KontrollSimuleringHarEndringer(it).left()
     }
 

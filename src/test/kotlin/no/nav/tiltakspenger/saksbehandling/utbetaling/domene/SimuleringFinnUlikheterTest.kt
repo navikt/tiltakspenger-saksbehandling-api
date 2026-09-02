@@ -2,9 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.Meldeperiode
@@ -42,25 +44,40 @@ class SimuleringFinnUlikheterTest {
         tidligereUtbetalt: Int = 0,
         nyUtbetaling: Int = 255,
         posteringer: NonEmptyList<Postering> = nonEmptyListOf(postering(beløp = nyUtbetaling)),
+        tidligereMeldeperioder: List<Meldeperiode> = emptyList(),
     ): Simulering.Endring {
         val dato = periode.fraOgMed
+        val perioder = tidligereMeldeperioder.map { simuleringForMeldeperiode(it) } +
+            SimuleringForMeldeperiode(
+                meldeperiode = meldeperiode,
+                simuleringsdager = nonEmptyListOf(
+                    simuleringsdag(
+                        dato = dato,
+                        tidligereUtbetalt = tidligereUtbetalt,
+                        nyUtbetaling = nyUtbetaling,
+                    ),
+                ),
+                posteringer = posteringer,
+            )
         return Simulering.Endring(
             datoBeregnet = dato,
             totalBeløp = nyUtbetaling,
-            simuleringPerMeldeperiode = nonEmptyListOf(
-                SimuleringForMeldeperiode(
-                    meldeperiode = meldeperiode,
-                    simuleringsdager = nonEmptyListOf(
-                        simuleringsdag(
-                            dato = dato,
-                            tidligereUtbetalt = tidligereUtbetalt,
-                            nyUtbetaling = nyUtbetaling,
-                        ),
-                    ),
-                    posteringer = posteringer,
+            simuleringPerMeldeperiode = perioder.toNonEmptyListOrNull()!!,
+            simuleringstidspunkt = nå(clock),
+        )
+    }
+
+    private fun simuleringForMeldeperiode(meldeperiode: Meldeperiode): SimuleringForMeldeperiode {
+        return SimuleringForMeldeperiode(
+            meldeperiode = meldeperiode,
+            simuleringsdager = nonEmptyListOf(
+                simuleringsdag(
+                    dato = meldeperiode.periode.fraOgMed,
+                    tidligereUtbetalt = 0,
+                    nyUtbetaling = 255,
                 ),
             ),
-            simuleringstidspunkt = nå(clock),
+            posteringer = nonEmptyListOf(postering(fraOgMed = meldeperiode.periode.fraOgMed, beløp = 255)),
         )
     }
 
@@ -84,9 +101,9 @@ class SimuleringFinnUlikheterTest {
 
     @Test
     fun `like simuleringer gir ingen ulikheter`() {
-        simulering().finnUlikheter(simulering()) shouldBe emptyList()
+        simulering().finnUlikheter(simulering(), fraOgMed = null) shouldBe emptyList()
         simulering().erLik(simulering()) shouldBe true
-        (null as Simulering?).finnUlikheter(null) shouldBe emptyList()
+        (null as Simulering?).finnUlikheter(null, fraOgMed = null) shouldBe emptyList()
     }
 
     /** Rekkefølgen posteringene kom i fra oppdragssystemet er ikke en del av innholdet. */
@@ -98,14 +115,14 @@ class SimuleringFinnUlikheterTest {
         val beregnet = simulering(posteringer = nonEmptyListOf(a, b))
         val kontroll = simulering(posteringer = nonEmptyListOf(b, a))
 
-        beregnet.finnUlikheter(kontroll) shouldBe emptyList()
+        beregnet.finnUlikheter(kontroll, fraOgMed = null) shouldBe emptyList()
     }
 
     @Test
     fun `manglende simulering mot endring beskriver begge sider`() {
         val kontroll = simulering(tidligereUtbetalt = 0, nyUtbetaling = 255)
 
-        (null as Simulering?).finnUlikheter(kontroll) shouldBe listOf(
+        (null as Simulering?).finnUlikheter(kontroll, fraOgMed = null) shouldBe listOf(
             "Ulike simuleringstyper: beregnet=mangler, kontroll=endring (totalPeriode=$periode, tidligereUtbetalt=0, nyUtbetaling=255, totalEtterbetaling=0, totalFeilutbetaling=0, totalJustering=0, totalTrekk=0)",
         )
     }
@@ -115,7 +132,7 @@ class SimuleringFinnUlikheterTest {
         val beregnet = simulering(tidligereUtbetalt = 0, nyUtbetaling = 255)
         val kontroll = simulering(tidligereUtbetalt = 255, nyUtbetaling = 510)
 
-        beregnet.finnUlikheter(kontroll) shouldBe listOf(
+        beregnet.finnUlikheter(kontroll, fraOgMed = null) shouldBe listOf(
             "Meldeperiode ${meldeperiode.id} har ulike posteringer." +
                 " Kun i beregnet: YTELSE/test_klassekode 2025-01-13–2025-01-13 255 kr (TILTAKSPENGER)." +
                 " Kun i kontroll: YTELSE/test_klassekode 2025-01-13–2025-01-13 510 kr (TILTAKSPENGER).",
@@ -140,7 +157,7 @@ class SimuleringFinnUlikheterTest {
             ),
         )
 
-        val ulikheter = gammelForm.finnUlikheter(nyForm)
+        val ulikheter = gammelForm.finnUlikheter(nyForm, fraOgMed = null)
 
         ulikheter.size shouldBe 1
         ulikheter.single() shouldContain "Kun i beregnet"
@@ -152,8 +169,44 @@ class SimuleringFinnUlikheterTest {
         val annenMeldeperiode = meldeperiode(periode = periode)
         val kontroll = simulering(meldeperiode = annenMeldeperiode)
 
-        simulering().finnUlikheter(kontroll) shouldBe listOf(
+        simulering().finnUlikheter(kontroll, fraOgMed = null) shouldBe listOf(
             "Ulike meldeperioder: beregnet=${meldeperiode.id}, kontroll=${annenMeldeperiode.id}",
+        )
+    }
+
+    /**
+     * Meldeperioder i kontrollsimuleringen som slutter før [fraOgMed] er irrelevante for behandlingen og forkastes.
+     * De kan ha endret seg etter at behandlingen ble beregnet, uten at det skal stoppe iverksettingen.
+     */
+    @Test
+    fun `meldeperioder i kontrollsimuleringen som slutter før fraOgMed forkastes`() {
+        val tidligereMeldeperiode = meldeperiode(periode = Periode(30.desember(2024), 12.januar(2025)))
+        val beregnet = simulering()
+        val kontroll = simulering(tidligereMeldeperioder = listOf(tidligereMeldeperiode))
+
+        beregnet.finnUlikheter(kontroll, fraOgMed = periode.fraOgMed) shouldBe emptyList()
+    }
+
+    @Test
+    fun `uten fraOgMed rapporteres ulikt antall meldeperioder`() {
+        val tidligereMeldeperiode = meldeperiode(periode = Periode(30.desember(2024), 12.januar(2025)))
+        val beregnet = simulering()
+        val kontroll = simulering(tidligereMeldeperioder = listOf(tidligereMeldeperiode))
+
+        beregnet.finnUlikheter(kontroll, fraOgMed = null) shouldBe listOf(
+            "Ulikt antall meldeperioder: beregnet=1, kontroll=2",
+        )
+    }
+
+    /** Grensen er inklusiv -- en meldeperiode som slutter på fraOgMed overlappes av behandlingen og sammenlignes. */
+    @Test
+    fun `meldeperiode som slutter på fraOgMed forkastes ikke`() {
+        val overlappendeMeldeperiode = meldeperiode(periode = Periode(30.desember(2024), 12.januar(2025)))
+        val beregnet = simulering()
+        val kontroll = simulering(tidligereMeldeperioder = listOf(overlappendeMeldeperiode))
+
+        beregnet.finnUlikheter(kontroll, fraOgMed = 12.januar(2025)) shouldBe listOf(
+            "Ulikt antall meldeperioder: beregnet=1, kontroll=2",
         )
     }
 }
