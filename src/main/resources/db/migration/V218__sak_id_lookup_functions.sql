@@ -1,5 +1,5 @@
 -- Hjelpefunksjoner for å gjøre det litt enklere å slå opp i andre tabeller basert på fnr eller saksnummer
--- F.eks. select * from behandling where sak_id = fnrTilSakId('12345678911');
+-- F.eks. select * from behandling where sak_id = fnrTilSakId('12845678911');
 CREATE OR REPLACE FUNCTION fnrTilSakId(p_fnr varchar) RETURNS varchar AS
 $$
 SELECT id FROM sak WHERE fnr = p_fnr;

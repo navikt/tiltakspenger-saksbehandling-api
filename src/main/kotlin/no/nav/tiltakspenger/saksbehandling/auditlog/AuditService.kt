@@ -119,7 +119,7 @@ data class CefField(
  *
  * ```
  * CEF:0|tiltakspenger-saksbehandling-api|auditLog|1.0|audit:access|tiltakspenger-saksbehandling-api audit log|INFO|
- * end=1618308696856 suid=X123456 duid=01010199999
+ * end=1618308696856 suid=X123456 duid=01810199999
  * flexString1Label=Decision flexString1=Permit
  * flexString2Label=behandlingId flexString2=2dc4c100-395a-4e25-b1e9-6ea52f49b9e1
  * sproc=40e4608e-7157-415d-86c2-697f4c3c7358
