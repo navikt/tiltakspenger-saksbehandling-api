@@ -48,4 +48,16 @@ class TaRammebehandlingService(
             oppdatertSak to oppdatertRammebehandling
         }
     }
+
+    suspend fun hentSakIder(
+        behandlingIder: List<RammebehandlingId>,
+    ): Either<KunneIkkeTaBehandling, List<SakId>> {
+        // Spørsmål Anders - er det nødvendig når det bare er en read?
+        // Hvordan håndtere feil - f.eks. hvis en behandlingsId ikke gir en sak?
+        sessionFactory.withTransactionContext { tx ->
+            return behandlingIder.map { behandlingId ->
+                rammebehandlingRepo.hent(behandlingId, tx).sakId
+            }
+        }
+    }
 }
