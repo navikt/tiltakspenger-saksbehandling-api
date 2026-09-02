@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.FnrGenerator
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
@@ -13,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.barnetillegg.BarnetilleggMother
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.Navn
-import no.nav.tiltakspenger.saksbehandling.sak.FnrGenerator
 import no.nav.tiltakspenger.saksbehandling.sak.delteSaksnummerGenerator
 import java.net.URI
 import java.time.Clock
