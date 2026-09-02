@@ -1,6 +1,6 @@
 # AGENTS.md — tiltakspenger-saksbehandling-api
 
-Dette repoet følger monorepo-konvensjonene i [`../AGENTS.md`](../AGENTS.md) og Kotlin/JVM-backendkonvensjonene i [`../AGENTS-backend.md`](../AGENTS-backend.md).
+Dette repoet følger monorepo-konvensjonene i AGENTS.md og Kotlin/JVM-backendkonvensjonene i AGENTS-backend.md — begge i metarepoet `tiltakspenger` (ligger som `..` når repoet er klonet inn i monorepoet, eller som `../tiltakspenger` når dette repoet er klonet for seg selv).
 Les disse først.
 
 ## Kodestil
@@ -9,7 +9,7 @@ Les disse først.
   Hver setning i KDoc (`/** ... */`) og vanlige kommentarer skal stå på sin egen linje, med linjeskift etter punktum, i stedet for flere setninger pakket sammen på én lang linje.
   Dette gir renere diffs og bedre lesbarhet.
   Gjelder også fler-setnings `//`-kommentarer.
-  Se den utfyllende regelen i [`../AGENTS-backend.md`](../AGENTS-backend.md#språk-og-stil) — den gjentas her fordi agenter glipper på den gang på gang.
+  Se den utfyllende regelen i AGENTS-backend.md i metarepoet `tiltakspenger` (seksjonen «Språk og stil») — den gjentas her fordi agenter glipper på den gang på gang.
 
 ## Pakkestruktur
 
@@ -39,7 +39,7 @@ En whitelist er en arbeidsliste, ikke et smutthull, og den skal kunne leses fra 
 
 ## Testtaksonomi
 
-Taksonomien — prodstier, aggregat-disiplin og filter-krykka som motbilde — står i [`../AGENTS-backend.md`](../AGENTS-backend.md#testtaksonomi-prodstier-og-aggregat-disiplin).
+Taksonomien — prodstier, aggregat-disiplin og filter-krykka som motbilde — står i AGENTS-backend.md i metarepoet `tiltakspenger` (seksjonen «Testtaksonomi: prodstier og aggregat-disiplin»).
 Slik ser den ut i dette repoet:
 
 - **Prodstien er `withTestApplicationContextAndPostgres`** i `common/TestApplicationContextEx.kt`, sammen med route-byggerne.
@@ -66,7 +66,7 @@ Slik ser den ut i dette repoet:
 - **Testhjelpere som ikke hører i prodkoden ligger i `*TestEx.kt` ved siden av typen de gjelder.**
   `BegrunnelseTestEx.kt` og `BarnetilleggTestEx.kt` er bekvemmelighetskonstruktører som companion-extensions, `StatistikkTestEx.kt` og `TiltaksdeltakerHendelseTestEx.kt` er databaseoppslag kun tester trenger.
   Repoet har null `@TestOnly` i `src/main`, og det skal det fortsette å ha.
-- **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i [`../AGENTS-backend.md`](../AGENTS-backend.md).
+- **Rene mappinger testes som enhetstester som pinner den lagrede strengen eller json-en**, ikke bare rundturen — se «Row hører i databasetesten, ren mapping i enhetstesten» i AGENTS-backend.md i metarepoet `tiltakspenger`.
   `HjemmelForOpphørDbTest` og `TiltakDeltakerstatusDbTest` er mønsterfilene.
 
 ## Lokal testdata
