@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.TilknyttetBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -20,6 +21,7 @@ fun Klagebehandling.overta(
     tilknyttetBehandlingsstatus: TilknyttetBehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeOvertaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     if (this.erFerdigstilt) {
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }

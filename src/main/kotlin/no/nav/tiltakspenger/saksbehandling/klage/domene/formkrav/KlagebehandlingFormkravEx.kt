@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import java.time.Clock
@@ -16,6 +17,7 @@ fun Klagebehandling.oppdaterFormkrav(
     clock: Clock,
     behandlingDetKlagesPå: BehandlingId?,
 ): Either<KanIkkeOppdatereFormkravPåKlagebehandling, Klagebehandling> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     if (!erUnderBehandling) return KanIkkeOppdatereFormkravPåKlagebehandling.KanIkkeOppdateres.left()
     if (!erSaksbehandlerPåBehandlingen(kommando.saksbehandler)) {
         return KanIkkeOppdatereFormkravPåKlagebehandling.SaksbehandlerMismatch(

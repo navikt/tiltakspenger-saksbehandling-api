@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.OMGJØRING_ETTER_KLAGEINSTANS
@@ -22,6 +23,8 @@ fun Klagebehandling.gjenopptaKlagebehandling(
     kommando: GjenopptaKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeGjenopptaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    // Kan også kalles fra rammebehandlingens gjenoppta, der utøver kan være beslutter.
+    krevSaksbehandlerEllerBeslutterRolle(kommando.saksbehandler)
     return this.gjenopptaKlagebehandling(
         klagensSaksbehandler = kommando.saksbehandler.navIdent,
         endretAv = null,

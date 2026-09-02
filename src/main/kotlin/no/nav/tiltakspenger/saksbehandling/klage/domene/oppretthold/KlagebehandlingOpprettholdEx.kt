@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.oppretthold
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Opprettholdt
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
@@ -20,6 +21,7 @@ import java.time.LocalDateTime
 fun Klagebehandling.oppretthold(
     kommando: OpprettholdKlagebehandlingKommando,
 ): Either<KanIkkeOpprettholdeKlagebehandling, Klagebehandling> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     if (ventestatus.erSattPåVent) {
         return KanIkkeOpprettholdeKlagebehandling.BehandlingenErSattPåVent.left()
     }

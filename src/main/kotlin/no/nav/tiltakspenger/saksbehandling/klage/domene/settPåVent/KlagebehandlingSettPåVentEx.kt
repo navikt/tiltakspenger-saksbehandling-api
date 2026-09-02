@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.KLAR_TIL_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -24,6 +25,8 @@ fun Klagebehandling.settPåVentOgNullstillSaksbehandler(
     clock: Clock,
     sjekkSaksbehandler: Boolean = true,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Klagebehandling, Statistikkhendelser>> {
+    // Kan også kalles fra ramme- og meldekortbehandlingens settPåVent, der utøver kan være beslutter.
+    krevSaksbehandlerEllerBeslutterRolle(kommando.saksbehandler)
     if (this.erFerdigstilt) {
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }
@@ -63,6 +66,8 @@ fun Klagebehandling.settPåVent(
     clock: Clock,
     sjekkSaksbehandler: Boolean = true,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Klagebehandling, Statistikkhendelser>> {
+    // Kan også kalles fra meldekortbehandlingens settPåVent, der utøver kan være beslutter.
+    krevSaksbehandlerEllerBeslutterRolle(kommando.saksbehandler)
     if (this.erFerdigstilt) {
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }

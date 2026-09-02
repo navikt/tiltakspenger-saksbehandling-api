@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -19,6 +20,7 @@ fun Klagebehandling.Companion.opprett(
     kommando: OpprettKlagebehandlingKommando,
     behandlingDetKlagesPå: Ulid?,
 ): Klagebehandling {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     val formkrav = kommando.toKlageFormkrav(behandlingDetKlagesPå)
     return Klagebehandling(
         id = id,

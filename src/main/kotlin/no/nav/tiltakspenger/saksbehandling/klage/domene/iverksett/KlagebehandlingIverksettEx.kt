@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Avvist
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat.Omgjør
@@ -52,6 +53,7 @@ fun Klagebehandling.iverksettOmgjøring(
 fun Klagebehandling.iverksettAvvisning(
     kommando: IverksettAvvisningKommando,
 ): Either<KanIkkeIverksetteKlagebehandling, Klagebehandling> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     if (ventestatus.erSattPåVent) {
         return KanIkkeIverksetteKlagebehandling.BehandlingenErSattPåVent.left()
     }

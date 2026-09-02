@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene.ta
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.TilknyttetBehandlingsstatus
@@ -20,6 +21,7 @@ fun Klagebehandling.ta(
     tilknyttetBehandlingsstatus: TilknyttetBehandlingsstatus?,
     sistEndret: LocalDateTime,
 ): Either<KanIkkeTaKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     if (this.erFerdigstilt) {
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }

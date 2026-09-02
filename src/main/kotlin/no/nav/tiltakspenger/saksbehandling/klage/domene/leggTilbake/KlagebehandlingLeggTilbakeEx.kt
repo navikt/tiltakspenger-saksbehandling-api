@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.TilknyttetBehandlingsstatus
@@ -21,6 +22,8 @@ fun Klagebehandling.leggTilbake(
     tilknyttetBehandlingsstatus: TilknyttetBehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeLeggeTilbakeKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    // Kan også kalles fra rammebehandlingens leggTilbake, der utøver kan være beslutter.
+    krevSaksbehandlerEllerBeslutterRolle(kommando.saksbehandler)
     if (this.erFerdigstilt) {
         return Pair(this, Statistikkhendelser(emptyList())).right()
     }

@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KanIkkeOppdatereKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -25,6 +26,7 @@ fun Klagebehandling.vurder(
     tilknyttetBehandlingsstatus: TilknyttetBehandlingsstatus?,
     clock: Clock,
 ): Either<KanIkkeVurdereKlagebehandling, Klagebehandling> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     kanOppdatereIDenneStatusen(tilknyttetBehandlingsstatus).onLeft {
         return KanIkkeVurdereKlagebehandling.KanIkkeOppdateres(
             it,

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import java.time.Clock
@@ -12,6 +13,7 @@ fun Klagebehandling.oppdaterBrevtekst(
     kommando: KlagebehandlingBrevKommando,
     clock: Clock,
 ): Either<KanIkkeOppdatereBrevtekstPåKlagebehandling, Klagebehandling> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     if (!(erAvvisning && erOpprettholdt) && !erUnderBehandling) {
         return KanIkkeOppdatereBrevtekstPåKlagebehandling.KanIkkeOppdateres.left()
     }

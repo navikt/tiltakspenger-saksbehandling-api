@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus.AVBRUTT
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
@@ -15,6 +16,7 @@ fun Klagebehandling.avbryt(
     kommando: AvbrytKlagebehandlingKommando,
     clock: Clock,
 ): Either<KanIkkeAvbryteKlagebehandling, Pair<Klagebehandling, Statistikkhendelser>> {
+    krevSaksbehandlerRolle(kommando.saksbehandler)
     if (erAvsluttet) {
         return KanIkkeAvbryteKlagebehandling.AlleredeAvsluttet(this.status).left()
     }
