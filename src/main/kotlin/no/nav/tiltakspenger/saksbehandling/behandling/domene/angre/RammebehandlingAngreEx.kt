@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
@@ -23,12 +24,14 @@ import java.time.Clock
 /**
  * Angrer sendingen til beslutning: [KLAR_TIL_BESLUTNING] -> [UNDER_BEHANDLING].
  * Saksbehandleren som sendte behandlingen beholder tildelingen.
+ * Krever at [saksbehandler] har rollen saksbehandler, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Forutsetningene håndheves av [kanAngreBehandling], og feilene derfra returneres som venstre-verdi.
  */
 fun Rammebehandling.angreBehandling(
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): Either<KunneIkkeAngreBehandling, Pair<Rammebehandling, Statistikkhendelser>> {
+    krevSaksbehandlerRolle(saksbehandler)
     kanAngreBehandling(saksbehandler).onLeft { return it.left() }
 
     val nå = nå(clock)
@@ -64,6 +67,7 @@ fun Rammebehandling.angreBehandling(
 /**
  * Avgjør om [saksbehandler] kan angre sendingen til beslutning.
  * Kun saksbehandleren som er tildelt behandlingen kan angre, og bare mens behandlingen er [KLAR_TIL_BESLUTNING].
+ * Kalles også fra DTO-mappingen for å avgjøre om kommandoen skal tilbys, og må derfor ikke kaste.
  */
 fun Rammebehandling.kanAngreBehandling(saksbehandler: Saksbehandler): Either<KunneIkkeAngreBehandling, Unit> {
     return when (status) {

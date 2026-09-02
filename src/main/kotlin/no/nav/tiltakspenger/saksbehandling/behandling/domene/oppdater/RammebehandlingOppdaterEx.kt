@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import java.time.Clock
 
 /**
@@ -49,10 +50,12 @@ fun Rammebehandling.oppdaterSaksopplysninger(
  * Avgjør om [saksbehandler] kan oppdatere behandlingen.
  *
  * Betingelsene speiler hvilke tilstander oppdateringene faktisk håndterer:
+ *  - saksbehandler må ha rollen saksbehandler (kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers)
  *  - behandlingen kan ikke eies av en annen saksbehandler
  *  - behandlingen må være under (manuell eller automatisk) behandling
  */
 fun Rammebehandling.kanOppdatere(saksbehandler: Saksbehandler): Either<KanIkkeOppdatereBehandling, Unit> {
+    krevSaksbehandlerRolle(saksbehandler)
     if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
         return KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!).left()
     }

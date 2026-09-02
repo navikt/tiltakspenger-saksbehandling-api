@@ -23,6 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
@@ -183,6 +184,7 @@ data class Søknadsbehandling(
             klagebehandling: Klagebehandling?,
             clock: Clock,
         ): Triple<Sak, Søknadsbehandling, Statistikkhendelser> {
+            krevSaksbehandlerRolle(saksbehandler)
             val opprettet = nå(clock)
 
             val saksopplysninger = when (søknad) {

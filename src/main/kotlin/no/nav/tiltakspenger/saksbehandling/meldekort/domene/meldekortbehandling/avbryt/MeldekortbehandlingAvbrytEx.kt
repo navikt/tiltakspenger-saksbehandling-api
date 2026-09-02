@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernBehandlingId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
@@ -44,6 +45,7 @@ fun Meldekortbehandling.avbryt(
 /**
  * Avgjør om [saksbehandler] kan avbryte meldekortbehandlingen.
  *
+ * Krever at [saksbehandler] har rollen saksbehandler eller beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Betingelsene speiler hvilke tilstander [avbryt] faktisk håndterer:
  *  - [MeldekortbehandlingStatus.UNDER_BEHANDLING]: kan avbrytes av saksbehandleren som er tildelt behandlingen.
  *  - [MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING]: kan avbrytes av saksbehandleren som sendte behandlingen til beslutning.
@@ -52,6 +54,7 @@ fun Meldekortbehandling.avbryt(
 fun Meldekortbehandling.kanAvbryte(
     saksbehandler: Saksbehandler,
 ): Either<KanIkkeAvbryteMeldekortbehandling, Unit> {
+    krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
     return when (status) {
         MeldekortbehandlingStatus.UNDER_BEHANDLING,
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,

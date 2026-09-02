@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.HentSaksopplysninger
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.oppdaterBehandlingId
@@ -21,6 +22,8 @@ suspend fun Sak.startRevurdering(
     clock: Clock,
     hentSaksopplysninger: HentSaksopplysninger,
 ): Pair<Sak, Revurdering> {
+    // Null når revurderingen er automatisk opprettet; da er det ingen saksbehandler å kreve rollen av.
+    kommando.saksbehandler?.let { krevSaksbehandlerRolle(it) }
     val nå = nå(clock)
 
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let {

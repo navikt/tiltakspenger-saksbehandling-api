@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import java.time.Clock
 
 /**
@@ -45,12 +46,14 @@ fun Rammebehandling.tilBeslutning(
 /**
  * Avgjør om [saksbehandler] kan sende rammebehandlingen til beslutning.
  *
+ * Krever at [saksbehandler] har rollen saksbehandler, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Betingelsene speiler hvilke tilstander [tilBeslutning] faktisk håndterer:
  *  - behandlingen kan ikke eies av en annen saksbehandler
  *  - behandlingen må være [UNDER_BEHANDLING] eller [UNDER_AUTOMATISK_BEHANDLING]
  *  - behandlingen kan ikke stå på vent
  */
 fun Rammebehandling.kanSendeTilBeslutning(saksbehandler: Saksbehandler): Either<KanIkkeSendeRammebehandlingTilBeslutter, Unit> {
+    krevSaksbehandlerRolle(saksbehandler)
     if (this.saksbehandler != null && this.saksbehandler != saksbehandler.navIdent) {
         return KanIkkeSendeRammebehandlingTilBeslutter.BehandlingenEiesAvAnnenSaksbehandler(this.saksbehandler!!)
             .left()

@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.fjernBehandlingId
 import java.time.LocalDateTime
 
@@ -65,12 +66,14 @@ fun Rammebehandling.avbryt(
 /**
  * Avgjør om [avbruttAv] kan avbryte behandlingen i gjeldende tilstand.
  *
+ * Krever at [avbruttAv] har rollen saksbehandler eller beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Behandlingen kan avbrytes i alle aktive tilstander.
  * I beslutningstilstandene kreves det i tillegg at [avbruttAv] er den som er tildelt behandlingen:
  *  - [KLAR_TIL_BESLUTNING]: må være tildelt saksbehandler.
  *  - [UNDER_BESLUTNING]: må være tildelt beslutter.
  */
 fun Rammebehandling.kanAvbryte(avbruttAv: Saksbehandler): Either<KunneIkkeAvbryteBehandling, Unit> {
+    krevSaksbehandlerEllerBeslutterRolle(avbruttAv)
     return when (status) {
         UNDER_AUTOMATISK_BEHANDLING, KLAR_TIL_BEHANDLING, UNDER_BEHANDLING -> Unit.right()
 

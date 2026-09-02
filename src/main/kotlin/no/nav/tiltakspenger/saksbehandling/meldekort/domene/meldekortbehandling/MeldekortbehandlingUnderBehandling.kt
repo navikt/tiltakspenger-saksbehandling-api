@@ -20,6 +20,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hentKlagebehandling
@@ -156,6 +158,7 @@ data class MeldekortUnderBehandling(
         perioder: Meldeperiodebehandlinger,
         clock: Clock,
     ): Either<TilgangEllerTilstandsfeil, Unit> {
+        krevSaksbehandlerRolle(saksbehandler)
         require(saksbehandler.navIdent == this.saksbehandler)
 
         require(!perioder.ingenDagerGirRett) {
@@ -230,6 +233,7 @@ fun Sak.opprettManuellMeldekortbehandling(
 /**
  * Oppretter en manuell meldekortbehandling som omfatter én eller flere meldeperiodekjeder.
  * Meldeperiodene sorteres etter periode, og hver kjede får sin egen [MeldeperiodebehandlingType] basert på om kjeden er behandlet fra før.
+ * Krever at [saksbehandler] har rollen saksbehandler eller beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  */
 fun Sak.opprettManuellMeldekortbehandling(
     kjedeIder: NonEmptyList<MeldeperiodeKjedeId>,
@@ -238,6 +242,7 @@ fun Sak.opprettManuellMeldekortbehandling(
     klagebehandlingId: KlagebehandlingId?,
     clock: Clock,
 ): Either<KanIkkeOppretteMeldekortbehandling, Pair<Sak, MeldekortUnderBehandling>> {
+    krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
     kjedeIder.groupBy { it }.filterValues { it.size > 1 }.keys.let {
         if (it.isNotEmpty()) {
             return KanIkkeOppretteMeldekortbehandling.DuplikateKjeder(it).left()

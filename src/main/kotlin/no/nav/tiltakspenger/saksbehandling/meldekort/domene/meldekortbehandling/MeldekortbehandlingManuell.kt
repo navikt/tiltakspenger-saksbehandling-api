@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Attesteringsstatus
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
+import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.iverksett.IverksettOmgjøringKommando
@@ -119,6 +120,7 @@ data class MeldekortbehandlingManuell(
         clock: Clock,
         correlationId: CorrelationId,
     ): Either<KanIkkeIverksetteMeldekortbehandling, Pair<MeldekortbehandlingManuell, Statistikkhendelser>> {
+        krevBeslutterRolle(beslutter)
         if (saksbehandler == beslutter.navIdent) {
             return KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
         }
@@ -190,6 +192,7 @@ data class MeldekortbehandlingManuell(
         beslutter: Saksbehandler,
         clock: Clock,
     ): Either<KanIkkeUnderkjenneMeldekortbehandling, MeldekortUnderBehandling> {
+        krevBeslutterRolle(beslutter)
         if (this.status != MeldekortbehandlingStatus.UNDER_BESLUTNING) {
             return KanIkkeUnderkjenneMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }

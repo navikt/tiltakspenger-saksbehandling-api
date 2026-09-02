@@ -22,14 +22,14 @@ class MeldekortbehandlingManuellTest {
         val meldekortBehandlet = ObjectMother.meldekortBehandletManuelt(
             status = MeldekortbehandlingStatus.UNDER_BESLUTNING,
             iverksattTidspunkt = null,
-            beslutter = ObjectMother.saksbehandler().navIdent,
+            beslutter = ObjectMother.beslutter().navIdent,
             opprettet = nå(fixedClock),
             begrunnelse = Begrunnelse.create("asdf"),
         )
 
         val actual = meldekortBehandlet.underkjenn(
             besluttersBegrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
-            beslutter = ObjectMother.saksbehandler(),
+            beslutter = ObjectMother.beslutter(),
             clock = fixedClock,
         )
 
@@ -38,7 +38,7 @@ class MeldekortbehandlingManuellTest {
             id = AttesteringId.random(),
             status = Attesteringsstatus.SENDT_TILBAKE,
             begrunnelse = NonBlankString.create("skal ikke kunne underkjenne"),
-            beslutter = ObjectMother.saksbehandler().navIdent,
+            beslutter = ObjectMother.beslutter().navIdent,
             tidspunkt = nå(fixedClock),
         )
 
