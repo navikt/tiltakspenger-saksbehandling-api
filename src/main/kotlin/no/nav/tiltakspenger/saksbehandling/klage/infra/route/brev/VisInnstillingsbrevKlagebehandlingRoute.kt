@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withDokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
@@ -24,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.service.KunneIkkeViseInnstillin
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingCommand
 import no.nav.tiltakspenger.saksbehandling.klage.service.VisInnstillingsbrevKlagebehandlingService
 
-const val VIS_INNSTILLINGSBREV_KLAGEBEHANDLING_PATH =
+private const val PATH =
     "/sak/{sakId}/klage/{klagebehandlingId}/innstillingsbrev/{dokumentInfoId}"
 
 fun Route.visInnstillingsbrevKlagebehandlingRoute(
@@ -33,15 +32,14 @@ fun Route.visInnstillingsbrevKlagebehandlingRoute(
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger { }
-    get(VIS_INNSTILLINGSBREV_KLAGEBEHANDLING_PATH) {
-        logger.debug { "Mottatt post-request på $VIS_INNSTILLINGSBREV_KLAGEBEHANDLING_PATH - saksbehandler ønsker å vise innstillingsbrev" }
+    get(PATH) {
+        logger.debug { "Mottatt post-request på $PATH - saksbehandler ønsker å vise innstillingsbrev" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@get
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSakId { sakId ->
             call.withKlagebehandlingId { klagebehandlingId ->
                 call.withDokumentInfoId { dokumentInfoId ->
                     val correlationId = call.correlationId()
-                    krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                     visInnstillingsbrevService.hentDokument(
                         VisInnstillingsbrevKlagebehandlingCommand(

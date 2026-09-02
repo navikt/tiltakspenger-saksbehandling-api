@@ -15,13 +15,15 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 
+private const val PATH = "$SAK_PATH/{sakId}/personopplysninger"
+
 fun Route.hentPersonRoute(
     sakService: SakService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
-    get("$SAK_PATH/{sakId}/personopplysninger") {
-        logger.debug { "Mottatt get-request på '$SAK_PATH/{sakId}/personopplysninger' - henter personopplysninger for en sak" }
+    get(PATH) {
+        logger.debug { "Mottatt get-request på '$PATH' - henter personopplysninger for en sak" }
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSakId { sakId ->
             val correlationId = call.correlationId()

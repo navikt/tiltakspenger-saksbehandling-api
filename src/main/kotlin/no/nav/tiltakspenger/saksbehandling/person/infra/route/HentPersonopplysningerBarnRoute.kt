@@ -12,21 +12,21 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
+
+private const val PATH = "$SAK_PATH/{sakId}/personopplysninger/barn"
 
 fun Route.hentPersonopplysningerBarnRoute(
     sakService: SakService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
-    get("$SAK_PATH/{sakId}/personopplysninger/barn") {
-        logger.debug { "Mottatt get-request på '$SAK_PATH/{sakId}/personopplysninger/barn' - henter personopplysninger om barna for en sak" }
+    get(PATH) {
+        logger.debug { "Mottatt get-request på '$PATH' - henter personopplysninger om barna for en sak" }
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSakId { sakId ->
             val correlationId = call.correlationId()
-            krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
             sakService.hentBarnForSakId(sakId, correlationId).map {
                 it.map { barn -> barn.toEnkelPersonDTO() }
             }.fold(

@@ -11,24 +11,24 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SAK_PATH
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.KunneIkkeHenteTiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.TiltaksdeltakelseService
 import java.time.LocalDate
 
+private const val PATH = "$SAK_PATH/{sakId}/tiltaksdeltakelser"
+
 fun Route.hentTiltakdeltakelserRoute(
     tiltaksdeltakelseService: TiltaksdeltakelseService,
     auditService: AuditService,
 ) {
     val logger = KotlinLogging.logger {}
-    get("$SAK_PATH/{sakId}/tiltaksdeltakelser") {
-        logger.debug { "Mottatt get-request på '$SAK_PATH/{sakId}/tiltaksdeltakelser' - henter tiltaksdeltakelser for en sak" }
+    get(PATH) {
+        logger.debug { "Mottatt get-request på '$PATH' - henter tiltaksdeltakelser for en sak" }
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
         call.withSakId { sakId ->
             val correlationId = call.correlationId()
-            krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
 
             val fraOgMed = call.request.queryParameters["fraOgMed"]
                 ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }

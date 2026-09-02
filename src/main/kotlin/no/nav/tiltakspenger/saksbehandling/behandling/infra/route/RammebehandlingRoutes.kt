@@ -45,7 +45,6 @@ fun Route.rammebehandlingRoutes(
     tilgangskontrollService: TilgangskontrollService,
     clock: Clock,
 ) {
-    hentRammebehandlingRoute(behandlingService, auditService, tilgangskontrollService)
     behandleSøknadPåNyttRoute(behandleSøknadPåNyttService, auditService, tilgangskontrollService)
     oppdaterSaksopplysningerRoute(auditService, oppdaterSaksopplysningerService, tilgangskontrollService)
     iverksettRammebehandlingRoute(iverksettRammebehandlingService, auditService, tilgangskontrollService)
