@@ -110,6 +110,7 @@ open class TexasClientFake(
     companion object {
         const val LOKAL_FRONTEND_TOKEN_BRUKER_1 = "TokenMcTokenface"
         const val LOKAL_FRONTEND_TOKEN_BRUKER_2 = "TokenMcTokenface2"
+        const val LOKAL_FRONTEND_TOKEN_VEILEDER = "Veileder"
         const val LOKAL_SYSTEMBRUKER_TOKEN = "asdf"
     }
 }

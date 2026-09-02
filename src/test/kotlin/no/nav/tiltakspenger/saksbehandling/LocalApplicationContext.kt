@@ -50,6 +50,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContex
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.systembrukerAlleRoller
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.veileder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorKlient
@@ -192,7 +193,13 @@ class LocalApplicationContext(
         // Dette er en skjør snarvei som forutsetter at søknaden allerede er persistert og at internDeltakelseId bevares (se TiltaksdeltakelseFakeKlient.hentTiltaksdeltakelseFraSøknad).
         // Den slår feil for manuelt registrerte (papir) søknader, der saksopplysningene beregnes før søknaden lagres.
         // Vurder å seede tiltaksdeltakelser eksplisitt per fnr ved oppretting av søknad i stedet.
-        TiltaksdeltakelseFakeKlient(søknadFallback = { fnr -> (sessionFactory as PostgresSessionFactory).hentSøknaderForFnr(fnr) })
+        TiltaksdeltakelseFakeKlient(
+            søknadFallback = { fnr ->
+                (sessionFactory as PostgresSessionFactory).hentSøknaderForFnr(
+                    fnr,
+                )
+            },
+        )
     }
 
     override val tiltakContext by lazy {
@@ -401,6 +408,10 @@ class LocalApplicationContext(
                     navIdent = "B123456",
                     brukernavn = "Beslutter McSakface",
                 ),
+            )
+            it.leggTilBruker(
+                TexasClientFake.LOKAL_FRONTEND_TOKEN_VEILEDER,
+                veileder(),
             )
             it.leggTilBruker(
                 TexasClientFake.LOKAL_SYSTEMBRUKER_TOKEN,
