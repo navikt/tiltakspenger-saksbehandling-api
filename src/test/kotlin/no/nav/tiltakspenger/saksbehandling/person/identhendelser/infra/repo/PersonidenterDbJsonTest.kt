@@ -19,17 +19,17 @@ class PersonidenterDbJsonTest {
     @Test
     fun `personidentene lagres med sine avtalte felt- og identtypenavn`() {
         Identtype.entries.map {
-            Personident(ident = "12345678911", historisk = false, identtype = it)
+            Personident(ident = "12845678911", historisk = false, identtype = it)
         }.toDbJson() shouldBe
-            """[{"ident":"12345678911","historisk":false,"identtype":"FOLKEREGISTERIDENT"},{"ident":"12345678911","historisk":false,"identtype":"NPID"},{"ident":"12345678911","historisk":false,"identtype":"AKTORID"}]"""
+            """[{"ident":"12845678911","historisk":false,"identtype":"FOLKEREGISTERIDENT"},{"ident":"12845678911","historisk":false,"identtype":"NPID"},{"ident":"12845678911","historisk":false,"identtype":"AKTORID"}]"""
     }
 
     @Test
     fun `personidentene leses tilbake fra lagret json`() {
-        """[{"ident":"12345678911","historisk":false,"identtype":"FOLKEREGISTERIDENT"},{"ident":"22345678911","historisk":true,"identtype":"NPID"},{"ident":"1234567891011","historisk":false,"identtype":"AKTORID"}]"""
+        """[{"ident":"12845678911","historisk":false,"identtype":"FOLKEREGISTERIDENT"},{"ident":"22845678911","historisk":true,"identtype":"NPID"},{"ident":"1234567891011","historisk":false,"identtype":"AKTORID"}]"""
             .fromDbJsonToPersonidenter() shouldBe listOf(
-            Personident(ident = "12345678911", historisk = false, identtype = Identtype.FOLKEREGISTERIDENT),
-            Personident(ident = "22345678911", historisk = true, identtype = Identtype.NPID),
+            Personident(ident = "12845678911", historisk = false, identtype = Identtype.FOLKEREGISTERIDENT),
+            Personident(ident = "22845678911", historisk = true, identtype = Identtype.NPID),
             Personident(ident = "1234567891011", historisk = false, identtype = Identtype.AKTORID),
         )
     }

@@ -4,14 +4,15 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class KotestExTest {
     private val tid1 = LocalDateTime.parse("2026-03-27T10:15:30")
     private val tid2 = LocalDateTime.parse("2026-03-28T10:15:30")
-    private val fnr1 = Fnr.fromString("12345678901")
-    private val fnr2 = Fnr.fromString("10987654321")
+    private val fnr1 = ObjectMother.gyldigFnr()
+    private val fnr2 = ObjectMother.gyldigFnr()
 
     @Test
     fun `nullable NonEmptyList med like og ulike LocalDateTime - positiv`() {

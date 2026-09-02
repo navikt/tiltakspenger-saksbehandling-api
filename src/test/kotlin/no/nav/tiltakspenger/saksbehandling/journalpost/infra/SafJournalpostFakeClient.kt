@@ -26,12 +26,12 @@ class SafJournalpostFakeClient(
         if (journalpostId.toString() == "12345") {
             return Journalpost(
                 avsenderMottaker = AvsenderMottaker(
-                    id = "12345678911",
+                    id = "12845678911",
                     type = "FNR",
                 ),
                 datoOpprettet = nå(clock).toString(),
                 bruker = Bruker(
-                    id = "12345678911",
+                    id = "12845678911",
                     type = "FNR",
                 ),
             )

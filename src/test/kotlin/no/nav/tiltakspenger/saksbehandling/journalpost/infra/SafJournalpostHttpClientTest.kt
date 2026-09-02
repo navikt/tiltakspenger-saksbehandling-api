@@ -34,6 +34,7 @@ class SafJournalpostHttpClientTest {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("system-token", Instant.parse("2026-01-01T00:00:00Z"))
     }
     private val journalpostId = JournalpostId("467010363")
+    private val fnr = ObjectMother.gyldigFnr()
     private val pdfBytes = byteArrayOf(0x25, 0x50, 0x44, 0x46, 0xFF.toByte(), 0xFE.toByte())
 
     private fun nyKlient(
@@ -68,7 +69,7 @@ class SafJournalpostHttpClientTest {
     )
 
     private fun graphQLJournalpostJson(datoOpprettet: String? = "2025-01-01T01:02:03") = """
-        {"data":{"journalpost":{"avsenderMottaker":{"id":"12345678911","type":"FNR"},"datoOpprettet":${datoOpprettet?.let { "\"$it\"" }},"bruker":{"id":"12345678911","type":"FNR"}}}}
+        {"data":{"journalpost":{"avsenderMottaker":{"id":"${fnr.verdi}","type":"FNR"},"datoOpprettet":${datoOpprettet?.let { "\"$it\"" }},"bruker":{"id":"${fnr.verdi}","type":"FNR"}}}}
     """.trimIndent()
 
     @Test
@@ -88,7 +89,7 @@ class SafJournalpostHttpClientTest {
 
         val journalpost = nyKlient(transport).hentJournalpost(journalpostId).getOrFail().shouldNotBeNull()
 
-        journalpost.bruker?.id shouldBe "12345678911"
+        journalpost.bruker?.id shouldBe fnr.verdi
         journalpost.datoOpprettet shouldBe "2025-01-01T01:02:03"
         val kall = transport.mottatteKall.single()
         kall.metode shouldBe "POST"

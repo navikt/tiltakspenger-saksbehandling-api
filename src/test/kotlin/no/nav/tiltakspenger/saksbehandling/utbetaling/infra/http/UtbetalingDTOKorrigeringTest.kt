@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.json.shouldEqualJson
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -19,7 +18,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class UtbetalingDTOKorrigeringTest {
-    private val fnr = Fnr.fromString("09863149336")
+    private val fnr = ObjectMother.gyldigFnr()
     private val sakId = SakId.random()
     private val saksnummer = Saksnummer("202410011001")
     private val førstePeriode = Periode(
@@ -118,7 +117,7 @@ class UtbetalingDTOKorrigeringTest {
               "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2025-01-19T00:00:00.000001",
@@ -238,7 +237,7 @@ class UtbetalingDTOKorrigeringTest {
               "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2025-01-26T00:00:00.000001",
@@ -366,7 +365,7 @@ class UtbetalingDTOKorrigeringTest {
               "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2025-01-19T00:00:00.000001",
@@ -456,7 +455,7 @@ class UtbetalingDTOKorrigeringTest {
               "behandlingId": "W9ESTJY73NQ6ZE9",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2025-01-19T00:00:00.000001",

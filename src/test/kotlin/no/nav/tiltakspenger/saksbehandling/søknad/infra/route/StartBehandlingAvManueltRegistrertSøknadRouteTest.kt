@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.fraOgMedDatoSpm
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.periodeSpm
@@ -33,6 +34,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
     fun `papirsøknad uten tiltak lagres med barnetillegg og ja-svar, og leses tilbake`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSakOgSøknad(tac)
+            val barnFnr = ObjectMother.gyldigFnr()
 
             startBehandlingAvManueltRegistrertSøknad(
                 tac = tac,
@@ -50,7 +52,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                       "mellomnavn": null,
                       "etternavn": "Barnesen",
                       "oppholdInnenforEøs": {"svar": "JA"},
-                      "fnr": "04051512345"
+                      "fnr": "${barnFnr.verdi}"
                     }]
                 """.trimIndent(),
                 barnetilleggManuelleJson = """
@@ -92,7 +94,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                     mellomnavn = null,
                     etternavn = "Barnesen",
                     fødselsdato = 4.mai(2015),
-                    fnr = søknad.barnetillegg.filterIsInstance<BarnetilleggFraSøknad.FraPdl>().single().fnr,
+                    fnr = barnFnr,
                 ),
                 BarnetilleggFraSøknad.Manuell(
                     oppholderSegIEØS = Søknad.JaNeiSpm.Nei,

@@ -4,7 +4,6 @@ import arrow.core.toNonEmptyListOrNull
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.dato.januar
@@ -26,7 +25,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `uten barnetillegg`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -45,7 +44,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",
@@ -86,7 +85,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `barnetillegg 1 barn hele perioden`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -117,7 +116,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",
@@ -182,7 +181,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `barnetillegg 2 barn hele perioden`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -213,7 +212,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",
@@ -278,7 +277,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `barnetillegg 1 barn første uke og 2 barn andre uke`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -310,7 +309,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",
@@ -375,7 +374,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `0 barn på starten og slutten av meldeperioden`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -411,7 +410,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",
@@ -476,7 +475,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `0 barn midt i en uke`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -516,7 +515,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",
@@ -593,7 +592,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `Skal utbetale helgedager på fredag dersom utbetaling av helg er tillatt`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -643,7 +642,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",
@@ -709,7 +708,7 @@ class UtbetalingDTOTest {
 
     @Test
     fun `Skal utbetale helg på fredag selv om fredag ikke gir rett`() {
-        val fnr = Fnr.fromString("09863149336")
+        val fnr = ObjectMother.gyldigFnr()
         val id = VedtakId.fromString("vedtak_01J94XH6CKY0SZ5FBEE6YZG8S6")
         val utbetalingId = UtbetalingId.fromString("utbetaling_01JK6295T9WZ73MKA2083E4WDE")
         val saksnummer = Saksnummer("202410011001")
@@ -750,7 +749,7 @@ class UtbetalingDTOTest {
               "behandlingId": "Z73MKA2083E4WDE",
               "iverksettingId": null,
               "personident": {
-                "verdi": "09863149336"
+                "verdi": "${fnr.verdi}"
               },
               "vedtak": {
                 "vedtakstidspunkt": "2024-10-01T22:46:14.614465",

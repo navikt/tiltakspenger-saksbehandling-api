@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.nå
@@ -392,8 +391,9 @@ class BenkAggregatTest {
     fun `søknadsfanen sorterer stigende og synkende, og respekterer limit`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             // Behandlingene opprettes med samme tidsstempel, så fnr er den eneste kolonnen sorteringen kan observeres på her.
-            val fnrEn = Fnr.fromString("01019012345")
-            val fnrTo = Fnr.fromString("02019012345")
+            // Fnr-generatoren er strengt stigende, så fnrEn sorteres alltid før fnrTo.
+            val fnrEn = ObjectMother.gyldigFnr()
+            val fnrTo = ObjectMother.gyldigFnr()
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = fnrTo)
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = fnrEn)
             val repo = tac.benkContext.benkRepo

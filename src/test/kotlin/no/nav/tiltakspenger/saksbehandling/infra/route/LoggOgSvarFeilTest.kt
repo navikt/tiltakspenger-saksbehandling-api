@@ -100,7 +100,7 @@ class LoggOgSvarFeilTest {
                     Testfeil(
                         loggkontekst = Loggkontekst("kall mot baksystem feilet"),
                         sikkerloggkontekst = Loggkontekst(
-                            melding = "fnr=12345678901, rå respons: {\"detaljer\": \"sensitivt\"}",
+                            melding = "fnr=12845678901, rå respons: {\"detaljer\": \"sensitivt\"}",
                         ),
                     ),
                 )
@@ -111,11 +111,11 @@ class LoggOgSvarFeilTest {
                 it.level shouldBe Level.WARN
                 it.formattedMessage shouldContain "Testoperasjon feilet: kall mot baksystem feilet"
                 it.formattedMessage shouldContain "Se sikkerlogg for mer kontekst: https://console.cloud.google.com"
-                it.formattedMessage shouldNotContain "12345678901"
+                it.formattedMessage shouldNotContain "12845678901"
             }
             sikkerlogg.list.single { it.formattedMessage.contains("Testoperasjon") }.also {
                 it.level shouldBe Level.WARN
-                it.formattedMessage shouldContain "Testoperasjon feilet: fnr=12345678901"
+                it.formattedMessage shouldContain "Testoperasjon feilet: fnr=12845678901"
                 it.formattedMessage shouldContain "sakId=sak_123"
                 it.markerList.single().name shouldBe "TEAM_LOGS"
             }
@@ -135,8 +135,8 @@ class LoggOgSvarFeilTest {
                     Testfeil(
                         loggkontekst = Loggkontekst("kall mot baksystem feilet"),
                         sikkerloggkontekst = Loggkontekst(
-                            melding = "rå respons for fnr=12345678901",
-                            underliggendeFeil = RuntimeException("400 Bad Request: {\"fnr\": \"12345678901\"}"),
+                            melding = "rå respons for fnr=12845678901",
+                            underliggendeFeil = RuntimeException("400 Bad Request: {\"fnr\": \"12845678901\"}"),
                         ),
                     ),
                 )
@@ -146,11 +146,11 @@ class LoggOgSvarFeilTest {
             vanligLogg.list.single().also {
                 it.throwableProxy shouldBe null
                 it.formattedMessage shouldContain "Se sikkerlogg for mer kontekst"
-                it.formattedMessage shouldNotContain "12345678901"
+                it.formattedMessage shouldNotContain "12845678901"
             }
             sikkerlogg.list.single { it.formattedMessage.contains("Testoperasjon") }.also {
-                it.formattedMessage shouldContain "rå respons for fnr=12345678901"
-                it.throwableProxy!!.message shouldContain "{\"fnr\": \"12345678901\"}"
+                it.formattedMessage shouldContain "rå respons for fnr=12845678901"
+                it.throwableProxy!!.message shouldContain "{\"fnr\": \"12845678901\"}"
             }
         } finally {
             slippLogglinjer("LoggOgSvarFeilTest", vanligLogg)

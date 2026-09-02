@@ -168,12 +168,14 @@ class UtbetalingHttpKlientTest {
 
     @Test
     fun `simuler - 200 med simuleringsrespons parses`() {
+        val fnr = ObjectMother.gyldigFnr()
+
         // language=json
         val helvedResponse = """
             {
               "oppsummeringer": [],
               "detaljer": {
-                "gjelderId": "12345678910",
+                "gjelderId": "${fnr.verdi}",
                 "datoBeregnet": "2024-05-12",
                 "totalBeløp": 0,
                 "perioder": []

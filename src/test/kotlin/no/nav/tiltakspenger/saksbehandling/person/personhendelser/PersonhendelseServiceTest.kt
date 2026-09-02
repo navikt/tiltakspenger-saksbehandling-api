@@ -73,7 +73,7 @@ class PersonhendelseServiceTest {
             tac.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
-                    forelderBarnRelasjon = ForelderBarnRelasjon("12345678910", "BARN", "FAR"),
+                    forelderBarnRelasjon = ForelderBarnRelasjon(ObjectMother.gyldigFnr().verdi, "BARN", "FAR"),
                     clock = tac.clock,
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.OpplysningstypeIkkeStøttet.left()

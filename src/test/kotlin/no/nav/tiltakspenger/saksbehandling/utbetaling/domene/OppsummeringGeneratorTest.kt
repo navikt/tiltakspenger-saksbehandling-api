@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
@@ -32,12 +31,14 @@ class OppsummeringGeneratorTest {
 
     @Test
     fun `tom liste for oppsummering og detaljer`() {
+        val fnr = ObjectMother.gyldigFnr()
+
         // //language=json
         val helvedResponse = """
             {
               "oppsummeringer": [],
               "detaljer": {
-                "gjelderId": "12345678910",
+                "gjelderId": "${fnr.verdi}",
                 "datoBeregnet": "2024-05-12",
                 "totalBeløp": 0,
                 "perioder": []
@@ -52,6 +53,8 @@ class OppsummeringGeneratorTest {
 
     @Test
     fun `enkel YTELSE for en meldeperiode`() {
+        val fnr = ObjectMother.gyldigFnr()
+
         // Meldeperiode mandag 14. oktober til søndag 27. oktober 2024 // language=json
         val helvedResponse = """
             {
@@ -66,7 +69,7 @@ class OppsummeringGeneratorTest {
                 }
               ],
               "detaljer": {
-                "gjelderId": "01487905247",
+                "gjelderId": "${fnr.verdi}",
                 "datoBeregnet": "2025-05-12",
                 "totalBeløp": 2280,
                 "perioder": [
@@ -128,7 +131,7 @@ class OppsummeringGeneratorTest {
             periode = periode,
             kjedeId = meldeperiodeKjedeId,
             saksnummer = Saksnummer("202501291001"),
-            fnr = Fnr.fromString("01487905247"),
+            fnr = fnr,
         )
         val meldeperiodeKjeder = MeldeperiodeKjeder(
             MeldeperiodeKjede(
@@ -257,6 +260,8 @@ class OppsummeringGeneratorTest {
          * Vi hadde forventet at det var tidligere utbetalt 1425 kroner i perioden 2. desember til 6. desember. (285*5).
          * Vi hadde forventet 2 dager feilutbetaling (2*285) i perioden 2. desember til 3. desember og tilhørende motpostering.
          */
+        val fnr = ObjectMother.gyldigFnr()
+
         // //language=json
         val helvedResponse = """
            {
@@ -279,7 +284,7 @@ class OppsummeringGeneratorTest {
     }
   ],
   "detaljer": {
-    "gjelderId": "22469635663",
+    "gjelderId": "${fnr.verdi}",
     "datoBeregnet": "2025-05-16",
     "totalBeløp": 0,
     "perioder": [
@@ -436,7 +441,6 @@ class OppsummeringGeneratorTest {
         val meldeperiodeKjedeId2 = MeldeperiodeKjedeId.fraPeriode(periode2)
         val meldeperiodeKjedeId3 = MeldeperiodeKjedeId.fraPeriode(periode3)
         val saksnummer = Saksnummer("202504101001")
-        val fnr = Fnr.fromString("22469635663")
         val sakId = SakId.random()
         val meldeperiode1 = ObjectMother.meldeperiode(
             periode = periode1,
@@ -540,6 +544,7 @@ class OppsummeringGeneratorTest {
     @Test
     fun `sammensatt endring av antall barn i dev`() {
         // Rammebehandling med innvilgelse fra 2025-02-05 til 2025-05-04
+        val fnr = ObjectMother.gyldigFnr()
 
         // language=json
         val jsonFraHelved: String = """
@@ -571,7 +576,7 @@ class OppsummeringGeneratorTest {
                 }
               ],
               "detaljer": {
-                "gjelderId": "19418513449",
+                "gjelderId": "${fnr.verdi}",
                 "datoBeregnet": "2025-09-16",
                 "totalBeløp": 3740,
                 "perioder": [
@@ -788,7 +793,6 @@ class OppsummeringGeneratorTest {
         val meldeperiodeKjedeId4 = MeldeperiodeKjedeId.fraPeriode(periode4)
         val meldeperiodeKjedeId5 = MeldeperiodeKjedeId.fraPeriode(periode5)
         val saksnummer = Saksnummer("202509051009")
-        val fnr = Fnr.fromString("19418513449")
         val sakId = SakId.random()
         val meldeperiode1 = ObjectMother.meldeperiode(
             periode = periode1,

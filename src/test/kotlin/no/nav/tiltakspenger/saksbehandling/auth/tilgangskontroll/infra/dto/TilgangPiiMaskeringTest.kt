@@ -2,10 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class TilgangPiiMaskeringTest {
-    private val fnr = "01010199999"
+    private val fnr = ObjectMother.gyldigFnr().verdi
 
     @Test
     fun `AvvistMetadata maskerer brukerIdent i toString`() {

@@ -16,13 +16,13 @@ class MaskedLogTest {
     fun `skal maskere fnr`() {
         val loggedLines = mutableListOf<String>()
         val logger = createLogger(loggedLines::add)
-        logger.info("Skal maskere: 12345678912")
+        logger.info("Skal maskere: 12845678912")
         JSONObject(loggedLines[0]).getString("message") shouldBe "Skal maskere: ***********"
         logger.info("Skal ikke maskere: 1234567890123")
         JSONObject(loggedLines[1]).getString("message") shouldBe "Skal ikke maskere: 1234567890123"
-        logger.info("Skal maskere: 12345678901er")
+        logger.info("Skal maskere: 12845678901er")
         JSONObject(loggedLines[2]).getString("message") shouldBe "Skal maskere: ***********er"
-        logger.info("Skal maskere: e12345678901e")
+        logger.info("Skal maskere: e12845678901e")
         JSONObject(loggedLines[3]).getString("message") shouldBe "Skal maskere: e***********e"
         logger.info("Skal ikke maskere: 123456 12345")
         JSONObject(loggedLines[4]).getString("message") shouldBe "Skal ikke maskere: 123456 12345"
