@@ -116,7 +116,9 @@ data object LocalConfig : EnvironmentConfig {
 
     // Brukes ikke lokalt
     override val electorPath = ""
-    override val appImage = "http://localhost8080:githubhash"
+
+    // Image-referanse på formen repo/navn:tag — kun git-hashen etter siste kolon brukes (Configuration.gitHash).
+    override val appImage = "lokalt-bygg:githubhash"
     override val dbJdbcUrl = "jdbc:postgresql://host.docker.internal:5433/saksbehandling?user=postgres&password=test"
 
     override val tokenEndpoint = "http://localhost:7165/api/v1/token"
