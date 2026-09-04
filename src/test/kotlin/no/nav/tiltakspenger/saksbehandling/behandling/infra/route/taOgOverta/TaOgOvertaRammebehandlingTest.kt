@@ -28,6 +28,8 @@ class TaOgOvertaRammebehandlingTest {
 
             taBehandling(tac, sak.id, behandling.id)!!
 
+            // Spørsmål Anders:
+            // 1. Her sjekker man vel også bare opp mot DB, og ikke responsen fra frontend?
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe "Z12345"

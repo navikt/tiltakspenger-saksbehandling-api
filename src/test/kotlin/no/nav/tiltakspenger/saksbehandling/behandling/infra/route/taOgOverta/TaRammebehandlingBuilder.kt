@@ -40,6 +40,9 @@ interface TaRammebehandlingBuilder {
         )
         if (response.statusCode != 200) return null
 
+        // Spørsmål Anders:
+        //  1. Henter man sak og behandling fra DB, og ikke responsen som kommer til frontend?
+        //  2. respons.body virker å være det som sendes til frontend?
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val behandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
 
