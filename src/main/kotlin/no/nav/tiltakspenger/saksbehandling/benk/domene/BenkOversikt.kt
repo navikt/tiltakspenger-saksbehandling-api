@@ -5,7 +5,7 @@ import no.nav.tiltakspenger.libs.common.Fnr
 /**
  * Radene i én fane, sammen med tellingene benken viser over tabellen.
  *
- * [totalAntall] er antallet som matcher filteret, altså før [BenkRepo.DEFAULT_LIMIT] kutter.
+ * [totalAntall] er antallet som matcher filteret, altså før pagineringen kutter.
  * [totalAntallUfiltrert] er antallet i fanen uten filter, slik at benken kan si hvor mange filteret tok bort.
  *
  * [saksbehandlere] og [besluttere] er identene som er tildelt en rad i fanen, uten filter — nedtrekkslisten i benken viser dem som filtervalg.

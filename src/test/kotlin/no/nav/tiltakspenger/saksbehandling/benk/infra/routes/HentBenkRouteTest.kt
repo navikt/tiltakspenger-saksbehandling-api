@@ -78,7 +78,8 @@ class HentBenkRouteTest {
                     "totalAntall": 1,
                     "totalAntallUfiltrert": 1,
                     "antallFiltrertPgaTilgang": 0,
-                    "limit": 500,
+                    "side": 0,
+                    "sideantall": 200,
                     "saksbehandlere": [],
                     "besluttere": []
                   },
@@ -250,6 +251,33 @@ class HentBenkRouteTest {
                         objectMapper.readTree(it)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
                             .toString() shouldEqualJson """[]"""
                     }
+            }
+        }
+    }
+
+    /**
+     * Sidetallet gjenspeiles i responsen, og en side forbi slutten svarer med tom side — ikke en feil.
+     * Et negativt sidetall fra en url brukeren kan redigere faller tilbake på side 0, slik de øvrige ugyldige verdiene gjør.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `sidetallet gjenspeiles i responsen, og ugyldig side faller tilbake på første side`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            hentBenk(tac, "/benk/soknader", """{"side": 1}""").let {
+                objectMapper.readTree(it)["oversikt"].let { oversikt ->
+                    oversikt["side"].asInt() shouldBe 1
+                    oversikt["totalAntall"].asInt() shouldBe 1
+                    oversikt["behandlinger"].size() shouldBe 0
+                }
+            }
+            hentBenk(tac, "/benk/soknader", """{"side": -1}""").let {
+                objectMapper.readTree(it)["oversikt"].let { oversikt ->
+                    oversikt["side"].asInt() shouldBe 0
+                    oversikt["behandlinger"].size() shouldBe 1
+                }
+                it.error() shouldBe null
             }
         }
     }
