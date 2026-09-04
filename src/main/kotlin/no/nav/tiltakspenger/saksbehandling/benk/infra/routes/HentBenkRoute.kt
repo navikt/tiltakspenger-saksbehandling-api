@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPaginering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderFiltrering
@@ -96,6 +97,7 @@ private suspend fun RoutingContext.svarMedSøknader(
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkSøknaderKolonne.entries, BenkSøknaderKolonne.KRAVTIDSPUNKT),
+            paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
         ),
@@ -120,6 +122,7 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkRevurderingerKolonne.entries, BenkRevurderingerKolonne.STARTET),
+            paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
         ),
@@ -144,6 +147,7 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkMeldekortKolonne.entries, BenkMeldekortKolonne.PERIODE),
+            paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
         ),
@@ -167,6 +171,7 @@ private suspend fun RoutingContext.klage(benkService: BenkService) {
                 skjulPåVent = body.filters.skjulPåVent,
             ),
             sortering = body.sortering.tilSortering(BenkKlageKolonne.entries, BenkKlageKolonne.KRAVTIDSPUNKT),
+            paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
         ),
@@ -192,6 +197,7 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
             sortering = body.sortering.tilSortering(BenkTilbakekrevingKolonne.entries, BenkTilbakekrevingKolonne.STARTET),
+            paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
         ),
@@ -230,6 +236,7 @@ private suspend inline fun <reified T> ApplicationCall.parseBodyEllerDefault(def
  */
 private data class HentSøknaderBody(
     val sortering: String? = null,
+    val side: Int? = null,
     val filters: Filters = Filters(),
 ) {
     data class Filters(
@@ -244,6 +251,7 @@ private data class HentSøknaderBody(
 
 private data class HentRevurderingerBody(
     val sortering: String? = null,
+    val side: Int? = null,
     val filters: Filters = Filters(),
 ) {
     data class Filters(
@@ -257,6 +265,7 @@ private data class HentRevurderingerBody(
 
 private data class HentMeldekortBody(
     val sortering: String? = null,
+    val side: Int? = null,
     val filters: Filters = Filters(),
 ) {
     data class Filters(
@@ -270,6 +279,7 @@ private data class HentMeldekortBody(
 
 private data class HentKlageBody(
     val sortering: String? = null,
+    val side: Int? = null,
     val filters: Filters = Filters(),
 ) {
     data class Filters(
@@ -282,6 +292,7 @@ private data class HentKlageBody(
 
 private data class HentTilbakekrevingBody(
     val sortering: String? = null,
+    val side: Int? = null,
     val filters: Filters = Filters(),
 ) {
     data class Filters(

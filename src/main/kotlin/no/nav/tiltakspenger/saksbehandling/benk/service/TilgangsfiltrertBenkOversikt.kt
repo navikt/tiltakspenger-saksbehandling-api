@@ -2,10 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.benk.service
 
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPaginering
 
 /**
  * Én fane slik benken skal vise den, etter at radene saksbehandler ikke har tilgang til er tatt bort.
+ *
+ * Tilgangsfiltreringen skjer etter at siden er hentet fra databasen.
+ * En side kan derfor vise færre enn [sideantall] rader, og [totalAntall] teller rader saksbehandler ikke ser.
  *
  * [totalAntall] og [totalAntallUfiltrert] er tellinger fra databasen, og er derfor ikke tilgangsfiltrert.
  * Benken bruker dem til å si hvor mye filtervalgene tok bort, mens [antallFiltrertPgaTilgang] sier hvor mye tilgangen tok bort.
@@ -20,8 +23,10 @@ data class TilgangsfiltrertBenkOversikt<T : BenkBehandling>(
     val antallFiltrertPgaTilgang: Int,
     val saksbehandlere: List<String>,
     val besluttere: List<String>,
+    /** Siden som ble spurt om, 0-basert. */
+    val side: Int,
 ) {
-    val limit = BenkRepo.DEFAULT_LIMIT
+    val sideantall = BenkPaginering.SIDEANTALL
 }
 
 /**
