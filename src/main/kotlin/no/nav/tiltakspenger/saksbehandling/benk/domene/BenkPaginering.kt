@@ -17,8 +17,7 @@ data class BenkPaginering(
     fun offset(): Int = side * SIDEANTALL
 
     companion object {
-        // TODO: øk denne før prodsetting
-        const val SIDEANTALL = 10
+        const val SIDEANTALL = 200
 
         /**
          * Øverste sidetall som kan uttrykkes uten at `side * SIDEANTALL` overflower Int.
