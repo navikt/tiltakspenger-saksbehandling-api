@@ -410,6 +410,16 @@ class BenkAggregatTest {
                 it.behandlinger.size shouldBe 1
                 it.totalAntall shouldBe 2
             }
+            repo.hentSøknader(kommando(BenkSorteringRetning.ASC), limit = 1, offset = 1).let {
+                // Offset flytter vinduet uten å røre tellingene: side to viser den andre av to.
+                it.behandlinger.map { rad -> rad.felles.fnr } shouldBe listOf(fnrTo)
+                it.totalAntall shouldBe 2
+            }
+            repo.hentSøknader(kommando(BenkSorteringRetning.ASC), limit = 1, offset = 2).let {
+                // En side forbi slutten er tom, ikke en feil.
+                it.behandlinger shouldBe emptyList()
+                it.totalAntall shouldBe 2
+            }
             repo.hentSøknader(søknaderCommand()).behandlinger.size shouldBe 2
         }
     }

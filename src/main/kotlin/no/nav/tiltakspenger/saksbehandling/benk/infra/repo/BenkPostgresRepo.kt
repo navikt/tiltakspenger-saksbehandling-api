@@ -72,6 +72,7 @@ class BenkPostgresRepo(
         command: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkSøknadsbehandling> = sessionFactory.withSession(sessionContext) { session ->
         session.hentFane(
             base = SØKNADER,
@@ -85,6 +86,7 @@ class BenkPostgresRepo(
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
+            offset = offset,
             map = { it.tilSøknadsbehandling() },
         )
     }
@@ -93,6 +95,7 @@ class BenkPostgresRepo(
         command: HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkRevurdering> = sessionFactory.withSession(sessionContext) { session ->
         session.hentFane(
             base = REVURDERINGER,
@@ -105,6 +108,7 @@ class BenkPostgresRepo(
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
+            offset = offset,
             map = { it.tilRevurdering() },
         )
     }
@@ -113,6 +117,7 @@ class BenkPostgresRepo(
         command: HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkMeldekort> = sessionFactory.withSession(sessionContext) { session ->
         session.hentFane(
             base = MELDEKORT,
@@ -125,6 +130,7 @@ class BenkPostgresRepo(
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
+            offset = offset,
             map = { it.tilMeldekort() },
         )
     }
@@ -133,6 +139,7 @@ class BenkPostgresRepo(
         command: HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkKlagebehandling> = sessionFactory.withSession(sessionContext) { session ->
         session.hentFane(
             base = KLAGE,
@@ -143,6 +150,7 @@ class BenkPostgresRepo(
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
+            offset = offset,
             map = { it.tilKlagebehandling() },
         )
     }
@@ -151,6 +159,7 @@ class BenkPostgresRepo(
         command: HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkTilbakekreving> = sessionFactory.withSession(sessionContext) { session ->
         session.hentFane(
             base = TILBAKEKREVING,
@@ -164,6 +173,7 @@ class BenkPostgresRepo(
             ),
             sortering = command.sortering.tilOrderBy { it.toDbString() },
             limit = limit,
+            offset = offset,
             map = { it.tilTilbakekreving() },
         )
     }
@@ -208,6 +218,7 @@ class BenkPostgresRepo(
         params: Array<Pair<String, Any?>>,
         sortering: String,
         limit: Int,
+        offset: Int,
         map: (Row) -> T,
     ): BenkOversikt<T> {
         val totaler = run(
@@ -237,9 +248,11 @@ class BenkPostgresRepo(
                 where $filterSql
                 order by $sortering
                 limit :limit
+                offset :offset
                 """.trimIndent(),
                 *params,
                 "limit" to limit,
+                "offset" to offset,
             ).map(map).asList,
         )
 

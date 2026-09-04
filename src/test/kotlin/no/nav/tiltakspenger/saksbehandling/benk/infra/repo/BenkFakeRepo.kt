@@ -36,30 +36,35 @@ class BenkFakeRepo : BenkRepo {
         command: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkSøknadsbehandling> = kreverPostgres()
 
     override fun hentRevurderinger(
         command: HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkRevurdering> = kreverPostgres()
 
     override fun hentMeldekort(
         command: HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkMeldekort> = kreverPostgres()
 
     override fun hentKlager(
         command: HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkKlagebehandling> = kreverPostgres()
 
     override fun hentTilbakekrevinger(
         command: HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         sessionContext: SessionContext?,
         limit: Int,
+        offset: Int,
     ): BenkOversikt<BenkTilbakekreving> = kreverPostgres()
 
     override fun hentAntallPerFane(sessionContext: SessionContext?): BenkAntallPerFane = kreverPostgres()
