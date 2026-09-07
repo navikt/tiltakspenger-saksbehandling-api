@@ -72,15 +72,7 @@ fun Route.taRammebehandlingerRoute(
             val correlationId = call.correlationId()
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
 
-            kommando.behandlinger.distinctBy {
-                it.sakId
-            }.forEach {
-                tilgangskontrollService.harTilgangTilPersonForSakId(
-                    it.sakId,
-                    saksbehandler,
-                    saksbehandlerToken = token,
-                )
-            }
+            tilgangskontrollService.harTilgangTilPersonForSakIder(kommando.behandlinger.map { it.sakId }.toNonEmptySet(), saksbehandler = saksbehandler, saksbehandlerToken = token)
 
             taRammebehandlingService.taRammebehandlinger(kommando = kommando).fold(
                 ifLeft = { feil ->

@@ -15,11 +15,36 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class TaOgOvertaRammebehandlingTest {
+
+    @Test
+    fun `en saksbehandler kan ta flere behandlinger som ikke er tildelt`() {
+        withTestApplicationContext { tac ->
+
+            val (sak1, _, behandling1) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+            val (sak2, _, behandling2) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+
+            val behandlinger = listOf(sak1.id to behandling1.id, sak2.id to behandling2.id)
+
+            // TODO - test alle gamle som bruker taBehandling
+            taRammebehandling(tac, behandlinger = behandlinger)!!
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling1.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "Z12345"
+            }
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling2.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "Z12345"
+            }
+        }
+    }
 
     @Test
     fun `en saksbehandler kan ta en behandling som ikke er tildelt`() {
@@ -28,8 +53,6 @@ class TaOgOvertaRammebehandlingTest {
 
             taBehandling(tac, sak.id, behandling.id)!!
 
-            // Spørsmål Anders:
-            // 1. Her sjekker man vel også bare opp mot DB, og ikke responsen fra frontend?
             tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe "Z12345"
