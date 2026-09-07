@@ -79,9 +79,9 @@ dependencies {
         // httpcore5 5.3.4 lar HTTP/1-headere spise minne til tjenesten går ned (CVE-2026-54399), og httpcore5-h2 5.3.4 tar imot ubegrenset HPACK-headerliste før SETTINGS-ACK (CVE-2026-54428); begge er fikset i 5.4.3.
         // httpclient5 5.5 lekker forbindelser når dekoding av Content-Encoding feiler, til poolen er tom (CVE-2026-64607); fikset i 5.6.3.
         // Vi tar 5.6.4, som er nyeste og bygger på httpcore5 5.4.3.
-        implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), aldri på classpath
-        implementation("org.apache.httpcomponents.core5:httpcore5:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), aldri på classpath
-        implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), aldri på classpath
+        implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
+        implementation("org.apache.httpcomponents.core5:httpcore5:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
+        implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
     }
 
     implementation("com.github.navikt.tiltakspenger-libs:soknad-dtos:$felleslibVersion")
