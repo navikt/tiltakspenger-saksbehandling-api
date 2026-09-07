@@ -32,7 +32,7 @@ class TaOgOvertaRammebehandlingTest {
             val behandlinger = listOf(sak1.id to behandling1.id, sak2.id to behandling2.id)
 
             // TODO - test alle gamle som bruker taBehandling
-            taRammebehandling(tac, behandlinger = behandlinger)!!
+            taRammebehandling(tac, behandlinger = behandlinger)
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandling1.id).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
