@@ -4,11 +4,11 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.4"
-val felleslibVersion = "0.0.20260904111551"
+val felleslibVersion = "0.0.20260907134256"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.4.3"
 val testContainersVersion = "2.0.5"
-val confluentVersion = "8.1.1"
+val confluentVersion = "8.3.1"
 val avroVersion = "1.12.2"
 val prometeusVersion = "1.17.1"
 val jackson2Version = "2.22.2"
@@ -34,7 +34,7 @@ buildscript {
             // Kodeinjeksjon i Avros Java-SDK (GHSA-rp46-r563-jrc7).
             add("classpath", "org.apache.avro:avro-compiler:1.12.2")
             // Ukontrollert rekursjon på lange inndata (GHSA-j288-q9x7-2f5v).
-            add("classpath", "org.apache.commons:commons-lang3:3.18.0")
+            add("classpath", "org.apache.commons:commons-lang3:3.20.0")
             // Avro drar inn en gammel jackson-bom her. Buildscript-classpathen er en egen
             // konfigurasjon, så `implementation(platform(...))` i dependencies-blokka når den ikke.
             add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.2")
@@ -64,19 +64,24 @@ dependencies {
     implementation(platform("com.fasterxml.jackson:jackson-bom:$jackson2Version"))
 
     constraints {
-        // Confluent publiserer sin egen fork av kafka-clients som `8.1.1-ccs`. Den taper ikke
-        // konfliktoppløsningen mot Apache 4.3.1 fra libs:kafka - Gradle leser "8.1.1-ccs" som
-        // høyere enn "4.3.1" - så uten `strictly` er det Confluent-forken som havner i imaget.
-        // Den er bygd på Kafka 4.1 og drar inn den avviklede `org.lz4:lz4-java` 1.8.0, som har
-        // både out-of-bounds-lesing (GHSA-vqf4-7m7x-wgfc) og en informasjonslekkasje i den trygge
-        // dekomprimereren (GHSA-cmp6-m4wj-q63q) - sistnevnte uten fiks på de koordinatene.
-        // Med Apache-versjonen kommer i stedet `at.yawk.lz4:lz4-java`, som vedlikeholdes.
+        // Confluent publiserer sin egen fork av kafka-clients som `8.3.1-ccs`.
+        // Den taper ikke konfliktoppløsningen mot Apache 4.3.1 fra libs:kafka - Gradle leser "8.3.1-ccs" som høyere enn "4.3.1" - så uten `strictly` er det Confluent-forken som havner i imaget.
+        // Pinnet kom av at forken på 8.1-linja dro inn den avviklede `org.lz4:lz4-java` 1.8.0, med både out-of-bounds-lesing (GHSA-vqf4-7m7x-wgfc) og en informasjonslekkasje i den trygge dekomprimereren (GHSA-cmp6-m4wj-q63q) - sistnevnte uten fiks på de koordinatene.
+        // Forken på 8.3.1 er bygd på Kafka 4.3 og bruker `at.yawk.lz4:lz4-java` som Apache, så lz4-hullet er borte.
+        // `strictly` blir stående fordi versjonsvalget ellers faller tilbake på forken uten at noen har bestemt det.
         implementation("org.apache.kafka:kafka-clients") {
             version { strictly(kafkaVersion) }
         }
         // Apache kafka-clients drar inn lz4-java 1.10.2, der de native XXHash-implementasjonene
         // kan krasje JVM-en på ugyldige byte-intervaller (GHSA-xx22-p4ch-683r).
         implementation("at.yawk.lz4:lz4-java:$lz4Version")
+        // `io.confluent:kafka-avro-serializer` drar inn `kafka-schema-registry-client`, som pinner httpclient5 5.5 og får med httpcore5 5.3.4.
+        // httpcore5 5.3.4 lar HTTP/1-headere spise minne til tjenesten går ned (CVE-2026-54399), og httpcore5-h2 5.3.4 tar imot ubegrenset HPACK-headerliste før SETTINGS-ACK (CVE-2026-54428); begge er fikset i 5.4.3.
+        // httpclient5 5.5 lekker forbindelser når dekoding av Content-Encoding feiler, til poolen er tom (CVE-2026-64607); fikset i 5.6.3.
+        // Vi tar 5.6.4, som er nyeste og bygger på httpcore5 5.4.3.
+        implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), aldri på classpath
+        implementation("org.apache.httpcomponents.core5:httpcore5:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), aldri på classpath
+        implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), aldri på classpath
     }
 
     implementation("com.github.navikt.tiltakspenger-libs:soknad-dtos:$felleslibVersion")
@@ -105,7 +110,7 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:satser:$felleslibVersion")
 
     implementation("io.github.oshai:kotlin-logging-jvm:8.0.4")
-    implementation("ch.qos.logback:logback-classic:1.5.38")
+    implementation("ch.qos.logback:logback-classic:1.6.3")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
     implementation("com.aallam.ulid:ulid-kotlin:1.6.0")
@@ -130,7 +135,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$prometeusVersion")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:12.11.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.4.0")
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.13")
     implementation("com.github.seratch:kotliquery:1.9.1")
@@ -176,7 +181,7 @@ dependencies {
 plugins {
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
     kotlin("jvm") version "2.4.10"
-    id("com.diffplug.spotless") version "8.8.0"
+    id("com.diffplug.spotless") version "8.10.1"
     id("org.jetbrains.kotlinx.kover") version "0.9.9"
     application
 }
