@@ -24,7 +24,7 @@ interface OvertaRammebehandlingBuilder {
      * Denne fungerer både for saksbehandler og beslutter.
      * Returnerer null dersom responsen ikke er 200 OK.
      */
-    suspend fun ApplicationTestBuilder.overtaBehanding(
+    suspend fun ApplicationTestBuilder.overtaBehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         behandlingId: RammebehandlingId,

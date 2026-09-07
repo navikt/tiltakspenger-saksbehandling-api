@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehand
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOvertaKlagebehandlingMedRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRammebehandlingMedOpprettholdtKlage
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.rammebehandlingMedFerdigstiltOpprettholdtKlage
 import org.junit.jupiter.api.Test
@@ -162,7 +162,7 @@ class OvertaKlagebehandlingMedRammebehandlingRouteTest {
             )!!
             val nySaksbehandler = ObjectMother.saksbehandler("saksbehandlerSomOvertarKlagebehandling")
             clock.spol1timeFrem()
-            val (_, overtattRammebehandling, sakJson) = overtaBehanding(
+            val (_, overtattRammebehandling, sakJson) = overtaBehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = rammebehandling.id,

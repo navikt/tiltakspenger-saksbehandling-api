@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -128,7 +128,7 @@ class TaOgOvertaRammebehandlingTest {
                 it.saksbehandler shouldBe "Z12345"
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "Z12345", ObjectMother.saksbehandler123())!!.also { (_, _, sakJson) ->
+            overtaBehandling(tac, sak.id, behandlingId, "Z12345", ObjectMother.saksbehandler123())!!.also { (_, _, sakJson) ->
                 sakJson.rammebehandlingJson(behandlingId).get("saksbehandler").asString() shouldBe "123"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -136,7 +136,7 @@ class TaOgOvertaRammebehandlingTest {
                 }
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "123")!!.also { (_, _, sakJson) ->
+            overtaBehandling(tac, sak.id, behandlingId, "123")!!.also { (_, _, sakJson) ->
                 sakJson.rammebehandlingJson(behandlingId).get("saksbehandler").asString() shouldBe "Z12345"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -169,7 +169,7 @@ class TaOgOvertaRammebehandlingTest {
             }
             tac.clock.spol1timeFrem()
 
-            overtaBehanding(
+            overtaBehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -188,7 +188,7 @@ class TaOgOvertaRammebehandlingTest {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
 
-            overtaBehanding(
+            overtaBehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -216,7 +216,7 @@ class TaOgOvertaRammebehandlingTest {
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
             tac.clock.spol1timeFrem()
 
-            overtaBehanding(
+            overtaBehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,
@@ -246,7 +246,7 @@ class TaOgOvertaRammebehandlingTest {
             taBehandling(tac, sak.id, behandlingId, ObjectMother.beslutter())!!
             tac.clock.spol1timeFrem()
 
-            overtaBehanding(
+            overtaBehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandlingId,
@@ -287,7 +287,7 @@ class TaOgOvertaRammebehandlingTest {
                 }
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "B12345", ObjectMother.beslutter("B123"))!!.also { (_, _, sakJson) ->
+            overtaBehandling(tac, sak.id, behandlingId, "B12345", ObjectMother.beslutter("B123"))!!.also { (_, _, sakJson) ->
                 sakJson.rammebehandlingJson(behandlingId).get("beslutter").asString() shouldBe "B123"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
@@ -295,7 +295,7 @@ class TaOgOvertaRammebehandlingTest {
                 }
             }
             tac.clock.spol1timeFrem()
-            overtaBehanding(tac, sak.id, behandlingId, "B123", ObjectMother.beslutter())!!.also { (_, _, sakJson) ->
+            overtaBehandling(tac, sak.id, behandlingId, "B123", ObjectMother.beslutter())!!.also { (_, _, sakJson) ->
                 sakJson.rammebehandlingJson(behandlingId).get("beslutter").asString() shouldBe "B12345"
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
