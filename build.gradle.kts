@@ -86,7 +86,6 @@ dependencies {
 
     implementation("com.github.navikt.tiltakspenger-libs:soknad-dtos:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:tiltak-dtos:$felleslibVersion")
-    // TODO: Modulene er ikke tatt i bruk ennå — direktekall mot tiltakshistorikk er blokkert til tilgangs-PR-en i navikt/mulighetsrommet er merget.
     implementation("com.github.navikt.tiltakspenger-libs:tiltaksdeltakelse-domene:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:tiltaksdeltakelse-infrastruktur:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:arenatiltak-dtos:$felleslibVersion")
@@ -346,7 +345,7 @@ val httpklientKlasserMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",
         "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",
-        "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient",
+        "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltakshistorikkHttpKlient",
     )
 
 // Hele databaselaget skal ha full grendekning (CoverageUnit.BRANCH), jf. testtaksonomien i AGENTS.md.

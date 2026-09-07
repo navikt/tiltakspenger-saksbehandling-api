@@ -4,7 +4,7 @@ sealed interface KunneIkkeHenteTiltaksdeltakelser {
     data object FeilVedKallMotPdl : KunneIkkeHenteTiltaksdeltakelser
 
     /**
-     * HTTP-kallet mot tiltakspenger-tiltak feilet.
+     * Oppslaget mot tiltakshistorikk (evt. identoppslaget mot PDL foran det) feilet.
      * Feilen logges i [TiltaksdeltakelseService], så varianten trenger ikke bære den.
      */
     data object FeilVedKallMotTiltak : KunneIkkeHenteTiltaksdeltakelser

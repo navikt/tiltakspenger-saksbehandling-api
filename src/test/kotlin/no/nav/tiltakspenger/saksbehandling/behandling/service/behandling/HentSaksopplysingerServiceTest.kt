@@ -12,11 +12,11 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.domene.ArenaTPVedtak
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelseDetErSøktTiltakspengerFor
@@ -70,7 +70,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
@@ -185,7 +185,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
@@ -293,7 +293,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
@@ -430,7 +430,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
@@ -578,7 +578,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     harAdressebeskyttelse: Boolean,
                     correlationId: CorrelationId,
-                ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
             }
