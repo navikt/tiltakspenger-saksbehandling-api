@@ -42,35 +42,45 @@ class BenkService(
     suspend fun hentSøknader(
         command: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkSøknadsbehandling> = hentFane(command, saksbehandlerToken) { benkRepo.hentSøknader(it) }
+    ): BenkRespons<BenkSøknadsbehandling> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
+        benkRepo.hentSøknader(c, limit = limit, offset = offset)
+    }
 
     suspend fun hentRevurderinger(
         command: HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkRevurdering> = hentFane(command, saksbehandlerToken) { benkRepo.hentRevurderinger(it) }
+    ): BenkRespons<BenkRevurdering> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
+        benkRepo.hentRevurderinger(c, limit = limit, offset = offset)
+    }
 
     suspend fun hentMeldekort(
         command: HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkMeldekort> = hentFane(command, saksbehandlerToken) { benkRepo.hentMeldekort(it) }
+    ): BenkRespons<BenkMeldekort> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
+        benkRepo.hentMeldekort(c, limit = limit, offset = offset)
+    }
 
     suspend fun hentKlager(
         command: HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkKlagebehandling> = hentFane(command, saksbehandlerToken) { benkRepo.hentKlager(it) }
+    ): BenkRespons<BenkKlagebehandling> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
+        benkRepo.hentKlager(c, limit = limit, offset = offset)
+    }
 
     suspend fun hentTilbakekrevinger(
         command: HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkTilbakekreving> = hentFane(command, saksbehandlerToken) { benkRepo.hentTilbakekrevinger(it) }
+    ): BenkRespons<BenkTilbakekreving> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
+        benkRepo.hentTilbakekrevinger(c, limit = limit, offset = offset)
+    }
 
     private suspend fun <F : BenkFiltrering, K : BenkSorteringKolonne, T : BenkBehandling> hentFane(
         command: HentBenkKommando<F, K>,
         saksbehandlerToken: String,
-        hent: (HentBenkKommando<F, K>) -> BenkOversikt<T>,
+        hent: (HentBenkKommando<F, K>, Int, Int) -> BenkOversikt<T>,
     ): BenkRespons<T> {
         val antallPerFane = benkRepo.hentAntallPerFane()
-        val oversikt = hent(command)
+        val oversikt = hent(command, command.paginering.limit(), command.paginering.offset())
 
         if (oversikt.isEmpty()) {
             return BenkRespons(
@@ -82,6 +92,7 @@ class BenkService(
                     antallFiltrertPgaTilgang = 0,
                     saksbehandlere = oversikt.saksbehandlere,
                     besluttere = oversikt.besluttere,
+                    side = command.paginering.side,
                 ),
             )
         }
@@ -103,6 +114,7 @@ class BenkService(
                 antallFiltrertPgaTilgang = oversikt.behandlinger.size - medTilgang.behandlinger.size,
                 saksbehandlere = oversikt.saksbehandlere,
                 besluttere = oversikt.besluttere,
+                side = command.paginering.side,
             ),
         )
     }

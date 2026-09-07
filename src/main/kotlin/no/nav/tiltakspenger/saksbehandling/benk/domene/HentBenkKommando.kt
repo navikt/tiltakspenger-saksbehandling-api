@@ -82,6 +82,7 @@ data class BenkTilbakekrevingFiltrering(
 data class HentBenkKommando<F : BenkFiltrering, K : BenkSorteringKolonne>(
     val filtrering: F,
     val sortering: BenkSortering<K>,
+    val paginering: BenkPaginering = BenkPaginering(),
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
 ) : ServiceCommand

@@ -36,7 +36,13 @@ data class BenkOversiktDTO(
     val totalAntall: Int,
     val totalAntallUfiltrert: Int,
     val antallFiltrertPgaTilgang: Int,
-    val limit: Int,
+    /**
+     * Siden som ble spurt om, 0-basert.
+     * Antall sider er `totalAntall` delt på [sideantall], rundet opp.
+     */
+    val side: Int,
+    /** Fast sidestørrelse — kaller kan ikke be om en annen. */
+    val sideantall: Int,
     /** Identene tildelt en rad i fanen, ufiltrert — valgene i benkens nedtrekksliste for saksbehandler/beslutter. */
     val saksbehandlere: List<String>,
     val besluttere: List<String>,
@@ -122,7 +128,8 @@ private fun <T : BenkBehandling> TilgangsfiltrertBenkOversikt<T>.toDTO(saksbehan
     totalAntall = totalAntall,
     totalAntallUfiltrert = totalAntallUfiltrert,
     antallFiltrertPgaTilgang = antallFiltrertPgaTilgang,
-    limit = limit,
+    side = side,
+    sideantall = sideantall,
     saksbehandlere = saksbehandlere,
     besluttere = besluttere,
 )
