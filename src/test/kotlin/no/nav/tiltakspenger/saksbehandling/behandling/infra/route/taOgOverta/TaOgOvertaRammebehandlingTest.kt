@@ -22,8 +22,155 @@ import java.time.LocalDate
 
 class TaOgOvertaRammebehandlingTest {
 
+    /**
+     * Kjører mot postgres fordi den er grunnsettet for `taBehandlingBeslutter` og `overtaBeslutter` i [no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo].
+     * Saksbehandlervarianten over kjører også mot postgres for å dekke begge tillatte kildestatuser.
+     */
     @Test
-    fun `en saksbehandler kan ta flere behandlinger som ikke er tildelt`() {
+    fun `beslutter kan ta og overta behandling via routev2`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, behandling) = sendSøknadsbehandlingTilBeslutning(tac)
+
+            val behandlinger = listOf(sak.id to behandling)
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId = behandling).also {
+                it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            }
+
+            tac.clock.spol1timeFrem()
+
+            taRammebehandling(tac, behandlinger = behandlinger, saksbehandler = ObjectMother.beslutter()).also {
+                tac.behandlingContext.rammebehandlingRepo.hent(behandlingId = behandling).also {
+                    it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+                    it.beslutter shouldBe "B12345"
+                }
+            }
+
+            tac.clock.spol1timeFrem()
+
+            behandlinger.map { (sakId, behandlingId) ->
+                overtaBehandling(tac, sakId = sakId, behandlingId = behandlingId, overtarFra = "B12345", saksbehandler = ObjectMother.beslutter(navIdent = "B123"))!!.also { (_, _, sakJson) ->
+                    sakJson.rammebehandlingJson(behandlingId).get("beslutter").asString() shouldBe "B123"
+                    tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+                        it.beslutter shouldBe "B123"
+                    }
+                }
+                tac.clock.spol1timeFrem()
+
+                overtaBehandling(tac, sakId = sak.id, behandlingId, overtarFra = "B123", saksbehandler = ObjectMother.beslutter())!!.also { (_, _, sakJson) ->
+                    sakJson.rammebehandlingJson(behandlingId).get("beslutter").asString() shouldBe "B12345"
+                    tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
+                        it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+                        it.beslutter shouldBe "B12345"
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `kan ikke ta behandling som allerede har saksbehandler via routev2`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            val behandlinger = listOf(sak.id to behandling.id)
+
+            taRammebehandling(
+                tac,
+                behandlinger = behandlinger,
+                saksbehandler = ObjectMother.saksbehandler(navIdent = "Z999999"),
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen har allerede en saksbehandler.",
+                      "kode": "behandlingen_har_allerede_en_saksbehandler"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId = behandling.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "Z12345"
+            }
+        }
+    }
+
+    @Test
+    fun `en bruker uten beslutterrolle kan ikke ta en behandling som er klar til beslutning via routev2`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = sendSøknadsbehandlingTilBeslutning(tac)
+
+            val behandlinger = listOf(sak.id to behandling)
+
+            taRammebehandling(
+                tac,
+                behandlinger = behandlinger,
+                saksbehandler = ObjectMother.saksbehandler123(),
+                forventet = ForventetRespons.json(
+                    403,
+                    """
+                    {
+                      "melding": "Du må være beslutter for å ta denne behandlingen.",
+                      "kode": "maa_vaere_beslutter"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId = behandling).beslutter shouldBe null
+        }
+    }
+
+    @Test
+    fun `en bruker uten saksbehandlerrolle kan ikke ta en behandling som er klar til behandling via routev2`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+
+            val behandlinger = listOf(sak.id to behandling.id)
+
+            taRammebehandling(
+                tac,
+                behandlinger = behandlinger,
+                saksbehandler = ObjectMother.beslutter(),
+                forventet = ForventetRespons.json(
+                    status = 403,
+                    json = """
+                    {
+                      "melding": "Du må være saksbehandler for å ta denne behandlingen.",
+                      "kode": "maa_vaere_saksbehandler"
+                    }    
+                    """.trimIndent(),
+                    contentType = "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId = behandling.id).saksbehandler shouldBe null
+        }
+    }
+
+    @Test
+    fun `en saksbehandler kan ta en behandling som ikke er tildelt via routev2`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+
+            val behandlinger = listOf(sak.id to behandling.id)
+
+            taRammebehandling(tac, behandlinger = behandlinger)
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "Z12345"
+            }
+        }
+    }
+
+    @Test
+    fun `en saksbehandler kan ta flere behandlinger som ikke er tildelt via routev2`() {
         withTestApplicationContext { tac ->
 
             val (sak1, _, behandling1) = opprettSøknadsbehandlingKlarTilBehandling(tac)
