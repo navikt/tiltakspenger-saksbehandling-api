@@ -47,6 +47,16 @@ sealed interface OpprettRammevedtakFeil {
     ) : OpprettRammevedtakFeil {
         override fun toString(): String = feil.toString()
     }
+
+    /**
+     * Et annet vedtak har omgjort de samme periodene etter at omgjøringen ble opprettet eller sist oppdatert.
+     * Dette er en forventet tilstand og ikke en systemfeil.
+     */
+    data class OmgjøringsgrunnlagetErEndret(
+        val feil: RammevedtakValideringFeil.UgyldigOmgjørRammevedtak,
+    ) : OpprettRammevedtakFeil {
+        override fun toString(): String = feil.toString()
+    }
 }
 
 fun Sak.opprettRammevedtak(
@@ -112,8 +122,14 @@ fun Sak.opprettRammevedtak(
         brevJson = null,
     )
 
-    this.rammevedtaksliste.validerOmgjøringerVedNyttVedtak(vedtak).onLeft {
-        return OpprettRammevedtakFeil.UgyldigOmgjøring(it).left()
+    this.rammevedtaksliste.validerOmgjøringerVedNyttVedtak(vedtak).onLeft { valideringsfeil ->
+        // Dersom avviket gjelder vedtaket vi er i ferd med å opprette, er grunnlaget endret av et annet vedtak i mellomtiden.
+        // Gjelder det et av de andre vedtakene, er saksdataene inkonsistente, og det er en uventet feiltilstand.
+        return if (valideringsfeil is RammevedtakValideringFeil.UgyldigOmgjørRammevedtak && valideringsfeil.vedtakId == vedtak.id) {
+            OpprettRammevedtakFeil.OmgjøringsgrunnlagetErEndret(valideringsfeil).left()
+        } else {
+            OpprettRammevedtakFeil.UgyldigOmgjøring(valideringsfeil).left()
+        }
     }
 
     val oppdatertSak = this.leggTilRammevedtak(vedtak).oppdaterRammebehandling(rammebehandling)

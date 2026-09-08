@@ -6,6 +6,24 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOpp
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KanIkkeOppdatereOmgjøring
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 
+/**
+ * Feilresponsen til saksbehandler når et annet vedtak har omgjort de samme periodene etter at omgjøringen sist ble oppdatert.
+ * Saksbehandler eier behandlingen på dette steget og kan rette vedtaksperioden selv.
+ */
+val omgjøringsgrunnlagetErEndretForSaksbehandler: Pair<HttpStatusCode, ErrorJson> = HttpStatusCode.BadRequest to ErrorJson(
+    "Et annet vedtak har endret grunnlaget for omgjøringen. Vedtaksperioden må oppdateres før behandlingen kan sendes til beslutning.",
+    "omgjøringsgrunnlaget_er_endret",
+)
+
+/**
+ * Samme feil sett fra beslutter ved iverksetting.
+ * Beslutter kan ikke endre vedtaksperioden selv og må sende behandlingen tilbake.
+ */
+val omgjøringsgrunnlagetErEndretForBeslutter: Pair<HttpStatusCode, ErrorJson> = HttpStatusCode.BadRequest to ErrorJson(
+    "Et annet vedtak har endret grunnlaget for omgjøringen. Behandlingen må sendes tilbake til saksbehandler for oppdatering av vedtaksperioden.",
+    "omgjøringsgrunnlaget_er_endret",
+)
+
 fun KanIkkeOppdatereBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     is KanIkkeOppdatereBehandling.BehandlingenEiesAvAnnenSaksbehandler -> HttpStatusCode.BadRequest to Standardfeil.behandlingenEiesAvAnnenSaksbehandler(
         this.eiesAvSaksbehandler,

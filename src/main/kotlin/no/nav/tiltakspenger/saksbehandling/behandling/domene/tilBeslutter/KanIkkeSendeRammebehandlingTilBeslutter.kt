@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter
 
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OmgjøringsgrunnlagEndret
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
@@ -17,4 +18,7 @@ sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
     data class SimuleringFeil(val feil: KunneIkkeSimulere) : KanIkkeSendeRammebehandlingTilBeslutter
 
     data object UgyldigeMeldeperioderHelg : KanIkkeSendeRammebehandlingTilBeslutter
+
+    /** Et annet vedtak har omgjort de samme periodene etter at omgjøringen sist ble oppdatert. */
+    data class OmgjøringsgrunnlagetErEndret(val endring: OmgjøringsgrunnlagEndret) : KanIkkeSendeRammebehandlingTilBeslutter
 }

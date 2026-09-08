@@ -584,8 +584,8 @@ class IverksettRevurderingTest {
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = revurderingB.id,
-                forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
-                medJsonBody = { it.harKode("ugyldig_omgjøring") },
+                forventet = ForventetRespons(400, contentType = "application/json; charset=UTF-8"),
+                medJsonBody = { it.harKode("omgjøringsgrunnlaget_er_endret") },
             )
         }
     }

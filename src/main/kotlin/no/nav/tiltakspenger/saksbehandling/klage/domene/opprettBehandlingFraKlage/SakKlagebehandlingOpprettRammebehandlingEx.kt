@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -20,7 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 suspend fun Sak.opprettBehandlingFraKlage(
     kommando: OpprettBehandlingFraKlageKommando,
     opprettSøknadsbehandling: suspend (StartSøknadsbehandlingPåNyttKommando, Sak) -> Pair<Sak, Søknadsbehandling>,
-    opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Pair<Sak, Revurdering>,
+    opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Either<KanIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
     opprettMeldekortbehandling: suspend (OpprettMeldekortbehandlingKommando, Sak) -> Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, Meldekortbehandling>>,
 ): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, AttesterbarBehandling>> {
     val klagebehandling: Klagebehandling = this.hentKlagebehandling(kommando.klagebehandlingId)
@@ -41,7 +42,7 @@ suspend fun Sak.opprettBehandlingFraKlage(
         is OpprettRevurderingFraKlageKommando -> this.opprettRevurderingFraKlage(
             kommando = kommando,
             opprettRevurdering = opprettRevurdering,
-        ).right()
+        )
 
         is OpprettMeldekortbehandlingFraKlageKommando -> this.opprettMeldekortbehandlingFraKlage(
             kommando,
@@ -68,8 +69,8 @@ private suspend fun Sak.opprettSøknadsbehandlingFraKlage(
 
 private suspend fun Sak.opprettRevurderingFraKlage(
     kommando: OpprettRevurderingFraKlageKommando,
-    opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Pair<Sak, Revurdering>,
-): Pair<Sak, Rammebehandling> {
+    opprettRevurdering: suspend (StartRevurderingKommando, Sak) -> Either<KanIkkeStarteRevurdering, Pair<Sak, Revurdering>>,
+): Either<KanIkkeOppretteBehandlingFraKlage, Pair<Sak, Rammebehandling>> {
     return opprettRevurdering(
         StartRevurderingKommando(
             sakId = kommando.sakId,
@@ -86,7 +87,7 @@ private suspend fun Sak.opprettRevurderingFraKlage(
             klagebehandlingId = kommando.klagebehandlingId,
         ),
         this,
-    )
+    ).mapLeft { KanIkkeOppretteBehandlingFraKlage.KunneIkkeStarteRevurdering(it) }
 }
 
 private suspend fun Sak.opprettMeldekortbehandlingFraKlage(

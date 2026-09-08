@@ -64,7 +64,9 @@ fun Route.sendRammebehandlingTilBeslutningRoute(
 
                         is KanIkkeSendeRammebehandlingTilBeslutter.UtbetalingFeil -> call.respondJson(it.toErrorJson(saksbehandler))
 
-                        KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg -> call.respondJson(it.toErrorJson(saksbehandler))
+                        KanIkkeSendeRammebehandlingTilBeslutter.UgyldigeMeldeperioderHelg,
+                        is KanIkkeSendeRammebehandlingTilBeslutter.OmgjøringsgrunnlagetErEndret,
+                        -> call.respondJson(it.toErrorJson(saksbehandler))
                     }
                 }.onRight { (sak, behandling) ->
                     auditService.logMedRammebehandlingId(
@@ -113,4 +115,6 @@ private fun KanIkkeSendeRammebehandlingTilBeslutter.toErrorJson(saksbehandler: S
         "Behandlingen har meldeperioder med kun rett i helg, men saken er ikke markert for melding på helgedager",
         "ugyldige_meldeperioder_for_helg",
     )
+
+    is KanIkkeSendeRammebehandlingTilBeslutter.OmgjøringsgrunnlagetErEndret -> omgjøringsgrunnlagetErEndretForSaksbehandler
 }

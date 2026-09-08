@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.KanIkkeIverksetteBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.omgjøringsgrunnlagetErEndretForBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
@@ -119,6 +120,8 @@ private fun OpprettRammevedtakFeil.tilErrorJson(): Pair<HttpStatusCode, ErrorJso
         melding = "Tilknyttet klagebehandling må være VEDTATT eller FERDIGSTILT for å kunne iverksette rammebehandlingen. Status: $status.",
         kode = "ugyldig_klagebehandling_status",
     )
+
+    is OpprettRammevedtakFeil.OmgjøringsgrunnlagetErEndret -> omgjøringsgrunnlagetErEndretForBeslutter
 
     is OpprettRammevedtakFeil.UgyldigOmgjøring -> HttpStatusCode.Conflict to ErrorJson(
         melding = "Behandlingen har ugyldige omgjøringer. Saken kan ha blitt endret av et nytt vedtak etter at behandlingen ble sendt til godkjenning, og må sendes tilbake for å vurderes på nytt.",

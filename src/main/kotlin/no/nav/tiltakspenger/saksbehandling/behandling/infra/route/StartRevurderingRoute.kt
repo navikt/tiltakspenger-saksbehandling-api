@@ -1,9 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
@@ -12,12 +14,14 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.StartRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 
 private const val PATH = "/sak/{sakId}/revurdering/start"
 
@@ -43,19 +47,37 @@ fun Route.startRevurderingRoute(
                         saksbehandler,
                         correlationId,
                     ),
-                ).also { (sak, behandling) ->
-                    val behandlingId = behandling.id
-                    auditService.logMedSakId(
-                        sakId = sakId,
-                        navIdent = saksbehandler.navIdent,
-                        action = AuditLogEvent.Action.CREATE,
-                        contextMessage = "Oppretter revurdering på sak $sakId",
-                        correlationId = correlationId,
-                        behandlingId = behandlingId,
-                    )
-                    call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
-                }
+                ).fold(
+                    ifLeft = { feil ->
+                        call.loggOgSvarFeil(
+                            logger = logger,
+                            operasjon = "Start revurdering",
+                            feil = feil,
+                            statusOgErrorJson = feil.tilStatusOgErrorJson(),
+                            kontekst = "sakId=$sakId, correlationId=$correlationId",
+                        )
+                    },
+                    ifRight = { (sak, behandling) ->
+                        val behandlingId = behandling.id
+                        auditService.logMedSakId(
+                            sakId = sakId,
+                            navIdent = saksbehandler.navIdent,
+                            action = AuditLogEvent.Action.CREATE,
+                            contextMessage = "Oppretter revurdering på sak $sakId",
+                            correlationId = correlationId,
+                            behandlingId = behandlingId,
+                        )
+                        call.respondJson(value = sak.tilRammebehandlingDTO(behandlingId, saksbehandler))
+                    },
+                )
             }
         }
     }
+}
+
+fun KanIkkeStarteRevurdering.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KanIkkeStarteRevurdering.VedtaketKanIkkeOmgjøres -> HttpStatusCode.BadRequest to ErrorJson(
+        "Vedtaket kan ikke omgjøres fordi det er et avslagsvedtak eller allerede er omgjort i sin helhet.",
+        "vedtak_kan_ikke_omgjøres",
+    )
 }

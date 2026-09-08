@@ -9,12 +9,16 @@ import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.TomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AntallDagerForMeldeperiode
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.omgjøringsgrunnlagetErEndretForBeslutter
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
@@ -22,7 +26,11 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgRevurderingStans
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
 
 class IverksettRevurderingOmgjøringTest {
@@ -350,6 +358,57 @@ class IverksettRevurderingOmgjøringTest {
                 1.januar(2025) til 31.januar(2025),
                 1.mars(2025) til 31.mars(2025),
             )
+        }
+    }
+
+    @Test
+    fun `kan ikke iverksette omgjøring når et annet vedtak har endret omgjøringsgrunnlaget etter at behandlingen ble sendt til beslutning`() {
+        withTestApplicationContext { tac ->
+            val innvilgelsesperiode = 1.januar(2025) til 31.mars(2025)
+
+            val (sak, _, søknadVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+
+            val (_, omgjøring) = startRevurderingOmgjøring(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = søknadVedtak.id,
+            )!!
+
+            oppdaterOmgjøringInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                vedtaksperiode = innvilgelsesperiode,
+                innvilgelsesperioder = innvilgelsesperioder(innvilgelsesperiode),
+            )
+
+            sendRevurderingTilBeslutningForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+            )
+
+            taBehandling(tac, sak.id, omgjøring.id, saksbehandler = ObjectMother.beslutter())
+
+            // Grunnlaget endres først etter at omgjøringen er sendt til beslutning, slik at beslutter møter feilen.
+            iverksettRevurderingStans(
+                tac = tac,
+                sakId = sak.id,
+                stansFraOgMed = 1.februar(2025),
+            )
+
+            iverksettForBehandlingId(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = omgjøring.id,
+                forventet = omgjøringsgrunnlagetErEndretForBeslutter,
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(omgjøring.id).status shouldBe
+                Rammebehandlingsstatus.UNDER_BESLUTNING
         }
     }
 }

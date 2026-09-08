@@ -109,7 +109,12 @@ class EndretTiltaksdeltakerJobb(
                     ),
                 )
 
-                val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak)
+                val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak).getOrElse { feil ->
+                    throw IllegalStateException(
+                        "Uventet feil ved automatisk start av revurdering: ${feil.loggkontekst.melding} " +
+                            "(saksnummer ${sak.saksnummer} / correlationId ${kommando.correlationId} / $logIder)",
+                    )
+                }
 
                 tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletMedRevurdering(hendelseId, revurdering.id)
 

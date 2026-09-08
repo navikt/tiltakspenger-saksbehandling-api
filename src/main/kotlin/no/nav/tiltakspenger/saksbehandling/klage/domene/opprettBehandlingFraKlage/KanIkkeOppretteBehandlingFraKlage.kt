@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.opprettBehandlingFraKlage
 
 import no.nav.tiltakspenger.libs.common.BehandlingId
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.KanIkkeStarteRevurdering
 
 sealed interface KanIkkeOppretteBehandlingFraKlage {
     data object BehandlingenErSattPåVent : KanIkkeOppretteBehandlingFraKlage
@@ -11,6 +12,10 @@ sealed interface KanIkkeOppretteBehandlingFraKlage {
     ) : KanIkkeOppretteBehandlingFraKlage
 
     data class FinnesÅpenBehandling(val behandlingId: BehandlingId) : KanIkkeOppretteBehandlingFraKlage
+
+    data class KunneIkkeStarteRevurdering(
+        val underliggende: KanIkkeStarteRevurdering,
+    ) : KanIkkeOppretteBehandlingFraKlage
 
     data class KanIkkeOppretteMeldekortbehandling(
         val underliggende: no.nav.tiltakspenger.saksbehandling.meldekort.service.KanIkkeOppretteMeldekortbehandling,

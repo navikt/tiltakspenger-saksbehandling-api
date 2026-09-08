@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilStatusOgErrorJson
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
@@ -185,6 +186,8 @@ private fun KanIkkeOppretteBehandlingFraKlage.toStatusAndErrorJson(): Pair<HttpS
         )
 
         is KanIkkeOppretteBehandlingFraKlage.KanIkkeOppretteMeldekortbehandling -> this.underliggende.tilStatusOgErrorJson()
+
+        is KanIkkeOppretteBehandlingFraKlage.KunneIkkeStarteRevurdering -> this.underliggende.tilStatusOgErrorJson()
 
         is KanIkkeOppretteBehandlingFraKlage.SaksbehandlerMismatch -> Pair(
             HttpStatusCode.BadRequest,

@@ -1,5 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -21,7 +25,7 @@ suspend fun Sak.startRevurdering(
     kommando: StartRevurderingKommando,
     clock: Clock,
     hentSaksopplysninger: HentSaksopplysninger,
-): Pair<Sak, Revurdering> {
+): Either<KanIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
     // Null når revurderingen er automatisk opprettet; da er det ingen saksbehandler å kreve rollen av.
     kommando.saksbehandler?.let { krevSaksbehandlerRolle(it) }
     val nå = nå(clock)
@@ -63,13 +67,13 @@ suspend fun Sak.startRevurdering(
             opprettet = nå,
             klagebehandling = klagebehandling,
             automatiskOpprettetGrunn = kommando.automatiskOpprettetGrunn,
-        )
+        ).getOrElse { return it.left() }
     }
 
     return Pair(
         this.leggTilRevurdering(revurdering),
         revurdering,
-    )
+    ).right()
 }
 
 private suspend fun Sak.startRevurderingStans(
@@ -143,8 +147,15 @@ private suspend fun Sak.startRevurderingOmgjøring(
     opprettet: LocalDateTime,
     revurderingId: RammebehandlingId = RammebehandlingId.random(),
     automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
-): Revurdering {
+): Either<KanIkkeStarteRevurdering, Revurdering> {
     val gjeldendeRammevedtak: Rammevedtak = this.hentRammevedtakForId(rammevedtakIdSomOmgjøres)
+
+    if (gjeldendeRammevedtak.gyldigOmgjøringskommando == null) {
+        return KanIkkeStarteRevurdering.VedtaketKanIkkeOmgjøres(
+            vedtakId = rammevedtakIdSomOmgjøres,
+            saksnummer = this.saksnummer,
+        ).left()
+    }
 
     return Revurdering.opprettOmgjøring(
         revurderingId = revurderingId,
@@ -162,5 +173,5 @@ private suspend fun Sak.startRevurderingOmgjøring(
         omgjørRammevedtak = gjeldendeRammevedtak,
         klagebehandling = klagebehandling,
         automatiskOpprettetGrunn = automatiskOpprettetGrunn,
-    )
+    ).right()
 }

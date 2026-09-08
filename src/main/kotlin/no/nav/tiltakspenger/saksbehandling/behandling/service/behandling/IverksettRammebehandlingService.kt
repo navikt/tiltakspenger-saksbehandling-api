@@ -36,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.logg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
+import no.nav.tiltakspenger.saksbehandling.vedtak.OpprettRammevedtakFeil
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import java.time.Clock
@@ -103,9 +104,18 @@ class IverksettRammebehandlingService(
             clock = clock,
         )
         val (oppdatertSak, vedtak, rammevedtakstatistikk) = sak.opprettRammevedtak(iverksattRammebehandling, clock)
-            .getOrElse {
-                logger.error { "Kunne ikke opprette rammevedtak: $it - ${iverksattRammebehandling.loggkontekst(correlationId)}" }
-                return KanIkkeIverksetteBehandling.OpprettVedtakFeil(it).left()
+            .getOrElse { feil ->
+                val melding = "Kunne ikke opprette rammevedtak: $feil - ${iverksattRammebehandling.loggkontekst(correlationId)}"
+                when (feil) {
+                    // Forventet tilstand: et annet vedtak har omgjort de samme periodene mens behandlingen lå til beslutning.
+                    is OpprettRammevedtakFeil.OmgjøringsgrunnlagetErEndret -> logger.warn { melding }
+
+                    is OpprettRammevedtakFeil.RammebehandlingIkkeVedtatt,
+                    is OpprettRammevedtakFeil.UgyldigKlagebehandlingStatus,
+                    is OpprettRammevedtakFeil.UgyldigOmgjøring,
+                    -> logger.error { melding }
+                }
+                return KanIkkeIverksetteBehandling.OpprettVedtakFeil(feil).left()
             }
 
         val doubleOppdatertSak = when (iverksattRammebehandling) {

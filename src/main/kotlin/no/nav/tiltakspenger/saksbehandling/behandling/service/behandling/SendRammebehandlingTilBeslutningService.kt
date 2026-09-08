@@ -7,10 +7,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.loggkontekst
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.KanIkkeSendeRammebehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.tilBeslutning
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.validerOmgjøringsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode.meldeperioderErGyldigeForHelg
@@ -66,6 +68,13 @@ class SendRammebehandlingTilBeslutningService(
                 oppdaterSak,
                 behandlingMedUtbetalingskontroll,
             ).left()
+        }
+
+        if (behandling is Revurdering) {
+            behandling.validerOmgjøringsgrunnlag { sak.vedtaksliste.finnRammevedtakSomOmgjøres(it) }.onLeft {
+                logger.warn { "Kan ikke sende omgjøringen til beslutning. $it - ${behandling.loggkontekst(kommando.correlationId)}" }
+                return KanIkkeSendeRammebehandlingTilBeslutter.OmgjøringsgrunnlagetErEndret(it).left()
+            }
         }
 
         if (!sak.meldeperioderErGyldigeForHelg(behandlingId, clock)) {
