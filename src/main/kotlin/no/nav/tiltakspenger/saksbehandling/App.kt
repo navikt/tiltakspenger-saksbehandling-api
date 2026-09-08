@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Bakgrunnsprosessoppsett
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Jobboppsett
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.startApp
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
@@ -47,11 +48,13 @@ fun start(
         host = host,
         isNais = isNais,
         oppsett = Bakgrunnsprosessoppsett(
-            mdcCallIdKey = CALL_ID_MDC_KEY,
-            electorPath = Configuration::electorPath,
-            tasks = jobber(isNais = isNais, applicationContext = applicationContext, clock = clock),
+            jobber = Jobboppsett(
+                mdcCallIdKey = CALL_ID_MDC_KEY,
+                electorPath = Configuration::electorPath,
+                clock = applicationContext.clock,
+                tasks = jobber(isNais = isNais, applicationContext = applicationContext, clock = clock),
+            ),
             kafkaConsumers = kafkaConsumers(isNais = isNais, applicationContext = applicationContext),
-            clock = applicationContext.clock,
         ),
     ) { readiness ->
         ktorSetup(applicationContext = applicationContext, readiness = readiness, devRoutes = devRoutes)
