@@ -73,7 +73,7 @@ fun Route.taRammebehandlingerRoute(
         call.withBody<RequestBody> { body ->
 
             val kommando = body.tilKommando(saksbehandler).getOrElse {
-                it.tilStatusOgErrorJson()
+                call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
                 return@withBody
             }
 
@@ -102,7 +102,7 @@ fun Route.taRammebehandlingerRoute(
                             correlationId = correlationId,
                         )
                     }
-                    call.respondJson(ResponsBody(behandlinger.map { ResponsBody.BehandlingRespons(it.id.toString(), it.saksnummer.toString()) }))
+                    call.respondJson(ResponsBody(behandlinger.map { ResponsBody.BehandlingRespons(behandlingId = it.id.toString(), saksnummer = it.saksnummer.toString()) }))
                 },
             )
         }

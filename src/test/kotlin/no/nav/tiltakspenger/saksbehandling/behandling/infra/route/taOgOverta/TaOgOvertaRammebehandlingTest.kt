@@ -22,6 +22,73 @@ import java.time.LocalDate
 
 class TaOgOvertaRammebehandlingTest {
 
+    @Test
+    fun `rammebehandling og saksnummer sendes til saksbehandling`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+
+            val behandlinger = listOf(sak.id to behandling.id)
+
+            taRammebehandling(tac, behandlinger = behandlinger)!!.also { (_, responsJson) ->
+                responsJson!!.get("behandlinger").also { liste ->
+                    liste.size() shouldBe 1
+                    liste[0].get("behandlingId").asString() shouldBe behandling.id.toString()
+                    liste[0].get("saksnummer").asString() shouldBe sak.saksnummer.toString()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `ingen behandlinger tildeles når en i listen ikke kan tas`() {
+        withTestApplicationContext { tac ->
+            val (sak1, _, behandling1) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+            val (sak2, _, behandling2) = opprettSøknadsbehandlingUnderBehandling(tac)
+
+            val behandlinger = listOf(sak1.id to behandling1.id, sak2.id to behandling2.id)
+
+            taRammebehandling(
+                tac,
+                behandlinger = behandlinger,
+                saksbehandler = ObjectMother.saksbehandler(navIdent = "A12345"),
+                forventet = ForventetRespons.json(
+                    status = 400,
+                    json = """
+                {
+                  "melding": "Behandlingen har allerede en saksbehandler.",
+                  "kode": "behandlingen_har_allerede_en_saksbehandler"
+                }
+                    """.trimIndent(),
+                    contentType = "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId = behandling1.id).saksbehandler shouldBe null
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId = behandling2.id).saksbehandler shouldBe "Z12345"
+        }
+    }
+
+    @Test
+    fun `saksbehandler må alltid tildele seg minst en sak`() {
+        withTestApplicationContext { tac ->
+
+            taRammebehandling(
+                tac,
+                behandlinger = emptyList(),
+                forventet = ForventetRespons.json(
+                    status = 400,
+                    json = """
+                {
+                  "melding": "Du må sende inn minst én behandling.",
+                  "kode": "maa_ha_minst_en_behandling"
+                }
+                    """.trimIndent(),
+                    contentType = "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+        }
+    }
+
     /**
      * Kjører mot postgres fordi den er grunnsettet for `taBehandlingBeslutter` og `overtaBeslutter` i [no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo].
      * Saksbehandlervarianten over kjører også mot postgres for å dekke begge tillatte kildestatuser.
