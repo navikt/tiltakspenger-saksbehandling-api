@@ -4,12 +4,15 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.pdl.PdlIdentklient
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.TiltakshistorikkHenter
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.TiltakshistorikkKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseHttpKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltakshistorikkHttpKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.TiltaksdeltakelseService
 import java.time.Clock
@@ -24,11 +27,26 @@ open class TiltaksdeltakelseContext(
     open val tiltaksdeltakerRepo: TiltaksdeltakerRepo by lazy { TiltaksdeltakerPostgresRepo(sessionFactory as PostgresSessionFactory) }
 
     open val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient by lazy {
-        TiltaksdeltakelseHttpKlient(
-            baseUrl = Configuration.tiltakUrl,
-            authTokenProvider = TexasSystemTokenProvider(
-                texasClient = texasClient,
-                audienceTarget = Configuration.tiltakScope,
+        TiltakshistorikkHttpKlient(
+            henteTjeneste = TiltakshistorikkHenter(
+                tiltakshistorikkKlient = TiltakshistorikkKlient(
+                    baseUrl = Configuration.tiltakshistorikkUrl,
+                    authTokenProvider = TexasSystemTokenProvider(
+                        texasClient = texasClient,
+                        audienceTarget = Configuration.tiltakshistorikkScope,
+                    ),
+                    clock = clock,
+                ),
+                pdlIdentklient = PdlIdentklient(
+                    // Configuration.pdlUrl peker på selve graphql-endepunktet; PdlIdentklient legger på "/graphql" selv.
+                    baseUrl = Configuration.pdlUrl.removeSuffix("/graphql"),
+                    authTokenProvider = TexasSystemTokenProvider(
+                        texasClient = texasClient,
+                        audienceTarget = Configuration.pdlScope,
+                    ),
+                    clock = clock,
+                ),
+                clock = clock,
             ),
             clock = clock,
         )

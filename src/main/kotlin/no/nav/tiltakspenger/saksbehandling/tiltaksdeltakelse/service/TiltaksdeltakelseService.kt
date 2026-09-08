@@ -7,12 +7,12 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import java.time.LocalDate
 
 class TiltaksdeltakelseService(
@@ -48,7 +48,7 @@ class TiltaksdeltakelseService(
             harAdressebeskyttelse = harAdressebeskyttelse,
             correlationId = correlationId,
         ).getOrElse { feil ->
-            feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakspenger-tiltak", "sakId: $sakId, correlationId: $correlationId")
+            feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakshistorikk", "sakId: $sakId, correlationId: $correlationId")
             return KunneIkkeHenteTiltaksdeltakelser.FeilVedKallMotTiltak.left()
         }
 

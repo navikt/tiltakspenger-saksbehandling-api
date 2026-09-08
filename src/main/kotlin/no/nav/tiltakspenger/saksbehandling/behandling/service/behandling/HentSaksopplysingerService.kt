@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
 import java.time.LocalDate
@@ -131,8 +132,8 @@ class HentSaksopplysingerService(
         ).getOrElse { feil ->
             // Tiltaksdeltakelsene er selve behandlingsgrunnlaget — uten dem kan vi ikke bygge saksopplysninger, i motsetning til ytelser/arenavedtak som kan falle tilbake til tom liste.
             // Kontrakten videre oppover er fortsatt throw-basert.
-            feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakspenger-tiltak", loggkontekst)
-            throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakspenger-tiltak. $loggkontekst")
+            feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakshistorikk", loggkontekst)
+            throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakshistorikk. $loggkontekst")
         }
         val oppdaterteEksterneIderDetErSoktFor = tiltaksdeltakelserDetErSøktTiltakspengerFor.ider.map {
             tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)

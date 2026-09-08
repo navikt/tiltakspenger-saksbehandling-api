@@ -7,7 +7,7 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
@@ -29,7 +29,7 @@ class TiltaksdeltakelseFakeKlient(
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): Either<HttpKlientError, TiltaksdeltakelserFraRegister> {
+    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelserFraRegister> {
         return (
             data.get()[fnr] ?: if (søknadFallback != null) {
                 hentTiltaksdeltakelseFraSøknad(fnr, søknadFallback)
@@ -43,7 +43,7 @@ class TiltaksdeltakelseFakeKlient(
         fnr: Fnr,
         harAdressebeskyttelse: Boolean,
         correlationId: CorrelationId,
-    ): Either<HttpKlientError, List<TiltaksdeltakelseMedArrangørnavn>> {
+    ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
         return listOf(ObjectMother.tiltaksdeltakelseMedArrangørnavn()).right()
     }
 
