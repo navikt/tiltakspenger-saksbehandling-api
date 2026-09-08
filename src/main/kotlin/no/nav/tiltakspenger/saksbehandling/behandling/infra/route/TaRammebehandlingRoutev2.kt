@@ -1,6 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route
 
-import arrow.core.toNonEmptyListOrThrow
+import arrow.core.Either
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
@@ -15,6 +19,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingMedSakId
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingerKommando
@@ -28,7 +33,7 @@ private const val TA_RAMMEBEHANDLINGER_PATH = "/behandlinger/ta"
 private data class RequestBody(
     val behandlinger: List<BehandlingMedSakIdBody>,
 ) {
-    fun tilKommando(saksbehandler: Saksbehandler): TaRammebehandlingerKommando {
+    fun tilKommando(saksbehandler: Saksbehandler): Either<KunneIkkeTaBehandling, TaRammebehandlingerKommando> {
         return TaRammebehandlingerKommando(
             saksbehandler = saksbehandler,
             behandlinger = behandlinger.map {
@@ -36,8 +41,8 @@ private data class RequestBody(
                     behandlingId = RammebehandlingId.fromString(it.behandlingId),
                     sakId = SakId.fromString(it.sakId),
                 )
-            }.toNonEmptyListOrThrow(),
-        )
+            }.toNonEmptyListOrNull() ?: return KunneIkkeTaBehandling.MaTaMinimumEnRammebehandling.left(),
+        ).right()
     }
 
     data class BehandlingMedSakIdBody(
@@ -67,7 +72,10 @@ fun Route.taRammebehandlingerRoute(
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withBody<RequestBody> { body ->
 
-            val kommando = body.tilKommando(saksbehandler)
+            val kommando = body.tilKommando(saksbehandler).getOrElse {
+                it.tilStatusOgErrorJson()
+                return@withBody
+            }
 
             val correlationId = call.correlationId()
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
