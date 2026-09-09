@@ -42,6 +42,8 @@ import java.time.LocalDateTime
 
 /**
  * Brukes for tilstandene KLAR_TIL_BEHANDLING og UNDER_BEHANDLING
+ *
+ * @param beslutter Beholdes etter en underkjenning, slik at behandlingen går rett tilbake til samme beslutter ved ny sending til beslutning.
  */
 data class MeldekortUnderBehandling(
     override val id: MeldekortId,
@@ -51,6 +53,7 @@ data class MeldekortUnderBehandling(
     override val opprettet: LocalDateTime,
     override val navkontor: Navkontor,
     override val saksbehandler: String?,
+    override val beslutter: String?,
     override val begrunnelse: Begrunnelse?,
     override val attesteringer: Attesteringer,
     override val sendtTilBeslutning: LocalDateTime?,
@@ -66,8 +69,6 @@ data class MeldekortUnderBehandling(
 ) : Meldekortbehandling {
     override val avbrutt: Avbrutt? = null
     override val iverksattTidspunkt = null
-
-    override val beslutter = null
 
     /** Totalsummen for meldeperioden */
     override val beløpTotal = beregning?.totalBeløp
@@ -111,6 +112,10 @@ data class MeldekortUnderBehandling(
             return it.tilKanIkkeSendeMeldekortTilBeslutter().left()
         }
 
+        // Behandlingen går rett tilbake til samme beslutter dersom den kommer fra en underkjenning.
+        val status =
+            if (beslutter == null) MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING else MeldekortbehandlingStatus.UNDER_BESLUTNING
+
         return MeldekortbehandlingManuell(
             id = this.id,
             sakId = this.sakId,
@@ -122,7 +127,7 @@ data class MeldekortUnderBehandling(
             saksbehandler = this.saksbehandler!!,
             sendtTilBeslutning = nå(clock),
             beslutter = this.beslutter,
-            status = MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING,
+            status = status,
             iverksattTidspunkt = null,
             navkontor = this.navkontor,
             begrunnelse = this.begrunnelse,
@@ -275,6 +280,7 @@ fun Sak.opprettManuellMeldekortbehandling(
         opprettet = nå,
         navkontor = navkontor,
         saksbehandler = saksbehandler.navIdent,
+        beslutter = null,
         begrunnelse = null,
         attesteringer = Attesteringer.empty(),
         sendtTilBeslutning = null,

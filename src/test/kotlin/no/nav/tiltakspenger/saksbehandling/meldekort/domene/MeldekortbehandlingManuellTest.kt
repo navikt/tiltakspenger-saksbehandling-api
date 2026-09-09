@@ -47,6 +47,7 @@ class MeldekortbehandlingManuellTest {
             it.attesteringer.size shouldBe 1
             it.attesteringer.first().shouldBeEqualToIgnoringFields(expectedAttestering, Attestering::id)
             it.begrunnelse shouldBe Begrunnelse.create("asdf")
+            it.beslutter shouldBe ObjectMother.beslutter().navIdent
         }
     }
 }

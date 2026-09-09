@@ -88,6 +88,7 @@ interface UnderkjennMeldekortbehandlingBuilder {
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val meldekortbehandling = oppdatertSak.hentMeldekortbehandling(meldekortId) as MeldekortUnderBehandling
             meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+            meldekortbehandling.beslutter shouldBe beslutter.navIdent
             meldekortbehandling.attesteringer.single().also {
                 it.beslutter shouldBe beslutter.navIdent
                 it.begrunnelse!!.value shouldBe begrunnelse

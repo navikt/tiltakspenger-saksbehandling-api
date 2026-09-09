@@ -599,6 +599,7 @@ class MeldekortbehandlingPostgresRepo(
                         opprettet = opprettet,
                         navkontor = navkontor,
                         saksbehandler = saksbehandler,
+                        beslutter = row.stringOrNull("beslutter"),
                         begrunnelse = begrunnelse,
                         attesteringer = attesteringer,
                         sendtTilBeslutning = row.localDateTimeOrNull("sendt_til_beslutning"),
