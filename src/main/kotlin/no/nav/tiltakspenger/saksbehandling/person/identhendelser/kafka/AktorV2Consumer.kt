@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
@@ -10,6 +11,7 @@ import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
 import org.apache.kafka.common.serialization.StringDeserializer
+import java.time.Clock
 
 // TODO: Fila står i whitelisten til GenererteWiretyperKonsistTest.
 //  Konsumenten skal kjenne Avro-typene fra PDL — den er kanten mot Kafka — men den ligger i `kafka/` og ikke `infra/kafka/`, så regelen leser den som domenekode.
@@ -27,6 +29,8 @@ class AktorV2Consumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     avroKafkaConfig: AvroKafkaConfig,
+    clock: Clock,
+    meterRegistry: MeterRegistry,
     log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, Aktor?> {
     private val consumer = ManagedKafkaConsumer(
@@ -39,6 +43,8 @@ class AktorV2Consumer(
         ),
         log = log,
         consume = ::consume,
+        clock = clock,
+        meterRegistry = meterRegistry,
     )
 
     override suspend fun consume(key: String, value: Aktor?) {

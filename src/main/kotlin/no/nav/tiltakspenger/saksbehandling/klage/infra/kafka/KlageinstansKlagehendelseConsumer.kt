@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.kafka
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
@@ -20,6 +21,7 @@ class KlageinstansKlagehendelseConsumer(
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig,
     private val clock: Clock,
+    meterRegistry: MeterRegistry,
     log: KLogger? = KotlinLogging.logger {},
 ) : Consumer<String, String?> {
     private val consumer = ManagedKafkaConsumer(
@@ -31,6 +33,8 @@ class KlageinstansKlagehendelseConsumer(
         ),
         log = log,
         consume = ::consume,
+        clock = clock,
+        meterRegistry = meterRegistry,
     )
 
     override suspend fun consume(key: String, value: String?) {

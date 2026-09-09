@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.infra.setup
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.Producer
@@ -81,6 +82,12 @@ import java.time.Clock
 open class ApplicationContext(
     val gitHash: String,
     open val clock: Clock,
+    /**
+     * Registeret jobbene, Kafka-consumerne og Ktor fører målingene sine i, og som `/metrics` skraper.
+     * Injiseres fra komposisjonsroten slik at appen har nøyaktig ett register, og slik at målingene havner i det samme registeret som blir skrapet.
+     * Testkontekstene sender inn sitt eget register, siden et prosessnavn bare kan registreres én gang per register.
+     */
+    val meterRegistry: PrometheusMeterRegistry,
     /**
      * Injiseres fra komposisjonsroten i stedet for å slås opp i [Configuration] her.
      * Konteksten deles med tester og lokal kjøring, og et statisk oppslag ville gjort oppførselen avhengig av prosessglobal tilstand.
@@ -232,6 +239,7 @@ open class ApplicationContext(
             clock = clock,
             topic = Configuration.arenaTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
+            meterRegistry = meterRegistry,
         )
     }
     open val tiltaksdeltakerKometConsumer by lazy {
@@ -241,6 +249,8 @@ open class ApplicationContext(
             tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             topic = Configuration.kometTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
+            clock = clock,
+            meterRegistry = meterRegistry,
         )
     }
     open val tiltaksdeltakerTeamTiltakConsumer by lazy {
@@ -250,6 +260,8 @@ open class ApplicationContext(
             tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             topic = Configuration.teamTiltakTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
+            clock = clock,
+            meterRegistry = meterRegistry,
         )
     }
 
@@ -288,6 +300,8 @@ open class ApplicationContext(
             topic = Configuration.leesahTopic,
             personhendelseService = personhendelseService,
             avroKafkaConfig = avroKafkaConfig(autoOffsetReset = "none"),
+            clock = clock,
+            meterRegistry = meterRegistry,
         )
     }
 
@@ -305,6 +319,8 @@ open class ApplicationContext(
             topic = Configuration.aktorV2Topic,
             identhendelseService = identhendelseService,
             avroKafkaConfig = avroKafkaConfig(autoOffsetReset = "none"),
+            clock = clock,
+            meterRegistry = meterRegistry,
         )
     }
 
@@ -313,6 +329,7 @@ open class ApplicationContext(
             klagehendelseRepo = klagebehandlingContext.klagehendelseRepo,
             clock = clock,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
+            meterRegistry = meterRegistry,
         )
     }
 
@@ -546,6 +563,7 @@ open class ApplicationContext(
             clock = clock,
             erDev = erDev,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
+            meterRegistry = meterRegistry,
         )
     }
 

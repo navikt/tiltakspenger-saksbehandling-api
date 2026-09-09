@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.common
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Bruker
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -112,9 +114,16 @@ sealed class TestApplicationContext(
     override val clock: TikkendeKlokke = TikkendeKlokke(),
     protected open val idGenerators: IdGenerators,
     open val tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
+    /**
+     * Eget register per testkontekst.
+     * Et prosessnavn kan bare registreres én gang per register, så to kontekster som delte register ville kollidert på første jobb eller consumer med samme navn.
+     * Prod-registeret i [no.nav.tiltakspenger.saksbehandling.prometheusMeterRegistry] er bundet til det globale Prometheus-registeret og skal aldri brukes her.
+     */
+    meterRegistry: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
 ) : ApplicationContext(
     gitHash = "fake-git-hash",
     clock = clock,
+    meterRegistry = meterRegistry,
     erDev = false,
 ) {
     override fun kafkaConfig(autoOffsetReset: String) = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER)
@@ -438,6 +447,7 @@ sealed class TestApplicationContext(
             clock = clock,
             erDev = false,
             kafkaConfig = kafkaConfig(autoOffsetReset = "earliest"),
+            meterRegistry = meterRegistry,
             log = null,
         )
     }

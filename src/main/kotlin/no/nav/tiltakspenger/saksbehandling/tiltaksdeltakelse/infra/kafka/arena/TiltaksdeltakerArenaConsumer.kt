@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
@@ -26,6 +27,7 @@ class TiltaksdeltakerArenaConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig,
+    meterRegistry: MeterRegistry,
     log: KLogger? = logger,
 ) : Consumer<String, String> {
 
@@ -38,6 +40,8 @@ class TiltaksdeltakerArenaConsumer(
         ),
         log = log,
         consume = ::consume,
+        clock = clock,
+        meterRegistry = meterRegistry,
     )
 
     override suspend fun consume(key: String, value: String) {
