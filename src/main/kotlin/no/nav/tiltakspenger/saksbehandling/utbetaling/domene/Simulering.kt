@@ -334,17 +334,19 @@ fun Simulering?.finnUlikheter(kontrollsimulering: Simulering?, fraOgMed: LocalDa
     }
 
     if (this is Simulering.Endring && kontrollsimulering is Simulering.Endring) {
-        val kontrollsimuleringPerioder = if (fraOgMed != null) {
-            kontrollsimulering.simuleringPerMeldeperiode.filter { it.meldeperiode.periode.tilOgMed >= fraOgMed }
+        val (simuleringPerioder, kontrollsimuleringPerioder) = if (fraOgMed != null) {
+            val simuleringPerioder = this.simuleringPerMeldeperiode.filter { it.meldeperiode.periode.tilOgMed >= fraOgMed }
+            val kontrollsimuleringPerioder = kontrollsimulering.simuleringPerMeldeperiode.filter { it.meldeperiode.periode.tilOgMed >= fraOgMed }
+            simuleringPerioder to kontrollsimuleringPerioder
         } else {
-            kontrollsimulering.simuleringPerMeldeperiode
+            this.simuleringPerMeldeperiode to kontrollsimulering.simuleringPerMeldeperiode
         }
 
-        if (this.simuleringPerMeldeperiode.size != kontrollsimuleringPerioder.size) {
-            return listOf("Ulikt antall meldeperioder: beregnet=${this.simuleringPerMeldeperiode.size}, kontroll=${kontrollsimuleringPerioder.size}")
+        if (simuleringPerioder.size != kontrollsimuleringPerioder.size) {
+            return listOf("Ulikt antall meldeperioder: beregnet=${simuleringPerioder.size}, kontroll=${kontrollsimuleringPerioder.size}")
         }
 
-        return this.simuleringPerMeldeperiode.toList().zip(kontrollsimuleringPerioder).flatMap { (beregnet, kontroll) ->
+        return simuleringPerioder.toList().zip(kontrollsimuleringPerioder).flatMap { (beregnet, kontroll) ->
             beregnet.finnUlikheter(kontroll)
         }
     }

@@ -209,4 +209,48 @@ class SimuleringFinnUlikheterTest {
             "Ulikt antall meldeperioder: beregnet=1, kontroll=2",
         )
     }
+
+    @Test
+    fun `flere meldeperioder i beregnet enn i kontroll rapporteres`() {
+        val tidligereMeldeperiode = meldeperiode(periode = Periode(30.desember(2024), 12.januar(2025)))
+        val beregnet = simulering(tidligereMeldeperioder = listOf(tidligereMeldeperiode))
+        val kontroll = simulering()
+
+        beregnet.finnUlikheter(kontroll, fraOgMed = null) shouldBe listOf(
+            "Ulikt antall meldeperioder: beregnet=2, kontroll=1",
+        )
+    }
+
+    /** Alle meldeperiodene i den beregnede simuleringen kan være forkastet av fraOgMed-filteret, mens kontrollsimuleringen fortsatt har perioder igjen. */
+    @Test
+    fun `filtrering på fraOgMed kan tømme den beregnede simuleringen`() {
+        val tidligereMeldeperiode = meldeperiode(periode = Periode(30.desember(2024), 12.januar(2025)))
+        val beregnet = simulering(meldeperiode = tidligereMeldeperiode)
+        val kontroll = simulering()
+
+        beregnet.finnUlikheter(kontroll, fraOgMed = periode.fraOgMed) shouldBe listOf(
+            "Ulikt antall meldeperioder: beregnet=0, kontroll=1",
+        )
+    }
+
+    /** Og omvendt: kontrollsimuleringen kan tømmes mens den beregnede fortsatt har perioder igjen. */
+    @Test
+    fun `filtrering på fraOgMed kan tømme kontrollsimuleringen`() {
+        val tidligereMeldeperiode = meldeperiode(periode = Periode(30.desember(2024), 12.januar(2025)))
+        val beregnet = simulering()
+        val kontroll = simulering(meldeperiode = tidligereMeldeperiode)
+
+        beregnet.finnUlikheter(kontroll, fraOgMed = periode.fraOgMed) shouldBe listOf(
+            "Ulikt antall meldeperioder: beregnet=1, kontroll=0",
+        )
+    }
+
+    /** To ulike meldeperioder som begge forkastes av filteret regnes som like -- tidligere meldeperioder enn fraOgMed er ikke relevante for behandlingen. */
+    @Test
+    fun `begge simuleringene tømt av filtreringen gir ingen ulikheter`() {
+        val beregnet = simulering(meldeperiode = meldeperiode(periode = Periode(30.desember(2024), 12.januar(2025))))
+        val kontroll = simulering(meldeperiode = meldeperiode(periode = Periode(16.desember(2024), 29.desember(2024))))
+
+        beregnet.finnUlikheter(kontroll, fraOgMed = periode.fraOgMed) shouldBe emptyList()
+    }
 }
