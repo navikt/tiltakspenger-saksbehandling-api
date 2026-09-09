@@ -36,7 +36,7 @@ sealed interface KunneIkkeTaBehandling : Loggbar {
         override val loggkontekst get() = Loggkontekst("kunne ikke ta tilknyttet klagebehandling: $originalfeil")
     }
 
-    data object MaTaMinimumEnRammebehandling : KunneIkkeTaBehandling {
+    data object MåTaMinimumEnRammebehandling : KunneIkkeTaBehandling {
         override val loggkontekst: Loggkontekst
             get() = Loggkontekst("Du må sende inn minst én behandling.")
     }

@@ -2,9 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import arrow.core.toNonEmptySetOrThrow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -89,10 +91,13 @@ class TaRammebehandlingService(
 data class TaRammebehandlingerKommando(
     val saksbehandler: Saksbehandler,
     val behandlinger: NonEmptyList<RammebehandlingMedSakId>,
+) {
+    fun hentSakIder(): NonEmptySet<SakId> {
+        return behandlinger.map { it.sakId }.toNonEmptySetOrThrow()
+    }
 
-)
-
-data class RammebehandlingMedSakId(
-    val behandlingId: RammebehandlingId,
-    val sakId: SakId,
-)
+    data class RammebehandlingMedSakId(
+        val behandlingId: RammebehandlingId,
+        val sakId: SakId,
+    )
+}

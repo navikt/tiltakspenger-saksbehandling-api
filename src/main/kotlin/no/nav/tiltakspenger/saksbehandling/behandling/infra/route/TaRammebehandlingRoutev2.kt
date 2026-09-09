@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingMedSakId
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingerKommando
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
@@ -37,11 +36,11 @@ private data class RequestBody(
         return TaRammebehandlingerKommando(
             saksbehandler = saksbehandler,
             behandlinger = behandlinger.map {
-                RammebehandlingMedSakId(
+                TaRammebehandlingerKommando.RammebehandlingMedSakId(
                     behandlingId = RammebehandlingId.fromString(it.behandlingId),
                     sakId = SakId.fromString(it.sakId),
                 )
-            }.toNonEmptyListOrNull() ?: return KunneIkkeTaBehandling.MaTaMinimumEnRammebehandling.left(),
+            }.toNonEmptyListOrNull() ?: return KunneIkkeTaBehandling.MåTaMinimumEnRammebehandling.left(),
         ).right()
     }
 
@@ -80,7 +79,7 @@ fun Route.taRammebehandlingerRoute(
             val correlationId = call.correlationId()
             krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
 
-            tilgangskontrollService.harTilgangTilPersonForSakIder(kommando.behandlinger.map { it.sakId }.toNonEmptySet(), saksbehandler = saksbehandler, saksbehandlerToken = token)
+            tilgangskontrollService.harTilgangTilPersonerForSakIder(kommando.hentSakIder(), saksbehandler = saksbehandler, saksbehandlerToken = token)
 
             taRammebehandlingService.taRammebehandlinger(kommando = kommando).fold(
                 ifLeft = { feil ->

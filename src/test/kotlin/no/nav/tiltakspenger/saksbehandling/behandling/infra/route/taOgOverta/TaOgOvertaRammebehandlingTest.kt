@@ -23,6 +23,80 @@ import java.time.LocalDate
 class TaOgOvertaRammebehandlingTest {
 
     @Test
+    fun `plassholder`() {
+        withTestApplicationContext { tac ->
+            val (sak1, _, behandling1) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+            val (sak2, _, behandling2) = sendSøknadsbehandlingTilBeslutning(tac) // Denne setter en standard saksbehandler - spør Anders :)
+
+            val behandlinger = listOf(sak1.id to behandling1.id, sak2.id to behandling2)
+
+            // Ingen saksbeholder- eller beslutterrolle
+            taRammebehandling(
+                tac,
+                behandlinger = behandlinger,
+                saksbehandler = ObjectMother.saksbehandlerUtenTilgang(),
+                forventet = ForventetRespons(status = 403, contentType = "application/json; charset=UTF-8"),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling1.id).saksbehandler shouldBe null
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling2).beslutter shouldBe null
+
+            // Bare saksbehandlerrolle
+            taRammebehandling(
+                tac,
+                behandlinger = behandlinger,
+                saksbehandler = ObjectMother.saksbehandler(navIdent = "A12345"),
+                forventet = ForventetRespons.json(
+                    403,
+                    """
+                    {
+                      "melding": "Du må være beslutter for å ta denne behandlingen.",
+                      "kode": "maa_vaere_beslutter"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling1.id).saksbehandler shouldBe null
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling2).beslutter shouldBe null
+
+            // Bare beslutterrolle
+            taRammebehandling(
+                tac,
+                behandlinger = behandlinger,
+                saksbehandler = ObjectMother.beslutter(navIdent = "B12345"),
+                forventet = ForventetRespons.json(
+                    403,
+                    """
+                    {
+                      "melding": "Du må være saksbehandler for å ta denne behandlingen.",
+                      "kode": "maa_vaere_saksbehandler"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling1.id).saksbehandler shouldBe null
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling2).beslutter shouldBe null
+
+            // Både saksbehehandler- og beslutterrolle
+            taRammebehandling(tac, behandlinger = behandlinger, saksbehandler = ObjectMother.saksbehandlerOgBeslutter(navIdent = "O12345"))
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling1.id).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "O12345"
+            }
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling2).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+                it.beslutter shouldBe "O12345"
+            }
+        }
+    }
+
+    @Test
     fun `rammebehandling og saksnummer sendes til saksbehandling`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac)
@@ -79,8 +153,8 @@ class TaOgOvertaRammebehandlingTest {
                     status = 400,
                     json = """
                 {
-                  "melding": "Du må sende inn minst én behandling.",
-                  "kode": "maa_ha_minst_en_behandling"
+                  "melding": "Du må sende inn minst en behandling.",
+                  "kode": "må_ha_minst_en_behandling"
                 }
                     """.trimIndent(),
                     contentType = "application/json; charset=UTF-8",
@@ -245,7 +319,6 @@ class TaOgOvertaRammebehandlingTest {
 
             val behandlinger = listOf(sak1.id to behandling1.id, sak2.id to behandling2.id)
 
-            // TODO - test alle gamle som bruker taBehandling
             taRammebehandling(tac, behandlinger = behandlinger)
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandling1.id).also {

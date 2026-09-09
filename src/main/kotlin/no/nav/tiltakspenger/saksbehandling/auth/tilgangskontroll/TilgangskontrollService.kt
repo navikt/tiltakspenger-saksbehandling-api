@@ -54,7 +54,7 @@ class TilgangskontrollService(
         }
     }
 
-    suspend fun harTilgangTilPersonForSakIder(
+    suspend fun harTilgangTilPersonerForSakIder(
         sakIder: NonEmptySet<SakId>,
         saksbehandler: Saksbehandler,
         saksbehandlerToken: String,
@@ -66,7 +66,7 @@ class TilgangskontrollService(
             } catch (tilgangException: TilgangException) {
                 throw tilgangException
             } catch (e: Exception) {
-                log.error { "Noe gikk galt ved sjekk av tilgang for person for sakId $it.sakId: ${e.message}" }
+                log.error { "Noe gikk galt ved sjekk av tilgang for person for sakId $it: ${e.message}" }
                 throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
             }
         }
