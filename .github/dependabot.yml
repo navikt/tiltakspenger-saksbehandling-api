@@ -8,6 +8,8 @@ updates:
     cooldown:
       default-days: 7
     ignore:
+      # Konsist 0.17.3 krasjer med nyere kotlin-compiler-embeddable; pinnen i build.gradle.kts følger Konsists egen versjon.
+      - dependency-name: "org.jetbrains.kotlin:kotlin-compiler-embeddable"
       # Ktor er bevisst låst til 3.4-linja: 3.5.x introduserte en alvorlig bug i ktor-klienten som blokkerte alle kall like lenge som max timeout.
       # Buggen tok ned søknaden i over 1,5 time og rammet mange andre Nav-tjenester.
       # Vi migrerer gradvis vekk fra ktor-klienten (til httpklient); låsen oppheves når klientbruken er borte.
