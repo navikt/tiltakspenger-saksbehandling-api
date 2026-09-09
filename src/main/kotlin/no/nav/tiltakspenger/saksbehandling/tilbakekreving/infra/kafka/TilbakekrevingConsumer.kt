@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
@@ -21,6 +22,7 @@ class TilbakekrevingConsumer(
     topic: String,
     groupId: String = "$KAFKA_CONSUMER_GROUP_ID-v4",
     kafkaConfig: KafkaConfig,
+    meterRegistry: MeterRegistry,
     log: KLogger? = logger,
 ) : Consumer<String, String?> {
 
@@ -34,6 +36,8 @@ class TilbakekrevingConsumer(
         log = log,
         consume = ::consume,
         kanLoggeKey = false,
+        clock = clock,
+        meterRegistry = meterRegistry,
     )
 
     override suspend fun consume(key: String, value: String?) {

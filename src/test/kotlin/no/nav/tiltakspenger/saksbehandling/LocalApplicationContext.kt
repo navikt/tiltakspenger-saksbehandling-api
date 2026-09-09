@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling
 
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -82,7 +84,14 @@ import java.time.Clock
 class LocalApplicationContext(
     usePdfgenrs: Boolean,
     clock: Clock,
-) : ApplicationContext(gitHash = "fake-git-hash", clock = clock, erDev = false) {
+) : ApplicationContext(
+    gitHash = "fake-git-hash",
+    clock = clock,
+    // Eget register, ikke prod-registeret: ingenting under src/test bruker prod-oppsettet for metrikker.
+    // Lokalt vises derfor ikke tellerne fra MetricRegister på /metrics.
+    meterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+    erDev = false,
+) {
 
     override fun kafkaConfig(autoOffsetReset: String) = KafkaConfig(kafkaBrokers = LOKAL_KAFKA_BROKER)
 

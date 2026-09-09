@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.Til
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
+import java.time.Clock
 import java.util.UUID
 
 private val logger = KotlinLogging.logger { }
@@ -25,6 +27,8 @@ class TiltaksdeltakerKometConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig,
+    clock: Clock,
+    meterRegistry: MeterRegistry,
     log: KLogger? = logger,
 ) : Consumer<UUID, String?> {
 
@@ -37,6 +41,8 @@ class TiltaksdeltakerKometConsumer(
         ),
         log = log,
         consume = ::consume,
+        clock = clock,
+        meterRegistry = meterRegistry,
     )
 
     override suspend fun consume(key: UUID, value: String?) {
