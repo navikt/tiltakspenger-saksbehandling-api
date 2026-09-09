@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehanding
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import org.junit.jupiter.api.Test
@@ -50,7 +50,7 @@ class RammebehandlingPostgresRepoTest {
             // Overta er sperret i en time etter siste aktivitet på behandlingen.
             tac.clock.spol1timeFrem()
 
-            val (_, overtattBehandling, _) = overtaBehanding(
+            val (_, overtattBehandling, _) = overtaBehandling(
                 tac = tac,
                 sakId = sak.id,
                 behandlingId = behandling.id,

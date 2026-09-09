@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
 
+import arrow.core.NonEmptySet
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -50,6 +51,24 @@ class TilgangskontrollService(
         } catch (e: Exception) {
             log.error { "Noe gikk galt ved sjekk av tilgang for person for sakId $sakId: ${e.message}" }
             throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
+        }
+    }
+
+    suspend fun harTilgangTilPersonerForSakIder(
+        sakIder: NonEmptySet<SakId>,
+        saksbehandler: Saksbehandler,
+        saksbehandlerToken: String,
+    ) {
+        sakIder.forEach {
+            try {
+                val fnr = sakService.hentFnrForSakId(it)
+                harTilgangTilPerson(fnr, saksbehandlerToken, saksbehandler)
+            } catch (tilgangException: TilgangException) {
+                throw tilgangException
+            } catch (e: Exception) {
+                log.error { "Noe gikk galt ved sjekk av tilgang for person for sakId $it: ${e.message}" }
+                throw RuntimeException("Klarte ikke gjøre tilgangskontroll for saksbehandler ${saksbehandler.navIdent}: ${e.message}}")
+            }
         }
     }
 

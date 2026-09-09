@@ -1,6 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
+import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
+import arrow.core.toNonEmptySetOrThrow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -14,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehan
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.taBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
 
 class TaRammebehandlingService(
@@ -48,4 +55,49 @@ class TaRammebehandlingService(
             oppdatertSak to oppdatertRammebehandling
         }
     }
+
+    suspend fun taRammebehandlinger(
+        kommando: TaRammebehandlingerKommando,
+    ): Either<KunneIkkeTaBehandling, List<Rammebehandling>> {
+        val behandlingerMedStatistikk: List<Pair<Rammebehandling, StatistikkDTO>> = kommando.behandlinger.map {
+            val (sak, behandling) = behandlingService.hentSakOgRammebehandling(it.sakId, it.behandlingId)
+
+            behandling.taBehandling(kommando.saksbehandler, clock).getOrElse {
+                return@taRammebehandlinger it.left()
+            }.let { (oppdatertRammebehandling, statistikkhendelser) ->
+                // Verifiser at saken er ok
+                sak.oppdaterRammebehandling(oppdatertRammebehandling)
+                val statistikkDTO = statistikkService.generer(statistikkhendelser)
+
+                oppdatertRammebehandling to statistikkDTO
+            }
+        }
+
+        sessionFactory.withTransactionContext { tx ->
+            behandlingerMedStatistikk.forEach { (rammebehandling, statistikk) ->
+                when (rammebehandling.status) {
+                    UNDER_BEHANDLING -> rammebehandlingRepo.taBehandlingSaksbehandler(rammebehandling, tx)
+                    UNDER_BESLUTNING -> rammebehandlingRepo.taBehandlingBeslutter(rammebehandling, tx)
+                    else -> throw IllegalStateException("Vi havnet i en ugyldig tilstand etter vi tok behandlingen - behandlingId: ${rammebehandling.id}, status: ${rammebehandling.status}")
+                }
+                statistikkService.lagre(statistikk, tx)
+            }
+        }
+
+        return behandlingerMedStatistikk.map { it.first }.right()
+    }
+}
+
+data class TaRammebehandlingerKommando(
+    val saksbehandler: Saksbehandler,
+    val behandlinger: NonEmptyList<RammebehandlingMedSakId>,
+) {
+    fun hentSakIder(): NonEmptySet<SakId> {
+        return behandlinger.map { it.sakId }.toNonEmptySetOrThrow()
+    }
+
+    data class RammebehandlingMedSakId(
+        val behandlingId: RammebehandlingId,
+        val sakId: SakId,
+    )
 }

@@ -101,4 +101,9 @@ fun KunneIkkeTaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson
         "Saksbehandler og beslutter kan ikke være den samme på behandlingen.",
         "saksbehandler_og_beslutter_kan_ikke_være_den_samme_på_behandlingen",
     )
+
+    KunneIkkeTaBehandling.MåTaMinimumEnRammebehandling -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Du må sende inn minst en behandling.",
+        kode = "må_ha_minst_en_behandling",
+    )
 }
