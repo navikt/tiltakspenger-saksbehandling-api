@@ -68,6 +68,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.Tilbakekrev
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.EndretTiltaksdeltakerJobb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TiltaksdeltakerTeamTiltakConsumer
@@ -239,6 +240,17 @@ open class ApplicationContext(
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             startRevurderingService = behandlingContext.startRevurderingService,
             clock = clock,
+        )
+    }
+
+    // TODO: Skal erstatte endretTiltaksdeltakerJobb.
+    //  Er ikke skedulert ennå — se Jobber.kt.
+    open val oppdatertTiltaksdeltakelseJobb by lazy {
+        OppdatertTiltaksdeltakelseJobb(
+            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+            sakRepo = sakContext.sakRepo,
+            tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
         )
     }
 

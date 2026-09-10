@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toTiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -72,6 +73,14 @@ class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
+                }
+
+                override suspend fun hentTiltaksdeltakelse(
+                    fnr: Fnr,
+                    eksternDeltakerId: String,
+                    correlationId: CorrelationId,
+                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                    return null.right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
@@ -188,6 +197,14 @@ class HentSaksopplysingerServiceTest {
                 ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
                 }
+
+                override suspend fun hentTiltaksdeltakelse(
+                    fnr: Fnr,
+                    eksternDeltakerId: String,
+                    correlationId: CorrelationId,
+                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                    return null.right()
+                }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
                 override suspend fun hentYtelserFraUtbetaldata(
@@ -295,6 +312,14 @@ class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
+                }
+
+                override suspend fun hentTiltaksdeltakelse(
+                    fnr: Fnr,
+                    eksternDeltakerId: String,
+                    correlationId: CorrelationId,
+                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                    return null.right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
@@ -432,6 +457,14 @@ class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
+                }
+
+                override suspend fun hentTiltaksdeltakelse(
+                    fnr: Fnr,
+                    eksternDeltakerId: String,
+                    correlationId: CorrelationId,
+                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                    return null.right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {
@@ -580,6 +613,14 @@ class HentSaksopplysingerServiceTest {
                     correlationId: CorrelationId,
                 ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
                     return emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
+                }
+
+                override suspend fun hentTiltaksdeltakelse(
+                    fnr: Fnr,
+                    eksternDeltakerId: String,
+                    correlationId: CorrelationId,
+                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                    return null.right()
                 }
             }
             val sokosUtbetaldataClient = object : SokosUtbetaldataClient {

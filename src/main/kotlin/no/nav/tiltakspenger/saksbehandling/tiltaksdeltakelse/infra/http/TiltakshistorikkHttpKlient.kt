@@ -50,6 +50,16 @@ class TiltakshistorikkHttpKlient(
         }
     }
 
+    override suspend fun hentTiltaksdeltakelse(
+        fnr: Fnr,
+        eksternDeltakerId: String,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+        return hentOgLogg(fnr, correlationId).map {
+            it.tiltakshistorikk.tilTiltaksdeltakelse(eksternDeltakerId, clock)
+        }
+    }
+
     private suspend fun hentOgLogg(
         fnr: Fnr,
         correlationId: CorrelationId,

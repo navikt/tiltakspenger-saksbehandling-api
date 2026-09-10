@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 
 interface TiltaksdeltakelseKlient {
@@ -25,4 +26,15 @@ interface TiltaksdeltakelseKlient {
         harAdressebeskyttelse: Boolean,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>>
+
+    /**
+     * Henter nå-tilstanden for én tiltaksdeltakelse, uten filtrering på søknad eller datoer.
+     * Til forskjell fra [hentTiltaksdeltakelser] filtreres ikke deltakelser som mangler datoer bort — hendelsesjobben trenger kildens ferskeste tilstand uansett.
+     * Returnerer null dersom deltakelsen ikke finnes i historikken, eller har ukjent tiltakstype eller kildestatus.
+     */
+    suspend fun hentTiltaksdeltakelse(
+        fnr: Fnr,
+        eksternDeltakerId: String,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?>
 }

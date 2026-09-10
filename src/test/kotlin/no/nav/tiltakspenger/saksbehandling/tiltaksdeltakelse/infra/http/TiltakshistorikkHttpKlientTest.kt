@@ -200,6 +200,80 @@ class TiltakshistorikkHttpKlientTest {
     }
 
     @Test
+    fun `hentTiltaksdeltakelse - returnerer nå-tilstanden for deltakelsen med gitt ekstern id`() {
+        val (pdlTransport, historikkTransport) = transports(
+            arenaRadJson(arenaId = 142536),
+            arenaRadJson(arenaId = 2, status = "FULLFORT"),
+        )
+
+        runTest {
+            val deltakelse = client(pdlTransport, historikkTransport).hentTiltaksdeltakelse(
+                fnr = fnr,
+                eksternDeltakerId = "TA142536",
+                correlationId = CorrelationId.generate(),
+            ).getOrNull().shouldNotBeNull().shouldNotBeNull()
+
+            deltakelse.eksternDeltakelseId shouldBe "TA142536"
+            // fixedClock er 1. januar 2025, så GJENNOMFORES med start i 2024 er i gang.
+            deltakelse.deltakelseStatus shouldBe TiltakDeltakerstatus.Deltar
+            deltakelse.deltakelseProsent shouldBe 100.0F
+            deltakelse.antallDagerPerUke shouldBe 5.0F
+            deltakelse.kilde shouldBe Tiltakskilde.Arena
+        }
+    }
+
+    @Test
+    fun `hentTiltaksdeltakelse - deltakelse uten datoer returneres likevel, til forskjell fra hentTiltaksdeltakelser`() {
+        val (pdlTransport, historikkTransport) = transports(
+            arenaRadJson(status = "AKTUELL", startDato = null, sluttDato = null),
+        )
+
+        runTest {
+            val deltakelse = client(pdlTransport, historikkTransport).hentTiltaksdeltakelse(
+                fnr = fnr,
+                eksternDeltakerId = "TA142536",
+                correlationId = CorrelationId.generate(),
+            ).getOrNull().shouldNotBeNull().shouldNotBeNull()
+
+            deltakelse.deltakelseStatus shouldBe TiltakDeltakerstatus.SøktInn
+            deltakelse.deltakelseFraOgMed shouldBe null
+            deltakelse.deltakelseTilOgMed shouldBe null
+        }
+    }
+
+    @Test
+    fun `hentTiltaksdeltakelse - gir null når deltakelsen ikke finnes i historikken`() {
+        val (pdlTransport, historikkTransport) = transports(arenaRadJson(arenaId = 2))
+
+        runTest {
+            val resultat = client(pdlTransport, historikkTransport).hentTiltaksdeltakelse(
+                fnr = fnr,
+                eksternDeltakerId = "TA142536",
+                correlationId = CorrelationId.generate(),
+            )
+
+            resultat.isRight() shouldBe true
+            resultat.getOrNull() shouldBe null
+        }
+    }
+
+    @Test
+    fun `hentTiltaksdeltakelse - deltakelse med ukjent kildestatus gir null`() {
+        val (pdlTransport, historikkTransport) = transports(arenaRadJson(status = "HELT_NY_STATUS"))
+
+        runTest {
+            val resultat = client(pdlTransport, historikkTransport).hentTiltaksdeltakelse(
+                fnr = fnr,
+                eksternDeltakerId = "TA142536",
+                correlationId = CorrelationId.generate(),
+            )
+
+            resultat.isRight() shouldBe true
+            resultat.getOrNull() shouldBe null
+        }
+    }
+
+    @Test
     fun `hentTiltaksdeltakelserMedArrangørnavn - maskerer arrangørnavn ved adressebeskyttelse`() {
         val (pdlTransport, historikkTransport) = transports(arenaRadJson())
 

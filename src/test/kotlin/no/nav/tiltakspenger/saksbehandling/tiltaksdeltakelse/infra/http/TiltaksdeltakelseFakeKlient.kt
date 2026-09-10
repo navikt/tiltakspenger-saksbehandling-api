@@ -25,6 +25,9 @@ class TiltaksdeltakelseFakeKlient(
 ) : TiltaksdeltakelseKlient {
     private val data = Atomic(mutableMapOf<Fnr, TiltaksdeltakelserFraRegister>())
 
+    /** Registrerer kall til [hentTiltaksdeltakelse] som (fnr, eksternDeltakerId), slik at tester kan verifisere at jobben slo opp nå-tilstanden. */
+    val hentTiltaksdeltakelseKall = Atomic(mutableListOf<Pair<Fnr, String>>())
+
     override suspend fun hentTiltaksdeltakelser(
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
@@ -45,6 +48,15 @@ class TiltaksdeltakelseFakeKlient(
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
         return listOf(ObjectMother.tiltaksdeltakelseMedArrangørnavn()).right()
+    }
+
+    override suspend fun hentTiltaksdeltakelse(
+        fnr: Fnr,
+        eksternDeltakerId: String,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+        hentTiltaksdeltakelseKall.get().add(fnr to eksternDeltakerId)
+        return (data.get()[fnr]?.getTiltaksdeltakelse(eksternDeltakerId)).right()
     }
 
     fun lagre(
