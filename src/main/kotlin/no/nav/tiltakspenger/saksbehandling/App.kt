@@ -3,11 +3,9 @@ package no.nav.tiltakspenger.saksbehandling
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.routing.Route
-import io.micrometer.prometheusmetrics.PrometheusConfig
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Bakgrunnsprosessoppsett
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Jobboppsett
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.prometheusMeterRegistry
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.startApp
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ApplicationContext
@@ -15,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.CALL_ID_MDC_KEY
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.infra.setup.ktorSetup
 import java.time.Clock
-import io.micrometer.core.instrument.Clock as MicrometerClock
 
 fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
@@ -32,20 +29,12 @@ fun main() {
 }
 
 /**
- * Registeret appen eksponerer på `/metrics`, og som jobbene og Kafka-consumerne fører målingene sine i.
- * Det er bevisst bundet til Prometheus sitt globale register: [no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister] registrerer tellerne sine rett på [PrometheusRegistry.defaultRegistry], og de skal fortsatt bli med i skrapingen.
- * [MicrometerClock] er Micrometers egen klokke og har ingenting med appens [Clock] å gjøre; den brukes kun til å konstruere registeret.
- *
- * Funksjonen er privat slik at ingenting under `src/test` kan bruke prod-registeret, heller ikke den lokale konteksten `LokalMain` starter med.
- * Et globalt register er prosessglobal tilstand som ikke kan varieres per test, og et prosessnavn kan bare registreres én gang per register.
- * Testkontekstene og den lokale konteksten lager i stedet sitt eget `PrometheusMeterRegistry(PrometheusConfig.DEFAULT)`.
+ * Komposisjonsroten.
+ * Her konstrueres registeret alle appens målinger føres i, og som `/metrics` skraper.
+ * Registeret lages av `prometheusMeterRegistry()` fra libs, som binder det til Prometheus sitt globale register; se KDoc-en der.
+ * Bindingen er nødvendig her fordi [no.nav.tiltakspenger.saksbehandling.infra.metrikker.MetricRegister] registrerer tellerne sine rett på `PrometheusRegistry.defaultRegistry`, og de skal fortsatt bli med i skrapingen.
+ * Testkontekstene og den lokale konteksten lager sitt eget register, fordi et prosessnavn bare kan registreres én gang per register.
  */
-private fun prometheusMeterRegistry(): PrometheusMeterRegistry = PrometheusMeterRegistry(
-    PrometheusConfig.DEFAULT,
-    PrometheusRegistry.defaultRegistry,
-    MicrometerClock.SYSTEM,
-)
-
 fun start(
     log: KLogger,
     port: Int = Configuration.httpPort,

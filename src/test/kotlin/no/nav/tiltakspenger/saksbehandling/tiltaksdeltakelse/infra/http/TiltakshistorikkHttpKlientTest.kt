@@ -74,6 +74,8 @@ class TiltakshistorikkHttpKlientTest {
           "norskIdent": "${fnr.verdi}",
           "startDato": ${startDato?.let { "\"$it\"" }},
           "sluttDato": ${sluttDato?.let { "\"$it\"" }},
+          "opprettetTidspunkt": "2023-12-15T08:30:00Z",
+          "oppdatertTidspunkt": "2024-01-02T10:00:00Z",
           "id": "019018e5-6461-74a0-9d66-70d0bf3d0b8b",
           "tittel": "Oppfølging hos Arrangør AS",
           "arenaId": $arenaId,
