@@ -92,5 +92,8 @@ gradle-app.setting
 
 
 .DS_Store
-**/.worktrees/**
-**/.worktree
+
+# Arbeidstrær (git worktree add) uansett navn og nivå
+.worktrees/
+.worktree/
+worktrees/

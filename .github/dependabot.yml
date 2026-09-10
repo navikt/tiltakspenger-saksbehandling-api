@@ -7,6 +7,10 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
+      # Navs egne pakker tas med én gang; cooldownen gjelder tredjepart.
+      exclude:
+        - "com.github.navikt.*"
+        - "no.nav.*"
     ignore:
       # Konsist 0.17.3 krasjer med nyere kotlin-compiler-embeddable; pinnen i build.gradle.kts følger Konsists egen versjon.
       - dependency-name: "org.jetbrains.kotlin:kotlin-compiler-embeddable"
@@ -23,3 +27,7 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
+      # Navs egne pakker tas med én gang; cooldownen gjelder tredjepart.
+      exclude:
+        - "nais/*"
+        - "navikt/*"
