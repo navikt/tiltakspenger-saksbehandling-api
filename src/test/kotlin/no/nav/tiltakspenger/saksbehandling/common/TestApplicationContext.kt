@@ -512,6 +512,8 @@ sealed class TestApplicationContext(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
                 tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                // Alle kallsteder oppretter saken før personen legges til.
+                sakId = sakContext.sakRepo.hentForFnr(fnr)!!.id,
             )
         }
     }

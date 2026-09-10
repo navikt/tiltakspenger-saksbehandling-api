@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka
 
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.tiltakspenger.libs.common.SakId
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -47,10 +49,14 @@ class TiltaksdeltakerConsumerTest {
             val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = id)
+            // Deltakeren må peke på en sak (NOT NULL), men ingen søknadstiltak kobler den — derfor ignoreres hendelsen likevel.
+            val saksnummer = hentEllerOpprettSakForSystembruker(tac, Fnr.random())
+            val sakId = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.id
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
                 tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                sakId = sakId,
             )
 
             tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
@@ -78,6 +84,11 @@ class TiltaksdeltakerConsumerTest {
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
             tiltaksdeltakerHendelse.oppgaveId shouldBe null
             tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+
+            // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
+            val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(id).shouldNotBeNull()
+            deltaker.sakId shouldBe sak.id
+            deltaker.sisteUbehandletEndring shouldNotBe null
         }
     }
 
@@ -182,10 +193,14 @@ class TiltaksdeltakerConsumerTest {
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId.toString())
+            // Deltakeren må peke på en sak (NOT NULL), men ingen søknadstiltak kobler den — derfor ignoreres hendelsen likevel.
+            val saksnummer = hentEllerOpprettSakForSystembruker(tac, Fnr.random())
+            val sakId = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.id
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
                 tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                sakId = sakId,
             )
 
             tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
@@ -213,6 +228,11 @@ class TiltaksdeltakerConsumerTest {
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
             tiltaksdeltakerHendelse.oppgaveId shouldBe null
             tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+
+            // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
+            val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId.toString()).shouldNotBeNull()
+            deltaker.sakId shouldBe sak.id
+            deltaker.sisteUbehandletEndring shouldNotBe null
         }
     }
 
@@ -268,10 +288,14 @@ class TiltaksdeltakerConsumerTest {
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId)
+            // Deltakeren må peke på en sak (NOT NULL), men ingen søknadstiltak kobler den — derfor ignoreres hendelsen likevel.
+            val saksnummer = hentEllerOpprettSakForSystembruker(tac, Fnr.random())
+            val sakId = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.id
             tac.tiltakContext.tiltaksdeltakerRepo.lagre(
                 id = tiltaksdeltakelse.internDeltakelseId,
                 eksternId = tiltaksdeltakelse.eksternDeltakelseId,
                 tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+                sakId = sakId,
             )
 
             tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
@@ -299,6 +323,11 @@ class TiltaksdeltakerConsumerTest {
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
             tiltaksdeltakerHendelse.oppgaveId shouldBe null
             tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+
+            // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
+            val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId).shouldNotBeNull()
+            deltaker.sakId shouldBe sak.id
+            deltaker.sisteUbehandletEndring shouldNotBe null
         }
     }
 

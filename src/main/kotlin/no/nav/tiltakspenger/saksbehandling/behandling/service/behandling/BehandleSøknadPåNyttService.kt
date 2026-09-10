@@ -31,15 +31,15 @@ class BehandleSøknadPåNyttService(
         val (oppdatertSak, søknadsbehandling, statistikkhendelser) = sak.startSøknadsbehandlingPåNytt(
             kommando = kommando,
             clock = clock,
-            hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm ->
+            hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm, sakId ->
                 hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
                     fnr = fnr,
                     correlationId = correlationId,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                     inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
+                    sakId = sakId,
                     sessionContext = transactionContext,
-                    sakId = sak.id,
                     saksnummer = sak.saksnummer,
                 )
             },

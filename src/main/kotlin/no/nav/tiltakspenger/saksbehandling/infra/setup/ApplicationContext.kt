@@ -247,10 +247,10 @@ open class ApplicationContext(
     //  Er ikke skedulert ennå — se Jobber.kt.
     open val oppdatertTiltaksdeltakelseJobb by lazy {
         OppdatertTiltaksdeltakelseJobb(
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             sakRepo = sakContext.sakRepo,
             tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
+            clock = clock,
         )
     }
 

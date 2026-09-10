@@ -40,6 +40,7 @@ fun nySøknadForFnr(
             eksternId = søknad.tiltak.id,
             id = søknad.tiltak.tiltaksdeltakerId,
             tiltakstype = søknad.tiltak.typeKode,
+            sakId = sak.id,
         )
 
         applicationContext.søknadContext.søknadService.nySøknad(
@@ -77,6 +78,7 @@ fun nySakMedNySøknad(
             eksternId = søknad.tiltak.id,
             id = søknad.tiltak.tiltaksdeltakerId,
             tiltakstype = søknad.tiltak.typeKode,
+            sakId = sak.id,
         )
 
         applicationContext.søknadContext.søknadService.nySøknad(

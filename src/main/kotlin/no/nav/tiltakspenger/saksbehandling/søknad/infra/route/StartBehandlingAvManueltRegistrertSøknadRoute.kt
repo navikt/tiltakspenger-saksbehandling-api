@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
@@ -34,6 +35,7 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
     startBehandlingAvManueltRegistrertSøknadService: StartBehandlingAvManueltRegistrertSøknadService,
+    sakService: SakService,
     tiltaksdeltakerRepo: TiltaksdeltakerRepo,
 ) {
     post(MANUELT_REGISTRERT_SØKNAD_PATH) {
@@ -49,6 +51,7 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
                     tiltaksdeltakerRepo.hentEllerLagre(
                         eksternId = it.eksternDeltakelseId,
                         tiltakstype = it.typeKode.tilTiltakstype(),
+                        sakId = sakService.hentForSaksnummer(saksnummer).id,
                     )
                 }
                 val (sak, søknad) = startBehandlingAvManueltRegistrertSøknadService.startBehandlingAvManueltRegistrertSøknad(

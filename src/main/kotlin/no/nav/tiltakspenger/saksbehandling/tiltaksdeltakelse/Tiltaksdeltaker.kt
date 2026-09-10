@@ -1,6 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse
 
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
+import java.time.LocalDateTime
 
 /**
  * Knytter vår interne [TiltaksdeltakerId] til iden deltakelsen har hos kilden.
@@ -8,10 +10,16 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
  *
  * @param eksternId iden deltakelsen har hos kilden nå.
  * @param utdatertEksternId forrige eksterne id, satt når en deltakelse flyttes ut av Arena og får ny id hos den nye kilden.
+ * @param sakId saken deltakeren er knyttet til.
+ * Settes ved oppretting, og av backfill i V249 for eldre rader.
+ * @param sisteUbehandletEndring tidspunktet for siste hendelse som ikke er behandlet av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb].
+ * Null betyr at det ikke finnes en ubehandlet endring.
  */
 data class Tiltaksdeltaker(
     val id: TiltaksdeltakerId,
     val eksternId: String,
     val tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
     val utdatertEksternId: String?,
+    val sakId: SakId,
+    val sisteUbehandletEndring: LocalDateTime?,
 )

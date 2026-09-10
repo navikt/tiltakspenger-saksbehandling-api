@@ -105,7 +105,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
-        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
                 tom = søknad.tiltak.deltakelseTom,
@@ -136,7 +136,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
-        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
                 tom = søknad.tiltak.deltakelseTom,
@@ -162,7 +162,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
-        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
                 tom = søknad.tiltak.deltakelseTom,
@@ -223,7 +223,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fnr = fnr,
             saksbehandler = saksbehandler,
             søknad = søknad,
-            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
+            hentSaksopplysninger = { _, _, _, _, _, _ -> saksopplysninger },
             clock = clock,
         ).oppdater(
             when (resultat) {
@@ -515,7 +515,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksbehandler = saksbehandler,
-            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger() },
+            hentSaksopplysninger = { _, _, _, _, _, _ -> saksopplysninger() },
             clock = clock,
         ).avbryt(
             avbruttAv = avbruttAv,

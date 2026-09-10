@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
@@ -106,6 +107,7 @@ class TiltaksdeltakerArenaConsumer(
                 melding,
                 TiltaksdeltakerHendelseKilde.Arena,
             )
+            tiltaksdeltakerRepo.registrerUbehandletEndring(tiltaksdeltaker.id, sakId, nå(clock))
             logger.info { "Lagret melding for arenadeltaker med id $oppdatertEksternId" }
             return tiltaksdeltakerHendelse.id
         }

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamti
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
@@ -25,7 +26,7 @@ class TiltaksdeltakerTeamTiltakConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig,
-    clock: Clock,
+    private val clock: Clock,
     meterRegistry: MeterRegistry,
     log: KLogger? = logger,
 ) : Consumer<String, String?> {
@@ -50,6 +51,7 @@ class TiltaksdeltakerTeamTiltakConsumer(
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             søknadRepo = søknadRepo,
             tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            clock = clock,
         )
     }
 
@@ -66,6 +68,7 @@ class TiltaksdeltakerTeamTiltakConsumer(
             tiltaksdeltakerRepo: TiltaksdeltakerRepo,
             søknadRepo: SøknadRepo,
             tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+            clock: Clock,
         ): TiltaksdeltakerHendelseId? {
             logger.info { "Mottatt tiltaksdeltakelse fra team tiltak med key $deltakerId" }
             if (melding == null) {
@@ -93,6 +96,7 @@ class TiltaksdeltakerTeamTiltakConsumer(
                 melding,
                 TiltaksdeltakerHendelseKilde.TeamTiltak,
             )
+            tiltaksdeltakerRepo.registrerUbehandletEndring(tiltaksdeltakerId, sakId, nå(clock))
             logger.info { "Lagret melding for team tiltak-deltaker med id $deltakerId" }
             return tiltaksdeltakerHendelse.id
         }

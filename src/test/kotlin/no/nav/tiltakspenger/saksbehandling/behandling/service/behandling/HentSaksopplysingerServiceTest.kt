@@ -8,6 +8,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
@@ -101,6 +102,7 @@ class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -110,6 +112,7 @@ class HentSaksopplysingerServiceTest {
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -130,6 +133,25 @@ class HentSaksopplysingerServiceTest {
                     sessionContext: SessionContext?,
                 ) {
                 }
+
+                override fun registrerUbehandletEndring(
+                    id: TiltaksdeltakerId,
+                    sakId: SakId,
+                    tidspunkt: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
+
+                override fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker> {
+                    return emptyList()
+                }
+
+                override fun markerEndringSomBehandlet(
+                    id: TiltaksdeltakerId,
+                    forventetSisteUbehandletEndring: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -146,6 +168,7 @@ class HentSaksopplysingerServiceTest {
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+                sakId = SakId.random(),
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
             )
 
@@ -224,6 +247,7 @@ class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -233,6 +257,7 @@ class HentSaksopplysingerServiceTest {
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -253,6 +278,25 @@ class HentSaksopplysingerServiceTest {
                     sessionContext: SessionContext?,
                 ) {
                 }
+
+                override fun registrerUbehandletEndring(
+                    id: TiltaksdeltakerId,
+                    sakId: SakId,
+                    tidspunkt: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
+
+                override fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker> {
+                    return emptyList()
+                }
+
+                override fun markerEndringSomBehandlet(
+                    id: TiltaksdeltakerId,
+                    forventetSisteUbehandletEndring: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -268,6 +312,7 @@ class HentSaksopplysingerServiceTest {
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+                sakId = SakId.random(),
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = true,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato
@@ -347,6 +392,7 @@ class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return tiltaksdeltakelser.first.internDeltakelseId
@@ -356,6 +402,7 @@ class HentSaksopplysingerServiceTest {
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -376,6 +423,25 @@ class HentSaksopplysingerServiceTest {
                     sessionContext: SessionContext?,
                 ) {
                 }
+
+                override fun registrerUbehandletEndring(
+                    id: TiltaksdeltakerId,
+                    sakId: SakId,
+                    tidspunkt: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
+
+                override fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker> {
+                    return emptyList()
+                }
+
+                override fun markerEndringSomBehandlet(
+                    id: TiltaksdeltakerId,
+                    forventetSisteUbehandletEndring: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -391,6 +457,7 @@ class HentSaksopplysingerServiceTest {
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+                sakId = SakId.random(),
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = true,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato
@@ -485,6 +552,7 @@ class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
@@ -506,6 +574,7 @@ class HentSaksopplysingerServiceTest {
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -538,6 +607,25 @@ class HentSaksopplysingerServiceTest {
                     sessionContext: SessionContext?,
                 ) {
                 }
+
+                override fun registrerUbehandletEndring(
+                    id: TiltaksdeltakerId,
+                    sakId: SakId,
+                    tidspunkt: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
+
+                override fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker> {
+                    return emptyList()
+                }
+
+                override fun markerEndringSomBehandlet(
+                    id: TiltaksdeltakerId,
+                    forventetSisteUbehandletEndring: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -553,6 +641,7 @@ class HentSaksopplysingerServiceTest {
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+                sakId = SakId.random(),
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = true,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato
@@ -641,6 +730,7 @@ class HentSaksopplysingerServiceTest {
                 override fun hentEllerLagre(
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ): TiltaksdeltakerId {
                     return when (eksternId) {
@@ -662,6 +752,7 @@ class HentSaksopplysingerServiceTest {
                     id: TiltaksdeltakerId,
                     eksternId: String,
                     tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+                    sakId: SakId,
                     sessionContext: SessionContext?,
                 ) {}
 
@@ -694,6 +785,25 @@ class HentSaksopplysingerServiceTest {
                     sessionContext: SessionContext?,
                 ) {
                 }
+
+                override fun registrerUbehandletEndring(
+                    id: TiltaksdeltakerId,
+                    sakId: SakId,
+                    tidspunkt: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
+
+                override fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker> {
+                    return emptyList()
+                }
+
+                override fun markerEndringSomBehandlet(
+                    id: TiltaksdeltakerId,
+                    forventetSisteUbehandletEndring: LocalDateTime,
+                    sessionContext: SessionContext?,
+                ) {
+                }
             }
             val fyr = ObjectMother.personopplysningKjedeligFyr(fnr = fnr)
             val service = HentSaksopplysingerService(
@@ -709,6 +819,7 @@ class HentSaksopplysingerServiceTest {
                 correlationId = correlationId,
                 tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
+                sakId = SakId.random(),
                 inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = false,
             )
             result.fødselsdato shouldBeEqual fyr.fødselsdato

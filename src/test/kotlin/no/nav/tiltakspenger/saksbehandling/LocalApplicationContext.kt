@@ -407,6 +407,7 @@ class LocalApplicationContext(
                 id = it.tiltak.tiltaksdeltakerId,
                 eksternId = søknadstiltak.id,
                 tiltakstype = søknadstiltak.typeKode,
+                sakId = sak.id,
             )
             søknadContext.søknadRepo.lagre(it)
         }

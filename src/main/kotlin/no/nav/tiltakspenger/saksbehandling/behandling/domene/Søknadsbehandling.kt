@@ -194,6 +194,7 @@ data class Søknadsbehandling(
                     sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     listOf(søknad.tiltak.tiltaksdeltakerId),
                     true,
+                    sak.id,
                 )
 
                 is IkkeInnvilgbarSøknad -> hentSaksopplysninger(
@@ -202,6 +203,7 @@ data class Søknadsbehandling(
                     sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     søknad.tiltak?.let { listOf(it.tiltaksdeltakerId) } ?: emptyList(),
                     true,
+                    sak.id,
                 )
             }
 
@@ -259,6 +261,7 @@ data class Søknadsbehandling(
                 sak.tiltaksdeltakelserDetErSøktTiltakspengerFor,
                 listOf(søknad.tiltak.tiltaksdeltakerId),
                 true,
+                sak.id,
             )
             val opprettetSøknadsbehandling = Søknadsbehandling(
                 id = RammebehandlingId.random(),

@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.søknadsbehandling
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
@@ -18,7 +19,7 @@ import java.time.Clock
 suspend fun Sak.startSøknadsbehandlingPåNytt(
     kommando: StartSøknadsbehandlingPåNyttKommando,
     clock: Clock,
-    hentSaksopplysninger: suspend (Fnr, CorrelationId, TiltaksdeltakelserDetErSøktTiltakspengerFor, List<TiltaksdeltakerId>, Boolean) -> Saksopplysninger,
+    hentSaksopplysninger: suspend (Fnr, CorrelationId, TiltaksdeltakelserDetErSøktTiltakspengerFor, List<TiltaksdeltakerId>, Boolean, SakId) -> Saksopplysninger,
 ): Triple<Sak, Søknadsbehandling, Statistikkhendelser> {
     val søknad: Søknad = søknader.single { it.id == kommando.søknadId }
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let { this.hentKlagebehandling(it) }

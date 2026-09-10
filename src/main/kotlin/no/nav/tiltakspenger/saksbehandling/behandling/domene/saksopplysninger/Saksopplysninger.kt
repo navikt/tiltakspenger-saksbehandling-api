@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -60,4 +61,5 @@ typealias HentSaksopplysninger = suspend (
     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
     aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
     inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
+    sakId: SakId,
 ) -> Saksopplysninger

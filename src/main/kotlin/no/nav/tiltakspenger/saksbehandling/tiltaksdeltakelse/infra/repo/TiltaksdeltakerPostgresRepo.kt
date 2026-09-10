@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
 import kotliquery.Session
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionContext.Companion.withSession
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -11,10 +13,13 @@ import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import java.time.LocalDateTime
 
 class TiltaksdeltakerPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) : TiltaksdeltakerRepo {
+
+    private val logger = KotlinLogging.logger {}
 
     companion object {
         /**
@@ -39,6 +44,7 @@ class TiltaksdeltakerPostgresRepo(
     override fun hentEllerLagre(
         eksternId: String,
         tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+        sakId: SakId,
         sessionContext: SessionContext?,
     ): TiltaksdeltakerId {
         return sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -56,16 +62,19 @@ class TiltaksdeltakerPostgresRepo(
                             insert into tiltaksdeltaker (
                                 id,
                                 ekstern_id,
-                                tiltakstype
+                                tiltakstype,
+                                sak_id
                             ) values (
                                 :id,
                                 :ekstern_id,
-                                :tiltakstype
+                                :tiltakstype,
+                                :sak_id
                             )
                             """.trimIndent(),
                             "id" to id.toString(),
                             "ekstern_id" to eksternId,
                             "tiltakstype" to tiltakstype.name,
+                            "sak_id" to sakId.toString(),
                         ).asUpdate,
                     )
                     return@withSession id
@@ -87,6 +96,7 @@ class TiltaksdeltakerPostgresRepo(
         id: TiltaksdeltakerId,
         eksternId: String,
         tiltakstype: TiltakResponsDTO.TiltakTypeDTO,
+        sakId: SakId,
         sessionContext: SessionContext?,
     ) {
         sessionFactory.withSessionContext(sessionContext) { sessionContext ->
@@ -97,16 +107,19 @@ class TiltaksdeltakerPostgresRepo(
                             insert into tiltaksdeltaker (
                                 id,
                                 ekstern_id,
-                                tiltakstype
+                                tiltakstype,
+                                sak_id
                             ) values (
                                 :id,
                                 :ekstern_id,
-                                :tiltakstype
+                                :tiltakstype,
+                                :sak_id
                             )
                         """.trimIndent(),
                         "id" to id.toString(),
                         "ekstern_id" to eksternId,
                         "tiltakstype" to tiltakstype.name,
+                        "sak_id" to sakId.toString(),
                     ).asUpdate,
                 )
             }
@@ -116,6 +129,75 @@ class TiltaksdeltakerPostgresRepo(
     override fun hentInternId(eksternId: String): TiltaksdeltakerId? {
         return sessionFactory.withSession { session ->
             hentForEksternId(eksternId, session)
+        }
+    }
+
+    override fun registrerUbehandletEndring(
+        id: TiltaksdeltakerId,
+        sakId: SakId,
+        tidspunkt: LocalDateTime,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sc ->
+            sc.withSession { session ->
+                session.run(
+                    sqlQuery(
+                        """
+                            update tiltaksdeltaker
+                            set sak_id = :sak_id,
+                                siste_ubehandlet_endring = :tidspunkt
+                            where id = :id
+                        """.trimIndent(),
+                        "id" to id.toString(),
+                        "sak_id" to sakId.toString(),
+                        "tidspunkt" to tidspunkt,
+                    ).asUpdate,
+                )
+            }
+        }
+    }
+
+    override fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                        select *
+                        from tiltaksdeltaker
+                        where siste_ubehandlet_endring is not null
+                          and siste_ubehandlet_endring < :eldre_enn
+                        order by siste_ubehandlet_endring asc
+                    """.trimIndent(),
+                    "eldre_enn" to eldreEnn,
+                ).map { row -> row.tilTiltaksdeltaker() }.asList,
+            )
+        }
+    }
+
+    override fun markerEndringSomBehandlet(
+        id: TiltaksdeltakerId,
+        forventetSisteUbehandletEndring: LocalDateTime,
+        sessionContext: SessionContext?,
+    ) {
+        sessionFactory.withSessionContext(sessionContext) { sc ->
+            sc.withSession { session ->
+                val raderOppdatert = session.run(
+                    sqlQuery(
+                        """
+                            update tiltaksdeltaker
+                            set siste_ubehandlet_endring = null
+                            where id = :id
+                              and siste_ubehandlet_endring = :forventet
+                        """.trimIndent(),
+                        "id" to id.toString(),
+                        "forventet" to forventetSisteUbehandletEndring,
+                    ).asUpdate,
+                )
+                if (raderOppdatert == 0) {
+                    // Det har kommet en nyere hendelse mens endringen ble behandlet — markøren står igjen til neste kjøring.
+                    logger.info { "Nullstilte ikke siste_ubehandlet_endring for tiltaksdeltaker $id — markøren var endret (ny hendelse underveis)" }
+                }
+            }
         }
     }
 
@@ -172,5 +254,7 @@ class TiltaksdeltakerPostgresRepo(
         eksternId = string("ekstern_id"),
         tiltakstype = TiltakResponsDTO.TiltakTypeDTO.valueOf(string("tiltakstype")),
         utdatertEksternId = stringOrNull("utdatert_ekstern_id"),
+        sakId = SakId.fromString(string("sak_id")),
+        sisteUbehandletEndring = localDateTimeOrNull("siste_ubehandlet_endring"),
     )
 }

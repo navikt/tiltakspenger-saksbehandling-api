@@ -39,6 +39,7 @@ interface MottaSøknadRouteBuilder {
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
             tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+            sakId = sak.id,
         )
         mottaSøknad(tac, sak.fnr, saksnummer, søknadId, tiltaksdeltakelse)
         val oppdatertSak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
@@ -53,10 +54,12 @@ interface MottaSøknadRouteBuilder {
         barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
+        val sakId = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.id
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
             id = tiltaksdeltakelse.internDeltakelseId,
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
             tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
+            sakId = sakId,
         )
         mottaSøknad(tac, fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
