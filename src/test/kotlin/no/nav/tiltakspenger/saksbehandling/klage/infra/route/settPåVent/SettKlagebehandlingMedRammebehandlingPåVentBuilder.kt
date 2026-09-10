@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.LocalDate
 
@@ -85,11 +85,11 @@ interface SettKlagebehandlingMedRammebehandlingPåVentBuilder {
             saksbehandler = saksbehandler,
         )
 
-        taBehandling(
+        taRammebehandlinger(
             tac = tac,
-            sakId = sak.id,
-            behandlingId = rammebehandling.id,
+            behandlinger = listOf(sak.id to rammebehandling.id),
             saksbehandler = beslutter,
+
         )
 
         val (oppdatertSak, _, oppdatertRammebehandling, json) = settRammebehandlingPåVent(

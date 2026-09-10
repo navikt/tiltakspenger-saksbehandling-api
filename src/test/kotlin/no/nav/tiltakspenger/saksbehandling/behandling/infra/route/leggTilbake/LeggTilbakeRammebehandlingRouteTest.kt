@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 /**
@@ -48,7 +48,7 @@ class LeggTilbakeRammebehandlingRouteTest {
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
             }
-            taBehandling(tac, sak.id, behandlingId, ObjectMother.beslutter()).also {
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), ObjectMother.beslutter()).also {
                 tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                     it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
                     it.beslutter shouldBe "B12345"
@@ -171,7 +171,7 @@ class LeggTilbakeRammebehandlingRouteTest {
     fun `saksbehandler kan ikke legge tilbake behandling som er under beslutning`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, ObjectMother.beslutter())
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), ObjectMother.beslutter())
 
             leggTilbakeRammebehandling(
                 tac,
@@ -195,7 +195,7 @@ class LeggTilbakeRammebehandlingRouteTest {
     fun `annen beslutter kan ikke legge tilbake behandling som er under beslutning`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, ObjectMother.beslutter())
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), ObjectMother.beslutter())
 
             leggTilbakeRammebehandling(
                 tac,

@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytR
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.søknad.shouldBeSøknadDTO
 import org.junit.jupiter.api.Test
 
@@ -132,7 +132,7 @@ class AvbrytRammebehandlingRouteTest {
             // Avbryt-ruta krever saksbehandlerrolle, så beslutteren må ha begge rollene.
             val beslutter = ObjectMother.saksbehandlerOgBeslutter()
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, beslutter)!!
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
 
             avbrytRammebehandling(
                 tac = tac,
@@ -151,7 +151,7 @@ class AvbrytRammebehandlingRouteTest {
         withTestApplicationContext { tac ->
             val beslutter = ObjectMother.saksbehandlerOgBeslutter()
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, beslutter)!!
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
 
             avbrytRammebehandling(
                 tac = tac,

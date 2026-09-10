@@ -41,7 +41,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -241,10 +241,9 @@ class IverksettKlagebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandling.id,
+                behandlinger = listOf(sak.id to rammebehandlingMedKlagebehandling.id),
                 saksbehandler = beslutter,
             )
             val (_, rammevedtak, _, json) = iverksettForBehandlingId(
@@ -318,12 +317,13 @@ class IverksettKlagebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
+                behandlinger = listOf(sak.id to rammebehandling.id),
                 saksbehandler = beslutter,
             )
+
             val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
@@ -388,12 +388,13 @@ class IverksettKlagebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
+                behandlinger = listOf(sak.id to rammebehandling.id),
                 saksbehandler = beslutter,
             )
+
             val (_, rammevedtak, iverksattRammebehandling, iverksattRammebehandlingJson) = iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,
@@ -451,12 +452,13 @@ class IverksettKlagebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
+                behandlinger = listOf(sak.id to rammebehandling.id),
                 saksbehandler = beslutter,
             )
+
             val (_, rammevedtak, _, iverksattRammebehandlingJson) = iverksettForBehandlingId(
                 tac = tac,
                 sakId = sak.id,

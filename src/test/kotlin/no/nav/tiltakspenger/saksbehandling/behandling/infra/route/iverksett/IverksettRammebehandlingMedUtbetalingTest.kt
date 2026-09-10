@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 class IverksettRammebehandlingMedUtbetalingTest {
@@ -47,10 +47,9 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 behandlingId = omgjøring.id,
             )
 
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = omgjøring.id,
+                behandlinger = listOf(sak.id to omgjøring.id),
                 saksbehandler = beslutter(),
             )
 
@@ -109,10 +108,9 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 behandlingId = omgjøring.id,
             )
 
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = omgjøring.id,
+                behandlinger = listOf(sak.id to omgjøring.id),
                 saksbehandler = beslutter(),
             )
 
@@ -168,10 +166,9 @@ class IverksettRammebehandlingMedUtbetalingTest {
                 behandlingId = omgjøring.id,
             )
 
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = omgjøring.id,
+                behandlinger = listOf(sak.id to omgjøring.id),
                 saksbehandler = beslutter(),
             )
 

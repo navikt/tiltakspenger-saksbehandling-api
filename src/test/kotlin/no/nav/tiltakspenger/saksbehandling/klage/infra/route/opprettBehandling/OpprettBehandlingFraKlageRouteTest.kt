@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRevurderingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 class OpprettBehandlingFraKlageRouteTest {
@@ -286,10 +286,9 @@ class OpprettBehandlingFraKlageRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
+                behandlinger = listOf(sak.id to (opprettetRammebehandling.id as RammebehandlingId)),
                 saksbehandler = beslutter,
             )
             iverksettForBehandlingId(
@@ -355,10 +354,9 @@ class OpprettBehandlingFraKlageRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = opprettetRammebehandling.id as RammebehandlingId,
+                behandlinger = listOf(sak.id to (opprettetRammebehandling.id as RammebehandlingId)),
                 saksbehandler = beslutter,
             )
             val (_, nyttRammevedtak) = iverksettForBehandlingId(
@@ -392,10 +390,9 @@ class OpprettBehandlingFraKlageRouteTest {
                 saksbehandler = saksbehandler,
             )
             val andreRammebehandlingBeslutter = ObjectMother.beslutter()
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = andreRammebehandling.id as RammebehandlingId,
+                behandlinger = listOf(sak.id to (andreRammebehandling.id as RammebehandlingId)),
                 saksbehandler = andreRammebehandlingBeslutter,
             )
             iverksettForBehandlingId(

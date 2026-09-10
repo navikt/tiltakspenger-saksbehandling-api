@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgIverksettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 class IverksettRevurderingOmgjøringTest {
@@ -391,7 +391,7 @@ class IverksettRevurderingOmgjøringTest {
                 behandlingId = omgjøring.id,
             )
 
-            taBehandling(tac, sak.id, omgjøring.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac = tac, behandlinger = listOf(sak.id to omgjøring.id), saksbehandler = ObjectMother.beslutter())
 
             // Grunnlaget endres først etter at omgjøringen er sendt til beslutning, slik at beslutter møter feilen.
             iverksettRevurderingStans(

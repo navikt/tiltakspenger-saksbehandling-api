@@ -29,7 +29,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utsjekk.kontrakter.iverksett.IverksettV2Dto
 import org.junit.jupiter.api.Test
@@ -72,7 +72,7 @@ class UtbetalingerIT {
                 sak.id,
                 revurdering.id,
             )
-            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter())
 
             val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, revurdering.id, jobber = JobberEtterIverksettelse.ingen)!!
 
@@ -171,7 +171,7 @@ class UtbetalingerIT {
                 sak.id,
                 omgjøring.id,
             )
-            taBehandling(tac, sak.id, omgjøring.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, listOf(sak.id to omgjøring.id), saksbehandler = ObjectMother.beslutter())
 
             val (oppdatertSak) = iverksettForBehandlingId(tac, sak.id, omgjøring.id, jobber = JobberEtterIverksettelse.ingen)!!
 

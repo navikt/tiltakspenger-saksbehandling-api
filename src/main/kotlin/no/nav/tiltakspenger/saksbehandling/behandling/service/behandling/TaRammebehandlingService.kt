@@ -18,7 +18,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.taBehandling
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
@@ -31,30 +30,6 @@ class TaRammebehandlingService(
     private val clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
-
-    suspend fun taBehandling(
-        sakId: SakId,
-        behandlingId: RammebehandlingId,
-        saksbehandler: Saksbehandler,
-    ): Either<KunneIkkeTaBehandling, Pair<Sak, Rammebehandling>> {
-        val (sak, behandling) = behandlingService.hentSakOgRammebehandling(sakId, behandlingId)
-
-        return behandling.taBehandling(saksbehandler, clock).mapLeft {
-            it
-        }.map { (oppdatertRammebehandling, statistikkhendelser) ->
-            val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
-            val statistikkDTO = statistikkService.generer(statistikkhendelser)
-            sessionFactory.withTransactionContext { tx ->
-                when (oppdatertRammebehandling.status) {
-                    UNDER_BEHANDLING -> rammebehandlingRepo.taBehandlingSaksbehandler(oppdatertRammebehandling, tx)
-                    UNDER_BESLUTNING -> rammebehandlingRepo.taBehandlingBeslutter(oppdatertRammebehandling, tx)
-                    else -> throw IllegalStateException("Vi havnet i en ugyldig tilstand etter vi tok behandlingen - behandlingId: ${oppdatertRammebehandling.id}, status: ${oppdatertRammebehandling.status}")
-                }
-                statistikkService.lagre(statistikkDTO, tx)
-            }
-            oppdatertSak to oppdatertRammebehandling
-        }
-    }
 
     suspend fun taRammebehandlinger(
         kommando: TaRammebehandlingerKommando,

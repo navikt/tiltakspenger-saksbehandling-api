@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 /**
@@ -70,10 +70,9 @@ class RammebehandlingPostgresRepoTest {
     fun `beslutter som taper kappløpet får false fra ta og overta`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = behandlingId,
+                behandlinger = listOf(sak.id to behandlingId),
                 saksbehandler = ObjectMother.beslutter("beslutterSomVant"),
             )!!
             val repo = tac.behandlingContext.rammebehandlingRepo

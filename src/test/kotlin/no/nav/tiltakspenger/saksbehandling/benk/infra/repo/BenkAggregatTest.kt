@@ -69,7 +69,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjenn
@@ -286,7 +286,7 @@ class BenkAggregatTest {
             // Identen er saksbehandler på den første behandlingen og beslutter på den andre — filteret treffer begge.
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandlerOgBeslutter)
             val (sakUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
-            taBehandling(tac, sakUnderBeslutning.id, underBeslutningId, saksbehandlerOgBeslutter)
+            taRammebehandlinger(tac, listOf(sakUnderBeslutning.id to underBeslutningId), saksbehandlerOgBeslutter)
 
             val oversikt = tac.benkContext.benkRepo.hentSøknader(
                 søknaderCommand(saksbehandler = saksbehandlerOgBeslutter.navIdent),
@@ -310,7 +310,7 @@ class BenkAggregatTest {
             val (sakUnderBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
             // Begge rollene tildelt — treffes ikke av noen av filtrene.
             val (sakUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
-            taBehandling(tac, sakUnderBeslutning.id, underBeslutningId, ObjectMother.beslutter())
+            taRammebehandlinger(tac, listOf(sakUnderBeslutning.id to underBeslutningId), ObjectMother.beslutter())
             val repo = tac.benkContext.benkRepo
 
             repo.hentSøknader(søknaderCommand()).totalAntall shouldBe 3
@@ -341,7 +341,7 @@ class BenkAggregatTest {
                 tac = tac,
                 saksbehandler = ObjectMother.saksbehandler("Z999999"),
             )
-            taBehandling(tac, sakTilBeslutning.id, tilBeslutningId, ObjectMother.beslutter())
+            taRammebehandlinger(tac, listOf(sakTilBeslutning.id to tilBeslutningId), ObjectMother.beslutter())
             val repo = tac.benkContext.benkRepo
 
             repo.hentSøknader(søknaderCommand()).let {
@@ -365,7 +365,7 @@ class BenkAggregatTest {
             // Kommandoens saksbehandler er ObjectMother.saksbehandler(), som også er standarden i byggerne.
             val (sakEgenTilBeslutning) = sendSøknadsbehandlingTilBeslutning(tac = tac)
             val (sakEgenUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
-            taBehandling(tac, sakEgenUnderBeslutning.id, underBeslutningId, ObjectMother.beslutter())
+            taRammebehandlinger(tac, listOf(sakEgenUnderBeslutning.id to underBeslutningId), ObjectMother.beslutter())
             val (sakAnnensTilBeslutning) = sendSøknadsbehandlingTilBeslutning(
                 tac = tac,
                 saksbehandler = ObjectMother.saksbehandler("enAnnenSaksbehandler"),

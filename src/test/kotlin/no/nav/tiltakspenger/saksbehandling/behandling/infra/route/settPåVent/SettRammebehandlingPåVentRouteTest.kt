@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -62,7 +62,7 @@ class SettRammebehandlingPåVentRouteTest {
         withTestApplicationContext { tac ->
             val beslutter = ObjectMother.beslutter()
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, beslutter)!!
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
 
             settRammebehandlingPåVent(
                 tac = tac,
@@ -196,7 +196,7 @@ class SettRammebehandlingPåVentRouteTest {
     fun `en bruker uten beslutterrolle kan ikke sette en behandling under beslutning på vent`() {
         withTestApplicationContext { tac ->
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, ObjectMother.beslutter())!!
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), ObjectMother.beslutter())!!
 
             settRammebehandlingPåVent(
                 tac = tac,

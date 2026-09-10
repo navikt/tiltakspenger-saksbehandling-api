@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptySet
+import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -37,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.taBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.underkjenn.underkjenn
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingerKommando
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Attestering
@@ -743,10 +745,16 @@ suspend fun TestApplicationContext.søknadsbehandlingUnderBeslutning(
         barnetillegg = barnetillegg,
         avslagsgrunner = avslagsgrunner,
     )
-    this.behandlingContext.taRammebehandlingService.taBehandling(
-        vilkårsvurdert.id,
-        vilkårsvurdert.rammebehandlinger.singleOrNullOrThrow()!!.id,
-        beslutter,
+    this.behandlingContext.taRammebehandlingService.taRammebehandlinger(
+        kommando = TaRammebehandlingerKommando(
+            saksbehandler = beslutter,
+            behandlinger = nonEmptyListOf(
+                TaRammebehandlingerKommando.RammebehandlingMedSakId(
+                    behandlingId = vilkårsvurdert.rammebehandlinger.singleOrNullOrThrow()!!.id,
+                    sakId = vilkårsvurdert.id,
+                ),
+            ),
+        ),
     )
     return this.sakContext.sakService.hentForSakId(
         vilkårsvurdert.id,

@@ -6,12 +6,14 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -26,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
+import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.toStatusAndErrorJson
 
 private const val TA_RAMMEBEHANDLINGER_PATH = "/behandlinger/ta"
 
@@ -106,4 +109,43 @@ fun Route.taRammebehandlingerRoute(
             )
         }
     }
+}
+
+fun KunneIkkeTaBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KunneIkkeTaBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅTaBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er i en tilstand som ikke tillater å ta behandlingen.",
+        "behandlingen_er_i_en_tilstand_som_ikke_tillater_å_ta_behandling",
+    )
+
+    KunneIkkeTaBehandling.BehandlingenHarEksisterendeBeslutter -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen har allerede en beslutter.",
+        "behandlingen_har_allerede_en_beslutter",
+    )
+
+    KunneIkkeTaBehandling.BehandlingenHarEksisterendeSaksbehandler -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen har allerede en saksbehandler.",
+        "behandlingen_har_allerede_en_saksbehandler",
+    )
+
+    is KunneIkkeTaBehandling.FeilVedKlagebehandling -> this.originalfeil.toStatusAndErrorJson()
+
+    KunneIkkeTaBehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være saksbehandler for å ta denne behandlingen.",
+        "maa_vaere_saksbehandler",
+    )
+
+    KunneIkkeTaBehandling.MåVæreBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være beslutter for å ta denne behandlingen.",
+        "maa_vaere_beslutter",
+    )
+
+    KunneIkkeTaBehandling.SaksbehandlerOgBeslutterKanIkkeVæreDenSammePåBehandling -> HttpStatusCode.BadRequest to ErrorJson(
+        "Saksbehandler og beslutter kan ikke være den samme på behandlingen.",
+        "saksbehandler_og_beslutter_kan_ikke_være_den_samme_på_behandlingen",
+    )
+
+    KunneIkkeTaBehandling.MåTaMinimumEnRammebehandling -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Du må sende inn minst en behandling.",
+        kode = "må_ha_minst_en_behandling",
+    )
 }
