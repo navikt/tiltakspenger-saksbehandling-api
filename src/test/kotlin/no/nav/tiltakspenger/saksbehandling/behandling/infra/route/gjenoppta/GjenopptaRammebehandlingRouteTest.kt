@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -58,7 +58,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
         withTestApplicationContext { tac ->
             val beslutter = ObjectMother.beslutter()
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, beslutter)!!
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandlingId), saksbehandler = beslutter)!!
             settRammebehandlingPåVent(
                 tac = tac,
                 sakId = sak.id,
@@ -169,7 +169,7 @@ class GjenopptaRammebehandlingRouteTest : GjenopptaRammebehandlingBuilder {
         withTestApplicationContext { tac ->
             val beslutter = ObjectMother.beslutter()
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-            taBehandling(tac, sak.id, behandlingId, beslutter)!!
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandlingId), saksbehandler = beslutter)!!
             settRammebehandlingPåVent(
                 tac = tac,
                 sakId = sak.id,

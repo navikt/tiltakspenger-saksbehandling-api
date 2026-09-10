@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -56,7 +56,9 @@ interface IverksettSøknadsbehandlingBuilder {
             tiltaksdeltakelse = tiltaksdeltakelse,
             saksbehandler = saksbehandler,
         )
-        taBehandling(tac, sak.id, behandlingId, beslutter)
+
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandlingId), saksbehandler = beslutter)
+
         val (oppdatertSak, rammevedtak, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
@@ -64,6 +66,7 @@ interface IverksettSøknadsbehandlingBuilder {
             beslutter = beslutter,
             jobber = jobber,
         )!!
+
         return Tuple4(
             oppdatertSak,
             søknad,
@@ -85,13 +88,16 @@ interface IverksettSøknadsbehandlingBuilder {
             fnr = fnr,
             tiltaksdeltakelse = tiltaksdeltakelse,
         )
-        taBehandling(tac, sak.id, søknadsbehandling.id, beslutter)
+
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to søknadsbehandling.id), saksbehandler = beslutter)
+
         val (oppdatertSak, rammevedtakSøknadsbehandling, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
             sakId = sak.id,
             behandlingId = søknadsbehandling.id,
             beslutter = beslutter,
         )!!
+
         return Tuple4(
             oppdatertSak,
             søknad,

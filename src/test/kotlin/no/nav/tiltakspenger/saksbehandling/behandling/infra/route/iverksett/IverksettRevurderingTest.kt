@@ -42,7 +42,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettMeldekortbehandlingForSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTO
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOinnvilgelse
 import org.json.JSONObject
@@ -92,7 +92,8 @@ class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(tac, sak.id, revurdering.id)
         }
     }
@@ -134,7 +135,7 @@ class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(tac, sak.id, revurdering.id)
         }
     }
@@ -176,7 +177,7 @@ class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(tac, sak.id, revurdering.id)
         }
     }
@@ -204,7 +205,7 @@ class IverksettRevurderingTest {
                 sak.id,
                 revurdering.id,
             )
-            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter())
             iverksettForBehandlingId(
                 tac,
                 sak.id,
@@ -508,7 +509,7 @@ class IverksettRevurderingTest {
             )
 
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurdering.id)
-            taBehandling(tac, sak.id, revurdering.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = ObjectMother.beslutter())
 
             // Klokke satt før søknadsbehandlingsvedtaket sitt opprettet-tidspunkt, slik at det nye revurderingsvedtaket ikke ville blitt det «siste» vedtaket dersom listen ble sortert på opprettet.
             val klokkeFørSøknadsbehandlingsvedtaket = fixedClockAt(1.april(2025))
@@ -562,7 +563,7 @@ class IverksettRevurderingTest {
                 harValgtStansFraFørsteDagSomGirRett = false,
             )
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurderingA.id)
-            taBehandling(tac, sak.id, revurderingA.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurderingA.id), saksbehandler = ObjectMother.beslutter())
 
             // Starter revurdering før første er iverksatt; den vil dermed være basert på en sak-tilstand som ikke inkluderer revurderingA sin omgjøring av søknadsbehandlingen.
             val (_, revurderingB) = startRevurderingInnvilgelse(tac, sak.id)!!
@@ -574,7 +575,7 @@ class IverksettRevurderingTest {
                 fritekstTilVedtaksbrev = null,
             )
             sendRevurderingTilBeslutningForBehandlingId(tac, sak.id, revurderingB.id)
-            taBehandling(tac, sak.id, revurderingB.id, saksbehandler = ObjectMother.beslutter())
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurderingB.id), saksbehandler = ObjectMother.beslutter())
 
             // Iverksetting av A skal lykkes
             iverksettForBehandlingId(tac, sak.id, revurderingA.id)

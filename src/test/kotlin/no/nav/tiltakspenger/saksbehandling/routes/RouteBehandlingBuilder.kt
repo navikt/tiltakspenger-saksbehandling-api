@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartRev
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.start.StartSøknadsbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.OvertaRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaRammebehandlingBuilder
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.taOgOverta.TaRammebehandlingBuilderv2
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendRevurderingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter.SendSøknadsbehandlingTilBeslutningBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.UnderkjennRammebehandlingBuilder
@@ -103,7 +102,6 @@ object RouteBehandlingBuilder :
     OpprettholdKlagebehandlingBuilder,
     ForhåndsvisBrevKlagebehandlingBuilder,
     TaRammebehandlingBuilder,
-    TaRammebehandlingBuilderv2,
     AngreRammebehandlingBuilder,
     SendSøknadsbehandlingTilBeslutningBuilder,
     SendRevurderingTilBeslutningBuilder,

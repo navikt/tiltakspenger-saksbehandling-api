@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetRevurderingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 class AvbrytKlagebehandlingRouteTest {
@@ -263,10 +263,9 @@ class AvbrytKlagebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandling.id,
+                behandlinger = listOf(sak.id to rammebehandlingMedKlagebehandling.id),
                 saksbehandler = beslutter,
             )
             iverksettForBehandlingId(

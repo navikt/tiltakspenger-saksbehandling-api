@@ -3,18 +3,16 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
-import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.ferdigstiltOppretholdKlagebehandlingMedRammebehandlingLagtTilbake
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 class TaKlagebehandlingMedRammebehandlingRouteTest {
@@ -85,18 +83,15 @@ class TaKlagebehandlingMedRammebehandlingRouteTest {
                 saksbehandler = førsteSaksbehandler,
             )!!
             val nySaksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTarRammebehandling")
-            val (_, tattRammebehandling, sakJson) = taBehandling(
+            val (_, tattRammebehandling) = taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandling.id,
+                behandlinger = listOf(sak.id to rammebehandling.id),
                 saksbehandler = nySaksbehandler,
-            )!!
+            )!!.first.single()
 
-            sakJson.rammebehandlingJson(rammebehandling.id).also { behandlingJson ->
-                behandlingJson.get("saksbehandler").asString() shouldBe nySaksbehandler.navIdent
-                behandlingJson.get("status").asString() shouldBe "UNDER_BEHANDLING"
-            }
-            (tattRammebehandling as Rammebehandling).klagebehandling!!.saksbehandler shouldBe førsteSaksbehandler.navIdent
+            tattRammebehandling.saksbehandler shouldBe nySaksbehandler.navIdent
+            tattRammebehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+            tattRammebehandling.klagebehandling!!.saksbehandler shouldBe førsteSaksbehandler.navIdent
             tattRammebehandling.klagebehandling!!.status shouldBe Klagebehandlingsstatus.FERDIGSTILT
         }
     }

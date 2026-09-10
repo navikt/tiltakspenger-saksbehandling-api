@@ -31,7 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingOmgjøring
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -86,7 +86,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
 
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtakRevurdering, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
@@ -148,7 +148,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
 
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtakRevurdering, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
@@ -212,7 +212,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
 
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter)
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtakRevurdering, _, jsonResponse) = iverksettForBehandlingId(
             tac = tac,
@@ -273,7 +273,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
 
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
@@ -323,7 +323,7 @@ interface IverksettRevurderingBuilder {
             saksbehandler = saksbehandler,
         )
 
-        taBehandling(tac, sakId, behandlingId, saksbehandler = beslutter())
+        taRammebehandlinger(tac, behandlinger = listOf(sakId to behandlingId), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
@@ -378,7 +378,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
 
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
@@ -434,7 +434,7 @@ interface IverksettRevurderingBuilder {
             saksbehandler = saksbehandler,
         )
 
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter)
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,
@@ -487,7 +487,7 @@ interface IverksettRevurderingBuilder {
             behandlingId = revurdering.id,
         )
 
-        taBehandling(tac, sak.id, revurdering.id, saksbehandler = beslutter())
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to revurdering.id), saksbehandler = beslutter())
 
         val (oppdatertSak, rammevedtak, _, jsonResponseForIverksettRevurdering) = iverksettForBehandlingId(
             tac = tac,

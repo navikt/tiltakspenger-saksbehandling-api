@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -40,7 +40,8 @@ interface SendRevurderingTilBeslutningBuilder {
         val revurderingId = revurdering.id
 
         val søknadsbehandling = rammevedtakSøknadsbehandling.rammebehandling as Søknadsbehandling
-        taBehandling(tac, sak.id, revurderingId, saksbehandler)
+
+        taRammebehandlinger(tac, listOf(sak.id to revurderingId), saksbehandler)
 
         oppdaterRevurderingStans(
             tac = tac,

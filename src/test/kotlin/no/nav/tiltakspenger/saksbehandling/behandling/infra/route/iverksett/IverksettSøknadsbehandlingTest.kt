@@ -24,7 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOavslag
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.routes.shouldBeEqualToRammevedtakDTOinnvilgelse
 import org.json.JSONObject
@@ -127,7 +127,8 @@ class IverksettSøknadsbehandlingTest {
                 behandlingId,
                 saksbehandler,
             )
-            taBehandling(tac, sak.id, behandlingId, beslutter)
+
+            taRammebehandlinger(tac = tac, behandlinger = listOf(sak.id to behandlingId), saksbehandler = beslutter)
 
             iverksettForBehandlingId(
                 tac,
@@ -162,7 +163,8 @@ class IverksettSøknadsbehandlingTest {
                 behandlingId,
                 saksbehandler,
             )
-            taBehandling(tac, sak.id, behandlingId, beslutter)
+
+            taRammebehandlinger(tac = tac, behandlinger = listOf(sak.id to behandlingId), saksbehandler = beslutter)
 
             iverksettForBehandlingId(
                 tac = tac,

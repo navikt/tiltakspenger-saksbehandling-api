@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettAutomatiskBehandlingKlarTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 
@@ -31,7 +31,9 @@ interface UnderkjennRammebehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
-        taBehandling(tac, sak.id, behandlingId, beslutter)
+
+        taRammebehandlinger(tac, listOf(sak.id to behandlingId), saksbehandler = beslutter)
+
         return Tuple4(
             sak,
             søknad,
@@ -46,7 +48,9 @@ interface UnderkjennRammebehandlingBuilder {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
     ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandling) = opprettAutomatiskBehandlingKlarTilBeslutning(tac)
-        taBehandling(tac, sak.id, behandling.id, beslutter)
+
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandling.id), saksbehandler = beslutter)
+
         return Tuple4(
             sak,
             søknad,

@@ -51,7 +51,6 @@ fun Route.rammebehandlingRoutes(
     sendRammebehandlingTilBeslutningRoute(sendBehandlingTilBeslutningService, auditService, tilgangskontrollService)
     forhåndsvisVedtaksbrevRoute(auditService, forhåndsvisVedtaksbrevService, tilgangskontrollService)
     startRevurderingRoute(startRevurderingService, auditService, tilgangskontrollService)
-    taRammebehandlingRoute(auditService, taRammebehandlingService, tilgangskontrollService, clock)
     taRammebehandlingerRoute(auditService, taRammebehandlingService, tilgangskontrollService)
     angreRammebehandlingRoute(auditService, angreRammebehandlingService, tilgangskontrollService, clock)
     underkjennRammebehandlingRoute(auditService, behandlingService, tilgangskontrollService)

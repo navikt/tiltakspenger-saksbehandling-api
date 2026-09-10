@@ -17,8 +17,8 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettetSøknadsbehandlingForKlage
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taKlagebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderKlagebehandling
 import org.junit.jupiter.api.Test
 
@@ -180,10 +180,9 @@ class VurderKlagebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandling.id,
+                behandlinger = listOf(sak.id to rammebehandlingMedKlagebehandling.id),
                 saksbehandler = beslutter,
             )
             vurderKlagebehandling(
@@ -231,10 +230,9 @@ class VurderKlagebehandlingRouteTest {
                 saksbehandler = saksbehandler,
             )
             val beslutter = ObjectMother.beslutter()
-            taBehandling(
+            taRammebehandlinger(
                 tac = tac,
-                sakId = sak.id,
-                behandlingId = rammebehandlingMedKlagebehandlingg.id,
+                behandlinger = listOf(sak.id to rammebehandlingMedKlagebehandlingg.id),
                 saksbehandler = beslutter,
             )
             iverksettForBehandlingId(
