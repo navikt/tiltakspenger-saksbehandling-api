@@ -25,13 +25,13 @@ import java.nio.charset.StandardCharsets
 class MaskedLogTest {
     @Test
     fun `produksjons-logback maskerer og ruter team logs riktig`() {
-        ServerSocket(0, 50, InetAddress.getByName(lokalLoopbackAddress)).use { serverSocket ->
+        ServerSocket(0, 50, InetAddress.getByName(LOKAL_LOOPBACK_ADRESSE)).use { serverSocket ->
             serverSocket.soTimeout = 5_000
             val context = LoggerContext().apply { mdcAdapter = LogbackMDCAdapter() }
             try {
                 val konfigurasjon = isolertKonfigurasjonFraProduksjonsfilen(
                     port = serverSocket.localPort,
-                    lokalAdresse = lokalLoopbackAddress,
+                    lokalAdresse = LOKAL_LOOPBACK_ADRESSE,
                 )
                 JoranConfigurator().apply {
                     this.context = context
@@ -143,7 +143,7 @@ class MaskedLogTest {
         regex.find(innhold)?.value ?: error("Fant ikke $navn i logback.xml.")
 
     private companion object {
-        private const val lokalLoopbackAddress = "127.0.0.1"
+        private const val LOKAL_LOOPBACK_ADRESSE = "127.0.0.1"
         private val teamLogsMarker: Marker = MarkerFactory.getMarker("TEAM_LOGS")
         private val stdoutAppenderRegex = Regex(
             """<appender\s+name="STDOUT_JSON".*?</appender>""",
