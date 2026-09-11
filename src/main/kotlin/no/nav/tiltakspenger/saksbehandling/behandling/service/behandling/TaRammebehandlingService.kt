@@ -5,6 +5,7 @@ import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptySetOrThrow
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -18,6 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BESLUTNING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.KunneIkkeTaBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.ta.taBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingerKommando.RammebehandlingMedSakId
+import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import java.time.Clock
@@ -33,23 +36,22 @@ class TaRammebehandlingService(
 
     suspend fun taRammebehandlinger(
         kommando: TaRammebehandlingerKommando,
-    ): Either<KunneIkkeTaBehandling, List<Rammebehandling>> {
-        val behandlingerMedStatistikk: List<Pair<Rammebehandling, StatistikkDTO>> = kommando.behandlinger.map {
+    ): Either<KunneIkkeTaBehandling, List<Pair<Sak, Rammebehandling>>> {
+        val sakBehandlingOgStatistikk: List<Triple<Sak, Rammebehandling, StatistikkDTO>> = kommando.behandlinger.map {
             val (sak, behandling) = behandlingService.hentSakOgRammebehandling(it.sakId, it.behandlingId)
 
             behandling.taBehandling(kommando.saksbehandler, clock).getOrElse {
                 return@taRammebehandlinger it.left()
             }.let { (oppdatertRammebehandling, statistikkhendelser) ->
-                // Verifiser at saken er ok
-                sak.oppdaterRammebehandling(oppdatertRammebehandling)
+                val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
                 val statistikkDTO = statistikkService.generer(statistikkhendelser)
 
-                oppdatertRammebehandling to statistikkDTO
+                Triple(oppdatertSak, oppdatertRammebehandling, statistikkDTO)
             }
         }
 
         sessionFactory.withTransactionContext { tx ->
-            behandlingerMedStatistikk.forEach { (rammebehandling, statistikk) ->
+            sakBehandlingOgStatistikk.forEach { (_, rammebehandling, statistikk) ->
                 when (rammebehandling.status) {
                     UNDER_BEHANDLING -> rammebehandlingRepo.taBehandlingSaksbehandler(rammebehandling, tx)
                     UNDER_BESLUTNING -> rammebehandlingRepo.taBehandlingBeslutter(rammebehandling, tx)
@@ -59,7 +61,25 @@ class TaRammebehandlingService(
             }
         }
 
-        return behandlingerMedStatistikk.map { it.first }.right()
+        return sakBehandlingOgStatistikk.map { it.first to it.second }.right()
+    }
+
+    suspend fun taRammebehandling(
+        sakId: SakId,
+        behandlingId: RammebehandlingId,
+        saksbehandler: Saksbehandler,
+    ): Either<KunneIkkeTaBehandling, Pair<Sak, Rammebehandling>> {
+        return taRammebehandlinger(
+            TaRammebehandlingerKommando(
+                saksbehandler = saksbehandler,
+                behandlinger = nonEmptyListOf(
+                    RammebehandlingMedSakId(
+                        behandlingId = behandlingId,
+                        sakId = sakId,
+                    ),
+                ),
+            ),
+        ).map { it.single() }
     }
 }
 

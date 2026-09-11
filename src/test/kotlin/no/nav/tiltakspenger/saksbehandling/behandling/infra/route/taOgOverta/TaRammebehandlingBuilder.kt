@@ -26,6 +26,7 @@ interface TaRammebehandlingBuilder {
         tac: TestApplicationContext,
         behandlinger: List<Pair<SakId, RammebehandlingId>>,
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
+        returnerSaker: Boolean? = null,
         forventet: ForventetRespons = ForventetRespons(status = 200, contentType = "application/json; charset=UTF-8"),
     ): Pair<List<Pair<Sak, Rammebehandling>>, JsonNode?>? {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(
@@ -37,13 +38,15 @@ interface TaRammebehandlingBuilder {
             """{ "behandlingId": "$behandlingId", "sakId": "$sakId" }"""
         }
 
+        val returnerSakerJson = returnerSaker?.let { """, "returnerSaker": $it""" } ?: ""
+
         val response = defaultRequestWithAssertions(
             method = HttpMethod.POST,
             uri = "/behandlinger/ta",
             jwt = jwt,
             forventet = forventet,
             body = """
-                { "behandlinger": [ $behandlingerJson ]}
+                { "behandlinger": [ $behandlingerJson ]$returnerSakerJson }
             """.trimIndent(),
         )
 

@@ -14,8 +14,9 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.ktor.common.parseBody
+import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
-import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
@@ -29,11 +30,15 @@ import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutte
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.toStatusAndErrorJson
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.SakDTO
+import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
+import java.time.Clock
 
 private const val TA_RAMMEBEHANDLINGER_PATH = "/behandlinger/ta"
 
 private data class RequestBody(
     val behandlinger: List<BehandlingMedSakIdBody>,
+    val returnerSaker: Boolean = false,
 ) {
     fun tilKommando(saksbehandler: Saksbehandler): Either<KunneIkkeTaBehandling, TaRammebehandlingerKommando> {
         return TaRammebehandlingerKommando(
@@ -53,8 +58,9 @@ private data class RequestBody(
     )
 }
 
-private data class ResponsBody(
+private data class ResponseBody(
     val behandlinger: List<BehandlingRespons>,
+    val saker: List<SakDTO>,
 ) {
     data class BehandlingRespons(
         val behandlingId: String,
@@ -66,48 +72,70 @@ fun Route.taRammebehandlingerRoute(
     auditService: AuditService,
     taRammebehandlingService: TaRammebehandlingService,
     tilgangskontrollService: TilgangskontrollService,
+    clock: Clock,
 ) {
     val logger = KotlinLogging.logger { }
     post(TA_RAMMEBEHANDLINGER_PATH) {
         logger.debug { "Mottatt post-request på '$TA_RAMMEBEHANDLINGER_PATH' - Knytter saksbehandler/beslutter til flere behandlinger." }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
-        call.withBody<RequestBody> { body ->
 
-            val kommando = body.tilKommando(saksbehandler).getOrElse {
-                call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
-                return@withBody
-            }
-
-            val correlationId = call.correlationId()
-            krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
-
-            tilgangskontrollService.harTilgangTilPersonerForSakIder(kommando.hentSakIder(), saksbehandler = saksbehandler, saksbehandlerToken = token)
-
-            taRammebehandlingService.taRammebehandlinger(kommando = kommando).fold(
-                ifLeft = { feil ->
-                    call.loggOgSvarFeil(
-                        logger = logger,
-                        operasjon = "Tildele en eller flere rammebehandlinger",
-                        feil = feil,
-                        statusOgErrorJson = feil.tilStatusOgErrorJson(),
-                        kontekst = "Behandlinger som ble forsøkt å ta: ${kommando.behandlinger}",
-                    )
-                },
-                ifRight = { behandlinger ->
-                    behandlinger.forEach {
-                        auditService.logMedRammebehandlingId(
-                            behandlingId = it.id,
-                            navIdent = saksbehandler.navIdent,
-                            action = AuditLogEvent.Action.UPDATE,
-                            contextMessage = "Saksbehandler tar behandlingen(e)",
-                            correlationId = correlationId,
-                        )
-                    }
-                    call.respondJson(ResponsBody(behandlinger.map { ResponsBody.BehandlingRespons(behandlingId = it.id.toString(), saksnummer = it.saksnummer.toString()) }))
-                },
-            )
+        val body = call.parseBody<RequestBody>().getOrElse {
+            call.respond400BadRequest(it)
+            return@post
         }
+
+        val kommando = body.tilKommando(saksbehandler).getOrElse {
+            call.respondJson(statusAndValue = it.tilStatusOgErrorJson())
+            return@post
+        }
+
+        val correlationId = call.correlationId()
+        krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+
+        tilgangskontrollService.harTilgangTilPersonerForSakIder(
+            kommando.hentSakIder(),
+            saksbehandler = saksbehandler,
+            saksbehandlerToken = token,
+        )
+
+        taRammebehandlingService.taRammebehandlinger(kommando = kommando).fold(
+            ifLeft = { feil ->
+                call.loggOgSvarFeil(
+                    logger = logger,
+                    operasjon = "Tildele en eller flere rammebehandlinger",
+                    feil = feil,
+                    statusOgErrorJson = feil.tilStatusOgErrorJson(),
+                    kontekst = "Behandlinger som ble forsøkt å ta: ${kommando.behandlinger}",
+                )
+            },
+            ifRight = {
+                it.forEach {
+                    auditService.logMedRammebehandlingId(
+                        behandlingId = it.second.id,
+                        navIdent = saksbehandler.navIdent,
+                        action = AuditLogEvent.Action.UPDATE,
+                        contextMessage = "Saksbehandler tar behandlingen(e)",
+                        correlationId = correlationId,
+                    )
+                }
+                call.respondJson(
+                    ResponseBody(
+                        it.map { (sak, behandling) ->
+                            ResponseBody.BehandlingRespons(
+                                behandlingId = behandling.id.toString(),
+                                saksnummer = sak.saksnummer.toString(),
+                            )
+                        },
+                        saker = if (body.returnerSaker) {
+                            it.distinctBy { (sak) -> sak.id }.map { (sak) -> sak.toSakDTO(saksbehandler, clock) }
+                        } else {
+                            emptyList()
+                        },
+                    ),
+                )
+            },
+        )
     }
 }
 

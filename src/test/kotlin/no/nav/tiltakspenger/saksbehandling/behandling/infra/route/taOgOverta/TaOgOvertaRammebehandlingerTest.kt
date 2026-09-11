@@ -113,6 +113,54 @@ class TaOgOvertaRammebehandlingerTest {
     }
 
     @Test
+    fun `saker returneres ikke som standard`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+
+            taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandling.id))!!.also { (_, responsJson) ->
+                responsJson!!.get("saker").size() shouldBe 0
+            }
+        }
+    }
+
+    @Test
+    fun `saker returneres ikke når returnerSaker er false`() {
+        withTestApplicationContext { tac ->
+            val (sak, _, behandling) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+
+            taRammebehandlinger(
+                tac,
+                behandlinger = listOf(sak.id to behandling.id),
+                returnerSaker = false,
+            )!!.also { (_, responsJson) ->
+                responsJson!!.get("saker").size() shouldBe 0
+            }
+        }
+    }
+
+    @Test
+    fun `saker returneres når returnerSaker er true`() {
+        withTestApplicationContext { tac ->
+            val (sak1, _, behandling1) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+            val (sak2, _, behandling2) = opprettSøknadsbehandlingKlarTilBehandling(tac)
+
+            val behandlinger = listOf(sak1.id to behandling1.id, sak2.id to behandling2.id)
+
+            taRammebehandlinger(tac, behandlinger = behandlinger, returnerSaker = true)!!.also { (_, responsJson) ->
+                responsJson!!.get("saker").also { saker ->
+                    saker.size() shouldBe 2
+                    saker[0].get("sakId").asString() shouldBe sak1.id.toString()
+                    saker[0].get("saksnummer").asString() shouldBe sak1.saksnummer.toString()
+                    saker[0].get("fnr").asString() shouldBe sak1.fnr.verdi
+                    saker[1].get("sakId").asString() shouldBe sak2.id.toString()
+                    saker[1].get("saksnummer").asString() shouldBe sak2.saksnummer.toString()
+                    saker[1].get("fnr").asString() shouldBe sak2.fnr.verdi
+                }
+            }
+        }
+    }
+
+    @Test
     fun `ingen behandlinger tildeles når en i listen ikke kan tas`() {
         withTestApplicationContext { tac ->
             val (sak1, _, behandling1) = opprettSøknadsbehandlingKlarTilBehandling(tac)

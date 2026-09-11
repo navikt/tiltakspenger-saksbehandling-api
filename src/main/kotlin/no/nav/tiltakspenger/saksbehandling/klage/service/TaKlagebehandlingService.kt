@@ -1,12 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
-import arrow.core.nonEmptyListOf
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingerKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -37,20 +35,7 @@ class TaKlagebehandlingService(
             kommando = kommando,
             sistEndret = nå(clock),
             taRammebehandling = { sakId, behandlingId, saksbehandler ->
-                taRammebehandlingService.taRammebehandlinger(
-                    TaRammebehandlingerKommando(
-                        saksbehandler = saksbehandler,
-                        behandlinger = nonEmptyListOf(
-                            TaRammebehandlingerKommando.RammebehandlingMedSakId(
-                                behandlingId = behandlingId,
-                                sakId = sakId,
-                            ),
-                        ),
-                    ),
-                ).map { behandlinger ->
-                    val tattBehandling = behandlinger.single()
-                    sak.oppdaterRammebehandling(tattBehandling) to tattBehandling
-                }
+                taRammebehandlingService.taRammebehandling(sakId, behandlingId, saksbehandler)
             },
             taMeldekortbehandling = { sakId, meldekortId, saksbehandler ->
                 taMeldekortbehandlingService.taMeldekortbehandling(sakId, meldekortId, saksbehandler).getOrThrow()
