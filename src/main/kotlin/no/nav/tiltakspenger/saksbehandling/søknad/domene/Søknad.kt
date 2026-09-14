@@ -23,8 +23,7 @@ sealed interface Søknad {
     val journalpostId: String
     val opprettet: LocalDateTime
     val tidsstempelHosOss: LocalDateTime
-    val avbrutt: Avbrutt?
-    val erAvbrutt: Boolean
+    val avbrutt: Søknadshendelser
     val fnr: Fnr
     val harSøktPåTiltak: JaNeiSpm
     val tiltak: Søknadstiltak?
@@ -56,6 +55,9 @@ sealed interface Søknad {
      * Enten fordi man ikke fikk treff på tiltaket når søknaden ble registrert eller fordi tiltaket ikke gir rett til tiltakspenger.
      */
     val manueltSattTiltak: String?
+
+    val erAvbrutt: Boolean get() = avbrutt.erAvbrutt
+    val erGjenopprettet: Boolean get() = avbrutt.erGjenopprettet
 
     companion object {
         fun randomId() = SøknadId.random()
@@ -99,6 +101,7 @@ sealed interface Søknad {
                     tidsstempelHosOss = tidsstempelHosOss,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
+                    avbrutt = Søknadshendelser.empty(),
                     harSøktPåTiltak = harSøktPåTiltak,
                     harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                     kvp = kvp,
@@ -130,6 +133,7 @@ sealed interface Søknad {
                     tidsstempelHosOss = tidsstempelHosOss,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
+                    avbrutt = Søknadshendelser.empty(),
                     harSøktPåTiltak = harSøktPåTiltak,
                     harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                     kvp = kvp,
@@ -167,19 +171,45 @@ sealed interface Søknad {
         (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Søknad {
-        if (this.avbrutt != null) {
+        if (this.avbrutt.erAvbrutt) {
             throw IllegalStateException("Søknad er allerede avbrutt")
         }
 
-        val avbrutt = Avbrutt(
+        val oppdaterteHendelser = this.avbrutt + Søknadshendelse.Avbrutt(
             tidspunkt = tidspunkt,
-            saksbehandler = avbruttAv.navIdent,
+            utførtAv = avbruttAv.navIdent,
             begrunnelse = begrunnelse,
         )
 
         return when (this) {
-            is InnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
-            is IkkeInnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
+            is InnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
+            is IkkeInnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
+        }
+    }
+
+    /**
+     * Tar opp igjen en avbrutt søknad ved å nullstille [avbrutt].
+     * Begrunnelsen for avbruddet går ikke tapt - den ligger igjen som en [Søknadshendelse.Avbrutt] i [avbrutt].
+     * Kalleren har ansvar for å opprette en ny søknadsbehandling; den avbrutte behandlingen gjenopprettes ikke.
+     */
+    fun gjenopprett(
+        gjenopprettetAv: Saksbehandler,
+        begrunnelse: NonBlankString?,
+        tidspunkt: LocalDateTime,
+    ): Søknad {
+        if (this.avbrutt.erGjenopprettet) {
+            throw IllegalStateException("Søknad er ikke avbrutt og kan derfor ikke gjenopprettes")
+        }
+
+        val oppdaterteHendelser = this.avbrutt + Søknadshendelse.Gjenopprettet(
+            tidspunkt = tidspunkt,
+            utførtAv = gjenopprettetAv.navIdent,
+            begrunnelse = begrunnelse,
+        )
+
+        return when (this) {
+            is InnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
+            is IkkeInnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
         }
     }
 

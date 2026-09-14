@@ -37,6 +37,10 @@ class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : Sø
         data.get()[søknad.id] = søknad
     }
 
+    override fun lagreGjenopprettetSøknad(søknad: Søknad, txContext: TransactionContext) {
+        data.get()[søknad.id] = søknad
+    }
+
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {
         val soknad = data.get().values.find { it.fnr == gammeltFnr }
         soknad?.let {

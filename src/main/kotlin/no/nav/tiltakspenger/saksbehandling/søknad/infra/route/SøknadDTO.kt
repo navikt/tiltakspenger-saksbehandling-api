@@ -2,8 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
@@ -12,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.FraOgMedDatoSpm
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.JaNeiSpm
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad.PeriodeSpm
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -27,11 +26,25 @@ data class SøknadDTO(
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
     val antallVedlegg: Int,
-    val avbrutt: AvbruttDTO?,
+    /** Historikken — avbrutt-hendelsene; erstatter tidligere `avbrutt`+`hendelser`. */
+    val avbrutt: List<SøknadshendelseDTO>,
     val kanInnvilges: Boolean,
     val svar: SøknadSvarDTO,
     val behandlingsarsak: Behandlingsarsak?,
 ) {
+    /** Historikken over avbrytelser og gjenopprettinger av søknaden, i kronologisk rekkefølge. */
+    data class SøknadshendelseDTO(
+        val type: Type,
+        val tidspunkt: LocalDateTime,
+        val utførtAv: String,
+        val begrunnelse: String?,
+    ) {
+        enum class Type {
+            AVBRUTT,
+            GJENOPPRETTET,
+        }
+    }
+
     data class TiltaksdeltagelseFraSøknadDTO(
         val id: String,
         val fraOgMed: String?,
@@ -111,7 +124,7 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
         antallVedlegg = this.vedlegg,
-        avbrutt = avbrutt?.toAvbruttDTO(),
+        avbrutt = this.avbrutt.toSøknadshendelserDTO(),
         kanInnvilges = this.kanInnvilges(),
         svar = SøknadDTO.SøknadSvarDTO(
             harSøktPåTiltak = harSøktPåTiltak.toDTO(),
@@ -144,7 +157,7 @@ fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
         antallVedlegg = this.vedlegg,
-        avbrutt = avbrutt?.toAvbruttDTO(),
+        avbrutt = this.avbrutt.toSøknadshendelserDTO(),
         kanInnvilges = this.kanInnvilges(),
         svar = SøknadDTO.SøknadSvarDTO(
             harSøktPåTiltak = harSøktPåTiltak.toDTO(),
@@ -239,5 +252,17 @@ fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknad
             is BarnetilleggFraSøknad.FraPdl -> it.fnr?.verdi
             is BarnetilleggFraSøknad.Manuell -> null
         },
+    )
+}
+
+fun Søknadshendelser.toSøknadshendelserDTO(): List<SøknadDTO.SøknadshendelseDTO> = this.toList().map {
+    SøknadDTO.SøknadshendelseDTO(
+        type = when (it) {
+            is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Avbrutt -> SøknadDTO.SøknadshendelseDTO.Type.AVBRUTT
+            is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Gjenopprettet -> SøknadDTO.SøknadshendelseDTO.Type.GJENOPPRETTET
+        },
+        tidspunkt = it.tidspunkt,
+        utførtAv = it.utførtAv,
+        begrunnelse = it.begrunnelse?.value,
     )
 }

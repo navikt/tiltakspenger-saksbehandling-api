@@ -2,11 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.repo
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowWithMessage
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import kotliquery.queryOf
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvManueltRegistrertSøknad
@@ -56,10 +58,61 @@ class SøknadPostgresRepoNegativTest {
     fun `kaster når søknaden som skal lagres ikke er avbrutt`() {
         withTestApplicationContextAndPostgres { tac ->
             val (_, søknad) = opprettSakOgSøknad(tac)
-            søknad.avbrutt shouldBe null
+            søknad.avbrutt.shouldBeEmpty()
 
             shouldThrowWithMessage<IllegalArgumentException>("Kan ikke lagre en søknad som ikke er avbrutt") {
                 tac.søknadContext.søknadRepo.lagreAvbruttSøknad(søknad, null)
+            }
+        }
+    }
+
+    /**
+     * `lagreGjenopprettetSøknad` sjekker at oppdateringen faktisk traff en rad, på samme måte som `lagreAvbruttSøknad`.
+     * Prodstien leser søknaden i samme transaksjon som den gjenoppretter den, så raden er der - vakten finnes for en framtidig kaller som ikke har gjort det.
+     */
+    @Test
+    fun `kaster når søknaden som skal gjenopprettes ikke finnes`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
+            val avbruttSøknad = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.søknader.single()
+            val gjenopprettetSøknad = avbruttSøknad.gjenopprett(
+                gjenopprettetAv = ObjectMother.saksbehandler(),
+                begrunnelse = null,
+                tidspunkt = 1.januar(2025).atTime(12, 0),
+            )
+
+            // Behandlingen, tiltaket og barnetilleggene har foreign keys til søknaden, så de må slippe taket før raden kan fjernes.
+            tac.sessionFactory.withSession { session ->
+                val søknadId = mapOf("id" to avbruttSøknad.id.toString())
+                session.run(queryOf("update behandling set soknad_id = null where soknad_id = :id", søknadId).asUpdate)
+                session.run(queryOf("delete from søknadstiltak where søknad_id = :id", søknadId).asUpdate)
+                session.run(queryOf("delete from søknad_barnetillegg where søknad_id = :id", søknadId).asUpdate)
+                session.run(queryOf("delete from søknad where id = :id", søknadId).asUpdate)
+            }
+
+            shouldThrowWithMessage<RuntimeException>("Kunne ikke lagre gjenopprettet søknad.") {
+                tac.sessionFactory.withTransactionContext { tx ->
+                    tac.søknadContext.søknadRepo.lagreGjenopprettetSøknad(gjenopprettetSøknad, tx)
+                }
+            }
+        }
+    }
+
+    /**
+     * `lagreGjenopprettetSøknad` tar en hel søknad, men er bare meningsfull for en som faktisk er gjenopprettet.
+     * Prodstien gjenoppretter søknaden først og lagrer så, så vakten nås ikke derfra - den finnes for en framtidig kaller som bytter om på rekkefølgen.
+     */
+    @Test
+    fun `kaster når søknaden som skal lagres fortsatt er avbrutt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
+            val avbruttSøknad = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.søknader.single()
+            avbruttSøknad.avbrutt shouldNotBe null
+
+            shouldThrowWithMessage<IllegalArgumentException>("Kan ikke lagre en gjenopprettet søknad som fortsatt er avbrutt") {
+                tac.sessionFactory.withTransactionContext { tx ->
+                    tac.søknadContext.søknadRepo.lagreGjenopprettetSøknad(avbruttSøknad, tx)
+                }
             }
         }
     }

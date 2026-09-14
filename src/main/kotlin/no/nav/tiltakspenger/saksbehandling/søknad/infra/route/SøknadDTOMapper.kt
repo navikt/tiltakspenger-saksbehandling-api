@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -58,7 +59,7 @@ object SøknadDTOMapper {
             trygdOgPensjon = dto.trygdOgPensjon.tilDomene(),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            avbrutt = null,
+            avbrutt = Søknadshendelser.empty(),
             søknadstype = Søknadstype.DIGITAL,
             manueltRegistrert = false,
         )
