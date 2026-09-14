@@ -15,7 +15,7 @@ class SimuleringsmerkeTest {
 
     @Test
     fun `endagspostering beholder beløpet`() {
-        val merke = posteringerForDag(ytelse(408)).single().tilSimuleringsmerke()
+        val merke = posteringerForDag(ytelse(408)).single().tilSimuleringsmerke()!!
 
         merke.beløp shouldBe 408
         merke.periode shouldBe Periode(Simuleringstestdata.førsteDag, Simuleringstestdata.førsteDag)
@@ -29,7 +29,7 @@ class SimuleringsmerkeTest {
     @Test
     fun `flerdagerspostering har ingen dagsandel å oppgi`() {
         val periode = Periode(6.januar(2025), 10.januar(2025))
-        val merke = posteringerForPeriode(periode, ytelse(1490)).single().tilSimuleringsmerke()
+        val merke = posteringerForPeriode(periode, ytelse(1490)).single().tilSimuleringsmerke()!!
 
         merke.beløp shouldBe null
         merke.periode shouldBe periode
@@ -37,16 +37,38 @@ class SimuleringsmerkeTest {
 
     @Test
     fun `justering gjenkjennes på klassekoden, også i merket`() {
-        val merker = posteringerForDag(ytelse(400), justering(-50)).map { it.tilSimuleringsmerke() }
+        val merker = posteringerForDag(ytelse(400), justering(-50)).mapNotNull { it.tilSimuleringsmerke() }
 
         merker.single { it.erJustering }.beløp shouldBe -50
         merker.count { it.erJustering } shouldBe 1
     }
 
+    /**
+     * En feilutbetaling med negativt beløp er en reversering av et tidligere krav, ikke et nytt kravgrunnlag.
+     * Den skal derfor ikke få noe merke.
+     * Positiv feilutbetaling skal fortsatt markeres.
+     */
+    @Test
+    fun `feilutbetaling med negativt beløp genererer ikke et merke`() {
+        val merker = posteringerForDag(ytelse(312), feilutbetaling(-200), motpostering(200))
+            .map { it to it.tilSimuleringsmerke() }
+
+        merker.single { it.first.type == Posteringstype.FEILUTBETALING }.second shouldBe null
+        merker.single { it.first.type == Posteringstype.YTELSE }.second!!.type shouldBe Posteringstype.YTELSE
+    }
+
+    @Test
+    fun `positiv feilutbetaling genererer et merke`() {
+        val merke = posteringerForDag(feilutbetaling(200)).single().tilSimuleringsmerke()!!
+
+        merke.type shouldBe Posteringstype.FEILUTBETALING
+        merke.beløp shouldBe 200
+    }
+
     @Test
     fun `fortegnet er kildedata og følger med selv når beløpet ikke kan vises`() {
         val periode = Periode(Simuleringstestdata.førsteDag, Simuleringstestdata.førsteDag.plusDays(4))
-        val merker = posteringerForPeriode(periode, trekk(-237), trekk(156)).map { it.tilSimuleringsmerke() }
+        val merker = posteringerForPeriode(periode, trekk(-237), trekk(156)).mapNotNull { it.tilSimuleringsmerke() }
 
         merker.map { it.beløp } shouldBe listOf(null, null)
         merker.map { it.erNegativt } shouldBe listOf(true, false)

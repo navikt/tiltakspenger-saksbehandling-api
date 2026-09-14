@@ -37,10 +37,17 @@ data class Simuleringsmerke(
     val erJustering: Boolean = klassekode == OppsummeringGenerator.KLASSEKODE_JUSTERING
 }
 
-fun Postering.tilSimuleringsmerke(): Simuleringsmerke = Simuleringsmerke(
-    type = this.type,
-    periode = this.periode,
-    klassekode = this.klassekode,
-    beløp = if (this.periode.fraOgMed == this.periode.tilOgMed) this.beløp else null,
-    erNegativt = this.beløp < 0,
-)
+fun Postering.tilSimuleringsmerke(): Simuleringsmerke? {
+    // "Feilutbetaling" som ikke har positivt beløp er en reversering av en tidligere feilutbetaling, og skal ikke markeres som feilutbetaling.
+    if (this.type == Posteringstype.FEILUTBETALING && this.beløp <= 0) {
+        return null
+    }
+
+    return Simuleringsmerke(
+        type = this.type,
+        periode = this.periode,
+        klassekode = this.klassekode,
+        beløp = if (this.periode.fraOgMed == this.periode.tilOgMed) this.beløp else null,
+        erNegativt = this.beløp < 0,
+    )
+}

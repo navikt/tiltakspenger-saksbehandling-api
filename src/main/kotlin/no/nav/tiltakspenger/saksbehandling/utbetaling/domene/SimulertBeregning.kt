@@ -256,7 +256,7 @@ data class SimulertBeregning(
 private fun SimuleringForMeldeperiode?.merkerFor(dato: LocalDate): List<Simuleringsmerke> {
     return this?.posteringer
         ?.filter { it.periode.inneholder(dato) }
-        ?.map { it.tilSimuleringsmerke() }
+        ?.mapNotNull { it.tilSimuleringsmerke() }
         ?: emptyList()
 }
 
