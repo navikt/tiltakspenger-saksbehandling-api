@@ -8,6 +8,12 @@ data class SaksbehandlerDTO(
     val brukernavn: String,
     val epost: String,
     val roller: List<SaksbehandlerRolleDTO>,
+    /**
+     * Angir om personopplysninger og fritekster sladdes i svarene til den innloggede brukeren.
+     * Sann for brukere uten fagrolle i [ROLLER_MED_PERSONINNSYN].
+     * Da leveres verdiene som [SLADDET_TEKST].
+     */
+    val sladdes: Boolean,
 ) {
 
     enum class SaksbehandlerRolleDTO {
@@ -25,6 +31,7 @@ fun Saksbehandler.toSaksbehandlerDTO(): SaksbehandlerDTO =
         brukernavn = brukernavn,
         epost = epost,
         roller = roller.map { it.toRolleDTO() },
+        sladdes = skalSladdeFor(this),
     )
 
 private fun Saksbehandlerrolle.toRolleDTO(): SaksbehandlerDTO.SaksbehandlerRolleDTO =

@@ -27,7 +27,8 @@ class MeRouteTest {
           "navIdent":"Z12345",
           "brukernavn":"Sak Behandler",
           "epost":"Sak.Behandler@nav.no",
-          "roller":["SAKSBEHANDLER"]
+          "roller":["SAKSBEHANDLER"],
+          "sladdes":false
         }
         """.trimIndent()
 
@@ -50,6 +51,39 @@ class MeRouteTest {
                 ).apply {
                     JSONAssert.assertEquals(
                         forventetSaksbehandler,
+                        body,
+                        JSONCompareMode.LENIENT,
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `get saksbehandler - utvikler uten fagrolle - sladdes er sann`() {
+        runTest {
+            withTestApplicationContext { tac ->
+                val utvikler = ObjectMother.utvikler()
+                val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = utvikler)
+                tac.leggTilBruker(jwt, utvikler)
+
+                defaultRequestWithAssertions(
+                    HttpMethod.GET,
+                    SAKSBEHANDLER_PATH,
+                    jwt = jwt,
+                    forventet = ForventetRespons(
+                        status = 200,
+                        contentType = "application/json; charset=UTF-8",
+                    ),
+                ).apply {
+                    JSONAssert.assertEquals(
+                        // language = JSON
+                        """
+                        {
+                          "roller":["UTVIKLER"],
+                          "sladdes":true
+                        }
+                        """.trimIndent(),
                         body,
                         JSONCompareMode.LENIENT,
                     )
