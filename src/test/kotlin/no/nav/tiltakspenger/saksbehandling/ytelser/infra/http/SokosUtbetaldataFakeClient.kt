@@ -12,8 +12,11 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
  * Svarer med tom liste til en test har seedet ytelser for fnr-et med [leggTilYtelser].
  *
  * Faken tar også opp oppslagene den mottar.
- * Perioden vi spør utbetaldata om, regnes ut i [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService] og er ikke synlig i saksopplysningene når svaret er tomt.
- * Uten opptaket måtte en test om periodejusteringen ha gått veien om et treff.
+ * Perioden vi spør utbetaldata om, regnes ut i [no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService], og lagres på saksopplysningen som `oppslagsperiode` — også ved tomt svar, siden `Ytelser.IngenTreff` bærer den.
+ * Har vi derimot ikke spurt i det hele tatt, blir saksopplysningen `IkkeBehandlingsgrunnlag` uten oppslagsperiode, og da er opptaket eneste beviset på at faken ikke ble kalt.
+ *
+ * Merk at faken ikke filtrerer på perioden den blir spurt om.
+ * En test som seeder ytelser, må selv velge en periode som rommer dem, ellers pinner den et svar utbetaldata ikke kunne gitt.
  */
 class SokosUtbetaldataFakeClient : SokosUtbetaldataClient {
     private val ytelserPerFnr = Atomic(mutableMapOf<Fnr, List<Ytelse>>())

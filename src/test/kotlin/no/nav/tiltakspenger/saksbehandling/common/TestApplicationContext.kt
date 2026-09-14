@@ -513,6 +513,11 @@ sealed class TestApplicationContext(
         sokosUtbetaldataFakeClient.leggTilYtelser(fnr = fnr, ytelser = ytelser)
     }
 
-    /** Oppslagene mot [SokosUtbetaldataFakeClient], i mottatt rekkefølge — perioden vi spør om er ikke synlig i saksopplysningene når svaret er tomt. */
+    /**
+     * Oppslagene mot [SokosUtbetaldataFakeClient], i mottatt rekkefølge.
+     *
+     * Ble utbetaldata aldri spurt, finnes det ingen oppslagsperiode å lese noe sted — saksopplysningen blir `IkkeBehandlingsgrunnlag`.
+     * Opptaket er da eneste måten å skille «spurte ikke» fra «spurte om feil periode».
+     */
     val utbetaldataOppslag: List<SokosUtbetaldataFakeClient.Oppslag> get() = sokosUtbetaldataFakeClient.oppslag
 }

@@ -1,23 +1,25 @@
 package no.nav.tiltakspenger.saksbehandling.ytelser
 
 import io.kotest.assertions.json.shouldEqualJson
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
-import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.dato.oktober
+import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.hentYtelserJson
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
@@ -30,7 +32,7 @@ import java.time.LocalDate
 /**
  * Ytelsene fra sokos-utbetaldata hele veien: fra klienten, gjennom saksopplysningene, ut i behandlingsresponsen og ned i `behandling.saksopplysninger`.
  *
- * Utbetaldata-faken svarer med ytelsene [UtbetalingDtoTestEx.riktSvar] mapper til, og at den mappingen er riktig, er pinnet i [no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClientTest].
+ * Utbetaldata-faken svarer med ytelsene som [UtbetalingDtoTestEx.riktSvar] mapper til, og at den mappingen er riktig, er pinnet i [no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClientTest].
  * Her er poenget hva som skjer med ytelsene etter mappingen, slik at utvidelsen av `UtbetalingDto` ikke kan endre verken responsen eller kolonnen.
  *
  * Klassen pinner også perioden vi spør utbetaldata om, som svart boks.
@@ -41,10 +43,16 @@ import java.time.LocalDate
 class YtelserSaksopplysningTest {
 
     /**
-     * Tiltaksdeltakelsen fra `tac.tiltaksdeltakelse()` går fra januar til mars 2023, og testklokka står 1. mai 2025.
-     * Oppslagsperioden blir da første dag i måneden før deltakelsen til siste dag i måneden den slutter i, siden dagens dato ligger etter begge.
+     * Ytelsene i [UtbetalingDtoTestEx.riktSvar] ligger i august og september 2025, så deltakelsen og klokka må velges slik at oppslagsvinduet dekker dem.
+     * Et ekte utbetaldata svarer bare innenfor perioden vi spør om, og faken filtrerer ikke — uten dette ville testen lagret et treff tjenesten ikke kunne gitt.
      */
-    private val forventetOppslagsperiode = 1.desember(2022) til 31.mars(2023)
+    private val deltakelsesperiode = 1.august(2025) til 30.september(2025)
+
+    /** Dagens dato ligger etter deltakelsen, så bak-kanten blir månedsslutt og ikke dagens dato. */
+    private val idag = 15.oktober(2025)
+
+    /** Fram-kanten er første dag i måneden før deltakelsen, bak-kanten siste dag i måneden den slutter i. */
+    private val forventetOppslagsperiode = 1.juli(2025) til 30.september(2025)
 
     // language=json
     private val forventedeYtelserJson = """
@@ -73,7 +81,7 @@ class YtelserSaksopplysningTest {
 
     @Test
     fun `ytelsene fra utbetaldata havner i behandlingsresponsen og i saksopplysningskolonnen`() {
-        withTestApplicationContextAndPostgres { tac ->
+        withTestApplicationContextAndPostgres(clock = TikkendeKlokke(fixedClockAt(idag))) { tac ->
             val fnr = Fnr.random()
             // Saksopplysningene hentes når behandlingen opprettes, så faken må være seedet før det.
             tac.leggTilYtelserFraUtbetaldata(
@@ -81,7 +89,12 @@ class YtelserSaksopplysningTest {
                 ytelser = UtbetalingDtoTestEx.forventedeYtelserFraRiktSvar,
             )
 
-            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac = tac, fnr = fnr)
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
+                tac = tac,
+                fnr = fnr,
+                tiltaksdeltakelse = tac.tiltaksdeltakelse(periode = deltakelsesperiode),
+                clock = fixedClockAt(idag),
+            )
 
             val (_, oppdatertBehandling, respons) = oppdaterSaksopplysningerForBehandlingId(
                 tac = tac,
@@ -95,6 +108,10 @@ class YtelserSaksopplysningTest {
             tac.utbetaldataOppslag.distinct() shouldBe listOf(
                 SokosUtbetaldataFakeClient.Oppslag(fnr = fnr, periode = forventetOppslagsperiode),
             )
+            // Perioden vi spurte om må romme svaret vi lagrer, ellers pinner testen noe utbetaldata ikke kunne svart.
+            UtbetalingDtoTestEx.forventedeYtelserFraRiktSvar.flatMap { it.perioder }.forAll {
+                forventetOppslagsperiode.inneholderHele(it) shouldBe true
+            }
 
             JSONObject(respons)
                 .getJSONObject("saksopplysninger")
@@ -102,14 +119,14 @@ class YtelserSaksopplysningTest {
                 .toString() shouldEqualJson forventedeYtelserJson
 
             // language=json
-            tac.sessionFactory.ytelserFor(behandling.id) shouldEqualJson """
+            tac.sessionFactory.hentYtelserJson(behandling.id) shouldEqualJson """
                 {
                   "ytelser": $forventedeYtelserJson,
                   "type": "Treff",
                   "oppslagstidspunkt": "${ytelser.oppslagstidspunkt}",
                   "oppslagsperiode": {
-                    "fraOgMed": "2022-12-01",
-                    "tilOgMed": "2023-03-31"
+                    "fraOgMed": "2025-07-01",
+                    "tilOgMed": "2025-09-30"
                   }
                 }
             """.trimIndent()
@@ -204,25 +221,9 @@ class YtelserSaksopplysningTest {
             )
 
             sjekk(
-                JSONObject(tac.sessionFactory.ytelserFor(behandling.id)),
+                JSONObject(tac.sessionFactory.hentYtelserJson(behandling.id)),
                 tac.utbetaldataOppslag,
             )
         }
     }
 }
-
-/**
- * Leser `ytelser`-objektet ut av jsonb-kolonnen `behandling.saksopplysninger` med egen SQL.
- *
- * Domenet viser bare [no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser], ikke formatet på disk.
- * Feltnavnene i [no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.YtelserDbJson] er kontrakten mot rader som allerede er lagret, og den kontrakten er usynlig gjennom en rundtur.
- * `oppslagsperiode` finnes heller ikke i behandlingsresponsen, så kolonnen er eneste vei til den.
- */
-private fun PostgresSessionFactory.ytelserFor(behandlingId: RammebehandlingId): String = withSession { session ->
-    session.run(
-        queryOf(
-            "select saksopplysninger -> 'ytelser' as ytelser from behandling where id = :id",
-            mapOf("id" to behandlingId.toString()),
-        ).map { row -> row.string("ytelser") }.asSingle,
-    )
-}!!
