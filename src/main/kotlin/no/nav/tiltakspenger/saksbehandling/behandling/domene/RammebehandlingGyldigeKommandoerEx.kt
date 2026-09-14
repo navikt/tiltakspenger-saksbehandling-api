@@ -35,13 +35,8 @@ fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
     }
 }
 
-/**
- * En avbrutt søknadsbehandling kan tas opp igjen ved at søknaden gjenopprettes og en ny behandling opprettes.
- *
- * Vi ser kun behandlingen her, så den siste betingelsen - at søknaden ikke allerede har en levende behandling - håndheves av `Sak.kanGjenoppretteSøknadsbehandling` når kommandoen faktisk utføres.
- */
 private fun Rammebehandling.kanGjenopprette(saksbehandler: Saksbehandler): Boolean =
-    this is Søknadsbehandling && erAvbrutt && saksbehandler.erSaksbehandler
+    this is Søknadsbehandling && erAvbrutt && this.søknad.erAvbrutt && saksbehandler.erSaksbehandler
 
 private fun Rammebehandling.kanTildeleSaksbehandler(saksbehandler: Saksbehandler): Boolean =
     status == KLAR_TIL_BEHANDLING && kanTaBehandling(saksbehandler).isRight()
