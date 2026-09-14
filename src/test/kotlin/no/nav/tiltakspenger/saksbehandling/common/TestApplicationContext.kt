@@ -80,6 +80,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
+import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
 
 /**
@@ -506,4 +507,12 @@ sealed class TestApplicationContext(
     fun leggTilJournalpost(journalpostId: JournalpostId, fnr: Fnr) {
         safJournalpostFakeClient.addJournalpost(journalpostId, fnr)
     }
+
+    /** Registrerer ytelsene [SokosUtbetaldataFakeClient] skal svare med for [fnr]. */
+    fun leggTilYtelserFraUtbetaldata(fnr: Fnr, ytelser: List<Ytelse>) {
+        sokosUtbetaldataFakeClient.leggTilYtelser(fnr = fnr, ytelser = ytelser)
+    }
+
+    /** Oppslagene mot [SokosUtbetaldataFakeClient], i mottatt rekkefølge — perioden vi spør om er ikke synlig i saksopplysningene når svaret er tomt. */
+    val utbetaldataOppslag: List<SokosUtbetaldataFakeClient.Oppslag> get() = sokosUtbetaldataFakeClient.oppslag
 }
