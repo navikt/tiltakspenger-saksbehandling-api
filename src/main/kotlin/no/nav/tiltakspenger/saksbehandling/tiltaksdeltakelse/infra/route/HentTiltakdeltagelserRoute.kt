@@ -75,7 +75,7 @@ fun Route.hentTiltakdeltakelserRoute(
                             correlationId = correlationId,
                             behandlingId = null,
                         )
-                        call.respondJson(value = tiltaksdeltakelser)
+                        call.respondJson(value = tiltaksdeltakelser.sladdetFor(saksbehandler))
                     },
                 )
         }

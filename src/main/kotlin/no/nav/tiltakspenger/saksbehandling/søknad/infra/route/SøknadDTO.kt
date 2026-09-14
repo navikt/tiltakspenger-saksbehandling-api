@@ -40,12 +40,16 @@ data class SøknadDTO(
         val typeNavn: String,
     )
 
+    /**
+     * @property fødselsdato Dato på ISO-format.
+     * Er en streng og ikke en dato fordi den kan være sladdet.
+     */
     data class BarnetilleggFraSøknadDTO(
         val oppholderSegIEØSSpm: JaNeiSpmDTO,
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
-        val fødselsdato: LocalDate,
+        val fødselsdato: String,
         val kilde: BarnetilleggFraSøknadKilde,
         val fnr: String?,
     )
@@ -230,7 +234,7 @@ fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknad
         fornavn = it.fornavn,
         mellomnavn = it.mellomnavn,
         etternavn = it.etternavn,
-        fødselsdato = it.fødselsdato,
+        fødselsdato = it.fødselsdato.toString(),
         kilde = when (it) {
             is BarnetilleggFraSøknad.FraPdl -> SøknadDTO.BarnetilleggFraSøknadKilde.PDL
             is BarnetilleggFraSøknad.Manuell -> SøknadDTO.BarnetilleggFraSøknadKilde.Manuell

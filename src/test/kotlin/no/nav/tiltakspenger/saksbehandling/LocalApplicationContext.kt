@@ -52,6 +52,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContex
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandlerOgBeslutter
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.systembrukerAlleRoller
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utvikler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.veileder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorFakeKlient
@@ -421,6 +422,10 @@ class LocalApplicationContext(
             it.leggTilBruker(
                 TexasClientFake.LOKAL_FRONTEND_TOKEN_VEILEDER,
                 veileder(),
+            )
+            it.leggTilBruker(
+                TexasClientFake.LOKAL_FRONTEND_TOKEN_UTVIKLER,
+                utvikler(),
             )
             it.leggTilBruker(
                 TexasClientFake.LOKAL_SYSTEMBRUKER_TOKEN,

@@ -121,7 +121,7 @@ fun <T : BenkBehandling> BenkRespons<T>.toDTO(
         antallPerTab = antallPerFane.toDTO(),
         oversikt = oversikt.toDTO(saksbehandler),
         error = error,
-    )
+    ).sladdetFor(saksbehandler)
 
 private fun <T : BenkBehandling> TilgangsfiltrertBenkOversikt<T>.toDTO(saksbehandler: Saksbehandler): BenkOversiktDTO = BenkOversiktDTO(
     behandlinger = behandlinger.map { it.toDTO(saksbehandler) },

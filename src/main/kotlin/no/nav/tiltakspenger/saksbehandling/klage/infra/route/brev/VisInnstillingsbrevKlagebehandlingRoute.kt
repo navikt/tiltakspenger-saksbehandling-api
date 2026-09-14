@@ -8,6 +8,7 @@ import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
+import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withSakId
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
@@ -16,7 +17,9 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 import no.nav.tiltakspenger.saksbehandling.infra.route.withDokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.infra.route.withKlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.service.KunneIkkeViseInnstillingsbrev
@@ -36,6 +39,10 @@ fun Route.visInnstillingsbrevKlagebehandlingRoute(
         logger.debug { "Mottatt post-request på $PATH - saksbehandler ønsker å vise innstillingsbrev" }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@get
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@get
+        if (skalSladdeFor(saksbehandler)) {
+            call.respond403Forbidden(Standardfeil.pdfKreverFagrolle())
+            return@get
+        }
         call.withSakId { sakId ->
             call.withKlagebehandlingId { klagebehandlingId ->
                 call.withDokumentInfoId { dokumentInfoId ->

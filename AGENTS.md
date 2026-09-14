@@ -26,6 +26,14 @@ Les disse først.
   Mapping av en felles domenetype er infrastruktur selv om typen den mapper er felles, og hører derfor hjemme under `infra` — ikke ved siden av typen.
   Håndheves av `FellesErDomenepakkeKonsistTest`, som har en whitelist-ratchet for det som gjenstår.
 
+## Sladding av personopplysninger
+
+Sladdelaget ligger i `infra/route/Sladding.kt` med tilhørende `<DTO>Sladding.kt` ved siden av hver DTO.
+Personopplysninger og saksbehandlerfritekst sladdes for alle brukere uten minst én fagrolle i `ROLLER_MED_PERSONINNSYN`.
+Nye DTO-felter med personopplysninger eller fritekst må alltid legges inn i sladdelaget.
+Endepunkter for brev i PDF-format støtter ikke sladding og avviser forespørsler uten fagrolle med 403.
+Laget verifiseres med enhetstester av DTO-utvidelsene og route-tester som kontrollerer fravær av sensitive data i JSON-responsen.
+
 ## Whitelister i konsistregler
 
 En whitelist er en arbeidsliste, ikke et smutthull, og den skal kunne leses fra begge kanter.

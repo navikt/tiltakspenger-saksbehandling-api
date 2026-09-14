@@ -99,4 +99,4 @@ fun Sak.toSakDTO(saksbehandler: Saksbehandler, clock: Clock) = SakDTO(
     tidslinje = this.rammevedtaksliste.tilRammevedtakTidslinjeDTO(),
     innvilgetTidslinje = this.rammevedtaksliste.tilRammevedtakInnvilgetTidslinjeDTO(),
     utbetalingstidslinje = this.tilUtbetalingstidslinjeMeldeperiodeDTO(),
-)
+).sladdetFor(saksbehandler)

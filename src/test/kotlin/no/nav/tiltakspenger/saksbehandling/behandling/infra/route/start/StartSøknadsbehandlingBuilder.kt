@@ -27,6 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadPåSakId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -40,12 +41,14 @@ interface StartSøknadsbehandlingBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = if (sakId == null) {
             opprettSakOgSøknad(
                 tac = tac,
                 fnr = fnr,
                 tiltaksdeltakelse = tiltaksdeltakelse,
+                barnetillegg = barnetillegg,
             )
         } else {
             opprettSøknadPåSakId(
@@ -89,12 +92,14 @@ interface StartSøknadsbehandlingBuilder {
         tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
         clock: Clock = fixedClock,
+        barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderAutomatiskBehandling(
             tac = tac,
             sakId = sakId,
             fnr = fnr,
             tiltaksdeltakelse = tiltaksdeltakelse,
+            barnetillegg = barnetillegg,
         )
 
         behandling.tilManuellBehandling(

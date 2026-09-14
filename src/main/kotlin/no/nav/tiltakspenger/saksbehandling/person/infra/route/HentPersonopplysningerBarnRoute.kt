@@ -52,7 +52,7 @@ fun Route.hentPersonopplysningerBarnRoute(
                         correlationId = correlationId,
                         behandlingId = null,
                     )
-                    call.respondJson(value = barn)
+                    call.respondJson(value = barn.sladdetFor(saksbehandler))
                 },
             )
         }

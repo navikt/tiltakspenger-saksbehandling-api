@@ -44,6 +44,11 @@ object Standardfeil {
         "ikke_funnet",
     )
 
+    fun pdfKreverFagrolle(): ErrorJson = ErrorJson(
+        "Brev i PDF-format kan ikke sladdes og krever fagrolle.",
+        "pdf_krever_fagrolle",
+    )
+
     fun behandlingenErSattPåVent(
         melding: String = "Kan ikke oppdatere fordi behandlingen er satt på vent",
         kode: String = "behandlingen_er_satt_på_vent",

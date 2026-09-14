@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -49,6 +50,7 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
         tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
         tac.tiltakContext.tiltaksdeltakerRepo.lagre(
@@ -56,7 +58,7 @@ interface MottaSøknadRouteBuilder {
             eksternId = tiltaksdeltakelse.eksternDeltakelseId,
             tiltakstype = tiltaksdeltakelse.typeKode.tilTiltakstype(),
         )
-        mottaSøknad(tac, fnr, saksnummer, søknadId, tiltaksdeltakelse)
+        mottaSøknad(tac, fnr, saksnummer, søknadId, tiltaksdeltakelse, barnetillegg)
         val sak: Sak = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!
         return sak to sak.søknader.single { it.id == søknadId }
     }
@@ -67,6 +69,7 @@ interface MottaSøknadRouteBuilder {
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
         tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ) {
         val jwt = tac.jwtGenerator.createJwtForSystembruker(
             roles = listOf("hent_eller_opprett_sak", "lagre_soknad"),
@@ -84,6 +87,7 @@ interface MottaSøknadRouteBuilder {
                 søknadId = søknadId.toString(),
                 clock = tac.clock,
                 tiltaksdeltakelse = tiltaksdeltakelse.toSøknadstiltak(),
+                barnetillegg = barnetillegg,
             ),
         ).apply {
             val bodyAsText = this.body
@@ -107,6 +111,7 @@ interface MottaSøknadRouteBuilder {
         journalpostId: String = "123456789",
         fnr: String = Fnr.random().toString(),
         tiltaksdeltakelse: Søknadstiltak,
+        barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
         opprettet: LocalDateTime = tiltaksdeltakelse.deltakelseFom.atTime(0, 0, 0, 0),
     ): String {
         return """
@@ -127,8 +132,8 @@ interface MottaSøknadRouteBuilder {
               "deltakelseFom": "${tiltaksdeltakelse.deltakelseFom}",
               "deltakelseTom": "${tiltaksdeltakelse.deltakelseTom}"
             },
-            "barnetilleggPdl": [],
-            "barnetilleggManuelle": [],
+            "barnetilleggPdl": ${barnetillegg.filterIsInstance<BarnetilleggFraSøknad.FraPdl>().tilJson()},
+            "barnetilleggManuelle": ${barnetillegg.filterIsInstance<BarnetilleggFraSøknad.Manuell>().tilJson()},
             "vedlegg": 0,
             "kvp": {
               "svar": "Nei",
@@ -187,4 +192,36 @@ interface MottaSøknadRouteBuilder {
         }
         """.trimIndent()
     }
+}
+
+/**
+ * Serialiserer barnetilleggene til formen søknad-api sender dem på.
+ * Brukes av testene som trenger en søknad med barn, for eksempel sladdingstestene.
+ */
+private fun List<BarnetilleggFraSøknad>.tilJson(): String = this.joinToString(
+    separator = ",",
+    prefix = "[",
+    postfix = "]",
+) { barn ->
+    val fnr = (barn as? BarnetilleggFraSøknad.FraPdl)?.fnr?.verdi
+    """
+    {
+      "fnr": ${fnr.tilJsonstreng()},
+      "fødselsdato": "${barn.fødselsdato}",
+      "fornavn": ${barn.fornavn.tilJsonstreng()},
+      "mellomnavn": ${barn.mellomnavn.tilJsonstreng()},
+      "etternavn": ${barn.etternavn.tilJsonstreng()},
+      "oppholderSegIEØS": { "svar": "${barn.oppholderSegIEØS.tilSpmSvar()}" }
+    }
+    """.trimIndent()
+}
+
+private fun String?.tilJsonstreng(): String = if (this == null) "null" else "\"$this\""
+
+private fun Søknad.JaNeiSpm.tilSpmSvar(): String = when (this) {
+    Søknad.JaNeiSpm.Ja -> "Ja"
+
+    Søknad.JaNeiSpm.Nei,
+    Søknad.JaNeiSpm.IkkeBesvart,
+    -> "Nei"
 }
