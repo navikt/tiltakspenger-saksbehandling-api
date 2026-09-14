@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import java.time.LocalDateTime
 
 data class IkkeInnvilgbarSøknad(
@@ -21,7 +20,7 @@ data class IkkeInnvilgbarSøknad(
     override val tidsstempelHosOss: LocalDateTime,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
-    override val avbrutt: Avbrutt? = null,
+    override val avbrutt: Søknadshendelser,
     override val kvp: Søknad.PeriodeSpm,
     override val intro: Søknad.PeriodeSpm,
     override val institusjon: Søknad.PeriodeSpm,
@@ -41,7 +40,6 @@ data class IkkeInnvilgbarSøknad(
     override val manueltRegistrert: Boolean,
 ) : Søknad {
     override val fnr: Fnr = personopplysninger.fnr
-    override val erAvbrutt: Boolean by lazy { avbrutt != null }
 
     override fun tiltaksdeltakelseperiodeDetErSøktOm(): Periode? {
         return manueltSattSøknadsperiode

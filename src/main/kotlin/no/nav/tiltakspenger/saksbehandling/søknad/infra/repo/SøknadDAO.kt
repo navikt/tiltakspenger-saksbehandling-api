@@ -9,15 +9,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periodeOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toAvbrutt
-import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.toDbJson
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 
@@ -97,7 +95,7 @@ object SøknadDAO {
                     from søknad soknad
                              left join behandling b on soknad.id = b.soknad_id
                     where b.id is null and soknad.soknadstype = :digital
-                      and soknad.avbrutt is null
+                      AND jsonb_array_length(soknad.avbrutt) = 0  
                       order by soknad.opprettet
                       limit :limit
                 """.trimIndent(),
@@ -118,7 +116,7 @@ object SøknadDAO {
                              left join behandling b on soknad.id = b.soknad_id
                     where soknad.id = :id
                       and b.id is null and soknad.soknadstype = :digital
-                      and soknad.avbrutt is null
+                      AND jsonb_array_length(soknad.avbrutt) = 0
                 """.trimIndent(),
                 "id" to søknadId.toString(),
                 "digital" to Søknadstype.DIGITAL.toDbValue(),
@@ -158,8 +156,25 @@ object SøknadDAO {
 
     fun lagreAvbruttSøknad(
         søknadId: SøknadId,
-        avbrutt: Avbrutt,
+        avbrutt: Søknadshendelser,
         txSession: TransactionalSession,
+    ) {
+        oppdaterAvbruddOgHendelser(søknadId, avbrutt, txSession, "Kunne ikke lagre avbrutt søknad.")
+    }
+
+    fun lagreGjenopprettetSøknad(
+        søknadId: SøknadId,
+        avbrutt: Søknadshendelser,
+        txSession: TransactionalSession,
+    ) {
+        oppdaterAvbruddOgHendelser(søknadId, avbrutt, txSession, "Kunne ikke lagre gjenopprettet søknad.")
+    }
+
+    private fun oppdaterAvbruddOgHendelser(
+        søknadId: SøknadId,
+        avbrutt: Søknadshendelser,
+        txSession: TransactionalSession,
+        feilmelding: String,
     ) {
         val oppdaterteRader = txSession.run(
             queryOf(
@@ -171,7 +186,7 @@ object SøknadDAO {
             ).asUpdate,
         )
         if (oppdaterteRader == 0) {
-            throw RuntimeException("Kunne ikke lagre avbrutt søknad.")
+            throw RuntimeException(feilmelding)
         }
     }
 
@@ -381,7 +396,7 @@ object SøknadDAO {
         val supplerendeStønadFlyktning = periodeSpm(SUPPLERENDESTØNAD_FLYKTNING_FELT)
         val jobbsjansen = periodeSpm(JOBBSJANSEN_FELT)
         val trygdOgPensjon = periodeSpm(TRYGD_OG_PENSJON_FELT)
-        val avbrutt = stringOrNull("avbrutt")?.toAvbrutt()
+        val avbrutt = string("avbrutt").toSøknadshendelser()
         val søknadstype = string("soknadstype").toSøknadstype()
         val manueltSattSøknadsperiode = periodeOrNull("manuelt_satt_soknadsperiode")
         val manueltSattTiltak = stringOrNull("manuelt_satt_tiltak")

@@ -13,7 +13,6 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 
 fun SøknadDTO.sladdet(): SøknadDTO = this.copy(
     barnetillegg = barnetillegg.map { it.sladdet() },
-    avbrutt = avbrutt?.sladdet(),
 )
 
 fun SøknadDTO.BarnetilleggFraSøknadDTO.sladdet(): SøknadDTO.BarnetilleggFraSøknadDTO = this.copy(
