@@ -250,6 +250,7 @@ open class ApplicationContext(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             sakRepo = sakContext.sakRepo,
             tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
+            startRevurderingService = behandlingContext.startRevurderingService,
             clock = clock,
         )
     }

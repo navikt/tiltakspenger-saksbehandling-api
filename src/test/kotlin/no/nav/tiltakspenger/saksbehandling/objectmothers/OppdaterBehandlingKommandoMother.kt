@@ -24,14 +24,14 @@ import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.barnetillegg
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 
 interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
 
     fun innvilgelsesperiodeKommando(
         innvilgelsesperiode: Periode,
         antallDagerPerMeldeperiode: Int = DEFAULT_DAGER_MED_TILTAKSPENGER_FOR_PERIODE,
-        tiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tiltaksdeltakelse(),
     ): InnvilgelsesperiodeKommando {
         return InnvilgelsesperiodeKommando(
             periode = innvilgelsesperiode,

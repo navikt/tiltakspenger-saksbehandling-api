@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.pdl.PdlIdentklient
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.TiltakshistorikkHenter
@@ -22,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.LocalDate
 
 /**
  * Tester hele den reelle pipelinen (PDL-identoppslag + tiltakshistorikk + mapping) gjennom [FakeHttpTransport].
@@ -213,12 +216,13 @@ class TiltakshistorikkHttpKlientTest {
                 correlationId = CorrelationId.generate(),
             ).getOrNull().shouldNotBeNull().shouldNotBeNull()
 
-            deltakelse.eksternDeltakelseId shouldBe "TA142536"
-            // fixedClock er 1. januar 2025, så GJENNOMFORES med start i 2024 er i gang.
-            deltakelse.deltakelseStatus shouldBe TiltakDeltakerstatus.Deltar
-            deltakelse.deltakelseProsent shouldBe 100.0F
-            deltakelse.antallDagerPerUke shouldBe 5.0F
-            deltakelse.kilde shouldBe Tiltakskilde.Arena
+            // Klienten returnerer libs-domenet umappet — status- og typemapping skjer hos kalleren.
+            deltakelse.id.verdi shouldBe "TA142536"
+            deltakelse.kildestatus shouldBe Arenastatus.Kjent(Arenastatus.Type.GJENNOMFORES)
+            deltakelse.omfang.deltakelsesprosent shouldBe 100.0F
+            deltakelse.omfang.dagerPerUke shouldBe 5.0F
+            deltakelse.fraOgMed shouldBe LocalDate.of(2024, 1, 1)
+            deltakelse.tilOgMed shouldBe LocalDate.of(2024, 6, 30)
         }
     }
 
@@ -235,9 +239,9 @@ class TiltakshistorikkHttpKlientTest {
                 correlationId = CorrelationId.generate(),
             ).getOrNull().shouldNotBeNull().shouldNotBeNull()
 
-            deltakelse.deltakelseStatus shouldBe TiltakDeltakerstatus.SøktInn
-            deltakelse.deltakelseFraOgMed shouldBe null
-            deltakelse.deltakelseTilOgMed shouldBe null
+            deltakelse.kildestatus shouldBe Arenastatus.Kjent(Arenastatus.Type.AKTUELL)
+            deltakelse.fraOgMed shouldBe null
+            deltakelse.tilOgMed shouldBe null
         }
     }
 
@@ -258,18 +262,17 @@ class TiltakshistorikkHttpKlientTest {
     }
 
     @Test
-    fun `hentTiltaksdeltakelse - deltakelse med ukjent kildestatus gir null`() {
+    fun `hentTiltaksdeltakelse - deltakelse med ukjent kildestatus returneres likevel, mappingen er kallerens ansvar`() {
         val (pdlTransport, historikkTransport) = transports(arenaRadJson(status = "HELT_NY_STATUS"))
 
         runTest {
-            val resultat = client(pdlTransport, historikkTransport).hentTiltaksdeltakelse(
+            val deltakelse = client(pdlTransport, historikkTransport).hentTiltaksdeltakelse(
                 fnr = fnr,
                 eksternDeltakerId = "TA142536",
                 correlationId = CorrelationId.generate(),
-            )
+            ).getOrNull().shouldNotBeNull().shouldNotBeNull()
 
-            resultat.isRight() shouldBe true
-            resultat.getOrNull() shouldBe null
+            deltakelse.kildestatus.shouldBeInstanceOf<Kildestatus.Ukjent>()
         }
     }
 

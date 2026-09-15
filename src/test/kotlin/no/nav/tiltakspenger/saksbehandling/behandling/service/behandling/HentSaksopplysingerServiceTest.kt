@@ -31,7 +31,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toTiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
@@ -80,7 +79,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     eksternDeltakerId: String,
                     correlationId: CorrelationId,
-                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse?> {
                     return null.right()
                 }
             }
@@ -225,7 +224,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     eksternDeltakerId: String,
                     correlationId: CorrelationId,
-                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse?> {
                     return null.right()
                 }
             }
@@ -363,7 +362,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     eksternDeltakerId: String,
                     correlationId: CorrelationId,
-                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse?> {
                     return null.right()
                 }
             }
@@ -530,7 +529,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     eksternDeltakerId: String,
                     correlationId: CorrelationId,
-                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse?> {
                     return null.right()
                 }
             }
@@ -708,7 +707,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     eksternDeltakerId: String,
                     correlationId: CorrelationId,
-                ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+                ): Either<KunneIkkeHenteTiltakshistorikk, no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse?> {
                     return null.right()
                 }
             }

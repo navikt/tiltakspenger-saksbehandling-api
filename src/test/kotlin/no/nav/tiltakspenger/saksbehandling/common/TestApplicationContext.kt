@@ -73,7 +73,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingH
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingConsumer
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
@@ -481,13 +481,13 @@ sealed class TestApplicationContext(
     // ====== Hjelpemetoder for tester ======
 
     /**
-     * Genererer en ny [Tiltaksdeltakelse] med unik intern- og ekstern-id basert på [idGenerators].
+     * Genererer en ny [TiltaksdeltakelseIntern] med unik intern- og ekstern-id basert på [idGenerators].
      * Defaultene er en deltakelse som allerede har startet; send inn [periode] og [status] for en deltakelse som ikke har det.
      */
     fun tiltaksdeltakelse(
         periode: Periode = 1.januar(2023) til 31.mars(2023),
         status: TiltakDeltakerstatus = TiltakDeltakerstatus.Deltar,
-    ): Tiltaksdeltakelse = idGenerators.søknadstiltakIdGenerator.tiltaksdeltakelse(
+    ): TiltaksdeltakelseIntern = idGenerators.søknadstiltakIdGenerator.tiltaksdeltakelse(
         periode = periode,
         status = status,
     )
@@ -502,7 +502,7 @@ sealed class TestApplicationContext(
     fun leggTilPerson(
         fnr: Fnr,
         person: EnkelPerson,
-        tiltaksdeltakelse: Tiltaksdeltakelse,
+        tiltaksdeltakelse: TiltaksdeltakelseIntern,
     ) {
         personFakeKlient.leggTilPersonopplysning(fnr = fnr, personopplysninger = person)
         tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
@@ -526,7 +526,7 @@ sealed class TestApplicationContext(
     }
 
     /** Oppdaterer (eller fjerner med `null`) tiltaksdeltakelsen registrert i [TiltaksdeltakelseFakeKlient]. */
-    fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: Tiltaksdeltakelse?) {
+    fun oppdaterTiltaksdeltakelse(fnr: Fnr, tiltaksdeltakelse: TiltaksdeltakelseIntern?) {
         tiltaksdeltakelseFakeKlient.lagre(fnr = fnr, tiltaksdeltakelse = tiltaksdeltakelse)
     }
 

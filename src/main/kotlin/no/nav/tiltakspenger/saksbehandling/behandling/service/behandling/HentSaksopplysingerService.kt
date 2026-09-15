@@ -164,7 +164,7 @@ class HentSaksopplysingerService(
                 sakId = sakId,
                 sessionContext = sessionContext,
             )
-            it.toTiltaksdeltakelse(internDeltakelseId)
+            it.tilTiltaksdeltakelseIntern(internDeltakelseId)
         }
         return Tiltaksdeltakelser(tiltaksdeltakelser)
     }

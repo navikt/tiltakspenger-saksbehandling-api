@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndringer
@@ -33,7 +33,7 @@ data class TiltaksdeltakerHendelse(
 ) {
 
     fun finnEndringer(
-        tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
+        tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern,
         clock: Clock,
     ): TiltaksdeltakerEndringer? {
         val endringer = mutableListOf<TiltaksdeltakerEndring>()
@@ -93,7 +93,7 @@ data class TiltaksdeltakerHendelse(
 
     // En null tilOgMed fra behandlingen betyr en åpen/uavsluttet deltakelse.
     // Å sette en sluttdato på en åpen deltakelse er en innskrenking, ikke en forlengelse.
-    private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse): Boolean {
+    private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern): Boolean {
         val gammelSluttdato = tiltaksdeltakelseFraBehandling.deltakelseTilOgMed ?: return false
         return sammeFom && deltakelseTilOgMed?.isAfter(gammelSluttdato) == true
     }
@@ -101,7 +101,7 @@ data class TiltaksdeltakerHendelse(
     private fun erAvbruttDeltakelse(
         sammeStatus: Boolean,
         sammeTom: Boolean,
-        tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
+        tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern,
         clock: Clock,
     ): Boolean {
         val statusEndretTilAvbrutt = !sammeStatus && deltakerstatus == TiltakDeltakerstatus.Avbrutt
@@ -111,7 +111,7 @@ data class TiltaksdeltakerHendelse(
     }
 
     private fun erSluttdatoAvkortetTilFortiden(
-        tiltaksdeltakelseFraBehandling: Tiltaksdeltakelse,
+        tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern,
         clock: Clock,
     ): Boolean {
         val nySluttdato = deltakelseTilOgMed ?: return false

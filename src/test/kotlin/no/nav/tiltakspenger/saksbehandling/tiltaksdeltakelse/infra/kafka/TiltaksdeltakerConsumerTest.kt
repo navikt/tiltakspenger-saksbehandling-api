@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEll
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TeamTiltakHendelseDTO
@@ -88,7 +88,7 @@ class TiltaksdeltakerConsumerTest {
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
             val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(id).shouldNotBeNull()
             deltaker.sakId shouldBe sak.id
-            deltaker.sisteUbehandletEndring shouldNotBe null
+            deltaker.sisteUbehandletEndringTidspunkt shouldNotBe null
         }
     }
 
@@ -232,7 +232,7 @@ class TiltaksdeltakerConsumerTest {
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
             val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId.toString()).shouldNotBeNull()
             deltaker.sakId shouldBe sak.id
-            deltaker.sisteUbehandletEndring shouldNotBe null
+            deltaker.sisteUbehandletEndringTidspunkt shouldNotBe null
         }
     }
 
@@ -327,7 +327,7 @@ class TiltaksdeltakerConsumerTest {
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
             val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId).shouldNotBeNull()
             deltaker.sakId shouldBe sak.id
-            deltaker.sisteUbehandletEndring shouldNotBe null
+            deltaker.sisteUbehandletEndringTidspunkt shouldNotBe null
         }
     }
 
@@ -372,7 +372,7 @@ class TiltaksdeltakerConsumerTest {
     private fun lagreHendelseMedOppgave(
         tac: TestApplicationContextMedPostgres,
         eksternDeltakerId: String,
-        tiltaksdeltakelse: Tiltaksdeltakelse,
+        tiltaksdeltakelse: TiltaksdeltakelseIntern,
         sakId: SakId,
         kilde: TiltaksdeltakerHendelseKilde,
     ) = getTiltaksdeltakerHendelse(

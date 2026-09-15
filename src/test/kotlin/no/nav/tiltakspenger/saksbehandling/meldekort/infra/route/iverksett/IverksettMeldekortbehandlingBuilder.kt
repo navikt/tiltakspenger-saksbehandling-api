@@ -31,7 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettOgBesluttertarMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import org.json.JSONObject
 
@@ -58,7 +58,7 @@ interface IverksettMeldekortbehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
         beslutter: Saksbehandler = ObjectMother.beslutter("beslutter"),
         vedtaksperiode: Periode = 1.til(10.april(2025)),
-        tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelseTac(
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = ObjectMother.tiltaksdeltakelseTac(
             fom = vedtaksperiode.fraOgMed,
             tom = vedtaksperiode.tilOgMed,
         ),

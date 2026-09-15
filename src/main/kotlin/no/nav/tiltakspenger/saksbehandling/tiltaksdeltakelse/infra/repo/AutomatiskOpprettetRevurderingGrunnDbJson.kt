@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import java.time.LocalDate
 
 private data class AutomatiskOpprettetRevurderingGrunnDbJson(
-    val hendelseId: String,
+    val hendelseId: String? = null,
     val endringer: List<TiltaksdeltakerEndringDbJson>,
 )
 

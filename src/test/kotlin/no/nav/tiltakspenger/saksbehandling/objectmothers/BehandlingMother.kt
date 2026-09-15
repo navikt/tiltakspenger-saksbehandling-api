@@ -63,7 +63,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.Clock
 import java.time.LocalDate
@@ -542,7 +542,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
     deltarPåIntroduksjonsprogram: Boolean = false,
     deltarPåKvp: Boolean = false,
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    tiltaksdeltakelse: Tiltaksdeltakelse? = null,
+    tiltaksdeltakelse: TiltaksdeltakelseIntern? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltakelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknadId: SøknadId = SøknadId.random(),

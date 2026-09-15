@@ -70,7 +70,7 @@ import no.nav.tiltakspenger.saksbehandling.saksbehandler.FakeNavIdentClient
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.hentSøknadForSøknadId
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.hentSøknaderForFnr
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.TilbakekrevingFakeProducer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
@@ -149,7 +149,7 @@ class LocalApplicationContext(
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("12845678911")
-    private val tiltaksdeltakelse: Tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(
+    private val tiltaksdeltakelse: TiltaksdeltakelseIntern = ObjectMother.tiltaksdeltakelse(
         // Siden Komet eier GRUPPE_AMO, vil dette være en UUID.
         // Hadde det vært Arena som var master ville det vært eksempelvis TA6509186.
         eksternTiltaksdeltakelseId = "fa287e7-ddbb-44a2-9bfa-4da4661f8b6d",

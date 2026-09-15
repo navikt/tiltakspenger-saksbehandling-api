@@ -47,7 +47,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
                 tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO,
                 utdatertEksternId = null,
                 sakId = sakIder.get().getValue(it),
-                sisteUbehandletEndring = ubehandledeEndringer.get()[it],
+                sisteUbehandletEndringTidspunkt = ubehandledeEndringer.get()[it],
             )
         }
     }
@@ -81,7 +81,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
                     tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO,
                     utdatertEksternId = null,
                     sakId = sakIder.get().getValue(id),
-                    sisteUbehandletEndring = tidspunkt,
+                    sisteUbehandletEndringTidspunkt = tidspunkt,
                 )
             }
     }

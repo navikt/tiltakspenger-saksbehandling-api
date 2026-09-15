@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Deltar
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
@@ -42,8 +42,8 @@ interface TiltakMother {
         kilde: Tiltakskilde = Tiltakskilde.Arena,
         deltidsprosentGjennomforing: Double? = null,
         internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
-    ): Tiltaksdeltakelse {
-        return Tiltaksdeltakelse(
+    ): TiltaksdeltakelseIntern {
+        return TiltaksdeltakelseIntern(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -76,8 +76,8 @@ interface TiltakMother {
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
         internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
-    ): Tiltaksdeltakelse {
-        return Tiltaksdeltakelse(
+    ): TiltaksdeltakelseIntern {
+        return TiltaksdeltakelseIntern(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -112,8 +112,8 @@ interface TiltakMother {
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
         internDeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
-    ): Tiltaksdeltakelse {
-        return Tiltaksdeltakelse(
+    ): TiltaksdeltakelseIntern {
+        return TiltaksdeltakelseIntern(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -146,8 +146,8 @@ interface TiltakMother {
         kilde: Tiltakskilde = Komet,
         deltidsprosentGjennomforing: Double? = null,
         tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
-    ): Pair<Tiltaksdeltakelse, Søknadstiltak> {
-        val tiltaksdeltakelse = Tiltaksdeltakelse(
+    ): Pair<TiltaksdeltakelseIntern, Søknadstiltak> {
+        val tiltaksdeltakelse = TiltaksdeltakelseIntern(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
             gjennomføringId = eksternTiltaksgjennomføringsId,
             typeKode = typeKode,
@@ -197,7 +197,7 @@ interface TiltakMother {
 
 fun Søknadstiltak.toTiltak(
     eksternTiltaksgjennomføringsId: String = UUID.randomUUID().toString(),
-): Tiltaksdeltakelse {
+): TiltaksdeltakelseIntern {
     return tiltaksdeltakelse(
         eksternTiltaksgjennomføringsId = eksternTiltaksgjennomføringsId,
         eksternTiltaksdeltakelseId = this.id,
@@ -211,7 +211,7 @@ fun Søknadstiltak.toTiltak(
     )
 }
 
-fun Tiltaksdeltakelse.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random()): Søknadstiltak {
+fun TiltaksdeltakelseIntern.toSøknadstiltak(tiltaksdeltakerId: TiltaksdeltakerId = TiltaksdeltakerId.random()): Søknadstiltak {
     return søknadstiltak(
         id = this.eksternDeltakelseId,
         deltakelseFom = this.deltakelseFraOgMed!!,

@@ -19,7 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderin
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -123,7 +123,7 @@ data class Rammevedtaksliste(
         innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.antallDagerPerMeldeperiode!! }
     }
 
-    val valgteTiltaksdeltakelser: Periodisering<Tiltaksdeltakelse> by lazy {
+    val valgteTiltaksdeltakelser: Periodisering<TiltaksdeltakelseIntern> by lazy {
         innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.valgteTiltaksdeltakelser!! }
     }
 
@@ -138,7 +138,7 @@ data class Rammevedtaksliste(
         return tidslinje.map { verdi, _ -> verdi.id }.krymp(periode)
     }
 
-    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<Tiltaksdeltakelse> {
+    fun valgteTiltaksdeltakelserForPeriode(periode: Periode): Periodisering<TiltaksdeltakelseIntern> {
         return valgteTiltaksdeltakelser.overlappendePeriode(periode)
     }
 

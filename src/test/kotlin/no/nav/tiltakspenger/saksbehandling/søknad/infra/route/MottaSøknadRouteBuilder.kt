@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import java.time.Clock
 import java.time.LocalDateTime
 
@@ -31,7 +31,7 @@ interface MottaSøknadRouteBuilder {
         tac: TestApplicationContext,
         sakId: SakId,
         søknadId: SøknadId = SøknadId.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
     ): Pair<Sak, Søknad> {
         val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, sak.fnr)
@@ -50,7 +50,7 @@ interface MottaSøknadRouteBuilder {
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
         søknadId: SøknadId = SøknadId.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
         barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ): Pair<Sak, Søknad> {
         val saksnummer = hentEllerOpprettSakForSystembruker(tac, fnr)
@@ -71,7 +71,7 @@ interface MottaSøknadRouteBuilder {
         fnr: Fnr,
         saksnummer: Saksnummer,
         søknadId: SøknadId = SøknadId.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
         barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ) {
         val jwt = tac.jwtGenerator.createJwtForSystembruker(

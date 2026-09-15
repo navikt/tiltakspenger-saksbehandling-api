@@ -97,12 +97,12 @@ class TiltaksdeltakerPostgresRepoTest {
             kandidater.map { it.id } shouldBe listOf(gammelMarkør)
             val kandidat = kandidater.single()
             kandidat.sakId shouldBe sakId
-            kandidat.sisteUbehandletEndring shouldNotBe null
+            kandidat.sisteUbehandletEndringTidspunkt shouldNotBe null
 
             // Deltaker uten markør har sakId fra opprettelsen, men ingen ubehandlet endring.
             val ubehandlet = repo.hentTiltaksdeltaker("uten-markør").shouldNotBeNull()
             ubehandlet.sakId shouldBe sakId
-            ubehandlet.sisteUbehandletEndring shouldBe null
+            ubehandlet.sisteUbehandletEndringTidspunkt shouldBe null
 
             // utenMarkør brukes kun til å verifisere utelukkelsen over.
             utenMarkør shouldNotBe gammelMarkør
@@ -122,15 +122,15 @@ class TiltaksdeltakerPostgresRepoTest {
             repo.registrerUbehandletEndring(id, sakId, nå(tac.clock).minusMinutes(20))
 
             // Les tilbake markøren slik den faktisk ble lagret (timestamptz har lavere oppløsning enn LocalDateTime).
-            val lagretMarkør = repo.hentTiltaksdeltaker("deltaker-1").shouldNotBeNull().sisteUbehandletEndring.shouldNotBeNull()
+            val lagretMarkør = repo.hentTiltaksdeltaker("deltaker-1").shouldNotBeNull().sisteUbehandletEndringTidspunkt.shouldNotBeNull()
 
             // En markør som ikke lenger stemmer — det har kommet en nyere hendelse underveis — skal ikke nullstilles.
             repo.markerEndringSomBehandlet(id, lagretMarkør.minusSeconds(1))
-            repo.hentTiltaksdeltaker("deltaker-1").shouldNotBeNull().sisteUbehandletEndring shouldBe lagretMarkør
+            repo.hentTiltaksdeltaker("deltaker-1").shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe lagretMarkør
 
             repo.markerEndringSomBehandlet(id, lagretMarkør)
             val behandlet = repo.hentTiltaksdeltaker("deltaker-1").shouldNotBeNull()
-            behandlet.sisteUbehandletEndring shouldBe null
+            behandlet.sisteUbehandletEndringTidspunkt shouldBe null
             // sakId nullstilles ikke — den gjelder fortsatt deltakeren.
             behandlet.sakId shouldBe sakId
         }

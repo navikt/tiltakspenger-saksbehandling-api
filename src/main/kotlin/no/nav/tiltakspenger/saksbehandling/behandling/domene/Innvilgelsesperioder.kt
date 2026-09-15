@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.tilIkkeTomPeriodisering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import java.time.LocalDate
 
 data class Innvilgelsesperioder(
@@ -26,7 +26,7 @@ data class Innvilgelsesperioder(
 
     val perioder: NonEmptyList<Periode> = periodisering.perioder
 
-    val valgteTiltaksdeltagelser: IkkeTomPeriodisering<Tiltaksdeltakelse> by lazy {
+    val valgteTiltaksdeltagelser: IkkeTomPeriodisering<TiltaksdeltakelseIntern> by lazy {
         periodisering.map { it.verdi.valgtTiltaksdeltakelse }
     }
 
@@ -117,7 +117,7 @@ data class Innvilgelsesperioder(
 }
 
 data class InnvilgelsesperiodeVerdi(
-    val valgtTiltaksdeltakelse: Tiltaksdeltakelse,
+    val valgtTiltaksdeltakelse: TiltaksdeltakelseIntern,
     val antallDagerPerMeldeperiode: AntallDagerForMeldeperiode,
 ) {
     init {

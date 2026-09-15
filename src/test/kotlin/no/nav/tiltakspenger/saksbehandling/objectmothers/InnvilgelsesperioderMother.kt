@@ -9,13 +9,13 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.vedtaksperiode
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 
 interface InnvilgelsesperioderMother {
 
     fun innvilgelsesperiode(
         periode: Periode = vedtaksperiode(),
-        valgtTiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(fom = periode.fraOgMed, tom = periode.tilOgMed),
+        valgtTiltaksdeltakelse: TiltaksdeltakelseIntern = tiltaksdeltakelse(fom = periode.fraOgMed, tom = periode.tilOgMed),
         antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
     ): PeriodeMedVerdi<InnvilgelsesperiodeVerdi> {
         return PeriodeMedVerdi(
@@ -54,7 +54,7 @@ interface InnvilgelsesperioderMother {
 
     fun innvilgelsesperioder(
         periode: Periode = vedtaksperiode(),
-        valgtTiltaksdeltakelse: Tiltaksdeltakelse = tiltaksdeltakelse(fom = periode.fraOgMed, tom = periode.tilOgMed),
+        valgtTiltaksdeltakelse: TiltaksdeltakelseIntern = tiltaksdeltakelse(fom = periode.fraOgMed, tom = periode.tilOgMed),
         antallDagerPerMeldeperiode: AntallDagerForMeldeperiode = AntallDagerForMeldeperiode.default,
     ): Innvilgelsesperioder {
         return innvilgelsesperioder(

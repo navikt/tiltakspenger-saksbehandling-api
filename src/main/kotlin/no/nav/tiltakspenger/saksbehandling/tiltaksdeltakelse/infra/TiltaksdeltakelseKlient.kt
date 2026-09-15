@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra
 
 import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
@@ -28,13 +29,13 @@ interface TiltaksdeltakelseKlient {
     ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>>
 
     /**
-     * Henter nå-tilstanden for én tiltaksdeltakelse, uten filtrering på søknad eller datoer.
-     * Til forskjell fra [hentTiltaksdeltakelser] filtreres ikke deltakelser som mangler datoer bort — hendelsesjobben trenger kildens ferskeste tilstand uansett.
-     * Returnerer null dersom deltakelsen ikke finnes i historikken, eller har ukjent tiltakstype eller kildestatus.
+     * Henter nå-tilstanden for én tiltaksdeltakelse, slik den ser ut hos kilden — uten mapping til vår interne modell.
+     * Mapping til [TiltaksdeltakelseFraRegister] gjøres av kalleren ([no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister]).
+     * Returnerer null dersom deltakelsen ikke finnes i historikken.
      */
     suspend fun hentTiltaksdeltakelse(
         fnr: Fnr,
         eksternDeltakerId: String,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?>
+    ): Either<KunneIkkeHenteTiltakshistorikk, Tiltaksdeltakelse?>
 }

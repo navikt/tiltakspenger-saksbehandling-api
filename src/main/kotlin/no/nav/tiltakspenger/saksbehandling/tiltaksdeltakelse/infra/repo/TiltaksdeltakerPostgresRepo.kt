@@ -255,6 +255,6 @@ class TiltaksdeltakerPostgresRepo(
         tiltakstype = TiltakResponsDTO.TiltakTypeDTO.valueOf(string("tiltakstype")),
         utdatertEksternId = stringOrNull("utdatert_ekstern_id"),
         sakId = SakId.fromString(string("sak_id")),
-        sisteUbehandletEndring = localDateTimeOrNull("siste_ubehandlet_endring"),
+        sisteUbehandletEndringTidspunkt = localDateTimeOrNull("siste_ubehandlet_endring"),
     )
 }

@@ -49,7 +49,7 @@ data class TiltaksdeltakelserFraRegister(
 
     /**
      * Inkluderer tvilstilfellene der vi ikke kan si med sikkherhet om de overlapper eller ikke.
-     * Se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse.overlapperMed] for mer informasjon.
+     * Se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern.overlapperMed] for mer informasjon.
      */
     fun overlappende(tiltaksdeltakelser: TiltaksdeltakelserFraRegister): TiltaksdeltakelserFraRegister {
         return this.filter { deltakelse ->

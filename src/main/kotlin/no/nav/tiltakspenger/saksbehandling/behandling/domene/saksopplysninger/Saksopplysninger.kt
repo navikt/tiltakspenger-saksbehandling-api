@@ -4,7 +4,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelsetype
 import java.time.LocalDate
@@ -32,7 +32,7 @@ data class Saksopplysninger(
         return tiltaksdeltakelser.getTiltaksdeltakelse(internDeltakelseId)?.kanInnvilges ?: false
     }
 
-    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? {
+    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): TiltaksdeltakelseIntern? {
         return tiltaksdeltakelser.getTiltaksdeltakelse(internDeltakelseId)
     }
 

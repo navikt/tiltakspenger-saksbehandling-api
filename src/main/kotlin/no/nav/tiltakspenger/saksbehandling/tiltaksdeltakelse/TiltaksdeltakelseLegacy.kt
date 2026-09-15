@@ -19,32 +19,29 @@ import java.time.LocalDate
  * Kan mangle, særlig når deltaker venter på oppstart
  * @param deltakelseTilOgMed sluttdato for deltakelsen.
  * Kan mangle.
- * @param internDeltakelseId vår interne id for tiltaksdeltakelsen som finnes i tiltaksdeltaker-tabellen.
- * Siden eksternId kan endres skal man alltid hente eksternId fra tiltaksdeltaker-tabellen for å finne nåværende eksternId.
  */
-data class Tiltaksdeltakelse(
-    val eksternDeltakelseId: String,
-    val gjennomføringId: String?,
-    val typeNavn: String,
-    val typeKode: TiltakstypeSomGirRettDTO,
-    val rettPåTiltakspenger: Boolean,
-    val deltakelseFraOgMed: LocalDate?,
-    val deltakelseTilOgMed: LocalDate?,
-    val deltakelseStatus: TiltakDeltakerstatus,
-    val deltakelseProsent: Float?,
-    val antallDagerPerUke: Float?,
-    val kilde: Tiltakskilde,
-    val deltidsprosentGjennomforing: Double?,
-    val internDeltakelseId: TiltaksdeltakerId,
-) {
-    val kanInnvilges: Boolean = deltakelseStatus.deltarEllerHarDeltatt() && deltakelseFraOgMed != null && deltakelseTilOgMed != null
+interface TiltaksdeltakelseLegacy {
+    val eksternDeltakelseId: String
+    val gjennomføringId: String?
+    val typeNavn: String
+    val typeKode: TiltakstypeSomGirRettDTO
+    val rettPåTiltakspenger: Boolean
+    val deltakelseFraOgMed: LocalDate?
+    val deltakelseTilOgMed: LocalDate?
+    val deltakelseStatus: TiltakDeltakerstatus
+    val deltakelseProsent: Float?
+    val antallDagerPerUke: Float?
+    val kilde: Tiltakskilde
+    val deltidsprosentGjennomforing: Double?
 
-    private val åpenPeriode: ÅpenPeriode by lazy { ÅpenPeriode(deltakelseFraOgMed, deltakelseTilOgMed) }
+    val kanInnvilges: Boolean get() = deltakelseStatus.deltarEllerHarDeltatt() && deltakelseFraOgMed != null && deltakelseTilOgMed != null
+
+    private val åpenPeriode: ÅpenPeriode get() = ÅpenPeriode(deltakelseFraOgMed, deltakelseTilOgMed)
 
     /**
      * null dersom [deltakelseFraOgMed] eller [deltakelseTilOgMed] er null.
      */
-    val periode: Periode? by lazy { åpenPeriode.periode }
+    val periode: Periode? get() = åpenPeriode.periode
 
     /**
      * @return true hvis vi med sikkerhet kan si de overlapper, false dersom vi med sikkerhet vet at de ikke overlapper og null dersom de kan overlappe.
@@ -56,5 +53,25 @@ data class Tiltaksdeltakelse(
      * Denne metoden håndterer tvilstilfellene og returnerer null dersom vi ikke kan si sikkert om de overlapper.
      * Den returnerer true/false der vi er sikre.
      */
-    fun overlapperMed(other: Tiltaksdeltakelse): Boolean? = åpenPeriode.overlapperMed(other.åpenPeriode)
+    fun overlapperMed(other: TiltaksdeltakelseLegacy): Boolean? = åpenPeriode.overlapperMed(other.åpenPeriode)
 }
+
+/**
+ * @param internDeltakelseId vår interne id for tiltaksdeltakelsen som finnes i tiltaksdeltaker-tabellen.
+ * Siden eksternId kan endres skal man alltid hente eksternId fra tiltaksdeltaker-tabellen for å finne nåværende eksternId.
+ */
+data class TiltaksdeltakelseIntern(
+    override val eksternDeltakelseId: String,
+    override val gjennomføringId: String?,
+    override val typeNavn: String,
+    override val typeKode: TiltakstypeSomGirRettDTO,
+    override val rettPåTiltakspenger: Boolean,
+    override val deltakelseFraOgMed: LocalDate?,
+    override val deltakelseTilOgMed: LocalDate?,
+    override val deltakelseStatus: TiltakDeltakerstatus,
+    override val deltakelseProsent: Float?,
+    override val antallDagerPerUke: Float?,
+    override val kilde: Tiltakskilde,
+    override val deltidsprosentGjennomforing: Double?,
+    val internDeltakelseId: TiltaksdeltakerId,
+) : TiltaksdeltakelseLegacy

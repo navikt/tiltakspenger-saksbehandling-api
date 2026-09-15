@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.Clock
 import java.time.LocalDateTime
@@ -67,7 +67,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
     val innvilgelsesperioder: Innvilgelsesperioder?
     val begrunnelseVilkårsvurdering: Begrunnelse?
 
-    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>?
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<TiltaksdeltakelseIntern>?
     val barnetillegg: Barnetillegg?
 
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?
@@ -101,7 +101,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val skalSendeVedtaksbrev: Boolean
 
-    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? =
+    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): TiltaksdeltakelseIntern? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 
     fun erFerdigutfylt(): Boolean

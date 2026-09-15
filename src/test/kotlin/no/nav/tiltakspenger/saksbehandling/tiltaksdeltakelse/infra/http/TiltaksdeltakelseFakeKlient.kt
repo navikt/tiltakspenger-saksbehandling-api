@@ -6,15 +6,23 @@ import arrow.atomic.Atomic
 import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett as LibsTiltakstypeSomGirRett
 
 class TiltaksdeltakelseFakeKlient(
     /**
@@ -54,14 +62,14 @@ class TiltaksdeltakelseFakeKlient(
         fnr: Fnr,
         eksternDeltakerId: String,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelseFraRegister?> {
+    ): Either<KunneIkkeHenteTiltakshistorikk, LibsTiltaksdeltakelse?> {
         hentTiltaksdeltakelseKall.get().add(fnr to eksternDeltakerId)
-        return (data.get()[fnr]?.getTiltaksdeltakelse(eksternDeltakerId)).right()
+        return (data.get()[fnr]?.getTiltaksdeltakelse(eksternDeltakerId)?.tilLibsDeltakelse()).right()
     }
 
     fun lagre(
         fnr: Fnr,
-        tiltaksdeltakelse: Tiltaksdeltakelse?,
+        tiltaksdeltakelse: TiltaksdeltakelseIntern?,
     ) {
         val current = data.get()[fnr]
         if (tiltaksdeltakelse == null) {
@@ -108,7 +116,7 @@ class TiltaksdeltakelseFakeKlient(
     }
 }
 
-fun Tiltaksdeltakelse.toTiltaksdeltakelseFraRegister(): TiltaksdeltakelseFraRegister =
+fun TiltaksdeltakelseIntern.toTiltaksdeltakelseFraRegister(): TiltaksdeltakelseFraRegister =
     TiltaksdeltakelseFraRegister(
         eksternDeltakelseId = eksternDeltakelseId,
         gjennomføringId = gjennomføringId,
@@ -123,3 +131,48 @@ fun Tiltaksdeltakelse.toTiltaksdeltakelseFraRegister(): TiltaksdeltakelseFraRegi
         kilde = kilde,
         deltidsprosentGjennomforing = deltidsprosentGjennomforing,
     )
+
+/**
+ * Konverterer til libs-domenet slik [TiltaksdeltakelseKlient.hentTiltaksdeltakelse] nå returnerer.
+ * Status og omfang bevares; kilde blir alltid Komet, og tittel/arrangør/gjennomføring bæres ikke over — de er ikke relevante for jobben som bruker metoden.
+ */
+private fun TiltaksdeltakelseFraRegister.tilLibsDeltakelse(): LibsTiltaksdeltakelse {
+    val omfang = Deltakelsesomfang(
+        deltakelsesprosent = deltakelseProsent,
+        dagerPerUke = antallDagerPerUke,
+        deltidsprosentPåGjennomføring = deltidsprosentGjennomforing?.toFloat(),
+    )
+    val base = testdeltakelse(
+        id = eksternDeltakelseId,
+        kildestatus = Kometstatus.Kjent(
+            type = deltakelseStatus.tilKometstatusType(),
+            årsak = null,
+            opprettet = testStatusOpprettet,
+        ),
+        tiltakstype = Tiltakstype.SomGirRett(
+            tiltakskodeFraKilden = typeKode.name,
+            tiltakstype = LibsTiltakstypeSomGirRett.valueOf(typeKode.name),
+        ),
+        fraOgMed = deltakelseFraOgMed,
+        tilOgMed = deltakelseTilOgMed,
+    )
+    return when (base) {
+        is LibsTiltaksdeltakelse.GirRett.MedPeriode -> base.copy(omfang = omfang)
+        is LibsTiltaksdeltakelse.GirRett.UtenPeriode -> base.copy(omfang = omfang)
+        else -> base
+    }
+}
+
+private fun TiltakDeltakerstatus.tilKometstatusType(): Kometstatus.Type = when (this) {
+    TiltakDeltakerstatus.Deltar -> Kometstatus.Type.DELTAR
+    TiltakDeltakerstatus.HarSluttet -> Kometstatus.Type.HAR_SLUTTET
+    TiltakDeltakerstatus.Fullført -> Kometstatus.Type.FULLFORT
+    TiltakDeltakerstatus.Avbrutt -> Kometstatus.Type.AVBRUTT
+    TiltakDeltakerstatus.IkkeAktuell -> Kometstatus.Type.IKKE_AKTUELL
+    TiltakDeltakerstatus.Feilregistrert -> Kometstatus.Type.FEILREGISTRERT
+    TiltakDeltakerstatus.PåbegyntRegistrering -> Kometstatus.Type.PABEGYNT_REGISTRERING
+    TiltakDeltakerstatus.SøktInn -> Kometstatus.Type.SOKT_INN
+    TiltakDeltakerstatus.Venteliste -> Kometstatus.Type.VENTELISTE
+    TiltakDeltakerstatus.VenterPåOppstart -> Kometstatus.Type.VENTER_PA_OPPSTART
+    TiltakDeltakerstatus.Vurderes -> Kometstatus.Type.VURDERES
+}

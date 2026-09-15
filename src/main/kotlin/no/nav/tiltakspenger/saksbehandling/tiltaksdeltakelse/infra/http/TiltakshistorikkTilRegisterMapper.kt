@@ -53,17 +53,22 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserFraRegister(
 }
 
 /**
- * Slår opp nå-tilstanden for én deltakelse på ekstern id, uten utvalgsreglene i [tilTiltaksdeltakelserFraRegister].
- * Brukes når en hendelse om endret deltakelse skal trigge et ferskt oppslag mot kilden, uavhengig av søknad eller datoer.
- * Gir null dersom deltakelsen ikke finnes i historikken, eller har ukjent tiltakstype eller kildestatus — disse kan ikke tolkes, og varsles av klienten.
+ * Slår opp nå-tilstanden for én deltakelse på ekstern id, uten mapping eller utvalgsregler.
+ * Brukes når en endring på deltakeren skal trigge et ferskt oppslag mot kilden — mappingen til vår interne modell gjøres av kalleren med [tilTiltaksdeltakelseFraRegister].
+ * Gir null dersom deltakelsen ikke finnes i historikken.
  */
-fun Tiltakshistorikk.tilTiltaksdeltakelse(
-    eksternDeltakerId: String,
-    clock: Clock,
-): TiltaksdeltakelseFraRegister? {
-    val deltakelse = deltakelser.girRett.find { it.id.verdi == eksternDeltakerId } ?: return null
-    val status = deltakelse.kildestatus.tilTiltakDeltakerstatus(deltakelse.fraOgMed, clock) ?: return null
-    return deltakelse.tilTiltaksdeltakelseFraRegister(status)
+fun Tiltakshistorikk.finnDeltakelse(eksternDeltakerId: String): Tiltaksdeltakelse? {
+    return deltakelser.deltakelser.find { it.id.verdi == eksternDeltakerId }
+}
+
+/**
+ * Mapper nå-tilstanden fra libs-domenet til vår interne modell.
+ * Gir null for deltakelser som ikke gir rett, eller har ukjent kildestatus — disse kan ikke tolkes (varsles av klienten).
+ */
+fun Tiltaksdeltakelse.tilTiltaksdeltakelseFraRegister(clock: Clock): TiltaksdeltakelseFraRegister? {
+    if (this !is Tiltaksdeltakelse.GirRett) return null
+    val status = kildestatus.tilTiltakDeltakerstatus(fraOgMed, clock) ?: return null
+    return tilTiltaksdeltakelseFraRegister(status)
 }
 
 private fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseFraRegister(status: TiltakDeltakerstatus): TiltaksdeltakelseFraRegister =

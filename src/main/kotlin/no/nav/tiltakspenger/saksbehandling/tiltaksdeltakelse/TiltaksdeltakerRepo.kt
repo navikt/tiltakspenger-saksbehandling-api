@@ -39,7 +39,7 @@ interface TiltaksdeltakerRepo {
 
     /**
      * Kalles av kafka-consumerne når de mottar en hendelse for deltakeren.
-     * Setter [Tiltaksdeltaker.sakId] og [Tiltaksdeltaker.sisteUbehandletEndring], som plukkes opp av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb].
+     * Setter [Tiltaksdeltaker.sakId] og [Tiltaksdeltaker.sisteUbehandletEndringTidspunkt], som plukkes opp av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb].
      */
     fun registrerUbehandletEndring(
         id: TiltaksdeltakerId,
@@ -54,7 +54,7 @@ interface TiltaksdeltakerRepo {
     fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker>
 
     /**
-     * Nullstiller [Tiltaksdeltaker.sisteUbehandletEndring] etter at endringen er behandlet.
+     * Nullstiller [Tiltaksdeltaker.sisteUbehandletEndringTidspunkt] etter at endringen er behandlet.
      * Nullstiller kun dersom markøren fortsatt er [forventetSisteUbehandletEndring] — har det kommet en nyere hendelse i mellomtiden, står den igjen til neste kjøring.
      */
     fun markerEndringSomBehandlet(
