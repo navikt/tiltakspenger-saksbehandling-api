@@ -95,7 +95,7 @@ object SøknadDAO {
                     from søknad soknad
                              left join behandling b on soknad.id = b.soknad_id
                     where b.id is null and soknad.soknadstype = :digital
-                      AND jsonb_array_length(soknad.avbrutt) = 0  
+                      AND soknad.avbrutt = '[]'::jsonb
                       order by soknad.opprettet
                       limit :limit
                 """.trimIndent(),
@@ -116,7 +116,7 @@ object SøknadDAO {
                              left join behandling b on soknad.id = b.soknad_id
                     where soknad.id = :id
                       and b.id is null and soknad.soknadstype = :digital
-                      AND jsonb_array_length(soknad.avbrutt) = 0
+                      AND soknad.avbrutt = '[]'::jsonb
                 """.trimIndent(),
                 "id" to søknadId.toString(),
                 "digital" to Søknadstype.DIGITAL.toDbValue(),
