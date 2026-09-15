@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenopprett
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenåpne
 
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -7,38 +7,38 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopprettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenåpneSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse
 import org.junit.jupiter.api.Test
 
 /**
- * Gjenoppretting av en søknad som ble avsluttet uten vedtak.
+ * Gjenåpning av en søknad som ble avsluttet.
  * Saksbehandler peker på den avbrutte søknadsbehandlingen, men det er søknaden som tas opp igjen - den avbrutte behandlingen står urørt og erstattes av en ny.
  */
-class GjenopprettSøknadsbehandlingRouteTest {
+class GjenåpneSøknadsbehandlingRouteTest {
 
     @Test
-    fun `gjenoppretter søknaden og oppretter en ny søknadsbehandling`() = runTest {
+    fun `gjenåpner søknaden og oppretter en ny søknadsbehandling`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, søknad, avbruttBehandling) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
             søknad.erAvbrutt shouldBe true
             avbruttBehandling!!.status shouldBe Rammebehandlingsstatus.AVBRUTT
 
-            val (oppdatertSak, nyBehandling) = gjenopprettSøknadsbehandling(
+            val (oppdatertSak, nyBehandling) = gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling.id,
             )!!
 
-            val gjenopprettetSøknad = oppdatertSak.søknader.single()
-            gjenopprettetSøknad.id shouldBe søknad.id
-            gjenopprettetSøknad.avbrutt.toList().map { it::class } shouldContainExactly listOf(
+            val gjenåpnetSøknad = oppdatertSak.søknader.single()
+            gjenåpnetSøknad.id shouldBe søknad.id
+            gjenåpnetSøknad.avbrutt.toList().map { it::class } shouldContainExactly listOf(
                 Søknadshendelse.Avbrutt::class,
-                Søknadshendelse.Gjenopprettet::class,
+                Søknadshendelse.Gjenåpnet::class,
             )
-            (gjenopprettetSøknad.avbrutt.last() as Søknadshendelse.Gjenopprettet).begrunnelse!!.value shouldBe
+            (gjenåpnetSøknad.avbrutt.last() as Søknadshendelse.Gjenåpnet).begrunnelse!!.value shouldBe
                 "søknaden ble avbrutt ved en feil"
 
             nyBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -51,12 +51,12 @@ class GjenopprettSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `søknaden er plukkbar for automatisk behandling igjen etter gjenoppretting`() = runTest {
+    fun `søknaden er plukkbar for automatisk behandling igjen etter gjenåpning`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, søknad, avbruttBehandling) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
             tac.søknadContext.søknadRepo.hentUbehandletSøknad(søknad.id) shouldBe null
 
-            gjenopprettSøknadsbehandling(
+            gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling!!.id,
@@ -68,11 +68,11 @@ class GjenopprettSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `kan ikke gjenopprette en behandling som ikke er avbrutt`() = runTest {
+    fun `kan ikke gjenåpne en behandling som ikke er avbrutt`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, søknadsbehandling) = opprettSøknadsbehandlingUnderBehandling(tac = tac)
 
-            gjenopprettSøknadsbehandling(
+            gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = søknadsbehandling.id,
@@ -82,11 +82,11 @@ class GjenopprettSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `må være saksbehandler for å gjenopprette`() = runTest {
+    fun `må være saksbehandler for å gjenåpne`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, avbruttBehandling) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
 
-            gjenopprettSøknadsbehandling(
+            gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling!!.id,
@@ -97,17 +97,17 @@ class GjenopprettSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `kan ikke gjenopprette to ganger - den nye behandlingen lever`() = runTest {
+    fun `kan ikke gjenåpne to ganger - den nye behandlingen lever`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, avbruttBehandling) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
 
-            gjenopprettSøknadsbehandling(
+            gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling!!.id,
             )!!
 
-            gjenopprettSøknadsbehandling(
+            gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling.id,
@@ -117,11 +117,11 @@ class GjenopprettSøknadsbehandlingRouteTest {
     }
 
     @Test
-    fun `gjenoppretting uten begrunnelse gir en hendelse uten begrunnelse`() = runTest {
+    fun `gjenåpning uten begrunnelse gir en hendelse uten begrunnelse`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, søknad, avbruttBehandling) = opprettSøknadsbehandlingOgAvbryt(tac = tac)!!
 
-            val (oppdatertSak, _) = gjenopprettSøknadsbehandling(
+            val (oppdatertSak, _) = gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling!!.id,
@@ -129,7 +129,7 @@ class GjenopprettSøknadsbehandlingRouteTest {
             )!!
 
             val hendelse = oppdatertSak.søknader.single { it.id == søknad.id }.avbrutt.last()
-            (hendelse as Søknadshendelse.Gjenopprettet).begrunnelse shouldBe null
+            (hendelse as Søknadshendelse.Gjenåpnet).begrunnelse shouldBe null
         }
     }
 }

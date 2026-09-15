@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
@@ -57,7 +56,7 @@ sealed interface Søknad {
     val manueltSattTiltak: String?
 
     val erAvbrutt: Boolean get() = avbrutt.erAvbrutt
-    val erGjenopprettet: Boolean get() = avbrutt.erGjenopprettet
+    val erGjenåpnet: Boolean get() = avbrutt.erGjenåpnet
 
     companion object {
         fun randomId() = SøknadId.random()
@@ -171,7 +170,7 @@ sealed interface Søknad {
         (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Søknad {
-        if (this.avbrutt.erAvbrutt) {
+        if (this.erAvbrutt) {
             throw IllegalStateException("Søknad er allerede avbrutt")
         }
 
@@ -187,23 +186,18 @@ sealed interface Søknad {
         }
     }
 
-    /**
-     * Tar opp igjen en avbrutt søknad ved å nullstille [avbrutt].
-     * Begrunnelsen for avbruddet går ikke tapt - den ligger igjen som en [Søknadshendelse.Avbrutt] i [avbrutt].
-     * Kalleren har ansvar for å opprette en ny søknadsbehandling; den avbrutte behandlingen gjenopprettes ikke.
-     */
-    fun gjenopprett(
-        gjenopprettetAv: Saksbehandler,
+    fun gjenåpne(
+        gjenåpnetAv: Saksbehandler,
         begrunnelse: NonBlankString?,
         tidspunkt: LocalDateTime,
     ): Søknad {
-        if (this.avbrutt.erGjenopprettet) {
-            throw IllegalStateException("Søknad er ikke avbrutt og kan derfor ikke gjenopprettes")
+        if (this.erGjenåpnet) {
+            throw IllegalStateException("Søknad er ikke avbrutt og kan derfor ikke gjenåpnes")
         }
 
-        val oppdaterteHendelser = this.avbrutt + Søknadshendelse.Gjenopprettet(
+        val oppdaterteHendelser = this.avbrutt + Søknadshendelse.Gjenåpnet(
             tidspunkt = tidspunkt,
-            utførtAv = gjenopprettetAv.navIdent,
+            utførtAv = gjenåpnetAv.navIdent,
             begrunnelse = begrunnelse,
         )
 

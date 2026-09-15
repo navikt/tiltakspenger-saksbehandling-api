@@ -16,9 +16,7 @@ enum class SaksbehandlerBehandlingKommando {
     SettPåVent,
     Gjenoppta,
     Avbryt,
-
-    /** Ta opp igjen en søknad som ble avsluttet uten vedtak, ved å opprette en ny søknadsbehandling på den. */
-    Gjenopprett,
+    Gjenåpne,
     ;
 
     fun tilDTO(): SaksbehandlerBehandlingKommandoDTO {
@@ -32,7 +30,7 @@ enum class SaksbehandlerBehandlingKommando {
             SettPåVent -> SaksbehandlerBehandlingKommandoDTO.SettPåVent
             Gjenoppta -> SaksbehandlerBehandlingKommandoDTO.Gjenoppta
             Avbryt -> SaksbehandlerBehandlingKommandoDTO.Avbryt
-            Gjenopprett -> SaksbehandlerBehandlingKommandoDTO.Gjenopprett
+            Gjenåpne -> SaksbehandlerBehandlingKommandoDTO.Gjenåpne
             AngreSendTilBeslutning -> SaksbehandlerBehandlingKommandoDTO.AngreSendTilBeslutning
         }
     }
@@ -49,7 +47,7 @@ enum class SaksbehandlerBehandlingKommandoDTO {
     SettPåVent,
     Gjenoppta,
     Avbryt,
-    Gjenopprett,
+    Gjenåpne,
 }
 
 fun List<SaksbehandlerBehandlingKommando>.tilDTO(): List<SaksbehandlerBehandlingKommandoDTO> {

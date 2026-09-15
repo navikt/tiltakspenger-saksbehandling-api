@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenopprett
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenåpne
 
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.avbrytRammebehandling
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopprettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenåpneSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentSakForSaksnummer
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSøknadsbehandlingInnvilgelse
@@ -27,13 +27,13 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse
 import org.junit.jupiter.api.Test
 
 /**
- * Hele livsløpet til en søknad som ble avsluttet uten vedtak og siden tatt opp igjen.
- * Vi går gjennom endepunktene i den rekkefølgen en saksbehandler ville gjort det: søknaden kommer inn, behandlingen startes og avbrytes, og søknaden gjenopprettes med en ny behandling som kan føres helt frem til vedtak.
+ * Hele livsløpet til en søknad som ble avsluttet og siden tatt opp igjen.
+ * Vi går gjennom endepunktene i den rekkefølgen en saksbehandler ville gjort det: søknaden kommer inn, behandlingen startes og avbrytes, og søknaden gjenåpnes med en ny behandling som kan føres helt frem til vedtak.
  */
-class GjenopprettSøknadsbehandlingIT {
+class GjenåpneSøknadsbehandlingIT {
 
     @Test
-    fun `søknad - behandling - avbrudd - gjenoppretting - vedtak`() = runTest {
+    fun `søknad - behandling - avbrudd - gjenåpning - vedtak`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val saksbehandler = ObjectMother.saksbehandler()
             val beslutter = ObjectMother.beslutter()
@@ -62,12 +62,12 @@ class GjenopprettSøknadsbehandlingIT {
             avbruttBehandling!!.status shouldBe Rammebehandlingsstatus.AVBRUTT
             sakEtterAvbrudd.rammebehandlinger.size shouldBe 1
 
-            // Saksbehandler ser gjenopprett-knappen på den avbrutte behandlingen.
+            // Saksbehandler ser gjenåpne-knappen på den avbrutte behandlingen.
             gyldigeKommandoer(tac, sakEtterAvbrudd, avbruttBehandling.id) shouldContain
-                SaksbehandlerBehandlingKommandoDTO.Gjenopprett.name
+                SaksbehandlerBehandlingKommandoDTO.Gjenåpne.name
 
-            // 3. Søknaden gjenopprettes, og vi får en ny behandling å jobbe videre med.
-            val (sakEtterGjenoppretting, nyBehandling) = gjenopprettSøknadsbehandling(
+            // 3. Søknaden gjenåpnes, og vi får en ny behandling å jobbe videre med.
+            val (sakEtterGjenåpning, nyBehandling) = gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling.id,
@@ -78,17 +78,17 @@ class GjenopprettSøknadsbehandlingIT {
             nyBehandling.saksbehandler shouldBe saksbehandler.navIdent
             nyBehandling.søknad.id shouldBe søknad.id
 
-            val gjenopprettetSøknad = sakEtterGjenoppretting.søknader.single()
-            gjenopprettetSøknad.erAvbrutt shouldBe false
-            (gjenopprettetSøknad.avbrutt.last() as Søknadshendelse.Gjenopprettet).begrunnelse!!.value shouldBe
+            val gjenåpnetSøknad = sakEtterGjenåpning.søknader.single()
+            gjenåpnetSøknad.erAvbrutt shouldBe false
+            (gjenåpnetSøknad.avbrutt.last() as Søknadshendelse.Gjenåpnet).begrunnelse!!.value shouldBe
                 "søknaden ble avbrutt ved en feil"
 
             // Den avbrutte behandlingen står urørt ved siden av den nye.
-            sakEtterGjenoppretting.rammebehandlinger.size shouldBe 2
-            sakEtterGjenoppretting.hentRammebehandling(avbruttBehandling.id)!!.status shouldBe
+            sakEtterGjenåpning.rammebehandlinger.size shouldBe 2
+            sakEtterGjenåpning.hentRammebehandling(avbruttBehandling.id)!!.status shouldBe
                 Rammebehandlingsstatus.AVBRUTT
 
-            // 4. Den gjenopprettede behandlingen er en helt vanlig søknadsbehandling, og kan føres frem til vedtak.
+            // 4. Den gjenåpnede behandlingen er en helt vanlig søknadsbehandling, og kan føres frem til vedtak.
             oppdaterSøknadsbehandlingInnvilgelse(
                 tac = tac,
                 sakId = sak.id,
@@ -118,7 +118,7 @@ class GjenopprettSøknadsbehandlingIT {
     }
 
     @Test
-    fun `kan ikke gjenopprette en søknad som allerede har en aktiv behandling`() = runTest {
+    fun `kan ikke gjenåpne en søknad som allerede har en aktiv behandling`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val saksbehandler = ObjectMother.saksbehandler()
             val (sak, søknad, førsteBehandling) = opprettSøknadsbehandlingUnderBehandling(
@@ -133,8 +133,8 @@ class GjenopprettSøknadsbehandlingIT {
                 saksbehandler = saksbehandler,
             )!!
 
-            // Første gjenoppretting gir søknaden en behandling som lever.
-            val (_, aktivBehandling) = gjenopprettSøknadsbehandling(
+            // Første gjenåpning gir søknaden en behandling som lever.
+            val (_, aktivBehandling) = gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling!!.id,
@@ -144,7 +144,7 @@ class GjenopprettSøknadsbehandlingIT {
             aktivBehandling.søknad.id shouldBe søknad.id
 
             // Et nytt forsøk på å ta opp igjen den samme søknaden avvises, og lager ingen ny behandling.
-            gjenopprettSøknadsbehandling(
+            gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = avbruttBehandling.id,
@@ -152,15 +152,15 @@ class GjenopprettSøknadsbehandlingIT {
                 forventet = ForventetRespons(409, contentType = "application/json; charset=UTF-8"),
             ) shouldBe null
 
-            val sakEtterAvvistGjenoppretting = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            sakEtterAvvistGjenoppretting.rammebehandlinger.size shouldBe 2
-            sakEtterAvvistGjenoppretting.søknader.single().avbrutt.toList()
-                .filterIsInstance<Søknadshendelse.Gjenopprettet>().size shouldBe 1
+            val sakEtterAvvistGjenåpning = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            sakEtterAvvistGjenåpning.rammebehandlinger.size shouldBe 2
+            sakEtterAvvistGjenåpning.søknader.single().avbrutt.toList()
+                .filterIsInstance<Søknadshendelse.Gjenåpnet>().size shouldBe 1
         }
     }
 
     @Test
-    fun `en behandling som ikke er avbrutt tilbyr ikke gjenoppretting som handling`() = runTest {
+    fun `en behandling som ikke er avbrutt tilbyr ikke gjenåpning som handling`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val saksbehandler = ObjectMother.saksbehandler()
             val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
@@ -168,11 +168,11 @@ class GjenopprettSøknadsbehandlingIT {
                 saksbehandler = saksbehandler,
             )
 
-            // En behandling som ikke er avbrutt har ingenting å gjenopprette.
+            // En behandling som ikke er avbrutt har ingenting å gjenåpne.
             gyldigeKommandoer(tac, sak, behandling.id) shouldNotContain
-                SaksbehandlerBehandlingKommandoDTO.Gjenopprett.name
+                SaksbehandlerBehandlingKommandoDTO.Gjenåpne.name
 
-            gjenopprettSøknadsbehandling(
+            gjenåpneSøknadsbehandling(
                 tac = tac,
                 sakId = sak.id,
                 avbruttBehandlingId = behandling.id,

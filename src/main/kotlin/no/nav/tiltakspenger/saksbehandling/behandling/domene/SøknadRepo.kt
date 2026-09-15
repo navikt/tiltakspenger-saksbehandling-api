@@ -24,11 +24,7 @@ interface SøknadRepo {
      */
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?)
 
-    /**
-     * Nullstiller avbruddet på søknaden og skriver den oppdaterte hendelseshistorikken.
-     * Skjer alltid sammen med at det opprettes en ny søknadsbehandling, så [txContext] har ingen default.
-     */
-    fun lagreGjenopprettetSøknad(søknad: Søknad, txContext: TransactionContext)
+    fun lagreGjenåpnetSøknad(søknad: Søknad, txContext: TransactionContext)
 
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?)
 

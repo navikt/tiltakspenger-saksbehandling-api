@@ -6,10 +6,6 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse
 import java.time.LocalDateTime
 
-/**
- * Lagret form av [Søknadshendelse].
- * Vi diskriminerer på [type] framfor Jackson-polymorfi, slik at den lagrede json-en er lett å lese og migrere.
- */
 private data class SøknadshendelseDbJson(
     val type: Type,
     val tidspunkt: String,
@@ -18,18 +14,18 @@ private data class SøknadshendelseDbJson(
 ) {
     enum class Type {
         AVBRUTT,
-        GJENOPPRETTET,
+        GJENÅPNET,
     }
 
     fun toSøknadshendelse(): Søknadshendelse = when (type) {
         Type.AVBRUTT -> Søknadshendelse.Avbrutt(
             tidspunkt = LocalDateTime.parse(tidspunkt),
             utførtAv = utførtAv,
-            // Et avbrudd kan ikke lagres uten begrunnelse, så `!!` kan ikke feile for rader vi selv har skrevet.
+            // domene-typen krever at begrunnelse ikke er null for avbrutt
             begrunnelse = begrunnelse!!.toNonBlankString(),
         )
 
-        Type.GJENOPPRETTET -> Søknadshendelse.Gjenopprettet(
+        Type.GJENÅPNET -> Søknadshendelse.Gjenåpnet(
             tidspunkt = LocalDateTime.parse(tidspunkt),
             utførtAv = utførtAv,
             begrunnelse = begrunnelse?.toNonBlankString(),
@@ -40,7 +36,7 @@ private data class SøknadshendelseDbJson(
 private fun Søknadshendelse.toDbJson(): SøknadshendelseDbJson = SøknadshendelseDbJson(
     type = when (this) {
         is Søknadshendelse.Avbrutt -> SøknadshendelseDbJson.Type.AVBRUTT
-        is Søknadshendelse.Gjenopprettet -> SøknadshendelseDbJson.Type.GJENOPPRETTET
+        is Søknadshendelse.Gjenåpnet -> SøknadshendelseDbJson.Type.GJENÅPNET
     },
     tidspunkt = tidspunkt.toString(),
     utførtAv = utførtAv,

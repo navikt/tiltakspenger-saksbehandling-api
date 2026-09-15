@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenopprett
+package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenåpne
 
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -14,15 +14,15 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import org.json.JSONObject
 
 /**
- * Route: [no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenopprettSøknadsbehandlingRoute]
+ * Route: [no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenåpneSøknadsbehandlingRoute]
  */
-interface GjenopprettSøknadsbehandlingBuilder {
+interface GjenåpneSøknadsbehandlingBuilder {
     /**
      * Forventer at det allerede finnes en sak med en avbrutt søknadsbehandling.
-     * @return saken slik den ser ut etter gjenopprettingen, og den nye søknadsbehandlingen.
+     * @return saken slik den ser ut etter gjenåpningen, og den nye søknadsbehandlingen.
      * Null dersom kallet ikke gikk gjennom.
      */
-    suspend fun ApplicationTestBuilder.gjenopprettSøknadsbehandling(
+    suspend fun ApplicationTestBuilder.gjenåpneSøknadsbehandling(
         tac: TestApplicationContext,
         sakId: SakId,
         avbruttBehandlingId: RammebehandlingId,
@@ -34,7 +34,7 @@ interface GjenopprettSøknadsbehandlingBuilder {
         tac.leggTilBruker(jwt, saksbehandler)
         val response = defaultRequestWithAssertions(
             HttpMethod.POST,
-            "/sak/$sakId/behandling/$avbruttBehandlingId/gjenopprett",
+            "/sak/$sakId/behandling/$avbruttBehandlingId/gjenapne",
             jwt = jwt,
             forventet = forventet,
             body = if (begrunnelse == null) """{}""" else """{"begrunnelse":"$begrunnelse"}""",

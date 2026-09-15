@@ -20,7 +20,7 @@ fun String.shouldBeSøknadDTO(
     avbruttAv: String? = "Z12345",
     avbruttBegrunnelse: String? = "begrunnelse for avbryt søknad og/eller rammebehandling",
     /**
-     * Historikken over avbrytelser og gjenopprettinger.
+     * Historikken over avbrytelser og gjenåpninger.
      * Default speiler [avbruttAv]: en avbrutt søknad har nøyaktig én avbrudds-hendelse.
      */
     hendelserJson: String? = null,

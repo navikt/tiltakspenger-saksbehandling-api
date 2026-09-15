@@ -26,13 +26,11 @@ data class SøknadDTO(
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
     val antallVedlegg: Int,
-    /** Historikken — avbrutt-hendelsene; erstatter tidligere `avbrutt`+`hendelser`. */
     val avbrutt: List<SøknadshendelseDTO>,
     val kanInnvilges: Boolean,
     val svar: SøknadSvarDTO,
     val behandlingsarsak: Behandlingsarsak?,
 ) {
-    /** Historikken over avbrytelser og gjenopprettinger av søknaden, i kronologisk rekkefølge. */
     data class SøknadshendelseDTO(
         val type: Type,
         val tidspunkt: LocalDateTime,
@@ -41,7 +39,7 @@ data class SøknadDTO(
     ) {
         enum class Type {
             AVBRUTT,
-            GJENOPPRETTET,
+            GJENÅPNET,
         }
     }
 
@@ -259,7 +257,7 @@ fun Søknadshendelser.toSøknadshendelserDTO(): List<SøknadDTO.Søknadshendelse
     SøknadDTO.SøknadshendelseDTO(
         type = when (it) {
             is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Avbrutt -> SøknadDTO.SøknadshendelseDTO.Type.AVBRUTT
-            is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Gjenopprettet -> SøknadDTO.SøknadshendelseDTO.Type.GJENOPPRETTET
+            is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Gjenåpnet -> SøknadDTO.SøknadshendelseDTO.Type.GJENÅPNET
         },
         tidspunkt = it.tidspunkt,
         utførtAv = it.utførtAv,
