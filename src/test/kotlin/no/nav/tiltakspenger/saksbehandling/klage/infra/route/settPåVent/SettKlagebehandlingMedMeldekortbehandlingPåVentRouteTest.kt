@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
+import no.nav.tiltakspenger.saksbehandling.infra.route.sladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -44,7 +45,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             klageVentestatusArray.size() shouldBe 1
             klageVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
@@ -57,7 +58,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             meldekortVentestatusArray.size() shouldBe 1
             meldekortVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
@@ -91,7 +92,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             klageVentestatusArray.size() shouldBe 1
             klageVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
@@ -104,7 +105,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             meldekortVentestatusArray.size() shouldBe 1
             meldekortVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
@@ -167,7 +168,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             meldekortVentestatusArray.size() shouldBe 1
             meldekortVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
@@ -180,7 +181,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             klageVentestatusArray.size() shouldBe 1
             klageVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette klage på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
@@ -245,7 +246,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             meldekortVentestatusArray.size() shouldBe 1
             meldekortVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe beslutter.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette meldekort på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette meldekort på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BESLUTNING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"
@@ -258,7 +259,7 @@ class SettKlagebehandlingMedMeldekortbehandlingPåVentRouteTest {
             klageVentestatusArray.size() shouldBe 1
             klageVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe beslutter.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe "begrunnelse for å sette meldekort på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "begrunnelse for å sette meldekort på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2025-01-14"

@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
+import no.nav.tiltakspenger.saksbehandling.infra.route.sladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -91,7 +92,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             klageVentestatusArray.size() shouldBe 2
             klageVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe ""
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe ""
                 hendelse.get("erSattPåVent").asBoolean() shouldBe false
                 hendelse.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
                 hendelse.get("frist").isNull shouldBe true
@@ -105,7 +106,7 @@ class GjenopptaKlagebehandlingMedMeldekortbehandlingRouteTest {
             meldekortVentestatusArray.size() shouldBe 2
             meldekortVentestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe saksbehandler.navIdent
-                hendelse.get("begrunnelse").asString() shouldBe ""
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe ""
                 hendelse.get("erSattPåVent").asBoolean() shouldBe false
                 hendelse.get("status").asString() shouldBe "KLAR_TIL_BEHANDLING"
                 hendelse.get("frist").isNull shouldBe true

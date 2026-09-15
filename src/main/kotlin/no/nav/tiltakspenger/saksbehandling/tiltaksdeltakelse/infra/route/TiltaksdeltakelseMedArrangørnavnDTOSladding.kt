@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 
 /**
@@ -11,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
  */
 
 fun TiltaksdeltakelseMedArrangørnavnDTO.sladdet(): TiltaksdeltakelseMedArrangørnavnDTO = this.copy(
-    visningsnavn = SLADDET_TEKST,
+    visningsnavn = SladdetVerdi,
 )
 
 fun TiltaksdeltakelseMedArrangørnavnDTO.sladdetFor(saksbehandler: Saksbehandler): TiltaksdeltakelseMedArrangørnavnDTO =

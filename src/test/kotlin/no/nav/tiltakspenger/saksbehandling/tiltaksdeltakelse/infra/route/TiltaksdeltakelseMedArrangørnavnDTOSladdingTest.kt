@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
@@ -11,7 +11,7 @@ class TiltaksdeltakelseMedArrangørnavnDTOSladdingTest {
     fun `visningsnavnet med arrangørnavn erstattes mens tiltakstypen forblir uendret`() {
         val tiltaksdeltakelseDTO = ObjectMother.tiltaksdeltakelseMedArrangørnavn().toDTO()
 
-        tiltaksdeltakelseDTO.sladdet() shouldBe tiltaksdeltakelseDTO.copy(visningsnavn = SLADDET_TEKST)
+        tiltaksdeltakelseDTO.sladdet() shouldBe tiltaksdeltakelseDTO.copy(visningsnavn = SladdetVerdi)
         tiltaksdeltakelseDTO.sladdet().typeNavn shouldBe tiltaksdeltakelseDTO.typeNavn
     }
 

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 
 /**
@@ -19,15 +19,15 @@ private fun BenkOversiktDTO.sladdet(): BenkOversiktDTO = this.copy(
 )
 
 private fun BenkBehandlingDTO.sladdet(): BenkBehandlingDTO = when (this) {
-    is BenkSøknadsbehandlingDTO -> this.copy(fnr = SLADDET_TEKST, ventestatus = ventestatus.sladdet())
-    is BenkRevurderingDTO -> this.copy(fnr = SLADDET_TEKST, ventestatus = ventestatus.sladdet())
-    is BenkMeldekortDTO -> this.copy(fnr = SLADDET_TEKST, ventestatus = ventestatus.sladdet())
-    is BenkKlagebehandlingDTO -> this.copy(fnr = SLADDET_TEKST, ventestatus = ventestatus.sladdet())
-    is BenkTilbakekrevingDTO -> this.copy(fnr = SLADDET_TEKST, ventestatus = ventestatus.sladdet())
+    is BenkSøknadsbehandlingDTO -> this.copy(fnr = SladdetVerdi, ventestatus = ventestatus.sladdet())
+    is BenkRevurderingDTO -> this.copy(fnr = SladdetVerdi, ventestatus = ventestatus.sladdet())
+    is BenkMeldekortDTO -> this.copy(fnr = SladdetVerdi, ventestatus = ventestatus.sladdet())
+    is BenkKlagebehandlingDTO -> this.copy(fnr = SladdetVerdi, ventestatus = ventestatus.sladdet())
+    is BenkTilbakekrevingDTO -> this.copy(fnr = SladdetVerdi, ventestatus = ventestatus.sladdet())
 }
 
 private fun BenkVentestatusDTO.sladdet(): BenkVentestatusDTO = this.copy(
-    begrunnelse = begrunnelse?.let { SLADDET_TEKST },
+    begrunnelse = SladdetVerdi,
 )
 
 fun BenkResponsDTO.sladdetFor(saksbehandler: Saksbehandler): BenkResponsDTO =

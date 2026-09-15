@@ -1,33 +1,23 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
-import arrow.core.NonEmptyList
-import arrow.core.toNonEmptyListOrThrow
-import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.tilPeriodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
-import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 
+/**
+ * Utgående barnetillegg.
+ * Begrunnelsen er saksbehandlers fritekst og kan sladdes.
+ * Barnetillegget som kommer inn fra frontenden er [OppdaterBarnetilleggDTO], som har rå verdier.
+ */
 data class BarnetilleggDTO(
     val perioder: List<BarnetilleggPeriodeDTO>,
-    val begrunnelse: String?,
-) {
-    fun tilBarnetillegg(innvilgelsesperioder: NonEmptyList<Periode>): Barnetillegg =
-        if (this.perioder.isNotEmpty()) {
-            Barnetillegg.periodiserOgFyllUtHullMed0(
-                begrunnelse = begrunnelse?.let { (Begrunnelse.create(it)) },
-                perioderMedBarn = perioder
-                    .map { Pair(it.periode.toDomain(), AntallBarn(it.antallBarn)) }
-                    .toNonEmptyListOrThrow(),
-                innvilgelsesperioder = innvilgelsesperioder,
-            )
-        } else {
-            Barnetillegg.utenBarnetillegg(innvilgelsesperioder)
-        }
-}
+    val begrunnelse: SladdbarVerdi<String?>,
+)
 
 data class BarnetilleggPeriodeDTO(
     val antallBarn: Int,
@@ -36,7 +26,7 @@ data class BarnetilleggPeriodeDTO(
 
 fun Barnetillegg.toBarnetilleggDTO(): BarnetilleggDTO = BarnetilleggDTO(
     perioder = periodisering.tilBarnetilleggPerioderDTO(),
-    begrunnelse = begrunnelse?.verdi,
+    begrunnelse = begrunnelse?.verdi.ikkeSladdet(),
 )
 
 fun List<BarnetilleggPeriodeDTO>.tilPeriodisering(): Periodisering<AntallBarn> {

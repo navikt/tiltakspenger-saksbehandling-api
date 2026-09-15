@@ -28,8 +28,8 @@ class GjenopptaKlagebehandlingRouteTest {
                 status = "UNDER_BEHANDLING",
                 //language=json
                 ventestatus = listOf(
-                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "KLAR_TIL_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "","erSattPåVent": false,"frist": null}""",
-                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}""",
+                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "KLAR_TIL_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": {"verdi": "", "erSladdet": false},"erSattPåVent": false,"frist": null}""",
+                    """{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": {"verdi": "begrunnelse for å sette klage på vent", "erSladdet": false},"erSattPåVent": true,"frist": "2025-01-14"}""",
                 ),
             )
         }

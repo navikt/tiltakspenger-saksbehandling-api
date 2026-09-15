@@ -4,8 +4,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 import no.nav.tiltakspenger.saksbehandling.klage.domene.avbryt.AvbruttKlagebehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
@@ -21,11 +22,11 @@ class KlagebehandlingDTOSladdingTest {
     )
 
     @Test
-    fun `alle personopplysningsfelter i KlagebehandlingDTO erstattes mens øvrige felter forblir uendret`() {
+    fun `alle personopplysningsfelter i KlagebehandlingDTO sladdes mens øvrige felter forblir uendret`() {
         val klagebehandlingDTO = klagebehandlingDTO()
 
         klagebehandlingDTO.sladdet() shouldBe klagebehandlingDTO.copy(
-            fnr = SLADDET_TEKST,
+            fnr = SladdetVerdi,
             avbrutt = klagebehandlingDTO.avbrutt?.sladdet(),
             ventestatus = klagebehandlingDTO.ventestatus.map { it.sladdet() },
             resultat = klagebehandlingDTO.resultat?.sladdet(),
@@ -44,40 +45,40 @@ class KlagebehandlingDTOSladdingTest {
     }
 
     @Test
-    fun `brevteksten i et avvist resultat erstattes mens tittelen beholdes`() {
+    fun `brevteksten i et avvist resultat sladdes mens tittelen beholdes`() {
         val resultat = ObjectMother.klagebehandlingresultatAvvist(brevtekster = brevtekster)
             .tilKlagebehandlingsresultatDTO() as KlagebehandlingsresultatDTO.Avvist
 
         (resultat.sladdet() as KlagebehandlingsresultatDTO.Avvist).brevtekst.single().let {
             it.tittel shouldBe resultat.brevtekst.single().tittel
-            it.tekst shouldBe SLADDET_TEKST
+            it.tekst shouldBe SladdetVerdi
         }
     }
 
     @Test
-    fun `begrunnelsene i et omgjort resultat erstattes`() {
+    fun `begrunnelsene i et omgjort resultat sladdes`() {
         val resultat = ObjectMother.klagebehandlingresultatOmgjør(
             begrunnelse = Begrunnelse.createOrThrow("Feil lovanvendelse for barnetillegget"),
         ).tilKlagebehandlingsresultatDTO() as KlagebehandlingsresultatDTO.Omgjør
 
         (resultat.sladdet() as KlagebehandlingsresultatDTO.Omgjør).let {
-            it.begrunnelse shouldBe SLADDET_TEKST
-            it.begrunnelseFerdigstilling shouldBe null
+            it.begrunnelse shouldBe SladdetVerdi
+            it.begrunnelseFerdigstilling shouldBe SladdetVerdi
             it.årsak shouldBe resultat.årsak
         }
     }
 
     @Test
-    fun `brevtekst og begrunnelse i et opprettholdt resultat erstattes mens hjemlene beholdes`() {
+    fun `brevtekst og begrunnelse i et opprettholdt resultat sladdes mens hjemlene beholdes`() {
         val resultat = ObjectMother.klagebehandlingresultatOpprettholdt(
             brevtekst = brevtekster,
             begrunnelseFerdigstilling = Begrunnelse.createOrThrow("Sendt til klageinstansen"),
         ).tilKlagebehandlingsresultatDTO() as KlagebehandlingsresultatDTO.Opprettholdt
 
         (resultat.sladdet() as KlagebehandlingsresultatDTO.Opprettholdt).let {
-            it.brevtekst.single().tekst shouldBe SLADDET_TEKST
+            it.brevtekst.single().tekst shouldBe SladdetVerdi
             it.brevtekst.single().tittel shouldBe resultat.brevtekst.single().tittel
-            it.begrunnelseFerdigstilling shouldBe SLADDET_TEKST
+            it.begrunnelseFerdigstilling shouldBe SladdetVerdi
             it.hjemler shouldBe resultat.hjemler
         }
     }
@@ -104,14 +105,14 @@ class KlagebehandlingDTOSladdingTest {
                 avbruttAv = "Z12345",
                 avbruttTidspunkt = 1.januarDateTime(2025),
                 status = AvbruttKlagebehandlingStatus.KLAGE_TRUKKET,
-                begrunnelse = "Klagen er trukket av søker",
+                begrunnelse = "Klagen er trukket av søker".ikkeSladdet(),
             ),
             ventestatus = listOf(
                 VentestatusHendelseDTO(
                     sattPåVentAv = "Z12345",
                     tidspunkt = 1.januarDateTime(2025).toString(),
                     status = "UNDER_BEHANDLING",
-                    begrunnelse = "Venter på dokumentasjon fra søker",
+                    begrunnelse = "Venter på dokumentasjon fra søker".ikkeSladdet(),
                     erSattPåVent = true,
                     frist = null,
                 ),

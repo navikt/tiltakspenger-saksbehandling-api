@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 import java.math.BigDecimal
@@ -29,7 +31,7 @@ data class BenkTilbakekrevingDTO(
     override val type: BenkBehandlingstypeDTO = BenkBehandlingstypeDTO.TILBAKEKREVING,
     override val id: String,
     override val sakId: String,
-    override val fnr: String,
+    override val fnr: SladdbarVerdi<String>,
     override val saksnummer: String,
     override val startet: String,
     override val sistEndret: String,
@@ -48,7 +50,7 @@ data class BenkTilbakekrevingDTO(
 fun BenkTilbakekreving.toDTO(saksbehandler: Saksbehandler): BenkTilbakekrevingDTO = BenkTilbakekrevingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
-    fnr = felles.fnr.verdi,
+    fnr = felles.fnr.verdi.ikkeSladdet(),
     saksnummer = felles.saksnummer.verdi,
     startet = felles.startet.toString(),
     sistEndret = felles.sistEndret.toString(),

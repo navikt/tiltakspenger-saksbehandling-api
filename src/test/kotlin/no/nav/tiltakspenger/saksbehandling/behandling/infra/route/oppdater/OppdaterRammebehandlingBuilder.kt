@@ -372,7 +372,7 @@ interface OppdaterRammebehandlingBuilder {
             barnetillegg.toBarnetilleggDTO().let { bt ->
                 """
                         {
-                            "begrunnelse": ${bt.begrunnelse?.medQuotes()},
+                            "begrunnelse": ${bt.begrunnelse.verdi?.medQuotes()},
                             "perioder": [${
                     bt.perioder.joinToString(",") {
                         """

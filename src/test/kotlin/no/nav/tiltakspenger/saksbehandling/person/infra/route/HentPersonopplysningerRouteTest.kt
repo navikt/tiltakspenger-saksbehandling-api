@@ -5,7 +5,6 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import org.json.JSONObject
@@ -30,7 +29,7 @@ class HentPersonopplysningerRouteTest {
                 jwt = jwt,
                 forventet = ForventetRespons(status = 200, contentType = "application/json; charset=UTF-8"),
             ).apply {
-                JSONObject(body).getString("fnr") shouldBe sak.fnr.verdi
+                JSONObject(body).getJSONObject("fnr").getString("verdi") shouldBe sak.fnr.verdi
             }
         }
     }
@@ -53,10 +52,10 @@ class HentPersonopplysningerRouteTest {
                 forventet = ForventetRespons(status = 200, contentType = "application/json; charset=UTF-8"),
             ).apply {
                 JSONObject(body).apply {
-                    getString("fnr") shouldBe SLADDET_TEKST
-                    getString("fødselsdato") shouldBe SLADDET_TEKST
-                    getString("fornavn") shouldBe SLADDET_TEKST
-                    getString("etternavn") shouldBe SLADDET_TEKST
+                    listOf("fnr", "fødselsdato", "fornavn", "etternavn").forEach { felt ->
+                        getJSONObject(felt).isNull("verdi") shouldBe true
+                        getJSONObject(felt).getBoolean("erSladdet") shouldBe true
+                    }
                     getBoolean("skjermet") shouldBe false
                 }
             }

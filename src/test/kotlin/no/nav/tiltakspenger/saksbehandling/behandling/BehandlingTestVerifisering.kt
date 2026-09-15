@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.RammebehandlingResultatTypeDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 
@@ -21,7 +22,7 @@ fun String.shouldBeRevurderingDTO(
     avbrutt: String? = null,
     attesteringer: List<String> = listOf(
         """{
-              "begrunnelse": null,
+              "begrunnelse": {"verdi": null, "erSladdet": false},
               "endretAv": "B12345",
               "endretTidspunkt": "2025-01-01T01:03:04.456789",
               "status": "GODKJENT"
@@ -86,7 +87,7 @@ fun String.shouldBeRevurderingDTO(
                   "barnetillegg": ${
                 if (barnetillegg) {
                     """{
-                "begrunnelse": ${barnetilleggBegrunnelse?.let { "\"$it\"" }},
+                "begrunnelse": ${ikkeSladdetTekst(barnetilleggBegrunnelse)},
                 "perioder": [
                     {
                         "antallBarn": $antallBarn,
@@ -108,12 +109,12 @@ fun String.shouldBeRevurderingDTO(
     }
           "iverksattTidspunkt": ${iverksattTidspunkt?.let { "\"$it\"" }},
           "vedtaksperiode": $vedtaksperiode,
-          "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.let { "\"$it\"" }},
+          "fritekstTilVedtaksbrev": ${ikkeSladdetTekst(fritekstTilVedtaksbrev)},
           "resultat": "$resultat",
           "automatiskOpprettetGrunn": ${automatiskOpprettetGrunn?.let { "\"$it\"" }},
           "type": "REVURDERING",
           "beslutter": ${beslutter?.let { "\"$it\"" }},
-          "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.let { "\"$it\"" }},
+          "begrunnelseVilkårsvurdering": ${ikkeSladdetTekst(begrunnelseVilkårsvurdering)},
           "tilbakekrevingId": ${tilbakekrevingId?.let { "\"$it\"" }},
           "utbetaling": ${utbetaling?.let { "\"$it\"" }},
           "ventestatus": ${ventestatus.let { "[${it.joinToString(",")}]" }},
@@ -169,7 +170,7 @@ fun String.shouldBeRevurderingDTO(
                 "deltakelseProsent": $deltakelseProsent
               }
             ],
-            "fødselsdato": "2001-01-01",
+            "fødselsdato": ${ikkeSladdetTekst("2001-01-01")},
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
             "periode": {
@@ -248,7 +249,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     val expected = """
         {
           "attesteringer": [
-            ${attesteringer.joinToString(",") { """{"begrunnelse": null, "endretAv": "B12345", "endretTidspunkt": "2025-01-01T01:03:04.456789", "status": "GODKJENT"}""" }}
+            ${attesteringer.joinToString(",") { """{"begrunnelse": {"verdi": null, "erSladdet": false}, "endretAv": "B12345", "endretTidspunkt": "2025-01-01T01:03:04.456789", "status": "GODKJENT"}""" }}
           ],
           "saksnummer": "$saksnummer",
           "utbetalingskontroll": ${utbetalingskontroll?.let { "\"$it\"" }},
@@ -275,7 +276,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
                 "deltakelseProsent": $deltakelseProsent
               }
             ],
-            "fødselsdato": "2001-01-01",
+            "fødselsdato": ${ikkeSladdetTekst("2001-01-01")},
             "ytelser": [],
             "tiltakspengevedtakFraArena": [],
             "periode": {
@@ -291,7 +292,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         if (visBarnetillegg) {
             """
             "barnetillegg": {
-                "begrunnelse": ${barnetilleggBegrunnelse?.let { "\"$it\"" }},
+                "begrunnelse": ${ikkeSladdetTekst(barnetilleggBegrunnelse)},
                 "perioder": [
                     {
                         "antallBarn": $antallBarn,
@@ -307,10 +308,10 @@ fun String.shouldBeSøknadsbehandlingDTO(
             ""
         }
     }
-          "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.let { "\"$it\"" }},
+          "fritekstTilVedtaksbrev": ${ikkeSladdetTekst(fritekstTilVedtaksbrev)},
           "resultat": "$resultat",
           "beslutter": ${beslutter?.let { "\"$it\"" }},
-          "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.let { "\"$it\"" }},
+          "begrunnelseVilkårsvurdering": ${ikkeSladdetTekst(begrunnelseVilkårsvurdering)},
           "klagebehandlingId": ${klagebehandlingId?.let { "\"$it\"" }},
           "tilbakekrevingId": ${tilbakekrevingId?.let { "\"$it\"" }},
           "kanInnvilges": $kanInnvilges,

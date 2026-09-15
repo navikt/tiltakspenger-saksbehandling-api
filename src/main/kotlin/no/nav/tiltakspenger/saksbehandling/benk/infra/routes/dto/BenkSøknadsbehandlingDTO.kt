@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadstype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 
@@ -26,7 +28,7 @@ data class BenkSøknadsbehandlingDTO(
     override val type: BenkBehandlingstypeDTO = BenkBehandlingstypeDTO.SØKNADSBEHANDLING,
     override val id: String,
     override val sakId: String,
-    override val fnr: String,
+    override val fnr: SladdbarVerdi<String>,
     override val saksnummer: String,
     override val startet: String,
     override val sistEndret: String,
@@ -44,7 +46,7 @@ data class BenkSøknadsbehandlingDTO(
 fun BenkSøknadsbehandling.toDTO(saksbehandler: Saksbehandler): BenkSøknadsbehandlingDTO = BenkSøknadsbehandlingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
-    fnr = felles.fnr.verdi,
+    fnr = felles.fnr.verdi.ikkeSladdet(),
     saksnummer = felles.saksnummer.verdi,
     startet = felles.startet.toString(),
     sistEndret = felles.sistEndret.toString(),

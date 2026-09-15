@@ -1,5 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import java.time.LocalDate
 
@@ -9,7 +11,7 @@ data class TiltaksdeltakelseMedArrangørnavnDTO(
     val typeNavn: String,
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
-    val visningsnavn: String,
+    val visningsnavn: SladdbarVerdi<String>,
 )
 
 fun TiltaksdeltakelseMedArrangørnavn.toDTO(): TiltaksdeltakelseMedArrangørnavnDTO {
@@ -19,6 +21,6 @@ fun TiltaksdeltakelseMedArrangørnavn.toDTO(): TiltaksdeltakelseMedArrangørnavn
         typeKode = this.typeKode.name,
         deltakelseFraOgMed = this.deltakelseFraOgMed,
         deltakelseTilOgMed = this.deltakelseTilOgMed,
-        visningsnavn = this.visningsnavn,
+        visningsnavn = this.visningsnavn.ikkeSladdet(),
     )
 }

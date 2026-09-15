@@ -39,7 +39,9 @@ fun JsonNode.shouldHaSisteVentestatus(
     }
     val hendelse = ventestatus.last()
     withClue("sattPåVentAv i siste ventestatus-hendelse") { hendelse.get("sattPåVentAv").asString() shouldBe sattPåVentAv }
-    withClue("begrunnelse i siste ventestatus-hendelse") { hendelse.get("begrunnelse").asString() shouldBe begrunnelse }
+    withClue("begrunnelse i siste ventestatus-hendelse") {
+        hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe begrunnelse
+    }
     withClue("erSattPåVent i siste ventestatus-hendelse") { hendelse.get("erSattPåVent").asBoolean() shouldBe erSattPåVent }
     withClue("status i siste ventestatus-hendelse") { hendelse.get("status").asString() shouldBe status }
     withClue("frist i siste ventestatus-hendelse") {

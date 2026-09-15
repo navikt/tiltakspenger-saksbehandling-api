@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.Rammebehan
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -77,7 +78,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 omgjørVedtak = rammevedtak.id,
                 resultat = RammebehandlingResultatTypeDTO.OMGJØRING_IKKE_VALGT,
                 //language=json
-                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for avbryt søknad og/eller rammebehandling"}""",
+                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","begrunnelse": {"verdi": "begrunnelse for avbryt søknad og/eller rammebehandling", "erSladdet": false}}""",
                 attesteringer = emptyList(),
                 iverksattTidspunkt = null,
                 vedtaksperiode = null,
@@ -96,7 +97,7 @@ class AvbrytKlagebehandlingMedRammebehandlingRouteTest {
                 behandlingDetKlagesPå = "${rammevedtak.behandlingId}",
                 behandlingId = emptyList(),
                 åpenBehandlingId = null,
-                brevtekst = listOf("""{"tittel":"Avvisning av klage","tekst":"Din klage er dessverre avvist."}"""),
+                brevtekst = listOf("""{"tittel":"Avvisning av klage","tekst": ${ikkeSladdetTekst("Din klage er dessverre avvist.")}}"""),
             )
         }
     }

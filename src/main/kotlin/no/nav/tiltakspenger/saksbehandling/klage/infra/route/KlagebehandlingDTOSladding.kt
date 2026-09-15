@@ -1,8 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.KlagebehandlingAvbruttDTO
@@ -14,14 +13,14 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.avbryt.Klagebehandl
  */
 
 fun KlagebehandlingDTO.sladdet(): KlagebehandlingDTO = this.copy(
-    fnr = SLADDET_TEKST,
+    fnr = SladdetVerdi,
     avbrutt = avbrutt?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },
     resultat = resultat?.sladdet(),
 )
 
 fun KlagebehandlingAvbruttDTO.sladdet(): KlagebehandlingAvbruttDTO = this.copy(
-    begrunnelse = begrunnelse?.let { SLADDET_TEKST },
+    begrunnelse = SladdetVerdi,
 )
 
 fun KlagebehandlingsresultatDTO.sladdet(): KlagebehandlingsresultatDTO = when (this) {
@@ -30,17 +29,18 @@ fun KlagebehandlingsresultatDTO.sladdet(): KlagebehandlingsresultatDTO = when (t
     )
 
     is KlagebehandlingsresultatDTO.Omgjør -> this.copy(
-        begrunnelse = SLADDET_TEKST,
-        begrunnelseFerdigstilling = begrunnelseFerdigstilling?.let { SLADDET_TEKST },
+        begrunnelse = SladdetVerdi,
+        begrunnelseFerdigstilling = SladdetVerdi,
     )
 
     is KlagebehandlingsresultatDTO.Opprettholdt -> this.copy(
         brevtekst = brevtekst.sladdet(),
-        begrunnelseFerdigstilling = begrunnelseFerdigstilling?.let { SLADDET_TEKST },
+        begrunnelseFerdigstilling = SladdetVerdi,
     )
 }
 
-private fun List<TittelOgTekstDTO>.sladdet(): List<TittelOgTekstDTO> = this.map { it.copy(tekst = SLADDET_TEKST) }
+private fun List<TittelOgSladdbarTekstDTO>.sladdet(): List<TittelOgSladdbarTekstDTO> =
+    this.map { it.copy(tekst = SladdetVerdi) }
 
 fun KlagebehandlingDTO.sladdetFor(saksbehandler: Saksbehandler): KlagebehandlingDTO =
     if (skalSladdeFor(saksbehandler)) sladdet() else this

@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregningerVedtatt
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.validerKanIverksetteUtbetaling
@@ -14,8 +16,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.SimulertBereg
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.toSimulertBeregningDTO
 
 data class BehandlingUtbetalingDTO(
-    val navkontor: String,
-    val navkontorNavn: String?,
+    val navkontor: SladdbarVerdi<String>,
+    val navkontorNavn: SladdbarVerdi<String?>,
     val status: UtbetalingsstatusDTO,
     val simulertBeregning: SimulertBeregningDTO,
     val kanIkkeIverksetteUtbetaling: KanIkkeIverksetteUtbetalingDTO?,
@@ -46,8 +48,8 @@ fun BehandlingUtbetaling.tilDTO(
 ): BehandlingUtbetalingDTO {
     val kanIkkeIverksette = this.simulering?.validerKanIverksetteUtbetaling()?.leftOrNull()
     return BehandlingUtbetalingDTO(
-        navkontor = navkontor.kontornummer,
-        navkontorNavn = navkontor.kontornavn,
+        navkontor = navkontor.kontornummer.ikkeSladdet(),
+        navkontorNavn = navkontor.kontornavn.ikkeSladdet(),
         status = utbetalingsstatus.toUtbetalingsstatusDTO(),
         simulertBeregning = this.toSimulertBeregning(beregninger).toSimulertBeregningDTO(),
         kanIkkeIverksetteUtbetaling = kanIkkeIverksette?.tilKanIkkeIverksetteUtbetalingDTO(),

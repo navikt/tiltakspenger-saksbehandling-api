@@ -11,7 +11,7 @@ data class SaksbehandlerDTO(
     /**
      * Angir om personopplysninger og fritekster sladdes i svarene til den innloggede brukeren.
      * Sann for brukere uten fagrolle i [ROLLER_MED_PERSONINNSYN].
-     * Da leveres verdiene som [SLADDET_TEKST].
+     * Da leveres de sladdbare feltene som [SladdetVerdi].
      */
     val sladdes: Boolean,
 ) {

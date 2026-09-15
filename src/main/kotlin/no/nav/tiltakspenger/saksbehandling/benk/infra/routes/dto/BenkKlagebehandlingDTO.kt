@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 
 enum class BenkKlagebehandlingResultatDTO {
     AVVIST,
@@ -13,7 +15,7 @@ data class BenkKlagebehandlingDTO(
     override val type: BenkBehandlingstypeDTO = BenkBehandlingstypeDTO.KLAGEBEHANDLING,
     override val id: String,
     override val sakId: String,
-    override val fnr: String,
+    override val fnr: SladdbarVerdi<String>,
     override val saksnummer: String,
     override val startet: String,
     override val sistEndret: String,
@@ -29,7 +31,7 @@ data class BenkKlagebehandlingDTO(
 fun BenkKlagebehandling.toDTO(): BenkKlagebehandlingDTO = BenkKlagebehandlingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
-    fnr = felles.fnr.verdi,
+    fnr = felles.fnr.verdi.ikkeSladdet(),
     saksnummer = felles.saksnummer.verdi,
     startet = felles.startet.toString(),
     sistEndret = felles.sistEndret.toString(),

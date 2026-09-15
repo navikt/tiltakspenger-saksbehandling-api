@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev.Companion.toFritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse.Companion.toBegrunnelse
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "resultat")
@@ -29,7 +29,7 @@ sealed interface OppdaterSøknadsbehandlingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
-        val barnetillegg: BarnetilleggDTO,
+        val barnetillegg: OppdaterBarnetilleggDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
     ) : OppdaterSøknadsbehandlingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.INNVILGELSE

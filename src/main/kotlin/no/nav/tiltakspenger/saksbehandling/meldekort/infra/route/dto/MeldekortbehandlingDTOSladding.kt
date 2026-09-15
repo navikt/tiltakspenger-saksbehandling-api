@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 
@@ -12,10 +12,10 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
  */
 
 fun MeldekortbehandlingDTO.sladdet(): MeldekortbehandlingDTO = this.copy(
-    navkontor = SLADDET_TEKST,
-    navkontorNavn = navkontorNavn?.let { SLADDET_TEKST },
-    begrunnelse = begrunnelse?.let { SLADDET_TEKST },
-    tekstTilVedtaksbrev = tekstTilVedtaksbrev?.let { SLADDET_TEKST },
+    navkontor = SladdetVerdi,
+    navkontorNavn = SladdetVerdi,
+    begrunnelse = SladdetVerdi,
+    tekstTilVedtaksbrev = SladdetVerdi,
     attesteringer = attesteringer.map { it.sladdet() },
     avbrutt = avbrutt?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },

@@ -6,7 +6,8 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -18,12 +19,12 @@ import java.math.BigDecimal
 class BenkDTOSladdingTest {
 
     @Test
-    fun `fødselsnummer og ventebegrunnelse erstattes i alle radtypene`() {
+    fun `fødselsnummer og ventebegrunnelse sladdes i alle radtypene`() {
         val benkResponsDTO = benkResponsDTO()
 
         benkResponsDTO.sladdet().oversikt.behandlinger.forEach {
-            it.fnr shouldBe SLADDET_TEKST
-            it.ventestatus.begrunnelse shouldBe SLADDET_TEKST
+            it.fnr shouldBe SladdetVerdi
+            it.ventestatus.begrunnelse shouldBe SladdetVerdi
         }
     }
 
@@ -54,20 +55,24 @@ class BenkDTOSladdingTest {
     }
 
     @Test
-    fun `ventebegrunnelse som er null forblir null`() {
+    fun `ventebegrunnelse som mangler sladdes på linje med de andre`() {
         val utenVentebegrunnelse = benkResponsDTO().let { respons ->
             respons.copy(
                 oversikt = respons.oversikt.copy(
                     behandlinger = listOf(
                         benkSøknadsbehandlingDTO().copy(
-                            ventestatus = BenkVentestatusDTO(erSattPåVent = false, begrunnelse = null, frist = null),
+                            ventestatus = BenkVentestatusDTO(
+                                erSattPåVent = false,
+                                begrunnelse = null.ikkeSladdet(),
+                                frist = null,
+                            ),
                         ),
                     ),
                 ),
             )
         }
 
-        utenVentebegrunnelse.sladdet().oversikt.behandlinger.single().ventestatus.begrunnelse shouldBe null
+        utenVentebegrunnelse.sladdet().oversikt.behandlinger.single().ventestatus.begrunnelse shouldBe SladdetVerdi
     }
 
     @Test
@@ -93,7 +98,7 @@ class BenkDTOSladdingTest {
                 BenkRevurderingDTO(
                     id = "revurdering",
                     sakId = "sakId",
-                    fnr = Fnr.random().verdi,
+                    fnr = Fnr.random().verdi.ikkeSladdet(),
                     saksnummer = "saksnummer",
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
@@ -109,7 +114,7 @@ class BenkDTOSladdingTest {
                     type = BenkBehandlingstypeDTO.MELDEKORTBEHANDLING,
                     id = "meldekort",
                     sakId = "sakId",
-                    fnr = Fnr.random().verdi,
+                    fnr = Fnr.random().verdi.ikkeSladdet(),
                     saksnummer = "saksnummer",
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
@@ -125,7 +130,7 @@ class BenkDTOSladdingTest {
                 BenkKlagebehandlingDTO(
                     id = "klage",
                     sakId = "sakId",
-                    fnr = Fnr.random().verdi,
+                    fnr = Fnr.random().verdi.ikkeSladdet(),
                     saksnummer = "saksnummer",
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
@@ -140,7 +145,7 @@ class BenkDTOSladdingTest {
                 BenkTilbakekrevingDTO(
                     id = "tilbakekreving",
                     sakId = "sakId",
-                    fnr = Fnr.random().verdi,
+                    fnr = Fnr.random().verdi.ikkeSladdet(),
                     saksnummer = "saksnummer",
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
@@ -170,7 +175,7 @@ class BenkDTOSladdingTest {
     private fun benkSøknadsbehandlingDTO(): BenkSøknadsbehandlingDTO = BenkSøknadsbehandlingDTO(
         id = "søknadsbehandling",
         sakId = "sakId",
-        fnr = Fnr.random().verdi,
+        fnr = Fnr.random().verdi.ikkeSladdet(),
         saksnummer = "saksnummer",
         startet = 1.januarDateTime(2025).toString(),
         sistEndret = 1.januarDateTime(2025).toString(),
@@ -187,7 +192,7 @@ class BenkDTOSladdingTest {
 
     private fun ventestatusDTO(): BenkVentestatusDTO = BenkVentestatusDTO(
         erSattPåVent = true,
-        begrunnelse = "Venter på dokumentasjon fra bostedet",
+        begrunnelse = "Venter på dokumentasjon fra bostedet".ikkeSladdet(),
         frist = 1.januar(2025).toString(),
     )
 }

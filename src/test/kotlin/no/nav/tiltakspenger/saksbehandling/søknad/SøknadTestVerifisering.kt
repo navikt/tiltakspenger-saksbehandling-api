@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.søknad
 
 import io.kotest.assertions.json.shouldEqualJson
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 
 fun String.shouldBeSøknadDTO(
@@ -45,7 +46,7 @@ fun String.shouldBeSøknadDTO(
         """{
               "avbruttAv": "$avbruttAv",
               "avbruttTidspunkt": "TIMESTAMP",
-              "begrunnelse": ${avbruttBegrunnelse?.let { "\"$it\"" }}
+              "begrunnelse": ${ikkeSladdetTekst(avbruttBegrunnelse)}
             }"""
     } else {
         "null"

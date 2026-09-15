@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.sladdet
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.sladdet
@@ -22,8 +22,8 @@ fun RammebehandlingDTO.sladdet(): RammebehandlingDTO = when (this) {
 fun SøknadsbehandlingDTO.sladdet(): SøknadsbehandlingDTO = this.copy(
     saksopplysninger = saksopplysninger.sladdet(),
     attesteringer = attesteringer.map { it.sladdet() },
-    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { SLADDET_TEKST },
-    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { SLADDET_TEKST },
+    fritekstTilVedtaksbrev = SladdetVerdi,
+    begrunnelseVilkårsvurdering = SladdetVerdi,
     avbrutt = avbrutt?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },
     utbetaling = utbetaling?.sladdet(),
@@ -34,8 +34,8 @@ fun SøknadsbehandlingDTO.sladdet(): SøknadsbehandlingDTO = this.copy(
 fun RevurderingDTO.sladdet(): RevurderingDTO = this.copy(
     saksopplysninger = saksopplysninger.sladdet(),
     attesteringer = attesteringer.map { it.sladdet() },
-    fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.let { SLADDET_TEKST },
-    begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { SLADDET_TEKST },
+    fritekstTilVedtaksbrev = SladdetVerdi,
+    begrunnelseVilkårsvurdering = SladdetVerdi,
     avbrutt = avbrutt?.sladdet(),
     ventestatus = ventestatus.map { it.sladdet() },
     utbetaling = utbetaling?.sladdet(),
@@ -43,12 +43,12 @@ fun RevurderingDTO.sladdet(): RevurderingDTO = this.copy(
 )
 
 fun SaksopplysningerDTO.sladdet(): SaksopplysningerDTO = this.copy(
-    fødselsdato = SLADDET_TEKST,
+    fødselsdato = SladdetVerdi,
 )
 
 fun BehandlingUtbetalingDTO.sladdet(): BehandlingUtbetalingDTO = this.copy(
-    navkontor = SLADDET_TEKST,
-    navkontorNavn = navkontorNavn?.let { SLADDET_TEKST },
+    navkontor = SladdetVerdi,
+    navkontorNavn = SladdetVerdi,
 )
 
 /**

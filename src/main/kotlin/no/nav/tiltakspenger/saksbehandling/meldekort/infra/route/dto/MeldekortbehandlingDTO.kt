@@ -11,7 +11,9 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilMeldeperiodeBe
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
@@ -47,9 +49,9 @@ data class MeldekortbehandlingDTO(
     val godkjentTidspunkt: LocalDateTime?,
     val status: MeldekortbehandlingStatusDTO,
     val erAvsluttet: Boolean,
-    val navkontor: String,
-    val navkontorNavn: String?,
-    val begrunnelse: String?,
+    val navkontor: SladdbarVerdi<String>,
+    val navkontorNavn: SladdbarVerdi<String?>,
+    val begrunnelse: SladdbarVerdi<String?>,
     val attesteringer: List<AttesteringDTO>,
     val utbetalingsstatus: UtbetalingsstatusDTO,
     /** Sammenhengende totalperiode på tvers av alle [meldeperioder]. */
@@ -73,7 +75,7 @@ data class MeldekortbehandlingDTO(
      * Null når grunnen alene er dekkende.
      */
     val kanIkkeIverksetteUtbetalingMelding: String?,
-    val tekstTilVedtaksbrev: String?,
+    val tekstTilVedtaksbrev: SladdbarVerdi<String?>,
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
     /**
@@ -118,9 +120,9 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         godkjentTidspunkt = vedtak?.opprettet ?: iverksattTidspunkt,
         status = status.toStatusDTO(),
         erAvsluttet = erAvsluttet,
-        navkontor = navkontor.kontornummer,
-        navkontorNavn = navkontor.kontornavn,
-        begrunnelse = begrunnelse?.verdi,
+        navkontor = navkontor.kontornummer.ikkeSladdet(),
+        navkontorNavn = navkontor.kontornavn.ikkeSladdet(),
+        begrunnelse = begrunnelse?.verdi.ikkeSladdet(),
         attesteringer = attesteringer.toAttesteringDTO(),
         utbetalingsstatus = vedtak?.utbetaling?.status?.toUtbetalingsstatusDTO() ?: this.tilUtbetalingsstatusDTO(),
         periode = meldeperioder.totalPeriode.toDTO(),
@@ -133,7 +135,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         ),
         kanIkkeIverksetteUtbetaling = kanIkkeIverksette?.tilKanIkkeIverksetteUtbetalingDTO(),
         kanIkkeIverksetteUtbetalingMelding = kanIkkeIverksette?.tilMeldingDTO(),
-        tekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
+        tekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi.ikkeSladdet(),
         tilbakekrevingId = hentTilbakekreving(id)?.id?.toString(),
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),

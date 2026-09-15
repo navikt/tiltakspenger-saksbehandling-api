@@ -13,7 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterOm
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
-import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.BarnetilleggDTO
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg.OppdaterBarnetilleggDTO
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse.Companion.toBegrunnelse
 import java.time.LocalDate
 
@@ -29,7 +29,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
-        val barnetillegg: BarnetilleggDTO,
+        val barnetillegg: OppdaterBarnetilleggDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
@@ -98,7 +98,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev: String?,
         override val begrunnelseVilkårsvurdering: String?,
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
-        val barnetillegg: BarnetilleggDTO,
+        val barnetillegg: OppdaterBarnetilleggDTO,
         val vedtaksperiode: PeriodeDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
     ) : OppdaterRevurderingDTO {
