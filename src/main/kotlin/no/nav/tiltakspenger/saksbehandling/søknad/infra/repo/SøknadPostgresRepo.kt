@@ -34,10 +34,10 @@ class SøknadPostgresRepo(
         }
     }
 
-    override fun lagreGjenopprettetSøknad(søknad: Søknad, txContext: TransactionContext) {
-        require(søknad.erGjenopprettet) { "Kan ikke lagre en gjenopprettet søknad som fortsatt er avbrutt" }
+    override fun lagreGjenåpnetSøknad(søknad: Søknad, txContext: TransactionContext) {
+        require(søknad.erGjenåpnet) { "Kan ikke lagre en gjenåpnet søknad som fortsatt er avbrutt" }
         sessionFactory.withTransaction(txContext) { session ->
-            SøknadDAO.lagreGjenopprettetSøknad(søknad.id, søknad.avbrutt, session)
+            SøknadDAO.lagreGjenåpnetSøknad(søknad.id, søknad.avbrutt, session)
         }
     }
 

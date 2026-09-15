@@ -37,7 +37,7 @@ class SøknadFakeRepo(private val behandlingRepo: RammebehandlingFakeRepo) : Sø
         data.get()[søknad.id] = søknad
     }
 
-    override fun lagreGjenopprettetSøknad(søknad: Søknad, txContext: TransactionContext) {
+    override fun lagreGjenåpnetSøknad(søknad: Søknad, txContext: TransactionContext) {
         data.get()[søknad.id] = søknad
     }
 

@@ -32,7 +32,7 @@ class SøknadService(
         søknadRepo.lagreAvbruttSøknad(søknad, tx)
     }
 
-    fun lagreGjenopprettetSøknad(søknad: Søknad, tx: TransactionContext) {
-        søknadRepo.lagreGjenopprettetSøknad(søknad, tx)
+    fun lagreGjenåpnetSøknad(søknad: Søknad, tx: TransactionContext) {
+        søknadRepo.lagreGjenåpnetSøknad(søknad, tx)
     }
 }

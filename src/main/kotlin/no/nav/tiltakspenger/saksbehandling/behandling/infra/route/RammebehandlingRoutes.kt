@@ -9,8 +9,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.underkjenn.und
 import no.nav.tiltakspenger.saksbehandling.behandling.service.OppdaterBeregningOgSimuleringRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.AngreRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.BehandleSøknadPåNyttService
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopprettSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopptaRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenåpneSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.OppdaterRammebehandlingService
@@ -41,7 +41,7 @@ fun Route.rammebehandlingRoutes(
     oppdaterBehandlingService: OppdaterRammebehandlingService,
     settBehandlingPåVentService: SettRammebehandlingPåVentService,
     gjenopptaBehandlingService: GjenopptaRammebehandlingService,
-    gjenopprettSøknadsbehandlingService: GjenopprettSøknadsbehandlingService,
+    gjenåpneSøknadsbehandlingService: GjenåpneSøknadsbehandlingService,
     oppdaterBeregningOgSimuleringRammebehandlingService: OppdaterBeregningOgSimuleringRammebehandlingService,
     oppdaterBeregningOgSimuleringMeldekortService: OppdaterBeregningOgSimuleringMeldekortService,
     tilgangskontrollService: TilgangskontrollService,
@@ -61,7 +61,7 @@ fun Route.rammebehandlingRoutes(
     oppdaterRammebehandlingRoute(oppdaterBehandlingService, auditService, tilgangskontrollService)
     settRammebehandlingPåVentRoute(auditService, settBehandlingPåVentService, tilgangskontrollService, clock)
     gjenopptaRammebehandling(auditService, gjenopptaBehandlingService, tilgangskontrollService, clock)
-    gjenopprettSøknadsbehandlingRoute(gjenopprettSøknadsbehandlingService, auditService, tilgangskontrollService)
+    gjenåpneSøknadsbehandlingRoute(gjenåpneSøknadsbehandlingService, auditService, tilgangskontrollService)
     oppdaterSimuleringRoute(
         oppdaterBeregningOgSimuleringRammebehandlingService,
         oppdaterBeregningOgSimuleringMeldekortService,

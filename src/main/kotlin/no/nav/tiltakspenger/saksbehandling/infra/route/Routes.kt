@@ -44,7 +44,7 @@ fun Route.routes(
             oppdaterBehandlingService = applicationContext.behandlingContext.oppdaterRammebehandlingService,
             settBehandlingPåVentService = applicationContext.behandlingContext.settRammebehandlingPåVentService,
             gjenopptaBehandlingService = applicationContext.behandlingContext.gjenopptaRammebehandlingService,
-            gjenopprettSøknadsbehandlingService = applicationContext.gjenopprettSøknadsbehandlingContext.gjenopprettSøknadsbehandlingService,
+            gjenåpneSøknadsbehandlingService = applicationContext.gjenåpneSøknadsbehandlingContext.gjenåpneSøknadsbehandlingService,
             oppdaterBeregningOgSimuleringRammebehandlingService = applicationContext.behandlingContext.oppdaterBeregningOgSimuleringRammebehandlingService,
             oppdaterBeregningOgSimuleringMeldekortService = applicationContext.meldekortContext.oppdaterBeregningOgSimuleringMeldekortService,
             tilgangskontrollService = applicationContext.tilgangskontrollService,

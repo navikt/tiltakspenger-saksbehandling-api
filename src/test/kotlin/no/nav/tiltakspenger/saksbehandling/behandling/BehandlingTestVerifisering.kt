@@ -239,7 +239,6 @@ fun String.shouldBeSøknadsbehandlingDTO(
     deltakelseProsent: String = "100",
     antallDagerPerUke: String = "5",
     avslagsgrunner: List<String>? = null,
-    /** Historikken over avbrytelser og gjenopprettinger på søknaden. */
     søknadHendelserJson: String = "[]",
 ) {
     val avslagsgrunnerJson = avslagsgrunner

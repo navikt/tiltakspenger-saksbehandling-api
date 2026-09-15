@@ -62,7 +62,7 @@ class AvbrytRammebehandlingRouteTest {
                 barnetillegg = false,
                 avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "2025-05-01T01:02:13.456789","begrunnelse": {"verdi": "begrunnelse for avbryt søknad og/eller rammebehandling", "erSladdet": false}}""",
                 søknadHendelserJson = """[{"type": "AVBRUTT","tidspunkt": "2025-05-01T01:02:13.456789","utførtAv": "Z12345","begrunnelse": {"verdi": "begrunnelse for avbryt søknad og/eller rammebehandling", "erSladdet": false}}]""",
-                gyldigeKommandoer = listOf("Gjenopprett"),
+                gyldigeKommandoer = listOf("Gjenåpne"),
             )
         }
     }

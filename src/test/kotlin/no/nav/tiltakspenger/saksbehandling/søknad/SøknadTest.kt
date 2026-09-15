@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -119,7 +120,7 @@ class SøknadTest {
     @Test
     fun `kaster exception dersom man prøver å avbryte en avbrutt søknad`() {
         val avbruttSøknad = ObjectMother.nyInnvilgbarSøknad().copy(
-            avbrutt = no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser.fromAvbrutt(
+            avbrutt = Søknadshendelser.fromAvbrutt(
                 tidspunkt = 1.november(2024).atStartOfDay(),
                 utførtAv = "navident",
                 begrunnelse = "skal få exception".toNonBlankString(),

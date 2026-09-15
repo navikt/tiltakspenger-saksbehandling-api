@@ -16,39 +16,35 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenopprett.GjenopprettSøknadsbehandlingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenopprett.KanIkkeGjenoppretteSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenåpne.GjenåpneSøknadsbehandlingKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.gjenåpne.KanIkkeGjenåpneSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilSøknadsbehandlingDTO
-import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenopprettSøknadsbehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.GjenåpneSøknadsbehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 
-private const val GJENOPPRETT_SØKNADSBEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenopprett"
+private const val GJENÅPNE_SØKNADSBEHANDLING_PATH = "/sak/{sakId}/behandling/{behandlingId}/gjenapne"
 
-/**
- * Tar opp igjen en søknad som ble avsluttet uten vedtak.
- * Saksbehandler peker på den avbrutte søknadsbehandlingen, og får en ny søknadsbehandling tilbake.
- */
-fun Route.gjenopprettSøknadsbehandlingRoute(
-    gjenopprettSøknadsbehandlingService: GjenopprettSøknadsbehandlingService,
+fun Route.gjenåpneSøknadsbehandlingRoute(
+    gjenåpneSøknadsbehandlingService: GjenåpneSøknadsbehandlingService,
     auditService: AuditService,
     tilgangskontrollService: TilgangskontrollService,
 ) {
     val logger = KotlinLogging.logger {}
-    post(GJENOPPRETT_SØKNADSBEHANDLING_PATH) {
-        logger.debug { "Mottatt post-request på '$GJENOPPRETT_SØKNADSBEHANDLING_PATH' - Gjenoppretter søknaden og oppretter en ny søknadsbehandling." }
+    post(GJENÅPNE_SØKNADSBEHANDLING_PATH) {
+        logger.debug { "Mottatt post-request på '$GJENÅPNE_SØKNADSBEHANDLING_PATH' - Gjenåpner søknaden og oppretter en ny søknadsbehandling." }
         val token = call.principal<TexasPrincipalInternal>()?.token ?: return@post
         val saksbehandler = call.saksbehandler(autoriserteBrukerroller()) ?: return@post
         call.withSakId { sakId ->
             call.withRammebehandlingId { behandlingId ->
-                call.withBody<GjenopprettSøknadsbehandlingBody> { body ->
+                call.withBody<GjenåpneSøknadsbehandlingBody> { body ->
                     val correlationId = call.correlationId()
                     krevSaksbehandlerRolle(saksbehandler)
                     tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
-                    gjenopprettSøknadsbehandlingService.gjenopprettSøknadsbehandling(
-                        GjenopprettSøknadsbehandlingKommando(
+                    gjenåpneSøknadsbehandlingService.gjenåpneSøknadsbehandling(
+                        GjenåpneSøknadsbehandlingKommando(
                             sakId = sakId,
                             avbruttBehandlingId = behandlingId,
                             saksbehandler = saksbehandler,
@@ -59,7 +55,7 @@ fun Route.gjenopprettSøknadsbehandlingRoute(
                         ifLeft = { feil ->
                             call.loggOgSvarFeil(
                                 logger = logger,
-                                operasjon = "Gjenopprett søknadsbehandling",
+                                operasjon = "Gjenåpne søknadsbehandling",
                                 feil = feil,
                                 statusOgErrorJson = feil.tilStatusOgErrorJson(),
                                 kontekst = "sakId=$sakId, behandlingId=$behandlingId",
@@ -70,7 +66,7 @@ fun Route.gjenopprettSøknadsbehandlingRoute(
                                 behandlingId = behandlingId,
                                 navIdent = saksbehandler.navIdent,
                                 action = AuditLogEvent.Action.CREATE,
-                                contextMessage = "Gjenoppretter søknaden og oppretter en ny søknadsbehandling",
+                                contextMessage = "Gjenåpner søknaden og oppretter en ny søknadsbehandling",
                                 correlationId = correlationId,
                             )
                             call.respondJson(
@@ -90,34 +86,34 @@ fun Route.gjenopprettSøknadsbehandlingRoute(
     }
 }
 
-/** Begrunnelsen er valgfri; gjenopprettingen forklares som regel av at det opprettes en ny behandling. */
-data class GjenopprettSøknadsbehandlingBody(
+/** Begrunnelsen er valgfri; gjenåpningen forklares som regel av at det opprettes en ny behandling. */
+data class GjenåpneSøknadsbehandlingBody(
     val begrunnelse: String?,
 )
 
-private fun KanIkkeGjenoppretteSøknadsbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    is KanIkkeGjenoppretteSøknadsbehandling.FantIkkeBehandling -> HttpStatusCode.NotFound to ErrorJson(
+private fun KanIkkeGjenåpneSøknadsbehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    is KanIkkeGjenåpneSøknadsbehandling.FantIkkeBehandling -> HttpStatusCode.NotFound to ErrorJson(
         "Behandlingen finnes ikke lenger.",
         "fant_ikke_behandling",
     )
 
-    KanIkkeGjenoppretteSøknadsbehandling.BehandlingenErIkkeEnSøknadsbehandling -> HttpStatusCode.BadRequest to ErrorJson(
-        "Det er bare søknadsbehandlinger som kan gjenopprettes.",
+    KanIkkeGjenåpneSøknadsbehandling.BehandlingenErIkkeEnSøknadsbehandling -> HttpStatusCode.BadRequest to ErrorJson(
+        "Det er bare søknadsbehandlinger som kan gjenåpnes.",
         "behandlingen_er_ikke_en_soknadsbehandling",
     )
 
-    is KanIkkeGjenoppretteSøknadsbehandling.BehandlingenErIkkeAvbrutt -> HttpStatusCode.BadRequest to ErrorJson(
-        "Behandlingen er ikke avbrutt, og kan derfor ikke gjenopprettes.",
+    is KanIkkeGjenåpneSøknadsbehandling.BehandlingenErIkkeAvbrutt -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er ikke avbrutt, og kan derfor ikke gjenåpnes.",
         "behandlingen_er_ikke_avbrutt",
     )
 
-    KanIkkeGjenoppretteSøknadsbehandling.SøknadenHarEnAktivBehandling -> HttpStatusCode.Conflict to ErrorJson(
+    KanIkkeGjenåpneSøknadsbehandling.SøknadenHarEnAktivBehandling -> HttpStatusCode.Conflict to ErrorJson(
         "Søknaden har allerede en behandling som ikke er avbrutt.",
         "soknaden_har_en_aktiv_behandling",
     )
 
-    KanIkkeGjenoppretteSøknadsbehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
-        "Du må være saksbehandler for å gjenopprette søknaden.",
+    KanIkkeGjenåpneSøknadsbehandling.MåVæreSaksbehandler -> HttpStatusCode.Forbidden to ErrorJson(
+        "Du må være saksbehandler for å gjenåpne søknaden.",
         "maa_vaere_saksbehandler",
     )
 }

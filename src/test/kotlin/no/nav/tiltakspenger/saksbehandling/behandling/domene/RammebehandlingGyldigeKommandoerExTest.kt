@@ -168,11 +168,11 @@ class RammebehandlingGyldigeKommandoerExTest {
     }
 
     @Test
-    fun `avbrutt søknadsbehandling kan kun gjenopprettes, og kun av en saksbehandler`() {
+    fun `avbrutt søknadsbehandling kan kun gjenåpnes, og kun av en saksbehandler`() {
         val behandling = ObjectMother.nyAvbruttSøknadsbehandling(saksbehandler = saksbehandler)
 
         behandling.status shouldBe Rammebehandlingsstatus.AVBRUTT
-        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SaksbehandlerBehandlingKommando.Gjenopprett)
+        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(SaksbehandlerBehandlingKommando.Gjenåpne)
         behandling.finnGyldigeKommandoer(beslutter) shouldBe emptyList()
     }
 

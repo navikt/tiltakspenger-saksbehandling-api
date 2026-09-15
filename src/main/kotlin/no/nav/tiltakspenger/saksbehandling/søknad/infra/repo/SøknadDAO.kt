@@ -162,12 +162,12 @@ object SøknadDAO {
         oppdaterAvbruddOgHendelser(søknadId, avbrutt, txSession, "Kunne ikke lagre avbrutt søknad.")
     }
 
-    fun lagreGjenopprettetSøknad(
+    fun lagreGjenåpnetSøknad(
         søknadId: SøknadId,
         avbrutt: Søknadshendelser,
         txSession: TransactionalSession,
     ) {
-        oppdaterAvbruddOgHendelser(søknadId, avbrutt, txSession, "Kunne ikke lagre gjenopprettet søknad.")
+        oppdaterAvbruddOgHendelser(søknadId, avbrutt, txSession, "Kunne ikke lagre gjenåpnet søknad.")
     }
 
     private fun oppdaterAvbruddOgHendelser(

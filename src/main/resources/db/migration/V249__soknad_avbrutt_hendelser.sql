@@ -1,5 +1,5 @@
 -- Backfiller historikken for søknader som allerede er avbrutt, slik at begrunnelsen for avbruddet
--- overlever en senere gjenoppretting (som nullstiller `avbrutt`).
+-- overlever en senere gjenåpning (som nullstiller `avbrutt`).
 update søknad
 set avbrutt = jsonb_build_array(
         jsonb_build_object(

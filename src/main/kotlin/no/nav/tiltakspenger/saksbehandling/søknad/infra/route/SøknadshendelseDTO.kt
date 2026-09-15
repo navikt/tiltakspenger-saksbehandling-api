@@ -14,7 +14,7 @@ data class SøknadshendelseDTO(
 ) {
     enum class Type {
         AVBRUTT,
-        GJENOPPRETTET,
+        GJENÅPNET,
     }
 }
 
@@ -22,7 +22,7 @@ fun Søknadshendelser.toSøknadshendelserDTO(): List<SøknadshendelseDTO> = this
     SøknadshendelseDTO(
         type = when (it) {
             is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Avbrutt -> SøknadshendelseDTO.Type.AVBRUTT
-            is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Gjenopprettet -> SøknadshendelseDTO.Type.GJENOPPRETTET
+            is no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse.Gjenåpnet -> SøknadshendelseDTO.Type.GJENÅPNET
         },
         tidspunkt = it.tidspunkt,
         utførtAv = it.utførtAv,
