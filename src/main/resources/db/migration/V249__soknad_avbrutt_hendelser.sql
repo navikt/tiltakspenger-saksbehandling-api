@@ -41,4 +41,9 @@ $$
     end
 $$;
 
-create index on søknad (soknadstype, opprettet) where jsonb_array_length(avbrutt) = 0;
+-- Predikatet er `avbrutt = '[]'` og ikke `jsonb_array_length(avbrutt) = 0`.
+-- Flyway kjører hele migreringen i én transaksjon, og en indeksbygging evaluerer predikatet også på de gamle
+-- radversjonene backfillen over nettopp erstattet — de inneholder fortsatt objektet, så `jsonb_array_length`
+-- feiler med «cannot get array length of a non-array».
+-- Likhet er definert for alle jsonb-verdier og er ekvivalent med lengde 0 nå som kolonnen alltid er en array.
+create index on søknad (soknadstype, opprettet) where avbrutt = '[]'::jsonb;
