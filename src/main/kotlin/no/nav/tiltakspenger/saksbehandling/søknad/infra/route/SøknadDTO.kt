@@ -3,6 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
@@ -40,18 +42,14 @@ data class SøknadDTO(
         val typeNavn: String,
     )
 
-    /**
-     * @property fødselsdato Dato på ISO-format.
-     * Er en streng og ikke en dato fordi den kan være sladdet.
-     */
     data class BarnetilleggFraSøknadDTO(
         val oppholderSegIEØSSpm: JaNeiSpmDTO,
-        val fornavn: String?,
-        val mellomnavn: String?,
-        val etternavn: String?,
-        val fødselsdato: String,
+        val fornavn: SladdbarVerdi<String?>,
+        val mellomnavn: SladdbarVerdi<String?>,
+        val etternavn: SladdbarVerdi<String?>,
+        val fødselsdato: SladdbarVerdi<LocalDate>,
         val kilde: BarnetilleggFraSøknadKilde,
-        val fnr: String?,
+        val fnr: SladdbarVerdi<String?>,
     )
 
     enum class BarnetilleggFraSøknadKilde {
@@ -231,10 +229,10 @@ fun Søknadstiltak.toDTO(): SøknadDTO.TiltaksdeltagelseFraSøknadDTO {
 fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknadDTO> = this.map {
     SøknadDTO.BarnetilleggFraSøknadDTO(
         oppholderSegIEØSSpm = it.oppholderSegIEØS.toDTO(),
-        fornavn = it.fornavn,
-        mellomnavn = it.mellomnavn,
-        etternavn = it.etternavn,
-        fødselsdato = it.fødselsdato.toString(),
+        fornavn = it.fornavn.ikkeSladdet(),
+        mellomnavn = it.mellomnavn.ikkeSladdet(),
+        etternavn = it.etternavn.ikkeSladdet(),
+        fødselsdato = it.fødselsdato.ikkeSladdet(),
         kilde = when (it) {
             is BarnetilleggFraSøknad.FraPdl -> SøknadDTO.BarnetilleggFraSøknadKilde.PDL
             is BarnetilleggFraSøknad.Manuell -> SøknadDTO.BarnetilleggFraSøknadKilde.Manuell
@@ -242,6 +240,6 @@ fun List<BarnetilleggFraSøknad>.toDTO(): List<SøknadDTO.BarnetilleggFraSøknad
         fnr = when (it) {
             is BarnetilleggFraSøknad.FraPdl -> it.fnr?.verdi
             is BarnetilleggFraSøknad.Manuell -> null
-        },
+        }.ikkeSladdet(),
     )
 }

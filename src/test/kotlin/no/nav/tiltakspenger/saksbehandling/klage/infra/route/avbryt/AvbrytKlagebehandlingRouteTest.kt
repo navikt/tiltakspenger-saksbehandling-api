@@ -38,7 +38,7 @@ class AvbrytKlagebehandlingRouteTest {
                 resultat = "AVVIST",
                 vedtakDetKlagesPå = null,
                 status = "AVBRUTT",
-                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
+                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": {"verdi": "begrunnelse for avbryt klagebehandling", "erSladdet": false}}""",
             )
         }
     }
@@ -66,7 +66,7 @@ class AvbrytKlagebehandlingRouteTest {
                 status = "AVBRUTT",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
+                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": {"verdi": "begrunnelse for avbryt klagebehandling", "erSladdet": false}}""",
             )
         }
     }
@@ -126,7 +126,7 @@ class AvbrytKlagebehandlingRouteTest {
                 status = "AVBRUTT",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
+                avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": {"verdi": "begrunnelse for avbryt klagebehandling", "erSladdet": false}}""",
             )
         }
     }
@@ -167,7 +167,7 @@ class AvbrytKlagebehandlingRouteTest {
                 status = "AVBRUTT",
                 årsak = "PROSESSUELL_FEIL",
                 begrunnelse = "Begrunnelse for omgjøring",
-                avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": "begrunnelse for avbryt klagebehandling"}""",
+                avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "TIMESTAMP","status": "ANNET","begrunnelse": {"verdi": "begrunnelse for avbryt klagebehandling", "erSladdet": false}}""",
             )
         }
     }
@@ -312,7 +312,7 @@ class AvbrytKlagebehandlingRouteTest {
                 resultat = "AVVIST",
                 vedtakDetKlagesPå = null,
                 status = "AVBRUTT",
-                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","status": "KLAGE_TRUKKET","begrunnelse": null}""",
+                avbrutt = """{"avbruttAv": "saksbehandlerKlagebehandling","avbruttTidspunkt": "TIMESTAMP","status": "KLAGE_TRUKKET","begrunnelse": {"verdi": null, "erSladdet": false}}""",
             )
         }
     }

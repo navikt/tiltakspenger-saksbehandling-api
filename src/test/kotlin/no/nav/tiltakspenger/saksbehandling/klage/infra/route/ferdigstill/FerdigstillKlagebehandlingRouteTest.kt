@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.hendelse.Klageinstanshendelse
 import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.GenerererKlageinstanshendelse
@@ -41,9 +42,9 @@ class FerdigstillKlagebehandlingRouteTest {
                 kanIverksetteVedtak = null,
                 behandlingId = null,
                 brevtekst = listOf(
-                    """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
-                    """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
-                    """{"tittel":"Vurdering av klagen","tekst":"<saksbehandler fyller ut>"}""",
+                    """{"tittel":"Hva klagesaken gjelder","tekst": ${ikkeSladdetTekst("Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>")}}""",
+                    """{"tittel":"Klagers anførsler","tekst": ${ikkeSladdetTekst("<saksbehandler fyller ut>")}}""",
+                    """{"tittel":"Vurdering av klagen","tekst": ${ikkeSladdetTekst("<saksbehandler fyller ut>")}}""",
                 ),
                 hjemler = listOf("ARBEIDSMARKEDSLOVEN_17"),
                 iverksattOpprettholdelseTidspunkt = true,

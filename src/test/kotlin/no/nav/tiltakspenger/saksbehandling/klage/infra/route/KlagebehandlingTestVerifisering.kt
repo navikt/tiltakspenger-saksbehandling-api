@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -56,7 +58,7 @@ fun String.shouldBeKlagebehandlingDTO(
          "id": "$klagebehandlingId",
          "sakId": "$sakId",
          "saksnummer": "$saksnummer",
-         "fnr": "$fnr",
+         "fnr": ${ikkeSladdetTekst(fnr)},
          "opprettet": "TIMESTAMP",
          "sistEndret": "TIMESTAMP",
          "iverksattTidspunkt": ${iverksattTidspunkt.toJsonValue()},
@@ -81,7 +83,7 @@ fun String.shouldBeKlagebehandlingDTO(
                       "journalpostIdInnstillingsbrev": ${journalpostIdInnstillingsbrev?.let { "\"$it\"" }},
                       "dokumentInfoIder": ${dokumentInfoIder.map { "\"$it\"" }},
                       "type": "OPPRETTHOLDT",
-                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
+                      "begrunnelseFerdigstilling": ${ikkeSladdetJson(begrunnelseFerdigstilling.toJsonValue())}
                     }
                 """.trimIndent()
 
@@ -89,7 +91,7 @@ fun String.shouldBeKlagebehandlingDTO(
                     {
                       "type": "AVVIST",
                       "brevtekst": ${if (brevtekst.isEmpty()) "[]" else "[${brevtekst.joinToString()}]"},
-                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
+                      "begrunnelseFerdigstilling": ${ikkeSladdetJson(begrunnelseFerdigstilling.toJsonValue())}
                     }
                 """.trimIndent()
 
@@ -97,8 +99,8 @@ fun String.shouldBeKlagebehandlingDTO(
                     {
                       "type": "OMGJØR",
                       "årsak": ${årsak.toJsonValue()},
-                      "begrunnelse": ${begrunnelse.toJsonValue()},
-                      "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()},
+                      "begrunnelse": ${ikkeSladdetJson(begrunnelse.toJsonValue())},
+                      "begrunnelseFerdigstilling": ${ikkeSladdetJson(begrunnelseFerdigstilling.toJsonValue())},
                       "ferdigstiltTidspunkt": ${if (ferdigstiltTidspunkt) "\"TIMESTAMP\"" else "null"}
                     }
                 """.trimIndent()
@@ -146,9 +148,11 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
     vedtakDetKlagesPå: String? = null,
     behandlingDetKlagesPå: String? = null,
     brevtekst: List<String> = listOf(
-        """{"tittel":"Hva klagesaken gjelder","tekst":"Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
-        """{"tittel":"Klagers anførsler","tekst":"<saksbehandler fyller ut>"}""",
-        """{"tittel":"Vurdering av klagen","tekst":"<saksbehandler fyller ut>"}""",
+        """{"tittel":"Hva klagesaken gjelder","tekst":${
+            ikkeSladdetTekst("Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>")
+        }}""",
+        """{"tittel":"Klagers anførsler","tekst":${ikkeSladdetTekst("<saksbehandler fyller ut>")}}""",
+        """{"tittel":"Vurdering av klagen","tekst":${ikkeSladdetTekst("<saksbehandler fyller ut>")}}""",
     ),
     behandlingId: List<String> = emptyList(),
     åpenBehandlingId: String? = null,
@@ -177,7 +181,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
          "id": "$klagebehandlingId",
          "sakId": "$sakId",
          "saksnummer": "$saksnummer",
-         "fnr": "$fnr",
+         "fnr": ${ikkeSladdetTekst(fnr)},
          "opprettet": "TIMESTAMP",
          "sistEndret": "TIMESTAMP",
          "iverksattTidspunkt": null,
@@ -199,7 +203,7 @@ fun String.shouldBeFerdigstiltOpprettholdtKlagebehandlingDTO(
             "journalpostIdInnstillingsbrev": ${resultat.journalpostIdInnstillingsbrev.let { "\"$it\"" }},
             "dokumentInfoIder": ${resultat.dokumentInfoIder.map { "\"$it\"" }},
             "type": "OPPRETTHOLDT",
-            "begrunnelseFerdigstilling": ${begrunnelseFerdigstilling.toJsonValue()}
+            "begrunnelseFerdigstilling": ${ikkeSladdetJson(begrunnelseFerdigstilling.toJsonValue())}
          },
          "avbrutt": null,
          "kanIverksetteVedtak": null,
@@ -239,7 +243,7 @@ fun String.shouldBeKlagevedtakJson(
                   "id": "$klagebehandlingId",
                   "sakId": "$sakId",
                   "saksnummer": "$saksnummer",
-                  "fnr": "$fnr",
+                  "fnr": ${ikkeSladdetTekst(fnr)},
                   "opprettet": "TIMESTAMP",
                   "sistEndret": "TIMESTAMP",
                   "iverksattTidspunkt": "TIMESTAMP",
@@ -249,9 +253,9 @@ fun String.shouldBeKlagevedtakJson(
                   "status": "VEDTATT",
                   "resultat": {
                     "brevtekst": [
-                      {"tittel":"Avvisning av klage","tekst":"Din klage er dessverre avvist."}
+                      {"tittel":"Avvisning av klage","tekst":${ikkeSladdetTekst("Din klage er dessverre avvist.")}}
                     ],
-                    "begrunnelseFerdigstilling": null,
+                    "begrunnelseFerdigstilling": {"verdi": null, "erSladdet": false},
                     "type": "AVVIST"
                   },
                   "avbrutt": null,

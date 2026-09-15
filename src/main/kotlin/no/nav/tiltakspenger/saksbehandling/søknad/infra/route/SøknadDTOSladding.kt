@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 import no.nav.tiltakspenger.saksbehandling.infra.route.sladdet
 
@@ -17,11 +17,11 @@ fun SøknadDTO.sladdet(): SøknadDTO = this.copy(
 )
 
 fun SøknadDTO.BarnetilleggFraSøknadDTO.sladdet(): SøknadDTO.BarnetilleggFraSøknadDTO = this.copy(
-    fornavn = fornavn?.let { SLADDET_TEKST },
-    mellomnavn = mellomnavn?.let { SLADDET_TEKST },
-    etternavn = etternavn?.let { SLADDET_TEKST },
-    fødselsdato = SLADDET_TEKST,
-    fnr = fnr?.let { SLADDET_TEKST },
+    fornavn = SladdetVerdi,
+    mellomnavn = SladdetVerdi,
+    etternavn = SladdetVerdi,
+    fødselsdato = SladdetVerdi,
+    fnr = SladdetVerdi,
 )
 
 fun SøknadDTO.sladdetFor(saksbehandler: Saksbehandler): SøknadDTO =

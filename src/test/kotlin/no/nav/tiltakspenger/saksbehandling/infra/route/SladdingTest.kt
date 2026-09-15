@@ -35,40 +35,40 @@ class SladdingTest {
     }
 
     @Test
-    fun `begrunnelsen i attesteringen erstattes, og null forblir null`() {
+    fun `begrunnelsen i attesteringen sladdes, også når den mangler`() {
         val attestering = AttesteringDTO(
             endretAv = "B12345",
             status = Attesteringsstatus.SENDT_TILBAKE,
-            begrunnelse = "Mangler dokumentasjon på bostedet til barnet",
+            begrunnelse = "Mangler dokumentasjon på bostedet til barnet".ikkeSladdet(),
             endretTidspunkt = 1.januarDateTime(2025),
         )
 
-        attestering.sladdet() shouldBe attestering.copy(begrunnelse = SLADDET_TEKST)
-        attestering.copy(begrunnelse = null).sladdet().begrunnelse shouldBe null
+        attestering.sladdet() shouldBe attestering.copy(begrunnelse = SladdetVerdi)
+        attestering.copy(begrunnelse = null.ikkeSladdet()).sladdet().begrunnelse shouldBe SladdetVerdi
     }
 
     @Test
-    fun `begrunnelsen i avbruttfeltet erstattes`() {
+    fun `begrunnelsen i avbruttfeltet sladdes`() {
         val avbrutt = AvbruttDTO(
             avbruttAv = "Z12345",
             avbruttTidspunkt = 1.januarDateTime(2025).toString(),
-            begrunnelse = "Søker har flyttet til en annen kommune",
+            begrunnelse = "Søker har flyttet til en annen kommune".ikkeSladdet(),
         )
 
-        avbrutt.sladdet() shouldBe avbrutt.copy(begrunnelse = SLADDET_TEKST)
+        avbrutt.sladdet() shouldBe avbrutt.copy(begrunnelse = SladdetVerdi)
     }
 
     @Test
-    fun `begrunnelsen i ventestatushendelsen erstattes`() {
+    fun `begrunnelsen i ventestatushendelsen sladdes`() {
         val ventestatusHendelse = VentestatusHendelseDTO(
             sattPåVentAv = "Z12345",
             tidspunkt = 1.januarDateTime(2025).toString(),
             status = "UNDER_BEHANDLING",
-            begrunnelse = "Venter på legeerklæring",
+            begrunnelse = "Venter på legeerklæring".ikkeSladdet(),
             erSattPåVent = true,
             frist = null,
         )
 
-        ventestatusHendelse.sladdet() shouldBe ventestatusHendelse.copy(begrunnelse = SLADDET_TEKST)
+        ventestatusHendelse.sladdet() shouldBe ventestatusHendelse.copy(begrunnelse = SladdetVerdi)
     }
 }

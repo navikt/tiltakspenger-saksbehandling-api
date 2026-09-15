@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.sladdet
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.sladdet
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.sladdet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -21,11 +21,11 @@ import org.junit.jupiter.api.Test
 class SakDTOSladdingTest {
 
     @Test
-    fun `alle personopplysningsfelter i SakDTO erstattes mens øvrige felter forblir uendret`() {
+    fun `alle personopplysningsfelter i SakDTO sladdes mens øvrige felter forblir uendret`() {
         val sakDTO = sakDTO()
 
         sakDTO.sladdet() shouldBe sakDTO.copy(
-            fnr = SLADDET_TEKST,
+            fnr = SladdetVerdi,
             søknader = sakDTO.søknader.map { it.sladdet() },
             rammebehandlinger = sakDTO.rammebehandlinger.map { it.sladdet() },
             klagebehandlinger = sakDTO.klagebehandlinger.map { it.sladdet() },
@@ -37,10 +37,10 @@ class SakDTOSladdingTest {
     @Test
     fun `sladdingen når ned i søknadens barnetillegg og behandlingens saksopplysninger`() {
         sakDTO().sladdet().let {
-            it.fnr shouldBe SLADDET_TEKST
+            it.fnr shouldBe SladdetVerdi
             it.søknader.single().barnetillegg.map { barn -> barn.fornavn } shouldBe
-                listOf(SLADDET_TEKST, SLADDET_TEKST)
-            it.rammebehandlinger.single().saksopplysninger.fødselsdato shouldBe SLADDET_TEKST
+                listOf(SladdetVerdi, SladdetVerdi)
+            it.rammebehandlinger.single().saksopplysninger.fødselsdato shouldBe SladdetVerdi
         }
     }
 

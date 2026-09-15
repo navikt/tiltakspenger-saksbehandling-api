@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.barnetillegg
 
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 
 /**
  * Sladding av [BarnetilleggDTO].
@@ -9,5 +9,5 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
  */
 
 fun BarnetilleggDTO.sladdet(): BarnetilleggDTO = this.copy(
-    begrunnelse = begrunnelse?.let { SLADDET_TEKST },
+    begrunnelse = SladdetVerdi,
 )

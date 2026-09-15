@@ -2,7 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.route
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.januar
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import org.junit.jupiter.api.Test
@@ -10,16 +11,16 @@ import org.junit.jupiter.api.Test
 class EnkelPersonDTOSladdingTest {
 
     @Test
-    fun `alle personopplysningsfelter i EnkelPersonDTO erstattes mens øvrige felter forblir uendret`() {
+    fun `alle personopplysningsfelter i EnkelPersonDTO sladdes mens øvrige felter forblir uendret`() {
         val enkelPersonDTO = enkelPersonDTO()
 
         enkelPersonDTO.sladdet() shouldBe enkelPersonDTO.copy(
-            fnr = SLADDET_TEKST,
-            fødselsdato = SLADDET_TEKST,
-            fornavn = SLADDET_TEKST,
-            mellomnavn = SLADDET_TEKST,
-            etternavn = SLADDET_TEKST,
-            dødsdato = SLADDET_TEKST,
+            fnr = SladdetVerdi,
+            fødselsdato = SladdetVerdi,
+            fornavn = SladdetVerdi,
+            mellomnavn = SladdetVerdi,
+            etternavn = SladdetVerdi,
+            dødsdato = SladdetVerdi,
         )
     }
 
@@ -34,11 +35,14 @@ class EnkelPersonDTOSladdingTest {
     }
 
     @Test
-    fun `nullbare felter forblir null`() {
-        val utenMellomnavnOgDødsdato = enkelPersonDTO().copy(mellomnavn = null, dødsdato = null)
+    fun `felter som mangler sladdes på linje med de utfylte`() {
+        val utenMellomnavnOgDødsdato = enkelPersonDTO().copy(
+            mellomnavn = null.ikkeSladdet(),
+            dødsdato = null.ikkeSladdet(),
+        )
 
-        utenMellomnavnOgDødsdato.sladdet().mellomnavn shouldBe null
-        utenMellomnavnOgDødsdato.sladdet().dødsdato shouldBe null
+        utenMellomnavnOgDødsdato.sladdet().mellomnavn shouldBe SladdetVerdi
+        utenMellomnavnOgDødsdato.sladdet().dødsdato shouldBe SladdetVerdi
     }
 
     @Test
@@ -55,5 +59,5 @@ class EnkelPersonDTOSladdingTest {
     private fun enkelPersonDTO(): EnkelPersonDTO =
         EnkelPersonMedSkjerming(ObjectMother.personopplysningMaxFyr(), erSkjermet = true)
             .toEnkelPersonDTO()
-            .copy(dødsdato = 1.januar(2024).toString())
+            .copy(dødsdato = 1.januar(2024).ikkeSladdet())
 }

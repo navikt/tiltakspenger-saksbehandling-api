@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.sladdet
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.sladdet
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.dto.sladdet
@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.vedtak.infra.route.sladdet
  */
 
 fun SakDTO.sladdet(): SakDTO = this.copy(
-    fnr = SLADDET_TEKST,
+    fnr = SladdetVerdi,
     søknader = søknader.map { it.sladdet() },
     rammebehandlinger = rammebehandlinger.map { it.sladdet() },
     klagebehandlinger = klagebehandlinger.map { it.sladdet() },

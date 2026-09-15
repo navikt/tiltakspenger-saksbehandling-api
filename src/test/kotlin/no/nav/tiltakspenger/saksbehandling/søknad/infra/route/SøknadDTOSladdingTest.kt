@@ -6,19 +6,19 @@ import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankStrin
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 
 class SøknadDTOSladdingTest {
 
     @Test
-    fun `alle personopplysningsfelter i SøknadDTO erstattes mens øvrige felter forblir uendret`() {
+    fun `alle personopplysningsfelter i SøknadDTO sladdes mens øvrige felter forblir uendret`() {
         val søknadDTO = søknadDTO()
 
         søknadDTO.sladdet() shouldBe søknadDTO.copy(
             barnetillegg = søknadDTO.barnetillegg.map { it.sladdet() },
-            avbrutt = søknadDTO.avbrutt?.copy(begrunnelse = SLADDET_TEKST),
+            avbrutt = søknadDTO.avbrutt?.copy(begrunnelse = SladdetVerdi),
         )
     }
 
@@ -26,11 +26,11 @@ class SøknadDTOSladdingTest {
     fun `barna sladdes uansett om de har fødselsnummer eller ikke`() {
         val barnetillegg = søknadDTO().sladdet().barnetillegg
 
-        barnetillegg.map { it.fornavn } shouldBe listOf(SLADDET_TEKST, SLADDET_TEKST)
-        barnetillegg.map { it.mellomnavn } shouldBe listOf(SLADDET_TEKST, SLADDET_TEKST)
-        barnetillegg.map { it.etternavn } shouldBe listOf(SLADDET_TEKST, SLADDET_TEKST)
-        barnetillegg.map { it.fødselsdato } shouldBe listOf(SLADDET_TEKST, SLADDET_TEKST)
-        barnetillegg.map { it.fnr } shouldBe listOf(SLADDET_TEKST, null)
+        barnetillegg.map { it.fornavn } shouldBe listOf(SladdetVerdi, SladdetVerdi)
+        barnetillegg.map { it.mellomnavn } shouldBe listOf(SladdetVerdi, SladdetVerdi)
+        barnetillegg.map { it.etternavn } shouldBe listOf(SladdetVerdi, SladdetVerdi)
+        barnetillegg.map { it.fødselsdato } shouldBe listOf(SladdetVerdi, SladdetVerdi)
+        barnetillegg.map { it.fnr } shouldBe listOf(SladdetVerdi, SladdetVerdi)
     }
 
     @Test

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.route
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.saksbehandling.infra.route.SLADDET_TEKST
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 
 /**
@@ -11,12 +11,12 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
  */
 
 fun EnkelPersonDTO.sladdet(): EnkelPersonDTO = this.copy(
-    fnr = SLADDET_TEKST,
-    fødselsdato = SLADDET_TEKST,
-    fornavn = fornavn?.let { SLADDET_TEKST },
-    mellomnavn = mellomnavn?.let { SLADDET_TEKST },
-    etternavn = etternavn?.let { SLADDET_TEKST },
-    dødsdato = dødsdato?.let { SLADDET_TEKST },
+    fnr = SladdetVerdi,
+    fødselsdato = SladdetVerdi,
+    fornavn = SladdetVerdi,
+    mellomnavn = SladdetVerdi,
+    etternavn = SladdetVerdi,
+    dødsdato = SladdetVerdi,
 )
 
 fun EnkelPersonDTO.sladdetFor(saksbehandler: Saksbehandler): EnkelPersonDTO =

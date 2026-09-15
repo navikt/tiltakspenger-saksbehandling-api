@@ -63,24 +63,21 @@ class SladdingRouteTest {
             }
 
             objectMapper.readTree(somUtvikler.getValue(SAK)).let {
-                it["fnr"].stringValue() shouldBe SLADDET_TEKST
+                it["fnr"].erSladdet()
                 it["søknader"].single()["barnetillegg"].forEach { barn ->
-                    barn["fornavn"].stringValue() shouldBe SLADDET_TEKST
-                    barn["fødselsdato"].stringValue() shouldBe SLADDET_TEKST
+                    barn["fornavn"].erSladdet()
+                    barn["fødselsdato"].erSladdet()
                 }
-                it["rammebehandlinger"].single()["saksopplysninger"]["fødselsdato"].stringValue() shouldBe
-                    SLADDET_TEKST
+                it["rammebehandlinger"].single()["saksopplysninger"]["fødselsdato"].erSladdet()
             }
-            objectMapper.readTree(somUtvikler.getValue(SØK_SAK))["fnr"].stringValue() shouldBe SLADDET_TEKST
-            objectMapper.readTree(somUtvikler.getValue(PERSONOPPLYSNINGER))["fnr"].stringValue() shouldBe SLADDET_TEKST
-            objectMapper.readTree(somUtvikler.getValue(BARN)).forEach {
-                it["fnr"].stringValue() shouldBe SLADDET_TEKST
-            }
+            objectMapper.readTree(somUtvikler.getValue(SØK_SAK))["fnr"].erSladdet()
+            objectMapper.readTree(somUtvikler.getValue(PERSONOPPLYSNINGER))["fnr"].erSladdet()
+            objectMapper.readTree(somUtvikler.getValue(BARN)).forEach { it["fnr"].erSladdet() }
             objectMapper.readTree(somUtvikler.getValue(TILTAKSDELTAKELSER)).forEach {
-                it["visningsnavn"].stringValue() shouldBe SLADDET_TEKST
+                it["visningsnavn"].erSladdet()
             }
             objectMapper.readTree(somUtvikler.getValue(BENK))["oversikt"]["behandlinger"].forEach {
-                it["fnr"].stringValue() shouldBe SLADDET_TEKST
+                it["fnr"].erSladdet()
             }
         }
     }
@@ -170,7 +167,19 @@ class SladdingRouteTest {
         }
     }
 
-    private fun JsonNode.tekst(felt: String): String? = this[felt]?.takeUnless { it.isNull }?.stringValue()
+    /**
+     * Et sladdet felt er innpakningen `{"verdi": null, "erSladdet": true}`, ikke en erstatningstekst.
+     */
+    private fun JsonNode.erSladdet() {
+        this["verdi"].isNull shouldBe true
+        this["erSladdet"].booleanValue() shouldBe true
+    }
+
+    /**
+     * Leser den sladdbare verdien i et felt, som er null når verdien mangler.
+     */
+    private fun JsonNode.tekst(felt: String): String? =
+        this[felt]?.get("verdi")?.takeUnless { it.isNull }?.stringValue()
 
     private suspend fun ApplicationTestBuilder.alleLesekall(
         tac: TestApplicationContext,

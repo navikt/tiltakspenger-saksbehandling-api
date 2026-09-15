@@ -56,7 +56,7 @@ class HentBenkRouteTest {
                         "type": "SØKNADSBEHANDLING",
                         "id": "${behandling.id}",
                         "sakId": "${sak.id}",
-                        "fnr": "${søknad.fnr.verdi}",
+                        "fnr": {"verdi": "${søknad.fnr.verdi}", "erSladdet": false},
                         "saksnummer": "${sak.saksnummer.verdi}",
                         "startet": "${behandling.opprettet}",
                         "sistEndret": "${behandling.sistEndret}",
@@ -65,7 +65,7 @@ class HentBenkRouteTest {
                         "erUnderkjent": false,
                         "ventestatus": {
                           "erSattPåVent": false,
-                          "begrunnelse": null,
+                          "begrunnelse": {"verdi": null, "erSladdet": false},
                           "frist": null
                         },
                         "status": "KLAR_TIL_BEHANDLING",

@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkVentestatus
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkRespons
 import no.nav.tiltakspenger.saksbehandling.benk.service.TilgangsfiltrertBenkOversikt
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 
 /**
  * Wiretypene for benk v2.
@@ -77,7 +79,7 @@ enum class BenkBehandlingstypeDTO {
 
 data class BenkVentestatusDTO(
     val erSattPåVent: Boolean,
-    val begrunnelse: String?,
+    val begrunnelse: SladdbarVerdi<String?>,
     val frist: String?,
 )
 
@@ -85,7 +87,7 @@ sealed interface BenkBehandlingDTO {
     val type: BenkBehandlingstypeDTO
     val id: String
     val sakId: String
-    val fnr: String
+    val fnr: SladdbarVerdi<String>
     val saksnummer: String
     val startet: String
     val sistEndret: String
@@ -144,7 +146,7 @@ private fun BenkBehandling.toDTO(saksbehandler: Saksbehandler): BenkBehandlingDT
 
 fun BenkVentestatus.toDTO(): BenkVentestatusDTO = BenkVentestatusDTO(
     erSattPåVent = erSattPåVent,
-    begrunnelse = begrunnelse,
+    begrunnelse = begrunnelse.ikkeSladdet(),
     frist = frist?.toString(),
 )
 

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
+import no.nav.tiltakspenger.saksbehandling.infra.route.sladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
@@ -151,10 +152,10 @@ class TaOgOvertaRammebehandlingerTest {
                     saker.size() shouldBe 2
                     saker[0].get("sakId").asString() shouldBe sak1.id.toString()
                     saker[0].get("saksnummer").asString() shouldBe sak1.saksnummer.toString()
-                    saker[0].get("fnr").asString() shouldBe sak1.fnr.verdi
+                    saker[0].sladdbarVerdi("fnr").asString() shouldBe sak1.fnr.verdi
                     saker[1].get("sakId").asString() shouldBe sak2.id.toString()
                     saker[1].get("saksnummer").asString() shouldBe sak2.saksnummer.toString()
-                    saker[1].get("fnr").asString() shouldBe sak2.fnr.verdi
+                    saker[1].sladdbarVerdi("fnr").asString() shouldBe sak2.fnr.verdi
                 }
             }
         }

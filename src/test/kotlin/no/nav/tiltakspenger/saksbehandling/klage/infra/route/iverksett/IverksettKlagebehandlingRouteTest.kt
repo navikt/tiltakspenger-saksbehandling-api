@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeRevurderingDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.shouldBeSøknadsbehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldEqualJsonIgnoringTimestamps
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -80,7 +81,7 @@ class IverksettKlagebehandlingRouteTest {
                 status = "VEDTATT",
                 resultat = "AVVIST",
                 iverksattTidspunkt = "TIMESTAMP",
-                brevtekst = listOf("""{"tittel": "Avvisning av klage","tekst": "Din klage er dessverre avvist."}"""),
+                brevtekst = listOf("""{"tittel": "Avvisning av klage","tekst": ${ikkeSladdetTekst("Din klage er dessverre avvist.")}}"""),
             )
             hentSakForSaksnummer(tac = tac, saksnummer = klagebehandling.saksnummer)!!.getJSONArray("alleKlagevedtak")
                 .also {
@@ -341,7 +342,7 @@ class IverksettKlagebehandlingRouteTest {
                 klagebehandlingId = klagebehandling.id,
                 saksbehandler = "saksbehandlerKlagebehandling",
                 attesteringer = listOf(
-                    """{"begrunnelse": null, "endretAv": "B12345", "endretTidspunkt": "2025-01-01T01:03:04.456789", "status": "GODKJENT"}""",
+                    """{"begrunnelse": {"verdi": null, "erSladdet": false}, "endretAv": "B12345", "endretTidspunkt": "2025-01-01T01:03:04.456789", "status": "GODKJENT"}""",
                 ),
                 internDeltakelseId = iverksattRammebehandling.saksopplysninger.tiltaksdeltakelser.first().internDeltakelseId.toString(),
                 eksternDeltagelseId = iverksattRammebehandling.saksopplysninger.tiltaksdeltakelser.first().eksternDeltakelseId,

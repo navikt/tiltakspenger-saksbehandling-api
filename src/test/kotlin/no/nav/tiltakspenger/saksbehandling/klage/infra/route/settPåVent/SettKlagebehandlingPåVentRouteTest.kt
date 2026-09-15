@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
@@ -39,7 +40,7 @@ class SettKlagebehandlingPåVentRouteTest {
                 vedtakDetKlagesPå = "${rammevedtakSøknadsbehandling.id}",
                 behandlingDetKlagesPå = "${rammevedtakSøknadsbehandling.behandlingId}",
                 //language=json
-                ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}"""),
+                ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "UNDER_BEHANDLING","tidspunkt": "TIMESTAMP","begrunnelse": {"verdi": "begrunnelse for å sette klage på vent", "erSladdet": false},"erSattPåVent": true,"frist": "2025-01-14"}"""),
             )
         }
     }
@@ -71,9 +72,9 @@ class SettKlagebehandlingPåVentRouteTest {
                 kanIverksetteVedtak = null,
                 resultat = "OPPRETTHOLDT",
                 brevtekst = listOf(
-                    """{"tittel": "Hva klagesaken gjelder","tekst": "Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>"}""",
-                    """{"tittel": "Klagers anførsler","tekst": "<saksbehandler fyller ut>"}""",
-                    """{"tittel": "Vurdering av klagen","tekst": "<saksbehandler fyller ut>"}""",
+                    """{"tittel": "Hva klagesaken gjelder","tekst": ${ikkeSladdetTekst("Vi viser til klage av 2025-01-01 på vedtak av 2025-01-01 der <kort om resultatet i vedtaket>")}}""",
+                    """{"tittel": "Klagers anførsler","tekst": ${ikkeSladdetTekst("<saksbehandler fyller ut>")}}""",
+                    """{"tittel": "Vurdering av klagen","tekst": ${ikkeSladdetTekst("<saksbehandler fyller ut>")}}""",
                 ),
                 hjemler = listOf("ARBEIDSMARKEDSLOVEN_17"),
                 iverksattOpprettholdelseTidspunkt = true,
@@ -98,7 +99,7 @@ class SettKlagebehandlingPåVentRouteTest {
                 journalpostIdInnstillingsbrev = klagebehandling.journalpostIdInnstillingsbrev!!.toString(),
                 dokumentInfoIder = klagebehandling.dokumentInfoIder.map { it.toString() },
                 //language=json
-                ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "MOTTATT_FRA_KLAGEINSTANS","tidspunkt": "TIMESTAMP","begrunnelse": "begrunnelse for å sette klage på vent","erSattPåVent": true,"frist": "2025-01-14"}"""),
+                ventestatus = listOf("""{"sattPåVentAv": "saksbehandlerKlagebehandling","status": "MOTTATT_FRA_KLAGEINSTANS","tidspunkt": "TIMESTAMP","begrunnelse": {"verdi": "begrunnelse for å sette klage på vent", "erSladdet": false},"erSattPåVent": true,"frist": "2025-01-14"}"""),
             )
         }
     }

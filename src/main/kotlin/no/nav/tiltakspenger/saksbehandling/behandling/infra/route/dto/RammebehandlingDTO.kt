@@ -15,7 +15,9 @@ import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.Utbetalingskontro
 import no.nav.tiltakspenger.saksbehandling.beregning.infra.dto.tilUtbetalingskontrollDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAttesteringDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
@@ -40,8 +42,8 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val saksopplysninger: SaksopplysningerDTO
     val attesteringer: List<AttesteringDTO>
     val vedtaksperiode: PeriodeDTO?
-    val fritekstTilVedtaksbrev: String?
-    val begrunnelseVilkårsvurdering: String?
+    val fritekstTilVedtaksbrev: SladdbarVerdi<String?>
+    val begrunnelseVilkårsvurdering: SladdbarVerdi<String?>
     val avbrutt: AvbruttDTO?
     val opprettet: LocalDateTime
     val sistEndret: LocalDateTime
@@ -70,8 +72,8 @@ data class SøknadsbehandlingDTO(
     override val saksopplysninger: SaksopplysningerDTO,
     override val attesteringer: List<AttesteringDTO>,
     override val vedtaksperiode: PeriodeDTO?,
-    override val fritekstTilVedtaksbrev: String?,
-    override val begrunnelseVilkårsvurdering: String?,
+    override val fritekstTilVedtaksbrev: SladdbarVerdi<String?>,
+    override val begrunnelseVilkårsvurdering: SladdbarVerdi<String?>,
     override val avbrutt: AvbruttDTO?,
     override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
@@ -107,8 +109,8 @@ data class RevurderingDTO(
     override val saksopplysninger: SaksopplysningerDTO,
     override val attesteringer: List<AttesteringDTO>,
     override val vedtaksperiode: PeriodeDTO?,
-    override val fritekstTilVedtaksbrev: String?,
-    override val begrunnelseVilkårsvurdering: String?,
+    override val fritekstTilVedtaksbrev: SladdbarVerdi<String?>,
+    override val begrunnelseVilkårsvurdering: SladdbarVerdi<String?>,
     override val avbrutt: AvbruttDTO?,
     override val opprettet: LocalDateTime,
     override val sistEndret: LocalDateTime,
@@ -188,8 +190,8 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         opprettet = this.opprettet,
         sistEndret = this.sistEndret,
         iverksattTidspunkt = this.iverksattTidspunkt,
-        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
-        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
+        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi.ikkeSladdet(),
+        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi.ikkeSladdet(),
         vedtaksperiode = this.vedtaksperiode?.toDTO(),
         automatiskSaksbehandlet = this.automatiskSaksbehandlet,
         manueltBehandlesGrunner = this.manueltBehandlesGrunner.map { it.name },
@@ -223,8 +225,8 @@ fun Revurdering.tilRevurderingDTO(
         attesteringer = this.attesteringer.toAttesteringDTO(),
         saksopplysninger = this.saksopplysninger.toSaksopplysningerDTO(),
         vedtaksperiode = this.vedtaksperiode?.toDTO(),
-        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi,
-        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi,
+        fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev?.verdi.ikkeSladdet(),
+        begrunnelseVilkårsvurdering = this.begrunnelseVilkårsvurdering?.verdi.ikkeSladdet(),
         avbrutt = this.avbrutt?.toAvbruttDTO(),
         opprettet = this.opprettet,
         sistEndret = this.sistEndret,

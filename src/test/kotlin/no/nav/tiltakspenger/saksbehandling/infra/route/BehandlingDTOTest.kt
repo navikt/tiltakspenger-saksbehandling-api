@@ -79,7 +79,7 @@ class BehandlingDTOTest {
                 dto.ventestatus.size shouldBe 3
                 dto.ventestatus.first().erSattPåVent shouldBe true
                 dto.ventestatus.first().sattPåVentAv shouldBe beslutter.navIdent
-                dto.ventestatus.first().begrunnelse shouldBe "2"
+                dto.ventestatus.first().begrunnelse.verdi shouldBe "2"
                 dto.beslutter shouldBe null
             }
         }

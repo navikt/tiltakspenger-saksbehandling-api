@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
+import no.nav.tiltakspenger.saksbehandling.infra.route.sladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOpprettMeldekortbehandlingOgSettPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingSendMeldekortbehandlingTilBeslutningTaBehandlingOgSettPåVent
@@ -43,7 +44,7 @@ class SettMeldekortbehandlingPåVentRouteTest {
             ventestatusArray.size() shouldBe 1
             ventestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe "Z12345"
-                hendelse.get("begrunnelse").asString() shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BEHANDLING"
                 hendelse.get("frist").asString() shouldBe "2026-01-01"
@@ -80,7 +81,7 @@ class SettMeldekortbehandlingPåVentRouteTest {
             ventestatusArray.size() shouldBe 1
             ventestatusArray[0].also { hendelse ->
                 hendelse.get("sattPåVentAv").asString() shouldBe "beslutter"
-                hendelse.get("begrunnelse").asString() shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
+                hendelse.sladdbarVerdi("begrunnelse").asString() shouldBe "Begrunnelse for å sette meldekortbehandling på vent"
                 hendelse.get("erSattPåVent").asBoolean() shouldBe true
                 hendelse.get("status").asString() shouldBe "UNDER_BESLUTNING"
                 hendelse.get("frist").asString() shouldBe "2026-01-01"

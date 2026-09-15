@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route
 
-import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO
-import no.nav.tiltakspenger.saksbehandling.dokument.toDto
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.VentestatusHendelseDTO
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.infra.route.tilDto
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
@@ -21,7 +21,7 @@ data class KlagebehandlingDTO(
     val id: String,
     val sakId: String,
     val saksnummer: String,
-    val fnr: String,
+    val fnr: SladdbarVerdi<String>,
     val opprettet: String,
     val sistEndret: String,
     /** Brukes av [Klagebehandlingsresultat.Omgjør] og [Klagebehandlingsresultat.Avvist] */
@@ -87,26 +87,26 @@ fun KlageFormkrav.toDTO(): KlageFormkravDTO = KlageFormkravDTO(
 sealed interface KlagebehandlingsresultatDTO {
 
     val type: KlageresultatstypeDto
-    val begrunnelseFerdigstilling: String?
+    val begrunnelseFerdigstilling: SladdbarVerdi<String?>
 
     data class Avvist(
-        val brevtekst: List<TittelOgTekstDTO>,
+        val brevtekst: List<TittelOgSladdbarTekstDTO>,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.AVVIST
-        override val begrunnelseFerdigstilling: String? = null
+        override val begrunnelseFerdigstilling: SladdbarVerdi<String?> = null.ikkeSladdet()
     }
 
     data class Omgjør(
         val årsak: String,
-        val begrunnelse: String,
-        override val begrunnelseFerdigstilling: String?,
+        val begrunnelse: SladdbarVerdi<String>,
+        override val begrunnelseFerdigstilling: SladdbarVerdi<String?>,
         val ferdigstiltTidspunkt: LocalDateTime?,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OMGJØR
     }
 
     data class Opprettholdt(
-        val brevtekst: List<TittelOgTekstDTO>,
+        val brevtekst: List<TittelOgSladdbarTekstDTO>,
         val hjemler: List<KlagehjemmelDto>,
         val iverksattOpprettholdelseTidspunkt: LocalDateTime?,
         val journalføringstidspunktInnstillingsbrev: LocalDateTime?,
@@ -116,7 +116,7 @@ sealed interface KlagebehandlingsresultatDTO {
         val ferdigstiltTidspunkt: LocalDateTime?,
         val journalpostIdInnstillingsbrev: String?,
         val dokumentInfoIder: List<String>?,
-        override val begrunnelseFerdigstilling: String?,
+        override val begrunnelseFerdigstilling: SladdbarVerdi<String?>,
     ) : KlagebehandlingsresultatDTO {
         override val type = KlageresultatstypeDto.OPPRETTHOLDT
     }
@@ -126,7 +126,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
     id = id.toString(),
     sakId = sakId.toString(),
     saksnummer = saksnummer.toString(),
-    fnr = fnr.verdi,
+    fnr = fnr.verdi.ikkeSladdet(),
     opprettet = opprettet.toString(),
     sistEndret = sistEndret.toString(),
     iverksattTidspunkt = iverksattTidspunkt?.toString(),
@@ -145,7 +145,7 @@ fun Klagebehandling.tilKlagebehandlingDTO() = KlagebehandlingDTO(
 )
 
 fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): KlagebehandlingsresultatDTO {
-    val brevtekstDTO = brevtekst?.toDto() ?: emptyList()
+    val brevtekstDTO = brevtekst?.tilTittelOgSladdbarTekstDTO() ?: emptyList()
 
     return when (this) {
         is Klagebehandlingsresultat.Avvist -> KlagebehandlingsresultatDTO.Avvist(
@@ -154,8 +154,8 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
 
         is Klagebehandlingsresultat.Omgjør -> KlagebehandlingsresultatDTO.Omgjør(
             årsak = årsak.name,
-            begrunnelse = begrunnelse.verdi,
-            begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
+            begrunnelse = begrunnelse.verdi.ikkeSladdet(),
+            begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi.ikkeSladdet(),
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
         )
 
@@ -170,7 +170,7 @@ fun Klagebehandlingsresultat.tilKlagebehandlingsresultatDTO(): Klagebehandlingsr
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             journalpostIdInnstillingsbrev = journalpostIdInnstillingsbrev?.toString(),
             dokumentInfoIder = dokumentInfoIder.map { it.toString() },
-            begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi,
+            begrunnelseFerdigstilling = begrunnelseFerdigstilling?.verdi.ikkeSladdet(),
         )
     }
 }

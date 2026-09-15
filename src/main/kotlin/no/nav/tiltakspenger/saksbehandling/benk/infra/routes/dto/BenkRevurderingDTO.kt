@@ -4,6 +4,8 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
+import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
+import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
 import no.nav.tiltakspenger.saksbehandling.saksbehandler.tilDTO
 
@@ -19,7 +21,7 @@ data class BenkRevurderingDTO(
     override val type: BenkBehandlingstypeDTO = BenkBehandlingstypeDTO.REVURDERING,
     override val id: String,
     override val sakId: String,
-    override val fnr: String,
+    override val fnr: SladdbarVerdi<String>,
     override val saksnummer: String,
     override val startet: String,
     override val sistEndret: String,
@@ -35,7 +37,7 @@ data class BenkRevurderingDTO(
 fun BenkRevurdering.toDTO(saksbehandler: Saksbehandler): BenkRevurderingDTO = BenkRevurderingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
-    fnr = felles.fnr.verdi,
+    fnr = felles.fnr.verdi.ikkeSladdet(),
     saksnummer = felles.saksnummer.verdi,
     startet = felles.startet.toString(),
     sistEndret = felles.sistEndret.toString(),

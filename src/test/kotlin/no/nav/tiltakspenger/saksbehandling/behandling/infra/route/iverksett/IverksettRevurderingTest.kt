@@ -257,7 +257,7 @@ class IverksettRevurderingTest {
                 """.trimIndent(),
                 barnetillegg = """
                     {
-                        "begrunnelse": null,
+                        "begrunnelse": {"verdi": null, "erSladdet": false},
                         "perioder": [
                           {
                             "antallBarn": 0,
@@ -304,7 +304,7 @@ class IverksettRevurderingTest {
                 """.trimIndent(),
                 barnetillegg = """
                     {
-                        "begrunnelse": null,
+                        "begrunnelse": {"verdi": null, "erSladdet": false},
                         "perioder": [
                           {
                             "antallBarn": 0,
@@ -441,7 +441,7 @@ class IverksettRevurderingTest {
                 ]""",
                 barnetillegg = """
                     {
-                        "begrunnelse": null,
+                        "begrunnelse": {"verdi": null, "erSladdet": false},
                         "perioder": [
                           {
                             "antallBarn": 0,

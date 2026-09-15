@@ -17,7 +17,7 @@ class AvbruttDTOTest {
         ).toAvbruttDTO() shouldBe AvbruttDTO(
             avbruttAv = "Sak S. Behandler",
             avbruttTidspunkt = "2024-11-01T00:00",
-            begrunnelse = "s",
+            begrunnelse = "s".ikkeSladdet(),
         )
     }
 }
