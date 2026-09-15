@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.avbryt.AvbrytR
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.behandlePåNytt.BehandleSøknadPåNyttBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.brev.ForhåndsvisRammevedtaksbrevTestbuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenoppta.GjenopptaRammebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.gjenåpne.GjenåpneSøknadsbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettRevurderingBuilder
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.iverksett.IverksettSøknadsbehandlingBuilder
@@ -120,6 +121,7 @@ object RouteBehandlingBuilder :
     AvbrytRammebehandlingBuilder,
     SettRammebehandlingPåVentBuilder,
     GjenopptaRammebehandlingBuilder,
+    GjenåpneSøknadsbehandlingBuilder,
     OpprettMeldekortbehandlingBuilder,
     AvbrytMeldekortbehandlingBuilder,
     LeggTilbakeMeldekortbehandlingBuilder,

@@ -8,7 +8,6 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
@@ -23,8 +22,7 @@ sealed interface Søknad {
     val journalpostId: String
     val opprettet: LocalDateTime
     val tidsstempelHosOss: LocalDateTime
-    val avbrutt: Avbrutt?
-    val erAvbrutt: Boolean
+    val avbrutt: Søknadshendelser
     val fnr: Fnr
     val harSøktPåTiltak: JaNeiSpm
     val tiltak: Søknadstiltak?
@@ -56,6 +54,9 @@ sealed interface Søknad {
      * Enten fordi man ikke fikk treff på tiltaket når søknaden ble registrert eller fordi tiltaket ikke gir rett til tiltakspenger.
      */
     val manueltSattTiltak: String?
+
+    val erAvbrutt: Boolean get() = avbrutt.erAvbrutt
+    val erGjenåpnet: Boolean get() = avbrutt.erGjenåpnet
 
     companion object {
         fun randomId() = SøknadId.random()
@@ -99,6 +100,7 @@ sealed interface Søknad {
                     tidsstempelHosOss = tidsstempelHosOss,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
+                    avbrutt = Søknadshendelser.empty(),
                     harSøktPåTiltak = harSøktPåTiltak,
                     harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                     kvp = kvp,
@@ -130,6 +132,7 @@ sealed interface Søknad {
                     tidsstempelHosOss = tidsstempelHosOss,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
+                    avbrutt = Søknadshendelser.empty(),
                     harSøktPåTiltak = harSøktPåTiltak,
                     harSøktOmBarnetillegg = harSøktOmBarnetillegg,
                     kvp = kvp,
@@ -167,19 +170,40 @@ sealed interface Søknad {
         (erDigitalSøknad() && tiltak != null) || (erManueltRegistrertSøknad() && tiltak != null && manueltSattSøknadsperiode != null)
 
     fun avbryt(avbruttAv: Saksbehandler, begrunnelse: NonBlankString, tidspunkt: LocalDateTime): Søknad {
-        if (this.avbrutt != null) {
+        if (this.erAvbrutt) {
             throw IllegalStateException("Søknad er allerede avbrutt")
         }
 
-        val avbrutt = Avbrutt(
+        val oppdaterteHendelser = this.avbrutt + Søknadshendelse.Avbrutt(
             tidspunkt = tidspunkt,
-            saksbehandler = avbruttAv.navIdent,
+            utførtAv = avbruttAv.navIdent,
             begrunnelse = begrunnelse,
         )
 
         return when (this) {
-            is InnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
-            is IkkeInnvilgbarSøknad -> this.copy(avbrutt = avbrutt)
+            is InnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
+            is IkkeInnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
+        }
+    }
+
+    fun gjenåpne(
+        gjenåpnetAv: Saksbehandler,
+        begrunnelse: NonBlankString?,
+        tidspunkt: LocalDateTime,
+    ): Søknad {
+        if (this.erGjenåpnet) {
+            throw IllegalStateException("Søknad er ikke avbrutt og kan derfor ikke gjenåpnes")
+        }
+
+        val oppdaterteHendelser = this.avbrutt + Søknadshendelse.Gjenåpnet(
+            tidspunkt = tidspunkt,
+            utførtAv = gjenåpnetAv.navIdent,
+            begrunnelse = begrunnelse,
+        )
+
+        return when (this) {
+            is InnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
+            is IkkeInnvilgbarSøknad -> this.copy(avbrutt = oppdaterteHendelser)
         }
     }
 

@@ -238,6 +238,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     deltakelseProsent: String = "100",
     antallDagerPerUke: String = "5",
     avslagsgrunner: List<String>? = null,
+    søknadHendelserJson: String = "[]",
 ) {
     val avslagsgrunnerJson = avslagsgrunner
         ?.let { """"avslagsgrunner": [${it.joinToString(",") { v -> "\"$v\"" }}],""" }
@@ -337,7 +338,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         "sistEndret": "$sistEndret",
         "automatiskSaksbehandlet": $automatiskSaksbehandlet,
         "søknad": {
-            "avbrutt": $avbrutt,
+        "avbrutt": $søknadHendelserJson,
             "svar": {
             "harSøktPåTiltak": { "svar": "JA" },
             "kvp": { "svar": "NEI", "periode": null },

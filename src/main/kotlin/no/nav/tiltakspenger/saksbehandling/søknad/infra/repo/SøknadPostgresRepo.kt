@@ -28,11 +28,17 @@ class SøknadPostgresRepo(
         }
 
     override fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?) {
-        søknad.avbrutt?.let { avbrutt ->
-            sessionFactory.withTransaction(txContext) { session ->
-                SøknadDAO.lagreAvbruttSøknad(søknad.id, avbrutt, session)
-            }
-        } ?: throw IllegalArgumentException("Kan ikke lagre en søknad som ikke er avbrutt")
+        require(søknad.erAvbrutt) { "Kan ikke lagre en søknad som ikke er avbrutt" }
+        sessionFactory.withTransaction(txContext) { session ->
+            SøknadDAO.lagreAvbruttSøknad(søknad.id, søknad.avbrutt, session)
+        }
+    }
+
+    override fun lagreGjenåpnetSøknad(søknad: Søknad, txContext: TransactionContext) {
+        require(søknad.erGjenåpnet) { "Kan ikke lagre en gjenåpnet søknad som fortsatt er avbrutt" }
+        sessionFactory.withTransaction(txContext) { session ->
+            SøknadDAO.lagreGjenåpnetSøknad(søknad.id, søknad.avbrutt, session)
+        }
     }
 
     override fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?) {

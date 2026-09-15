@@ -19,6 +19,11 @@ fun String.shouldBeSøknadDTO(
     antallVedlegg: Int = 0,
     avbruttAv: String? = "Z12345",
     avbruttBegrunnelse: String? = "begrunnelse for avbryt søknad og/eller rammebehandling",
+    /**
+     * Historikken over avbrytelser og gjenåpninger.
+     * Default speiler [avbruttAv]: en avbrutt søknad har nøyaktig én avbrudds-hendelse.
+     */
+    hendelserJson: String? = null,
     kanInnvilges: Boolean = true,
     behandlingsarsak: String? = null,
     opprettet: String = "TIMESTAMP",
@@ -41,14 +46,15 @@ fun String.shouldBeSøknadDTO(
         }
     """.trimIndent(),
 ) {
-    val avbruttJson = if (avbruttAv != null) {
-        """{
-              "avbruttAv": "$avbruttAv",
-              "avbruttTidspunkt": "TIMESTAMP",
+    val hendelserJsonEllerUtledet = hendelserJson ?: if (avbruttAv != null) {
+        """[{
+              "type": "AVBRUTT",
+              "tidspunkt": "TIMESTAMP",
+              "utførtAv": "$avbruttAv",
               "begrunnelse": ${avbruttBegrunnelse?.let { "\"$it\"" }}
-            }"""
+            }]"""
     } else {
-        "null"
+        "[]"
     }
 
     //language=json
@@ -73,7 +79,7 @@ fun String.shouldBeSøknadDTO(
           "opprettet": "$opprettet",
           "tidsstempelHosOss": "$tidsstempelHosOss",
           "antallVedlegg": $antallVedlegg,
-          "avbrutt": $avbruttJson,
+          "avbrutt": $hendelserJsonEllerUtledet,
           "kanInnvilges": $kanInnvilges,
           "svar": $svar,
           "behandlingsarsak": ${behandlingsarsak?.let { "\"$it\"" }}

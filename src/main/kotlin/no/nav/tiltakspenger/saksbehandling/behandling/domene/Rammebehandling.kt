@@ -212,7 +212,9 @@ sealed interface Rammebehandling : AttesterbarBehandling {
             }
 
             AVBRUTT -> {
-                requireNotNull(avbrutt)
+                requireNotNull(avbrutt) {
+                    "En avbrutt behandling må ha et avbrudd. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id"
+                }
                 require(klagebehandling?.behandlingId?.contains(id) != true) {
                     // Merk at vi beholder koblingen til klagebehandlingen ved avbrutt rammebehandling for historikkens skyld (men ikke omvendt).
                     // Hvis dette biter oss senere, kan vi fjerne koblingen.
