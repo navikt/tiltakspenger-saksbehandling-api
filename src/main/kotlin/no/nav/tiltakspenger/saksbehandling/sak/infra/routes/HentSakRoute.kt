@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.harPersoninnsyn
 import no.nav.tiltakspenger.saksbehandling.person.infra.route.FnrDTO
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import java.time.Clock
@@ -46,6 +47,13 @@ fun Route.søkFnrSaksnummerOgSakIdRoute(
 
             val sak: Sak? = Either.catch { Fnr.fromString(fnrEllerSakIdEllerSaksnummer) }.fold(
                 ifRight = { fnr ->
+                    if (!harPersoninnsyn(saksbehandler)) {
+                        call.respond400BadRequest(
+                            melding = "Rollen din har ikke innsyn i personopplysninger, og skal ikke kunne søke opp fødselsnummer. Bruk saksnummer eller sak-id for å hente sak.",
+                            kode = "mangler_tilgang_personinnsyn",
+                        )
+                        return@withBody
+                    }
                     sakService.hentForFnr(fnr)
                 },
                 ifLeft = {

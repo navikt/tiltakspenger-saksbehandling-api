@@ -21,6 +21,8 @@ val ROLLER_MED_PERSONINNSYN: Set<Saksbehandlerrolle> = setOf(
 
 fun skalSladdeFor(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.none { it in ROLLER_MED_PERSONINNSYN }
 
+fun harPersoninnsyn(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.any { it in ROLLER_MED_PERSONINNSYN }
+
 fun AttesteringDTO.sladdet(): AttesteringDTO = this.copy(
     begrunnelse = SladdetVerdi,
 )
