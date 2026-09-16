@@ -18,32 +18,29 @@ class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
         fnr: Fnr,
         saksbehandlerToken: String,
     ): Either<Nothing, Tilgangsvurdering> {
-        return if (harTilgang(fnr)) {
-            Tilgangsvurdering.Godkjent.right()
-        } else {
-            Tilgangsvurdering.Avvist(
-                årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
-                begrunnelse = "Saksbehandler har ikke tilgang til person",
-                metadata = AvvistMetadata(
-                    type = "TilgangAvvist",
-                    avvisningskode = "AVVIST_FORTROLIG_ADRESSE",
-                    navIdent = "Z123456",
-                    brukerIdent = fnr,
-                ),
-            ).right()
-        }
+        val årsak = avvistÅrsak(fnr) ?: return Tilgangsvurdering.Godkjent.right()
+        return Tilgangsvurdering.Avvist(
+            årsak = årsak,
+            begrunnelse = "Saksbehandler har ikke tilgang til person",
+            metadata = AvvistMetadata(
+                type = "TilgangAvvist",
+                avvisningskode = "AVVIST_$årsak",
+                navIdent = "Z123456",
+                brukerIdent = fnr,
+            ),
+        ).right()
     }
 
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
     ): Either<Nothing, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>> {
-        val tilgangPerFnr = fnrs.associateWith {
-            if (harTilgang(it)) {
-                TilgangsvurderingBulk.Godkjent
-            } else {
-                TilgangsvurderingBulk.Avvist(
-                    årsak = TilgangsvurderingAvvistÅrsak.FORTROLIG,
+        val tilgangPerFnr = fnrs.associateWith { fnr ->
+            when (val årsak = avvistÅrsak(fnr)) {
+                null -> TilgangsvurderingBulk.Godkjent
+
+                else -> TilgangsvurderingBulk.Avvist(
+                    årsak = årsak,
                     begrunnelse = "Saksbehandler har ikke tilgang til person",
                 )
             }
@@ -51,8 +48,21 @@ class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
         return ObjectMother.httpKlientResponse(body = tilgangPerFnr, statusCode = 207).right()
     }
 
-    private fun harTilgang(fnr: Fnr): Boolean {
-        return data.get()[fnr] == null || data.get()[fnr] == true
+    /**
+     * Følger samme fnr-prefiks-konvensjon som [no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient].
+     * 2 gir fortrolig adresse, 3 strengt fortrolig og 4 strengt fortrolig utland — alt annet gir tilgang.
+     * En eksplisitt verdi lagt inn med [leggTil] overstyrer prefikset, og avviser da med [TilgangsvurderingAvvistÅrsak.FORTROLIG].
+     */
+    private fun avvistÅrsak(fnr: Fnr): TilgangsvurderingAvvistÅrsak? {
+        data.get()[fnr]?.let { eksplisittTilgang ->
+            return if (eksplisittTilgang) null else TilgangsvurderingAvvistÅrsak.FORTROLIG
+        }
+        return when (fnr.verdi.first()) {
+            '2' -> TilgangsvurderingAvvistÅrsak.FORTROLIG
+            '3' -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
+            '4' -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
+            else -> null
+        }
     }
 
     fun leggTil(
