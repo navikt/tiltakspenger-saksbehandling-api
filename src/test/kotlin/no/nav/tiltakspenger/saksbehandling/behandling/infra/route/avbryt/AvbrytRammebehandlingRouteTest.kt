@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelse
 import no.nav.tiltakspenger.saksbehandling.søknad.shouldBeSøknadDTO
 import org.junit.jupiter.api.Test
 
@@ -60,6 +61,8 @@ class AvbrytRammebehandlingRouteTest {
                 innvilgelsesperiode = false,
                 barnetillegg = false,
                 avbrutt = """{"avbruttAv": "Z12345","avbruttTidspunkt": "2025-05-01T01:02:13.456789","begrunnelse": {"verdi": "begrunnelse for avbryt søknad og/eller rammebehandling", "erSladdet": false}}""",
+                søknadHendelserJson = """[{"type": "AVBRUTT","tidspunkt": "2025-05-01T01:02:13.456789","utførtAv": "Z12345","begrunnelse": {"verdi": "begrunnelse for avbryt søknad og/eller rammebehandling", "erSladdet": false}}]""",
+                gyldigeKommandoer = listOf("Gjenåpne"),
             )
         }
     }
@@ -79,7 +82,12 @@ class AvbrytRammebehandlingRouteTest {
             avbruttBehandling!!.status shouldBe Rammebehandlingsstatus.AVBRUTT
             avbruttBehandling.avbrutt!!.saksbehandler shouldBe "Z12345"
             avbruttBehandling.avbrutt!!.begrunnelse.value shouldBe "begrunnelse for avbryt søknad og/eller rammebehandling"
-            søknad.avbrutt shouldBe avbruttBehandling.avbrutt
+            søknad.avbrutt.last()::class shouldBe Søknadshendelse.Avbrutt::class
+            søknad.avbrutt.last().let {
+                it.utførtAv shouldBe avbruttBehandling.avbrutt!!.saksbehandler
+                it.begrunnelse shouldBe avbruttBehandling.avbrutt!!.begrunnelse
+                it.tidspunkt shouldBe avbruttBehandling.avbrutt!!.tidspunkt
+            }
         }
     }
 

@@ -31,8 +31,12 @@ fun Rammebehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): List<Sa
         if (kanSettePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.SettPåVent)
         if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
         if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avbryt)
+        if (kanGjenåpne(saksbehandler)) add(SaksbehandlerBehandlingKommando.Gjenåpne)
     }
 }
+
+private fun Rammebehandling.kanGjenåpne(saksbehandler: Saksbehandler): Boolean =
+    this is Søknadsbehandling && erAvbrutt && this.søknad.erAvbrutt && saksbehandler.erSaksbehandler
 
 private fun Rammebehandling.kanTildeleSaksbehandler(saksbehandler: Saksbehandler): Boolean =
     status == KLAR_TIL_BEHANDLING && kanTaBehandling(saksbehandler).isRight()

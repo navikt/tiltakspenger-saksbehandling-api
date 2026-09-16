@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.november
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.fraOgMedDatoNei
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.nei
@@ -19,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -109,20 +109,20 @@ class SøknadTest {
         val avbruttSøknad = søknad.avbryt(ObjectMother.saksbehandler(), "jeg avbryter søknad".toNonBlankString(), 1.november(2024).atStartOfDay())
 
         avbruttSøknad.erAvbrutt shouldBe true
-        avbruttSøknad.avbrutt.let {
-            it shouldNotBe null
-            it!!.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
-            it.begrunnelse.value shouldBe "jeg avbryter søknad"
+        avbruttSøknad.avbrutt.size shouldBe 1
+        avbruttSøknad.avbrutt.first().let {
+            it.utførtAv shouldBe ObjectMother.saksbehandler().navIdent
+            it.begrunnelse?.value shouldBe "jeg avbryter søknad"
             it.tidspunkt shouldBe 1.november(2024).atStartOfDay()
         }
     }
 
     @Test
     fun `kaster exception dersom man prøver å avbryte en avbrutt søknad`() {
-        val avbruttSøknad = ObjectMother.nyInnvilgbarSøknad(
-            avbrutt = Avbrutt(
+        val avbruttSøknad = ObjectMother.nyInnvilgbarSøknad().copy(
+            avbrutt = Søknadshendelser.fromAvbrutt(
                 tidspunkt = 1.november(2024).atStartOfDay(),
-                saksbehandler = "navident",
+                utførtAv = "navident",
                 begrunnelse = "skal få exception".toNonBlankString(),
             ),
         )

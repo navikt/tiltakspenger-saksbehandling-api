@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.repo.SøknadFakeRepo
@@ -109,7 +110,7 @@ class OlderMottaSøknadTest {
                     trygdOgPensjon = Søknad.PeriodeSpm.Nei,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
-                    avbrutt = null,
+                    avbrutt = Søknadshendelser.empty(),
                     manueltSattSøknadsperiode = null,
                     søknadstype = Søknadstype.DIGITAL,
                     manueltRegistrert = false,

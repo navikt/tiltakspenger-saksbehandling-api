@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.Tilgangsm
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
+import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.GjenåpneSøknadsbehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
@@ -528,6 +529,18 @@ open class ApplicationContext(
         MottaBrukerutfyltMeldekortService(
             brukersMeldekortRepo = meldekortContext.brukersMeldekortRepo,
             meldeperiodeRepo = meldekortContext.meldeperiodeRepo,
+            clock = clock,
+        )
+    }
+
+    val gjenåpneSøknadsbehandlingContext by lazy {
+        GjenåpneSøknadsbehandlingContext(
+            sakService = sakContext.sakService,
+            søknadService = søknadContext.søknadService,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
+            hentSaksopplysingerService = behandlingContext.hentSaksopplysingerService,
+            statistikkService = statistikkContext.statistikkService,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

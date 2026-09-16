@@ -5,9 +5,9 @@ import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import org.junit.jupiter.api.Test
 
 class SøknadDTOSladdingTest {
@@ -18,7 +18,7 @@ class SøknadDTOSladdingTest {
 
         søknadDTO.sladdet() shouldBe søknadDTO.copy(
             barnetillegg = søknadDTO.barnetillegg.map { it.sladdet() },
-            avbrutt = søknadDTO.avbrutt?.copy(begrunnelse = SladdetVerdi),
+            avbrutt = søknadDTO.avbrutt.map { it.copy(begrunnelse = SladdetVerdi) },
         )
     }
 
@@ -57,9 +57,9 @@ class SøknadDTOSladdingTest {
             ObjectMother.barnetilleggMedIdent(fnr = Fnr.random()),
             ObjectMother.barnetilleggUtenIdent(),
         ),
-        avbrutt = Avbrutt(
+        avbrutt = Søknadshendelser.fromAvbrutt(
             tidspunkt = 1.januarDateTime(2025),
-            saksbehandler = "Z12345",
+            utførtAv = "Z12345",
             begrunnelse = "Søker har trukket søknaden".toNonBlankString(),
         ),
     ).toSøknadDTO()

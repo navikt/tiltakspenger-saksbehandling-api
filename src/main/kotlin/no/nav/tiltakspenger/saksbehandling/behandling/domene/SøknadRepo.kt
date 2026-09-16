@@ -24,6 +24,8 @@ interface SøknadRepo {
      */
     fun lagreAvbruttSøknad(søknad: Søknad, txContext: TransactionContext?)
 
+    fun lagreGjenåpnetSøknad(søknad: Søknad, txContext: TransactionContext)
+
     fun oppdaterFnr(gammeltFnr: Fnr, nyttFnr: Fnr, context: TransactionContext?)
 
     fun hentUbehandledeSøknadIder(limit: Int): List<SøknadId>

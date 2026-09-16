@@ -2,10 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.periode.toDTO
-import no.nav.tiltakspenger.saksbehandling.infra.route.AvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
-import no.nav.tiltakspenger.saksbehandling.infra.route.toAvbruttDTO
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
@@ -29,7 +27,7 @@ data class SøknadDTO(
     val opprettet: LocalDateTime,
     val tidsstempelHosOss: LocalDateTime,
     val antallVedlegg: Int,
-    val avbrutt: AvbruttDTO?,
+    val avbrutt: List<SøknadshendelseDTO>,
     val kanInnvilges: Boolean,
     val svar: SøknadSvarDTO,
     val behandlingsarsak: Behandlingsarsak?,
@@ -113,7 +111,7 @@ fun InnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
         antallVedlegg = this.vedlegg,
-        avbrutt = avbrutt?.toAvbruttDTO(),
+        avbrutt = this.avbrutt.toSøknadshendelserDTO(),
         kanInnvilges = this.kanInnvilges(),
         svar = SøknadDTO.SøknadSvarDTO(
             harSøktPåTiltak = harSøktPåTiltak.toDTO(),
@@ -146,7 +144,7 @@ fun IkkeInnvilgbarSøknad.toSøknadDTO(): SøknadDTO {
         opprettet = this.opprettet,
         tidsstempelHosOss = this.tidsstempelHosOss,
         antallVedlegg = this.vedlegg,
-        avbrutt = avbrutt?.toAvbruttDTO(),
+        avbrutt = this.avbrutt.toSøknadshendelserDTO(),
         kanInnvilges = this.kanInnvilges(),
         svar = SøknadDTO.SøknadSvarDTO(
             harSøktPåTiltak = harSøktPåTiltak.toDTO(),

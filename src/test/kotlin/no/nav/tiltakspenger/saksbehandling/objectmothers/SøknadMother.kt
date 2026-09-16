@@ -11,12 +11,12 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
-import no.nav.tiltakspenger.saksbehandling.felles.Avbrutt
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Behandlingsarsak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -111,7 +111,7 @@ interface SøknadMother {
         sakId: SakId = SakId.random(),
         saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         vedlegg: Int = 0,
-        avbrutt: Avbrutt? = null,
+        avbrutt: Søknadshendelser = Søknadshendelser.empty(),
         søknadstype: Søknadstype = Søknadstype.DIGITAL,
         søknadsperiode: Periode? = null,
     ): InnvilgbarSøknad =
@@ -176,7 +176,7 @@ interface SøknadMother {
         sakId: SakId = SakId.random(),
         vedlegg: Int = 0,
         saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
-        avbrutt: Avbrutt? = null,
+        avbrutt: Søknadshendelser = Søknadshendelser.empty(),
         søknadsperiode: Periode? = ObjectMother.vedtaksperiode(),
         manueltSattTiltak: String? = null,
         søknadstype: Søknadstype = Søknadstype.PAPIR_SKJEMA,
