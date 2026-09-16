@@ -329,13 +329,13 @@ class HentBenkRouteTest {
             hentBenk(tac, "/benk/soknader", """{}""").antallIOversikten() shouldBe 2
             hentBenk(tac, "/benk/soknader", """{"filters": {"skjulUtenTilgang": true}}""").let { respons ->
                 objectMapper.readTree(respons)["oversikt"].let { oversikt ->
-                    oversikt["totalAntall"].asInt() shouldBe 2
+                    oversikt["totalAntall"].asInt() shouldBe 1
                     oversikt["behandlinger"].size() shouldBe 1
                     oversikt["oppsummering"].toString() shouldEqualJson """
                         {
                           "antallMedTilgang": 1,
-                          "antallUtenTilgang": 0,
-                          "antallSkjermet": 0,
+                          "antallUtenTilgang": 1,
+                          "antallSkjermet": 1,
                           "antallKode6": 0,
                           "antallKode7": 0
                         }
