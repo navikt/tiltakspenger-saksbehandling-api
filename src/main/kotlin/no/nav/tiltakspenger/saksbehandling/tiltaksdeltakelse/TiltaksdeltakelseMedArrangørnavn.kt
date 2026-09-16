@@ -26,6 +26,7 @@ data class TiltaksdeltakelseMedArrangørnavn(
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
     val visningsnavn: String,
+    val status: TiltakDeltakerstatus,
 ) {
     val periode: Periode? by lazy {
         if (deltakelseFraOgMed != null && deltakelseTilOgMed != null) {

@@ -12,6 +12,7 @@ data class TiltaksdeltakelseMedArrangørnavnDTO(
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
     val visningsnavn: SladdbarVerdi<String>,
+    val status: TiltakDeltakerstatusDto,
 )
 
 fun TiltaksdeltakelseMedArrangørnavn.toDTO(): TiltaksdeltakelseMedArrangørnavnDTO {
@@ -22,5 +23,6 @@ fun TiltaksdeltakelseMedArrangørnavn.toDTO(): TiltaksdeltakelseMedArrangørnavn
         deltakelseFraOgMed = this.deltakelseFraOgMed,
         deltakelseTilOgMed = this.deltakelseTilOgMed,
         visningsnavn = this.visningsnavn.ikkeSladdet(),
+        status = this.status.toDto(),
     )
 }

@@ -89,6 +89,7 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(
             } else {
                 deltakelse.tittel?.verdi ?: deltakelse.tiltakstypenavn
             },
+            status = status,
         )
     }
 }

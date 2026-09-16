@@ -181,6 +181,7 @@ interface TiltakMother {
         tom: LocalDate? = 31.mars(2023),
         harAdressebeskyttelse: Boolean = false,
         visningsnavn: String = if (harAdressebeskyttelse) typeNavn else "$typeNavn hos $arrangørnavn",
+        status: TiltakDeltakerstatus = Deltar,
     ): TiltaksdeltakelseMedArrangørnavn {
         return TiltaksdeltakelseMedArrangørnavn(
             eksternDeltakelseId = eksternTiltaksdeltakelseId,
@@ -189,6 +190,7 @@ interface TiltakMother {
             deltakelseFraOgMed = fom,
             deltakelseTilOgMed = tom,
             visningsnavn = visningsnavn,
+            status = status,
         )
     }
 }
