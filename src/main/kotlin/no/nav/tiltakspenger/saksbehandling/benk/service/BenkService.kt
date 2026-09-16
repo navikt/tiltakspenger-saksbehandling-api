@@ -1,24 +1,26 @@
 package no.nav.tiltakspenger.saksbehandling.benk.service
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.Fnr
-import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import arrow.core.Either
+import arrow.core.raise.either
+import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOppsummering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPersonmarkører
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRad
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRespons
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandling
@@ -26,109 +28,104 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentBenkKommando
+import no.nav.tiltakspenger.saksbehandling.benk.domene.KunneIkkeHenteBenk
 
 /**
- * Henter én fane av benken, og tar bort radene saksbehandler ikke har tilgang til.
- *
- * Tilgangen avgjøres per person, ikke per behandling, så oppslaget gjøres én gang for de unike fødselsnumrene i fanen.
- * Er tilgangen ukjent, filtreres raden bort: benken skal ikke vise en person vi ikke fikk avklart tilgangen til.
+ * Henter én fane av benken og beriker alle radene med tilgang og personmarkører.
+ * Tilgangen slås opp i ett bulkkall mot Tilgangsmaskinen for de unike personene på siden.
+ * Rader uten tilgang blir med; det er DTO-laget som sladder dem.
+ * Loggingen av bulkkallet skjer i [no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService], som kjenner saksbehandleren og correlationId-en.
  */
 class BenkService(
     private val benkRepo: BenkRepo,
     private val tilgangskontrollService: TilgangskontrollService,
 ) {
-    private val logger = KotlinLogging.logger { }
-
     suspend fun hentSøknader(
-        command: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
+        kommando: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkSøknadsbehandling> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
-        benkRepo.hentSøknader(c, limit = limit, offset = offset)
+    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkSøknadsbehandling>> = hentFane(kommando, saksbehandlerToken) { limit, offset ->
+        benkRepo.hentSøknader(kommando, limit = limit, offset = offset)
     }
 
     suspend fun hentRevurderinger(
-        command: HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
+        kommando: HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkRevurdering> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
-        benkRepo.hentRevurderinger(c, limit = limit, offset = offset)
+    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkRevurdering>> = hentFane(kommando, saksbehandlerToken) { limit, offset ->
+        benkRepo.hentRevurderinger(kommando, limit = limit, offset = offset)
     }
 
     suspend fun hentMeldekort(
-        command: HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
+        kommando: HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkMeldekort> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
-        benkRepo.hentMeldekort(c, limit = limit, offset = offset)
+    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkMeldekort>> = hentFane(kommando, saksbehandlerToken) { limit, offset ->
+        benkRepo.hentMeldekort(kommando, limit = limit, offset = offset)
     }
 
     suspend fun hentKlager(
-        command: HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne>,
+        kommando: HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkKlagebehandling> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
-        benkRepo.hentKlager(c, limit = limit, offset = offset)
+    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkKlagebehandling>> = hentFane(kommando, saksbehandlerToken) { limit, offset ->
+        benkRepo.hentKlager(kommando, limit = limit, offset = offset)
     }
 
     suspend fun hentTilbakekrevinger(
-        command: HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
+        kommando: HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         saksbehandlerToken: String,
-    ): BenkRespons<BenkTilbakekreving> = hentFane(command, saksbehandlerToken) { c, limit, offset ->
-        benkRepo.hentTilbakekrevinger(c, limit = limit, offset = offset)
+    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkTilbakekreving>> = hentFane(kommando, saksbehandlerToken) { limit, offset ->
+        benkRepo.hentTilbakekrevinger(kommando, limit = limit, offset = offset)
     }
 
-    private suspend fun <F : BenkFiltrering, K : BenkSorteringKolonne, T : BenkBehandling> hentFane(
-        command: HentBenkKommando<F, K>,
+    private suspend fun <T : BenkBehandling> hentFane(
+        kommando: HentBenkKommando<*, *>,
         saksbehandlerToken: String,
-        hent: (HentBenkKommando<F, K>, Int, Int) -> BenkOversikt<T>,
-    ): BenkRespons<T> {
+        hent: (limit: Int, offset: Int) -> BenkOversikt<T>,
+    ): Either<KunneIkkeHenteBenk, BenkRespons<T>> = either {
         val antallPerFane = benkRepo.hentAntallPerFane()
-        val oversikt = hent(command, command.paginering.limit(), command.paginering.offset())
+        val oversikt = hent(kommando.paginering.limit(), kommando.paginering.offset())
 
-        if (oversikt.isEmpty()) {
-            return BenkRespons(
+        val fnrs = oversikt.fødselsnummere().toNonEmptyListOrNull()
+            ?: return@either BenkRespons(
                 antallPerFane = antallPerFane,
-                oversikt = TilgangsfiltrertBenkOversikt(
-                    behandlinger = emptyList(),
+                oversikt = BenkOversiktMedTilgang(
+                    rader = emptyList(),
                     totalAntall = oversikt.totalAntall,
                     totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
-                    antallFiltrertPgaTilgang = 0,
+                    oppsummering = BenkOppsummering.fra(emptyList<BenkRad<T>>()),
                     saksbehandlere = oversikt.saksbehandlere,
                     besluttere = oversikt.besluttere,
-                    side = command.paginering.side,
+                    side = kommando.paginering.side,
                 ),
             )
-        }
 
         val tilganger = tilgangskontrollService.harTilgangTilPersoner(
-            fnrs = oversikt.fødselsnummere(),
+            fnrs = fnrs,
             saksbehandlerToken = saksbehandlerToken,
-            saksbehandler = command.saksbehandler,
-        )
+            saksbehandler = kommando.saksbehandler,
+            correlationId = kommando.correlationId,
+        ).mapLeft { KunneIkkeHenteBenk.Tilgangskontroll }.bind()
 
-        val medTilgang = oversikt.filtrer { harTilgang(it.fnr, tilganger, command.saksbehandler) }
+        // Nøkkelsettet er garantert av bulksvarets egen validering, så oppslaget kan ikke bomme.
+        val rader = oversikt.behandlinger.map { behandling ->
+            val tilgang = tilganger.getValue(behandling.fnr)
+            BenkRad(
+                behandling = behandling,
+                tilgang = tilgang,
+                personmarkører = BenkPersonmarkører.fra(tilgang),
+            )
+        }
+        val oppsummering = BenkOppsummering.fra(rader)
 
-        return BenkRespons(
+        BenkRespons(
             antallPerFane = antallPerFane,
-            oversikt = TilgangsfiltrertBenkOversikt(
-                behandlinger = medTilgang.behandlinger,
+            oversikt = BenkOversiktMedTilgang(
+                rader = rader,
                 totalAntall = oversikt.totalAntall,
                 totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
-                antallFiltrertPgaTilgang = oversikt.behandlinger.size - medTilgang.behandlinger.size,
+                oppsummering = oppsummering,
                 saksbehandlere = oversikt.saksbehandlere,
                 besluttere = oversikt.besluttere,
-                side = command.paginering.side,
+                side = kommando.paginering.side,
             ),
         )
-    }
-
-    private fun harTilgang(fnr: Fnr, tilganger: Map<Fnr, Boolean>, saksbehandler: Saksbehandler): Boolean {
-        val harTilgang = tilganger[fnr]
-        if (harTilgang == null) {
-            logger.debug { "tilgangsstyring: Filtrerte vekk bruker fra benk v2 for saksbehandler $saksbehandler. Kunne ikke avgjøre om hen har tilgang. Se sikkerlogg for mer kontekst." }
-            Sikkerlogg.debug { "tilgangsstyring: Filtrerte vekk bruker ${fnr.verdi} fra benk v2 for saksbehandler $saksbehandler. Kunne ikke avgjøre om hen har tilgang." }
-        }
-        if (harTilgang == false) {
-            logger.debug { "tilgangsstyring: Filtrerte vekk bruker fra benk v2 for saksbehandler $saksbehandler. Saksbehandler har ikke tilgang. Se sikkerlogg for mer kontekst." }
-            Sikkerlogg.debug { "tilgangsstyring: Filtrerte vekk bruker ${fnr.verdi} fra benk v2 for saksbehandler $saksbehandler. Saksbehandler har ikke tilgang." }
-        }
-        return harTilgang == true
     }
 }

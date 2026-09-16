@@ -57,7 +57,7 @@ class OlderMottaSøknadTest {
             actualSøknad shouldBe
                 InnvilgbarSøknad(
                     versjon = "3",
-                    id = actualSøknad!!.id,
+                    id = actualSøknad.id,
                     journalpostId = JOURNALPOSTID,
                     personopplysninger =
                     Søknad.Personopplysninger(

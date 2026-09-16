@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
 
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.throwables.shouldNotThrow
@@ -8,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -17,10 +19,6 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
 import no.nav.tiltakspenger.libs.httpklient.Tidsgrenser
 import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.IkkeFunnetException
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException
@@ -65,8 +63,9 @@ class TilgangskontrollServiceTest {
         begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
         metadata = AvvistMetadata(
             type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
+            avvisningskode = "AVVIST_FORTROLIG_ADRESSE",
             navIdent = "Z12345",
-            brukerIdent = fnr.verdi,
+            brukerIdent = fnr,
         ),
     )
 
@@ -90,6 +89,32 @@ class TilgangskontrollServiceTest {
         shouldThrow<TilgangException> {
             tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
         }
+    }
+
+    /**
+     * En avvisningskode vi ikke kjenner, er fortsatt en avvisning.
+     * Saksbehandleren skal få 403 med en generell melding, ikke en 500.
+     */
+    @Test
+    fun `harTilgangTilPerson - ukjent avvisningskode - kaster TilgangException med annet-kode`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
+        coEvery { tilgangsmaskinClient.harTilgangTilPerson(fnr, any()) } returns Tilgangsvurdering.Avvist(
+            årsak = TilgangsvurderingAvvistÅrsak.UKJENT,
+            begrunnelse = "Avvist av en regel vi ikke kjenner",
+            metadata = AvvistMetadata(
+                type = "https://confluence.adeo.no/display/TM/Tilgangsmaskin+API+og+regelsett",
+                avvisningskode = "AVVIST_EN_NY_REGEL",
+                navIdent = "Z12345",
+                brukerIdent = fnr,
+            ),
+        ).right()
+
+        val exception = shouldThrow<TilgangException> {
+            tilgangskontrollService.harTilgangTilPerson(fnr, "token", saksbehandler)
+        }
+
+        exception.toErrorJson().kode shouldBe "tilgang_nektet_annet"
     }
 
     @Test
@@ -207,26 +232,72 @@ class TilgangskontrollServiceTest {
     fun `harTilgangTilPersoner - har tilgang til en og ikke tilgang til annen - returnerer riktig map`() = runTest {
         val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
         val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
-        coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } returns mapOf(
-            fnr to true,
-            fnr2 to false,
+        coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } returns ObjectMother.httpKlientResponse(
+            body = mapOf(
+                fnr to TilgangsvurderingBulk.Godkjent,
+                fnr2 to TilgangsvurderingBulk.Avvist(
+                    årsak = TilgangsvurderingAvvistÅrsak.GEOGRAFISK,
+                    begrunnelse = "Du har ikke geografisk tilgang",
+                ),
+            ),
+            statusCode = 207,
         ).right()
 
-        val tilgangsmap = tilgangskontrollService.harTilgangTilPersoner(fnrs, "token", saksbehandler)
+        val tilgangsmap = tilgangskontrollService
+            .harTilgangTilPersoner(fnrs, "token", saksbehandler, CorrelationId.generate())
+            .getOrElse { throw AssertionError("Forventet Right, fikk $it") }
 
         tilgangsmap.size shouldBe 2
-        tilgangsmap[fnr] shouldBe true
-        tilgangsmap[fnr2] shouldBe false
+        tilgangsmap[fnr] shouldBe TilgangsvurderingBulk.Godkjent
+        tilgangsmap[fnr2] shouldBe TilgangsvurderingBulk.Avvist(
+            årsak = TilgangsvurderingAvvistÅrsak.GEOGRAFISK,
+            begrunnelse = "Du har ikke geografisk tilgang",
+        )
     }
 
+    /** Bulkstien signaliserer med Left; det er kalleren som avgjør hva saksbehandleren skal se. */
     @Test
-    fun `harTilgangTilPersoner - kaster feil - kaster TilgangException`() = runTest {
+    fun `harTilgangTilPersoner - uventet feil - returnerer Left uten kast`() = runTest {
         val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
         val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
-        coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } throws RuntimeException("feilmelding")
+        coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } returns uventetFeil.left()
 
-        shouldThrow<RuntimeException> {
-            tilgangskontrollService.harTilgangTilPersoner(fnrs, "token", saksbehandler)
-        }
+        val feil = tilgangskontrollService
+            .harTilgangTilPersoner(fnrs, "token", saksbehandler, CorrelationId.generate())
+            .fold({ it }, { throw AssertionError("Forventet Left, fikk $it") })
+
+        feil shouldBe uventetFeil
+    }
+
+    /** Et svar vi ikke klarte å tolke logges med vår egen beskrivelse i vanlig logg og den rå responsen i sikkerlogg. */
+    @Test
+    fun `harTilgangTilPersoner - ugyldig svar - returnerer Left uten kast`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
+        val ugyldigSvar = TilgangskontrollFeil.UgyldigSvar(
+            beskrivelse = "Tilgangsmaskinen returnerte 403 uten detaljer.",
+            metadata = ObjectMother.httpKlientUventetStatus(statusCode = 207, body = "ugyldig bulksvar").metadata,
+        )
+        coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } returns ugyldigSvar.left()
+
+        val feil = tilgangskontrollService
+            .harTilgangTilPersoner(fnrs, "token", saksbehandler, CorrelationId.generate())
+            .fold({ it }, { throw AssertionError("Forventet Left, fikk $it") })
+
+        feil shouldBe ugyldigSvar
+    }
+
+    /** ForMangeIdenter har sin egen logglinje, og skal også komme ut som Left. */
+    @Test
+    fun `harTilgangTilPersoner - for mange identer - returnerer Left uten kast`() = runTest {
+        val tilgangsmaskinClient = mockk<TilgangsmaskinClient>()
+        val tilgangskontrollService = TilgangskontrollService(tilgangsmaskinClient, mockk<SakService>())
+        coEvery { tilgangsmaskinClient.harTilgangTilPersoner(fnrs, any()) } returns TilgangskontrollFeil.ForMangeIdenter.left()
+
+        val feil = tilgangskontrollService
+            .harTilgangTilPersoner(fnrs, "token", saksbehandler, CorrelationId.generate())
+            .fold({ it }, { throw AssertionError("Forventet Left, fikk $it") })
+
+        feil shouldBe TilgangskontrollFeil.ForMangeIdenter
     }
 }

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientTidsstempler
 import no.nav.tiltakspenger.libs.httpklient.Tidsgrenser
 import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
@@ -95,6 +96,33 @@ object ObjectMother :
             tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
             rawRequestString = "POST http://test/endepunkt",
             rawResponseString = body,
+            requestHeaders = emptyMap(),
+            responseHeaders = emptyMap(),
+            statusCode = statusCode,
+            attempts = 1,
+            attemptDurations = listOf(Duration.ZERO),
+            totalDuration = Duration.ZERO,
+            tidsstempler = HttpKlientTidsstempler.INGEN,
+        ),
+    )
+
+    /**
+     * For tester som trenger en ferdig [HttpKlientResponse] rundt en domenekropp, uten å bygge metadata selv.
+     * Metadataen er den samme som i [httpKlientUventetStatus], slik at `loggSuksess` har alt den leser.
+     */
+    fun <T> httpKlientResponse(
+        body: T,
+        statusCode: Int = 200,
+    ) = HttpKlientResponse(
+        statusCode = statusCode,
+        body = body,
+        metadata = HttpKlientMetadata(
+            method = "POST",
+            uri = URI.create("http://test/endepunkt"),
+            uriSynlighet = UriSynlighet.VanligLogg,
+            tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
+            rawRequestString = "POST http://test/endepunkt",
+            rawResponseString = "svar fra tjenesten",
             requestHeaders = emptyMap(),
             responseHeaders = emptyMap(),
             statusCode = statusCode,

@@ -23,12 +23,17 @@ data class BenkKlagebehandlingDTO(
     override val beslutter: String?,
     override val erUnderkjent: Boolean,
     override val ventestatus: BenkVentestatusDTO,
+    override val tilgang: BenkTilgangDTO,
+    override val personmarkører: BenkPersonmarkørerDTO,
     val status: BenkBehandlingsstatusDTO,
     val kravtidspunkt: String,
     val resultat: BenkKlagebehandlingResultatDTO?,
 ) : BenkBehandlingDTO
 
-fun BenkKlagebehandling.toDTO(): BenkKlagebehandlingDTO = BenkKlagebehandlingDTO(
+fun BenkKlagebehandling.toDTO(
+    tilgang: BenkTilgangDTO,
+    personmarkører: BenkPersonmarkørerDTO,
+): BenkKlagebehandlingDTO = BenkKlagebehandlingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
     fnr = felles.fnr.verdi.ikkeSladdet(),
@@ -39,6 +44,8 @@ fun BenkKlagebehandling.toDTO(): BenkKlagebehandlingDTO = BenkKlagebehandlingDTO
     beslutter = null,
     erUnderkjent = felles.erUnderkjent,
     ventestatus = felles.ventestatus.toDTO(),
+    tilgang = tilgang,
+    personmarkører = personmarkører,
     status = status.toDTO(),
     kravtidspunkt = kravtidspunkt.toString(),
     resultat = resultat?.toDTO(),

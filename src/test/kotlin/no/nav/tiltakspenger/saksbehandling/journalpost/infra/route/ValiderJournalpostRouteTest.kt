@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId

@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.saksbehandler.SaksbehandlerBehandlingKommandoDTO
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
@@ -26,6 +27,15 @@ class BenkDTOSladdingTest {
             it.fnr shouldBe SladdetVerdi
             it.ventestatus.begrunnelse shouldBe SladdetVerdi
         }
+    }
+
+    @Test
+    fun `sladding fjerner muterende kommandoer i alle radtypene`() {
+        val kommandoer = listOf(SaksbehandlerBehandlingKommandoDTO.LeggTilbakeSaksbehandler)
+        val respons = benkResponsDTO(gyldigeKommandoer = kommandoer)
+
+        respons.kommandoerPerRad() shouldBe List(4) { kommandoer }
+        respons.sladdet().kommandoerPerRad() shouldBe List(4) { emptyList() }
     }
 
     @Test
@@ -47,8 +57,17 @@ class BenkDTOSladdingTest {
             it.tab shouldBe benkResponsDTO.tab
             it.antallPerTab shouldBe benkResponsDTO.antallPerTab
             it.oversikt.totalAntall shouldBe benkResponsDTO.oversikt.totalAntall
+            it.oversikt.oppsummering shouldBe benkResponsDTO.oversikt.oppsummering
             it.oversikt.saksbehandlere shouldBe benkResponsDTO.oversikt.saksbehandlere
             it.oversikt.besluttere shouldBe benkResponsDTO.oversikt.besluttere
+            it.oversikt.behandlinger.map { rad -> rad.tilgang } shouldBe
+                benkResponsDTO.oversikt.behandlinger.map { rad -> rad.tilgang }
+            it.oversikt.behandlinger.map { rad -> rad.personmarkører } shouldBe
+                benkResponsDTO.oversikt.behandlinger.map { rad -> rad.personmarkører }
+            it.oversikt.behandlinger.map { rad -> rad.id } shouldBe
+                benkResponsDTO.oversikt.behandlinger.map { rad -> rad.id }
+            it.oversikt.behandlinger.map { rad -> rad.sakId } shouldBe
+                benkResponsDTO.oversikt.behandlinger.map { rad -> rad.sakId }
             it.oversikt.behandlinger.map { rad -> rad.saksnummer } shouldBe
                 benkResponsDTO.oversikt.behandlinger.map { rad -> rad.saksnummer }
         }
@@ -83,7 +102,20 @@ class BenkDTOSladdingTest {
         benkResponsDTO.sladdetFor(ObjectMother.utvikler()) shouldBe benkResponsDTO.sladdet()
     }
 
-    private fun benkResponsDTO(): BenkResponsDTO = BenkResponsDTO(
+    private fun BenkResponsDTO.kommandoerPerRad(): List<List<SaksbehandlerBehandlingKommandoDTO>> =
+        oversikt.behandlinger.mapNotNull {
+            when (it) {
+                is BenkSøknadsbehandlingDTO -> it.gyldigeKommandoer
+                is BenkRevurderingDTO -> it.gyldigeKommandoer
+                is BenkMeldekortDTO -> it.gyldigeKommandoer
+                is BenkTilbakekrevingDTO -> it.gyldigeKommandoer
+                is BenkKlagebehandlingDTO -> null
+            }
+        }
+
+    private fun benkResponsDTO(
+        gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO> = emptyList(),
+    ): BenkResponsDTO = BenkResponsDTO(
         tab = BenkFaneDTO.SØKNADER,
         antallPerTab = mapOf(
             BenkFaneDTO.SØKNADER to 1,
@@ -94,7 +126,7 @@ class BenkDTOSladdingTest {
         ),
         oversikt = BenkOversiktDTO(
             behandlinger = listOf(
-                benkSøknadsbehandlingDTO(),
+                benkSøknadsbehandlingDTO(gyldigeKommandoer),
                 BenkRevurderingDTO(
                     id = "revurdering",
                     sakId = "sakId",
@@ -106,9 +138,11 @@ class BenkDTOSladdingTest {
                     beslutter = null,
                     erUnderkjent = false,
                     ventestatus = ventestatusDTO(),
+                    tilgang = tilgangDTO(),
+                    personmarkører = personmarkørerDTO(),
                     status = BenkBehandlingsstatusDTO.UNDER_BEHANDLING,
                     resultat = BenkRevurderingResultatDTO.STANS,
-                    gyldigeKommandoer = emptyList(),
+                    gyldigeKommandoer = gyldigeKommandoer,
                 ),
                 BenkMeldekortDTO(
                     type = BenkBehandlingstypeDTO.MELDEKORTBEHANDLING,
@@ -122,10 +156,12 @@ class BenkDTOSladdingTest {
                     beslutter = null,
                     erUnderkjent = false,
                     ventestatus = ventestatusDTO(),
+                    tilgang = tilgangDTO(),
+                    personmarkører = personmarkørerDTO(),
                     status = BenkBehandlingsstatusDTO.UNDER_BEHANDLING,
                     meldeperioder = listOf(PeriodeDTO(1.januar(2025).toString(), 14.januar(2025).toString())),
                     beløp = 1000,
-                    gyldigeKommandoer = emptyList(),
+                    gyldigeKommandoer = gyldigeKommandoer,
                 ),
                 BenkKlagebehandlingDTO(
                     id = "klage",
@@ -138,6 +174,8 @@ class BenkDTOSladdingTest {
                     beslutter = null,
                     erUnderkjent = false,
                     ventestatus = ventestatusDTO(),
+                    tilgang = tilgangDTO(),
+                    personmarkører = personmarkørerDTO(),
                     status = BenkBehandlingsstatusDTO.UNDER_BEHANDLING,
                     kravtidspunkt = 1.januarDateTime(2025).toString(),
                     resultat = null,
@@ -153,17 +191,25 @@ class BenkDTOSladdingTest {
                     beslutter = null,
                     erUnderkjent = false,
                     ventestatus = ventestatusDTO(),
+                    tilgang = tilgangDTO(),
+                    personmarkører = personmarkørerDTO(),
                     status = BenkTilbakekrevingStatusDTO.UNDER_BEHANDLING,
                     beløp = BigDecimal.TEN,
                     kilde = BenkTilbakekrevingKildeDTO.MELDEKORT,
                     kravgrunnlagPeriode = PeriodeDTO(1.januar(2025).toString(), 14.januar(2025).toString()),
                     url = "https://tilbakekreving.example.test",
-                    gyldigeKommandoer = emptyList(),
+                    gyldigeKommandoer = gyldigeKommandoer,
                 ),
             ),
             totalAntall = 5,
             totalAntallUfiltrert = 5,
-            antallFiltrertPgaTilgang = 0,
+            oppsummering = BenkOppsummeringDTO(
+                antallMedTilgang = 5,
+                antallUtenTilgang = 0,
+                antallSkjermet = 0,
+                antallKode6 = 0,
+                antallKode7 = 0,
+            ),
             side = 0,
             sideantall = 200,
             saksbehandlere = listOf("Z12345"),
@@ -172,7 +218,9 @@ class BenkDTOSladdingTest {
         error = null,
     )
 
-    private fun benkSøknadsbehandlingDTO(): BenkSøknadsbehandlingDTO = BenkSøknadsbehandlingDTO(
+    private fun benkSøknadsbehandlingDTO(
+        gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO> = emptyList(),
+    ): BenkSøknadsbehandlingDTO = BenkSøknadsbehandlingDTO(
         id = "søknadsbehandling",
         sakId = "sakId",
         fnr = Fnr.random().verdi.ikkeSladdet(),
@@ -183,11 +231,24 @@ class BenkDTOSladdingTest {
         beslutter = null,
         erUnderkjent = false,
         ventestatus = ventestatusDTO(),
+        tilgang = tilgangDTO(),
+        personmarkører = personmarkørerDTO(),
         status = BenkBehandlingsstatusDTO.UNDER_BEHANDLING,
         søknadstype = BenkSøknadstypeDTO.DIGITAL,
         kravtidspunkt = 1.januarDateTime(2025).toString(),
         resultat = BenkSøknadsbehandlingResultatDTO.IKKE_VALGT,
-        gyldigeKommandoer = emptyList(),
+        gyldigeKommandoer = gyldigeKommandoer,
+    )
+
+    private fun tilgangDTO(): BenkTilgangDTO = BenkTilgangDTO(
+        vurdering = BenkTilgangsvurderingDTO.HAR_TILGANG,
+        grunn = null,
+    )
+
+    private fun personmarkørerDTO(): BenkPersonmarkørerDTO = BenkPersonmarkørerDTO(
+        skjermet = false,
+        kode6 = false,
+        kode7 = false,
     )
 
     private fun ventestatusDTO(): BenkVentestatusDTO = BenkVentestatusDTO(

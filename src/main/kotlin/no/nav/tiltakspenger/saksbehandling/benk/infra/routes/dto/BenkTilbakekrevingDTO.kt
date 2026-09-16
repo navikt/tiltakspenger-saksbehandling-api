@@ -39,6 +39,8 @@ data class BenkTilbakekrevingDTO(
     override val beslutter: String?,
     override val erUnderkjent: Boolean,
     override val ventestatus: BenkVentestatusDTO,
+    override val tilgang: BenkTilgangDTO,
+    override val personmarkører: BenkPersonmarkørerDTO,
     val status: BenkTilbakekrevingStatusDTO,
     val beløp: BigDecimal,
     val kilde: BenkTilbakekrevingKildeDTO,
@@ -47,7 +49,11 @@ data class BenkTilbakekrevingDTO(
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
-fun BenkTilbakekreving.toDTO(saksbehandler: Saksbehandler): BenkTilbakekrevingDTO = BenkTilbakekrevingDTO(
+fun BenkTilbakekreving.toDTO(
+    saksbehandler: Saksbehandler,
+    tilgang: BenkTilgangDTO,
+    personmarkører: BenkPersonmarkørerDTO,
+): BenkTilbakekrevingDTO = BenkTilbakekrevingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
     fnr = felles.fnr.verdi.ikkeSladdet(),
@@ -58,6 +64,8 @@ fun BenkTilbakekreving.toDTO(saksbehandler: Saksbehandler): BenkTilbakekrevingDT
     beslutter = felles.beslutter,
     erUnderkjent = felles.erUnderkjent,
     ventestatus = felles.ventestatus.toDTO(),
+    tilgang = tilgang,
+    personmarkører = personmarkører,
     status = status.toDTO(),
     beløp = beløp,
     kilde = kilde.toDTO(),

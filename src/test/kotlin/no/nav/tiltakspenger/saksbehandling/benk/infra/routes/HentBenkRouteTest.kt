@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes
 
+import arrow.core.left
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -10,9 +11,11 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.AvvistMetadata
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollFeil
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -21,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.JsonNode
 
 /**
  * Prodstien til benk v2: én post per fane under `/benk` gir fanen pluss antallet i alle fanene.
@@ -68,6 +72,15 @@ class HentBenkRouteTest {
                           "begrunnelse": {"verdi": null, "erSladdet": false},
                           "frist": null
                         },
+                        "tilgang": {
+                          "vurdering": "HAR_TILGANG",
+                          "grunn": null
+                        },
+                        "personmarkører": {
+                          "skjermet": false,
+                          "kode6": false,
+                          "kode7": false
+                        },
                         "status": "KLAR_TIL_BEHANDLING",
                         "søknadstype": "DIGITAL",
                         "kravtidspunkt": "${søknad.opprettet}",
@@ -77,7 +90,13 @@ class HentBenkRouteTest {
                     ],
                     "totalAntall": 1,
                     "totalAntallUfiltrert": 1,
-                    "antallFiltrertPgaTilgang": 0,
+                    "oppsummering": {
+                      "antallMedTilgang": 1,
+                      "antallUtenTilgang": 0,
+                      "antallSkjermet": 0,
+                      "antallKode6": 0,
+                      "antallKode7": 0
+                    },
                     "side": 0,
                     "sideantall": 200,
                     "saksbehandlere": [],
@@ -111,7 +130,7 @@ class HentBenkRouteTest {
                 "/benk/soknader",
                 """{"filters": {"saksbehandler": "IKKE_TILDELT_SAKSBEHANDLER"}}""",
             ).let { it.antallIOversikten() shouldBe 1 }
-            hentBenk(tac, "/benk/soknader", """{}""").let { it.antallIOversikten() shouldBe 2 }
+            hentBenk(tac, "/benk/soknader", """{}""").antallIOversikten() shouldBe 2
         }
     }
 
@@ -198,39 +217,91 @@ class HentBenkRouteTest {
             sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
             opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
-            hentBenk(tac, "/benk/soknader", """{"filters": {"skjulEgneTilBeslutning": true}}""")
-                .let { it.antallIOversikten() shouldBe 1 }
-            hentBenk(tac, "/benk/soknader", """{}""")
-                .let { it.antallIOversikten() shouldBe 2 }
+            hentBenk(tac, "/benk/soknader", """{"filters": {"skjulEgneTilBeslutning": true}}""").antallIOversikten() shouldBe 1
+            hentBenk(tac, "/benk/soknader", """{}""").antallIOversikten() shouldBe 2
         }
     }
 
     /**
-     * Tilgangsfiltreringen skjer i servicen etter at fanen er hentet: radene telles med i totalene, men vises ikke.
-     * Tilgangen avvises her etter at behandlingene er opprettet — ellers hadde opprettelsen selv blitt stoppet.
+     * Markørene kommer fra regelen Tilgangsmaskinen avviste på, så de er bare satt for rader uten tilgang.
+     * Benken gjør ingen oppslag mot PDL eller skjermingsregisteret.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `rader saksbehandler ikke har tilgang til telles, men vises ikke`() {
+    fun `alle rader vises med tilgang, personmarkører og oppsummering`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sakMedTilgang) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
-            val fnrUtenTilgang = Fnr.random()
-            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, fnr = fnrUtenTilgang)
-            tac.tilgangsmaskinFakeClient.leggTil(
-                fnrUtenTilgang,
-                Tilgangsvurdering.Avvist(
-                    årsak = TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG,
-                    begrunnelse = "test",
-                    metadata = AvvistMetadata(type = "test", navIdent = "test", brukerIdent = "test"),
-                ),
-            )
+            val avvisteSaker = listOf(
+                TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG,
+                TilgangsvurderingAvvistÅrsak.FORTROLIG,
+                TilgangsvurderingAvvistÅrsak.SKJERMET,
+                TilgangsvurderingAvvistÅrsak.UKJENT,
+            ).associateWith { årsak ->
+                val fnr = Fnr.random()
+                val (sak) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac, fnr = fnr)
+                tac.tilgangsmaskinFakeClient.leggTil(
+                    fnr,
+                    Tilgangsvurdering.Avvist(
+                        årsak = årsak,
+                        begrunnelse = "Du har ikke tilgang",
+                        metadata = AvvistMetadata(type = "test", avvisningskode = "test", navIdent = "test", brukerIdent = fnr),
+                    ),
+                )
+                sak
+            }
 
             val respons = hentBenk(tac, "/benk/soknader", """{}""")
 
-            objectMapper.readTree(respons)["oversikt"].let {
-                it["totalAntall"].asInt() shouldBe 2
-                it["antallFiltrertPgaTilgang"].asInt() shouldBe 1
-                it["behandlinger"].single()["sakId"].stringValue() shouldBe sakMedTilgang.id.toString()
+            objectMapper.readTree(respons)["oversikt"].let { oversikt ->
+                oversikt["totalAntall"].asInt() shouldBe 5
+                oversikt.has("antallFiltrertPgaTilgang") shouldBe false
+                oversikt["behandlinger"].size() shouldBe 5
+                oversikt["oppsummering"].toString() shouldEqualJson """
+                    {
+                      "antallMedTilgang": 1,
+                      "antallUtenTilgang": 4,
+                      "antallSkjermet": 1,
+                      "antallKode6": 1,
+                      "antallKode7": 1
+                    }
+                """.trimIndent()
+
+                val radMedTilgang = oversikt.rad(sakMedTilgang.id.toString())
+                radMedTilgang["tilgang"].toString() shouldEqualJson """
+                    {"vurdering": "HAR_TILGANG", "grunn": null}
+                """.trimIndent()
+                radMedTilgang["personmarkører"].toString() shouldEqualJson """
+                    {"skjermet": false, "kode6": false, "kode7": false}
+                """.trimIndent()
+                radMedTilgang["fnr"]["erSladdet"].asBoolean() shouldBe false
+
+                // Wirenavnet er benkens egen kontrakt, så det står i klartekst her i stedet for å bli utledet av domeneenumen.
+                val forventetÅrsaksnavn = mapOf(
+                    TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG to "STRENGT_FORTROLIG_ADRESSE",
+                    TilgangsvurderingAvvistÅrsak.FORTROLIG to "FORTROLIG_ADRESSE",
+                    TilgangsvurderingAvvistÅrsak.SKJERMET to "SKJERMET",
+                    TilgangsvurderingAvvistÅrsak.UKJENT to "UKJENT",
+                )
+
+                mapOf(
+                    TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG to """{"skjermet": false, "kode6": true, "kode7": false}""",
+                    TilgangsvurderingAvvistÅrsak.FORTROLIG to """{"skjermet": false, "kode6": false, "kode7": true}""",
+                    TilgangsvurderingAvvistÅrsak.SKJERMET to """{"skjermet": true, "kode6": false, "kode7": false}""",
+                    // En kode vi ikke kjenner, gir ingen markør; raden sladdes fordi tilgangen er avvist.
+                    TilgangsvurderingAvvistÅrsak.UKJENT to """{"skjermet": false, "kode6": false, "kode7": false}""",
+                ).forEach { (årsak, forventedeMarkører) ->
+                    val rad = oversikt.rad(avvisteSaker.getValue(årsak).id.toString())
+                    rad["tilgang"].toString() shouldEqualJson """
+                        {
+                          "vurdering": "HAR_IKKE_TILGANG",
+                          "grunn": {"årsak": "${forventetÅrsaksnavn.getValue(årsak)}", "begrunnelse": "Du har ikke tilgang"}
+                        }
+                    """.trimIndent()
+                    rad["personmarkører"].toString() shouldEqualJson forventedeMarkører
+                    rad["fnr"].toString() shouldEqualJson """{"verdi": null, "erSladdet": true}"""
+                    rad["ventestatus"]["begrunnelse"].toString() shouldEqualJson """{"verdi": null, "erSladdet": true}"""
+                    rad["gyldigeKommandoer"].size() shouldBe 0
+                }
             }
         }
     }
@@ -240,16 +311,20 @@ class HentBenkRouteTest {
      */
     @Test
     @IsolatedDatabaseTest
-    fun `veileder og utvikler har tilgang til benken`() {
+    fun `leseroller beholder sakshenvisning og persontilgang uten muterende kommandoer`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            val (sak) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
             listOf(ObjectMother.veileder(), ObjectMother.utvikler()).forEach { leserolle ->
                 hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = leserolle)
                     .let {
                         it.antallIOversikten() shouldBe 1
-                        objectMapper.readTree(it)["oversikt"]["behandlinger"].single()["gyldigeKommandoer"]
-                            .toString() shouldEqualJson """[]"""
+                        val rad = objectMapper.readTree(it)["oversikt"]["behandlinger"].single()
+                        rad["gyldigeKommandoer"].toString() shouldEqualJson """[]"""
+                        rad["sakId"].stringValue() shouldBe sak.id.toString()
+                        rad["saksnummer"].stringValue() shouldBe sak.saksnummer.verdi
+                        rad["tilgang"]["vurdering"].stringValue() shouldBe "HAR_TILGANG"
+                        rad["fnr"]["erSladdet"].asBoolean() shouldBe leserolle.roller.erUtvikler
                     }
             }
         }
@@ -302,11 +377,48 @@ class HentBenkRouteTest {
         }
     }
 
+    /**
+     * Uten en tilgangsvurdering vet vi ikke hvilke rader saksbehandleren har lov til å se.
+     * Da svarer benken med en serverfeil framfor å vise radene.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `benken svarer 500 når tilgangskontrollen feiler`() {
+        withTestApplicationContextAndPostgres(
+            tilgangsmaskinFakeClient = object : TilgangsmaskinFakeTestClient() {
+                override suspend fun harTilgangTilPersoner(
+                    fnrs: List<Fnr>,
+                    saksbehandlerToken: String,
+                ) = TilgangskontrollFeil.ForMangeIdenter.left()
+            },
+            runIsolated = true,
+        ) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            hentBenk(
+                tac,
+                "/benk/soknader",
+                """{}""",
+                forventet = ForventetRespons.json(
+                    500,
+                    """
+                    {
+                      "melding": "Noe gikk galt på serversiden",
+                      "kode": "server_feil"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            )
+        }
+    }
+
     private suspend fun ApplicationTestBuilder.hentBenk(
         tac: TestApplicationContextMedPostgres,
         path: String,
         body: String,
         saksbehandler: Saksbehandler = this@HentBenkRouteTest.saksbehandler,
+        forventet: ForventetRespons = ForventetRespons(status = 200, contentType = "application/json; charset=UTF-8"),
     ): String {
         val jwt = tac.jwtGenerator.createJwtForSaksbehandler(saksbehandler = saksbehandler)
         tac.leggTilBruker(jwt, saksbehandler)
@@ -314,10 +426,14 @@ class HentBenkRouteTest {
             HttpMethod.POST,
             path,
             jwt = jwt,
-            forventet = ForventetRespons(status = 200, contentType = "application/json; charset=UTF-8"),
+            forventet = forventet,
             body = body,
         ).body
     }
+
+    /** Radene kommer i spørringens rekkefølge, så testene slår dem opp på sakId framfor posisjon. */
+    private fun JsonNode.rad(sakId: String): JsonNode =
+        this["behandlinger"].first { it["sakId"].stringValue() == sakId }
 
     private fun String.antallIOversikten(): Int = objectMapper.readTree(this)["oversikt"]["totalAntall"].asInt()
 

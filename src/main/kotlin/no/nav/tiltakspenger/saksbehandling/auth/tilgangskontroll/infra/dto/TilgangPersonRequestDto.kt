@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
 
 /**
- * Wire-DTO for én person i request-body mot tilgangsmaskinen (`/api/v1/kjerne` og bulk-endepunktet).
+ * Wire-DTO for én person i request-body mot tilgangsmaskinens bulk-endepunkt.
  *
  * Lever kun i infra og serialiseres til JSON. [brukerId] er et fnr (PII).
  */

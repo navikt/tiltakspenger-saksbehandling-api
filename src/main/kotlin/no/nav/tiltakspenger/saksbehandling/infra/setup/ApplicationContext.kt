@@ -14,14 +14,14 @@ import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaHttpClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinHttpClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadOgBehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.GjenåpneSøknadsbehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
-import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkContext
+import no.nav.tiltakspenger.saksbehandling.benk.infra.setup.BenkContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient

@@ -36,6 +36,8 @@ data class BenkSøknadsbehandlingDTO(
     override val beslutter: String?,
     override val erUnderkjent: Boolean,
     override val ventestatus: BenkVentestatusDTO,
+    override val tilgang: BenkTilgangDTO,
+    override val personmarkører: BenkPersonmarkørerDTO,
     val status: BenkBehandlingsstatusDTO,
     val søknadstype: BenkSøknadstypeDTO,
     val kravtidspunkt: String,
@@ -43,7 +45,11 @@ data class BenkSøknadsbehandlingDTO(
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
-fun BenkSøknadsbehandling.toDTO(saksbehandler: Saksbehandler): BenkSøknadsbehandlingDTO = BenkSøknadsbehandlingDTO(
+fun BenkSøknadsbehandling.toDTO(
+    saksbehandler: Saksbehandler,
+    tilgang: BenkTilgangDTO,
+    personmarkører: BenkPersonmarkørerDTO,
+): BenkSøknadsbehandlingDTO = BenkSøknadsbehandlingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
     fnr = felles.fnr.verdi.ikkeSladdet(),
@@ -54,6 +60,8 @@ fun BenkSøknadsbehandling.toDTO(saksbehandler: Saksbehandler): BenkSøknadsbeha
     beslutter = felles.beslutter,
     erUnderkjent = felles.erUnderkjent,
     ventestatus = felles.ventestatus.toDTO(),
+    tilgang = tilgang,
+    personmarkører = personmarkører,
     status = status.toDTO(),
     søknadstype = søknadstype.toDTO(),
     kravtidspunkt = kravtidspunkt.toString(),

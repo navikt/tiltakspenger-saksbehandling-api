@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.domene
 
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
@@ -35,6 +36,35 @@ class BenkGyldigeKommandoerTest {
 
     private val saksbehandler = ObjectMother.saksbehandler()
     private val beslutter = ObjectMother.beslutter()
+
+    @Test
+    fun `leseroller får ingen muterende kommandoer uavhengig av status og tildeling`() {
+        listOf(ObjectMother.veileder(), ObjectMother.utvikler()).forEach { leserolle ->
+            listOf(
+                felles(),
+                felles(saksbehandler = leserolle.navIdent),
+                felles(beslutter = leserolle.navIdent),
+            ).forEach { felles ->
+                BenkBehandlingsstatus.entries.forEach { status ->
+                    withClue("Roller: ${leserolle.roller}, status: $status") {
+                        søknadsbehandling(status, felles).finnGyldigeKommandoer(leserolle) shouldBe emptyList()
+                        BenkRevurdering(
+                            felles = felles,
+                            id = RammebehandlingId.random(),
+                            status = status,
+                            resultat = BenkRevurderingResultat.STANS,
+                        ).finnGyldigeKommandoer(leserolle) shouldBe emptyList()
+                        meldekort(status, felles).finnGyldigeKommandoer(leserolle) shouldBe emptyList()
+                    }
+                }
+                BenkTilbakekrevingStatus.entries.forEach { status ->
+                    withClue("Roller: ${leserolle.roller}, status: $status") {
+                        tilbakekreving(status, felles).finnGyldigeKommandoer(leserolle) shouldBe emptyList()
+                    }
+                }
+            }
+        }
+    }
 
     private fun felles(
         saksbehandler: String? = null,

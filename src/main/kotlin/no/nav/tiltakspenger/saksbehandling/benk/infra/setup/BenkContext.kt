@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.saksbehandling.benk.setup
+package no.nav.tiltakspenger.saksbehandling.benk.infra.setup
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory

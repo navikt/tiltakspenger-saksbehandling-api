@@ -1,4 +1,6 @@
-package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
+package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
+
+import no.nav.tiltakspenger.libs.common.Fnr
 
 /**
  * Metadata om en avvist tilgangsvurdering fra tilgangsmaskinen.
@@ -8,10 +10,16 @@ package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
  */
 data class AvvistMetadata(
     /**
-     * Regeltypen/URI-en tilgangsmaskinen brukte for avvisningen (f.eks. `AVVIST_SKJERMING`).
+     * Regeltypen (URI-en) tilgangsmaskinen brukte for avvisningen.
+     * Den er lik for alle avvisninger; [avvisningskode] sier hvilken regel som avviste.
      * Kun for logging/debugging.
      */
     val type: String,
+    /**
+     * Avvisningskoden tilgangsmaskinen svarte med, rå slik den står i `title` (f.eks. `AVVIST_SKJERMING`).
+     * Kun for logging/debugging.
+     */
+    val avvisningskode: String,
     /**
      * Nav-identen til saksbehandleren som ble nektet tilgang.
      * Kun for logging/notoritet.
@@ -21,8 +29,8 @@ data class AvvistMetadata(
      * Ident (fnr) til personen det ble sjekket tilgang mot.
      * PII – kun for sikkerlogg/notoritet, aldri i vanlig logg.
      */
-    val brukerIdent: String,
+    val brukerIdent: Fnr,
 ) {
     /** Maskerer [brukerIdent] (PII) slik at den ikke havner tilfeldigvis i logger. */
-    override fun toString(): String = "AvvistMetadata(type=$type, navIdent=$navIdent, brukerIdent=*****)"
+    override fun toString(): String = "AvvistMetadata(type=$type, avvisningskode=$avvisningskode, navIdent=$navIdent, brukerIdent=*****)"
 }

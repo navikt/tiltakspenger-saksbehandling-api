@@ -16,8 +16,8 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaFakeClient
 import no.nav.tiltakspenger.saksbehandling.auth.infra.TexasClientFake
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
-import no.nav.tiltakspenger.saksbehandling.benk.setup.BenkContext
+import no.nav.tiltakspenger.saksbehandling.benk.infra.setup.BenkContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingFakeKlient
 import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokumentdistribusjonsFakeKlient

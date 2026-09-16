@@ -17,10 +17,6 @@ data class BenkOversikt<T : BenkBehandling>(
     val saksbehandlere: List<String>,
     val besluttere: List<String>,
 ) {
-    fun isEmpty(): Boolean = behandlinger.isEmpty()
-
-    fun filtrer(fn: (T) -> Boolean): BenkOversikt<T> = this.copy(behandlinger = this.behandlinger.filter(fn))
-
     fun fødselsnummere(): List<Fnr> = behandlinger.map { it.fnr }.distinct().sortedBy { it.verdi }
 }
 

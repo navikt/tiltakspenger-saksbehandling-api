@@ -137,7 +137,7 @@ class MaskedLogTest {
             .toList()
 
     private fun jsonMelding(jsonLinje: String): String =
-        objectMapper.readTree(jsonLinje).path("message").asText()
+        objectMapper.readTree(jsonLinje).path("message").asString()
 
     private fun finnPåkrevdDel(regex: Regex, innhold: String, navn: String): String =
         regex.find(innhold)?.value ?: error("Fant ikke $navn i logback.xml.")

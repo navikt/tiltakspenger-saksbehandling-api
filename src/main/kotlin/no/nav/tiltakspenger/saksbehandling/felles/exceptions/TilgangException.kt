@@ -76,6 +76,11 @@ class TilgangException(
             "tilgang_nektet_verge",
         )
 
+        Tilgangsnektårsak.ANNET -> ErrorJson(
+            "Du har ikke tilgang til denne brukeren.",
+            "tilgang_nektet_annet",
+        )
+
         Tilgangsnektårsak.KREV_ROLLEN -> ErrorJson(
             this.message ?: "Du har ikke tilgang til denne handlingen fordi du krever nødvendig rolle.",
             "tilgang_nektet_krev_rolle",
@@ -95,6 +100,9 @@ enum class Tilgangsnektårsak {
     SKJERMET,
     HABILITET,
     VERGE,
+
+    /** Tilgangsmaskinen avviste på en regel vi ikke kategoriserer, eller på en avvisningskode vi ikke kjenner. */
+    ANNET,
 
     KREV_ROLLEN,
     MANGLER_ROLLE,

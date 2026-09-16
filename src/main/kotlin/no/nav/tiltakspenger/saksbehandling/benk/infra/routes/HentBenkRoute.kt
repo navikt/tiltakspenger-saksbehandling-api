@@ -10,16 +10,19 @@ import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.json.deserialize
+import no.nav.tiltakspenger.libs.ktor.common.respond500InternalServerError
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.texas.TexasPrincipalInternal
 import no.nav.tiltakspenger.libs.texas.saksbehandler
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPaginering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRespons
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderFiltrering
@@ -27,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentBenkKommando
+import no.nav.tiltakspenger.saksbehandling.benk.domene.KunneIkkeHenteBenk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.tilSortering
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingResultatDTO
@@ -40,6 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.tilDomene
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.toDTO
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 
@@ -87,7 +92,7 @@ private suspend fun RoutingContext.svarMedSøknader(
     val (saksbehandler, token) = autentiser() ?: return
 
     val respons = benkService.hentSøknader(
-        command = HentBenkKommando(
+        kommando = HentBenkKommando(
             filtrering = BenkSøknaderFiltrering(
                 status = body.filters.status?.tilDomene(),
                 søknadstype = body.filters.søknadstype?.tilDomene(),
@@ -102,9 +107,9 @@ private suspend fun RoutingContext.svarMedSøknader(
             correlationId = call.correlationId(),
         ),
         saksbehandlerToken = token,
-    ).toDTO(BenkFane.SØKNADER, saksbehandler, error)
+    )
 
-    call.respondJson(value = respons)
+    svarMedBenk(respons, BenkFane.SØKNADER, saksbehandler, error)
 }
 
 private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
@@ -113,7 +118,7 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
     val (body, error) = call.parseBodyEllerDefault(HentRevurderingerBody())
 
     val respons = benkService.hentRevurderinger(
-        command = HentBenkKommando(
+        kommando = HentBenkKommando(
             filtrering = BenkRevurderingerFiltrering(
                 status = body.filters.status?.tilDomene(),
                 resultat = body.filters.resultat?.tilDomene(),
@@ -127,9 +132,9 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
             correlationId = call.correlationId(),
         ),
         saksbehandlerToken = token,
-    ).toDTO(BenkFane.REVURDERINGER, saksbehandler, error)
+    )
 
-    call.respondJson(value = respons)
+    svarMedBenk(respons, BenkFane.REVURDERINGER, saksbehandler, error)
 }
 
 private suspend fun RoutingContext.meldekort(benkService: BenkService) {
@@ -138,7 +143,7 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
     val (body, error) = call.parseBodyEllerDefault(HentMeldekortBody())
 
     val respons = benkService.hentMeldekort(
-        command = HentBenkKommando(
+        kommando = HentBenkKommando(
             filtrering = BenkMeldekortFiltrering(
                 status = body.filters.status?.tilDomene(),
                 type = body.filters.type?.tilDomene(),
@@ -152,9 +157,9 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
             correlationId = call.correlationId(),
         ),
         saksbehandlerToken = token,
-    ).toDTO(BenkFane.MELDEKORT, saksbehandler, error)
+    )
 
-    call.respondJson(value = respons)
+    svarMedBenk(respons, BenkFane.MELDEKORT, saksbehandler, error)
 }
 
 private suspend fun RoutingContext.klage(benkService: BenkService) {
@@ -163,7 +168,7 @@ private suspend fun RoutingContext.klage(benkService: BenkService) {
     val (body, error) = call.parseBodyEllerDefault(HentKlageBody())
 
     val respons = benkService.hentKlager(
-        command = HentBenkKommando(
+        kommando = HentBenkKommando(
             filtrering = BenkKlageFiltrering(
                 status = body.filters.status?.tilDomene(),
                 resultat = body.filters.resultat?.tilDomene(),
@@ -176,9 +181,9 @@ private suspend fun RoutingContext.klage(benkService: BenkService) {
             correlationId = call.correlationId(),
         ),
         saksbehandlerToken = token,
-    ).toDTO(BenkFane.KLAGE, saksbehandler, error)
+    )
 
-    call.respondJson(value = respons)
+    svarMedBenk(respons, BenkFane.KLAGE, saksbehandler, error)
 }
 
 private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
@@ -187,7 +192,7 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
     val (body, error) = call.parseBodyEllerDefault(HentTilbakekrevingBody())
 
     val respons = benkService.hentTilbakekrevinger(
-        command = HentBenkKommando(
+        kommando = HentBenkKommando(
             filtrering = BenkTilbakekrevingFiltrering(
                 status = body.filters.status?.tilDomene(),
                 kilde = body.filters.kilde?.tilDomene(),
@@ -202,9 +207,25 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
             correlationId = call.correlationId(),
         ),
         saksbehandlerToken = token,
-    ).toDTO(BenkFane.TILBAKEKREVING, saksbehandler, error)
+    )
 
-    call.respondJson(value = respons)
+    svarMedBenk(respons, BenkFane.TILBAKEKREVING, saksbehandler, error)
+}
+
+/**
+ * Svarer ut fanen, eller en serverfeil når tilgangskontrollen ikke lot seg gjennomføre.
+ * Ruten logger ikke ved [KunneIkkeHenteBenk]; servicen har allerede logget kallet én gang.
+ */
+private suspend fun <T : BenkBehandling> RoutingContext.svarMedBenk(
+    respons: Either<KunneIkkeHenteBenk, BenkRespons<T>>,
+    fane: BenkFane,
+    saksbehandler: Saksbehandler,
+    error: String?,
+) {
+    respons.fold(
+        ifLeft = { call.respond500InternalServerError(Standardfeil.serverfeil()) },
+        ifRight = { call.respondJson(value = it.toDTO(fane, saksbehandler, error)) },
+    )
 }
 
 private suspend fun RoutingContext.autentiser(): Pair<Saksbehandler, String>? {

@@ -29,12 +29,18 @@ data class BenkRevurderingDTO(
     override val beslutter: String?,
     override val erUnderkjent: Boolean,
     override val ventestatus: BenkVentestatusDTO,
+    override val tilgang: BenkTilgangDTO,
+    override val personmarkører: BenkPersonmarkørerDTO,
     val status: BenkBehandlingsstatusDTO,
     val resultat: BenkRevurderingResultatDTO?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
-fun BenkRevurdering.toDTO(saksbehandler: Saksbehandler): BenkRevurderingDTO = BenkRevurderingDTO(
+fun BenkRevurdering.toDTO(
+    saksbehandler: Saksbehandler,
+    tilgang: BenkTilgangDTO,
+    personmarkører: BenkPersonmarkørerDTO,
+): BenkRevurderingDTO = BenkRevurderingDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
     fnr = felles.fnr.verdi.ikkeSladdet(),
@@ -45,6 +51,8 @@ fun BenkRevurdering.toDTO(saksbehandler: Saksbehandler): BenkRevurderingDTO = Be
     beslutter = felles.beslutter,
     erUnderkjent = felles.erUnderkjent,
     ventestatus = felles.ventestatus.toDTO(),
+    tilgang = tilgang,
+    personmarkører = personmarkører,
     status = status.toDTO(),
     resultat = resultat?.toDTO(),
     gyldigeKommandoer = finnGyldigeKommandoer(saksbehandler).tilDTO(),

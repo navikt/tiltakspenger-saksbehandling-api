@@ -32,13 +32,19 @@ data class BenkMeldekortDTO(
     override val beslutter: String?,
     override val erUnderkjent: Boolean,
     override val ventestatus: BenkVentestatusDTO,
+    override val tilgang: BenkTilgangDTO,
+    override val personmarkører: BenkPersonmarkørerDTO,
     val status: BenkBehandlingsstatusDTO,
     val meldeperioder: List<PeriodeDTO>,
     val beløp: Int?,
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : BenkBehandlingDTO
 
-fun BenkMeldekort.toDTO(saksbehandler: Saksbehandler): BenkMeldekortDTO = BenkMeldekortDTO(
+fun BenkMeldekort.toDTO(
+    saksbehandler: Saksbehandler,
+    tilgang: BenkTilgangDTO,
+    personmarkører: BenkPersonmarkørerDTO,
+): BenkMeldekortDTO = BenkMeldekortDTO(
     id = id.toString(),
     sakId = felles.sakId.toString(),
     fnr = felles.fnr.verdi.ikkeSladdet(),
@@ -49,6 +55,8 @@ fun BenkMeldekort.toDTO(saksbehandler: Saksbehandler): BenkMeldekortDTO = BenkMe
     beslutter = felles.beslutter,
     erUnderkjent = felles.erUnderkjent,
     ventestatus = felles.ventestatus.toDTO(),
+    tilgang = tilgang,
+    personmarkører = personmarkører,
     status = status.toDTO(),
     type = type.toDTO(),
     meldeperioder = meldeperioder.map { PeriodeDTO(it.fraOgMed.toString(), it.tilOgMed.toString()) },

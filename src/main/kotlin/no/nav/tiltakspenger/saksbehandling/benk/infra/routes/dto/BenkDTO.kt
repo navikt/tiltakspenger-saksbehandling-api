@@ -1,18 +1,23 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOppsummering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPersonmarkører
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRad
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRespons
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkVentestatus
-import no.nav.tiltakspenger.saksbehandling.benk.service.BenkRespons
-import no.nav.tiltakspenger.saksbehandling.benk.service.TilgangsfiltrertBenkOversikt
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 
@@ -37,7 +42,7 @@ data class BenkOversiktDTO(
     val behandlinger: List<BenkBehandlingDTO>,
     val totalAntall: Int,
     val totalAntallUfiltrert: Int,
-    val antallFiltrertPgaTilgang: Int,
+    val oppsummering: BenkOppsummeringDTO,
     /**
      * Siden som ble spurt om, 0-basert.
      * Antall sider er `totalAntall` delt på [sideantall], rundet opp.
@@ -77,6 +82,56 @@ enum class BenkBehandlingstypeDTO {
     TILBAKEKREVING,
 }
 
+enum class BenkTilgangsvurderingDTO {
+    HAR_TILGANG,
+    HAR_IKKE_TILGANG,
+}
+
+/**
+ * Grunnene benken kan oppgi for en rad uten tilgang.
+ * Navnene er benkens egen kontrakt mot frontenden, ikke Tilgangsmaskinens koder.
+ */
+enum class BenkTilgangsårsakDTO {
+    STRENGT_FORTROLIG_ADRESSE,
+    STRENGT_FORTROLIG_UTLAND,
+    FORTROLIG_ADRESSE,
+    SKJERMET,
+    HABILITET,
+    VERGEMÅL,
+    GEOGRAFISK,
+    UKJENT_BOSTED,
+    PERSON_UTLAND,
+    AVDØD,
+
+    /** Tilgangsmaskinen avviste med en kode backend ikke kjenner; begrunnelsen sier fortsatt hva som skjedde. */
+    UKJENT,
+}
+
+data class BenkTilgangsgrunnDTO(
+    val årsak: BenkTilgangsårsakDTO,
+    val begrunnelse: String,
+)
+
+data class BenkTilgangDTO(
+    val vurdering: BenkTilgangsvurderingDTO,
+    val grunn: BenkTilgangsgrunnDTO?,
+)
+
+/** Markørene gjelder personen uavhengig av om saksbehandleren har tilgang til raden. */
+data class BenkPersonmarkørerDTO(
+    val skjermet: Boolean,
+    val kode6: Boolean,
+    val kode7: Boolean,
+)
+
+data class BenkOppsummeringDTO(
+    val antallMedTilgang: Int,
+    val antallUtenTilgang: Int,
+    val antallSkjermet: Int,
+    val antallKode6: Int,
+    val antallKode7: Int,
+)
+
 data class BenkVentestatusDTO(
     val erSattPåVent: Boolean,
     val begrunnelse: SladdbarVerdi<String?>,
@@ -95,6 +150,8 @@ sealed interface BenkBehandlingDTO {
     val beslutter: String?
     val erUnderkjent: Boolean
     val ventestatus: BenkVentestatusDTO
+    val tilgang: BenkTilgangDTO
+    val personmarkører: BenkPersonmarkørerDTO
 }
 
 fun BenkFane.toDTO(): BenkFaneDTO = when (this) {
@@ -125,24 +182,75 @@ fun <T : BenkBehandling> BenkRespons<T>.toDTO(
         error = error,
     ).sladdetFor(saksbehandler)
 
-private fun <T : BenkBehandling> TilgangsfiltrertBenkOversikt<T>.toDTO(saksbehandler: Saksbehandler): BenkOversiktDTO = BenkOversiktDTO(
-    behandlinger = behandlinger.map { it.toDTO(saksbehandler) },
+private fun <T : BenkBehandling> BenkOversiktMedTilgang<T>.toDTO(saksbehandler: Saksbehandler): BenkOversiktDTO = BenkOversiktDTO(
+    behandlinger = rader.map { it.toDTO(saksbehandler) },
     totalAntall = totalAntall,
     totalAntallUfiltrert = totalAntallUfiltrert,
-    antallFiltrertPgaTilgang = antallFiltrertPgaTilgang,
+    oppsummering = oppsummering.toDTO(),
     side = side,
     sideantall = sideantall,
     saksbehandlere = saksbehandlere,
     besluttere = besluttere,
 )
 
-private fun BenkBehandling.toDTO(saksbehandler: Saksbehandler): BenkBehandlingDTO = when (this) {
-    is BenkSøknadsbehandling -> toDTO(saksbehandler)
-    is BenkRevurdering -> toDTO(saksbehandler)
-    is BenkMeldekort -> toDTO(saksbehandler)
-    is BenkKlagebehandling -> toDTO()
-    is BenkTilbakekreving -> toDTO(saksbehandler)
+private fun <T : BenkBehandling> BenkRad<T>.toDTO(saksbehandler: Saksbehandler): BenkBehandlingDTO {
+    val tilgangDTO = tilgang.toDTO()
+    val personmarkørerDTO = personmarkører.toDTO()
+    val behandlingDTO = when (val behandling = behandling) {
+        is BenkSøknadsbehandling -> behandling.toDTO(saksbehandler, tilgangDTO, personmarkørerDTO)
+        is BenkRevurdering -> behandling.toDTO(saksbehandler, tilgangDTO, personmarkørerDTO)
+        is BenkMeldekort -> behandling.toDTO(saksbehandler, tilgangDTO, personmarkørerDTO)
+        is BenkKlagebehandling -> behandling.toDTO(tilgangDTO, personmarkørerDTO)
+        is BenkTilbakekreving -> behandling.toDTO(saksbehandler, tilgangDTO, personmarkørerDTO)
+    }
+    return when (tilgang) {
+        TilgangsvurderingBulk.Godkjent -> behandlingDTO
+        is TilgangsvurderingBulk.Avvist -> behandlingDTO.sladdet()
+    }
 }
+
+private fun TilgangsvurderingBulk.toDTO(): BenkTilgangDTO = when (this) {
+    TilgangsvurderingBulk.Godkjent -> BenkTilgangDTO(
+        vurdering = BenkTilgangsvurderingDTO.HAR_TILGANG,
+        grunn = null,
+    )
+
+    is TilgangsvurderingBulk.Avvist -> BenkTilgangDTO(
+        vurdering = BenkTilgangsvurderingDTO.HAR_IKKE_TILGANG,
+        grunn = BenkTilgangsgrunnDTO(
+            årsak = årsak.toDTO(),
+            begrunnelse = begrunnelse,
+        ),
+    )
+}
+
+private fun TilgangsvurderingAvvistÅrsak.toDTO(): BenkTilgangsårsakDTO = when (this) {
+    TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG -> BenkTilgangsårsakDTO.STRENGT_FORTROLIG_ADRESSE
+    TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND -> BenkTilgangsårsakDTO.STRENGT_FORTROLIG_UTLAND
+    TilgangsvurderingAvvistÅrsak.FORTROLIG -> BenkTilgangsårsakDTO.FORTROLIG_ADRESSE
+    TilgangsvurderingAvvistÅrsak.SKJERMET -> BenkTilgangsårsakDTO.SKJERMET
+    TilgangsvurderingAvvistÅrsak.HABILITET -> BenkTilgangsårsakDTO.HABILITET
+    TilgangsvurderingAvvistÅrsak.VERGE -> BenkTilgangsårsakDTO.VERGEMÅL
+    TilgangsvurderingAvvistÅrsak.GEOGRAFISK -> BenkTilgangsårsakDTO.GEOGRAFISK
+    TilgangsvurderingAvvistÅrsak.UKJENT_BOSTED -> BenkTilgangsårsakDTO.UKJENT_BOSTED
+    TilgangsvurderingAvvistÅrsak.PERSON_UTLAND -> BenkTilgangsårsakDTO.PERSON_UTLAND
+    TilgangsvurderingAvvistÅrsak.AVDØD -> BenkTilgangsårsakDTO.AVDØD
+    TilgangsvurderingAvvistÅrsak.UKJENT -> BenkTilgangsårsakDTO.UKJENT
+}
+
+private fun BenkPersonmarkører.toDTO(): BenkPersonmarkørerDTO = BenkPersonmarkørerDTO(
+    skjermet = skjermet,
+    kode6 = kode6,
+    kode7 = kode7,
+)
+
+private fun BenkOppsummering.toDTO(): BenkOppsummeringDTO = BenkOppsummeringDTO(
+    antallMedTilgang = antallMedTilgang,
+    antallUtenTilgang = antallUtenTilgang,
+    antallSkjermet = antallSkjermet,
+    antallKode6 = antallKode6,
+    antallKode7 = antallKode7,
+)
 
 fun BenkVentestatus.toDTO(): BenkVentestatusDTO = BenkVentestatusDTO(
     erSattPåVent = erSattPåVent,

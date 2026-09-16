@@ -8,6 +8,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
 import no.nav.tiltakspenger.libs.httpklient.authFeilUtenKall
 import no.nav.tiltakspenger.libs.httpklient.harStatus
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
@@ -16,15 +17,16 @@ import no.nav.tiltakspenger.libs.httpklient.infra.feil.bodySomJson
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
-import no.nav.tiltakspenger.libs.httpklient.tryMap
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollFeil
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponse
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsmaskinClient
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponseDto
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponseDto
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangPersonRequestDto
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
 import java.net.URI
 import java.time.Clock
 import kotlin.time.Duration
@@ -85,18 +87,9 @@ class TilgangsmaskinHttpClient(
                 when {
                     // Avvist tilgang er et domeneutfall som utledes fra feiltypen, ikke en teknisk feil.
                     feil is HttpKlientError.UventetStatus && feil.harStatus(403) ->
-                        feil.bodySomJson<AvvistTilgangResponse>()
-                            .flatMap { avvist ->
-                                // Mappingen kaster på ukjent avvisningstype; fang det som typet feil med responsens metadata i stedet for en ukontrollert exception.
-                                Either.catch { avvist.tilAvvistTilgangsvurdering() }.mapLeft { e ->
-                                    HttpKlientError.DeserializationError(
-                                        throwable = e,
-                                        body = feil.body,
-                                        statusCode = feil.statusCode,
-                                        metadata = feil.metadata,
-                                    )
-                                }
-                            }
+                        // En avvisningskode vi ikke kjenner, blir UKJENT: statuskoden har allerede avgjort tilgangen, så metadata skal ikke felle kallet.
+                        feil.bodySomJson<AvvistTilgangResponseDto>()
+                            .map { it.tilAvvistTilgangsvurdering(fnr) }
                             .onRight(::loggAvvist)
 
                     else -> feil.left()
@@ -105,19 +98,37 @@ class TilgangsmaskinHttpClient(
         )
     }.mapLeft(::tilTilgangskontrollFeil)
 
+    /**
+     * Responsen følger med ut igjen så servicen kan logge kallet én gang med metadataen fra kallet.
+     * Klienten logger ikke selv.
+     */
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, Map<Fnr, Boolean>> = exchangeToken(saksbehandlerToken, tilgangTilPersonerUri).flatMap { oboToken ->
-        httpKlient.postJson<TilgangBulkResponseDto>(
-            uri = tilgangTilPersonerUri,
-            body = fnrs.map { TilgangPersonRequestDto(brukerId = it.verdi) },
-            bearerToken = oboToken,
-            godta = Statusregel.Eksakt(207),
-        )
-            // Mappingen bygger Fnr fra svaret og kan kaste; tryMap gjør et ugyldig svar til typet feil med responsens metadata i stedet for en ukontrollert exception.
-            .flatMap { response -> response.tryMap { it.tilTilgangPerFnr() } }
-    }.mapLeft(::tilTilgangskontrollFeil)
+    ): Either<TilgangskontrollFeil, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>> = exchangeToken(saksbehandlerToken, tilgangTilPersonerUri)
+        .flatMap { oboToken ->
+            httpKlient.postJson<TilgangBulkResponseDto>(
+                uri = tilgangTilPersonerUri,
+                // Uten type bruker bulkoppslaget KOMPLETT_REGELTYPE, mens enkeltoppslaget bruker kjernereglene.
+                body = fnrs.map { TilgangPersonRequestDto(brukerId = it.verdi) },
+                bearerToken = oboToken,
+                godta = Statusregel.Eksakt(207),
+            )
+        }
+        .mapLeft(::tilTilgangskontrollFeil)
+        // Mappingen bygger Fnr fra svaret og kan mislykkes; da blir det en typet feil med responsens metadata, ikke et kast.
+        .flatMap { response ->
+            response.body.tilTilgangPerFnr(fnrs.toSet())
+                .mapLeft { ugyldig -> TilgangskontrollFeil.UgyldigSvar(ugyldig.beskrivelse, response.metadata) }
+                // HttpKlientResponse er `out Body`, så copy kan ikke bytte kroppstype; responsen bygges på nytt rundt den mappede kroppen.
+                .map { tilgangPerFnr ->
+                    HttpKlientResponse(
+                        statusCode = response.statusCode,
+                        body = tilgangPerFnr,
+                        metadata = response.metadata,
+                    )
+                }
+        }
 
     /**
      * [uri] er kallet tokenet skulle brukes til.
@@ -147,7 +158,7 @@ class TilgangsmaskinHttpClient(
         }
 
     private fun loggAvvist(avvist: Tilgangsvurdering.Avvist) {
-        log.info { "Tilgang avvist av tilgangsmaskinen. Nav-ident: ${avvist.metadata.navIdent}, regel: ${avvist.metadata.type}, årsak: ${avvist.årsak}. Se sikkerlogg for detaljer." }
-        Sikkerlogg.info { "Tilgang avvist: ${avvist.begrunnelse}. Nav-ident: ${avvist.metadata.navIdent}, fnr: ${avvist.metadata.brukerIdent}, regel: ${avvist.metadata.type}, årsak: ${avvist.årsak}." }
+        log.info { "Tilgang avvist av tilgangsmaskinen. Nav-ident: ${avvist.metadata.navIdent}, avvisningskode: ${avvist.metadata.avvisningskode}, årsak: ${avvist.årsak}. Se sikkerlogg for detaljer." }
+        Sikkerlogg.info { "Tilgang avvist: ${avvist.begrunnelse}. Nav-ident: ${avvist.metadata.navIdent}, fnr: ${avvist.metadata.brukerIdent}, avvisningskode: ${avvist.metadata.avvisningskode}, årsak: ${avvist.årsak}." }
     }
 }

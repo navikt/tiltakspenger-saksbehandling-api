@@ -4,10 +4,12 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistMetadata
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.Tilgangsvurdering
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangsvurderingAvvistÅrsak
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.AvvistMetadata
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbehandlingsresultat
@@ -97,8 +99,9 @@ class BehandleSøknadPåNyttTest {
                     begrunnelse = "test",
                     metadata = AvvistMetadata(
                         type = "test",
+                        avvisningskode = "AVVIST_STRENGT_FORTROLIG_ADRESSE",
                         navIdent = "test",
-                        brukerIdent = "test",
+                        brukerIdent = Fnr.random(),
                     ),
                 ),
             )
