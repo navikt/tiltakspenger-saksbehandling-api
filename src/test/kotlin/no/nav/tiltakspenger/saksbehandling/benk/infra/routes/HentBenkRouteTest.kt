@@ -307,6 +307,45 @@ class HentBenkRouteTest {
     }
 
     /**
+     * Tilgangen er først kjent etter oppslaget mot Tilgangsmaskinen, så filteret skjer etter pagineringen.
+     * `totalAntall` teller derfor fortsatt radene før tilgangsfiltreringen, mens listen og oppsummeringen bare har radene med tilgang.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `skjulUtenTilgang tar bort radene innlogget saksbehandler ikke har tilgang til`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            val fnrUtenTilgang = Fnr.random()
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, fnr = fnrUtenTilgang)
+            tac.tilgangsmaskinFakeClient.leggTil(
+                fnrUtenTilgang,
+                Tilgangsvurdering.Avvist(
+                    årsak = TilgangsvurderingAvvistÅrsak.SKJERMET,
+                    begrunnelse = "Du har ikke tilgang",
+                    metadata = AvvistMetadata(type = "test", avvisningskode = "test", navIdent = "test", brukerIdent = fnrUtenTilgang),
+                ),
+            )
+
+            hentBenk(tac, "/benk/soknader", """{}""").antallIOversikten() shouldBe 2
+            hentBenk(tac, "/benk/soknader", """{"filters": {"skjulUtenTilgang": true}}""").let { respons ->
+                objectMapper.readTree(respons)["oversikt"].let { oversikt ->
+                    oversikt["totalAntall"].asInt() shouldBe 2
+                    oversikt["behandlinger"].size() shouldBe 1
+                    oversikt["oppsummering"].toString() shouldEqualJson """
+                        {
+                          "antallMedTilgang": 1,
+                          "antallUtenTilgang": 0,
+                          "antallSkjermet": 0,
+                          "antallKode6": 0,
+                          "antallKode7": 0
+                        }
+                    """.trimIndent()
+                }
+            }
+        }
+    }
+
+    /**
      * Veileder og utvikler er leseroller — de skal kunne se benken, men ikke utføre kommandoene i den.
      */
     @Test
