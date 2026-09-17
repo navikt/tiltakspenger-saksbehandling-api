@@ -408,6 +408,23 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
+    override fun angreMeldekortbehandlingSendtTilBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        // TODO - Gjør ferdig :)
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            tx.run(
+                queryOf(
+                    """
+                        
+                    """,
+                    mapOf(),
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {
         return sessionFactory.withSession { session ->
             session.run(
