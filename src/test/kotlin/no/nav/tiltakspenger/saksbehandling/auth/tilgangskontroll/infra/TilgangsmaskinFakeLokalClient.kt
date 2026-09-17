@@ -10,8 +10,11 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderi
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 
-class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
+class TilgangsmaskinFakeLokalClient(
+    private val personFakeKlient: PersonFakeKlient,
+) : TilgangsmaskinClient {
     private val data = arrow.atomic.Atomic(mutableMapOf<Fnr, Boolean>())
 
     override suspend fun harTilgangTilPerson(
@@ -49,18 +52,18 @@ class TilgangsmaskinFakeLokalClient : TilgangsmaskinClient {
     }
 
     /**
-     * Følger samme fnr-prefiks-konvensjon som [no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient].
-     * 2 gir fortrolig adresse, 3 strengt fortrolig og 4 strengt fortrolig utland — alt annet gir tilgang.
-     * En eksplisitt verdi lagt inn med [leggTil] overstyrer prefikset, og avviser da med [TilgangsvurderingAvvistÅrsak.FORTROLIG].
+     * Adressebeskyttelsen hentes fra [PersonFakeKlient], som eier fnr-prefiks-konvensjonen.
+     * En eksplisitt verdi lagt inn med [leggTil] overstyrer personen, og avviser da med [TilgangsvurderingAvvistÅrsak.FORTROLIG].
      */
-    private fun avvistÅrsak(fnr: Fnr): TilgangsvurderingAvvistÅrsak? {
+    private suspend fun avvistÅrsak(fnr: Fnr): TilgangsvurderingAvvistÅrsak? {
         data.get()[fnr]?.let { eksplisittTilgang ->
             return if (eksplisittTilgang) null else TilgangsvurderingAvvistÅrsak.FORTROLIG
         }
-        return when (fnr.verdi.first()) {
-            '2' -> TilgangsvurderingAvvistÅrsak.FORTROLIG
-            '3' -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
-            '4' -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
+        val person = personFakeKlient.hentEnkelPerson(fnr)
+        return when {
+            person.strengtFortroligUtland -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
+            person.strengtFortrolig -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
+            person.fortrolig -> TilgangsvurderingAvvistÅrsak.FORTROLIG
             else -> null
         }
     }

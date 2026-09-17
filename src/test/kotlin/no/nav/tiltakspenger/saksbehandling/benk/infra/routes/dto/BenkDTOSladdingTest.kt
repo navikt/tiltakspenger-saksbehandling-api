@@ -54,6 +54,7 @@ class BenkDTOSladdingTest {
         val benkResponsDTO = benkResponsDTO()
 
         benkResponsDTO.sladdet().let {
+            it.harTilgang shouldBe benkResponsDTO.harTilgang
             it.tab shouldBe benkResponsDTO.tab
             it.antallPerTab shouldBe benkResponsDTO.antallPerTab
             it.oversikt.totalAntall shouldBe benkResponsDTO.oversikt.totalAntall
@@ -102,7 +103,7 @@ class BenkDTOSladdingTest {
         benkResponsDTO.sladdetFor(ObjectMother.utvikler()) shouldBe benkResponsDTO.sladdet()
     }
 
-    private fun BenkResponsDTO.kommandoerPerRad(): List<List<SaksbehandlerBehandlingKommandoDTO>> =
+    private fun BenkResponsMedTilgangDTO.kommandoerPerRad(): List<List<SaksbehandlerBehandlingKommandoDTO>> =
         oversikt.behandlinger.mapNotNull {
             when (it) {
                 is BenkSøknadsbehandlingDTO -> it.gyldigeKommandoer
@@ -115,7 +116,7 @@ class BenkDTOSladdingTest {
 
     private fun benkResponsDTO(
         gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO> = emptyList(),
-    ): BenkResponsDTO = BenkResponsDTO(
+    ): BenkResponsMedTilgangDTO = BenkResponsMedTilgangDTO(
         tab = BenkFaneDTO.SØKNADER,
         antallPerTab = mapOf(
             BenkFaneDTO.SØKNADER to 1,

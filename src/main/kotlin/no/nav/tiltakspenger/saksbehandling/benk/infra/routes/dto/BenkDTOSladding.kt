@@ -5,15 +5,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 
 /**
- * Sladding av [BenkResponsDTO].
+ * Sladding av [BenkResponsMedTilgangDTO].
  * Hver rad i benken bærer fødselsnummeret til personen saken gjelder, og ventestatusen bærer saksbehandlers begrunnelse.
  * Antallene, statusene, beløpene og identene i benken er ikke identifiserende og beholdes.
  *
  * Rader saksbehandleren ikke har persontilgang til, sladdes allerede i `BenkRad.toDTO`.
  * Sladdingen her kommer i tillegg, og gjelder rollene som ikke skal se personopplysninger i det hele tatt.
+ * [BenkResponsUtenTilgangDTO] har ingenting å sladde.
  */
 
-fun BenkResponsDTO.sladdet(): BenkResponsDTO = this.copy(
+fun BenkResponsMedTilgangDTO.sladdet(): BenkResponsMedTilgangDTO = this.copy(
     oversikt = oversikt.sladdet(),
 )
 
@@ -57,5 +58,5 @@ private fun BenkVentestatusDTO.sladdet(): BenkVentestatusDTO = this.copy(
     begrunnelse = SladdetVerdi,
 )
 
-fun BenkResponsDTO.sladdetFor(saksbehandler: Saksbehandler): BenkResponsDTO =
+fun BenkResponsMedTilgangDTO.sladdetFor(saksbehandler: Saksbehandler): BenkResponsMedTilgangDTO =
     if (skalSladdeFor(saksbehandler)) sladdet() else this

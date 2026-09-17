@@ -14,6 +14,7 @@ data class SaksbehandlerDTO(
      * Da leveres de sladdbare feltene som [SladdetVerdi].
      */
     val sladdes: Boolean,
+    val kanSeBenken: Boolean,
 ) {
 
     enum class SaksbehandlerRolleDTO {
@@ -32,6 +33,7 @@ fun Saksbehandler.toSaksbehandlerDTO(): SaksbehandlerDTO =
         epost = epost,
         roller = roller.map { it.toRolleDTO() },
         sladdes = skalSladdeFor(this),
+        kanSeBenken = kanSeBenken(this),
     )
 
 private fun Saksbehandlerrolle.toRolleDTO(): SaksbehandlerDTO.SaksbehandlerRolleDTO =

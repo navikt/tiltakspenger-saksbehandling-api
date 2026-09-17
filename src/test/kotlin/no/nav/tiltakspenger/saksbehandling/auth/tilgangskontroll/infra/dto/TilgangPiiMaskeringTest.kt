@@ -34,10 +34,10 @@ class TilgangPiiMaskeringTest {
     }
 
     @Test
-    fun `TilgangPersonRequestDto maskerer brukerId i toString`() {
-        val request = TilgangPersonRequestDto(brukerId = fnr.verdi)
+    fun `TilgangPersonBulkRequestDto maskerer brukerIder i toString`() {
+        val request = TilgangPersonBulkRequestDto.fraFnrs(listOf(fnr))
         request.toString() shouldNotContain fnr.verdi
-        request.toString() shouldBe "TilgangPersonRequestDto(brukerId=*****)"
+        request.toString() shouldBe "TilgangPersonBulkRequestDto(brukerIder=*****)"
     }
 
     /**

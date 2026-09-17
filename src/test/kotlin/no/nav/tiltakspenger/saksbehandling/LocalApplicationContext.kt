@@ -142,7 +142,7 @@ class LocalApplicationContext(
         JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGenerator)
     private val dokumentdistribusjonsklientFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
-    private val tilgangsmaskinFakeClient = TilgangsmaskinFakeLokalClient()
+    private val tilgangsmaskinFakeClient = TilgangsmaskinFakeLokalClient(personFakeKlient)
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("12845678911")

@@ -85,10 +85,25 @@ data class BenkOversiktMedTilgang<T : BenkBehandling>(
 }
 
 /**
- * Hele svaret på ett benk-kall: fanen det ble spurt om, og antallet i alle fanene.
+ * Hele svaret på ett benk-kall.
+ * [harTilgang] er usann når saksbehandleren ikke har en rolle i [no.nav.tiltakspenger.saksbehandling.infra.route.ROLLER_SOM_KAN_SE_BENK], og da er resten av svaret utelatt.
+ */
+sealed interface BenkRespons<out T : BenkBehandling> {
+    val harTilgang: Boolean
+}
+
+/**
+ * Svaret til en saksbehandler som kan se benken: fanen det ble spurt om, og antallet i alle fanene.
  * Antallet i alle fanene følger med fordi benken viser det i fanetitlene, og ellers måtte hentet det i et eget kall.
  */
-data class BenkRespons<T : BenkBehandling>(
+data class BenkResponsMedTilgang<T : BenkBehandling>(
     val antallPerFane: BenkAntallPerFane,
     val oversikt: BenkOversiktMedTilgang<T>,
-)
+) : BenkRespons<T> {
+    override val harTilgang: Boolean = true
+}
+
+/** Svaret til en bruker uten benkrolle — ingen telling eller rader, så det gjøres ingen databaseoppslag. */
+data object BenkResponsUtenTilgang : BenkRespons<Nothing> {
+    override val harTilgang: Boolean = false
+}
