@@ -218,7 +218,11 @@ class HentBenkRouteTest {
             sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
             opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
-            hentBenk(tac, "/benk/soknader", """{"filters": {"skjulEgneTilBeslutning": true}}""").antallIOversikten() shouldBe 1
+            hentBenk(
+                tac,
+                "/benk/soknader",
+                """{"filters": {"skjulEgneTilBeslutning": true}}""",
+            ).antallIOversikten() shouldBe 1
             hentBenk(tac, "/benk/soknader", """{}""").antallIOversikten() shouldBe 2
         }
     }
@@ -245,7 +249,12 @@ class HentBenkRouteTest {
                     Tilgangsvurdering.Avvist(
                         årsak = årsak,
                         begrunnelse = "Du har ikke tilgang",
-                        metadata = AvvistMetadata(type = "test", avvisningskode = "test", navIdent = "test", brukerIdent = fnr),
+                        metadata = AvvistMetadata(
+                            type = "test",
+                            avvisningskode = "test",
+                            navIdent = "test",
+                            brukerIdent = fnr,
+                        ),
                     ),
                 )
                 sak
@@ -323,7 +332,12 @@ class HentBenkRouteTest {
                 Tilgangsvurdering.Avvist(
                     årsak = TilgangsvurderingAvvistÅrsak.SKJERMET,
                     begrunnelse = "Du har ikke tilgang",
-                    metadata = AvvistMetadata(type = "test", avvisningskode = "test", navIdent = "test", brukerIdent = fnrUtenTilgang),
+                    metadata = AvvistMetadata(
+                        type = "test",
+                        avvisningskode = "test",
+                        navIdent = "test",
+                        brukerIdent = fnrUtenTilgang,
+                    ),
                 ),
             )
 
@@ -347,7 +361,7 @@ class HentBenkRouteTest {
     }
 
     /**
-     * Veileder og utvikler har ikke rolle for å se benken.
+     * Veileder har ikke rolle for å se benken.
      * Ruten svarer dem med det tomme svaret så tidlig som mulig, uten databaseoppslag eller tilgangskall.
      */
     @Test
@@ -356,10 +370,8 @@ class HentBenkRouteTest {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
-            listOf(ObjectMother.veileder(), ObjectMother.veileder()).forEach { bruker ->
-                hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = bruker).let {
-                    it shouldEqualJson """{"harTilgang": false}"""
-                }
+            hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = ObjectMother.veileder()).let {
+                it shouldEqualJson """{"harTilgang": false}"""
             }
         }
     }

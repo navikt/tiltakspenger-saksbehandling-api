@@ -111,7 +111,6 @@ class TilgangsmaskinHttpClient(
             .flatMap { oboToken ->
                 httpKlient.postJson<TilgangBulkResponseDto>(
                     uri = tilgangTilPersonerUri,
-                    // Uten type bruker bulkoppslaget KOMPLETT_REGELTYPE, mens enkeltoppslaget bruker kjernereglene.
                     body = TilgangPersonBulkRequestDto.fraFnrs(fnrs),
                     bearerToken = oboToken,
                     godta = Statusregel.Eksakt(207),

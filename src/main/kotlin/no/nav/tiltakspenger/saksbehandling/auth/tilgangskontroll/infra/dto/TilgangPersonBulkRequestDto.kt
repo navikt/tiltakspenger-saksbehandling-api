@@ -13,7 +13,7 @@ data class TilgangPersonBulkRequestDto private constructor(
     private val brukerIder: List<String>,
 ) : List<String> by brukerIder {
     /** Maskerer [brukerIder] (fnr, PII) slik at den ikke havner tilfeldigvis i logger. */
-    override fun toString(): String = "TilgangPersonBulkRequestDto(brukerId=*****)"
+    override fun toString(): String = "TilgangPersonBulkRequestDto(brukerIder=*****)"
 
     companion object {
         fun fraFnrs(fnrs: List<Fnr>): TilgangPersonBulkRequestDto = TilgangPersonBulkRequestDto(brukerIder = fnrs.map { it.verdi })
