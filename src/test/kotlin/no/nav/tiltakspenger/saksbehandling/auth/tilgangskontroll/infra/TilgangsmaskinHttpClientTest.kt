@@ -154,7 +154,8 @@ class TilgangsmaskinHttpClientTest {
 
         val result = client.harTilgangTilPersoner(listOf(fnr, fnr2, fnr3), "token")
 
-        result.fold({ throw AssertionError(it) }, { it.body }) shouldBe mapOf(
+        val tilgangsvurderinger = result.fold({ throw AssertionError(it) }, { it.body })
+        tilgangsvurderinger.perFnr shouldBe mapOf(
             fnr to TilgangsvurderingBulk.Godkjent,
             fnr2 to TilgangsvurderingBulk.Avvist(
                 årsak = TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG,
@@ -166,6 +167,7 @@ class TilgangsmaskinHttpClientTest {
                 begrunnelse = "Du har ikke geografisk tilgang",
             ),
         )
+        tilgangsvurderinger.ukjenteAvvisningskoder shouldBe emptySet()
     }
 
     @Test
@@ -320,7 +322,10 @@ class TilgangsmaskinHttpClientTest {
         )
     }
 
-    /** En ukjent kode gjelder én rad, og skal verken felle bulksvaret eller de radene vi kjenner igjen. */
+    /**
+     * En ukjent kode gjelder én rad, og skal verken felle bulksvaret eller de radene vi kjenner igjen.
+     * Den rå koden returneres sammen med vurderingene, siden den kategoriserte årsaken ikke sier hvilken regel som var ukjent.
+     */
     @Test
     fun `harTilgangTilPersoner gir avvist med ukjent årsak for ukjent avvisningskode`() = runTest {
         val fakeTransport = FakeHttpTransport()
@@ -346,13 +351,15 @@ class TilgangsmaskinHttpClientTest {
 
         val result = client.harTilgangTilPersoner(listOf(fnr, fnr2), "token")
 
-        result.fold({ throw AssertionError(it) }, { it.body }) shouldBe mapOf(
+        val tilgangsvurderinger = result.fold({ throw AssertionError(it) }, { it.body })
+        tilgangsvurderinger.perFnr shouldBe mapOf(
             fnr to TilgangsvurderingBulk.Godkjent,
             fnr2 to TilgangsvurderingBulk.Avvist(
                 årsak = TilgangsvurderingAvvistÅrsak.UKJENT,
                 begrunnelse = "Ukjent regel",
             ),
         )
+        tilgangsvurderinger.ukjenteAvvisningskoder shouldBe setOf("AVVIST_EN_NY_REGEL")
     }
 
     @Test

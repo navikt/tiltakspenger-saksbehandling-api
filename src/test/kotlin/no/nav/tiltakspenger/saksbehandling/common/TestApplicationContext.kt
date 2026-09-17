@@ -193,10 +193,20 @@ sealed class TestApplicationContext(
 
     override val identhendelseProducer: IdenthendelseFakeProducer by lazy { IdenthendelseFakeProducer() }
 
+    /**
+     * Egne fangere per testkontekst, slik at tester kan asserte på linjene fra [TilgangskontrollService] uten å dele tilstand med andre tester.
+     * Bare denne servicens sikkerlogg fanges; den delte [no.nav.tiltakspenger.libs.logging.Sikkerlogg] står urørt for resten av appen under testkjøring.
+     */
+    val tilgangskontrollLoggfanger = Loggfanger(TilgangskontrollService::class.java.name)
+
+    val tilgangskontrollSikkerloggfanger = Sikkerloggfanger()
+
     override val tilgangskontrollService by lazy {
         TilgangskontrollService(
             tilgangsmaskinClient = tilgangsmaskinFakeClient,
             sakService = sakContext.sakService,
+            log = tilgangskontrollLoggfanger,
+            sikkerlogg = tilgangskontrollSikkerloggfanger,
         )
     }
 

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.common.Fnr
@@ -7,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
@@ -169,6 +171,8 @@ class LocalApplicationContext(
         TilgangskontrollService(
             tilgangsmaskinClient = tilgangsmaskinFakeClient,
             sakService = sakContext.sakService,
+            log = KotlinLogging.logger(TilgangskontrollService::class.java.name),
+            sikkerlogg = Sikkerlogg,
         )
     }
 

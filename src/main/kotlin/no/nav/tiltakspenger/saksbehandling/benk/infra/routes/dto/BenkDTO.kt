@@ -157,9 +157,9 @@ data class BenkVentestatusDTO(
 sealed interface BenkBehandlingDTO {
     val type: BenkBehandlingstypeDTO
     val id: String
-    val sakId: String
+    val sakId: SladdbarVerdi<String>
     val fnr: SladdbarVerdi<String>
-    val saksnummer: String
+    val saksnummer: SladdbarVerdi<String>
     val startet: String
     val sistEndret: String
     val saksbehandler: String?

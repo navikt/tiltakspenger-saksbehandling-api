@@ -14,9 +14,9 @@ enum class BenkKlagebehandlingResultatDTO {
 data class BenkKlagebehandlingDTO(
     override val type: BenkBehandlingstypeDTO = BenkBehandlingstypeDTO.KLAGEBEHANDLING,
     override val id: String,
-    override val sakId: String,
+    override val sakId: SladdbarVerdi<String>,
     override val fnr: SladdbarVerdi<String>,
-    override val saksnummer: String,
+    override val saksnummer: SladdbarVerdi<String>,
     override val startet: String,
     override val sistEndret: String,
     override val saksbehandler: String?,
@@ -35,9 +35,9 @@ fun BenkKlagebehandling.toDTO(
     personmarkører: BenkPersonmarkørerDTO,
 ): BenkKlagebehandlingDTO = BenkKlagebehandlingDTO(
     id = id.toString(),
-    sakId = felles.sakId.toString(),
+    sakId = felles.sakId.toString().ikkeSladdet(),
     fnr = felles.fnr.verdi.ikkeSladdet(),
-    saksnummer = felles.saksnummer.verdi,
+    saksnummer = felles.saksnummer.verdi.ikkeSladdet(),
     startet = felles.startet.toString(),
     sistEndret = felles.sistEndret.toString(),
     saksbehandler = felles.saksbehandler,

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
 /**
  * Sladding av [BenkResponsMedTilgangDTO].
  * Hver rad i benken bærer fødselsnummeret til personen saken gjelder, og ventestatusen bærer saksbehandlers begrunnelse.
+ * sakId og saksnummer sladdes også, så raden ikke kan kobles til en sak.
  * Antallene, statusene, beløpene og identene i benken er ikke identifiserende og beholdes.
  *
  * Rader saksbehandleren ikke har persontilgang til, sladdes allerede i `BenkRad.toDTO`.
@@ -25,29 +26,39 @@ private fun BenkOversiktDTO.sladdet(): BenkOversiktDTO = this.copy(
 /** Sladding fjerner muterende kommandoer, men endrer ikke radens tilgangsvurdering. */
 fun BenkBehandlingDTO.sladdet(): BenkBehandlingDTO = when (this) {
     is BenkSøknadsbehandlingDTO -> this.copy(
+        sakId = SladdetVerdi,
+        saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
         gyldigeKommandoer = emptyList(),
     )
 
     is BenkRevurderingDTO -> this.copy(
+        sakId = SladdetVerdi,
+        saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
         gyldigeKommandoer = emptyList(),
     )
 
     is BenkMeldekortDTO -> this.copy(
+        sakId = SladdetVerdi,
+        saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
         gyldigeKommandoer = emptyList(),
     )
 
     is BenkKlagebehandlingDTO -> this.copy(
+        sakId = SladdetVerdi,
+        saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
     )
 
     is BenkTilbakekrevingDTO -> this.copy(
+        sakId = SladdetVerdi,
+        saksnummer = SladdetVerdi,
         fnr = SladdetVerdi,
         ventestatus = ventestatus.sladdet(),
         gyldigeKommandoer = emptyList(),

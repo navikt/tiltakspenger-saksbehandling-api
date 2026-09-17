@@ -109,10 +109,13 @@ object ObjectMother :
     /**
      * For tester som trenger en ferdig [HttpKlientResponse] rundt en domenekropp, uten å bygge metadata selv.
      * Metadataen er den samme som i [httpKlientUventetStatus], slik at `loggSuksess` har alt den leser.
+     * De rå strengene kan settes av tester som skal bevise at innholdet i dem ikke lekker til logg.
      */
     fun <T> httpKlientResponse(
         body: T,
         statusCode: Int = 200,
+        rawRequestString: String = "POST http://test/endepunkt",
+        rawResponseString: String = "svar fra tjenesten",
     ) = HttpKlientResponse(
         statusCode = statusCode,
         body = body,
@@ -121,8 +124,8 @@ object ObjectMother :
             uri = URI.create("http://test/endepunkt"),
             uriSynlighet = UriSynlighet.VanligLogg,
             tidsgrenser = Tidsgrenser(svar = 30.seconds, oppkobling = 10.seconds),
-            rawRequestString = "POST http://test/endepunkt",
-            rawResponseString = "svar fra tjenesten",
+            rawRequestString = rawRequestString,
+            rawResponseString = rawResponseString,
             requestHeaders = emptyMap(),
             responseHeaders = emptyMap(),
             statusCode = statusCode,

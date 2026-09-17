@@ -12,11 +12,11 @@ interface TilgangsmaskinClient {
     suspend fun harTilgangTilPerson(fnr: Fnr, saksbehandlerToken: String): Either<TilgangskontrollFeil, Tilgangsvurdering>
 
     /**
-     * Responsen følger med ut av porten så servicen kan logge kallet én gang med `loggSuksess`.
+     * Responsen returneres hel, så servicen kan logge med metadataen fra kallet når den trenger det.
      * Klienten logger ikke selv; det er servicen som kjenner saksbehandleren og correlationId-en.
      */
     suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>>
+    ): Either<TilgangskontrollFeil, HttpKlientResponse<Tilgangsvurderinger>>
 }

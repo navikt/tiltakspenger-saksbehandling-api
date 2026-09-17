@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsmaskinC
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 
@@ -37,7 +38,7 @@ class TilgangsmaskinFakeLokalClient(
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): Either<Nothing, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>> {
+    ): Either<Nothing, HttpKlientResponse<Tilgangsvurderinger>> {
         val tilgangPerFnr = fnrs.associateWith { fnr ->
             when (val årsak = avvistÅrsak(fnr)) {
                 null -> TilgangsvurderingBulk.Godkjent
@@ -48,7 +49,10 @@ class TilgangsmaskinFakeLokalClient(
                 )
             }
         }
-        return ObjectMother.httpKlientResponse(body = tilgangPerFnr, statusCode = 207).right()
+        return ObjectMother.httpKlientResponse(
+            body = Tilgangsvurderinger(perFnr = tilgangPerFnr, ukjenteAvvisningskoder = emptySet()),
+            statusCode = 207,
+        ).right()
     }
 
     /**

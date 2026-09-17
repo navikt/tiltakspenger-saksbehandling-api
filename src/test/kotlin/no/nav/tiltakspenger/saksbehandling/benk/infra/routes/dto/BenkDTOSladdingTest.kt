@@ -67,10 +67,6 @@ class BenkDTOSladdingTest {
                 benkResponsDTO.oversikt.behandlinger.map { rad -> rad.personmarkører }
             it.oversikt.behandlinger.map { rad -> rad.id } shouldBe
                 benkResponsDTO.oversikt.behandlinger.map { rad -> rad.id }
-            it.oversikt.behandlinger.map { rad -> rad.sakId } shouldBe
-                benkResponsDTO.oversikt.behandlinger.map { rad -> rad.sakId }
-            it.oversikt.behandlinger.map { rad -> rad.saksnummer } shouldBe
-                benkResponsDTO.oversikt.behandlinger.map { rad -> rad.saksnummer }
         }
     }
 
@@ -93,6 +89,16 @@ class BenkDTOSladdingTest {
         }
 
         utenVentebegrunnelse.sladdet().oversikt.behandlinger.single().ventestatus.begrunnelse shouldBe SladdetVerdi
+    }
+
+    @Test
+    fun `sakId og saksnummer sladdes i alle radtypene`() {
+        benkResponsDTO().oversikt.behandlinger.forEach {
+            it.sladdet().let { rad ->
+                rad.sakId shouldBe SladdetVerdi
+                rad.saksnummer shouldBe SladdetVerdi
+            }
+        }
     }
 
     @Test
@@ -130,9 +136,9 @@ class BenkDTOSladdingTest {
                 benkSøknadsbehandlingDTO(gyldigeKommandoer),
                 BenkRevurderingDTO(
                     id = "revurdering",
-                    sakId = "sakId",
+                    sakId = "sakId".ikkeSladdet(),
                     fnr = Fnr.random().verdi.ikkeSladdet(),
-                    saksnummer = "saksnummer",
+                    saksnummer = "saksnummer".ikkeSladdet(),
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
                     saksbehandler = "Z12345",
@@ -148,9 +154,9 @@ class BenkDTOSladdingTest {
                 BenkMeldekortDTO(
                     type = BenkBehandlingstypeDTO.MELDEKORTBEHANDLING,
                     id = "meldekort",
-                    sakId = "sakId",
+                    sakId = "sakId".ikkeSladdet(),
                     fnr = Fnr.random().verdi.ikkeSladdet(),
-                    saksnummer = "saksnummer",
+                    saksnummer = "saksnummer".ikkeSladdet(),
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
                     saksbehandler = "Z12345",
@@ -166,9 +172,9 @@ class BenkDTOSladdingTest {
                 ),
                 BenkKlagebehandlingDTO(
                     id = "klage",
-                    sakId = "sakId",
+                    sakId = "sakId".ikkeSladdet(),
                     fnr = Fnr.random().verdi.ikkeSladdet(),
-                    saksnummer = "saksnummer",
+                    saksnummer = "saksnummer".ikkeSladdet(),
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
                     saksbehandler = "Z12345",
@@ -183,9 +189,9 @@ class BenkDTOSladdingTest {
                 ),
                 BenkTilbakekrevingDTO(
                     id = "tilbakekreving",
-                    sakId = "sakId",
+                    sakId = "sakId".ikkeSladdet(),
                     fnr = Fnr.random().verdi.ikkeSladdet(),
-                    saksnummer = "saksnummer",
+                    saksnummer = "saksnummer".ikkeSladdet(),
                     startet = 1.januarDateTime(2025).toString(),
                     sistEndret = 1.januarDateTime(2025).toString(),
                     saksbehandler = "Z12345",
@@ -223,9 +229,9 @@ class BenkDTOSladdingTest {
         gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO> = emptyList(),
     ): BenkSøknadsbehandlingDTO = BenkSøknadsbehandlingDTO(
         id = "søknadsbehandling",
-        sakId = "sakId",
+        sakId = "sakId".ikkeSladdet(),
         fnr = Fnr.random().verdi.ikkeSladdet(),
-        saksnummer = "saksnummer",
+        saksnummer = "saksnummer".ikkeSladdet(),
         startet = 1.januarDateTime(2025).toString(),
         sistEndret = 1.januarDateTime(2025).toString(),
         saksbehandler = "Z12345",

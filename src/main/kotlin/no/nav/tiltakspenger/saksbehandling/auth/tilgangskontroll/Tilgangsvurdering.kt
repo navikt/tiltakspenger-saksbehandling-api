@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
 
+import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak
 
 sealed interface Tilgangsvurdering {
@@ -40,6 +41,15 @@ sealed interface TilgangsvurderingBulk {
         val begrunnelse: String,
     ) : TilgangsvurderingBulk
 }
+
+/**
+ * Resultatet av et bulkoppslag: vurderingen per person, og avvisningskodene vi ikke kjente igjen.
+ * Kodene er Tilgangsmaskinens regelnavn, ikke personopplysninger, og finnes her bare for at servicen skal kunne varsle om at de må legges til.
+ */
+data class Tilgangsvurderinger(
+    val perFnr: Map<Fnr, TilgangsvurderingBulk>,
+    val ukjenteAvvisningskoder: Set<String>,
+)
 
 /**
  * Grunnen Tilgangsmaskinen avviste tilgangen med, i vårt vokabular.

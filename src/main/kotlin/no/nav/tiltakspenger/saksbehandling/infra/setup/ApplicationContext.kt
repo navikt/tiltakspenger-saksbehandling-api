@@ -5,6 +5,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.Producer
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
@@ -137,6 +138,8 @@ open class ApplicationContext(
         TilgangskontrollService(
             tilgangsmaskinClient = tilgangsmaskinClient,
             sakService = sakContext.sakService,
+            log = KotlinLogging.logger(TilgangskontrollService::class.java.name),
+            sikkerlogg = Sikkerlogg,
         )
     }
 

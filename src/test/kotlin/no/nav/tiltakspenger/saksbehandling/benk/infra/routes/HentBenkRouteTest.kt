@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.routes
 import arrow.core.left
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -60,9 +61,9 @@ class HentBenkRouteTest {
                       {
                         "type": "SØKNADSBEHANDLING",
                         "id": "${behandling.id}",
-                        "sakId": "${sak.id}",
+                        "sakId": {"verdi": "${sak.id}", "erSladdet": false},
                         "fnr": {"verdi": "${søknad.fnr.verdi}", "erSladdet": false},
-                        "saksnummer": "${sak.saksnummer.verdi}",
+                        "saksnummer": {"verdi": "${sak.saksnummer.verdi}", "erSladdet": false},
                         "startet": "${behandling.opprettet}",
                         "sistEndret": "${behandling.sistEndret}",
                         "saksbehandler": null,
@@ -276,7 +277,7 @@ class HentBenkRouteTest {
                     }
                 """.trimIndent()
 
-                val radMedTilgang = oversikt.rad(sakMedTilgang.id.toString())
+                val radMedTilgang = oversikt.radMedTilgang()
                 radMedTilgang["tilgang"].toString() shouldEqualJson """
                     {"vurdering": "HAR_TILGANG", "grunn": null}
                 """.trimIndent()
@@ -284,6 +285,9 @@ class HentBenkRouteTest {
                     {"skjermet": false, "kode6": false, "kode7": false}
                 """.trimIndent()
                 radMedTilgang["fnr"]["erSladdet"].asBoolean() shouldBe false
+                radMedTilgang["sakId"].toString() shouldEqualJson """{"verdi": "${sakMedTilgang.id}", "erSladdet": false}"""
+                radMedTilgang["saksnummer"].toString() shouldEqualJson
+                    """{"verdi": "${sakMedTilgang.saksnummer.verdi}", "erSladdet": false}"""
 
                 // Wirenavnet er benkens egen kontrakt, så det står i klartekst her i stedet for å bli utledet av domeneenumen.
                 val forventetÅrsaksnavn = mapOf(
@@ -300,7 +304,7 @@ class HentBenkRouteTest {
                     // En kode vi ikke kjenner, gir ingen markør; raden sladdes fordi tilgangen er avvist.
                     TilgangsvurderingAvvistÅrsak.UKJENT to """{"skjermet": false, "kode6": false, "kode7": false}""",
                 ).forEach { (årsak, forventedeMarkører) ->
-                    val rad = oversikt.rad(avvisteSaker.getValue(årsak).id.toString())
+                    val rad = oversikt.radMedÅrsak(forventetÅrsaksnavn.getValue(årsak))
                     rad["tilgang"].toString() shouldEqualJson """
                         {
                           "vurdering": "HAR_IKKE_TILGANG",
@@ -310,8 +314,16 @@ class HentBenkRouteTest {
                     rad["personmarkører"].toString() shouldEqualJson forventedeMarkører
                     rad["fnr"].toString() shouldEqualJson """{"verdi": null, "erSladdet": true}"""
                     rad["ventestatus"]["begrunnelse"].toString() shouldEqualJson """{"verdi": null, "erSladdet": true}"""
+                    rad["sakId"].toString() shouldEqualJson """{"verdi": null, "erSladdet": true}"""
+                    rad["saksnummer"].toString() shouldEqualJson """{"verdi": null, "erSladdet": true}"""
                     rad["gyldigeKommandoer"].size() shouldBe 0
                 }
+            }
+
+            // sakId og saksnummer er borte fra responsen, så radene uten tilgang kan ikke kobles til en sak.
+            avvisteSaker.values.forEach {
+                respons shouldNotContain it.id.toString()
+                respons shouldNotContain it.saksnummer.verdi
             }
         }
     }
@@ -494,9 +506,15 @@ class HentBenkRouteTest {
         ).body
     }
 
-    /** Radene kommer i spørringens rekkefølge, så testene slår dem opp på sakId framfor posisjon. */
-    private fun JsonNode.rad(sakId: String): JsonNode =
-        this["behandlinger"].first { it["sakId"].stringValue() == sakId }
+    /**
+     * sakId er sladdet på radene uten tilgang, så de slås opp på tilgangsårsaken i stedet.
+     * Årsakene er unike i testdataene.
+     */
+    private fun JsonNode.radMedÅrsak(årsak: String): JsonNode =
+        this["behandlinger"].first { it["tilgang"]["grunn"].path("årsak").asString() == årsak }
+
+    private fun JsonNode.radMedTilgang(): JsonNode =
+        this["behandlinger"].single { it["tilgang"]["vurdering"].asString() == "HAR_TILGANG" }
 
     private fun String.antallIOversikten(): Int = objectMapper.readTree(this)["oversikt"]["totalAntall"].asInt()
 

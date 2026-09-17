@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsmaskinC
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 
 open class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
@@ -34,7 +35,7 @@ open class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>> {
+    ): Either<TilgangskontrollFeil, HttpKlientResponse<Tilgangsvurderinger>> {
         val tilgangPerFnr = fnrs.associateWith {
             when (val vurdering = data.get()[it]) {
                 null, Tilgangsvurdering.Godkjent -> TilgangsvurderingBulk.Godkjent
@@ -45,7 +46,10 @@ open class TilgangsmaskinFakeTestClient : TilgangsmaskinClient {
                 )
             }
         }
-        return ObjectMother.httpKlientResponse(body = tilgangPerFnr, statusCode = 207).right()
+        return ObjectMother.httpKlientResponse(
+            body = Tilgangsvurderinger(perFnr = tilgangPerFnr, ukjenteAvvisningskoder = emptySet()),
+            statusCode = 207,
+        ).right()
     }
 
     fun leggTil(

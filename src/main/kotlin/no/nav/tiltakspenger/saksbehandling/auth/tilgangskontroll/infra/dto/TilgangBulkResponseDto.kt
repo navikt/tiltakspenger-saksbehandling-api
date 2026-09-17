@@ -5,12 +5,14 @@ import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
 import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderinger
 
 /**
  * Wire-DTO for 207-svaret fra tilgangsmaskinens bulk-endepunkt (`/api/v1/bulk/obo`).
  *
- * Lever kun i infra: klienten deserialiserer hit og mapper til domenevennlig [tilTilgangPerFnr] før noe krysser porten.
+ * Brukes kun i infra.
  * Domenet skal aldri se HTTP-statuser herfra.
  *
  * Bulkoppslaget godtar inntil 1000 personer per kall, og svarer 413 over det.
@@ -38,8 +40,12 @@ data class TilgangBulkResponseDto(
     /**
      * Sjekkene bygger på hverandre og kjøres i rekkefølge, så `either { }` med `ensure` stopper ved første brudd.
      * Et svar vi ikke klarer å tolke er en forventet feil på Left, ikke et kast.
+     *
+     * Avvisningskodene vi ikke kjenner igjen, samles ved siden av vurderingene.
+     * [TilgangsvurderingBulk.Avvist] har bare den kategoriserte årsaken, så den rå koden ville vært borte etter mappingen.
+     * Servicen trenger den for å varsle om at koden må legges til.
      */
-    fun tilTilgangPerFnr(forventedeFnr: Set<Fnr>): Either<UgyldigBulksvar, Map<Fnr, TilgangsvurderingBulk>> = either {
+    fun tilTilgangsvurderinger(forventedeFnr: Set<Fnr>): Either<UgyldigBulksvar, Tilgangsvurderinger> = either {
         val vurderinger = resultater.map { resultat ->
             val fnr = ensureNotNull(Fnr.tryFromString(resultat.brukerId)) {
                 UgyldigBulksvar("Tilgangsmaskinen returnerte en ugyldig brukerId.")
@@ -71,7 +77,14 @@ data class TilgangBulkResponseDto(
             UgyldigBulksvar("Tilgangsmaskinen returnerte ikke resultater for nøyaktig de etterspurte personene.")
         }
 
-        tilgangPerFnr
+        Tilgangsvurderinger(
+            perFnr = tilgangPerFnr,
+            ukjenteAvvisningskoder = resultater
+                .filter { it.status == HTTP_STATUS_AVVIST }
+                .mapNotNull { it.detaljer?.title }
+                .filter { tilTilgangsvurderingAvvistÅrsak(it) == TilgangsvurderingAvvistÅrsak.UKJENT }
+                .toSet(),
+        )
     }
 
     private companion object {
@@ -82,6 +95,6 @@ data class TilgangBulkResponseDto(
 
 /**
  * Et bulksvar vi ikke klarte å tolke, med en PII-fri beskrivelse av hva som var galt.
- * Typen lever i infra sammen med wire-DTO-en; klienten oversetter den til domenets feiltype før noe krysser porten.
+ * Typen hører til wire-DTO-en i infra, og klienten oversetter den til domenets feiltype.
  */
 data class UgyldigBulksvar(val beskrivelse: String)

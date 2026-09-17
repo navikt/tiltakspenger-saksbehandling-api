@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollFeil
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsmaskinClient
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderinger
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponseDto
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponseDto
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangPersonBulkRequestDto
@@ -106,7 +106,7 @@ class TilgangsmaskinHttpClient(
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>> =
+    ): Either<TilgangskontrollFeil, HttpKlientResponse<Tilgangsvurderinger>> =
         exchangeToken(saksbehandlerToken, tilgangTilPersonerUri)
             .flatMap { oboToken ->
                 httpKlient.postJson<TilgangBulkResponseDto>(
@@ -119,13 +119,13 @@ class TilgangsmaskinHttpClient(
             .mapLeft(::tilTilgangskontrollFeil)
             // Mappingen bygger Fnr fra svaret og kan mislykkes; da blir det en typet feil med responsens metadata, ikke et kast.
             .flatMap { response ->
-                response.body.tilTilgangPerFnr(fnrs.toSet())
+                response.body.tilTilgangsvurderinger(fnrs.toSet())
                     .mapLeft { ugyldig -> TilgangskontrollFeil.UgyldigSvar(ugyldig.beskrivelse, response.metadata) }
-                    // HttpKlientResponse er `out Body`, så copy kan ikke bytte kroppstype; responsen bygges på nytt rundt den mappede kroppen.
-                    .map { tilgangPerFnr ->
+                    // HttpKlientResponse er `out Body`, så copy kan ikke bytte body-type; responsen bygges på nytt rundt den mappede bodyen.
+                    .map { tilgangsvurderinger ->
                         HttpKlientResponse(
                             statusCode = response.statusCode,
-                            body = tilgangPerFnr,
+                            body = tilgangsvurderinger,
                             metadata = response.metadata,
                         )
                     }

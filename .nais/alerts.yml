@@ -13,7 +13,9 @@ spec:
           expr: sum(increase(tpts_saksbehandlingapi_utbetaling_feilet_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[10m])) > 0
           annotations:
             action: "Sjekk loggene til saksbehandling-api for å se hva som har skjedd"
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service/tiltakspenger-saksbehandling-api/logs?var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&from=now-3h&to=now&var-levels=detected_level%7C%3D%7Cerror&var-ds={{datasource}}'
+            # Samme format som alarmen for ukjent avvisningskode, se referanse/grafana-loggenker.md i arbeidsboka.
+            # var-fields treffer logglinja i OppdaterUtbetalingsstatusService. Regexen er ankret, så teksten trenger .* i begge ender.
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cerror&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Afeilet%20mot%20oppdrag%20med%20status.%2A%22%7D,.%2Afeilet%20mot%20oppdrag%20med%20status.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Afeilet%20mot%20oppdrag%20med%20status.%2A%22%7D,.%2Afeilet%20mot%20oppdrag%20med%20status.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
           labels:
             namespace: tpts
             severity: critical
@@ -23,9 +25,28 @@ spec:
           expr: sum(increase(tpts_saksbehandlingapi_utbetaling_ikke_ok_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[10m])) > 0
           annotations:
             action: "Sjekk loggene til saksbehandling-api for å se hva som har skjedd"
-            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service/tiltakspenger-saksbehandling-api/logs?var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&from=now-3h&to=now&var-levels=detected_level%7C%3D%7Cerror&var-ds={{datasource}}'
+            # Samme format som alarmen for ukjent avvisningskode, se referanse/grafana-loggenker.md i arbeidsboka.
+            # var-fields treffer logglinja i OppdaterUtbetalingsstatusService. Regexen er ankret, så teksten trenger .* i begge ender.
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-3h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cerror&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A%22%7D,.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A%22%7D,.%2Ahar%20ikke%20f%C3%A5tt%20OK-status.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
           labels:
             namespace: tpts
             severity: critical
+            send_resolved: "false"
+            datasource: {{datasource}}
+        - alert: Ukjent avvisningskode fra Tilgangsmaskinen
+          # max_over_time, ikke increase: tidsserien opprettes først når koden dukker opp, og increase overser det første hoppet.
+          # Telleren nullstilles ved deploy, så alarmen står til koden er lagt til og appen er rullet ut på nytt.
+          expr: max_over_time(tpts_saksbehandlingapi_tilgangsmaskin_ukjent_avvisningskode_count_total{namespace="tpts", app="tiltakspenger-saksbehandling-api"}[15m]) > 0
+          annotations:
+            action: 'Legg til avvisningskoden \{{ $labels.kode }} i TilgangsvurderingAvvistÅrsak i saksbehandling-api og deploy på nytt'
+            # Formatet er verifisert i nettleseren 2026-09-17, se referanse/grafana-loggenker.md i arbeidsboka.
+            # Stien må ha labelnavnet, altså /explore/service_name/<app>/logs. Uten det blankes var-filters.
+            # Gjentatt var-levels OR-er, så warn og error står som hvert sitt filter.
+            # var-fields treffer selve logglinja alarmen handler om. Regexen er ankret, så teksten må ende på .* for å matche resten av meldingen.
+            # Vinduet er 24 timer fordi linja bare skrives første gang koden dukker opp i en pod; telleren er det som står.
+            dashboard_url: 'https://grafana.nav.cloud.nais.io/a/grafana-lokiexplore-app/explore/service_name/tiltakspenger-saksbehandling-api/logs?var-ds=PEA2100DC89AE9FE2&from=now-24h&to=now&var-filters=service_name%7C%3D%7Ctiltakspenger-saksbehandling-api&var-filters=service_namespace%7C%3D%7Ctpts&var-levels=detected_level%7C%3D%7Cwarn&var-levels=detected_level%7C%3D%7Cerror&patterns=%5B%5D&var-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A%22%7D,Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A&var-metadata=&var-patterns=&var-lineFilterV2=&var-lineFilters=&timezone=browser&var-lineFormat=&var-jsonFields=&var-all-fields=message%7C%3D~%7C__CV%CE%A9__%7B%22parser%22:%22mixed%22__gfc__%22value%22:%22Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A%22%7D,Ukjent%20avvisningskode%20fra%20Tilgangsmaskinen.%2A&urlColumns=%5B%5D&visualizationType=%22logs%22&displayedFields=%5B%5D&userDisplayedFields=false&sortOrder=%22Descending%22&wrapLogMessage=false&prettifyLogMessage=false'
+          labels:
+            namespace: tpts
+            severity: warning
             send_resolved: "false"
             datasource: {{datasource}}
