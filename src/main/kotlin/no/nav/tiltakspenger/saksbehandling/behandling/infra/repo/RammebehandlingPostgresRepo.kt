@@ -132,9 +132,6 @@ class RammebehandlingPostgresRepo(
         transactionContext: TransactionContext?,
     ): Boolean {
         return sessionFactory.withTransaction(transactionContext) { tx ->
-            rammebehandling.klagebehandling?.also {
-                KlagebehandlingPostgresRepo.taBehandling(it, tx)
-            }
             tx.run(
                 sqlQuery(
                     """
