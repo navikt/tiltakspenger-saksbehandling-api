@@ -26,7 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderi
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.AvvistTilgangResponseDto
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangBulkResponseDto
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangPersonRequestDto
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto.TilgangPersonBulkRequestDto
 import java.net.URI
 import java.time.Clock
 import kotlin.time.Duration
@@ -74,29 +74,30 @@ class TilgangsmaskinHttpClient(
     override suspend fun harTilgangTilPerson(
         fnr: Fnr,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, Tilgangsvurdering> = exchangeToken(saksbehandlerToken, tilgangTilPersonUri).flatMap { oboToken ->
-        httpKlient.postTekst<Unit>(
-            uri = tilgangTilPersonUri,
-            tekst = fnr.verdi,
-            sensitiv = true,
-            bearerToken = oboToken,
-            godta = Statusregel.Eksakt(204),
-        ).fold(
-            ifRight = { Tilgangsvurdering.Godkjent.right() },
-            ifLeft = { feil ->
-                when {
-                    // Avvist tilgang er et domeneutfall som utledes fra feiltypen, ikke en teknisk feil.
-                    feil is HttpKlientError.UventetStatus && feil.harStatus(403) ->
-                        // En avvisningskode vi ikke kjenner, blir UKJENT: statuskoden har allerede avgjort tilgangen, så metadata skal ikke felle kallet.
-                        feil.bodySomJson<AvvistTilgangResponseDto>()
-                            .map { it.tilAvvistTilgangsvurdering(fnr) }
-                            .onRight(::loggAvvist)
+    ): Either<TilgangskontrollFeil, Tilgangsvurdering> =
+        exchangeToken(saksbehandlerToken, tilgangTilPersonUri).flatMap { oboToken ->
+            httpKlient.postTekst<Unit>(
+                uri = tilgangTilPersonUri,
+                tekst = fnr.verdi,
+                sensitiv = true,
+                bearerToken = oboToken,
+                godta = Statusregel.Eksakt(204),
+            ).fold(
+                ifRight = { Tilgangsvurdering.Godkjent.right() },
+                ifLeft = { feil ->
+                    when {
+                        // Avvist tilgang er et domeneutfall som utledes fra feiltypen, ikke en teknisk feil.
+                        feil is HttpKlientError.UventetStatus && feil.harStatus(403) ->
+                            // En avvisningskode vi ikke kjenner, blir UKJENT: statuskoden har allerede avgjort tilgangen, så metadata skal ikke felle kallet.
+                            feil.bodySomJson<AvvistTilgangResponseDto>()
+                                .map { it.tilAvvistTilgangsvurdering(fnr) }
+                                .onRight(::loggAvvist)
 
-                    else -> feil.left()
-                }
-            },
-        )
-    }.mapLeft(::tilTilgangskontrollFeil)
+                        else -> feil.left()
+                    }
+                },
+            )
+        }.mapLeft(::tilTilgangskontrollFeil)
 
     /**
      * Responsen følger med ut igjen så servicen kan logge kallet én gang med metadataen fra kallet.
@@ -105,30 +106,31 @@ class TilgangsmaskinHttpClient(
     override suspend fun harTilgangTilPersoner(
         fnrs: List<Fnr>,
         saksbehandlerToken: String,
-    ): Either<TilgangskontrollFeil, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>> = exchangeToken(saksbehandlerToken, tilgangTilPersonerUri)
-        .flatMap { oboToken ->
-            httpKlient.postJson<TilgangBulkResponseDto>(
-                uri = tilgangTilPersonerUri,
-                // Uten type bruker bulkoppslaget KOMPLETT_REGELTYPE, mens enkeltoppslaget bruker kjernereglene.
-                body = fnrs.map { TilgangPersonRequestDto(brukerId = it.verdi) },
-                bearerToken = oboToken,
-                godta = Statusregel.Eksakt(207),
-            )
-        }
-        .mapLeft(::tilTilgangskontrollFeil)
-        // Mappingen bygger Fnr fra svaret og kan mislykkes; da blir det en typet feil med responsens metadata, ikke et kast.
-        .flatMap { response ->
-            response.body.tilTilgangPerFnr(fnrs.toSet())
-                .mapLeft { ugyldig -> TilgangskontrollFeil.UgyldigSvar(ugyldig.beskrivelse, response.metadata) }
-                // HttpKlientResponse er `out Body`, så copy kan ikke bytte kroppstype; responsen bygges på nytt rundt den mappede kroppen.
-                .map { tilgangPerFnr ->
-                    HttpKlientResponse(
-                        statusCode = response.statusCode,
-                        body = tilgangPerFnr,
-                        metadata = response.metadata,
-                    )
-                }
-        }
+    ): Either<TilgangskontrollFeil, HttpKlientResponse<Map<Fnr, TilgangsvurderingBulk>>> =
+        exchangeToken(saksbehandlerToken, tilgangTilPersonerUri)
+            .flatMap { oboToken ->
+                httpKlient.postJson<TilgangBulkResponseDto>(
+                    uri = tilgangTilPersonerUri,
+                    // Uten type bruker bulkoppslaget KOMPLETT_REGELTYPE, mens enkeltoppslaget bruker kjernereglene.
+                    body = TilgangPersonBulkRequestDto.fraFnrs(fnrs),
+                    bearerToken = oboToken,
+                    godta = Statusregel.Eksakt(207),
+                )
+            }
+            .mapLeft(::tilTilgangskontrollFeil)
+            // Mappingen bygger Fnr fra svaret og kan mislykkes; da blir det en typet feil med responsens metadata, ikke et kast.
+            .flatMap { response ->
+                response.body.tilTilgangPerFnr(fnrs.toSet())
+                    .mapLeft { ugyldig -> TilgangskontrollFeil.UgyldigSvar(ugyldig.beskrivelse, response.metadata) }
+                    // HttpKlientResponse er `out Body`, så copy kan ikke bytte kroppstype; responsen bygges på nytt rundt den mappede kroppen.
+                    .map { tilgangPerFnr ->
+                        HttpKlientResponse(
+                            statusCode = response.statusCode,
+                            body = tilgangPerFnr,
+                            metadata = response.metadata,
+                        )
+                    }
+            }
 
     /**
      * [uri] er kallet tokenet skulle brukes til.
