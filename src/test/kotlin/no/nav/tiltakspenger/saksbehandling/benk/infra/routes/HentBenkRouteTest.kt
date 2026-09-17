@@ -46,6 +46,7 @@ class HentBenkRouteTest {
 
             respons shouldEqualJson """
                 {
+                  "harTilgang": true,
                   "tab": "SØKNADER",
                   "antallPerTab": {
                     "SØKNADER": 1,
@@ -346,25 +347,36 @@ class HentBenkRouteTest {
     }
 
     /**
-     * Veileder og utvikler er leseroller — de skal kunne se benken, men ikke utføre kommandoene i den.
+     * Veileder og utvikler har ikke rolle for å se benken.
+     * Ruten svarer dem med det tomme svaret så tidlig som mulig, uten databaseoppslag eller tilgangskall.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `leseroller beholder sakshenvisning og persontilgang uten muterende kommandoer`() {
+    fun `brukere uten benkrolle får tomt svar`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            val (sak) = opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
-            listOf(ObjectMother.veileder(), ObjectMother.utvikler()).forEach { leserolle ->
-                hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = leserolle)
-                    .let {
-                        it.antallIOversikten() shouldBe 1
-                        val rad = objectMapper.readTree(it)["oversikt"]["behandlinger"].single()
-                        rad["gyldigeKommandoer"].toString() shouldEqualJson """[]"""
-                        rad["sakId"].stringValue() shouldBe sak.id.toString()
-                        rad["saksnummer"].stringValue() shouldBe sak.saksnummer.verdi
-                        rad["tilgang"]["vurdering"].stringValue() shouldBe "HAR_TILGANG"
-                        rad["fnr"]["erSladdet"].asBoolean() shouldBe leserolle.roller.erUtvikler
-                    }
+            listOf(ObjectMother.veileder(), ObjectMother.utvikler()).forEach { bruker ->
+                hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = bruker).let {
+                    it shouldEqualJson """{"harTilgang": false}"""
+                }
+            }
+        }
+    }
+
+    /**
+     * Saksbehandlerdekningen står i den pinned json-testen over, og `kanSeBenken` er rolletestet i SladdingTest.
+     * Tilbakekreving testes ikke her, fordi rollen ikke er i `alleAdRoller` og derfor stoppes i autentiseringen med 403.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `beslutter kan se benken`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+
+            hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = ObjectMother.beslutter()).let {
+                objectMapper.readTree(it)["harTilgang"].asBoolean() shouldBe true
+                it.antallIOversikten() shouldBe 1
             }
         }
     }

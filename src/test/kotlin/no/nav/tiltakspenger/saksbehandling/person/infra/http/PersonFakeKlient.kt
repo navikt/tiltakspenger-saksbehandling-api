@@ -50,6 +50,10 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
         data.get()[fnr] = personopplysninger
     }
 
+    /**
+     * Fnr-prefikset styrer adressebeskyttelsen: 2 gir fortrolig, 3 strengt fortrolig og 4 strengt fortrolig utland.
+     * [no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeLokalClient] avviser på samme grunnlag.
+     */
     private fun enkelPersonFake(fnr: Fnr): EnkelPerson {
         val faker = faker {
             fakerConfig {

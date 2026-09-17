@@ -28,7 +28,8 @@ class MeRouteTest {
           "brukernavn":"Sak Behandler",
           "epost":"Sak.Behandler@nav.no",
           "roller":["SAKSBEHANDLER"],
-          "sladdes":false
+          "sladdes":false,
+          "kanSeBenken":true
         }
         """.trimIndent()
 
@@ -81,7 +82,8 @@ class MeRouteTest {
                         """
                         {
                           "roller":["UTVIKLER"],
-                          "sladdes":true
+                          "sladdes":true,
+                          "kanSeBenken":false
                         }
                         """.trimIndent(),
                         body,

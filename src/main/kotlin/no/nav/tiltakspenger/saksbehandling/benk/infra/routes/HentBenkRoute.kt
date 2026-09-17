@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPaginering
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRespons
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderFiltrering
@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.service.BenkService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
+import no.nav.tiltakspenger.saksbehandling.infra.route.kanSeBenken
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 
 private const val PATH = "/benk"
@@ -75,22 +76,28 @@ fun Route.hentBenkRoute(
     post("$PATH/tilbakekreving") { tilbakekreving(benkService) }
 
     // Catch-all for feilskrevne faner i url-en — svarer med søknadsfanen og error satt.
-    post("$PATH/{...}") { svarMedSøknader(benkService, HentSøknaderBody(), FEIL_UKJENT_FANE) }
+    post("$PATH/{...}") { feilskrevetFane(benkService) }
 }
 
 private suspend fun RoutingContext.søknader(benkService: BenkService) {
+    logger.debug { "Mottatt post-request på $PATH/soknader" }
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
     val (body, error) = call.parseBodyEllerDefault(HentSøknaderBody())
-    svarMedSøknader(benkService, body, error)
+    svarMedSøknader(benkService, saksbehandler, token, body, error)
+}
+
+private suspend fun RoutingContext.feilskrevetFane(benkService: BenkService) {
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
+    svarMedSøknader(benkService, saksbehandler, token, HentSøknaderBody(), FEIL_UKJENT_FANE)
 }
 
 private suspend fun RoutingContext.svarMedSøknader(
     benkService: BenkService,
+    saksbehandler: Saksbehandler,
+    token: String,
     body: HentSøknaderBody,
     error: String?,
 ) {
-    logger.debug { "Mottatt post-request på $PATH/soknader" }
-    val (saksbehandler, token) = autentiser() ?: return
-
     val respons = benkService.hentSøknader(
         kommando = HentBenkKommando(
             filtrering = BenkSøknaderFiltrering(
@@ -115,7 +122,7 @@ private suspend fun RoutingContext.svarMedSøknader(
 
 private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
     logger.debug { "Mottatt post-request på $PATH/revurderinger" }
-    val (saksbehandler, token) = autentiser() ?: return
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
     val (body, error) = call.parseBodyEllerDefault(HentRevurderingerBody())
 
     val respons = benkService.hentRevurderinger(
@@ -141,7 +148,7 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
 
 private suspend fun RoutingContext.meldekort(benkService: BenkService) {
     logger.debug { "Mottatt post-request på $PATH/meldekort" }
-    val (saksbehandler, token) = autentiser() ?: return
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
     val (body, error) = call.parseBodyEllerDefault(HentMeldekortBody())
 
     val respons = benkService.hentMeldekort(
@@ -167,7 +174,7 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
 
 private suspend fun RoutingContext.klage(benkService: BenkService) {
     logger.debug { "Mottatt post-request på $PATH/klage" }
-    val (saksbehandler, token) = autentiser() ?: return
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
     val (body, error) = call.parseBodyEllerDefault(HentKlageBody())
 
     val respons = benkService.hentKlager(
@@ -192,7 +199,7 @@ private suspend fun RoutingContext.klage(benkService: BenkService) {
 
 private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
     logger.debug { "Mottatt post-request på $PATH/tilbakekreving" }
-    val (saksbehandler, token) = autentiser() ?: return
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
     val (body, error) = call.parseBodyEllerDefault(HentTilbakekrevingBody())
 
     val respons = benkService.hentTilbakekrevinger(
@@ -222,7 +229,7 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
  * Ruten logger ikke ved [KunneIkkeHenteBenk]; servicen har allerede logget kallet én gang.
  */
 private suspend fun <T : BenkBehandling> RoutingContext.svarMedBenk(
-    respons: Either<KunneIkkeHenteBenk, BenkRespons<T>>,
+    respons: Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<T>>,
     fane: BenkFane,
     saksbehandler: Saksbehandler,
     error: String?,
@@ -231,6 +238,19 @@ private suspend fun <T : BenkBehandling> RoutingContext.svarMedBenk(
         ifLeft = { call.respond500InternalServerError(Standardfeil.serverfeil()) },
         ifRight = { call.respondJson(value = it.toDTO(fane, saksbehandler, error)) },
     )
+}
+
+/**
+ * Brukere uten en rolle i `ROLLER_SOM_KAN_SE_BENK` får det tomme svaret, og null her avkorter håndteringen.
+ * Sjekken ligger før body-parsing og servicekall, så slike kall ikke utløser databaseoppslag eller tilgangskall.
+ */
+private suspend fun RoutingContext.autentiserMedBenktilgang(benkService: BenkService): Pair<Saksbehandler, String>? {
+    val (saksbehandler, token) = autentiser() ?: return null
+    if (!kanSeBenken(saksbehandler)) {
+        call.respondJson(value = benkService.tomRespons().toDTO())
+        return null
+    }
+    return saksbehandler to token
 }
 
 private suspend fun RoutingContext.autentiser(): Pair<Saksbehandler, String>? {

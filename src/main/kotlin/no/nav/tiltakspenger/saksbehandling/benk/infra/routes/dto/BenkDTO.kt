@@ -13,7 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOppsummering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPersonmarkører
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRad
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRespons
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsMedTilgang
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsUtenTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekreving
@@ -22,12 +23,17 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
 
 /**
- * Wiretypene for benk v2.
- *
+ * Wiretypen for benk v2, splittet på om den innloggede brukeren har rolle for å se benken.
+ * Uten rollen er svaret bare [harTilgang] = false; tellingene og radene utelates, fordi brukeren ikke har tjenstlig behov for dem.
+ */
+sealed interface BenkResponsDTO {
+    val harTilgang: Boolean
+}
+
+/**
  * Feltnavnene er kontrakten mot frontendens `lib/benk/v2/typer`, og fellesfeltene ligger flatt på hver rad — ikke under et `felles`-objekt — fordi det er slik frontenden leser dem.
  */
-
-data class BenkResponsDTO(
+data class BenkResponsMedTilgangDTO(
     val tab: BenkFaneDTO,
     val antallPerTab: Map<BenkFaneDTO, Int>,
     val oversikt: BenkOversiktDTO,
@@ -36,7 +42,14 @@ data class BenkResponsDTO(
      * Frontenden viser meldingen, slik at saksbehandler ser at filtrene ikke slo til.
      */
     val error: String? = null,
-)
+) : BenkResponsDTO {
+    override val harTilgang: Boolean = true
+}
+
+/** Svaret til en bruker uten benkrolle. Frontenden skjuler benken og trenger ikke resten av payloaden. */
+data object BenkResponsUtenTilgangDTO : BenkResponsDTO {
+    override val harTilgang: Boolean = false
+}
 
 data class BenkOversiktDTO(
     val behandlinger: List<BenkBehandlingDTO>,
@@ -170,17 +183,19 @@ fun BenkAntallPerFane.toDTO(): Map<BenkFaneDTO, Int> = mapOf(
     BenkFaneDTO.TILBAKEKREVING to tilbakekreving,
 )
 
-fun <T : BenkBehandling> BenkRespons<T>.toDTO(
+fun <T : BenkBehandling> BenkResponsMedTilgang<T>.toDTO(
     fane: BenkFane,
     saksbehandler: Saksbehandler,
     error: String? = null,
-): BenkResponsDTO =
-    BenkResponsDTO(
+): BenkResponsMedTilgangDTO =
+    BenkResponsMedTilgangDTO(
         tab = fane.toDTO(),
         antallPerTab = antallPerFane.toDTO(),
         oversikt = oversikt.toDTO(saksbehandler),
         error = error,
     ).sladdetFor(saksbehandler)
+
+fun BenkResponsUtenTilgang.toDTO(): BenkResponsUtenTilgangDTO = BenkResponsUtenTilgangDTO
 
 private fun <T : BenkBehandling> BenkOversiktMedTilgang<T>.toDTO(saksbehandler: Saksbehandler): BenkOversiktDTO = BenkOversiktDTO(
     behandlinger = rader.map { it.toDTO(saksbehandler) },

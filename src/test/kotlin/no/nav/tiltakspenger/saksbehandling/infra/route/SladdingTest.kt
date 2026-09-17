@@ -35,6 +35,30 @@ class SladdingTest {
     }
 
     @Test
+    fun `saksbehandler, beslutter og tilbakekreving kan se benken, mens veileder, utvikler og bruker uten roller ikke kan det`() {
+        kanSeBenken(ObjectMother.saksbehandler()) shouldBe true
+        kanSeBenken(ObjectMother.beslutter()) shouldBe true
+        kanSeBenken(
+            ObjectMother.saksbehandler(roller = Saksbehandlerroller(listOf(Saksbehandlerrolle.TILBAKEKREVING))),
+        ) shouldBe true
+
+        kanSeBenken(ObjectMother.veileder()) shouldBe false
+        kanSeBenken(ObjectMother.utvikler()) shouldBe false
+        kanSeBenken(ObjectMother.saksbehandlerUtenTilgang()) shouldBe false
+    }
+
+    @Test
+    fun `bruker med både utvikler og saksbehandlerrolle kan se benken`() {
+        kanSeBenken(
+            ObjectMother.saksbehandler(
+                roller = Saksbehandlerroller(
+                    listOf(Saksbehandlerrolle.UTVIKLER, Saksbehandlerrolle.SAKSBEHANDLER),
+                ),
+            ),
+        ) shouldBe true
+    }
+
+    @Test
     fun `begrunnelsen i attesteringen sladdes, også når den mangler`() {
         val attestering = AttesteringDTO(
             endretAv = "B12345",

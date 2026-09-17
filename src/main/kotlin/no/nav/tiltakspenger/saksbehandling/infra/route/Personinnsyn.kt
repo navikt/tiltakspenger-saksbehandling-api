@@ -19,9 +19,18 @@ val ROLLER_MED_PERSONINNSYN: Set<Saksbehandlerrolle> = setOf(
     Saksbehandlerrolle.TILBAKEKREVING,
 )
 
+// Veileder har ikke behov for å se benken, kun direkte oppslag på spesifikke brukere
+val ROLLER_SOM_KAN_SE_BENK: Set<Saksbehandlerrolle> = setOf(
+    Saksbehandlerrolle.SAKSBEHANDLER,
+    Saksbehandlerrolle.BESLUTTER,
+    Saksbehandlerrolle.TILBAKEKREVING,
+)
+
 fun skalSladdeFor(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.none { it in ROLLER_MED_PERSONINNSYN }
 
 fun harPersoninnsyn(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.any { it in ROLLER_MED_PERSONINNSYN }
+
+fun kanSeBenken(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.any { it in ROLLER_SOM_KAN_SE_BENK }
 
 fun AttesteringDTO.sladdet(): AttesteringDTO = this.copy(
     begrunnelse = SladdetVerdi,

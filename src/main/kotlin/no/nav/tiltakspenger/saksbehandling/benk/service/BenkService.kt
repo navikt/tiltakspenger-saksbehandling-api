@@ -18,7 +18,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPersonmarkører
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRad
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRespons
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsMedTilgang
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsUtenTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
@@ -44,7 +45,7 @@ class BenkService(
     suspend fun hentSøknader(
         kommando: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         saksbehandlerToken: String,
-    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkSøknadsbehandling>> =
+    ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<BenkSøknadsbehandling>> =
         hentFane(kommando, saksbehandlerToken) { limit, offset ->
             benkRepo.hentSøknader(kommando, limit = limit, offset = offset)
         }
@@ -52,7 +53,7 @@ class BenkService(
     suspend fun hentRevurderinger(
         kommando: HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
         saksbehandlerToken: String,
-    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkRevurdering>> =
+    ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<BenkRevurdering>> =
         hentFane(kommando, saksbehandlerToken) { limit, offset ->
             benkRepo.hentRevurderinger(kommando, limit = limit, offset = offset)
         }
@@ -60,7 +61,7 @@ class BenkService(
     suspend fun hentMeldekort(
         kommando: HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
         saksbehandlerToken: String,
-    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkMeldekort>> =
+    ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<BenkMeldekort>> =
         hentFane(kommando, saksbehandlerToken) { limit, offset ->
             benkRepo.hentMeldekort(kommando, limit = limit, offset = offset)
         }
@@ -68,7 +69,7 @@ class BenkService(
     suspend fun hentKlager(
         kommando: HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne>,
         saksbehandlerToken: String,
-    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkKlagebehandling>> =
+    ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<BenkKlagebehandling>> =
         hentFane(kommando, saksbehandlerToken) { limit, offset ->
             benkRepo.hentKlager(kommando, limit = limit, offset = offset)
         }
@@ -76,21 +77,27 @@ class BenkService(
     suspend fun hentTilbakekrevinger(
         kommando: HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
         saksbehandlerToken: String,
-    ): Either<KunneIkkeHenteBenk, BenkRespons<BenkTilbakekreving>> =
+    ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<BenkTilbakekreving>> =
         hentFane(kommando, saksbehandlerToken) { limit, offset ->
             benkRepo.hentTilbakekrevinger(kommando, limit = limit, offset = offset)
         }
+
+    /**
+     * Svaret til en bruker uten benkrolle.
+     * Ruten svarer med dette før fanespørringen, så det ikke gjøres databaseoppslag eller tilgangskall.
+     */
+    fun tomRespons(): BenkResponsUtenTilgang = BenkResponsUtenTilgang
 
     private suspend fun <T : BenkBehandling> hentFane(
         kommando: HentBenkKommando<*, *>,
         saksbehandlerToken: String,
         hent: (limit: Int, offset: Int) -> BenkOversikt<T>,
-    ): Either<KunneIkkeHenteBenk, BenkRespons<T>> = either {
+    ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<T>> = either {
         val antallPerFane = benkRepo.hentAntallPerFane()
         val oversikt = hent(kommando.paginering.limit(), kommando.paginering.offset())
 
         val fnrs = oversikt.fødselsnummere().toNonEmptyListOrNull()
-            ?: return@either BenkRespons(
+            ?: return@either BenkResponsMedTilgang(
                 antallPerFane = antallPerFane,
                 oversikt = BenkOversiktMedTilgang(
                     rader = emptyList(),
@@ -130,7 +137,7 @@ class BenkService(
         val oppsummering = BenkOppsummering.fra(alleRader)
         val antallFiltrertPgaTilgang = alleRader.size - rader.size
 
-        BenkRespons(
+        BenkResponsMedTilgang(
             antallPerFane = antallPerFane,
             oversikt = BenkOversiktMedTilgang(
                 rader = rader,

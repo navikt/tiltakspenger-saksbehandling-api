@@ -62,7 +62,7 @@ class TilgangsmaskinHttpClient(
 
     private val log = KotlinLogging.logger {}
     private val tilgangTilPersonUri = URI.create("$baseUrl/api/v1/kjerne")
-    private val tilgangTilPersonerUri = URI.create("$baseUrl/api/v1/bulk/obo")
+    private val tilgangTilPersonerUri = URI.create("$baseUrl/api/v1/bulk/obo/KJERNE_REGELTYPE")
 
     /**
      * Fnr sendes bevisst som rå, ukvotert tekst — IKKE som JSON-streng, selv om OpenAPI-spec-en sier `application/json` med `{"type": "string"}`.
