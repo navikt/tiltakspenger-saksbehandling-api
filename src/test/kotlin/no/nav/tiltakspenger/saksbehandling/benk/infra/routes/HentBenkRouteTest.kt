@@ -356,7 +356,7 @@ class HentBenkRouteTest {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
 
-            listOf(ObjectMother.veileder(), ObjectMother.utvikler()).forEach { bruker ->
+            listOf(ObjectMother.veileder(), ObjectMother.veileder()).forEach { bruker ->
                 hentBenk(tac, "/benk/soknader", """{}""", saksbehandler = bruker).let {
                     it shouldEqualJson """{"harTilgang": false}"""
                 }

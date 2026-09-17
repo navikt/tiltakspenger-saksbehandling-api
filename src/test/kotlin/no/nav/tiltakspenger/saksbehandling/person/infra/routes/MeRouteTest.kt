@@ -83,7 +83,7 @@ class MeRouteTest {
                         {
                           "roller":["UTVIKLER"],
                           "sladdes":true,
-                          "kanSeBenken":false
+                          "kanSeBenken":true
                         }
                         """.trimIndent(),
                         body,

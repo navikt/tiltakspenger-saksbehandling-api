@@ -24,6 +24,7 @@ val ROLLER_SOM_KAN_SE_BENK: Set<Saksbehandlerrolle> = setOf(
     Saksbehandlerrolle.SAKSBEHANDLER,
     Saksbehandlerrolle.BESLUTTER,
     Saksbehandlerrolle.TILBAKEKREVING,
+    Saksbehandlerrolle.UTVIKLER,
 )
 
 fun skalSladdeFor(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.none { it in ROLLER_MED_PERSONINNSYN }

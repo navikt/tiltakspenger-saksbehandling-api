@@ -46,7 +46,10 @@ data class BenkResponsMedTilgangDTO(
     override val harTilgang: Boolean = true
 }
 
-/** Svaret til en bruker uten benkrolle. Frontenden skjuler benken og trenger ikke resten av payloaden. */
+/**
+ * Svaret til en bruker uten benkrolle.
+ * Frontenden skjuler benken og trenger ikke resten av payloaden.
+ * */
 data object BenkResponsUtenTilgangDTO : BenkResponsDTO {
     override val harTilgang: Boolean = false
 }
