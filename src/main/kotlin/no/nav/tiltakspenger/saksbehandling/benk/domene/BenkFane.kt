@@ -10,4 +10,7 @@ enum class BenkFane {
     MELDEKORT,
     KLAGE,
     TILBAKEKREVING,
+
+    /** Behandlingene den innloggede saksbehandleren er tildelt, som saksbehandler eller beslutter, på tvers av alle behandlingstyper. */
+    MINE,
 }

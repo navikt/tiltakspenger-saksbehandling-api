@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsfelles
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
@@ -26,6 +27,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineFiltrering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
@@ -179,10 +182,31 @@ class BenkPostgresRepo(
         )
     }
 
+    override fun hentMine(
+        command: HentBenkKommando<BenkMineFiltrering, BenkMineKolonne>,
+        sessionContext: SessionContext?,
+        limit: Int,
+        offset: Int,
+    ): BenkOversikt<BenkBehandling> = sessionFactory.withSession(sessionContext) { session ->
+        session.hentFane(
+            base = MINE,
+            filterSql = MINE_FILTER,
+            params = arrayOf(
+                "type" to command.filtrering.type.tilParam(),
+                "skjul_pa_vent" to command.filtrering.skjulPåVent,
+                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
+            ),
+            sortering = command.sortering.tilOrderBy { it.toDbString() },
+            limit = limit,
+            offset = offset,
+            map = { it.tilMineBehandling() },
+        )
+    }
+
     /**
      * `!!` er trygt: spørringen er en ren aggregering uten `from`-tabell, og gir alltid nøyaktig én rad — også når alle fanene er tomme.
      */
-    override fun hentAntallPerFane(sessionContext: SessionContext?): BenkAntallPerFane =
+    override fun hentAntallPerFane(navIdent: String, sessionContext: SessionContext?): BenkAntallPerFane =
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
@@ -192,8 +216,10 @@ class BenkPostgresRepo(
                         (select count(*) from ($REVURDERINGER) r)   as revurderinger,
                         (select count(*) from ($MELDEKORT) m)       as meldekort,
                         (select count(*) from ($KLAGE) k)           as klage,
-                        (select count(*) from ($TILBAKEKREVING) t)  as tilbakekreving
+                        (select count(*) from ($TILBAKEKREVING) t)  as tilbakekreving,
+                        (select count(*) from ($MINE) mine)         as mine
                     """.trimIndent(),
+                    "innlogget_saksbehandler" to navIdent,
                 ).map {
                     BenkAntallPerFane(
                         søknader = it.int("søknader"),
@@ -201,6 +227,7 @@ class BenkPostgresRepo(
                         meldekort = it.int("meldekort"),
                         klage = it.int("klage"),
                         tilbakekreving = it.int("tilbakekreving"),
+                        mine = it.int("mine"),
                     )
                 }.asSingle,
             )!!
@@ -495,6 +522,71 @@ class BenkPostgresRepo(
         """
 
         /**
+         * Mine-fanen er unionen av de fem fanene, filtrert på at den innloggede er tildelt som saksbehandler eller beslutter.
+         * Tildelingsfilteret bor i basen og ikke i [MINE_FILTER], slik at `totalAntallUfiltrert` betyr «mine uten filter» og ikke «alle på benken».
+         * Innsendte og korrigerte meldekort har ingen tildelt saksbehandler, og faller derfor bort av seg selv.
+         *
+         * Hver arm polster med null for kolonnene den ikke har, slik at radmapperen kan dispatche på `behandlingstype`.
+         * `resultat` og `id` castes til tekst fordi armene ellers har ulik kolonnetype (enum og uuid/varchar), og `kravgrunnlag_periode` fordi den er en composit.
+         * Beløpene får hver sin kolonne fordi meldekortbeløpet er int og tilbakekrevingens er numeric.
+         */
+        @Language("PostgreSQL")
+        const val MINE = """
+            select * from (
+                select
+                    sak_id, fnr, saksnummer, startet, sist_endret, saksbehandler, beslutter, er_underkjent,
+                    er_satt_på_vent, vente_begrunnelse, vente_frist, status,
+                    'SØKNADSBEHANDLING'::text              as behandlingstype,
+                    søknadstype, kravtidspunkt, resultat::text,
+                    null::jsonb                            as meldeperioder,
+                    null::int                              as meldekort_beløp,
+                    null::numeric                          as tilbakekreving_beløp,
+                    null::text                             as kilde,
+                    null::text                             as kravgrunnlag_periode,
+                    null::text                             as url,
+                    id::text                               as id
+                from ($SØKNADER) søknader
+                union all
+                select
+                    sak_id, fnr, saksnummer, startet, sist_endret, saksbehandler, beslutter, er_underkjent,
+                    er_satt_på_vent, vente_begrunnelse, vente_frist, status,
+                    'REVURDERING'::text,
+                    null::text, null::timestamp with time zone, resultat::text,
+                    null::jsonb, null::int, null::numeric, null::text, null::text, null::text,
+                    id::text
+                from ($REVURDERINGER) revurderinger
+                union all
+                select
+                    sak_id, fnr, saksnummer, startet, sist_endret, saksbehandler, beslutter, er_underkjent,
+                    er_satt_på_vent, vente_begrunnelse, vente_frist, status,
+                    'MELDEKORTBEHANDLING'::text,
+                    null::text, null::timestamp with time zone, null::text,
+                    meldeperioder, beløp, null::numeric, null::text, null::text, null::text,
+                    id::text
+                from ($MELDEKORT) meldekort
+                union all
+                select
+                    sak_id, fnr, saksnummer, startet, sist_endret, saksbehandler, beslutter, er_underkjent,
+                    er_satt_på_vent, vente_begrunnelse, vente_frist, status,
+                    'KLAGEBEHANDLING'::text,
+                    null::text, kravtidspunkt, resultat::text,
+                    null::jsonb, null::int, null::numeric, null::text, null::text, null::text,
+                    id::text
+                from ($KLAGE) klager
+                union all
+                select
+                    sak_id, fnr, saksnummer, startet, sist_endret, saksbehandler, beslutter, er_underkjent,
+                    er_satt_på_vent, vente_begrunnelse, vente_frist, status,
+                    'TILBAKEKREVING'::text,
+                    null::text, null::timestamp with time zone, null::text,
+                    null::jsonb, null::int, beløp, kilde, kravgrunnlag_periode::text, url,
+                    id::text
+                from ($TILBAKEKREVING) tilbakekrevinger
+            ) alle
+            where saksbehandler = :innlogget_saksbehandler or beslutter = :innlogget_saksbehandler
+        """
+
+        /**
          * Én nedtrekksliste på benken dekker både saksbehandler og beslutter, så filteret treffer begge.
          * `IKKE_TILDELT` betyr at minst én av rollene er ledig, altså at saksbehandler eller beslutter er tom.
          * `IKKE_TILDELT_SAKSBEHANDLER` treffer raden som ikke har saksbehandler.
@@ -582,6 +674,14 @@ class BenkPostgresRepo(
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
             and $TILBAKEKREVING_VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
+        """
+
+        /**
+         * Tildelingen er allerede ivaretatt av basen, så filteret har bare brukervalgene.
+         */
+        const val MINE_FILTER = """
+            (:type::text is null or behandlingstype = :type::text)
+            and $PÅ_VENT_FILTER
         """
     }
 }
@@ -682,3 +782,54 @@ private fun Row.tilTilbakekreving(): BenkTilbakekreving = BenkTilbakekreving(
     kravgrunnlagPeriode = periode("kravgrunnlag_periode"),
     url = string("url"),
 )
+
+/**
+ * Mapperen til mine-fanen, der radene er blandede og `behandlingstype`-kolonnen sier hvilken radtype raden er.
+ * Kolonnene er null-polstret per arm i [BenkPostgresRepo.MINE], så hver arm leser bare sine egne.
+ * Meldekorttypen leses ikke: tildelingsfilteret i basen garanterer at bare meldekortbehandlinger er med.
+ */
+private fun Row.tilMineBehandling(): BenkBehandling =
+    when (enum("behandlingstype", BenkBehandlingstype.entries)) {
+        BenkBehandlingstype.SØKNADSBEHANDLING -> BenkSøknadsbehandling(
+            felles = tilFelles(),
+            id = RammebehandlingId.fromString(string("id")),
+            status = tilBehandlingsstatus(),
+            søknadstype = enum("søknadstype", BenkSøknadstype.entries),
+            kravtidspunkt = localDateTime("kravtidspunkt"),
+            resultat = enum("resultat", BenkSøknadsbehandlingResultat.entries),
+        )
+
+        BenkBehandlingstype.REVURDERING -> BenkRevurdering(
+            felles = tilFelles(),
+            id = RammebehandlingId.fromString(string("id")),
+            status = tilBehandlingsstatus(),
+            resultat = enumOrNull("resultat", BenkRevurderingResultat.entries),
+        )
+
+        BenkBehandlingstype.MELDEKORTBEHANDLING -> BenkMeldekort(
+            felles = tilFelles(),
+            id = MeldekortId.fromString(string("id")),
+            status = tilBehandlingsstatus(),
+            type = BenkMeldekortType.MELDEKORTBEHANDLING,
+            meldeperioder = tilMeldeperioder(),
+            beløp = intOrNull("meldekort_beløp"),
+        )
+
+        BenkBehandlingstype.KLAGEBEHANDLING -> BenkKlagebehandling(
+            felles = tilFelles(),
+            id = KlagebehandlingId.fromString(string("id")),
+            status = tilBehandlingsstatus(),
+            kravtidspunkt = localDateTime("kravtidspunkt"),
+            resultat = enumOrNull("resultat", BenkKlagebehandlingResultat.entries),
+        )
+
+        BenkBehandlingstype.TILBAKEKREVING -> BenkTilbakekreving(
+            felles = tilFelles(),
+            id = TilbakekrevingId.fromString(string("id")),
+            status = enum("status", BenkTilbakekrevingStatus.entries),
+            beløp = bigDecimal("tilbakekreving_beløp"),
+            kilde = enum("kilde", BenkTilbakekrevingKilde.entries),
+            kravgrunnlagPeriode = periode("kravgrunnlag_periode"),
+            url = string("url"),
+        )
+    }

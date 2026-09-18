@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderi
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
@@ -76,6 +77,19 @@ enum class BenkFaneDTO {
     REVURDERINGER,
     MELDEKORT,
     KLAGE,
+    TILBAKEKREVING,
+    MINE,
+}
+
+/**
+ * Filteret på behandlingstype i mine-fanen.
+ * Til forskjell fra [BenkBehandlingstypeDTO] på radene er innsendte og korrigerte meldekort utelatt — de er aldri tildelt noen.
+ */
+enum class BenkMineTypeDTO {
+    SØKNADSBEHANDLING,
+    REVURDERING,
+    MELDEKORTBEHANDLING,
+    KLAGEBEHANDLING,
     TILBAKEKREVING,
 }
 
@@ -177,6 +191,7 @@ fun BenkFane.toDTO(): BenkFaneDTO = when (this) {
     BenkFane.MELDEKORT -> BenkFaneDTO.MELDEKORT
     BenkFane.KLAGE -> BenkFaneDTO.KLAGE
     BenkFane.TILBAKEKREVING -> BenkFaneDTO.TILBAKEKREVING
+    BenkFane.MINE -> BenkFaneDTO.MINE
 }
 
 fun BenkAntallPerFane.toDTO(): Map<BenkFaneDTO, Int> = mapOf(
@@ -185,7 +200,16 @@ fun BenkAntallPerFane.toDTO(): Map<BenkFaneDTO, Int> = mapOf(
     BenkFaneDTO.MELDEKORT to meldekort,
     BenkFaneDTO.KLAGE to klage,
     BenkFaneDTO.TILBAKEKREVING to tilbakekreving,
+    BenkFaneDTO.MINE to mine,
 )
+
+fun BenkMineTypeDTO.tilDomene(): BenkBehandlingstype = when (this) {
+    BenkMineTypeDTO.SØKNADSBEHANDLING -> BenkBehandlingstype.SØKNADSBEHANDLING
+    BenkMineTypeDTO.REVURDERING -> BenkBehandlingstype.REVURDERING
+    BenkMineTypeDTO.MELDEKORTBEHANDLING -> BenkBehandlingstype.MELDEKORTBEHANDLING
+    BenkMineTypeDTO.KLAGEBEHANDLING -> BenkBehandlingstype.KLAGEBEHANDLING
+    BenkMineTypeDTO.TILBAKEKREVING -> BenkBehandlingstype.TILBAKEKREVING
+}
 
 fun <T : BenkBehandling> BenkResponsMedTilgang<T>.toDTO(
     fane: BenkFane,

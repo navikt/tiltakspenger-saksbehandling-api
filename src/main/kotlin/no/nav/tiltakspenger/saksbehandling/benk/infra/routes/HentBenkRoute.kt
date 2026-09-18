@@ -21,6 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineFiltrering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPaginering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
@@ -36,6 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkBehandlings
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingStatusDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkMeldekortTypeDTO
+import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkMineTypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkRevurderingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkSøknadsbehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkSøknadstypeDTO
@@ -75,6 +78,7 @@ fun Route.hentBenkRoute(
     post("$PATH/meldekort") { meldekort(benkService) }
     post("$PATH/klage") { klage(benkService) }
     post("$PATH/tilbakekreving") { tilbakekreving(benkService) }
+    post("$PATH/mine") { mine(benkService) }
 
     // Catch-all for feilskrevne faner i url-en — svarer med søknadsfanen og error satt.
     post("$PATH/{...}") { feilskrevetFane(benkService) }
@@ -220,6 +224,29 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
     svarMedBenk(respons, BenkFane.TILBAKEKREVING, saksbehandler, error)
 }
 
+private suspend fun RoutingContext.mine(benkService: BenkService) {
+    logger.debug { "Mottatt post-request på $PATH/mine" }
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
+    val (body, error) = call.parseBodyEllerDefault(HentMineBody())
+
+    val respons = benkService.hentMine(
+        kommando = HentBenkKommando(
+            filtrering = BenkMineFiltrering(
+                type = body.filters.type?.tilDomene(),
+                skjulPåVent = body.filters.skjulPåVent,
+                skjulUtenTilgang = body.filters.skjulUtenTilgang,
+            ),
+            sortering = body.sortering.tilSortering(BenkMineKolonne.entries, BenkMineKolonne.SIST_ENDRET),
+            paginering = BenkPaginering.fra(body.side),
+            saksbehandler = saksbehandler,
+            correlationId = call.correlationId(),
+        ),
+        saksbehandlerToken = token,
+    )
+
+    svarMedBenk(respons, BenkFane.MINE, saksbehandler, error)
+}
+
 /**
  * Svarer ut fanen, eller en serverfeil når tilgangskontrollen ikke lot seg gjennomføre.
  * Ruten logger ikke ved [KunneIkkeHenteBenk]; servicen har allerede logget kallet én gang.
@@ -351,4 +378,20 @@ private data class HentTilbakekrevingBody(
             0
         }
     }
+}
+
+/**
+ * Requesten til mine-fanen.
+ * Fanen har ingen saksbehandlerfilter — den er alltid filtrert på den innloggede.
+ */
+private data class HentMineBody(
+    val sortering: String? = null,
+    val side: Int? = null,
+    val filters: Filters = Filters(),
+) {
+    data class Filters(
+        val type: BenkMineTypeDTO? = null,
+        val skjulPåVent: Boolean = false,
+        val skjulUtenTilgang: Boolean = false,
+    )
 }

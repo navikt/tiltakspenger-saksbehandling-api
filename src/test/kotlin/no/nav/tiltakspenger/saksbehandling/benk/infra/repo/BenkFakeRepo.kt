@@ -2,12 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineFiltrering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
@@ -67,7 +70,14 @@ class BenkFakeRepo : BenkRepo {
         offset: Int,
     ): BenkOversikt<BenkTilbakekreving> = kreverPostgres()
 
-    override fun hentAntallPerFane(sessionContext: SessionContext?): BenkAntallPerFane = kreverPostgres()
+    override fun hentMine(
+        command: HentBenkKommando<BenkMineFiltrering, BenkMineKolonne>,
+        sessionContext: SessionContext?,
+        limit: Int,
+        offset: Int,
+    ): BenkOversikt<BenkBehandling> = kreverPostgres()
+
+    override fun hentAntallPerFane(navIdent: String, sessionContext: SessionContext?): BenkAntallPerFane = kreverPostgres()
 
     private fun kreverPostgres(): Nothing = throw UnsupportedOperationException(
         "Benk v2 har ingen in-memory-implementasjon. Kjør testen isolert mot postgres, slik BenkAggregatTest og HentBenkRouteTest gjør.",

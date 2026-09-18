@@ -30,4 +30,6 @@ data class BenkAntallPerFane(
     val meldekort: Int,
     val klage: Int,
     val tilbakekreving: Int,
+    /** Antallet er per innlogget saksbehandler, til forskjell fra de andre fanene sine. */
+    val mine: Int,
 )

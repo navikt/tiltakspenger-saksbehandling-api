@@ -54,7 +54,8 @@ class HentBenkRouteTest {
                     "REVURDERINGER": 0,
                     "MELDEKORT": 0,
                     "KLAGE": 0,
-                    "TILBAKEKREVING": 0
+                    "TILBAKEKREVING": 0,
+                    "MINE": 0
                   },
                   "oversikt": {
                     "behandlinger": [
@@ -398,12 +399,44 @@ class HentBenkRouteTest {
                 "meldekort" to "MELDEKORT",
                 "klage" to "KLAGE",
                 "tilbakekreving" to "TILBAKEKREVING",
+                "mine" to "MINE",
             ).forEach { (path, fane) ->
                 hentBenk(tac, "/benk/$path", """{}""").let {
                     it.fane() shouldBe fane
                     it.antallIOversikten() shouldBe 0
                     it.error() shouldBe null
                 }
+            }
+        }
+    }
+
+    /**
+     * Mine-fanen er filtrert på den innloggede i basen, så radene til andre saksbehandlere kommer aldri med.
+     * Typefilteret dekker alle behandlingstypene, og radene bærer sin egen type slik frontenden kan lenke riktig.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen svarer med behandlingene tildelt innlogget, på tvers av typer`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+
+            hentBenk(tac, "/benk/mine", """{}""").let {
+                it.fane() shouldBe "MINE"
+                it.error() shouldBe null
+                it.antallIOversikten() shouldBe 1
+                objectMapper.readTree(it).let { json ->
+                    json["antallPerTab"]["MINE"].asInt() shouldBe 1
+                    json["oversikt"]["behandlinger"].single()["type"].asString() shouldBe "SØKNADSBEHANDLING"
+                }
+            }
+            hentBenk(tac, "/benk/mine", """{"filters": {"type": "SØKNADSBEHANDLING"}}""").antallIOversikten() shouldBe 1
+            hentBenk(tac, "/benk/mine", """{"filters": {"type": "REVURDERING"}}""").antallIOversikten() shouldBe 0
+
+            // En annen saksbehandler ser sin egen rad på samme fane.
+            hentBenk(tac, "/benk/mine", """{}""", saksbehandler = ObjectMother.saksbehandler()).let {
+                it.antallIOversikten() shouldBe 1
+                objectMapper.readTree(it)["antallPerTab"]["MINE"].asInt() shouldBe 1
             }
         }
     }

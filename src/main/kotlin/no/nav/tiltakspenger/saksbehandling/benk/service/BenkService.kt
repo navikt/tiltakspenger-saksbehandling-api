@@ -11,6 +11,8 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineFiltrering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOppsummering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
@@ -81,6 +83,14 @@ class BenkService(
             benkRepo.hentTilbakekrevinger(kommando, limit = limit, offset = offset)
         }
 
+    suspend fun hentMine(
+        kommando: HentBenkKommando<BenkMineFiltrering, BenkMineKolonne>,
+        saksbehandlerToken: String,
+    ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<BenkBehandling>> =
+        hentFane(kommando, saksbehandlerToken) { limit, offset ->
+            benkRepo.hentMine(kommando, limit = limit, offset = offset)
+        }
+
     /**
      * Svaret til en bruker uten benkrolle.
      * Ruten svarer med dette før fanespørringen, så det ikke gjøres databaseoppslag eller tilgangskall.
@@ -92,7 +102,7 @@ class BenkService(
         saksbehandlerToken: String,
         hent: (limit: Int, offset: Int) -> BenkOversikt<T>,
     ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<T>> = either {
-        val antallPerFane = benkRepo.hentAntallPerFane()
+        val antallPerFane = benkRepo.hentAntallPerFane(kommando.saksbehandler.navIdent)
         val oversikt = hent(kommando.paginering.limit(), kommando.paginering.offset())
 
         val fnrs = oversikt.fødselsnummere().toNonEmptyListOrNull()

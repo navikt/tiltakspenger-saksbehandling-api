@@ -76,6 +76,19 @@ data class BenkTilbakekrevingFiltrering(
 ) : BenkFiltrering
 
 /**
+ * Mine-fanen er alltid filtrert på den innloggede saksbehandleren — i basen, ikke som et valg — så [saksbehandler] er ubrukt her.
+ * Statusene er ikke felles på tvers av typene (tilbakekreving har sine egne), så fanen filtrerer på type i stedet for status.
+ */
+data class BenkMineFiltrering(
+    val type: BenkBehandlingstype?,
+    override val skjulPåVent: Boolean = false,
+    override val skjulUtenTilgang: Boolean = false,
+) : BenkFiltrering {
+    override val saksbehandler: String? = null
+    override val skjulVenterPåAnnenSaksbehandler: Boolean = false
+}
+
+/**
  * Ett kall henter én fane.
  * Kommandoen er derfor generisk over fanens filter og fanens sorteringskolonner, slik at feil kombinasjon ikke kompilerer.
  */

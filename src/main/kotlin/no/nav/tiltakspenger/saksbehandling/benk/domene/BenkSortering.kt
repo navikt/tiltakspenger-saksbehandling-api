@@ -87,6 +87,20 @@ enum class BenkTilbakekrevingKolonne(override val verdi: String) : BenkSortering
 }
 
 /**
+ * Mine-fanen viser radene på tvers av typene, så kolonnene er begrenset til de felles feltene pluss typen.
+ * Saksbehandler-kolonnen er utelatt: alle radene er tildelt den innloggede.
+ */
+enum class BenkMineKolonne(override val verdi: String) : BenkSorteringKolonne {
+    FNR("fnr"),
+    TYPE("type"),
+    STATUS("status"),
+    STARTET("startet"),
+    SIST_ENDRET("sist_endret"),
+    BESLUTTER("beslutter"),
+    VENTESTATUS_FRIST("ventestatus_frist"),
+}
+
+/**
  * Parser «kolonne,retning».
  * En ukjent kolonne faller tilbake på [default] framfor å feile, fordi sorteringen kommer fra en url brukeren kan redigere.
  */

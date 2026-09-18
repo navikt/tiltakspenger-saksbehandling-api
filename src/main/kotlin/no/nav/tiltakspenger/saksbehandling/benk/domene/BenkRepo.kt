@@ -43,5 +43,19 @@ interface BenkRepo {
         offset: Int = 0,
     ): BenkOversikt<BenkTilbakekreving>
 
-    fun hentAntallPerFane(sessionContext: SessionContext? = null): BenkAntallPerFane
+    /**
+     * Mine-fanen er den eneste med blandede radtyper — radene er derfor den felles [BenkBehandling]-typen.
+     */
+    fun hentMine(
+        command: HentBenkKommando<BenkMineFiltrering, BenkMineKolonne>,
+        sessionContext: SessionContext? = null,
+        limit: Int = BenkPaginering.SIDEANTALL,
+        offset: Int = 0,
+    ): BenkOversikt<BenkBehandling>
+
+    /**
+     * [navIdent] trengs fordi mine-fanen teller radene til den innloggede.
+     * De andre fanene telles uavhengig av hvem som spør.
+     */
+    fun hentAntallPerFane(navIdent: String, sessionContext: SessionContext? = null): BenkAntallPerFane
 }
