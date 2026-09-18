@@ -27,7 +27,7 @@ val ROLLER_SOM_KAN_SE_BENK: Set<Saksbehandlerrolle> = setOf(
     Saksbehandlerrolle.UTVIKLER,
 )
 
-fun skalSladdeFor(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.none { it in ROLLER_MED_PERSONINNSYN }
+fun skalSladdeFor(saksbehandler: Saksbehandler): Boolean = !harPersoninnsyn(saksbehandler)
 
 fun harPersoninnsyn(saksbehandler: Saksbehandler): Boolean = saksbehandler.roller.any { it in ROLLER_MED_PERSONINNSYN }
 

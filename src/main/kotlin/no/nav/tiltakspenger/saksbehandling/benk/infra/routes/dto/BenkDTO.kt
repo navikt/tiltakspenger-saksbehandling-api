@@ -121,6 +121,8 @@ enum class BenkTilgangsårsakDTO {
 
     /** Tilgangsmaskinen avviste med en kode backend ikke kjenner; begrunnelsen sier fortsatt hva som skjedde. */
     UKJENT,
+
+    IKKE_SAKSBEHANDLER_ELLER_BESLUTTER,
 }
 
 data class BenkTilgangsgrunnDTO(
@@ -212,7 +214,7 @@ private fun <T : BenkBehandling> BenkOversiktMedTilgang<T>.toDTO(saksbehandler: 
 )
 
 private fun <T : BenkBehandling> BenkRad<T>.toDTO(saksbehandler: Saksbehandler): BenkBehandlingDTO {
-    val tilgangDTO = tilgang.toDTO()
+    val tilgangDTO = tilgang.toDTO(saksbehandler)
     val personmarkørerDTO = personmarkører.toDTO()
     val behandlingDTO = when (val behandling = behandling) {
         is BenkSøknadsbehandling -> behandling.toDTO(saksbehandler, tilgangDTO, personmarkørerDTO)
@@ -227,19 +229,31 @@ private fun <T : BenkBehandling> BenkRad<T>.toDTO(saksbehandler: Saksbehandler):
     }
 }
 
-private fun TilgangsvurderingBulk.toDTO(): BenkTilgangDTO = when (this) {
-    TilgangsvurderingBulk.Godkjent -> BenkTilgangDTO(
-        vurdering = BenkTilgangsvurderingDTO.HAR_TILGANG,
-        grunn = null,
-    )
+private fun TilgangsvurderingBulk.toDTO(saksbehandler: Saksbehandler): BenkTilgangDTO {
+    if (!saksbehandler.erSaksbehandlerEllerBeslutter) {
+        return BenkTilgangDTO(
+            vurdering = BenkTilgangsvurderingDTO.HAR_IKKE_TILGANG,
+            grunn = BenkTilgangsgrunnDTO(
+                årsak = BenkTilgangsårsakDTO.IKKE_SAKSBEHANDLER_ELLER_BESLUTTER,
+                begrunnelse = "Har ikke rolle for å se behandlinger fra benken",
+            ),
+        )
+    }
 
-    is TilgangsvurderingBulk.Avvist -> BenkTilgangDTO(
-        vurdering = BenkTilgangsvurderingDTO.HAR_IKKE_TILGANG,
-        grunn = BenkTilgangsgrunnDTO(
-            årsak = årsak.toDTO(),
-            begrunnelse = begrunnelse,
-        ),
-    )
+    return when (this) {
+        TilgangsvurderingBulk.Godkjent -> BenkTilgangDTO(
+            vurdering = BenkTilgangsvurderingDTO.HAR_TILGANG,
+            grunn = null,
+        )
+
+        is TilgangsvurderingBulk.Avvist -> BenkTilgangDTO(
+            vurdering = BenkTilgangsvurderingDTO.HAR_IKKE_TILGANG,
+            grunn = BenkTilgangsgrunnDTO(
+                årsak = årsak.toDTO(),
+                begrunnelse = begrunnelse,
+            ),
+        )
+    }
 }
 
 private fun TilgangsvurderingAvvistÅrsak.toDTO(): BenkTilgangsårsakDTO = when (this) {
