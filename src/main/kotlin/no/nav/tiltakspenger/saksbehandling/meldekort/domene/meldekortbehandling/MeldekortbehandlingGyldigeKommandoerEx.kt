@@ -30,7 +30,7 @@ fun Meldekortbehandling.finnGyldigeKommandoer(saksbehandler: Saksbehandler): Lis
         if (kanSettePåVent(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.SettPåVent)
         if (kanGjenoppta(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Gjenoppta)
         if (kanAvbryte(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.Avbryt)
-        if (kanAngreMeldekortbehandling(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning) // TODO - Husk å implementere
+        if (kanAngreMeldekortbehandling(saksbehandler).isRight()) add(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning)
     }
 }
 

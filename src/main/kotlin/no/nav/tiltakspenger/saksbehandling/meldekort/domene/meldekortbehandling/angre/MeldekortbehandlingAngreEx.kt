@@ -22,7 +22,7 @@ fun Meldekortbehandling.angreMeldekortbehandling(
     return when (this.status) {
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
             require(this is MeldekortbehandlingManuell) {
-                "Forventet MeldekortbehandlingManuell for status KLAR_TIL_BEHANDLING, var ${this::class.simpleName}"
+                "Forventet MeldekortbehandlingManuell for status KLAR_TIL_BESLUTNING, var ${this::class.simpleName}"
             }
 
             MeldekortUnderBehandling(
