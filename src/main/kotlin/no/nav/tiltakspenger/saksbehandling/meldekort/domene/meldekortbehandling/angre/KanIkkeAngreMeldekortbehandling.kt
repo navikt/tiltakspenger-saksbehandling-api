@@ -18,4 +18,8 @@ sealed interface KanIkkeAngreMeldekortbehandling : Loggbar {
     data class MeldekortbehandlingenErIEnTilstandSomIkkeTillaterÅAngre(val status: MeldekortbehandlingStatus) : KanIkkeAngreMeldekortbehandling {
         override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen har status $status")
     }
+
+    data object MeldekortbehandlingFinnesIkke : KanIkkeAngreMeldekortbehandling {
+        override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen finnes ikke")
+    }
 }

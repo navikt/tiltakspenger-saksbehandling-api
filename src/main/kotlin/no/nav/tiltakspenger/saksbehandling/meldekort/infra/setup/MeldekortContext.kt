@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttp
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodePostgresRepo
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AngreMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AutomatiskMeldekortbehandlingJobb
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
@@ -210,6 +211,13 @@ open class MeldekortContext(
     val gjenopptaMeldekortbehandlingService by lazy {
         GjenopptaMeldekortbehandlingService(
             meldekortbehandlingRepo = meldekortbehandlingRepo,
+            sakService = sakService,
+            clock = clock,
+        )
+    }
+
+    val angreMeldekortbehandlingService by lazy {
+        AngreMeldekortbehandlingService(
             sakService = sakService,
             clock = clock,
         )

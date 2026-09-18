@@ -182,6 +182,13 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         }
     }
 
+    override fun angreMeldekortbehandlingSendtTilBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {
         return emptyList()
     }
