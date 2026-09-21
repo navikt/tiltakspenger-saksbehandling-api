@@ -12,7 +12,7 @@ val confluentVersion = "8.3.1"
 val avroVersion = "1.12.2"
 val prometeusVersion = "1.17.1"
 val jackson2Version = "2.22.2"
-val lz4Version = "1.11.2"
+val lz4Version = "1.11.3"
 // Samme versjon som `kafka` i tiltakspenger-libs sin versjonskatalog; se constraint-blokka for hvorfor den må være strict.
 val kafkaVersion = "4.3.1"
 
