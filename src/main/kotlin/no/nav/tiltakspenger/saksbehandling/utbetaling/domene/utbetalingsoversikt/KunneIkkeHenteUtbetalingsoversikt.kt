@@ -4,25 +4,40 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 
 sealed interface KunneIkkeHenteUtbetalingsoversikt {
+    val feiltype: Oppslagsfeiltype
+    val metadata: HttpKlientMetadata
+
     /** Tjenesten avviste oss, ikke personen det ble spurt om. */
     data class TilgangAvvist(
         val httpKlientError: HttpKlientError.UventetStatus,
-    ) : KunneIkkeHenteUtbetalingsoversikt
+    ) : KunneIkkeHenteUtbetalingsoversikt {
+        override val feiltype = Oppslagsfeiltype.TILGANG_AVVIST
+        override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
+    }
 
     /** Kallet ga ikke et brukbart svar: ingen respons, request som ikke ble sendt, eller en status vi ikke kjenner. */
     data class Tjenestefeil(
         val httpKlientError: HttpKlientError,
-    ) : KunneIkkeHenteUtbetalingsoversikt
+    ) : KunneIkkeHenteUtbetalingsoversikt {
+        override val feiltype = Oppslagsfeiltype.TJENESTEFEIL
+        override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
+    }
 
     /** Tjenesten avviste oppslaget for denne personen. */
     data class SakAvvist(
         val httpKlientError: HttpKlientError.UventetStatus,
-    ) : KunneIkkeHenteUtbetalingsoversikt
+    ) : KunneIkkeHenteUtbetalingsoversikt {
+        override val feiltype = Oppslagsfeiltype.SAK_AVVIST
+        override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
+    }
 
     /** Svaret lot seg ikke lese som json i forventet form. */
     data class UleseligSvar(
         val httpKlientError: HttpKlientError.DeserializationError,
-    ) : KunneIkkeHenteUtbetalingsoversikt
+    ) : KunneIkkeHenteUtbetalingsoversikt {
+        override val feiltype = Oppslagsfeiltype.ULESELIG_SVAR
+        override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
+    }
 
     /**
      * Svaret ble lest, men innholdet brøt kontrakten.
@@ -30,8 +45,10 @@ sealed interface KunneIkkeHenteUtbetalingsoversikt {
      */
     data class UgyldigInnhold(
         val feil: UtbetalingsoversiktMappingfeil,
-        val metadata: HttpKlientMetadata,
-    ) : KunneIkkeHenteUtbetalingsoversikt
+        override val metadata: HttpKlientMetadata,
+    ) : KunneIkkeHenteUtbetalingsoversikt {
+        override val feiltype = Oppslagsfeiltype.UGYLDIG_INNHOLD
+    }
 }
 
 /** [felt] er navnet slik det står i json-svaret fra kilden. */

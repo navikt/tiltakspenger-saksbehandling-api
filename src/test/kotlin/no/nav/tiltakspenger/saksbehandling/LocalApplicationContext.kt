@@ -75,6 +75,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
 import java.time.Clock
@@ -252,6 +253,8 @@ class LocalApplicationContext(
         ) {}
     }
 
+    private val utbetalingsoversiktFakeKlient by lazy { UtbetalingsoversiktFakeKlient() }
+
     private val utbetalingFakeKlient by lazy {
         UtbetalingFakeKlient(
             sakRepo = sakContext.sakRepo,
@@ -339,8 +342,10 @@ class LocalApplicationContext(
             clock = clock,
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,
+            meterRegistry = meterRegistry,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
+            override val utbetalingsoversiktklient = utbetalingsoversiktFakeKlient
         }
     }
 

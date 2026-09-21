@@ -407,6 +407,7 @@ open class ApplicationContext(
             clock = clock,
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,
+            meterRegistry = meterRegistry,
         )
     }
     open val meldekortContext by lazy {

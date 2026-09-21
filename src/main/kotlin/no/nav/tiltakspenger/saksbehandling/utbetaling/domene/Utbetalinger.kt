@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.periodisering.toTidslinje
+import java.time.LocalDateTime
 
 /**
  * Inneholder alle utbetalinger (som er en konsekvens av et vedtak).
@@ -53,6 +54,10 @@ data class Utbetalinger(
     fun hentUtbetalingForUuid(uuid: String): VedtattUtbetaling? {
         return verdi.find { it.id.uuidPart() == uuid }
     }
+
+    /** Sant når en utbetaling med OK-kvittering er sendt etter [tidspunkt]. */
+    fun harOkUtbetalingSendtEtter(tidspunkt: LocalDateTime): Boolean =
+        verdi.any { it.status == Utbetalingsstatus.Ok && it.sendtTilUtbetaling?.isAfter(tidspunkt) == true }
 
     fun leggTil(utbetaling: VedtattUtbetaling): Utbetalinger {
         return Utbetalinger((verdi + utbetaling).sortedBy { it.opprettet })

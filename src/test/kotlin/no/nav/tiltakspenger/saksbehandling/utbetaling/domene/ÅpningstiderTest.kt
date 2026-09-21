@@ -1,7 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
+import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.fixedClockAt
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
@@ -52,5 +55,26 @@ class ÅpningstiderTest {
             erInnenforØkonomisystemetsÅpningstider(clock),
             "forventetÅpent=$forventetÅpent for ${dato.dayOfWeek} $tidspunkt",
         )
+    }
+
+    /** 5. mai 2025 er en mandag, 10. mai en lørdag, og 1. mai er en fast helligdag på en torsdag. */
+    @Test
+    fun `første åpne tidspunkt er tidspunktet selv når det er åpent, ellers neste åpning`() {
+        val mandag = 5.mai(2025)
+
+        Åpningstider.førsteÅpneTidspunkt(mandag.atTime(12, 0)) shouldBe mandag.atTime(12, 0)
+        Åpningstider.førsteÅpneTidspunkt(mandag.atTime(6, 10)) shouldBe mandag.atTime(6, 10)
+        Åpningstider.førsteÅpneTidspunkt(mandag.atTime(6, 9)) shouldBe mandag.atTime(6, 10)
+        Åpningstider.førsteÅpneTidspunkt(mandag.atTime(20, 49)) shouldBe mandag.atTime(20, 49)
+        Åpningstider.førsteÅpneTidspunkt(mandag.atTime(20, 50)) shouldBe mandag.plusDays(1).atTime(6, 10)
+        Åpningstider.førsteÅpneTidspunkt(mandag.plusDays(5).atTime(12, 0)) shouldBe mandag.plusDays(7).atTime(6, 10)
+        Åpningstider.førsteÅpneTidspunkt(1.mai(2025).atTime(12, 0)) shouldBe 2.mai(2025).atTime(6, 10)
+    }
+
+    @Test
+    fun `neste åpne dag hopper over helg og fast helligdag`() {
+        Åpningstider.nesteÅpneDag(5.mai(2025)) shouldBe 6.mai(2025)
+        Åpningstider.nesteÅpneDag(9.mai(2025)) shouldBe 12.mai(2025)
+        Åpningstider.nesteÅpneDag(30.april(2025)) shouldBe 2.mai(2025)
     }
 }

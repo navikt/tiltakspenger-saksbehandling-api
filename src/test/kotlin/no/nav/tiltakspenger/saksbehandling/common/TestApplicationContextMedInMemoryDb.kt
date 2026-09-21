@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.Tilbakekrev
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt.UtbetalingsoversiktFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo.RammevedtakFakeRepo
 
 /**
@@ -41,6 +42,7 @@ open class TestApplicationContextMedInMemoryDb(
 ) : TestApplicationContext(clock, idGenerators, tilgangsmaskinFakeClient) {
     // Fake-repoer (intern lagring)
     private val utbetalingFakeRepo = UtbetalingFakeRepo()
+    private val utbetalingsoversiktFakeRepo = UtbetalingsoversiktFakeRepo()
     private val rammevedtakFakeRepo = RammevedtakFakeRepo(utbetalingFakeRepo)
     private val meldekortvedtakFakeRepo = MeldekortvedtakFakeRepo(utbetalingFakeRepo)
     private val klagevedtakFakeRepo = KlagevedtakFakeRepo()
@@ -87,6 +89,7 @@ open class TestApplicationContextMedInMemoryDb(
     override val klagevedtakRepoOverride = klagevedtakFakeRepo
     override val meldekortvedtakRepoOverride = meldekortvedtakFakeRepo
     override val utbetalingRepoOverride = utbetalingFakeRepo
+    override val utbetalingsoversiktRepoOverride = utbetalingsoversiktFakeRepo
     override val tilbakekrevingHendelseRepoOverride = tilbakekrevingHendelseFakeRepo
     override val tilbakekrevingBehandlingRepoOverride = tilbakekrevingBehandlingFakeRepo
 }

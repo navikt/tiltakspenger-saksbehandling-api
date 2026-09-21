@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup
 
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
@@ -14,10 +15,15 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Utbetalingsklient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktHttpKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.MeldekortvedtakPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingPostgresRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.utbetalingsoversikt.UtbetalingsoversiktPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.JournalførMeldekortvedtakService
+import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsoversiktJobb
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.OppdaterUtbetalingsstatusService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SendUtbetalingerService
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
@@ -33,6 +39,7 @@ open class UtbetalingContext(
     clock: Clock,
     navkontorService: NavkontorService,
     statistikkService: StatistikkService,
+    meterRegistry: MeterRegistry,
 ) {
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
@@ -44,6 +51,16 @@ open class UtbetalingContext(
             clock = clock,
         )
     }
+    open val utbetalingsoversiktklient: Utbetalingsoversiktklient by lazy {
+        UtbetalingsoversiktHttpKlient(
+            baseUrl = Configuration.sokosUtbetaldataUrl,
+            clock = clock,
+            authTokenProvider = TexasSystemTokenProvider(
+                texasClient = texasClient,
+                audienceTarget = Configuration.sokosUtbetaldataScope,
+            ),
+        )
+    }
     open val meldekortvedtakRepo: MeldekortvedtakRepo by lazy {
         MeldekortvedtakPostgresRepo(
             sessionFactory as PostgresSessionFactory,
@@ -51,6 +68,11 @@ open class UtbetalingContext(
     }
     open val utbetalingRepo: UtbetalingRepo by lazy {
         UtbetalingPostgresRepo(
+            sessionFactory as PostgresSessionFactory,
+        )
+    }
+    open val utbetalingsoversiktRepo: UtbetalingsoversiktRepo by lazy {
+        UtbetalingsoversiktPostgresRepo(
             sessionFactory as PostgresSessionFactory,
         )
     }
@@ -85,6 +107,16 @@ open class UtbetalingContext(
             utbetalingRepo = utbetalingRepo,
             utbetalingsklient = utbetalingsklient,
             clock = clock,
+        )
+    }
+
+    val oppdaterUtbetalingsoversiktJobb by lazy {
+        OppdaterUtbetalingsoversiktJobb(
+            sakRepo = sakRepo,
+            utbetalingsoversiktRepo = utbetalingsoversiktRepo,
+            utbetalingsoversiktklient = utbetalingsoversiktklient,
+            clock = clock,
+            meterRegistry = meterRegistry,
         )
     }
 }

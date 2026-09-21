@@ -78,7 +78,9 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.setup.TiltaksdeltakelseContext
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.UtbetalingRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.setup.UtbetalingContext
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataFakeClient
@@ -174,6 +176,8 @@ sealed class TestApplicationContext(
 
     protected open val kabalClientFake by lazy { KabalClientFake(clock) }
 
+    open val utbetalingsoversiktFakeKlient by lazy { UtbetalingsoversiktFakeKlient() }
+
     open val utbetalingFakeKlient by lazy {
         UtbetalingFakeKlient(
             sakRepo = sakContext.sakRepo,
@@ -243,6 +247,7 @@ sealed class TestApplicationContext(
     protected open val klagevedtakRepoOverride: KlagevedtakRepo? = null
     protected open val meldekortvedtakRepoOverride: MeldekortvedtakRepo? = null
     protected open val utbetalingRepoOverride: UtbetalingRepo? = null
+    protected open val utbetalingsoversiktRepoOverride: UtbetalingsoversiktRepo? = null
     protected open val tilbakekrevingHendelseRepoOverride: TilbakekrevingHendelseRepo? = null
     protected open val tilbakekrevingBehandlingRepoOverride: TilbakekrevingBehandlingRepo? = null
 
@@ -436,12 +441,16 @@ sealed class TestApplicationContext(
             clock = clock,
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,
+            meterRegistry = meterRegistry,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
+            override val utbetalingsoversiktklient = utbetalingsoversiktFakeKlient
             override val meldekortvedtakRepo: MeldekortvedtakRepo
                 get() = meldekortvedtakRepoOverride ?: super.meldekortvedtakRepo
             override val utbetalingRepo: UtbetalingRepo
                 get() = utbetalingRepoOverride ?: super.utbetalingRepo
+            override val utbetalingsoversiktRepo: UtbetalingsoversiktRepo
+                get() = utbetalingsoversiktRepoOverride ?: super.utbetalingsoversiktRepo
         }
     }
 

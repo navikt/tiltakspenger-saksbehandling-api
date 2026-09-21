@@ -40,6 +40,16 @@ import kotlin.time.Duration.Companion.seconds
  * Kalleren er en bakgrunnsjobb uten ventende bruker, og jobben prøver saken igjen senere, så klienten har ingen retry.
  * Svarer tjenesten 401, gjør httpklient ett forsøk til med ferskt token.
  * URI-en har ingen personopplysninger, siden identen ligger i bodyen.
+ *
+ * Slik svarer tjenesten (lest i kildekoden 2026-09-14), og slik klassifiserer vi svarene:
+ * - 200 med `[]` betyr ingen treff; applikasjonen svarer ikke 404.
+ * - 400 betyr at requesten for denne personen ble avvist, og gir [KunneIkkeHenteUtbetalingsoversikt.SakAvvist].
+ * - 401 og 403 betyr at tjenesten avviser oss, også når vi er tatt ut av allowlisten for intern-endepunktet, og gir [KunneIkkeHenteUtbetalingsoversikt.TilgangAvvist].
+ * - 500 har samme tekst uansett årsak, og gir [KunneIkkeHenteUtbetalingsoversikt.Tjenestefeil] sammen med andre statuser, timeout og nettverksfeil.
+ * - Tjenesten sier ikke fra om at økonomisystemet er stengt, i motsetning til simuleringen hos helved, som svarer 503.
+ * - Tjenesten har ingen rate limiting og ingen timeout mot databasene sine, og eierteamet varsles ved mer enn to 4xx eller 5xx på tre minutter.
+ *
+ * Kalleren må derfor holde seg innenfor åpningstidene og stoppe ved første feil som rammer alle saker.
  */
 class UtbetalingsoversiktHttpKlient(
     baseUrl: String,
