@@ -364,6 +364,7 @@ val httpklientKlasserMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",
         "no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient",
         "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingHttpKlient",
+        "no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktHttpKlient",
         "no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltakshistorikkHttpKlient",
     )
 
