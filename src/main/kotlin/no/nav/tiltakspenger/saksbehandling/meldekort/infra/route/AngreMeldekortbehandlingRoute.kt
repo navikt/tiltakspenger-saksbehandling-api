@@ -23,7 +23,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.service.AngreMeldekortbehan
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
 import java.time.Clock
 
-private const val PATH = "/sak/{sakId}/meldekort/{meldekortId}/ta"
+private const val PATH = "/sak/{sakId}/meldekort/{meldekortId}/angre"
 
 fun Route.angreMeldekortbehandlingRoute(
     auditService: AuditService,

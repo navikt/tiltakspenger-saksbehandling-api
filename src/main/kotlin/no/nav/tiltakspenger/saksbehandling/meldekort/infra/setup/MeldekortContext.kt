@@ -220,6 +220,7 @@ open class MeldekortContext(
         AngreMeldekortbehandlingService(
             sakService = sakService,
             clock = clock,
+            meldekortbehandlingRepo = meldekortbehandlingRepo,
         )
     }
 

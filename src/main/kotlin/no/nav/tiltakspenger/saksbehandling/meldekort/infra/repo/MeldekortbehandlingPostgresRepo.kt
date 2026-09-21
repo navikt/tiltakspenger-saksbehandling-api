@@ -414,19 +414,19 @@ class MeldekortbehandlingPostgresRepo(
     ): Boolean {
         return sessionFactory.withTransaction(transactionContext) { tx ->
             tx.run(
-                queryOf(
+                sqlQuery(
                     """
                         update meldekortbehandling set
                             status = :status,
-                            sist_endret = :sist_endret
+                            sist_endret = :sist_endret,
                             sendt_til_beslutning = null
                         where status = 'KLAR_TIL_BESLUTNING' and id = :id
                     """,
-                    mapOf(
-                        "id" to meldekortbehandling.id.toString(),
-                        "status" to meldekortbehandling.status.toDb(),
-                        "sist_endret" to meldekortbehandling.sistEndret,
-                    ),
+
+                    "id" to meldekortbehandling.id.toString(),
+                    "status" to meldekortbehandling.status.toDb(),
+                    "sist_endret" to meldekortbehandling.sistEndret,
+
                 ).asUpdate,
             ) > 0
         }

@@ -186,7 +186,23 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         meldekortbehandling: Meldekortbehandling,
         transactionContext: TransactionContext?,
     ): Boolean {
-        TODO("Not yet implemented")
+        val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
+
+        if (meldekortbehandlingRespons == null ||
+            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING ||
+            meldekortbehandlingRespons.sistEndret != meldekortbehandling.sistEndret
+        ) {
+            return false
+        }
+
+        if (meldekortbehandling is MeldekortbehandlingManuell) {
+            data.get()[meldekortbehandling.id] = meldekortbehandling.copy(
+                sendtTilBeslutning = null,
+            )
+            return true
+        } else {
+            throw IllegalStateException("Kan ikke angre meldekortbehandling som ikke er behandlet manuelt")
+        }
     }
 
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {
