@@ -89,7 +89,6 @@ interface MeldekortbehandlingRepo {
 
     fun angreMeldekortbehandlingSendtTilBeslutning(
         meldekortbehandling: Meldekortbehandling,
-        transactionContext: TransactionContext? = null,
     ): Boolean
 
     fun hentBehandlingerTilDatadeling(limit: Int = 10): List<Meldekortbehandling>

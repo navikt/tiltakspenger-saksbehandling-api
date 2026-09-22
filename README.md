@@ -22,6 +22,9 @@ Denne bruker mocks for de fleste tjenester, og krever kun en lokal database kjø
 Databasen kan startes med docker-compose i [meta-repoet for tiltakspenger](https://github.com/navikt/tiltakspenger).
 Se README der for fremgangsmåte og import av data.
 
+## Kover Report
+
+./gradlew koverHtmlReport
 
 ## Spørringer mot database
 GCP-databasene (dev eller prod) kan nåes fra lokal maskin på ulike måter: 

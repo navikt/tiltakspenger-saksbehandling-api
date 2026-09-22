@@ -184,7 +184,6 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
 
     override fun angreMeldekortbehandlingSendtTilBeslutning(
         meldekortbehandling: Meldekortbehandling,
-        transactionContext: TransactionContext?,
     ): Boolean {
         val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
 
