@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Navkontor

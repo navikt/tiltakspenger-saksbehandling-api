@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO

@@ -5,7 +5,7 @@ import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import java.time.Clock
 import java.time.Instant

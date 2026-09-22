@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 
 /*
     Dette repoet brukes av auditloggeren

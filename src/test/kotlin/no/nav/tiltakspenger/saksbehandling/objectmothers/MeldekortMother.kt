@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
@@ -16,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId

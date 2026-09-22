@@ -5,11 +5,11 @@ import arrow.core.nonEmptySetOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag

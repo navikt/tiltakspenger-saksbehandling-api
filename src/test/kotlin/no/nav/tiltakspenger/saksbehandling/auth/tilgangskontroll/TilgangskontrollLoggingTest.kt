@@ -10,7 +10,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.common.Loggfanger

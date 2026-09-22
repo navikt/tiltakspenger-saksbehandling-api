@@ -7,7 +7,7 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesSkjermingError
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 

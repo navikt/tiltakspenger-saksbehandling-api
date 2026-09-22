@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker

@@ -5,13 +5,13 @@ import arrow.core.nonEmptySetOf
 import arrow.core.toNonEmptyListOrNull
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars

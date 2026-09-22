@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.domene
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 
 /**
  * Radene i én fane, sammen med tellingene benken viser over tabellen.

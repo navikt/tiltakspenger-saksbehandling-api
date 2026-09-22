@@ -4,7 +4,7 @@ import arrow.core.getOrElse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.personklient.pdl.FellesPersonklient
 import no.nav.tiltakspenger.libs.personklient.pdl.GraphqlBolkQuery

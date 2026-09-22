@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.infra.route
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

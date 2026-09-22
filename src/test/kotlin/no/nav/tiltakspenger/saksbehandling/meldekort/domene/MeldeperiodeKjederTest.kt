@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
@@ -11,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.enUkeEtterFixedClock
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.desember

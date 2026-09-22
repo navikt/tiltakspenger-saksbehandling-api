@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning

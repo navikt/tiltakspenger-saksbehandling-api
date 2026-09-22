@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
 import arrow.core.NonEmptySet
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson

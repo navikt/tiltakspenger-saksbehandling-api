@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling

@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper

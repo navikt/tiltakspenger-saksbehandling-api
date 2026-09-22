@@ -5,8 +5,8 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper

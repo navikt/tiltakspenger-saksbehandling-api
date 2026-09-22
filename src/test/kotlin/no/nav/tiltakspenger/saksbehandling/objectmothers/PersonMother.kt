@@ -2,7 +2,7 @@
 
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson

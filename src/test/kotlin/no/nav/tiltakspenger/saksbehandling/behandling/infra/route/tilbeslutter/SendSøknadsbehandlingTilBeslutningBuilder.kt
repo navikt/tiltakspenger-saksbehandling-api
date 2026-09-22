@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.tilbeslutter
 
 import arrow.core.Tuple4
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
@@ -16,7 +16,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedAvslag
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak

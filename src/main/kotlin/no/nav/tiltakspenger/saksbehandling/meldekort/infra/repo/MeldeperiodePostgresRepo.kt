@@ -2,10 +2,10 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeId
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId

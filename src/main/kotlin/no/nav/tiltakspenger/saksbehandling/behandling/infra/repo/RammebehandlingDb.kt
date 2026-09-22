@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import arrow.core.toNonEmptySetOrNull
 import kotliquery.Row
 import kotliquery.Session
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.BehandlingUtbetaling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlingstype
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev

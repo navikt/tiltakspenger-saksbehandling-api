@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.oppdater
 
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.json.objectMapper

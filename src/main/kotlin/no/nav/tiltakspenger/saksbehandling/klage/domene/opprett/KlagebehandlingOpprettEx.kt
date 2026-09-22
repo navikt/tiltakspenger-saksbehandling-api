@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.opprett
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling

@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.dokument.TittelOgTekstDTO

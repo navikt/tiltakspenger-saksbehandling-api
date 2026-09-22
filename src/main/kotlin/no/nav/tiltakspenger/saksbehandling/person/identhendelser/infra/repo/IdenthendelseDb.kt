@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.person.Personident
 import java.time.LocalDateTime
 import java.util.UUID

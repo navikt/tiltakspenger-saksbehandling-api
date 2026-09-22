@@ -4,10 +4,10 @@ import kotliquery.Row
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periodeOrNull
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode

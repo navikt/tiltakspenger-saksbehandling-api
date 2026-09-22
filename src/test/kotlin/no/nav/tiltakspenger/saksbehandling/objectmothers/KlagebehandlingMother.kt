@@ -6,7 +6,6 @@ import arrow.core.nonEmptySetOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.BehandlingId
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -16,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel

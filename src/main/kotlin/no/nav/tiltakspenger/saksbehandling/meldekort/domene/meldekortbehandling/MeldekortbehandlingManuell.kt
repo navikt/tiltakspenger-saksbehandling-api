@@ -5,13 +5,13 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll

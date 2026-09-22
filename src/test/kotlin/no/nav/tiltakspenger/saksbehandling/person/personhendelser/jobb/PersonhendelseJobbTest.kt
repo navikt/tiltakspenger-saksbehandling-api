@@ -8,9 +8,9 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.august

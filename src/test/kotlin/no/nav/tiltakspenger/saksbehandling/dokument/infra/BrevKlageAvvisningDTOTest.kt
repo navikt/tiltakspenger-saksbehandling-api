@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import io.kotest.assertions.json.shouldEqualJson
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst

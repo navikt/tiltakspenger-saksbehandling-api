@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.repo
 
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres

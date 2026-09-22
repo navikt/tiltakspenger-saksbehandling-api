@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.mottattFraKa
 
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.infra.route.KlagebehandlingDTOJson

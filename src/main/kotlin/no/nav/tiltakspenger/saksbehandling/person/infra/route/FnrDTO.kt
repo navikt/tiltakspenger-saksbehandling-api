@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.route
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 
 data class FnrDTO(
     val fnr: String,

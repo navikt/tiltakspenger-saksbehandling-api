@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.person.personhendelser.infra.repo
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.Opplysningstype

@@ -1,11 +1,11 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandlerrolle
 import no.nav.tiltakspenger.libs.common.Saksbehandlerroller
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode

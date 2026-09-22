@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody
 import no.nav.tiltakspenger.libs.texas.systembruker

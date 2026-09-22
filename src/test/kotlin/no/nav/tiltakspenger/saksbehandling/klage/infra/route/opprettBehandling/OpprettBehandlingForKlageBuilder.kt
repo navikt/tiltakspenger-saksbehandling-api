@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.opprettBehandling
 import arrow.core.Tuple4
 import arrow.core.Tuple5
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons

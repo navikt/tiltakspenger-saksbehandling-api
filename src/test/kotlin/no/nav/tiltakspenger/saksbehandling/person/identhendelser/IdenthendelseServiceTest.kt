@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.identhendelser
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.hentIdenthendelserForGammeltFnr

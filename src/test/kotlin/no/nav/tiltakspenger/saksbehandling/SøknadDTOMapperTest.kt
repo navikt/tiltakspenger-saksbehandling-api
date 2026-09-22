@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO

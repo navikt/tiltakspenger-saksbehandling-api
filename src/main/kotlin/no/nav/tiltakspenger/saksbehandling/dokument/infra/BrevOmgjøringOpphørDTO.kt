@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 
 import arrow.core.NonEmptySet
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode

@@ -7,7 +7,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.nulls.shouldBeNull
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar

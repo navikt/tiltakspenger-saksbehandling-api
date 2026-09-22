@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo
 
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 
 /**

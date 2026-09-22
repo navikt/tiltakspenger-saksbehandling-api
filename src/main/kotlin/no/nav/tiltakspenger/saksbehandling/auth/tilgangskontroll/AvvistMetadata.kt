@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 
 /**
  * Metadata om en avvist tilgangsvurdering fra tilgangsmaskinen.

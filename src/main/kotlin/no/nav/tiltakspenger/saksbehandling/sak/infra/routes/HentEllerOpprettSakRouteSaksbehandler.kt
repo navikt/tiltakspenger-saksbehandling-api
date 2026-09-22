@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.put
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
 import no.nav.tiltakspenger.libs.ktor.common.withBody

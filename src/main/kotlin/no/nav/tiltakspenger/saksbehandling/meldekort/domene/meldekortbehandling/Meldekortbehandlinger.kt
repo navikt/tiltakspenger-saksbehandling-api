@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.saksbehandling.felles.singleOrNullOrThrow
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling

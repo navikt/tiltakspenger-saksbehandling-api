@@ -5,10 +5,10 @@ import arrow.core.NonEmptySet
 import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KLogger
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService

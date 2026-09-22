@@ -3,11 +3,11 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldeperiode
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrThrow
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nonDistinctBy
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId
 import no.nav.tiltakspenger.libs.periode.Periode
 

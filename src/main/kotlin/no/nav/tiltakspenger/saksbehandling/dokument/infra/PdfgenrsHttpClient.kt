@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import arrow.core.Either
 import arrow.core.NonEmptySet
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth

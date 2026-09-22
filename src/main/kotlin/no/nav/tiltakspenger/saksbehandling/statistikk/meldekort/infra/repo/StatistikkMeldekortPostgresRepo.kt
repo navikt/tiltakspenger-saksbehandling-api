@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.infra.repo
 
 import kotliquery.Session
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.statistikk.meldekort.StatistikkMeldekortDTO

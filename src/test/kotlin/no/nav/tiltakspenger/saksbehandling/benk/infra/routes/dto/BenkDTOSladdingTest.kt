@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
 import no.nav.tiltakspenger.libs.soknad.JaNeiSpmDTO

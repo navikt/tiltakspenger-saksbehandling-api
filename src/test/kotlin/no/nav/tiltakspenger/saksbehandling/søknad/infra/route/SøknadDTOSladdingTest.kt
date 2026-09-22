@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.januarDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdetVerdi

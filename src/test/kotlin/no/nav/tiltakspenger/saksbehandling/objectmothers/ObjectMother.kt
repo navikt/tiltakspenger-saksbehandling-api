@@ -1,10 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.FnrGenerator
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse

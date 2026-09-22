@@ -7,7 +7,7 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.throwableOrNull
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.BruktNavkontorKlient

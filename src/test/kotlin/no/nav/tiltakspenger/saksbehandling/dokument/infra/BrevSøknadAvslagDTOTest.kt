@@ -4,9 +4,9 @@ import arrow.core.nonEmptySetOf
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.fixedClock
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Avslagsgrunnlag
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev

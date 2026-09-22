@@ -4,7 +4,6 @@ import arrow.core.NonEmptySet
 import arrow.core.nonEmptyListOf
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -15,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars

@@ -2,9 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.sak.infra.repo
 
 import arrow.atomic.Atomic
 import arrow.core.Nel
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandlinger

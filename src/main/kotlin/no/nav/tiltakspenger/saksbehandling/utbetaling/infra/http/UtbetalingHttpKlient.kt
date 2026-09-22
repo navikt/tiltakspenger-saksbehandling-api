@@ -5,11 +5,11 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.harStatus
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient

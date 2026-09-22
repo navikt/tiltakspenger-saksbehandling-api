@@ -4,7 +4,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.AvvistMetadata

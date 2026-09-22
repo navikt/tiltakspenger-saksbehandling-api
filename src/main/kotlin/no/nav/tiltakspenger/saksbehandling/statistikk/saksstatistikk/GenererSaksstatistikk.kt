@@ -3,7 +3,7 @@
 
 package no.nav.tiltakspenger.saksbehandling.statistikk
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.SaksstatistikkDTO
 
 fun interface GenererSaksstatistikk : Statistikkhendelse {

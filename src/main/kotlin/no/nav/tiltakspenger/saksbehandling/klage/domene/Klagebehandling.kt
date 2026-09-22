@@ -6,10 +6,10 @@ import arrow.core.left
 import arrow.core.right
 import arrow.core.toNonEmptyListOrThrow
 import no.nav.tiltakspenger.libs.common.BehandlingId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Behandling
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus

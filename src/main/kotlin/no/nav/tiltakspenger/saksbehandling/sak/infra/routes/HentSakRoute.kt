@@ -5,10 +5,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
-import no.nav.tiltakspenger.libs.common.UgyldigFnrException
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.UgyldigFnrException
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond404NotFound
 import no.nav.tiltakspenger.libs.ktor.common.respondJson

@@ -6,10 +6,10 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.Ulid
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning

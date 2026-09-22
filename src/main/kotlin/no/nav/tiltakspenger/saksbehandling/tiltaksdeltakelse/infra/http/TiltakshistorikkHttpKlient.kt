@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.loggSuksess
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.Identoppslag
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk

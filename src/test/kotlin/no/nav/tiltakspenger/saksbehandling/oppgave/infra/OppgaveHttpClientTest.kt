@@ -6,7 +6,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport

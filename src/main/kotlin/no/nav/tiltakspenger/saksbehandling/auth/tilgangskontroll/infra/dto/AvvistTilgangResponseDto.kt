@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurdering
 

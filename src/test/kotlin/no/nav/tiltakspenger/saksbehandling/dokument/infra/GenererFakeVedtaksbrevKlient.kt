@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.dokument.infra
 import arrow.core.Either
 import arrow.core.NonEmptySet
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.AntallBarn

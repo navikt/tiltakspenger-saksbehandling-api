@@ -5,7 +5,7 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.aktor

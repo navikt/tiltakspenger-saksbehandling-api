@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.person
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import java.time.LocalDate
 
 data class PersonopplysningerSøker(

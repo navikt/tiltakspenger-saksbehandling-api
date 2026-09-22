@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.Tilgangsnektårsak
 
 sealed interface Tilgangsvurdering {

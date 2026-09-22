@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.person.identhendelser
 import no.nav.person.pdl.aktor.v2.Aktor
 import no.nav.person.pdl.aktor.v2.Identifikator
 import no.nav.person.pdl.aktor.v2.Type
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 
 /**
  * Bygger en [Aktor] slik den kommer inn på pdl.aktor-v2, med en aktørId i tillegg til fnr-ene.

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.dto
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 
 /**
  * Wire-DTO for request-body mot tilgangsmaskinens bulk-endepunkt.

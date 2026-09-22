@@ -2,11 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.vedtak
 
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.toNonEmptyListOrThrow
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
 import no.nav.tiltakspenger.libs.periode.overlapper

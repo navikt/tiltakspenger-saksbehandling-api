@@ -4,7 +4,7 @@ import io.github.serpro69.kfaker.faker
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.ktor.common.respondOk
 import no.nav.tiltakspenger.libs.ktor.common.withBody

@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId

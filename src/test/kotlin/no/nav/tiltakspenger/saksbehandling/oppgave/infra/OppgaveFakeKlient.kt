@@ -3,7 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.oppgave.infra
 import arrow.atomic.Atomic
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov

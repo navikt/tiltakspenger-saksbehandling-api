@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.sak.infra.routes
 
 import kotlinx.coroutines.test.runTest
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra.TilgangsmaskinFakeTestClient
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext

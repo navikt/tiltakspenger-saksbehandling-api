@@ -8,7 +8,7 @@ import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother

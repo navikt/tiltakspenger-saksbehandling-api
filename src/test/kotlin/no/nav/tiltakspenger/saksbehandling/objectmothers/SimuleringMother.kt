@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId

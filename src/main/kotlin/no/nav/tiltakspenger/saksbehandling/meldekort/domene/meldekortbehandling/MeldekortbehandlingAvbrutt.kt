@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling
 
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.FritekstTilVedtaksbrev
 import no.nav.tiltakspenger.saksbehandling.beregning.Utbetalingskontroll
 import no.nav.tiltakspenger.saksbehandling.felles.Attesteringer

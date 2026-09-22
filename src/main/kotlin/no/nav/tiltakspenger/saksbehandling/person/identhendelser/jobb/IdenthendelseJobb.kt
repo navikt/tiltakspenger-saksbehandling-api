@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo

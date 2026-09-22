@@ -3,9 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.klage.domene
 import arrow.core.nonEmptySetOf
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Hjemmel
 import no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException

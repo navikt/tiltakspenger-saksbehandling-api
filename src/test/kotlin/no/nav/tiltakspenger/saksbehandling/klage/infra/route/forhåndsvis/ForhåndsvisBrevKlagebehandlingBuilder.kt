@@ -3,10 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.klage.infra.route.forhåndsvis
 import arrow.core.Tuple4
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions

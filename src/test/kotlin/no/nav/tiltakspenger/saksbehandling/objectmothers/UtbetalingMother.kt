@@ -2,13 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.fixedClock
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.plus
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.meldekort.MeldeperiodeKjedeId

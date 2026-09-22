@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.ytelser.infra.http
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.periode.Periode

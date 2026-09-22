@@ -4,9 +4,9 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.nonEmptyListOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar

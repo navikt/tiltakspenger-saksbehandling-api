@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 

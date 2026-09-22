@@ -2,7 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.infra
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.AvvistMetadata
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsmaskinClient

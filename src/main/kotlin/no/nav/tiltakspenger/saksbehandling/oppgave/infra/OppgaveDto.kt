@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.oppgave.infra
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import java.time.Clock
 import java.time.DayOfWeek

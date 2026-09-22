@@ -4,9 +4,9 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.libs.auth.test.core.JwtGenerator
 import no.nav.tiltakspenger.libs.common.Bruker
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SaksnummerGenerator
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig

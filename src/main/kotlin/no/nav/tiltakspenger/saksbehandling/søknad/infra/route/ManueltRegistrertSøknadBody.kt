@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.PeriodeDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO

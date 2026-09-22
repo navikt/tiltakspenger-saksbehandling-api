@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.HendelseVersjon
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.juli

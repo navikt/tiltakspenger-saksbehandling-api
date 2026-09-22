@@ -1,8 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene
 
 import arrow.core.Either
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster

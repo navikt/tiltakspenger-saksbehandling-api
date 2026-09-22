@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.infra.
 import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.json.serializeNullable
 import no.nav.tiltakspenger.saksbehandling.statistikk.stønadsstatistikk.StatistikkStønadDTO

@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.saksbehandling
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.tiltakspenger.libs.common.Fnr
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
