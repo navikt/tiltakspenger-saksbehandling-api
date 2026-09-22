@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
@@ -19,7 +20,7 @@ class OppgavegrunnlagDbJsonTest {
     fun `endret tiltaksdeltakelse med alle valgfrie opplysninger`() {
         verifiser(
             Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                hendelseId = TiltaksdeltakerHendelseId.fromString("tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01"),
+                kilde = Kilde.Kafka(TiltaksdeltakerHendelseId.fromString("tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01")),
                 tiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02"),
                 eksternDeltakerId = "ekstern-123",
                 deltakelseFraOgMed = LocalDate.of(2026, 1, 2),
@@ -28,7 +29,7 @@ class OppgavegrunnlagDbJsonTest {
                 deltakelsesprosent = 50.0f,
                 deltakerstatus = TiltakDeltakerstatus.Deltar,
             ),
-            """{"type":"ENDRET_TILTAKSDELTAKELSE","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01","tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":"2026-01-02","deltakelseTilOgMed":"2026-06-30","dagerPerUke":2.5,"deltakelsesprosent":50.0,"deltakerstatus":"Deltar"}""",
+            """{"type":"ENDRET_TILTAKSDELTAKELSE","kilde":{"type":"KAFKA","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01"},"tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":"2026-01-02","deltakelseTilOgMed":"2026-06-30","dagerPerUke":2.5,"deltakelsesprosent":50.0,"deltakerstatus":"Deltar"}""",
         )
     }
 
@@ -36,7 +37,7 @@ class OppgavegrunnlagDbJsonTest {
     fun `endret tiltaksdeltakelse uten valgfrie opplysninger`() {
         verifiser(
             Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                hendelseId = TiltaksdeltakerHendelseId.fromString("tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01"),
+                kilde = Kilde.Kafka(TiltaksdeltakerHendelseId.fromString("tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01")),
                 tiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02"),
                 eksternDeltakerId = "ekstern-123",
                 deltakelseFraOgMed = null,
@@ -45,8 +46,15 @@ class OppgavegrunnlagDbJsonTest {
                 deltakelsesprosent = null,
                 deltakerstatus = TiltakDeltakerstatus.Avbrutt,
             ),
-            """{"type":"ENDRET_TILTAKSDELTAKELSE","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01","tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"dagerPerUke":null,"deltakelsesprosent":null,"deltakerstatus":"Avbrutt"}""",
+            """{"type":"ENDRET_TILTAKSDELTAKELSE","kilde":{"type":"KAFKA","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01"},"tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"dagerPerUke":null,"deltakelsesprosent":null,"deltakerstatus":"Avbrutt"}""",
         )
+    }
+
+    @Test
+    fun `ukjent kildetype avvises`() {
+        val json = """{"type":"ENDRET_TILTAKSDELTAKELSE","kilde":{"type":"UKJENT"},"tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"dagerPerUke":null,"deltakelsesprosent":null,"deltakerstatus":"Avbrutt"}"""
+
+        shouldThrow<InvalidTypeIdException> { json.toOppgavegrunnlag() }
     }
 
     @Test

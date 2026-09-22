@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
@@ -60,7 +61,7 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
             første.tilleggstekst shouldBe "Endret deltakelsesmengde."
             (første.opprettet in før..nå(tac.clock)) shouldBe true
             første.grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                hendelseId = hendelse.id,
+                kilde = Kilde.Kafka(hendelse.id),
                 tiltaksdeltakerId = deltakelse.internDeltakelseId,
                 eksternDeltakerId = eksternId.toString(),
                 deltakelseFraOgMed = 1.april(2025),
@@ -90,7 +91,7 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
             referanser.first() shouldBe første
             referanser.last().tilleggstekst shouldBe "Deltakelsen er ikke aktuell."
             referanser.last().grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                hendelseId = nyHendelse.id,
+                kilde = Kilde.Kafka(nyHendelse.id),
                 tiltaksdeltakerId = deltakelse.internDeltakelseId,
                 eksternDeltakerId = eksternId.toString(),
                 deltakelseFraOgMed = null,

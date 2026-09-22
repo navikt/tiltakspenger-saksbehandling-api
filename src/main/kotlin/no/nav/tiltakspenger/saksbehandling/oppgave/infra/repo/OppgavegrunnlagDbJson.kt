@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDb
@@ -17,7 +18,7 @@ import java.time.LocalDate
 )
 private sealed interface OppgavegrunnlagDb {
     class EndretTiltaksdeltakelse(
-        val hendelseId: String,
+        val kilde: TiltaksdeltakelseKildeDb,
         val tiltaksdeltakerId: String,
         val eksternDeltakerId: String,
         val deltakelseFraOgMed: LocalDate?,
@@ -28,10 +29,26 @@ private sealed interface OppgavegrunnlagDb {
     ) : OppgavegrunnlagDb
 }
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = TiltaksdeltakelseKildeDb.Kafka::class, name = "KAFKA"),
+)
+private sealed interface TiltaksdeltakelseKildeDb {
+    class Kafka(val hendelseId: String) : TiltaksdeltakelseKildeDb
+}
+
+private fun Kilde.toDb(): TiltaksdeltakelseKildeDb = when (this) {
+    is Kilde.Kafka -> TiltaksdeltakelseKildeDb.Kafka(hendelseId.toString())
+}
+
+private fun TiltaksdeltakelseKildeDb.toDomain(): Kilde = when (this) {
+    is TiltaksdeltakelseKildeDb.Kafka -> Kilde.Kafka(TiltaksdeltakerHendelseId.fromString(hendelseId))
+}
+
 fun Oppgavegrunnlag.toDbJson(): String = serialize(
     when (this) {
         is Oppgavegrunnlag.EndretTiltaksdeltakelse -> OppgavegrunnlagDb.EndretTiltaksdeltakelse(
-            hendelseId = hendelseId.toString(),
+            kilde = kilde.toDb(),
             tiltaksdeltakerId = tiltaksdeltakerId.toString(),
             eksternDeltakerId = eksternDeltakerId,
             deltakelseFraOgMed = deltakelseFraOgMed,
@@ -46,7 +63,7 @@ fun Oppgavegrunnlag.toDbJson(): String = serialize(
 fun String.toOppgavegrunnlag(): Oppgavegrunnlag =
     when (val db = deserialize<OppgavegrunnlagDb>(this)) {
         is OppgavegrunnlagDb.EndretTiltaksdeltakelse -> Oppgavegrunnlag.EndretTiltaksdeltakelse(
-            hendelseId = TiltaksdeltakerHendelseId.fromString(db.hendelseId),
+            kilde = db.kilde.toDomain(),
             tiltaksdeltakerId = TiltaksdeltakerId.fromString(db.tiltaksdeltakerId),
             eksternDeltakerId = db.eksternDeltakerId,
             deltakelseFraOgMed = db.deltakelseFraOgMed,

@@ -17,6 +17,4 @@ data class EksternOppgave(
     val opprettet: LocalDateTime,
     val grunnlag: Oppgavegrunnlag,
     val tilleggstekst: String?,
-) {
-    override fun toString() = "EksternOppgave(*****)"
-}
+)

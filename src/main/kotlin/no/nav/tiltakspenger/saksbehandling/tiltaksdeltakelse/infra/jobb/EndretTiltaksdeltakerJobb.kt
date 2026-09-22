@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRe
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
@@ -145,7 +146,7 @@ class EndretTiltaksdeltakerJobb(
                             sakId = sakId,
                             opprettet = nå(clock),
                             grunnlag = Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                                hendelseId = hendelseId,
+                                kilde = Kilde.Kafka(hendelseId),
                                 tiltaksdeltakerId = internDeltakerId,
                                 eksternDeltakerId = eksternDeltakerId,
                                 deltakelseFraOgMed = deltakerHendelse.deltakelseFraOgMed,

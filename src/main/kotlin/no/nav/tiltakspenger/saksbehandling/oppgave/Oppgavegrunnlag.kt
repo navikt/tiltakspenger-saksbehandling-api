@@ -7,7 +7,7 @@ import java.time.LocalDate
 
 sealed interface Oppgavegrunnlag {
     data class EndretTiltaksdeltakelse(
-        val hendelseId: TiltaksdeltakerHendelseId,
+        val kilde: Kilde,
         val tiltaksdeltakerId: TiltaksdeltakerId,
         val eksternDeltakerId: String,
         val deltakelseFraOgMed: LocalDate?,
@@ -15,5 +15,10 @@ sealed interface Oppgavegrunnlag {
         val dagerPerUke: Float?,
         val deltakelsesprosent: Float?,
         val deltakerstatus: TiltakDeltakerstatus,
-    ) : Oppgavegrunnlag
+    ) : Oppgavegrunnlag {
+        /** Kildespesifikke referanser holdes adskilt fra øyeblikksbildet av deltakelsen. */
+        sealed interface Kilde {
+            data class Kafka(val hendelseId: TiltaksdeltakerHendelseId) : Kilde
+        }
+    }
 }

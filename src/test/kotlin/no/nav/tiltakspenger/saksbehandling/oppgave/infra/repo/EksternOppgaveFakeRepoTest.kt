@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
@@ -52,7 +53,7 @@ class EksternOppgaveFakeRepoTest {
         sakId = sakId,
         opprettet = opprettet,
         grunnlag = Oppgavegrunnlag.EndretTiltaksdeltakelse(
-            hendelseId = TiltaksdeltakerHendelseId.random(),
+            kilde = Kilde.Kafka(TiltaksdeltakerHendelseId.random()),
             tiltaksdeltakerId = TiltaksdeltakerId.random(),
             eksternDeltakerId = UUID.randomUUID().toString(),
             deltakelseFraOgMed = LocalDate.of(2026, 3, 17),
