@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktstatus
+import java.time.LocalDateTime
 import java.util.concurrent.CopyOnWriteArrayList
 
 class UtbetalingsoversiktFakeRepo : UtbetalingsoversiktRepo {
@@ -13,6 +14,9 @@ class UtbetalingsoversiktFakeRepo : UtbetalingsoversiktRepo {
     override fun lagre(oversikt: Utbetalingsoversikt, metadata: UtbetalingsoversiktMetadata) {
         oversikter.add(oversikt)
     }
+
+    /** Faken kjenner ikke sakenes utbetalinger, så køen er tom; køspørringen testes mot Postgres. */
+    override fun hentSakerKlareForOppslag(nå: LocalDateTime, limit: Int): List<SakId> = emptyList()
 
     override fun hentStatusForSak(sakId: SakId): Utbetalingsoversiktstatus {
         val forSak = oversikter.filter { it.sakId == sakId }.sortedWith(compareBy({ it.hentet }, { it.id.toString() }))

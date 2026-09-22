@@ -77,4 +77,14 @@ class ÅpningstiderTest {
         Åpningstider.nesteÅpneDag(9.mai(2025)) shouldBe 12.mai(2025)
         Åpningstider.nesteÅpneDag(30.april(2025)) shouldBe 2.mai(2025)
     }
+
+    /** Fredag 2. mai er sendedag, mandag 5. mai er ventedag, og tirsdag 6. mai 06:10 er første åpning etter det. */
+    @Test
+    fun `en utbetaling kan stå i reskontroen to åpne dager etter at den ble sendt`() {
+        Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(6.mai(2025).atTime(6, 10)) shouldBe 2.mai(2025).atTime(20, 50)
+        Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(6.mai(2025).atTime(6, 9)) shouldBe 30.april(2025).atTime(20, 50)
+        Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(5.mai(2025).atTime(12, 0)) shouldBe 30.april(2025).atTime(20, 50)
+        Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(7.mai(2025).atTime(12, 0)) shouldBe 5.mai(2025).atTime(20, 50)
+        Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(10.mai(2025).atTime(12, 0)) shouldBe 7.mai(2025).atTime(20, 50)
+    }
 }

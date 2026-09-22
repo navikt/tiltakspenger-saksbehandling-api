@@ -13,6 +13,8 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktstatus
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider
+import java.time.LocalDateTime
 
 class UtbetalingsoversiktPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -85,6 +87,55 @@ class UtbetalingsoversiktPostgresRepo(
                 sisteVellykkede = hentSisteVellykkedeFør(siste, session),
             )
         }
+    }
+
+    /**
+     * Henter saker som har en OK-utbetaling som kan stå i reskontroen, og som er klare for oppslag, med tidligste frist først.
+     * Siste oppslag slås opp per sak, så arbeidet følger antall saker og ikke lengden på historikken.
+     */
+    override fun hentSakerKlareForOppslag(nå: LocalDateTime, limit: Int): List<SakId> = sessionFactory.withSession { session ->
+        session.run(
+            sqlQuery(
+                """
+                WITH sendte_utbetalinger AS (
+                    SELECT
+                        sak_id,
+                        min(sendt_til_utbetaling_tidspunkt) AS forste_sendetidspunkt,
+                        max(sendt_til_utbetaling_tidspunkt) AS siste_sendetidspunkt
+                    FROM utbetaling
+                    WHERE status = 'OK'
+                      AND sendt_til_utbetaling_tidspunkt < :sendt_foer
+                    GROUP BY sak_id
+                )
+                SELECT sendte_utbetalinger.sak_id
+                FROM sendte_utbetalinger
+                LEFT JOIN LATERAL (
+                    SELECT
+                        hentet,
+                        resultat,
+                        neste_oppslag
+                    FROM utbetalingsoversikt
+                    WHERE utbetalingsoversikt.sak_id = sendte_utbetalinger.sak_id
+                    ORDER BY hentet DESC, id DESC
+                    LIMIT 1
+                ) siste_oppslag ON TRUE
+                WHERE siste_oppslag.hentet IS NULL
+                   OR siste_oppslag.neste_oppslag <= :naa
+                   OR (
+                        siste_oppslag.resultat = 'VELLYKKET'
+                        AND siste_oppslag.hentet < :dagens_start
+                        AND sendte_utbetalinger.siste_sendetidspunkt >= :sendt_etter
+                   )
+                ORDER BY coalesce(siste_oppslag.neste_oppslag, sendte_utbetalinger.forste_sendetidspunkt), sendte_utbetalinger.sak_id
+                LIMIT :limit
+                """.trimIndent(),
+                "naa" to nå,
+                "dagens_start" to nå.toLocalDate().atStartOfDay(),
+                "sendt_etter" to nå.minusDays(30),
+                "sendt_foer" to Åpningstider.senesteSendetidspunktSomKanStåIReskontroen(nå),
+                "limit" to limit,
+            ).map { SakId.fromString(it.string("sak_id")) }.asList,
+        )
     }
 
     private fun hentSiste(sakId: SakId, session: Session): Utbetalingsoversikt? = session.run(

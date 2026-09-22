@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
  * Går utbetalingen i stykker mot helved, skal requesten vi sendte lagres på utbetalingen slik at forsøket kan ettergås.
  * Utbetalingen blir liggende i utsjekkskøen og prøves på nytt; at den ikke slipper ut er spørringens kontrakt og asserteres i `UtbetalingAggregatTest`.
  *
- * Testen kjører isolert fordi `sendUtbetalingerTilHelved`-jobben sveiper over alle utbetalinger i skjemaet, ikke bare denne sakens.
+ * Testen kjører isolert fordi `sendUtbetalingerTilHelved`-jobben går gjennom alle utbetalinger i skjemaet, ikke bare denne sakens.
  * Deler vi skjema med andre route-tester, ville vår feilende [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient] feilet deres utbetalinger også.
  */
 class SendUtbetalingerMedFeilTest {

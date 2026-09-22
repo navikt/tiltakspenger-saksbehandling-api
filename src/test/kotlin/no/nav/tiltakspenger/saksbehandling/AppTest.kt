@@ -64,6 +64,8 @@ class AppTest {
             metrikker shouldContain
                 """tpts_bakgrunnsprosess_sist_vellykket_tidspunkt_sekunder{prosess="saksbehandling-jobb-send-utbetalinger",type="jobb"}"""
             metrikker shouldContain
+                """tpts_bakgrunnsprosess_intervall_sekunder{prosess="saksbehandling-jobb-oppdater-utbetalingsoversikt",type="jobb"}"""
+            metrikker shouldContain
                 """tpts_bakgrunnsprosess_intervall_sekunder{prosess="tilbake.privat-tilbakekreving-tiltakspenger",type="meldingsleser"}"""
             metrikker shouldContain
                 """tpts_bakgrunnsprosess_sist_vellykket_tidspunkt_sekunder{prosess="tilbake.privat-tilbakekreving-tiltakspenger",type="meldingsleser"}"""

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
  *
  * `OK_UTEN_UTBETALING` finnes kun i denne retningen: helved svarer det når meldekortet ikke ga penger å utbetale.
  *
- * Testen kjører isolert fordi den styrer en verdi på [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient] og er avhengig av en jobb som sveiper over alle utbetalinger i skjemaet.
+ * Testen kjører isolert fordi den styrer en verdi på [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient] og er avhengig av en jobb som går gjennom alle utbetalinger i skjemaet.
  */
 class UtbetalingsstatusRundturTest {
 

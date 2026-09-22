@@ -19,8 +19,8 @@ import org.junit.jupiter.api.Test
 
 /**
  * Tilstanden bygges gjennom prodstiene: behandlingen iverksettes via routene, slik at statistikken skrives av prodflyten, og identhendelsen kommer inn via [no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.AktorV2Consumer].
- * Jobben kjøres per id slik sveipet gjør i prod.
- * Sveipemetoden kalles ikke: den ville plukket opp parallelle testers hendelser, jf. «Fakes er per test, jobber sveiper over hele skjemaet» i `AGENTS-backend.md`.
+ * Jobben kjøres per id, slik den kjøres i prod.
+ * Metoden som går gjennom alle hendelsene kalles ikke: den ville plukket opp parallelle testers hendelser, jf. «Fakes er per test, jobber sveiper over hele skjemaet» i `AGENTS-backend.md`.
  */
 class IdenthendelseJobbTest {
 

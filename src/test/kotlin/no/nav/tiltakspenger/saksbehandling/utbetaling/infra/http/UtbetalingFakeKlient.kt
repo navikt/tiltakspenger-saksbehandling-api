@@ -39,7 +39,7 @@ class UtbetalingFakeKlient(
      * Settes av tester som trenger en utbetaling som ikke gikk gjennom, f.eks. [Utbetalingsstatus.FeiletMotOppdrag].
      *
      * **Testen må da kjøre isolert** (`runIsolated = true` + `@IsolatedDatabaseTest`).
-     * Denne faken er per test-kontekst, mens `oppdaterUtbetalingsstatus`-jobben sveiper over alle utbetalinger i skjemaet.
+     * Denne faken er per test-kontekst, mens `oppdaterUtbetalingsstatus`-jobben går gjennom alle utbetalinger i skjemaet.
      * Deler du skjema med andre route-tester, vil deres jobbkjøring hente statusen for din utbetaling gjennom deres fake og overskrive den med `Ok`.
      */
     var utbetalingsstatus: Utbetalingsstatus = Utbetalingsstatus.Ok,
@@ -47,12 +47,12 @@ class UtbetalingFakeKlient(
      * Settes av tester som trenger at selve iverksettingen mot helved feiler, f.eks. for å dekke lagringen av feilresponsen.
      *
      * **Testen må da kjøre isolert** (`runIsolated = true` + `@IsolatedDatabaseTest`), av samme grunn som [utbetalingsstatus].
-     * `sendUtbetalingerTilHelved`-jobben sveiper over alle utbetalinger i skjemaet, så en annen test ville fått sin utbetaling feilet av din fake.
+     * `sendUtbetalingerTilHelved`-jobben går gjennom alle utbetalinger i skjemaet, så en annen test ville fått sin utbetaling feilet av din fake.
      */
     var iverksettFeil: KunneIkkeUtbetale? = null,
     /**
      * Settes av tester som trenger at simuleringen feiler, f.eks. for at en behandling skal lagres med beregning uten simulering.
-     * Simuleringen kalles synkront fra behandlingens egne ruter og ikke fra noen sveipende jobb, så testen trenger ikke kjøre isolert.
+     * Simuleringen kalles synkront fra behandlingens egne ruter og ikke fra en jobb som går gjennom hele skjemaet, så testen trenger ikke kjøre isolert.
      */
     var simulerFeil: KunneIkkeSimulere? = null,
 ) : Utbetalingsklient {

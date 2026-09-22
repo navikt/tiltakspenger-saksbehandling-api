@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
 import no.nav.tiltakspenger.saksbehandling.vedtak.periodeForUtbetalingsoversikt
 import java.time.Clock
 import kotlin.time.toJavaDuration
@@ -30,8 +31,38 @@ class OppdaterUtbetalingsoversiktJobb(
     private val utbetalingsoversiktklient: Utbetalingsoversiktklient,
     private val clock: Clock,
     private val meterRegistry: MeterRegistry,
+    private val limit: Int,
 ) {
     private val logger = KotlinLogging.logger {}
+
+    /**
+     * Oppdaterer sakene som er klare, og gjør ingenting når økonomisystemet er stengt.
+     * En kjøring som starter rett før stengetid kan gå noen minutter over; stengetiden 20:50 har margin til 21:00 for det.
+     * Stopper ved første feil som rammer alle saker, ved en uventet feil, og når [MAKS_FEIL_PER_KJØRING] oppslag har feilet.
+     * Eierteamet varsles ved mer enn to feil på tre minutter, og tjenesten sier ikke fra om at økonomisystemet er stengt.
+     */
+    suspend fun oppdaterUtbetalingsoversikter() {
+        if (!erInnenforØkonomisystemetsÅpningstider(clock)) return
+        var antallFeil = 0
+        for (sakId in utbetalingsoversiktRepo.hentSakerKlareForOppslag(nå = nå(clock), limit = limit)) {
+            val skalStoppe = Either.catch { oppdaterForSak(sakId) }.fold(
+                ifLeft = {
+                    logger.error(it) { "Uventet feil ved oppdatering av utbetalingsoversikt, stopper kjøringen. sakId=$sakId." }
+                    true
+                },
+                ifRight = { utfall ->
+                    utfall.fold(
+                        ifLeft = { feil ->
+                            antallFeil++
+                            feil.rammerAlleSaker || antallFeil >= MAKS_FEIL_PER_KJØRING
+                        },
+                        ifRight = { false },
+                    )
+                },
+            )
+            if (skalStoppe) return
+        }
+    }
 
     /**
      * Slår opp utbetalingene for én sak og lagrer utfallet, også når oppslaget feiler.
@@ -117,5 +148,6 @@ class OppdaterUtbetalingsoversiktJobb(
 
     private companion object {
         const val OPERASJON = "henting av utbetalingsoversikt"
+        const val MAKS_FEIL_PER_KJØRING = 2
     }
 }

@@ -40,6 +40,7 @@ open class UtbetalingContext(
     navkontorService: NavkontorService,
     statistikkService: StatistikkService,
     meterRegistry: MeterRegistry,
+    erDev: Boolean,
 ) {
     open val utbetalingsklient: Utbetalingsklient by lazy {
         UtbetalingHttpKlient(
@@ -117,6 +118,8 @@ open class UtbetalingContext(
             utbetalingsoversiktklient = utbetalingsoversiktklient,
             clock = clock,
             meterRegistry = meterRegistry,
+            // Lavt i dev til vi har målt hva et oppslag koster; justeres før jobben slås på i prod.
+            limit = if (erDev) 2 else 10,
         )
     }
 }

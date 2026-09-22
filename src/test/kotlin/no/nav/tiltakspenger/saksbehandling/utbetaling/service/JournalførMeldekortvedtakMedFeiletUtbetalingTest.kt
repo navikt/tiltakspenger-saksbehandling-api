@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
  * Bruker har krav på vedtaket sitt, og klagefristen løper.
  * Avviket varsles i stedet via metrikk og errorlogg, se [no.nav.tiltakspenger.saksbehandling.infra.metrikker.varsleHvisUtbetalingHarFeilet].
  *
- * Testen kjører isolert fordi `oppdaterUtbetalingsstatus`-jobben sveiper over alle utbetalinger i skjemaet, ikke bare denne sakens.
+ * Testen kjører isolert fordi `oppdaterUtbetalingsstatus`-jobben går gjennom alle utbetalinger i skjemaet, ikke bare denne sakens.
  * Deler vi skjema med andre route-tester, vil deres jobb hente statusen vår fra deres [no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.UtbetalingFakeKlient] og overskrive den med `Ok`.
  */
 class JournalførMeldekortvedtakMedFeiletUtbetalingTest {

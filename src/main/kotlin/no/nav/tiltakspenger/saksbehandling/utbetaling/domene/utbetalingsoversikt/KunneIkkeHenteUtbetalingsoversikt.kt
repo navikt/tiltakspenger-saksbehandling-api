@@ -7,11 +7,15 @@ sealed interface KunneIkkeHenteUtbetalingsoversikt {
     val feiltype: Oppslagsfeiltype
     val metadata: HttpKlientMetadata
 
+    /** Sant når neste sak ville fått samme feil, så en kjøring over flere saker bør stoppe. */
+    val rammerAlleSaker: Boolean
+
     /** Tjenesten avviste oss, ikke personen det ble spurt om. */
     data class TilgangAvvist(
         val httpKlientError: HttpKlientError.UventetStatus,
     ) : KunneIkkeHenteUtbetalingsoversikt {
         override val feiltype = Oppslagsfeiltype.TILGANG_AVVIST
+        override val rammerAlleSaker = true
         override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
     }
 
@@ -20,6 +24,7 @@ sealed interface KunneIkkeHenteUtbetalingsoversikt {
         val httpKlientError: HttpKlientError,
     ) : KunneIkkeHenteUtbetalingsoversikt {
         override val feiltype = Oppslagsfeiltype.TJENESTEFEIL
+        override val rammerAlleSaker = true
         override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
     }
 
@@ -28,6 +33,7 @@ sealed interface KunneIkkeHenteUtbetalingsoversikt {
         val httpKlientError: HttpKlientError.UventetStatus,
     ) : KunneIkkeHenteUtbetalingsoversikt {
         override val feiltype = Oppslagsfeiltype.SAK_AVVIST
+        override val rammerAlleSaker = false
         override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
     }
 
@@ -36,6 +42,7 @@ sealed interface KunneIkkeHenteUtbetalingsoversikt {
         val httpKlientError: HttpKlientError.DeserializationError,
     ) : KunneIkkeHenteUtbetalingsoversikt {
         override val feiltype = Oppslagsfeiltype.ULESELIG_SVAR
+        override val rammerAlleSaker = false
         override val metadata: HttpKlientMetadata get() = httpKlientError.metadata
     }
 
@@ -48,6 +55,7 @@ sealed interface KunneIkkeHenteUtbetalingsoversikt {
         override val metadata: HttpKlientMetadata,
     ) : KunneIkkeHenteUtbetalingsoversikt {
         override val feiltype = Oppslagsfeiltype.UGYLDIG_INNHOLD
+        override val rammerAlleSaker = false
     }
 }
 

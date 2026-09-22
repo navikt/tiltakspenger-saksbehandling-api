@@ -94,7 +94,7 @@ class UtbetalingAggregatTest {
      * Statuskøen skiller på om statusen er endelig eller ikke.
      * `Ok` og `OkUtenUtbetaling` er endelige og tar utbetalingen ut av køen; de øvrige betyr «ikke ferdig ennå», og da må jobben spørre igjen.
      *
-     * Testen styrer en verdi på utbetalingsfaken og er avhengig av en jobb som sveiper over hele skjemaet, og må derfor kjøre isolert.
+     * Testen styrer en verdi på utbetalingsfaken og er avhengig av en jobb som går gjennom hele skjemaet, og må derfor kjøre isolert.
      */
     @Test
     @IsolatedDatabaseTest
@@ -129,7 +129,7 @@ class UtbetalingAggregatTest {
      * Bygger en sak med én usendt utbetaling, gjennom route-laget.
      *
      * Ingen av jobbene kjøres underveis, heller ikke på søknadsbehandlingen.
-     * Utbetalingsjobbene sveiper over hele skjemaet, så en jobbkjøring i oppbyggingen av sak nummer to ville sendt utbetalingen på sak nummer én.
+     * Utbetalingsjobbene går gjennom hele skjemaet, så en jobbkjøring i oppbyggingen av sak nummer to ville sendt utbetalingen på sak nummer én.
      */
     private suspend fun ApplicationTestBuilder.sakMedUtbetaling(tac: TestApplicationContext): Sak {
         val (sak) = iverksettSøknadsbehandling(tac = tac, jobber = JobberEtterIverksettelse.ingen)

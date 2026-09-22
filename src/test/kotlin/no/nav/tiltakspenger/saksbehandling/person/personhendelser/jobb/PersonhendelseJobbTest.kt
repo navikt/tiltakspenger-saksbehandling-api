@@ -38,8 +38,8 @@ import java.util.UUID
 
 /**
  * Tilstanden bygges gjennom prodstiene: vedtak og behandlinger lages via routene, og hendelsene kommer inn via [no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer].
- * Jobben kjøres per id slik sveipene gjør i prod.
- * Sveipemetodene kalles ikke: de ville plukket opp parallelle testers hendelser, jf. «Fakes er per test, jobber sveiper over hele skjemaet» i `AGENTS-backend.md`.
+ * Jobben kjøres per id, slik det gjøres i prod.
+ * Metodene som går gjennom alle hendelsene kalles ikke: de ville plukket opp parallelle testers hendelser, jf. «Fakes er per test, jobber sveiper over hele skjemaet» i `AGENTS-backend.md`.
  *
  * Klokka står på 1. mai 2025, så innvilgelsesperiodene under er valgt for å ligge før, rundt og etter «nå».
  */
@@ -215,7 +215,7 @@ class PersonhendelseJobbTest {
 
     /**
      * Iverksetter en søknadsbehandling med innvilgelse i [periode] og returnerer sak-id-en.
-     * Jobbene etter iverksettelse slås av, siden testene bygger flere saker og jobbene sveiper på tvers av dem.
+     * Jobbene etter iverksettelse slås av, siden testene bygger flere saker og jobbene går gjennom alle sakene.
      */
     private suspend fun ApplicationTestBuilder.iverksettMedPeriode(
         tac: TestApplicationContextMedPostgres,

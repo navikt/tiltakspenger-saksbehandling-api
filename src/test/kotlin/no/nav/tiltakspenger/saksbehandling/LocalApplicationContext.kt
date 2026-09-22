@@ -343,6 +343,7 @@ class LocalApplicationContext(
             navkontorService = navkontorService,
             statistikkService = statistikkContext.statistikkService,
             meterRegistry = meterRegistry,
+            erDev = false,
         ) {
             override val utbetalingsklient = utbetalingFakeKlient
             override val utbetalingsoversiktklient = utbetalingsoversiktFakeKlient

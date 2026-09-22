@@ -13,7 +13,7 @@ fun jobber(
     clock: Clock,
 ): List<Task> = buildList {
     addAll(søknadsbehandlingJobber(applicationContext))
-    addAll(utbetalingJobber(applicationContext))
+    addAll(utbetalingJobber(isNais, applicationContext))
     addAll(rammevedtaksbrevJobber(applicationContext))
     addAll(klageJobber(applicationContext))
     addAll(meldekortJobber(applicationContext, clock))
@@ -44,6 +44,7 @@ private fun søknadsbehandlingJobber(
 )
 
 private fun utbetalingJobber(
+    isNais: Boolean,
     applicationContext: ApplicationContext,
 ): List<Task> = listOf(
     Task(
@@ -67,7 +68,19 @@ private fun utbetalingJobber(
             TaskResultat.Ferdig
         },
     ),
+) + listOfNotNull(
+    Task(
+        navn = "saksbehandling-jobb-oppdater-utbetalingsoversikt",
+        intervall = Miljøverdi.lik(5.minutes),
+        utfør = { _ ->
+            applicationContext.utbetalingContext.oppdaterUtbetalingsoversiktJobb.oppdaterUtbetalingsoversikter()
+            TaskResultat.Ferdig
+        },
+    ).takeIf { oppdateringAvUtbetalingsoversiktErPåslått(isNais = isNais, erDev = applicationContext.erDev) },
 )
+
+/** Jobben går lokalt og i dev; prod slås på i egen commit når svarene og kostnaden i dev er vurdert. */
+fun oppdateringAvUtbetalingsoversiktErPåslått(isNais: Boolean, erDev: Boolean): Boolean = !isNais || erDev
 
 private fun rammevedtaksbrevJobber(
     applicationContext: ApplicationContext,

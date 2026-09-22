@@ -10,9 +10,9 @@ import java.time.LocalTime
 
 object Åpningstider {
     /**
-     * For å kunne si ca. når øknomisystemet er åpent.
-     * Tar ikke høyde for bevegelige helligdager og andre edge caser (som at det patches i helger, eller øknomisystemet er åpent utenom ordinær åpningstider)
-     * - https://helved-docs.intern.dev.nav.no/v3/doc/faq
+     * Sier om tidspunktet er innenfor økonomisystemets ordinære åpningstid.
+     * Tar ikke høyde for bevegelige helligdager, vedlikehold i helger eller åpning utenom ordinær tid.
+     * https://helved-docs.intern.dev.nav.no/v3/doc/faq
      */
     fun erInnenforØkonomisystemetsÅpningstider(clock: Clock): Boolean = erÅpent(nå(clock))
 
@@ -24,6 +24,17 @@ object Åpningstider {
             dato.erÅpenDag() && tidspunkt.toLocalTime().isBefore(ÅPNINGSTIDSPUNKT) -> dato.atTime(ÅPNINGSTIDSPUNKT)
             else -> nesteÅpneDag(dato).atTime(ÅPNINGSTIDSPUNKT)
         }
+    }
+
+    /**
+     * Finner grensen for når en utbetaling må være sendt for at den tidligst kan stå i reskontroen ved [nå].
+     * En utbetaling sendt en åpen dag beregnes samme kveld, neste åpne dag er ventedag, og den står tidligst i reskontroen når den åpner dagen etter.
+     * En utbetaling sendt etter stengetid eller på en stengt dag regnes som sendt neste åpne dag.
+     */
+    fun senesteSendetidspunktSomKanStåIReskontroen(nå: LocalDateTime): LocalDateTime {
+        return generateSequence(nå.toLocalDate()) { it.minusDays(1) }
+            .first { it.erÅpenDag() && nesteÅpneDag(nesteÅpneDag(it)).atTime(ÅPNINGSTIDSPUNKT) <= nå }
+            .atTime(STENGETIDSPUNKT)
     }
 
     fun nesteÅpneDag(etter: LocalDate): LocalDate = generateSequence(etter.plusDays(1)) { it.plusDays(1) }.first { it.erÅpenDag() }

@@ -31,7 +31,7 @@ import tools.jackson.databind.JsonNode
  * Prodstien til benk v2: én post per fane under `/benk` gir fanen pluss antallet i alle fanene.
  *
  * Testen pinner json-en, fordi det er den som er kontrakten mot frontendens `lib/benk/v2/typer`.
- * Kjører isolert, siden benken sveiper over hele skjemaet og ellers ville se andre testers saker.
+ * Kjører isolert, siden benken leser hele skjemaet og ellers ville se andre testers saker.
  */
 class HentBenkRouteTest {
 
