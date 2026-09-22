@@ -249,6 +249,7 @@ open class ApplicationContext(
         OppdatertTiltaksdeltakelseJobb(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             sakRepo = sakContext.sakRepo,
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
             startRevurderingService = behandlingContext.startRevurderingService,
             clock = clock,

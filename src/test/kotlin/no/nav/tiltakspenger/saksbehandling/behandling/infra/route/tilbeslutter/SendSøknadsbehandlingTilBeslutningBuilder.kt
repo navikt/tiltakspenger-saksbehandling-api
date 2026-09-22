@@ -50,9 +50,11 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             )
 
             SøknadsbehandlingsresultatType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(
-                tac,
-                fnr,
-                saksbehandler,
+                tac = tac,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                sakId = sakId,
+                tiltaksdeltakelse = tiltaksdeltakelse,
             )
         }
 

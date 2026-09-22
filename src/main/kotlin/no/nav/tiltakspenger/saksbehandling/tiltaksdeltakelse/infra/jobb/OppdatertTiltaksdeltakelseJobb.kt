@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
@@ -26,6 +27,7 @@ import java.time.LocalDate
  * Erstatter etter hvert [EndretTiltaksdeltakerJobb].
  * Hendelsene tolkes ikke — consumerne setter bare en markør ([Tiltaksdeltaker.sisteUbehandletEndringTidspunkt]) på deltakeren, og jobben henter nå-tilstanden for deltakelsen ferskt fra tiltakshistorikk-tjenesten.
  * Nå-tilstanden sammenlignes med saken, og relevante endringer fører til at en revurdering opprettes automatisk.
+ * Automatiske søknadsbehandlinger på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Oppgaver til oppgavesystemet/gosys sendes ikke lenger — det erstattes av annen funksjonalitet.
  *
  * Foreløpig er jobben ikke skedulert — se Jobber.kt.
@@ -33,6 +35,7 @@ import java.time.LocalDate
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     private val sakRepo: SakRepo,
+    private val rammebehandlingRepo: RammebehandlingRepo,
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     private val startRevurderingService: StartRevurderingService,
     private val clock: Clock,
@@ -74,6 +77,13 @@ class OppdatertTiltaksdeltakelseJobb(
                 feil.loggFeil(log, "henting av nå-tilstand for tiltaksdeltakelse", logIder)
                 return
             }?.tilTiltaksdeltakelseFraRegister(clock)
+
+            sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(
+                tiltaksdeltakerId = deltaker.id,
+                rammebehandlingRepo = rammebehandlingRepo,
+                minutterForsinkelse = MINUTTER_FORSINKELSE,
+                clock = clock,
+            )
 
             if (nåtilstand == null) {
                 // Enten finnes ikke deltakelsen i historikken, eller den har ukjent tiltakstype/kildestatus og kan ikke tolkes.

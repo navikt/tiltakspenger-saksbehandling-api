@@ -5,7 +5,6 @@ import arrow.core.getOrElse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
-import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -84,7 +83,12 @@ class EndretTiltaksdeltakerJobb(
         Either.catch {
             val sak = sakRepo.hentForSakId(sakId)!!
 
-            sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(internDeltakerId)
+            sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(
+                tiltaksdeltakerId = internDeltakerId,
+                rammebehandlingRepo = rammebehandlingRepo,
+                minutterForsinkelse = MINUTTER_FORSINKELSE,
+                clock = clock,
+            )
 
             if (!sak.harVedtakEllerÅpenManuellBehandlingForDeltakelse(internDeltakerId)) {
                 log.info { "Fant ingen vedtak eller åpne manuelle behandlinger for deltaker: $logIder" }
@@ -169,21 +173,6 @@ class EndretTiltaksdeltakerJobb(
         }
     }
 
-    // Antar at intensjonen her er at behandling skal tas av vent dersom tiltaksdeltakelsen endres
-    private fun Sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId: TiltaksdeltakerId) {
-        rammebehandlinger.åpneSøknadsbehandlinger
-            .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
-            .forEach {
-                it.oppdaterVenterTil(
-                    nyVenterTil = nå(clock).plusMinutes(MINUTTER_FORSINKELSE), // venter i tilfelle det kommer flere endringer
-                    clock = clock,
-                ).let { behandling ->
-                    rammebehandlingRepo.lagre(behandling)
-                }
-                log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
-            }
-    }
-
     private fun Sak.harVedtakEllerÅpenManuellBehandlingForDeltakelse(tiltaksdeltakerId: TiltaksdeltakerId): Boolean {
         val harÅpenManuellBehandling = rammebehandlinger.åpneSøknadsbehandlinger
             .any { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && !it.erUnderAutomatiskBehandling }
@@ -196,48 +185,8 @@ class EndretTiltaksdeltakerJobb(
     }
 
     private fun Sak.finnEndringer(deltaker: TiltaksdeltakerHendelse): TiltaksdeltakerEndringer? {
-        val tiltaksdeltakerId = deltaker.internDeltakerId
-
-        val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier
-            .filter { vedtak ->
-                val harInnvilgetForTiltaket = vedtak.valgteTiltaksdeltakelser!!.any {
-                    it.verdi.internDeltakelseId == tiltaksdeltakerId
-                }
-
-                // Dersom innvilgelsen fra vedtaket har utløpt, sjekker vi om det fortsatt var gjeldende innvilgelse på den datoen.
-                // Hvis ikke, sjekker vi fra dagens dato.
-                //
-                // Hensikten er at vi skal behandle endringen selv om det opprinnelige vedtaket er utløpt før vi fikk endringsmeldingen, men ikke dersom vedtaket allerede er stanset eller opphørt i den relevante perioden
-                val harRettIRelevantPeriode by lazy {
-                    val sisteInnvilgetDato = vedtak.innvilgelsesperioder!!.tilOgMed
-                    val dagensDato = LocalDate.now(clock)
-
-                    if (sisteInnvilgetDato.isBefore(dagensDato)) {
-                        rammevedtaksliste.harInnvilgetTiltakspengerPåDato(sisteInnvilgetDato)
-                    } else {
-                        // Sjekk om det fortsatt er gjeldende innvilgelse i perioden frem til opprinnelig sluttdato
-                        rammevedtaksliste.innvilgelsesperioder.overlapper(dagensDato til sisteInnvilgetDato)
-                    }
-                }
-
-                harInnvilgetForTiltaket && harRettIRelevantPeriode
-            }
-            .map { it.rammebehandling }
-
-        val åpneBehandlingerMedRelevantTiltaksdeltakelse = rammebehandlinger.åpneBehandlinger
-            .filter { !it.erUnderAutomatiskBehandling && it.getTiltaksdeltakelse(tiltaksdeltakerId) != null }
-
-        val behandlingerMedRelevantTiltaksdeltakelse = vedtatteBehandlingerMedRelevantTiltaksdeltakelse
-            .plus(åpneBehandlingerMedRelevantTiltaksdeltakelse)
-
-        if (behandlingerMedRelevantTiltaksdeltakelse.isEmpty()) {
-            return null
-        }
-
-        val sisteRelevanteTiltaksdeltakelse = behandlingerMedRelevantTiltaksdeltakelse
-            .maxBy { it.sistEndret }
-            .getTiltaksdeltakelse(tiltaksdeltakerId)!!
-
+        val sisteRelevanteTiltaksdeltakelse = finnSisteRelevanteTiltaksdeltakelse(deltaker.internDeltakerId, clock)
+            ?: return null
         return deltaker.finnEndringer(sisteRelevanteTiltaksdeltakelse, clock)
     }
 

@@ -1,7 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
+import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseLegacy
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndringer.Companion.tilEndringer
@@ -21,13 +23,36 @@ fun Sak.finnEndringer(
     nåtilstand: TiltaksdeltakelseLegacy,
     clock: Clock,
 ): TiltaksdeltakerEndringer? {
+    val kjentTilstand = finnSisteRelevanteTiltaksdeltakelse(tiltaksdeltakerId, clock) ?: return null
+    return finnEndringer(nåtilstand, kjentTilstand, clock)
+}
+
+/**
+ * Ignorerer vedtak som allerede er stanset eller opphørt i relevant periode.
+ * Utløpte innvilgelser er fortsatt relevante dersom det var rett på den opprinnelige sluttdatoen.
+ */
+internal fun Sak.finnSisteRelevanteTiltaksdeltakelse(
+    tiltaksdeltakerId: TiltaksdeltakerId,
+    clock: Clock,
+): TiltaksdeltakelseIntern? {
     val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier
         .filter { vedtak ->
             val harInnvilgetForTiltaket = vedtak.valgteTiltaksdeltakelser!!.any {
                 it.verdi.internDeltakelseId == tiltaksdeltakerId
             }
 
-            harInnvilgetForTiltaket
+            val harRettIRelevantPeriode by lazy {
+                val sisteInnvilgetDato = vedtak.innvilgelsesperioder!!.tilOgMed
+                val dagensDato = LocalDate.now(clock)
+
+                if (sisteInnvilgetDato.isBefore(dagensDato)) {
+                    rammevedtaksliste.harInnvilgetTiltakspengerPåDato(sisteInnvilgetDato)
+                } else {
+                    rammevedtaksliste.innvilgelsesperioder.overlapper(dagensDato til sisteInnvilgetDato)
+                }
+            }
+
+            harInnvilgetForTiltaket && harRettIRelevantPeriode
         }
         .map { it.rammebehandling }
 
@@ -41,11 +66,9 @@ fun Sak.finnEndringer(
         return null
     }
 
-    val kjentTilstand = behandlingerMedRelevantTiltaksdeltakelse
+    return behandlingerMedRelevantTiltaksdeltakelse
         .maxBy { it.sistEndret }
         .getTiltaksdeltakelse(tiltaksdeltakerId)!!
-
-    return finnEndringer(nåtilstand, kjentTilstand, clock)
 }
 
 /**

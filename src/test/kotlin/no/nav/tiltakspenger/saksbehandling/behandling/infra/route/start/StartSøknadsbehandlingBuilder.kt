@@ -193,12 +193,16 @@ interface StartSøknadsbehandlingBuilder {
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
         clock: Clock = fixedClock,
+        sakId: SakId? = null,
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
             fnr = fnr,
             saksbehandler = saksbehandler,
             clock = clock,
+            sakId = sakId,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
 
         val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingAvslag(
