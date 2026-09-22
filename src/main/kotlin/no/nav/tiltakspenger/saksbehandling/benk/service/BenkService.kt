@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
-import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
@@ -35,7 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.KunneIkkeHenteBenk
 /**
  * Henter én fane av benken og beriker alle radene med tilgang og personmarkører.
  * Tilgangen slås opp i ett bulkkall mot Tilgangsmaskinen for de unike personene på siden.
- * Rader uten tilgang blir med med mindre filteret `skjulUtenTilgang` er satt; ellers er det DTO-laget som sladder dem.
+ * Rader uten tilgang blir med i svaret; det er DTO-laget som sladder dem.
  * Loggingen av bulkkallet skjer i [no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService], som kjenner saksbehandleren og correlationId-en.
  */
 class BenkService(
@@ -126,22 +125,13 @@ class BenkService(
                 personmarkører = BenkPersonmarkører.fra(tilgang),
             )
         }
-        // Tilgangen er først kjent nå, så filteret kan ikke være en del av spørringen.
-        // Siden kan derfor få færre rader enn sideantallet, og totalAntall teller fortsatt radene før tilgangsfiltreringen.
-        val rader = if (kommando.filtrering.skjulUtenTilgang) {
-            alleRader.filter { it.tilgang is TilgangsvurderingBulk.Godkjent }
-        } else {
-            alleRader
-        }
-
         val oppsummering = BenkOppsummering.fra(alleRader)
-        val antallFiltrertPgaTilgang = alleRader.size - rader.size
 
         BenkResponsMedTilgang(
             antallPerFane = antallPerFane,
             oversikt = BenkOversiktMedTilgang(
-                rader = rader,
-                totalAntall = oversikt.totalAntall - antallFiltrertPgaTilgang,
+                rader = alleRader,
+                totalAntall = oversikt.totalAntall,
                 totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
                 oppsummering = oppsummering,
                 saksbehandlere = oversikt.saksbehandlere,

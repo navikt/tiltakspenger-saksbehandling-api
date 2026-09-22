@@ -107,7 +107,6 @@ private suspend fun RoutingContext.svarMedSøknader(
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
-                skjulUtenTilgang = body.filters.skjulUtenTilgang,
             ),
             sortering = body.sortering.tilSortering(BenkSøknaderKolonne.entries, BenkSøknaderKolonne.KRAVTIDSPUNKT),
             paginering = BenkPaginering.fra(body.side),
@@ -133,7 +132,6 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
-                skjulUtenTilgang = body.filters.skjulUtenTilgang,
             ),
             sortering = body.sortering.tilSortering(BenkRevurderingerKolonne.entries, BenkRevurderingerKolonne.STARTET),
             paginering = BenkPaginering.fra(body.side),
@@ -159,7 +157,6 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
-                skjulUtenTilgang = body.filters.skjulUtenTilgang,
             ),
             sortering = body.sortering.tilSortering(BenkMeldekortKolonne.entries, BenkMeldekortKolonne.PERIODE),
             paginering = BenkPaginering.fra(body.side),
@@ -184,7 +181,6 @@ private suspend fun RoutingContext.klage(benkService: BenkService) {
                 resultat = body.filters.resultat?.tilDomene(),
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
-                skjulUtenTilgang = body.filters.skjulUtenTilgang,
             ),
             sortering = body.sortering.tilSortering(BenkKlageKolonne.entries, BenkKlageKolonne.KRAVTIDSPUNKT),
             paginering = BenkPaginering.fra(body.side),
@@ -211,7 +207,6 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
                 minstebeløp = body.filters.minstebeløp(),
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
-                skjulUtenTilgang = body.filters.skjulUtenTilgang,
             ),
             sortering = body.sortering.tilSortering(BenkTilbakekrevingKolonne.entries, BenkTilbakekrevingKolonne.STARTET),
             paginering = BenkPaginering.fra(body.side),
@@ -292,7 +287,6 @@ private data class HentSøknaderBody(
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
-        val skjulUtenTilgang: Boolean = false,
     )
 }
 
@@ -307,7 +301,6 @@ private data class HentRevurderingerBody(
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
-        val skjulUtenTilgang: Boolean = false,
     )
 }
 
@@ -322,7 +315,6 @@ private data class HentMeldekortBody(
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
-        val skjulUtenTilgang: Boolean = false,
     )
 }
 
@@ -336,7 +328,6 @@ private data class HentKlageBody(
         val resultat: BenkKlagebehandlingResultatDTO? = null,
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,
-        val skjulUtenTilgang: Boolean = false,
     )
 }
 
@@ -352,7 +343,6 @@ private data class HentTilbakekrevingBody(
         val kunOverMinstebeløp: Boolean = false,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
-        val skjulUtenTilgang: Boolean = false,
     ) {
         fun minstebeløp(): Long = if (kunOverMinstebeløp) {
             TilbakekrevingBehandling.MINSTEBELØP_FOR_TILBAKEKREVING

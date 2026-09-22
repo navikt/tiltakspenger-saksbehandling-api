@@ -17,16 +17,12 @@ import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
  *
  * [skjulVenterPåAnnenSaksbehandler] tar bort behandlingene som venter på en annen saksbehandler - enten de som kallende saksbehandler har sendt til beslutter, eller som kallende saksbehandler har underkjent
  *
- * [skjulUtenTilgang] tar bort behandlingene kallende saksbehandler ikke har persontilgang til.
- * Tilgangen er først kjent etter oppslaget mot Tilgangsmaskinen, så filteret skjer i servicen etter pagineringen — ikke i spørringen.
- *
  * Fanene uten et beslutningssteg (klage) har ikke [skjulVenterPåAnnenSaksbehandler]-filteret.
  */
 sealed interface BenkFiltrering {
     val saksbehandler: String?
     val skjulPåVent: Boolean
     val skjulVenterPåAnnenSaksbehandler: Boolean
-    val skjulUtenTilgang: Boolean
 
     companion object {
         const val IKKE_TILDELT: String = "IKKE_TILDELT"
@@ -42,7 +38,6 @@ data class BenkSøknaderFiltrering(
     override val saksbehandler: String?,
     override val skjulPåVent: Boolean = false,
     override val skjulVenterPåAnnenSaksbehandler: Boolean = false,
-    override val skjulUtenTilgang: Boolean = false,
 ) : BenkFiltrering
 
 data class BenkRevurderingerFiltrering(
@@ -51,7 +46,6 @@ data class BenkRevurderingerFiltrering(
     override val saksbehandler: String?,
     override val skjulPåVent: Boolean = false,
     override val skjulVenterPåAnnenSaksbehandler: Boolean = false,
-    override val skjulUtenTilgang: Boolean = false,
 ) : BenkFiltrering
 
 data class BenkMeldekortFiltrering(
@@ -60,7 +54,6 @@ data class BenkMeldekortFiltrering(
     override val saksbehandler: String?,
     override val skjulPåVent: Boolean = false,
     override val skjulVenterPåAnnenSaksbehandler: Boolean = false,
-    override val skjulUtenTilgang: Boolean = false,
 ) : BenkFiltrering
 
 data class BenkKlageFiltrering(
@@ -68,7 +61,6 @@ data class BenkKlageFiltrering(
     val resultat: BenkKlagebehandlingResultat?,
     override val saksbehandler: String?,
     override val skjulPåVent: Boolean = false,
-    override val skjulUtenTilgang: Boolean = false,
 ) : BenkFiltrering {
     override val skjulVenterPåAnnenSaksbehandler: Boolean = false
 }
@@ -81,7 +73,6 @@ data class BenkTilbakekrevingFiltrering(
     override val skjulPåVent: Boolean = false,
     /** Tilbakekreving kaller beslutningssteget godkjenning, men filteret er det samme. */
     override val skjulVenterPåAnnenSaksbehandler: Boolean = false,
-    override val skjulUtenTilgang: Boolean = false,
 ) : BenkFiltrering
 
 /**
