@@ -22,4 +22,8 @@ sealed interface KanIkkeAngreMeldekortbehandling : Loggbar {
     data object MeldekortbehandlingFinnesIkke : KanIkkeAngreMeldekortbehandling {
         override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen finnes ikke")
     }
+
+    data object MeldekortbehandlingErIkkeLengerKlarTilBeslutning : KanIkkeAngreMeldekortbehandling {
+        override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen er ikke lenger klar til beslutning")
+    }
 }

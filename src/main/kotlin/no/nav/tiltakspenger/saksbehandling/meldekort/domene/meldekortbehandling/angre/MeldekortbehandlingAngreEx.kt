@@ -65,9 +65,7 @@ fun Meldekortbehandling.kanAngreMeldekortbehandling(
 ): Either<KanIkkeAngreMeldekortbehandling, Unit> {
     return when (this.status) {
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
-            if (this.beslutter != null) {
-                KanIkkeAngreMeldekortbehandling.KanIkkeVæreTattAvEnBeslutter.left() // TODO - vet ikke om denne er nødvendig - UNDER_BESLUTNING
-            } else if (this.saksbehandler != saksbehandler.navIdent) {
+            if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeAngreMeldekortbehandling.MåVæreSammeSaksbehandlerForÅAngreMeldekortbehandlingen.left()
             } else {
                 Unit.right()

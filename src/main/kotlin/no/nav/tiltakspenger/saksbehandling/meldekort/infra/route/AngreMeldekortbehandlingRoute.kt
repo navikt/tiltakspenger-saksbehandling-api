@@ -76,22 +76,27 @@ fun Route.angreMeldekortbehandlingRoute(
 
 fun KanIkkeAngreMeldekortbehandling.statusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     KanIkkeAngreMeldekortbehandling.KanIkkeVæreTattAvEnBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
-        "Kan ikke angre meldekortbehandling som er tatt av en beslutter",
-        "meldekortbehandlingen_kan_ikke_være_tatt_av_beslutter",
+        melding = "Kan ikke angre meldekortbehandling som er tatt av en beslutter",
+        kode = "meldekortbehandlingen_kan_ikke_være_tatt_av_beslutter",
     )
 
     KanIkkeAngreMeldekortbehandling.MeldekortbehandlingFinnesIkke -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan ikke angre en meldekortbehandling som ikke finnes",
-        "meldekortbehandlingen_må_eksistere",
+        melding = "Kan ikke angre en meldekortbehandling som ikke finnes",
+        kode = "meldekortbehandlingen_må_eksistere",
     )
 
     is KanIkkeAngreMeldekortbehandling.MeldekortbehandlingenErIEnTilstandSomIkkeTillaterÅAngre -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan ikke angre en meldekortbehandling som ikke er klar til beslutning, status er $status",
-        "meldekortbehandlingen_må_være_klar_til_beslutning",
+        melding = "Kan ikke angre en meldekortbehandling som ikke er klar til beslutning, status er $status",
+        kode = "meldekortbehandlingen_må_være_klar_til_beslutning",
     )
 
     KanIkkeAngreMeldekortbehandling.MåVæreSammeSaksbehandlerForÅAngreMeldekortbehandlingen -> HttpStatusCode.Forbidden to ErrorJson(
-        "Du må være saksbehandleren som er tildelt meldekortbehandling for å angre.",
-        "maa_vaere_saksbehandler_for_meldekortbehandlingen",
+        melding = "Du må være saksbehandleren som er tildelt meldekortbehandling for å angre.",
+        kode = "maa_vaere_saksbehandler_for_meldekortbehandlingen",
+    )
+
+    KanIkkeAngreMeldekortbehandling.MeldekortbehandlingErIkkeLengerKlarTilBeslutning -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "meldekortbehandlingen er ikke lenger klar til beslutning",
+        kode = "meldekortbehandlingen_må_være_klar_til_beslutning",
     )
 }

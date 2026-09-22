@@ -28,15 +28,17 @@ class AngreMeldekortbehandlingService(
         saksbehandler: Saksbehandler,
     ): Either<KanIkkeAngreMeldekortbehandling, Pair<Sak, Meldekortbehandling>> {
         val sak: Sak = sakService.hentForSakId(sakId)
-        
-        val meldekortbehandlingResonse: Meldekortbehandling = sak.hentMeldekortbehandling(meldekortId)
+
+        val meldekortbehandling: Meldekortbehandling = sak.hentMeldekortbehandling(meldekortId)
             ?: return KanIkkeAngreMeldekortbehandling.MeldekortbehandlingFinnesIkke.left()
 
-        return meldekortbehandlingResonse.angreMeldekortbehandling(
+        return meldekortbehandling.angreMeldekortbehandling(
             saksbehandler,
             clock,
-        ).map { meldekortbehandling ->
-            meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling)
+        ).map { angreMeldekortbehandling ->
+            if (!meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(angreMeldekortbehandling)) {
+                return KanIkkeAngreMeldekortbehandling.MeldekortbehandlingErIkkeLengerKlarTilBeslutning.left()
+            }
             sak.oppdaterMeldekortbehandling(meldekortbehandling) to meldekortbehandling
         }
     }
