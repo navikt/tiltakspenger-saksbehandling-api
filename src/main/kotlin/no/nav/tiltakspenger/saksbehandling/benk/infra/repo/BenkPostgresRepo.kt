@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
@@ -667,7 +668,7 @@ private fun Row.tilMeldeperioder(): List<Periode> =
 private fun Row.tilKlagebehandling(): BenkKlagebehandling = BenkKlagebehandling(
     felles = tilFelles(),
     id = KlagebehandlingId.fromString(string("id")),
-    status = tilBehandlingsstatus(),
+    status = enum("status", BenkKlagebehandlingStatus.entries),
     kravtidspunkt = localDateTime("kravtidspunkt"),
     resultat = enumOrNull("resultat", BenkKlagebehandlingResultat.entries),
 )

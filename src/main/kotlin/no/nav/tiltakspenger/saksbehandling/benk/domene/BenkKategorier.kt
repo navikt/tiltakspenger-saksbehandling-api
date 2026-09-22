@@ -34,6 +34,16 @@ enum class BenkKlagebehandlingResultat {
 }
 
 /**
+ * Klagebehandling har ingen beslutter og ingen automatisk flyt, så statusene er færre enn for de andre fanene.
+ * En klage mottatt fra klageinstansen vises som [KLAR_TIL_FERDIGSTILLING], fordi det eneste som gjenstår er å ferdigstille.
+ */
+enum class BenkKlagebehandlingStatus {
+    KLAR_TIL_BEHANDLING,
+    UNDER_BEHANDLING,
+    KLAR_TIL_FERDIGSTILLING,
+}
+
+/**
  * Meldekortfanen samler både meldekortbehandlinger saksbehandler har startet, og meldekort fra bruker som venter på behandling.
  */
 enum class BenkMeldekortType {

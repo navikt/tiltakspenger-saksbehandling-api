@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortType
@@ -140,7 +141,7 @@ class BenkAggregatTest {
     )
 
     private fun klageCommand(
-        status: BenkBehandlingsstatus? = null,
+        status: BenkKlagebehandlingStatus? = null,
         resultat: BenkKlagebehandlingResultat? = null,
         saksbehandler: String? = null,
         skjulPåVent: Boolean = false,
@@ -802,7 +803,7 @@ class BenkAggregatTest {
                 it.felles.saksbehandler shouldBe saksbehandler.navIdent
                 it.felles.beslutter shouldBe null
                 it.felles.erUnderkjent shouldBe false
-                it.status shouldBe BenkBehandlingsstatus.UNDER_BEHANDLING
+                it.status shouldBe BenkKlagebehandlingStatus.UNDER_BEHANDLING
                 it.resultat shouldBe BenkKlagebehandlingResultat.AVVIST
                 it.felles.startet shouldBe klageAvvist.opprettet
             }
@@ -818,7 +819,7 @@ class BenkAggregatTest {
 
             repo.hentKlager(klageCommand(resultat = BenkKlagebehandlingResultat.OPPRETTHOLDT)).totalAntall shouldBe 1
             repo.hentKlager(klageCommand(resultat = BenkKlagebehandlingResultat.OMGJØR)).totalAntall shouldBe 0
-            repo.hentKlager(klageCommand(status = BenkBehandlingsstatus.UNDER_BEHANDLING)).totalAntall shouldBe 3
+            repo.hentKlager(klageCommand(status = BenkKlagebehandlingStatus.UNDER_BEHANDLING)).totalAntall shouldBe 3
             repo.hentKlager(klageCommand(saksbehandler = saksbehandler.navIdent)).totalAntall shouldBe 3
             repo.hentKlager(klageCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT)).totalAntall shouldBe 3
             repo.hentKlager(klageCommand(saksbehandler = BenkFiltrering.IKKE_TILDELT_SAKSBEHANDLER)).totalAntall shouldBe 0
@@ -863,7 +864,7 @@ class BenkAggregatTest {
             oversikt.behandlinger.single().let {
                 it.felles.sakId shouldBe sak.id
                 it.id shouldBe mottattFraKa.id
-                it.status shouldBe BenkBehandlingsstatus.KLAR_TIL_FERDIGSTILLING
+                it.status shouldBe BenkKlagebehandlingStatus.KLAR_TIL_FERDIGSTILLING
             }
         }
     }

@@ -34,6 +34,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.KunneIkkeHenteBenk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.tilSortering
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkBehandlingsstatusDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingResultatDTO
+import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingStatusDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkMeldekortTypeDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkRevurderingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkSøknadsbehandlingResultatDTO
@@ -324,7 +325,7 @@ private data class HentKlageBody(
     val filters: Filters = Filters(),
 ) {
     data class Filters(
-        val status: BenkBehandlingsstatusDTO? = null,
+        val status: BenkKlagebehandlingStatusDTO? = null,
         val resultat: BenkKlagebehandlingResultatDTO? = null,
         val saksbehandler: String? = null,
         val skjulPåVent: Boolean = false,

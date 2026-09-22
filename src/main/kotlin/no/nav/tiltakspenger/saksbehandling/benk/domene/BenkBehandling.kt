@@ -81,7 +81,7 @@ data class BenkMeldekort(
 data class BenkKlagebehandling(
     override val felles: BenkBehandlingsfelles,
     val id: KlagebehandlingId,
-    val status: BenkBehandlingsstatus,
+    val status: BenkKlagebehandlingStatus,
     val kravtidspunkt: LocalDateTime,
     val resultat: BenkKlagebehandlingResultat?,
 ) : BenkBehandling

@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.benk.domene
 
 /**
  * Delt status for behandlingstypene som går gjennom den vanlige saksbehandlingsflyten.
- * Gjelder søknader, revurderinger, meldekort og klage.
- * Tilbakekreving har sin egen flyt, og dermed sin egen status i [BenkTilbakekrevingStatus].
+ * Gjelder søknader, revurderinger og meldekort.
+ * Klage og tilbakekreving har egne statuser i [BenkKlagebehandlingStatus] og [BenkTilbakekrevingStatus].
  */
 enum class BenkBehandlingsstatus {
     UNDER_AUTOMATISK_BEHANDLING,
@@ -11,5 +11,4 @@ enum class BenkBehandlingsstatus {
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
     UNDER_BESLUTNING,
-    KLAR_TIL_FERDIGSTILLING,
 }

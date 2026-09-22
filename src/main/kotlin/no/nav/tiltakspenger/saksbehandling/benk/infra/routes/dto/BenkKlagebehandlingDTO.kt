@@ -2,8 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto
 
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingResultat
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
+
+enum class BenkKlagebehandlingStatusDTO {
+    KLAR_TIL_BEHANDLING,
+    UNDER_BEHANDLING,
+    KLAR_TIL_FERDIGSTILLING,
+}
 
 enum class BenkKlagebehandlingResultatDTO {
     AVVIST,
@@ -25,7 +32,7 @@ data class BenkKlagebehandlingDTO(
     override val ventestatus: BenkVentestatusDTO,
     override val tilgang: BenkTilgangDTO,
     override val personmarkører: BenkPersonmarkørerDTO,
-    val status: BenkBehandlingsstatusDTO,
+    val status: BenkKlagebehandlingStatusDTO,
     val kravtidspunkt: String,
     val resultat: BenkKlagebehandlingResultatDTO?,
 ) : BenkBehandlingDTO
@@ -50,6 +57,18 @@ fun BenkKlagebehandling.toDTO(
     kravtidspunkt = kravtidspunkt.toString(),
     resultat = resultat?.toDTO(),
 )
+
+private fun BenkKlagebehandlingStatus.toDTO(): BenkKlagebehandlingStatusDTO = when (this) {
+    BenkKlagebehandlingStatus.KLAR_TIL_BEHANDLING -> BenkKlagebehandlingStatusDTO.KLAR_TIL_BEHANDLING
+    BenkKlagebehandlingStatus.UNDER_BEHANDLING -> BenkKlagebehandlingStatusDTO.UNDER_BEHANDLING
+    BenkKlagebehandlingStatus.KLAR_TIL_FERDIGSTILLING -> BenkKlagebehandlingStatusDTO.KLAR_TIL_FERDIGSTILLING
+}
+
+fun BenkKlagebehandlingStatusDTO.tilDomene(): BenkKlagebehandlingStatus = when (this) {
+    BenkKlagebehandlingStatusDTO.KLAR_TIL_BEHANDLING -> BenkKlagebehandlingStatus.KLAR_TIL_BEHANDLING
+    BenkKlagebehandlingStatusDTO.UNDER_BEHANDLING -> BenkKlagebehandlingStatus.UNDER_BEHANDLING
+    BenkKlagebehandlingStatusDTO.KLAR_TIL_FERDIGSTILLING -> BenkKlagebehandlingStatus.KLAR_TIL_FERDIGSTILLING
+}
 
 private fun BenkKlagebehandlingResultat.toDTO(): BenkKlagebehandlingResultatDTO = when (this) {
     BenkKlagebehandlingResultat.AVVIST -> BenkKlagebehandlingResultatDTO.AVVIST

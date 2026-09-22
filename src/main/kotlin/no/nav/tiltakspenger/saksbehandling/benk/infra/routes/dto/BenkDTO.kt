@@ -85,7 +85,6 @@ enum class BenkBehandlingsstatusDTO {
     UNDER_BEHANDLING,
     KLAR_TIL_BESLUTNING,
     UNDER_BESLUTNING,
-    KLAR_TIL_FERDIGSTILLING,
 }
 
 enum class BenkBehandlingstypeDTO {
@@ -296,7 +295,6 @@ fun BenkBehandlingsstatus.toDTO(): BenkBehandlingsstatusDTO = when (this) {
     BenkBehandlingsstatus.UNDER_BEHANDLING -> BenkBehandlingsstatusDTO.UNDER_BEHANDLING
     BenkBehandlingsstatus.KLAR_TIL_BESLUTNING -> BenkBehandlingsstatusDTO.KLAR_TIL_BESLUTNING
     BenkBehandlingsstatus.UNDER_BESLUTNING -> BenkBehandlingsstatusDTO.UNDER_BESLUTNING
-    BenkBehandlingsstatus.KLAR_TIL_FERDIGSTILLING -> BenkBehandlingsstatusDTO.KLAR_TIL_FERDIGSTILLING
 }
 
 fun BenkBehandlingsstatusDTO.tilDomene(): BenkBehandlingsstatus = when (this) {
@@ -305,5 +303,4 @@ fun BenkBehandlingsstatusDTO.tilDomene(): BenkBehandlingsstatus = when (this) {
     BenkBehandlingsstatusDTO.UNDER_BEHANDLING -> BenkBehandlingsstatus.UNDER_BEHANDLING
     BenkBehandlingsstatusDTO.KLAR_TIL_BESLUTNING -> BenkBehandlingsstatus.KLAR_TIL_BESLUTNING
     BenkBehandlingsstatusDTO.UNDER_BESLUTNING -> BenkBehandlingsstatus.UNDER_BESLUTNING
-    BenkBehandlingsstatusDTO.KLAR_TIL_FERDIGSTILLING -> BenkBehandlingsstatus.KLAR_TIL_FERDIGSTILLING
 }

@@ -183,7 +183,7 @@ class BenkDTOSladdingTest {
                     ventestatus = ventestatusDTO(),
                     tilgang = tilgangDTO(),
                     personmarkører = personmarkørerDTO(),
-                    status = BenkBehandlingsstatusDTO.UNDER_BEHANDLING,
+                    status = BenkKlagebehandlingStatusDTO.UNDER_BEHANDLING,
                     kravtidspunkt = 1.januarDateTime(2025).toString(),
                     resultat = null,
                 ),

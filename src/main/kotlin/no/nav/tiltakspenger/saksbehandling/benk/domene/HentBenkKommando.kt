@@ -57,7 +57,7 @@ data class BenkMeldekortFiltrering(
 ) : BenkFiltrering
 
 data class BenkKlageFiltrering(
-    val status: BenkBehandlingsstatus?,
+    val status: BenkKlagebehandlingStatus?,
     val resultat: BenkKlagebehandlingResultat?,
     override val saksbehandler: String?,
     override val skjulPåVent: Boolean = false,
