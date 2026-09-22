@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -12,18 +13,80 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderAutomatiskBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 /**
  * Tilstanden bygges gjennom prodstiene: søknaden kommer inn på søknadsruta, og jobben kjøres slik den kjøres i nais.
  * Tjenestene jobben kaller er de ekte, ikke mocks, slik at testene sier noe om utfallet og ikke bare om hvilke kall som ble gjort.
  */
 class DelautomatiskSoknadsbehandlingJobbTest {
+
+    @ParameterizedTest
+    @CsvSource(
+        "true, false, false, false",
+        "false, true, false, false",
+        "false, false, true, false",
+        "false, false, false, true",
+    )
+    fun `beskyttet søker får Gosys-oppgave uten lagring i ekstern_oppgave`(
+        fortrolig: Boolean,
+        strengtFortrolig: Boolean,
+        strengtFortroligUtland: Boolean,
+        skjermet: Boolean,
+    ) {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, søknad) = opprettSakOgSøknad(tac = tac, fnr = ObjectMother.gyldigFnr())
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                sak.fnr,
+                ObjectMother.personopplysningKjedeligFyr(
+                    fnr = sak.fnr,
+                    fortrolig = fortrolig,
+                    strengtFortrolig = strengtFortrolig,
+                    strengtFortroligUtland = strengtFortroligUtland,
+                ),
+            )
+            (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, skjermet)
+            tac.delautomatiskSøknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(søknad.id)
+
+            (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder.size shouldBe 1
+            tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.single().status shouldBe
+                Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+        }
+    }
+
+    @Test
+    fun `oppgavefeil lar søknaden vente uten behandling eller ekstern oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, søknad) = opprettSakOgSøknad(tac = tac, fnr = ObjectMother.gyldigFnr())
+            (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, true)
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            klient.opprettOppgaveResponse = ObjectMother.httpKlientUventetStatus().left()
+
+            tac.delautomatiskSøknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(søknad.id)
+
+            tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger shouldBe emptyList()
+
+            klient.opprettOppgaveResponse = null
+            tac.delautomatiskSøknadsbehandlingJobb.opprettSøknadsbehandlingForSøknad(søknad.id)
+
+            klient.opprettedeOppgaveIder.size shouldBe 1
+            tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
+        }
+    }
 
     @Test
     fun `opprettSøknadsbehandlingForSøknad - åpen søknad uten behandling - oppretter automatisk behandling`() {
@@ -38,6 +101,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
             behandling.shouldBeInstanceOf<Søknadsbehandling>()
             behandling.søknad.id shouldBe søknad.id
             behandling.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
         }
     }
 

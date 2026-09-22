@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.repo.KlagevedtakFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.BrukersMeldekortFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldekortbehandlingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo.MeldeperiodeFakeRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo.EksternOppgaveFakeRepo
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonFakeRepo
 import no.nav.tiltakspenger.saksbehandling.sak.IdGenerators
 import no.nav.tiltakspenger.saksbehandling.sak.infra.repo.SakFakeRepo
@@ -40,6 +41,8 @@ open class TestApplicationContextMedInMemoryDb(
     tilgangsmaskinFakeClient: TilgangsmaskinFakeTestClient = TilgangsmaskinFakeTestClient(),
     idGenerators: IdGenerators = IdGenerators(),
 ) : TestApplicationContext(clock, idGenerators, tilgangsmaskinFakeClient) {
+    override val eksternOppgaveRepo = EksternOppgaveFakeRepo()
+
     // Fake-repoer (intern lagring)
     private val utbetalingFakeRepo = UtbetalingFakeRepo()
     private val utbetalingsoversiktFakeRepo = UtbetalingsoversiktFakeRepo()

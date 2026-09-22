@@ -28,8 +28,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.settPå
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.AUTOMATISK_SAKSBEHANDLER
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
-import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.oppgaveId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
@@ -52,8 +52,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 class EndretTiltaksdeltakerJobbTest {
-    private val oppgaveId = oppgaveId()
-
     @Test
     fun `hendelser innenfor forsinkelsesvinduet blir ikke behandlet`() {
         withTestApplicationContextAndPostgres { tac ->
@@ -269,7 +267,7 @@ class EndretTiltaksdeltakerJobbTest {
 
             val oppdatertTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
             oppdatertTiltaksdeltakerHendelse.shouldNotBeNull()
-            oppdatertTiltaksdeltakerHendelse.oppgaveId shouldBe oppgaveId
+            oppdatertTiltaksdeltakerHendelse.oppgaveId shouldBe (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder.single()
             oppdatertTiltaksdeltakerHendelse.behandlingId.shouldBeNull()
         }
     }
@@ -1298,7 +1296,7 @@ class EndretTiltaksdeltakerJobbTest {
 
                 val oppdatertHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelse(tiltaksdeltakerHendelse.id)
                 oppdatertHendelse.shouldNotBeNull()
-                oppdatertHendelse.oppgaveId shouldBe oppgaveId
+                oppdatertHendelse.oppgaveId shouldBe (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaveIder.single()
                 oppdatertHendelse.behandlingId.shouldBeNull()
             }
         }

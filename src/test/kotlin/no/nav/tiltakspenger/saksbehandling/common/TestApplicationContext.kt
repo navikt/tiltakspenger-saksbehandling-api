@@ -53,6 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContex
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.kafka.IdenthendelseFakeProducer
@@ -172,7 +173,11 @@ sealed class TestApplicationContext(
     open val jwtGenerator: JwtGenerator by lazy { JwtGenerator(clock = clock) }
     override val navkontorKlient by lazy { NavkontorFakeKlient() }
     override val navkontorService: NavkontorService by lazy { NavkontorService(navkontorKlient) }
-    override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
+    override val oppgaveKlient: OppgaveKlient by lazy {
+        OppgaveFakeKlient(
+            genererOppgaveId = { OppgaveId(idGenerators.oppgaveIdGenerator.getAndIncrement().toString()) },
+        )
+    }
 
     protected open val kabalClientFake by lazy { KabalClientFake(clock) }
 
