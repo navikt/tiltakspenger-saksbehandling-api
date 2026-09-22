@@ -1,22 +1,14 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse
 
-import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndringer
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndringer.Companion.tilEndringer
-import java.time.Clock
 import java.time.LocalDate
 
 /**
  *  [id] Vår interne id for hendelsen
  *  [internDeltakerId] Vår interne id for deltakelsen
  *  [eksternDeltakerId] Id for deltakelsen fra arena/tiltak/komet
- *  [behandlingId] Er satt dersom endringen førte til at det ble automatisk opprettet en revurdering
  * */
 data class TiltaksdeltakerHendelse(
     val id: TiltaksdeltakerHendelseId,
@@ -28,123 +20,4 @@ data class TiltaksdeltakerHendelse(
     val deltakelsesprosent: Float?,
     val deltakerstatus: TiltakDeltakerstatus,
     val sakId: SakId,
-    val oppgaveId: OppgaveId?,
-    val behandlingId: RammebehandlingId?,
-) {
-
-    fun finnEndringer(
-        tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern,
-        clock: Clock,
-    ): TiltaksdeltakerEndringer? {
-        val endringer = mutableListOf<TiltaksdeltakerEndring>()
-        val sammeFom = deltakelseFraOgMed == tiltaksdeltakelseFraBehandling.deltakelseFraOgMed
-        val sammeTom = deltakelseTilOgMed == tiltaksdeltakelseFraBehandling.deltakelseTilOgMed
-
-        val sammeAntallDagerPerUke = floatIsEqual(dagerPerUke, tiltaksdeltakelseFraBehandling.antallDagerPerUke)
-        val sammeDeltakelsesprosent = floatIsEqual(deltakelsesprosent, tiltaksdeltakelseFraBehandling.deltakelseProsent)
-        val sammeStatus = deltakerstatus == tiltaksdeltakelseFraBehandling.deltakelseStatus
-
-        if (sammeFom &&
-            sammeTom &&
-            sammeAntallDagerPerUke &&
-            sammeDeltakelsesprosent &&
-            (sammeStatus || deltakelsenErAvsluttetSomForventet(clock = clock))
-        ) {
-            return null
-        }
-
-        if (erAvbruttDeltakelse(
-                sammeStatus = sammeStatus,
-                sammeTom = sammeTom,
-                tiltaksdeltakelseFraBehandling,
-                clock = clock,
-            )
-        ) {
-            endringer.add(TiltaksdeltakerEndring.AvbruttDeltakelse)
-            return endringer.tilEndringer()
-        }
-
-        if (erIkkeAktuellDeltakelse(sammeStatus)) {
-            endringer.add(TiltaksdeltakerEndring.IkkeAktuellDeltakelse)
-            return endringer.tilEndringer()
-        }
-
-        if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
-            endringer.add(TiltaksdeltakerEndring.EndretDeltakelsesmengde(deltakelsesprosent, dagerPerUke))
-        }
-
-        if (erForlengelse(sammeFom, tiltaksdeltakelseFraBehandling)) {
-            endringer.add(TiltaksdeltakerEndring.Forlengelse(deltakelseTilOgMed!!))
-            return endringer.tilEndringer()
-        }
-
-        if (!sammeFom) {
-            endringer.add(TiltaksdeltakerEndring.EndretStartdato(deltakelseFraOgMed))
-        }
-        if (!sammeTom) {
-            endringer.add(TiltaksdeltakerEndring.EndretSluttdato(deltakelseTilOgMed))
-        }
-        if (!sammeStatus) {
-            endringer.add(TiltaksdeltakerEndring.EndretStatus(deltakerstatus))
-        }
-
-        return endringer.tilEndringer()
-    }
-
-    // En null tilOgMed fra behandlingen betyr en åpen/uavsluttet deltakelse.
-    // Å sette en sluttdato på en åpen deltakelse er en innskrenking, ikke en forlengelse.
-    private fun erForlengelse(sammeFom: Boolean, tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern): Boolean {
-        val gammelSluttdato = tiltaksdeltakelseFraBehandling.deltakelseTilOgMed ?: return false
-        return sammeFom && deltakelseTilOgMed?.isAfter(gammelSluttdato) == true
-    }
-
-    private fun erAvbruttDeltakelse(
-        sammeStatus: Boolean,
-        sammeTom: Boolean,
-        tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern,
-        clock: Clock,
-    ): Boolean {
-        val statusEndretTilAvbrutt = !sammeStatus && deltakerstatus == TiltakDeltakerstatus.Avbrutt
-        if (statusEndretTilAvbrutt) return true
-
-        return !sammeTom && erSluttdatoAvkortetTilFortiden(tiltaksdeltakelseFraBehandling, clock)
-    }
-
-    private fun erSluttdatoAvkortetTilFortiden(
-        tiltaksdeltakelseFraBehandling: TiltaksdeltakelseIntern,
-        clock: Clock,
-    ): Boolean {
-        val nySluttdato = deltakelseTilOgMed ?: return false
-        val gammelSluttdato = tiltaksdeltakelseFraBehandling.deltakelseTilOgMed
-
-        // En null tilOgMed fra behandlingen betyr en åpen/uavsluttet deltakelse.
-        // Å sette en tilOgMed i fortiden er da en avkorting og regnes som avbrutt.
-        val erAvkortet = gammelSluttdato == null || nySluttdato.isBefore(gammelSluttdato)
-        val erIFortiden = !nySluttdato.isAfter(LocalDate.now(clock))
-        return erAvkortet && erIFortiden
-    }
-
-    private fun erIkkeAktuellDeltakelse(
-        sammeStatus: Boolean,
-    ): Boolean {
-        return !sammeStatus && deltakerstatus == TiltakDeltakerstatus.IkkeAktuell
-    }
-
-    private fun deltakelsenErAvsluttetSomForventet(clock: Clock): Boolean {
-        return (
-            (deltakerstatus == TiltakDeltakerstatus.HarSluttet || deltakerstatus == TiltakDeltakerstatus.Fullført) &&
-                deltakelseTilOgMed != null &&
-                !deltakelseTilOgMed.isAfter(LocalDate.now(clock))
-            )
-    }
-
-    private fun floatIsEqual(a: Float?, b: Float?): Boolean {
-        return if (a == null && b == 0F) {
-            true
-        } else if (b == null && a == 0F) {
-            true
-        } else {
-            compareValues(a, b) == 0
-        }
-    }
-}
+)

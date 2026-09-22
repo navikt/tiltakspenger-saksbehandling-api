@@ -98,7 +98,6 @@ class OppgaveHttpClientTest {
     @Test
     fun `opprettOppgave - alle oppgavebehov uten journalpost er en programmeringsfeil og kaster`() {
         val behovUtenJournalpost = listOf(
-            Oppgavebehov.ENDRET_TILTAKDELTAKER,
             Oppgavebehov.FATT_BARN,
             Oppgavebehov.DOED,
             Oppgavebehov.ADRESSEBESKYTTELSE,
@@ -131,7 +130,6 @@ class OppgaveHttpClientTest {
     @Test
     fun `opprettOppgaveUtenDuplikatkontroll - oppretter for alle støttede oppgavebehov`() {
         val støttedeBehov = listOf(
-            Oppgavebehov.ENDRET_TILTAKDELTAKER,
             Oppgavebehov.FATT_BARN,
             Oppgavebehov.DOED,
             Oppgavebehov.ADRESSEBESKYTTELSE,
@@ -145,7 +143,6 @@ class OppgaveHttpClientTest {
                 client(transport).opprettOppgaveUtenDuplikatkontroll(
                     fnr = fnr,
                     oppgavebehov = behov,
-                    tilleggstekst = "endring i deltakelse",
                 ) shouldBe OppgaveId("42").right()
             }
         }

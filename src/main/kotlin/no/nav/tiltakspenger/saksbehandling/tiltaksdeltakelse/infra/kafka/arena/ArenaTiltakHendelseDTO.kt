@@ -39,9 +39,7 @@ data class ArenaHendelseDTO(
                 deltakelsesprosent = after.PROSENT_DELTID,
                 deltakerstatus = after.DELTAKERSTATUSKODE.toTiltakDeltakerstatus(deltakelseFraOgMed, clock = clock),
                 sakId = sakId,
-                oppgaveId = null,
                 internDeltakerId = tiltaksdeltakerId,
-                behandlingId = null,
             )
         }
 

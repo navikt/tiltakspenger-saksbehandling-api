@@ -56,18 +56,6 @@ data class TiltaksdeltakerEndringer(
 
     val endretDeltakelsesmengde: EndretDeltakelsesmengde? by lazy { filterIsInstance<EndretDeltakelsesmengde>().firstOrNull() }
 
-    fun getOppgaveTilleggstekst(): String? {
-        if (this.isEmpty()) {
-            return null
-        }
-
-        if (this.size == 1) {
-            return "${this.first().beskrivelse}."
-        }
-
-        return this.joinToString("\n") { "- ${it.beskrivelse}" }
-    }
-
     companion object {
         fun List<TiltaksdeltakerEndring>.tilEndringer(): TiltaksdeltakerEndringer? {
             return this.toNonEmptyListOrNull()?.let { TiltaksdeltakerEndringer(it) }

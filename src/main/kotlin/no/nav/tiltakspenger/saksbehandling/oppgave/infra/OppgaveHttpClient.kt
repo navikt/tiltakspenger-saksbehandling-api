@@ -76,7 +76,6 @@ class OppgaveHttpClient(
                 )
             }
 
-            Oppgavebehov.ENDRET_TILTAKDELTAKER,
             Oppgavebehov.FATT_BARN,
             Oppgavebehov.DOED,
             Oppgavebehov.ADRESSEBESKYTTELSE,
@@ -97,16 +96,9 @@ class OppgaveHttpClient(
     override suspend fun opprettOppgaveUtenDuplikatkontroll(
         fnr: Fnr,
         oppgavebehov: Oppgavebehov,
-        tilleggstekst: String?,
     ): Either<HttpKlientError, OppgaveId> {
         val callId = UUID.randomUUID()
         val opprettOppgaveRequest = when (oppgavebehov) {
-            Oppgavebehov.ENDRET_TILTAKDELTAKER -> OpprettOppgaveRequest.opprettOppgaveRequestForEndretTiltaksdeltaker(
-                fnr,
-                tilleggstekst,
-                clock = clock,
-            )
-
             Oppgavebehov.FATT_BARN -> OpprettOppgaveRequest.opprettOppgaveRequestForFattBarn(fnr, clock = clock)
 
             Oppgavebehov.DOED -> OpprettOppgaveRequest.opprettOppgaveRequestForDoedsfall(fnr, clock = clock)

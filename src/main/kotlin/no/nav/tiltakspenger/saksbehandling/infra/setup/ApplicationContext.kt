@@ -67,7 +67,6 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.Tilbakekre
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.EndretTiltaksdeltakerJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
@@ -227,18 +226,6 @@ open class ApplicationContext(
     open val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo by lazy {
         TiltaksdeltakerHendelsePostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
-            clock = clock,
-        )
-    }
-    open val endretTiltaksdeltakerJobb by lazy {
-        EndretTiltaksdeltakerJobb(
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
-            sakRepo = sakContext.sakRepo,
-            oppgaveKlient = oppgaveKlient,
-            eksternOppgaveRepo = eksternOppgaveRepo,
-            sessionFactory = sessionFactory,
-            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
-            startRevurderingService = behandlingContext.startRevurderingService,
             clock = clock,
         )
     }

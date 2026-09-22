@@ -99,9 +99,7 @@ data class TeamTiltakHendelseDTO(
             deltakelsesprosent = stillingprosent?.toFloat(),
             deltakerstatus = this.toTiltakDeltakerStatus(),
             sakId = sakId,
-            oppgaveId = null,
             internDeltakerId = tiltaksdeltakerId,
-            behandlingId = null,
         )
 }
 

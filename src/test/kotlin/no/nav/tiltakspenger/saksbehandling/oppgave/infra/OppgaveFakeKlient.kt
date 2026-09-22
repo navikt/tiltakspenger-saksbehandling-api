@@ -43,7 +43,6 @@ class OppgaveFakeKlient(
     override suspend fun opprettOppgaveUtenDuplikatkontroll(
         fnr: Fnr,
         oppgavebehov: Oppgavebehov,
-        tilleggstekst: String?,
     ): Either<HttpKlientError, OppgaveId> {
         opprettedeUtenDuplikatkontroll.get().add(fnr to oppgavebehov)
         opprettOppgaveUtenDuplikatkontrollResponse?.let { return it }

@@ -4,24 +4,18 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO
-import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TeamTiltakHendelseDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.getTiltaksdeltakerHendelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelserForEksternId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -82,7 +76,6 @@ class TiltaksdeltakerConsumerTest {
             tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.oppgaveId shouldBe null
             tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
 
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
@@ -118,7 +111,6 @@ class TiltaksdeltakerConsumerTest {
             tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.oppgaveId shouldBe null
             tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
         }
     }
@@ -143,27 +135,20 @@ class TiltaksdeltakerConsumerTest {
     }
 
     @Test
-    fun `arena - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
+    fun `arena - lagrer ny hendelse uten å endre historikken`() {
         withTestApplicationContextAndPostgres { tac ->
             val deltakerId = arenaDeltakerId()
             val id = "TA$deltakerId"
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = id)
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = tiltaksdeltakelse)
-            val opprinneligTiltaksdeltakerHendelse = lagreHendelseMedOppgave(
-                tac = tac,
-                eksternDeltakerId = id,
-                tiltaksdeltakelse = tiltaksdeltakelse,
-                sakId = sak.id,
-                kilde = TiltaksdeltakerHendelseKilde.Arena,
-            )
+            tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
+            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).single()
 
             tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
 
             val hendelser = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id)
             hendelser.size shouldBe 2
-            val opprinnelig = tac.sessionFactory.hentTiltaksdeltakerHendelse(opprinneligTiltaksdeltakerHendelse.id)
-            opprinnelig shouldNotBe null
-            opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
+            hendelser.single { it.id == opprinneligTiltaksdeltakerHendelse.id } shouldBe opprinneligTiltaksdeltakerHendelse
             val nyHendelse = hendelser.single { it.id != opprinneligTiltaksdeltakerHendelse.id }
             nyHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
             nyHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
@@ -171,7 +156,6 @@ class TiltaksdeltakerConsumerTest {
             nyHendelse.deltakelsesprosent shouldBe 50.0F
             nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             nyHendelse.sakId shouldBe sak.id
-            nyHendelse.oppgaveId shouldBe null
             nyHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
         }
     }
@@ -226,7 +210,6 @@ class TiltaksdeltakerConsumerTest {
             tiltaksdeltakerHendelse.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.oppgaveId shouldBe null
             tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
 
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
@@ -237,27 +220,20 @@ class TiltaksdeltakerConsumerTest {
     }
 
     @Test
-    fun `komet - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
+    fun `komet - lagrer ny hendelse uten å endre historikken`() {
         withTestApplicationContextAndPostgres { tac ->
             val kometDeltaker = getKometDeltaker()
             val deltakerId = kometDeltaker.id
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId.toString())
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = tiltaksdeltakelse)
-            val opprinneligTiltaksdeltakerHendelse = lagreHendelseMedOppgave(
-                tac = tac,
-                eksternDeltakerId = deltakerId.toString(),
-                tiltaksdeltakelse = tiltaksdeltakelse,
-                sakId = sak.id,
-                kilde = TiltaksdeltakerHendelseKilde.Komet,
-            )
+            tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
+            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString()).single()
 
             tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
 
             val hendelser = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString())
             hendelser.size shouldBe 2
-            val opprinnelig = tac.sessionFactory.hentTiltaksdeltakerHendelse(opprinneligTiltaksdeltakerHendelse.id)
-            opprinnelig shouldNotBe null
-            opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
+            hendelser.single { it.id == opprinneligTiltaksdeltakerHendelse.id } shouldBe opprinneligTiltaksdeltakerHendelse
             val nyHendelse = hendelser.single { it.id != opprinneligTiltaksdeltakerHendelse.id }
             nyHendelse.deltakelseFraOgMed shouldBe kometDeltaker.startDato
             nyHendelse.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
@@ -265,7 +241,6 @@ class TiltaksdeltakerConsumerTest {
             nyHendelse.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
             nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             nyHendelse.sakId shouldBe sak.id
-            nyHendelse.oppgaveId shouldBe null
             nyHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
         }
     }
@@ -321,7 +296,6 @@ class TiltaksdeltakerConsumerTest {
             tiltaksdeltakerHendelse.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
             tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.oppgaveId shouldBe null
             tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
 
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
@@ -332,27 +306,20 @@ class TiltaksdeltakerConsumerTest {
     }
 
     @Test
-    fun `team tiltak - finnes sak og melding med oppgaveId - lagrer ny hendelse uavhengig av eksisterende`() {
+    fun `team tiltak - lagrer ny hendelse uten å endre historikken`() {
         withTestApplicationContextAndPostgres { tac ->
             val teamTiltakDeltaker = getTeamTiltakDeltaker()
             val deltakerId = teamTiltakDeltaker.avtaleId.toString()
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId)
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = tiltaksdeltakelse)
-            val opprinneligTiltaksdeltakerHendelse = lagreHendelseMedOppgave(
-                tac = tac,
-                eksternDeltakerId = deltakerId,
-                tiltaksdeltakelse = tiltaksdeltakelse,
-                sakId = sak.id,
-                kilde = TiltaksdeltakerHendelseKilde.TeamTiltak,
-            )
+            tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
+            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).single()
 
             tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
 
             val hendelser = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId)
             hendelser.size shouldBe 2
-            val opprinnelig = tac.sessionFactory.hentTiltaksdeltakerHendelse(opprinneligTiltaksdeltakerHendelse.id)
-            opprinnelig shouldNotBe null
-            opprinnelig?.oppgaveId shouldBe opprinneligTiltaksdeltakerHendelse.oppgaveId
+            hendelser.single { it.id == opprinneligTiltaksdeltakerHendelse.id } shouldBe opprinneligTiltaksdeltakerHendelse
             val nyHendelse = hendelser.single { it.id != opprinneligTiltaksdeltakerHendelse.id }
             nyHendelse.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
             nyHendelse.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
@@ -360,32 +327,9 @@ class TiltaksdeltakerConsumerTest {
             nyHendelse.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
             nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
             nyHendelse.sakId shouldBe sak.id
-            nyHendelse.oppgaveId shouldBe null
             nyHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
         }
     }
-
-    /**
-     * Etablerer en tidligere behandlet hendelse med oppgave for deltakeren.
-     * Oppgave-id-en settes normalt av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.EndretTiltaksdeltakerJobb]; her lagres den direkte for å slippe å dra i gang hele jobben, jf. samme mønster i EndretTiltaksdeltakerJobbTest.
-     */
-    private fun lagreHendelseMedOppgave(
-        tac: TestApplicationContextMedPostgres,
-        eksternDeltakerId: String,
-        tiltaksdeltakelse: TiltaksdeltakelseIntern,
-        sakId: SakId,
-        kilde: TiltaksdeltakerHendelseKilde,
-    ) = getTiltaksdeltakerHendelse(
-        id = eksternDeltakerId,
-        fom = LocalDate.of(2024, 10, 14),
-        tom = LocalDate.of(2025, 1, 10),
-        dagerPerUke = 3.0F,
-        deltakelsesprosent = 60.0F,
-        deltakerstatus = TiltakDeltakerstatus.HarSluttet,
-        sakId = sakId,
-        oppgaveId = ObjectMother.oppgaveId(),
-        tiltaksdeltakerId = tiltaksdeltakelse.internDeltakelseId,
-    ).also { tac.tiltaksdeltakerHendelsePostgresRepo.lagre(it, "melding", kilde) }
 
     private fun getArenaMeldingString() =
         """

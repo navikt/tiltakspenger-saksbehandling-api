@@ -24,13 +24,10 @@ import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Erstatter etter hvert [EndretTiltaksdeltakerJobb].
  * Hendelsene tolkes ikke — consumerne setter bare en markør ([Tiltaksdeltaker.sisteUbehandletEndringTidspunkt]) på deltakeren, og jobben henter nå-tilstanden for deltakelsen ferskt fra tiltakshistorikk-tjenesten.
  * Nå-tilstanden sammenlignes med saken, og relevante endringer fører til at en revurdering opprettes automatisk.
  * Automatiske søknadsbehandlinger på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Oppgaver til oppgavesystemet/gosys sendes ikke lenger — det erstattes av annen funksjonalitet.
- *
- * Foreløpig er jobben ikke skedulert — se Jobber.kt.
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -78,12 +75,7 @@ class OppdatertTiltaksdeltakelseJobb(
                 return
             }?.tilTiltaksdeltakelseFraRegister(clock)
 
-            sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(
-                tiltaksdeltakerId = deltaker.id,
-                rammebehandlingRepo = rammebehandlingRepo,
-                minutterForsinkelse = MINUTTER_FORSINKELSE,
-                clock = clock,
-            )
+            sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(deltaker.id)
 
             if (nåtilstand == null) {
                 // Enten finnes ikke deltakelsen i historikken, eller den har ukjent tiltakstype/kildestatus og kan ikke tolkes.
@@ -96,6 +88,20 @@ class OppdatertTiltaksdeltakelseJobb(
         }.onLeft {
             log.error(it) { "Feil ved behandling av endret tiltaksdeltakelse ($logIder)" }
         }
+    }
+
+    private fun Sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(tiltaksdeltakerId: TiltaksdeltakerId) {
+        rammebehandlinger.åpneSøknadsbehandlinger
+            .filter { it.søknad.tiltak?.tiltaksdeltakerId == tiltaksdeltakerId && it.erUnderAutomatiskBehandling && it.ventestatus.erSattPåVent }
+            .forEach {
+                it.oppdaterVenterTil(
+                    nyVenterTil = nå(clock).plusMinutes(MINUTTER_FORSINKELSE),
+                    clock = clock,
+                ).let { behandling ->
+                    rammebehandlingRepo.lagre(behandling)
+                }
+                log.info { "Har oppdatert venterTil for automatisk behandling med id ${it.id} pga endring på deltaker med intern id $tiltaksdeltakerId" }
+            }
     }
 
     private suspend fun vurderEndringerOgOpprettRevurdering(
@@ -233,8 +239,8 @@ class OppdatertTiltaksdeltakelseJobb(
     }
 
     companion object {
-        // Samme forsinkelse som EndretTiltaksdeltakerJobb, i tilfelle det kommer flere hendelser for samme deltakelse i løpet av kort tid.
-        const val MINUTTER_FORSINKELSE: Long = EndretTiltaksdeltakerJobb.MINUTTER_FORSINKELSE
+        // Venter på eventuelle flere hendelser for samme deltakelse før nå-tilstanden hentes.
+        const val MINUTTER_FORSINKELSE: Long = 15L
     }
 }
 

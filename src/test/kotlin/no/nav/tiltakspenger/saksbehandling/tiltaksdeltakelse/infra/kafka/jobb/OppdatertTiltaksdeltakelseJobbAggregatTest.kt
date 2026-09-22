@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.jobber.TaskResultat
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
@@ -21,8 +22,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.jobber
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
@@ -33,6 +36,33 @@ import java.time.Clock
 import java.time.Duration
 
 class OppdatertTiltaksdeltakelseJobbAggregatTest {
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `planlagt jobb behandler markører med den nye jobben både lokalt og i nais`() {
+        listOf(false, true).forEach { isNais ->
+            withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+                val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+                val (sak) = iverksettSøknadsbehandling(
+                    tac = tac,
+                    tiltaksdeltakelse = deltakelse,
+                    innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+                )
+                tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+                val repo = tac.tiltakContext.tiltaksdeltakerRepo
+                repo.registrerUbehandletEndring(deltakelse.internDeltakelseId, sak.id, nå(tac.clock).minusMinutes(20))
+                val task = jobber(isNais, tac, tac.clock).single { it.navn == "saksbehandling-jobb-endret-tiltaksdeltaker" }
+
+                task.utfør(CorrelationId.generate()) shouldBe TaskResultat.Ferdig
+
+                repo.hentTiltaksdeltaker(deltakelse.eksternDeltakelseId).shouldNotBeNull().sisteUbehandletEndringTidspunkt.shouldBeNull()
+                val behandlinger = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger
+                behandlinger.size shouldBe 2
+                behandlinger.last().shouldBeInstanceOf<Revurdering>().automatiskOpprettetGrunn.shouldNotBeNull()
+                tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
+            }
+        }
+    }
 
     @Test
     @IsolatedDatabaseTest

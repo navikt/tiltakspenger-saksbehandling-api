@@ -174,7 +174,7 @@ private fun tiltaksdeltakerJobber(
     Task(
         navn = "saksbehandling-jobb-endret-tiltaksdeltaker",
         utfør = { _ ->
-            applicationContext.endretTiltaksdeltakerJobb.håndterEndretTiltaksdeltakerHendelser()
+            applicationContext.oppdatertTiltaksdeltakelseJobb.håndterUbehandledeEndringer()
             TaskResultat.Ferdig
         },
     ),

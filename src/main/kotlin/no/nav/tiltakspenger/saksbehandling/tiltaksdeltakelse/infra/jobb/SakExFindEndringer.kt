@@ -10,10 +10,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import java.time.Clock
 import java.time.LocalDate
 
-fun Sak.finnTiltaksdeltakerStatus(tiltaksdeltakerId: TiltaksdeltakerId) {
-    rammevedtaksliste
-}
-
 /**
  * Sammenligner nå-tilstanden fra tiltakshistorikk med den ferskeste kjente tilstanden for deltakelsen i saken.
  * Gir null dersom deltakelsen ikke er kjent fra noen vedtatt eller åpen manuell behandling, eller dersom ingenting er endret.
@@ -31,7 +27,7 @@ fun Sak.finnEndringer(
  * Ignorerer vedtak som allerede er stanset eller opphørt i relevant periode.
  * Utløpte innvilgelser er fortsatt relevante dersom det var rett på den opprinnelige sluttdatoen.
  */
-internal fun Sak.finnSisteRelevanteTiltaksdeltakelse(
+private fun Sak.finnSisteRelevanteTiltaksdeltakelse(
     tiltaksdeltakerId: TiltaksdeltakerId,
     clock: Clock,
 ): TiltaksdeltakelseIntern? {
