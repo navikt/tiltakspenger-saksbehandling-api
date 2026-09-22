@@ -2,10 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
@@ -27,7 +32,7 @@ import java.time.LocalDate
  * Hendelsene tolkes ikke — consumerne setter bare en markør ([Tiltaksdeltaker.sisteUbehandletEndringTidspunkt]) på deltakeren, og jobben henter nå-tilstanden for deltakelsen ferskt fra tiltakshistorikk-tjenesten.
  * Nå-tilstanden sammenlignes med saken, og relevante endringer fører til at en revurdering opprettes automatisk.
  * Automatiske søknadsbehandlinger på vent får fremskyndet ny vurdering når deltakelsen endres.
- * Oppgaver til oppgavesystemet/gosys sendes ikke lenger — det erstattes av annen funksjonalitet.
+ * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -35,6 +40,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     private val startRevurderingService: StartRevurderingService,
+    private val oppgaveKlient: OppgaveKlient,
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -81,7 +87,10 @@ class OppdatertTiltaksdeltakelseJobb(
                 // Enten finnes ikke deltakelsen i historikken, eller den har ukjent tiltakstype/kildestatus og kan ikke tolkes.
                 log.info { "Fant ingen lesbar nå-tilstand for deltakelsen i tiltakshistorikken: $logIder" }
             } else {
-                vurderEndringerOgOpprettRevurdering(sak, deltaker, nåtilstand, logIder)
+                vurderEndringerOgOpprettRevurderingEllerOppgave(sak, deltaker, nåtilstand, logIder).getOrElse { feil ->
+                    feil.loggFeil(log, "opprettelse av gosysoppgave for endret tiltaksdeltakelse", logIder)
+                    return
+                }
             }
 
             tiltaksdeltakerRepo.markerEndringSomBehandlet(deltaker.id, markør)
@@ -104,23 +113,28 @@ class OppdatertTiltaksdeltakelseJobb(
             }
     }
 
-    private suspend fun vurderEndringerOgOpprettRevurdering(
+    private suspend fun vurderEndringerOgOpprettRevurderingEllerOppgave(
         sak: Sak,
         deltaker: Tiltaksdeltaker,
         nåtilstand: TiltaksdeltakelseFraRegister,
         logIder: String,
-    ) {
+    ): Either<HttpKlientError, Unit> {
         val endringer = sak.finnEndringer(deltaker.id, nåtilstand, clock)
         if (endringer == null) {
             log.info { "Fant ingen relevante endringer for $logIder" }
-            return
+            return Unit.right()
         }
 
         val revurderingSomSkalOpprettes = sak.vurderRevurdering(deltaker.id, endringer)
         if (revurderingSomSkalOpprettes == null) {
-            // Gosys-oppgaver er avviklet; endringer som ikke kan revurderes automatisk håndteres av annen funksjonalitet.
-            log.info { "Tiltaksdeltakelse er endret uten at det opprettes revurdering: $logIder, endringer: ${endringer.map { it.beskrivelse }}" }
-            return
+            log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
+            return oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
+                fnr = sak.fnr,
+                oppgavebehov = Oppgavebehov.ENDRET_TILTAKDELTAKER,
+                tilleggstekst = endringer.getOppgaveTilleggstekst(),
+            ).map { oppgaveId ->
+                log.info { "Opprettet Gosys-oppgave med id $oppgaveId for endret tiltaksdeltakelse: $logIder" }
+            }
         }
 
         val kommando = StartRevurderingKommando(
@@ -144,6 +158,7 @@ class OppdatertTiltaksdeltakelseJobb(
         }
 
         log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
+        return Unit.right()
     }
 
     private fun Sak.vurderRevurdering(

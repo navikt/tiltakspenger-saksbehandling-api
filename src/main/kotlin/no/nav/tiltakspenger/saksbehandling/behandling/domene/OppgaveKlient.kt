@@ -19,12 +19,14 @@ interface OppgaveKlient {
     suspend fun opprettOppgaveUtenDuplikatkontroll(
         fnr: Fnr,
         oppgavebehov: Oppgavebehov,
+        tilleggstekst: String? = null,
     ): Either<HttpKlientError, OppgaveId>
 
     suspend fun erFerdigstilt(oppgaveId: OppgaveId): Either<HttpKlientError, Boolean>
 }
 
 enum class Oppgavebehov {
+    ENDRET_TILTAKDELTAKER,
     NYTT_MELDEKORT,
     FATT_BARN,
     DOED,

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -14,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
@@ -21,13 +23,18 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.httpKlientUventetStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
+import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -43,6 +50,86 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `Gosys-feil beholder markøren til oppgaven er opprettet ved nytt forsøk`(kastException: Boolean) {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, deltakelse) = opprettInnvilgetSak(tac)
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
+            val deltaker = tac.registrerEndring(sak, deltakelse)
+            val delegate = tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
+            var skalFeile = true
+            var antallForsøk = 0
+            val klient = object : OppgaveKlient by delegate {
+                override suspend fun opprettOppgaveUtenDuplikatkontroll(
+                    fnr: Fnr,
+                    oppgavebehov: Oppgavebehov,
+                    tilleggstekst: String?,
+                ): Either<HttpKlientError, OppgaveId> {
+                    antallForsøk++
+                    if (skalFeile) {
+                        if (kastException) error("Gosys er utilgjengelig")
+                        return httpKlientUventetStatus().left()
+                    }
+                    return delegate.opprettOppgaveUtenDuplikatkontroll(fnr, oppgavebehov, tilleggstekst)
+                }
+            }
+            val jobb = tac.jobb(oppgaveKlient = klient)
+
+            jobb.behandleDeltaker(deltaker)
+
+            antallForsøk shouldBe 1
+            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe deltaker.sisteUbehandletEndringTidspunkt
+            delegate.opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
+
+            skalFeile = false
+            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
+            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
+
+            antallForsøk shouldBe 2
+            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
+            delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
+            delegate.opprettedeOppgavetekster shouldBe listOf("Endret status.")
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
+        }
+    }
+
+    @Test
+    fun `ny markør under oppgaveopprettelsen beholdes til neste kjøring`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, deltakelse) = opprettInnvilgetSak(tac)
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
+            val deltaker = tac.registrerEndring(sak, deltakelse)
+            val nyMarkør = nå(tac.clock).withNano(0)
+            val delegate = tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
+            val klient = object : OppgaveKlient by delegate {
+                override suspend fun opprettOppgaveUtenDuplikatkontroll(
+                    fnr: Fnr,
+                    oppgavebehov: Oppgavebehov,
+                    tilleggstekst: String?,
+                ): Either<HttpKlientError, OppgaveId> {
+                    val oppgave = delegate.opprettOppgaveUtenDuplikatkontroll(fnr, oppgavebehov, tilleggstekst)
+                    tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(deltaker.id, sak.id, nyMarkør)
+                    tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+                    return oppgave
+                }
+            }
+            val jobb = tac.jobb(oppgaveKlient = klient)
+
+            jobb.behandleDeltaker(deltaker)
+
+            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe nyMarkør
+            delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
+
+            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
+
+            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
+            delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+        }
+    }
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
@@ -88,6 +175,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             antallOppslag shouldBe 3
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterRetry.rammebehandlinger.map { it.id }
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
+            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
 
@@ -166,6 +254,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             antallKvitteringer shouldBe 2
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterFeiletKvittering.rammebehandlinger.map { it.id }
+            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
 
@@ -201,6 +290,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             oppslag shouldBe listOf(sak.fnr to deltakelse.eksternDeltakelseId)
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
+            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
 
@@ -293,12 +383,14 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
     private fun TestApplicationContextMedPostgres.jobb(
         klient: TiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
         repo: TiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
+        oppgaveKlient: OppgaveKlient = this.oppgaveKlient,
     ) = OppdatertTiltaksdeltakelseJobb(
         tiltaksdeltakerRepo = repo,
         sakRepo = sakContext.sakRepo,
         rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
         tiltaksdeltakelseKlient = klient,
         startRevurderingService = behandlingContext.startRevurderingService,
+        oppgaveKlient = oppgaveKlient,
         clock = clock,
     )
 

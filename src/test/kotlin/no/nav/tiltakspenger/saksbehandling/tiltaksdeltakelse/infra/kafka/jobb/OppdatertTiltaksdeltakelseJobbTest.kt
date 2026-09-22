@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
@@ -24,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingStans
@@ -53,6 +55,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
         sak: Sak,
         tiltaksdeltakelse: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern? = tiltaksdeltakelse,
+        forventetOppgavetekst: String? = null,
     ): Sak {
         oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand)
         tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(
@@ -64,6 +67,14 @@ class OppdatertTiltaksdeltakelseJobbTest {
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
 
         oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
+
+        val oppgaver = oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
+        if (forventetOppgavetekst == null) {
+            oppgaver.opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
+        } else {
+            oppgaver.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
+            oppgaver.opprettedeOppgavetekster shouldBe listOf(forventetOppgavetekst)
+        }
 
         return sakContext.sakRepo.hentForSakId(sak.id)!!
     }
@@ -401,8 +412,15 @@ class OppdatertTiltaksdeltakelseJobbTest {
         }
     }
 
-    @Test
-    fun `endring som ikke gir automatisk revurdering - markøren nullstilles uten revurdering`() {
+    @ParameterizedTest
+    @CsvSource(
+        "Venteliste, Endret status.",
+        "IkkeAktuell, Deltakelsen er ikke aktuell.",
+    )
+    fun `endring som ikke gir automatisk revurdering oppretter Gosys-oppgave og nullstiller markøren`(
+        status: TiltakDeltakerstatus,
+        oppgavetekst: String,
+    ) {
         withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakelse = tiltaksdeltakelse(
@@ -416,16 +434,41 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             ).first
 
-            // Kun status endret til noe annet enn avbrutt/ikke aktuell gir ingen automatisk revurdering.
-            // Gosys-oppgaver er avviklet, så endringen logges kun.
             val oppdatertSak = tac.registrerEndringOgBehandle(
                 sak,
                 tiltaksdeltakelse,
-                nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste),
+                nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = status),
+                forventetOppgavetekst = oppgavetekst,
             )
 
             tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             oppdatertSak.rammebehandlinger shouldHaveSize 1
+
+            val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
+            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
+                .opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
+        }
+    }
+
+    @Test
+    fun `flere endringer i åpen manuell behandling samles i én Gosys-oppgave`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
+            val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+            )
+
+            val oppdatert = tac.registrerEndringOgBehandle(
+                sak,
+                deltakelse,
+                nåtilstand = deltakelse.copy(deltakelseFraOgMed = 6.januar(2025), antallDagerPerUke = 3F),
+                forventetOppgavetekst = "- Endret deltakelsesmengde\n- Endret startdato",
+            )
+
+            oppdatert.rammebehandlinger.map { it.id } shouldBe listOf(behandling.id)
+            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 
@@ -453,7 +496,12 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 opprettSøknadsbehandlingUnderBehandling(tac, fnr = gyldigFnr(), tiltaksdeltakelse = deltakelse)
             }
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            val oppdatert = tac.registrerEndringOgBehandle(
+                sak,
+                deltakelse,
+                deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
+                forventetOppgavetekst = if (automatisk) null else "Deltakelsen har blitt forlenget.",
+            )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe listOf(behandling.id)
             oppdatert.rammebehandlinger.single().ventestatus shouldBe behandling.ventestatus
@@ -475,7 +523,12 @@ class OppdatertTiltaksdeltakelseJobbTest {
             settRammebehandlingPåVent(tac, sak.id, revurdering.id, frist = 5.juni(2025))
             val før = tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id)
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            val oppdatert = tac.registrerEndringOgBehandle(
+                sak,
+                deltakelse,
+                deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
+                forventetOppgavetekst = "Deltakelsen har blitt forlenget.",
+            )
 
             oppdatert.rammebehandlinger shouldHaveSize 2
             tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id) shouldBe før
@@ -582,7 +635,12 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
+            val oppdatert = tac.registrerEndringOgBehandle(
+                sak,
+                deltakelse,
+                deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
+                forventetOppgavetekst = "Deltakelsen er avbrutt.",
+            )
 
             oppdatert.rammebehandlinger shouldHaveSize 1
             tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
@@ -611,6 +669,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sakMedForlengelse,
                 deltakelse,
                 if (endreMengde) forlenget.copy(antallDagerPerUke = 3F) else forlenget,
+                forventetOppgavetekst = if (endreMengde) "Endret deltakelsesmengde." else null,
             )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedForlengelse.rammebehandlinger.map { it.id }
@@ -639,6 +698,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sakMedBeggeVedtak,
                 første,
                 første.copy(deltakelseTilOgMed = 9.mai(2025), antallDagerPerUke = if (endreMengde) 3F else første.antallDagerPerUke),
+                forventetOppgavetekst = if (endreMengde) null else "Deltakelsen har blitt forlenget.",
             )
 
             if (endreMengde) {

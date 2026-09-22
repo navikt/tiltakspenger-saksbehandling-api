@@ -239,6 +239,7 @@ open class ApplicationContext(
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
             startRevurderingService = behandlingContext.startRevurderingService,
+            oppgaveKlient = oppgaveKlient,
             clock = clock,
         )
     }

@@ -27,7 +27,8 @@ class OppgaveFakeKlient(
     var opprettOppgaveUtenDuplikatkontrollResponse: Either<HttpKlientError, OppgaveId>? = null
 
     /** Oppgavene opprettet uten duplikatkontroll, i rekkefølge, slik at testene kan asserte på fnr og oppgavebehov. */
-    val opprettedeOppgaverUtenDuplikatkontroll: List<Pair<Fnr, Oppgavebehov>> get() = opprettedeUtenDuplikatkontroll.get().toList()
+    val opprettedeOppgaverUtenDuplikatkontroll: List<Pair<Fnr, Oppgavebehov>> get() = opprettedeUtenDuplikatkontroll.get().map { it.first to it.second }
+    val opprettedeOppgavetekster: List<String?> get() = opprettedeUtenDuplikatkontroll.get().map { it.third }
 
     override suspend fun opprettOppgave(fnr: Fnr, journalpostId: JournalpostId, oppgavebehov: Oppgavebehov): Either<HttpKlientError, OppgaveId> {
         opprettOppgaveResponse?.let { return it }
@@ -43,6 +44,7 @@ class OppgaveFakeKlient(
     override suspend fun opprettOppgaveUtenDuplikatkontroll(
         fnr: Fnr,
         oppgavebehov: Oppgavebehov,
+        tilleggstekst: String?,
     ): Either<HttpKlientError, OppgaveId> {
         opprettedeUtenDuplikatkontroll.get().add(fnr to oppgavebehov)
         opprettOppgaveUtenDuplikatkontrollResponse?.let { return it }

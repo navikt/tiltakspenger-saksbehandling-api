@@ -204,6 +204,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
         tiltaksdeltakelseKlient = klient,
         startRevurderingService = behandlingContext.startRevurderingService,
+        oppgaveKlient = oppgaveKlient,
         clock = clock,
     )
 
