@@ -9,10 +9,14 @@ import java.time.LocalDateTime
  * Lagring for personbeskyttelse avventer juridisk avklaring og må ikke gjøre det mulig å identifisere brukeren.
  * [opprettet] er lokalt registreringstidspunkt, ikke oppgavens eksterne opprettelsestidspunkt.
  * Ved duplikattreff hos oppgavetjenesten kan oppgaven ha blitt opprettet eksternt tidligere.
+ * [tilleggstekst] er teksten sendt til det eksterne oppgavesystemet, uavhengig av grunnlagstype.
  */
 data class EksternOppgave(
     val oppgaveId: OppgaveId,
     val sakId: SakId,
     val opprettet: LocalDateTime,
     val grunnlag: Oppgavegrunnlag,
-)
+    val tilleggstekst: String?,
+) {
+    override fun toString() = "EksternOppgave(*****)"
+}

@@ -153,8 +153,8 @@ class EndretTiltaksdeltakerJobb(
                                 dagerPerUke = deltakerHendelse.dagerPerUke,
                                 deltakelsesprosent = deltakerHendelse.deltakelsesprosent,
                                 deltakerstatus = deltakerHendelse.deltakerstatus,
-                                tilleggstekst = tilleggstekst,
                             ),
+                            tilleggstekst = tilleggstekst,
                         ),
                         tx,
                     )

@@ -60,7 +60,7 @@ class EksternOppgaveFakeRepoTest {
             dagerPerUke = 2.5f,
             deltakelsesprosent = 50.0f,
             deltakerstatus = TiltakDeltakerstatus.Deltar,
-            tilleggstekst = "Endret tiltaksdeltakelse",
         ),
+        tilleggstekst = "Endret tiltaksdeltakelse",
     )
 }

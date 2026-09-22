@@ -27,9 +27,8 @@ class OppgavegrunnlagDbJsonTest {
                 dagerPerUke = 2.5f,
                 deltakelsesprosent = 50.0f,
                 deltakerstatus = TiltakDeltakerstatus.Deltar,
-                tilleggstekst = "Endret hos \"arrangøren\"\nNy linje",
             ),
-            """{"type":"ENDRET_TILTAKSDELTAKELSE","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01","tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":"2026-01-02","deltakelseTilOgMed":"2026-06-30","dagerPerUke":2.5,"deltakelsesprosent":50.0,"deltakerstatus":"Deltar","tilleggstekst":"Endret hos \"arrangøren\"\nNy linje"}""",
+            """{"type":"ENDRET_TILTAKSDELTAKELSE","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01","tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":"2026-01-02","deltakelseTilOgMed":"2026-06-30","dagerPerUke":2.5,"deltakelsesprosent":50.0,"deltakerstatus":"Deltar"}""",
         )
     }
 
@@ -45,9 +44,8 @@ class OppgavegrunnlagDbJsonTest {
                 dagerPerUke = null,
                 deltakelsesprosent = null,
                 deltakerstatus = TiltakDeltakerstatus.Avbrutt,
-                tilleggstekst = null,
             ),
-            """{"type":"ENDRET_TILTAKSDELTAKELSE","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01","tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"dagerPerUke":null,"deltakelsesprosent":null,"deltakerstatus":"Avbrutt","tilleggstekst":null}""",
+            """{"type":"ENDRET_TILTAKSDELTAKELSE","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01","tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"dagerPerUke":null,"deltakelsesprosent":null,"deltakerstatus":"Avbrutt"}""",
         )
     }
 

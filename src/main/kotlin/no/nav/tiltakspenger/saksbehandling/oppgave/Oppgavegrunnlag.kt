@@ -15,8 +15,5 @@ sealed interface Oppgavegrunnlag {
         val dagerPerUke: Float?,
         val deltakelsesprosent: Float?,
         val deltakerstatus: TiltakDeltakerstatus,
-        val tilleggstekst: String?,
-    ) : Oppgavegrunnlag {
-        override fun toString() = "EndretTiltaksdeltakelse(*****)"
-    }
+    ) : Oppgavegrunnlag
 }

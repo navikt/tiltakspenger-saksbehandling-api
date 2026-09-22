@@ -25,7 +25,6 @@ private sealed interface OppgavegrunnlagDb {
         val dagerPerUke: Float?,
         val deltakelsesprosent: Float?,
         val deltakerstatus: String,
-        val tilleggstekst: String?,
     ) : OppgavegrunnlagDb
 }
 
@@ -40,7 +39,6 @@ fun Oppgavegrunnlag.toDbJson(): String = serialize(
             dagerPerUke = dagerPerUke,
             deltakelsesprosent = deltakelsesprosent,
             deltakerstatus = deltakerstatus.toDb(),
-            tilleggstekst = tilleggstekst,
         )
     },
 )
@@ -56,6 +54,5 @@ fun String.toOppgavegrunnlag(): Oppgavegrunnlag =
             dagerPerUke = db.dagerPerUke,
             deltakelsesprosent = db.deltakelsesprosent,
             deltakerstatus = db.deltakerstatus.toTiltakDeltakerstatus(),
-            tilleggstekst = db.tilleggstekst,
         )
     }

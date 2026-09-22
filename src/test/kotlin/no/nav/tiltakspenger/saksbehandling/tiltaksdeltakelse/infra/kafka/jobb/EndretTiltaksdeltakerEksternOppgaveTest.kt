@@ -57,6 +57,7 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
             val første = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
             første.sakId shouldBe sak.id
             første.oppgaveId shouldBe oppgaveId
+            første.tilleggstekst shouldBe "Endret deltakelsesmengde."
             (første.opprettet in før..nå(tac.clock)) shouldBe true
             første.grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
                 hendelseId = hendelse.id,
@@ -67,7 +68,6 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
                 dagerPerUke = 2.5F,
                 deltakelsesprosent = 50F,
                 deltakerstatus = TiltakDeltakerstatus.Deltar,
-                tilleggstekst = "Endret deltakelsesmengde.",
             )
             tac.sessionFactory.hentTiltaksdeltakerHendelse(hendelse.id)!!.oppgaveId shouldBe oppgaveId
 
@@ -88,6 +88,7 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
             val referanser = tac.eksternOppgaveRepo.hentForSakId(sak.id)
             referanser.size shouldBe 2
             referanser.first() shouldBe første
+            referanser.last().tilleggstekst shouldBe "Deltakelsen er ikke aktuell."
             referanser.last().grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
                 hendelseId = nyHendelse.id,
                 tiltaksdeltakerId = deltakelse.internDeltakelseId,
@@ -97,7 +98,6 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
                 dagerPerUke = null,
                 deltakelsesprosent = null,
                 deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
-                tilleggstekst = "Deltakelsen er ikke aktuell.",
             )
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
         }
