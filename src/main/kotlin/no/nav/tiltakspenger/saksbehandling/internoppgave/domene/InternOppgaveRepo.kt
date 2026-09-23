@@ -21,6 +21,15 @@ interface InternOppgaveRepo {
     /** Returnerer false dersom id eller kombinasjonen sak, type og nøkkel allerede har en åpen oppgave. */
     fun opprett(oppgave: InternOppgave, sessionContext: SessionContext? = null): Boolean
 
-    /** Lagrer bare dersom den åpne oppgaven fortsatt har forventet versjon. */
+    /**
+     * Lagrer bare dersom den åpne oppgaven fortsatt har forventet versjon.
+     * Dialogen lagres ikke her, men gjennom [leggTilDialoginnlegg].
+     */
     fun oppdater(oppgave: InternOppgave, forventetVersjon: Long, sessionContext: SessionContext? = null): Boolean
+
+    /**
+     * Legger innlegget til sist i dialogen uten å endre versjonen.
+     * Returnerer false dersom oppgaven ikke finnes eller er løst.
+     */
+    fun leggTilDialoginnlegg(id: InternOppgaveId, innlegg: Dialoginnlegg, sessionContext: SessionContext? = null): Boolean
 }

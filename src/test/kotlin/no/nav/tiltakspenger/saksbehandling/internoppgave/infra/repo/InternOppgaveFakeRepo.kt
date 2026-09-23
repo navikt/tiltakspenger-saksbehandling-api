@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.Dialoginnlegg
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgave
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgaveId
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgaveRepo
@@ -48,7 +49,28 @@ class InternOppgaveFakeRepo : InternOppgaveRepo {
         val eksisterende = oppgaver[oppgave.id] ?: return false
         if (eksisterende.erLøst || eksisterende.versjon != forventetVersjon) return false
         if (eksisterende.sakId != oppgave.sakId || eksisterende.type != oppgave.type || eksisterende.nøkkel != oppgave.nøkkel) return false
-        oppgaver[oppgave.id] = oppgave
+        // Som Postgres-repoet skriver ikke oppdater dialogen.
+        oppgaver[oppgave.id] = oppgave.medDialog(eksisterende.dialog)
         return true
     }
+
+    @Synchronized
+    override fun leggTilDialoginnlegg(id: InternOppgaveId, innlegg: Dialoginnlegg, sessionContext: SessionContext?): Boolean {
+        val eksisterende = oppgaver[id] ?: return false
+        if (eksisterende.erLøst) return false
+        oppgaver[id] = eksisterende.medDialog(eksisterende.dialog + innlegg)
+        return true
+    }
+
+    private fun InternOppgave.medDialog(dialog: List<Dialoginnlegg>) = InternOppgave(
+        id = id,
+        sakId = sakId,
+        grunnlag = grunnlag,
+        opprettet = opprettet,
+        sistEndret = sistEndret,
+        versjon = versjon,
+        saksbehandler = saksbehandler,
+        løsning = løsning,
+        dialog = dialog,
+    )
 }

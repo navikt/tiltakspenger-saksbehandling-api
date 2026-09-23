@@ -37,10 +37,10 @@ class InternOppgaveAggregatTest {
             val nyest = senereService.opprettEllerOppdater(tredjeSak.id, endretTiltaksdeltakelseGrunnlag()).getOrFail()
             val første = service.opprettEllerOppdater(førsteSak.id, endretTiltaksdeltakelseGrunnlag()).getOrFail()
             val andre = service.opprettEllerOppdater(andreSak.id, endretTiltaksdeltakelseGrunnlag()).getOrFail()
-            val tildelt = service.ta(andre.id, andre.versjon, "Z123456").getOrFail()
+            val tildelt = service.ta(andre.id, andre.versjon, testsaksbehandler).getOrFail()
             val forkastes = service.opprettEllerOppdater(tredjeSak.id, endretTiltaksdeltakelseGrunnlag()).getOrFail()
-            val tatt = service.ta(forkastes.id, forkastes.versjon, "Z123456").getOrFail()
-            service.løs(tatt.id, tatt.versjon, "Z123456", InternOppgaveløsning.Forkastet).getOrFail()
+            val tatt = service.ta(forkastes.id, forkastes.versjon, testsaksbehandler).getOrFail()
+            service.løs(tatt.id, tatt.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse).getOrFail()
 
             første.opprettet shouldBe andre.opprettet
             val forventet = listOf(første, tildelt).sortedBy { it.id.toString() } + nyest
@@ -53,11 +53,11 @@ class InternOppgaveAggregatTest {
             val avslutningsservice = InternOppgaveService(repo, Clock.offset(tidspunkt, Duration.ofSeconds(2)))
             forventet.forEach { oppgave ->
                 val eiet: InternOppgave = if (oppgave.saksbehandler == null) {
-                    avslutningsservice.ta(oppgave.id, oppgave.versjon, "Z123456").getOrFail()
+                    avslutningsservice.ta(oppgave.id, oppgave.versjon, testsaksbehandler).getOrFail()
                 } else {
                     oppgave
                 }
-                avslutningsservice.løs(eiet.id, eiet.versjon, "Z123456", InternOppgaveløsning.Forkastet).getOrFail()
+                avslutningsservice.løs(eiet.id, eiet.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse).getOrFail()
             }
             repo.hentUløste(limit = 100, offset = 0).shouldBeEmpty()
 

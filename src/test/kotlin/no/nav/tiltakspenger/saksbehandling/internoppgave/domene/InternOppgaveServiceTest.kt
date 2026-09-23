@@ -2,10 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.internoppgave.domene
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo.InternOppgaveFakeRepo
+import no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo.annenTestsaksbehandler
+import no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo.testbegrunnelse
+import no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo.testsaksbehandler
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import org.junit.jupiter.api.BeforeEach
@@ -32,7 +37,7 @@ class InternOppgaveServiceTest {
     @Test
     fun `systemet oppdaterer samme åpne oppgave og bevarer eier`() {
         val oppgave = service.opprettEllerOppdater(sakId, grunnlag()).getOrFail()
-        val tildelt = service.ta(oppgave.id, oppgave.versjon, "Z123456").getOrFail()
+        val tildelt = service.ta(oppgave.id, oppgave.versjon, testsaksbehandler).getOrFail()
         val nyttGrunnlag = grunnlag("Ny sluttdato")
         val oppdatert = service.opprettEllerOppdater(sakId, nyttGrunnlag).getOrFail()
         oppdatert.id shouldBe oppgave.id
@@ -42,9 +47,9 @@ class InternOppgaveServiceTest {
         oppdatert.versjon shouldBe tildelt.versjon + 1
         repo.hentForSak(sakId) shouldBe listOf(oppdatert)
 
-        service.løs(tildelt.id, tildelt.versjon, "Z123456", InternOppgaveløsning.Forkastet) shouldBe
+        service.løs(tildelt.id, tildelt.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse) shouldBe
             InternOppgaveFeil.OppgavenErEndret.left()
-        service.leggTilbake(tildelt.id, tildelt.versjon, "Z123456") shouldBe
+        service.leggTilbake(tildelt.id, tildelt.versjon, testsaksbehandler) shouldBe
             InternOppgaveFeil.OppgavenErEndret.left()
         repo.hent(oppgave.id) shouldBe oppdatert
     }
@@ -52,23 +57,42 @@ class InternOppgaveServiceTest {
     @Test
     fun `eier kan gi fra seg oppgaven og ny eier kan forkaste den`() {
         val ny = service.opprettEllerOppdater(sakId, grunnlag()).getOrFail()
-        val tildelt = service.ta(ny.id, ny.versjon, "Z123456").getOrFail()
-        service.ta(ny.id, tildelt.versjon, "Z654321") shouldBe InternOppgaveFeil.AlleredeTildelt.left()
-        service.leggTilbake(ny.id, tildelt.versjon, "Z654321") shouldBe InternOppgaveFeil.IkkeEier.left()
-        service.løs(ny.id, tildelt.versjon, "Z654321", InternOppgaveløsning.Forkastet) shouldBe InternOppgaveFeil.IkkeEier.left()
-        val frigitt = service.leggTilbake(ny.id, tildelt.versjon, "Z123456").getOrFail()
+        val tildelt = service.ta(ny.id, ny.versjon, testsaksbehandler).getOrFail()
+        service.ta(ny.id, tildelt.versjon, annenTestsaksbehandler) shouldBe InternOppgaveFeil.AlleredeTildelt.left()
+        service.leggTilbake(ny.id, tildelt.versjon, annenTestsaksbehandler) shouldBe InternOppgaveFeil.IkkeEier.left()
+        service.løs(ny.id, tildelt.versjon, annenTestsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse) shouldBe InternOppgaveFeil.IkkeEier.left()
+        val frigitt = service.leggTilbake(ny.id, tildelt.versjon, testsaksbehandler).getOrFail()
         frigitt.saksbehandler shouldBe null
-        val overtatt = service.ta(ny.id, frigitt.versjon, "Z654321").getOrFail()
-        val løst = service.løs(ny.id, overtatt.versjon, "Z654321", InternOppgaveløsning.Forkastet).getOrFail()
+        val overtatt = service.ta(ny.id, frigitt.versjon, annenTestsaksbehandler).getOrFail()
+        val løst = service.løs(ny.id, overtatt.versjon, annenTestsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse).getOrFail()
         løst.erLøst shouldBe true
         repo.hent(ny.id) shouldBe løst
-        service.ta(ny.id, løst.versjon, "Z123456") shouldBe InternOppgaveFeil.OppgavenErLøst.left()
-        service.leggTilbake(ny.id, løst.versjon, "Z654321") shouldBe InternOppgaveFeil.OppgavenErLøst.left()
-        service.løs(ny.id, løst.versjon, "Z654321", InternOppgaveløsning.Forkastet) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
+        service.ta(ny.id, løst.versjon, testsaksbehandler) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
+        service.leggTilbake(ny.id, løst.versjon, annenTestsaksbehandler) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
+        service.løs(ny.id, løst.versjon, annenTestsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
         val neste = service.opprettEllerOppdater(sakId, grunnlag()).getOrFail()
         (neste.id != ny.id) shouldBe true
         neste.versjon shouldBe 0L
         repo.hent(ny.id) shouldBe løst
+    }
+
+    @Test
+    fun `saksbehandler kan overta oppgaven fra en annen med gjeldende versjon`() {
+        val ny = service.opprettEllerOppdater(sakId, grunnlag()).getOrFail()
+        service.overta(ny.id, ny.versjon, annenTestsaksbehandler) shouldBe InternOppgaveFeil.IkkeTildelt.left()
+        val tildelt = service.ta(ny.id, ny.versjon, testsaksbehandler).getOrFail()
+        service.overta(ny.id, ny.versjon, annenTestsaksbehandler) shouldBe InternOppgaveFeil.OppgavenErEndret.left()
+        service.overta(ny.id, tildelt.versjon, testsaksbehandler) shouldBe InternOppgaveFeil.KanIkkeOvertaFraSegSelv.left()
+        val overtatt = service.overta(ny.id, tildelt.versjon, annenTestsaksbehandler).getOrFail()
+        overtatt.saksbehandler shouldBe annenTestsaksbehandler.navIdent
+        overtatt.versjon shouldBe tildelt.versjon + 1
+        repo.hent(ny.id) shouldBe overtatt
+        service.løs(ny.id, tildelt.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse) shouldBe
+            InternOppgaveFeil.OppgavenErEndret.left()
+        service.løs(ny.id, overtatt.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse) shouldBe
+            InternOppgaveFeil.IkkeEier.left()
+        val løst = service.løs(ny.id, overtatt.versjon, annenTestsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse).getOrFail()
+        service.overta(ny.id, løst.versjon, testsaksbehandler) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
     }
 
     @Test
@@ -86,9 +110,43 @@ class InternOppgaveServiceTest {
     @Test
     fun `ukjent oppgave gir eksplisitt feil`() {
         val id = InternOppgaveId.random()
-        service.ta(id, 0, "Z123456") shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
-        service.leggTilbake(id, 0, "Z123456") shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
-        service.løs(id, 0, "Z123456", InternOppgaveløsning.Forkastet) shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
+        service.ta(id, 0, testsaksbehandler) shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
+        service.leggTilbake(id, 0, testsaksbehandler) shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
+        service.overta(id, 0, testsaksbehandler) shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
+        service.løs(id, 0, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse) shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
+        service.leggTilDialoginnlegg(id, testsaksbehandler, NonBlankString.create("Hei")) shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
+    }
+
+    @Test
+    fun `dialogen lagres uten versjonsbump og overlever senere endringer`() {
+        val ny = service.opprettEllerOppdater(sakId, grunnlag()).getOrFail()
+        val tildelt = service.ta(ny.id, ny.versjon, testsaksbehandler).getOrFail()
+        val medInnlegg = service.leggTilDialoginnlegg(ny.id, annenTestsaksbehandler, NonBlankString.create("Sjekk sluttdato")).getOrFail()
+        medInnlegg.versjon shouldBe tildelt.versjon
+        medInnlegg.dialog shouldBe listOf(Dialoginnlegg("Z654321", nå(clock), NonBlankString.create("Sjekk sluttdato")))
+        repo.hent(ny.id) shouldBe medInnlegg
+
+        val løst = service.løs(ny.id, tildelt.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse).getOrFail()
+        løst.dialog shouldBe medInnlegg.dialog
+        repo.hent(ny.id) shouldBe løst
+        service.leggTilDialoginnlegg(ny.id, annenTestsaksbehandler, NonBlankString.create("For sent")) shouldBe
+            InternOppgaveFeil.OppgavenErLøst.left()
+        repo.hent(ny.id) shouldBe løst
+    }
+
+    @Test
+    fun `dialoginnlegg avvises når oppgaven løses mellom lesing og lagring`() {
+        val ny = service.opprettEllerOppdater(sakId, grunnlag()).getOrFail()
+        val tildelt = service.ta(ny.id, ny.versjon, testsaksbehandler).getOrFail()
+        val konkurrerendeRepo = object : InternOppgaveRepo by repo {
+            override fun leggTilDialoginnlegg(id: InternOppgaveId, innlegg: Dialoginnlegg, sessionContext: SessionContext?): Boolean {
+                service.løs(id, tildelt.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse).getOrFail()
+                return repo.leggTilDialoginnlegg(id, innlegg, sessionContext)
+            }
+        }
+        InternOppgaveService(konkurrerendeRepo, clock).leggTilDialoginnlegg(ny.id, annenTestsaksbehandler, NonBlankString.create("Hei")) shouldBe
+            InternOppgaveFeil.OppgavenErLøst.left()
+        repo.hent(ny.id)!!.dialog shouldBe emptyList()
     }
 
     @Test
@@ -110,11 +168,11 @@ class InternOppgaveServiceTest {
         val ny = service.opprettEllerOppdater(sakId, grunnlag()).getOrFail()
         val konkurrerendeRepo = object : InternOppgaveRepo by repo {
             override fun oppdater(oppgave: InternOppgave, forventetVersjon: Long, sessionContext: SessionContext?): Boolean {
-                service.ta(ny.id, ny.versjon, "Z654321").getOrFail()
+                service.ta(ny.id, ny.versjon, annenTestsaksbehandler).getOrFail()
                 return repo.oppdater(oppgave, forventetVersjon, sessionContext)
             }
         }
-        InternOppgaveService(konkurrerendeRepo, clock).ta(ny.id, ny.versjon, "Z123456") shouldBe
+        InternOppgaveService(konkurrerendeRepo, clock).ta(ny.id, ny.versjon, testsaksbehandler) shouldBe
             InternOppgaveFeil.OppgavenErEndret.left()
         repo.hent(ny.id)!!.saksbehandler shouldBe "Z654321"
     }

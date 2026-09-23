@@ -4,7 +4,9 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import java.time.Clock
 
@@ -37,15 +39,24 @@ class InternOppgaveService(
     fun ta(
         id: InternOppgaveId,
         forventetVersjon: Long,
-        saksbehandler: String,
+        saksbehandler: Saksbehandler,
         sessionContext: SessionContext? = null,
     ): Either<InternOppgaveFeil, InternOppgave> =
         endre(id, forventetVersjon, sessionContext) { it.ta(saksbehandler, clock) }
 
+    /** Versjonskravet hindrer at man overtar fra en annen enn den man så i oppgaven. */
+    fun overta(
+        id: InternOppgaveId,
+        forventetVersjon: Long,
+        saksbehandler: Saksbehandler,
+        sessionContext: SessionContext? = null,
+    ): Either<InternOppgaveFeil, InternOppgave> =
+        endre(id, forventetVersjon, sessionContext) { it.overta(saksbehandler, clock) }
+
     fun leggTilbake(
         id: InternOppgaveId,
         forventetVersjon: Long,
-        saksbehandler: String,
+        saksbehandler: Saksbehandler,
         sessionContext: SessionContext? = null,
     ): Either<InternOppgaveFeil, InternOppgave> =
         endre(id, forventetVersjon, sessionContext) { it.leggTilbake(saksbehandler, clock) }
@@ -57,11 +68,32 @@ class InternOppgaveService(
     fun løs(
         id: InternOppgaveId,
         forventetVersjon: Long,
-        saksbehandler: String,
-        løsning: InternOppgaveløsning,
+        saksbehandler: Saksbehandler,
+        utfall: InternOppgaveløsning.Utfall,
+        begrunnelse: Løsningsbegrunnelse,
         sessionContext: SessionContext? = null,
     ): Either<InternOppgaveFeil, InternOppgave> =
-        endre(id, forventetVersjon, sessionContext) { it.løs(saksbehandler, løsning, clock) }
+        endre(id, forventetVersjon, sessionContext) { it.løs(saksbehandler, utfall, begrunnelse, clock) }
+
+    /**
+     * Krever ingen forventet versjon, siden innlegg ikke konkurrerer med andre endringer.
+     * Den returnerte oppgaven mangler eventuelle innlegg som ble skrevet samtidig av andre.
+     */
+    fun leggTilDialoginnlegg(
+        id: InternOppgaveId,
+        saksbehandler: Saksbehandler,
+        tekst: NonBlankString,
+        sessionContext: SessionContext? = null,
+    ): Either<InternOppgaveFeil, InternOppgave> {
+        val oppgave = repo.hent(id, sessionContext) ?: return InternOppgaveFeil.FantIkkeOppgave.left()
+        val oppdatert = oppgave.leggTilDialoginnlegg(saksbehandler, tekst, clock).getOrElse { return it.left() }
+        // Oppgaven kan ha blitt løst etter at den ble lest.
+        return if (repo.leggTilDialoginnlegg(id, oppdatert.dialog.last(), sessionContext)) {
+            oppdatert.right()
+        } else {
+            InternOppgaveFeil.OppgavenErLøst.left()
+        }
+    }
 
     private fun endre(
         id: InternOppgaveId,

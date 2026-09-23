@@ -53,8 +53,8 @@ class InternOppgavePostgresRepoNegativTest {
                         queryOf(
                             """
                             INSERT INTO intern_oppgave
-                                (id, sak_id, type, nokkel, grunnlag, opprettet, sist_endret, versjon)
-                            SELECT :ny_id, sak_id, type, nokkel, grunnlag, opprettet, sist_endret, versjon
+                                (id, sak_id, type, nøkkel, grunnlag, opprettet, sist_endret, versjon, dialog)
+                            SELECT :ny_id, sak_id, type, nøkkel, grunnlag, opprettet, sist_endret, versjon, dialog
                             FROM intern_oppgave WHERE id = :id
                             """.trimIndent(),
                             mapOf("ny_id" to InternOppgaveId.random().toString(), "id" to oppgave.id.toString()),
@@ -63,7 +63,7 @@ class InternOppgavePostgresRepoNegativTest {
                 }
             }
             feil.sqlState shouldBe "23505"
-            feil.message shouldContain "intern_oppgave_en_apen_per_nokkel"
+            feil.message shouldContain "intern_oppgave_en_åpen_per_nøkkel"
 
             val (annenSak) = opprettSakOgSøknad(tac)
             val annenOppgave = service.opprettEllerOppdater(annenSak.id, grunnlag).getOrFail()
@@ -80,27 +80,27 @@ class InternOppgavePostgresRepoNegativTest {
             val service = InternOppgaveService(repo, tac.clock)
             val grunnlag = endretTiltaksdeltakelseGrunnlag()
             val oppgave = service.opprettEllerOppdater(sak.id, grunnlag).getOrFail()
-            val gammelTildeling = oppgave.ta("Z654321", tac.clock).getOrFail()
-            val tildelt = service.ta(oppgave.id, oppgave.versjon, "Z123456").getOrFail()
+            val gammelTildeling = oppgave.ta(annenTestsaksbehandler, tac.clock).getOrFail()
+            val tildelt = service.ta(oppgave.id, oppgave.versjon, testsaksbehandler).getOrFail()
 
             repo.oppdater(gammelTildeling, oppgave.versjon) shouldBe false
             repo.hent(oppgave.id) shouldBe tildelt
             shouldThrow<IllegalArgumentException> { repo.oppdater(tildelt, tildelt.versjon) }
 
-            val løst = service.løs(tildelt.id, tildelt.versjon, "Z123456", InternOppgaveløsning.Forkastet).getOrFail()
+            val løst = service.løs(tildelt.id, tildelt.versjon, testsaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse).getOrFail()
             val forsøkPåGjenåpning = tildelt.oppdaterGrunnlag(grunnlag, tac.clock).getOrFail()
                 .oppdaterGrunnlag(grunnlag, tac.clock).getOrFail()
             repo.oppdater(forsøkPåGjenåpning, løst.versjon) shouldBe false
             repo.hent(løst.id) shouldBe løst
 
             val ny = service.opprettEllerOppdater(sak.id, grunnlag).getOrFail()
-            val nyTildeling = ny.ta("Z123456", tac.clock).getOrFail()
+            val nyTildeling = ny.ta(testsaksbehandler, tac.clock).getOrFail()
             tac.sessionFactory.withSession { session ->
                 session.run(queryOf("DELETE FROM intern_oppgave WHERE id = :id", mapOf("id" to ny.id.toString())).asUpdate)
             }
             repo.oppdater(nyTildeling, ny.versjon) shouldBe false
             repo.hent(ny.id) shouldBe null
-            service.ta(ny.id, ny.versjon, "Z123456") shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
+            service.ta(ny.id, ny.versjon, testsaksbehandler) shouldBe InternOppgaveFeil.FantIkkeOppgave.left()
         }
     }
 
@@ -118,13 +118,14 @@ class InternOppgavePostgresRepoNegativTest {
 
             val (sak) = opprettSakOgSøknad(tac)
             val oppgave = service.opprettEllerOppdater(sak.id, grunnlag).getOrFail()
-            val tildelt = service.ta(oppgave.id, oppgave.versjon, "Z123456").getOrFail()
+            val tildelt = service.ta(oppgave.id, oppgave.versjon, testsaksbehandler).getOrFail()
             val ukjentBehandling = shouldThrow<PSQLException> {
                 service.løs(
                     tildelt.id,
                     tildelt.versjon,
-                    "Z123456",
-                    InternOppgaveløsning.Revurdering(InternOppgaveløsning.Revurderingstype.STANS, RammebehandlingId.random()),
+                    testsaksbehandler,
+                    InternOppgaveløsning.Utfall.Revurdering(InternOppgaveløsning.Revurderingstype.STANS, RammebehandlingId.random()),
+                    testbegrunnelse,
                 )
             }
             ukjentBehandling.sqlState shouldBe "23503"
@@ -134,23 +135,30 @@ class InternOppgavePostgresRepoNegativTest {
     }
 
     @Test
-    fun `databasen krever konsistent løsning saksbehandler behandling og tidspunkt`() {
+    fun `databasen krever konsistent løsning begrunnelse saksbehandler behandling tidspunkt og dialog`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac)
             val repo = InternOppgavePostgresRepo(tac.sessionFactory)
             val service = InternOppgaveService(repo, tac.clock)
             val oppgave = service.opprettEllerOppdater(sak.id, endretTiltaksdeltakelseGrunnlag()).getOrFail()
             val ugyldigeEndringer = listOf(
-                "losning = 'FORKASTET'" to "intern_oppgave_losning",
-                "lost = sist_endret" to "intern_oppgave_losning",
-                "behandling_id = :behandling_id" to "intern_oppgave_losning",
-                "losning = 'FORKASTET', lost = sist_endret" to "intern_oppgave_losning",
-                "losning = 'STANS', lost = sist_endret, saksbehandler = 'Z123456'" to "intern_oppgave_losning",
-                "losning = 'FORLENGELSE', lost = sist_endret, saksbehandler = 'Z123456'" to "intern_oppgave_losning",
-                "losning = 'OMGJORING', lost = sist_endret, saksbehandler = 'Z123456'" to "intern_oppgave_losning",
-                "losning = 'FORKASTET', lost = sist_endret, saksbehandler = 'Z123456', behandling_id = :behandling_id" to "intern_oppgave_losning",
-                "losning = 'UKJENT', lost = sist_endret, saksbehandler = 'Z123456'" to "intern_oppgave_losning",
-                "losning = 'FORKASTET', lost = sist_endret + interval '1 second', saksbehandler = 'Z123456'" to "intern_oppgave_losning",
+                "løsning = 'FORKASTET'" to "intern_oppgave_løsning",
+                "løst = sist_endret, begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "behandling_id = :behandling_id" to "intern_oppgave_løsning",
+                "løsning = 'FORKASTET', løst = sist_endret, begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "løsning = 'STANS', løst = sist_endret, saksbehandler = 'Z123456', begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "løsning = 'FORLENGELSE', løst = sist_endret, saksbehandler = 'Z123456', begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "løsning = 'OMGJORING', løst = sist_endret, saksbehandler = 'Z123456', begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "løsning = 'FORKASTET', løst = sist_endret, saksbehandler = 'Z123456', behandling_id = :behandling_id, begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "løsning = 'UKJENT', løst = sist_endret, saksbehandler = 'Z123456', begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "løsning = 'FORKASTET', løst = sist_endret + interval '1 second', saksbehandler = 'Z123456', begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_løsning",
+                "begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT'" to "intern_oppgave_begrunnelse",
+                "begrunnelse_fritekst = 'Fritekst'" to "intern_oppgave_begrunnelse",
+                "løsning = 'FORKASTET', løst = sist_endret, saksbehandler = 'Z123456'" to "intern_oppgave_begrunnelse",
+                "løsning = 'FORKASTET', løst = sist_endret, saksbehandler = 'Z123456', begrunnelse = 'ENDRINGEN_ER_ALLEREDE_HANDTERT', begrunnelse_fritekst = 'Fritekst'" to "intern_oppgave_begrunnelse",
+                "løsning = 'FORKASTET', løst = sist_endret, saksbehandler = 'Z123456', begrunnelse_fritekst = ''" to "intern_oppgave_begrunnelse",
+                "løsning = 'FORKASTET', løst = sist_endret, saksbehandler = 'Z123456', begrunnelse_fritekst = '  '" to "intern_oppgave_begrunnelse",
+                "dialog = '{}'::jsonb" to "intern_oppgave_dialog_check",
                 "sist_endret = opprettet - interval '1 second'" to "intern_oppgave_tid",
                 "saksbehandler = '   '" to "intern_oppgave_saksbehandler_check",
                 "versjon = -1" to "intern_oppgave_versjon_check",
@@ -211,8 +219,8 @@ class InternOppgavePostgresRepoNegativTest {
             }
             val tildelingsservice = InternOppgaveService(tildelingsrepo, clock)
             val tildelinger = samtidig(
-                { tildelingsservice.ta(oppgave.id, oppgave.versjon, "Z123456") },
-                { tildelingsservice.ta(oppgave.id, oppgave.versjon, "Z654321") },
+                { tildelingsservice.ta(oppgave.id, oppgave.versjon, testsaksbehandler) },
+                { tildelingsservice.ta(oppgave.id, oppgave.versjon, annenTestsaksbehandler) },
             )
             tildelinger.count { it.isRight() } shouldBe 1
             tildelinger.single { it.isLeft() } shouldBe InternOppgaveFeil.OppgavenErEndret.left()

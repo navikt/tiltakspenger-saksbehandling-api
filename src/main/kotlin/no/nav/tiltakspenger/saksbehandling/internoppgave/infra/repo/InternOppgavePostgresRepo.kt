@@ -5,11 +5,13 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.Dialoginnlegg
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgave
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgaveId
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgaveløsning
 import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.InternOppgavetype
+import no.nav.tiltakspenger.saksbehandling.internoppgave.domene.Løsningsbegrunnelse
 
 class InternOppgavePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
@@ -36,7 +38,7 @@ class InternOppgavePostgresRepo(
             sqlQuery(
                 """
                 SELECT * FROM intern_oppgave
-                WHERE sak_id = :sak_id AND type = :type AND nokkel = :nokkel AND lost IS NULL
+                WHERE sak_id = :sak_id AND type = :type AND nøkkel = :nokkel AND løst IS NULL
                 """.trimIndent(),
                 "sak_id" to sakId.toString(),
                 "type" to type.toDb().name,
@@ -66,7 +68,7 @@ class InternOppgavePostgresRepo(
                 sqlQuery(
                     """
                     SELECT * FROM intern_oppgave
-                    WHERE lost IS NULL
+                    WHERE løst IS NULL
                     ORDER BY opprettet, id
                     LIMIT :limit OFFSET :offset
                     """.trimIndent(),
@@ -83,15 +85,16 @@ class InternOppgavePostgresRepo(
                 sqlQuery(
                     """
                     INSERT INTO intern_oppgave (
-                        id, sak_id, type, nokkel, grunnlag, opprettet, sist_endret,
-                        versjon, saksbehandler, losning, behandling_id, lost
+                        id, sak_id, type, nøkkel, grunnlag, opprettet, sist_endret, versjon, saksbehandler,
+                        løsning, behandling_id, begrunnelse, begrunnelse_fritekst, løst, dialog
                     ) VALUES (
-                        :id, :sak_id, :type, :nokkel, :grunnlag::jsonb, :opprettet, :sist_endret,
-                        :versjon, :saksbehandler, :losning, :behandling_id, :lost
+                        :id, :sak_id, :type, :nokkel, :grunnlag::jsonb, :opprettet, :sist_endret, :versjon, :saksbehandler,
+                        :losning, :behandling_id, :begrunnelse, :begrunnelse_fritekst, :lost, :dialog::jsonb
                     )
                     ON CONFLICT DO NOTHING
                     """.trimIndent(),
                     *oppgave.parametre(),
+                    "dialog" to oppgave.dialog.toDbJson(),
                 ).asUpdate,
             ) > 0
         }
@@ -104,10 +107,10 @@ class InternOppgavePostgresRepo(
                     """
                     UPDATE intern_oppgave
                     SET grunnlag = :grunnlag::jsonb, sist_endret = :sist_endret, versjon = :versjon,
-                        saksbehandler = :saksbehandler, losning = :losning,
-                        behandling_id = :behandling_id, lost = :lost
-                    WHERE id = :id AND versjon = :forventet_versjon AND lost IS NULL
-                        AND sak_id = :sak_id AND type = :type AND nokkel = :nokkel
+                        saksbehandler = :saksbehandler, løsning = :losning, behandling_id = :behandling_id,
+                        begrunnelse = :begrunnelse, begrunnelse_fritekst = :begrunnelse_fritekst, løst = :lost
+                    WHERE id = :id AND versjon = :forventet_versjon AND løst IS NULL
+                        AND sak_id = :sak_id AND type = :type AND nøkkel = :nokkel
                     """.trimIndent(),
                     *oppgave.parametre(),
                     "forventet_versjon" to forventetVersjon,
@@ -115,6 +118,22 @@ class InternOppgavePostgresRepo(
             ) > 0
         }
     }
+
+    override fun leggTilDialoginnlegg(id: InternOppgaveId, innlegg: Dialoginnlegg, sessionContext: SessionContext?): Boolean =
+        sessionFactory.withSession(sessionContext) { session ->
+            session.run(
+                sqlQuery(
+                    // Radlåsen på oppdateringen gjør at et innlegg aldri kommer inn etter at en samtidig løsning er lagret.
+                    """
+                    UPDATE intern_oppgave
+                    SET dialog = dialog || :innlegg::jsonb
+                    WHERE id = :id AND løst IS NULL
+                    """.trimIndent(),
+                    "id" to id.toString(),
+                    "innlegg" to listOf(innlegg).toDbJson(),
+                ).asUpdate,
+            ) > 0
+        }
 
     private fun InternOppgave.parametre() = arrayOf(
         "id" to id.toString(),
@@ -126,20 +145,29 @@ class InternOppgavePostgresRepo(
         "sist_endret" to sistEndret,
         "versjon" to versjon,
         "saksbehandler" to saksbehandler,
-        "losning" to løsning?.let { it.toDb().name },
-        "behandling_id" to (løsning as? InternOppgaveløsning.Revurdering)?.let { it.behandlingId.toString() },
-        "lost" to løst,
+        "losning" to løsning?.let { it.utfall.toDb().name },
+        "behandling_id" to (løsning?.utfall as? InternOppgaveløsning.Utfall.Revurdering)?.let { it.behandlingId.toString() },
+        "begrunnelse" to (løsning?.begrunnelse as? Løsningsbegrunnelse.Forhåndsdefinert)?.let { it.årsak.toDb().name },
+        "begrunnelse_fritekst" to (løsning?.begrunnelse as? Løsningsbegrunnelse.Fritekst)?.let { it.tekst.value },
+        "lost" to løsning?.løst,
     )
 
     private fun Row.tilOppgave() = InternOppgave(
         id = InternOppgaveId.fromString(string("id")),
         sakId = SakId.fromString(string("sak_id")),
-        grunnlag = InternOppgavetypeDb.valueOf(string("type")).tilGrunnlag(string("nokkel"), string("grunnlag")),
+        grunnlag = InternOppgavetypeDb.valueOf(string("type")).tilGrunnlag(string("nøkkel"), string("grunnlag")),
         opprettet = localDateTime("opprettet"),
         sistEndret = localDateTime("sist_endret"),
         versjon = long("versjon"),
         saksbehandler = stringOrNull("saksbehandler"),
-        løsning = stringOrNull("losning")?.let { InternOppgaveløsningDb.valueOf(it).tilDomene(stringOrNull("behandling_id")) },
-        løst = localDateTimeOrNull("lost"),
+        løsning = stringOrNull("løsning")?.let {
+            InternOppgaveløsning(
+                utfall = InternOppgaveløsningDb.valueOf(it).tilUtfall(stringOrNull("behandling_id")),
+                begrunnelse = tilLøsningsbegrunnelse(stringOrNull("begrunnelse"), stringOrNull("begrunnelse_fritekst")),
+                // intern_oppgave_løsning krever løst når løsning er satt.
+                løst = localDateTime("løst"),
+            )
+        },
+        dialog = string("dialog").tilDialog(),
     )
 }

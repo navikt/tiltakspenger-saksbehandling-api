@@ -11,5 +11,9 @@ sealed interface InternOppgaveFeil {
 
     data object IkkeEier : InternOppgaveFeil
 
+    data object IkkeTildelt : InternOppgaveFeil
+
+    data object KanIkkeOvertaFraSegSelv : InternOppgaveFeil
+
     data object AnnetGrunnlag : InternOppgaveFeil
 }

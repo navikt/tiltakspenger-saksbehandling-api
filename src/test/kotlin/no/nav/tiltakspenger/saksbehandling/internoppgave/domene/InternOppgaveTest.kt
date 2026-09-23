@@ -5,11 +5,16 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo.annenTestsaksbehandler
+import no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo.testbegrunnelse
+import no.nav.tiltakspenger.saksbehandling.internoppgave.infra.repo.testsaksbehandler
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import org.junit.jupiter.api.Test
@@ -21,8 +26,8 @@ class InternOppgaveTest {
     private val sakId = SakId.random()
     private val tiltaksdeltakerId = TiltaksdeltakerId.random()
     private val grunnlag = grunnlag()
-    private val saksbehandler = "Z123456"
-    private val annenSaksbehandler = "Z654321"
+    private val saksbehandler = testsaksbehandler
+    private val annenSaksbehandler = annenTestsaksbehandler
 
     @Test
     fun `oppretter en åpen ufordelt oppgave med unik id og versjon null`() {
@@ -38,8 +43,8 @@ class InternOppgaveTest {
         oppgave.versjon shouldBe 0L
         oppgave.saksbehandler shouldBe null
         oppgave.løsning shouldBe null
-        oppgave.løst shouldBe null
         oppgave.erLøst shouldBe false
+        oppgave.dialog shouldBe emptyList()
     }
 
     @Test
@@ -47,7 +52,7 @@ class InternOppgaveTest {
         val oppgave = opprett()
         val tildelt = oppgave.ta(saksbehandler, clock(1)).getOrFail()
 
-        tildelt.saksbehandler shouldBe saksbehandler
+        tildelt.saksbehandler shouldBe saksbehandler.navIdent
         tildelt.versjon shouldBe 1L
         tildelt.sistEndret shouldBe nå(clock(1))
         tildelt.id shouldBe oppgave.id
@@ -85,10 +90,37 @@ class InternOppgaveTest {
         tilbake.sakId shouldBe sakId
         tilbake.grunnlag shouldBe grunnlag
         tilbake.opprettet shouldBe oppgave.opprettet
-        overtatt.saksbehandler shouldBe annenSaksbehandler
+        overtatt.saksbehandler shouldBe annenSaksbehandler.navIdent
         overtatt.versjon shouldBe 3L
         overtatt.sistEndret shouldBe nå(clock(3))
-        tildelt.saksbehandler shouldBe saksbehandler
+        tildelt.saksbehandler shouldBe saksbehandler.navIdent
+    }
+
+    @Test
+    fun `en annen saksbehandler kan overta en tildelt oppgave`() {
+        val tildelt = opprett().ta(saksbehandler, clock(1)).getOrFail()
+        val overtatt = tildelt.overta(annenSaksbehandler, clock(2)).getOrFail()
+
+        overtatt.saksbehandler shouldBe annenSaksbehandler.navIdent
+        overtatt.versjon shouldBe 2L
+        overtatt.sistEndret shouldBe nå(clock(2))
+        overtatt.id shouldBe tildelt.id
+        overtatt.grunnlag shouldBe tildelt.grunnlag
+        overtatt.opprettet shouldBe tildelt.opprettet
+        tildelt.leggTilbake(saksbehandler, clock(3)).getOrFail()
+        overtatt.leggTilbake(saksbehandler, clock(3)) shouldBe InternOppgaveFeil.IkkeEier.left()
+        overtatt.løs(annenSaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, clock(3)).getOrFail()
+    }
+
+    @Test
+    fun `kan ikke overta en ufordelt oppgave eller fra seg selv`() {
+        val ufordelt = opprett()
+        val tildelt = ufordelt.ta(saksbehandler, clock(1)).getOrFail()
+
+        ufordelt.overta(saksbehandler, clock(2)) shouldBe InternOppgaveFeil.IkkeTildelt.left()
+        tildelt.overta(saksbehandler, clock(2)) shouldBe InternOppgaveFeil.KanIkkeOvertaFraSegSelv.left()
+        tildelt.versjon shouldBe 1L
+        tildelt.sistEndret shouldBe nå(clock(1))
     }
 
     @Test
@@ -98,7 +130,7 @@ class InternOppgaveTest {
 
         listOf(ufordelt, tildelt).forEach {
             it.leggTilbake(annenSaksbehandler, clock(2)) shouldBe InternOppgaveFeil.IkkeEier.left()
-            it.løs(annenSaksbehandler, InternOppgaveløsning.Forkastet, clock(2)) shouldBe
+            it.løs(annenSaksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, clock(2)) shouldBe
                 InternOppgaveFeil.IkkeEier.left()
         }
         ufordelt.versjon shouldBe 0L
@@ -109,42 +141,99 @@ class InternOppgaveTest {
     @Test
     fun `kan forkaste eller registrere stans forlengelse og omgjøring med eksisterende behandlingsid`() {
         val behandlingId = RammebehandlingId.random()
-        val løsninger = listOf(
-            InternOppgaveløsning.Forkastet,
-            InternOppgaveløsning.Revurdering(InternOppgaveløsning.Revurderingstype.STANS, behandlingId),
-            InternOppgaveløsning.Revurdering(InternOppgaveløsning.Revurderingstype.FORLENGELSE, behandlingId),
-            InternOppgaveløsning.Revurdering(InternOppgaveløsning.Revurderingstype.OMGJØRING, behandlingId),
+        val utfall = listOf(
+            InternOppgaveløsning.Utfall.Forkastet,
+            InternOppgaveløsning.Utfall.Revurdering(InternOppgaveløsning.Revurderingstype.STANS, behandlingId),
+            InternOppgaveløsning.Utfall.Revurdering(InternOppgaveløsning.Revurderingstype.FORLENGELSE, behandlingId),
+            InternOppgaveløsning.Utfall.Revurdering(InternOppgaveløsning.Revurderingstype.OMGJØRING, behandlingId),
         )
 
-        løsninger.forEach { løsning ->
+        utfall.forEach { utfall ->
             val tildelt = opprett().ta(saksbehandler, clock(1)).getOrFail()
-            val løst = tildelt.løs(saksbehandler, løsning, clock(2)).getOrFail()
+            val løst = tildelt.løs(saksbehandler, utfall, testbegrunnelse, clock(2)).getOrFail()
 
-            løst.løsning shouldBe løsning
+            løst.løsning shouldBe InternOppgaveløsning(utfall, testbegrunnelse, nå(clock(2)))
             løst.erLøst shouldBe true
-            løst.løst shouldBe nå(clock(2))
-            løst.sistEndret shouldBe løst.løst
-            løst.saksbehandler shouldBe saksbehandler
+            løst.sistEndret shouldBe nå(clock(2))
+            løst.saksbehandler shouldBe saksbehandler.navIdent
             løst.versjon shouldBe 2L
             løst.id shouldBe tildelt.id
             løst.sakId shouldBe sakId
             løst.opprettet shouldBe tildelt.opprettet
             løst.grunnlag shouldBe grunnlag
             tildelt.løsning shouldBe null
-            tildelt.løst shouldBe null
         }
+    }
+
+    @Test
+    fun `begrunnelsen kan være forhåndsdefinert eller fritekst`() {
+        val begrunnelser = Løsningsbegrunnelse.Årsak.entries.map { Løsningsbegrunnelse.Forhåndsdefinert(it) } +
+            Løsningsbegrunnelse.Fritekst(NonBlankString.create("Deltakeren har allerede fått stans"))
+
+        begrunnelser.forEach { begrunnelse ->
+            opprett().ta(saksbehandler, clock(1)).getOrFail()
+                .løs(saksbehandler, InternOppgaveløsning.Utfall.Forkastet, begrunnelse, clock(2)).getOrFail()
+                .løsning!!.begrunnelse shouldBe begrunnelse
+        }
+    }
+
+    @Test
+    fun `alle saksbehandlere kan skrive i dialogen på en åpen oppgave uten at versjonen endres`() {
+        val ufordelt = opprett()
+        val første = ufordelt.leggTilDialoginnlegg(annenSaksbehandler, tekst("Hvem tar denne?"), clock(1)).getOrFail()
+        val tildelt = første.ta(saksbehandler, clock(2)).getOrFail()
+        val andre = tildelt.leggTilDialoginnlegg(annenSaksbehandler, tekst("Sjekk sluttdatoen"), clock(3)).getOrFail()
+        val tredje = andre.leggTilDialoginnlegg(saksbehandler, tekst("Takk"), clock(4)).getOrFail()
+
+        tredje.dialog shouldBe listOf(
+            Dialoginnlegg(annenSaksbehandler.navIdent, nå(clock(1)), tekst("Hvem tar denne?")),
+            Dialoginnlegg(annenSaksbehandler.navIdent, nå(clock(3)), tekst("Sjekk sluttdatoen")),
+            Dialoginnlegg(saksbehandler.navIdent, nå(clock(4)), tekst("Takk")),
+        )
+        første.versjon shouldBe ufordelt.versjon
+        første.sistEndret shouldBe ufordelt.sistEndret
+        tredje.versjon shouldBe tildelt.versjon
+        tredje.sistEndret shouldBe tildelt.sistEndret
+        tredje.saksbehandler shouldBe saksbehandler.navIdent
+        ufordelt.dialog shouldBe emptyList()
+    }
+
+    @Test
+    fun `dialogen følger med gjennom andre operasjoner og kan ikke utvides etter løsning`() {
+        val medDialog = opprett().leggTilDialoginnlegg(annenSaksbehandler, tekst("Innspill"), clock(1)).getOrFail()
+        val løst = medDialog.ta(saksbehandler, clock(2)).getOrFail()
+            .oppdaterGrunnlag(grunnlag(), clock(3)).getOrFail()
+            .leggTilbake(saksbehandler, clock(4)).getOrFail()
+            .ta(saksbehandler, clock(5)).getOrFail()
+            .løs(saksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, clock(6)).getOrFail()
+
+        løst.dialog shouldBe medDialog.dialog
+        listOf(saksbehandler, annenSaksbehandler).forEach {
+            løst.leggTilDialoginnlegg(it, tekst("For sent"), clock(7)) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
+        }
+    }
+
+    @Test
+    fun `dialoginnlegg krever saksbehandler og maskerer teksten`() {
+        listOf("", " ", "\n\t").forEach {
+            shouldThrow<IllegalArgumentException> { opprett().leggTilDialoginnlegg(ObjectMother.saksbehandler(navIdent = it), tekst("Hei"), clock(1)) }
+        }
+        val innlegg = Dialoginnlegg(saksbehandler.navIdent, nå(fixedClock), tekst("Personlig opplysning"))
+        innlegg.toString() shouldNotContain "Personlig opplysning"
+        Løsningsbegrunnelse.Fritekst(tekst("Personlig opplysning")).toString() shouldNotContain "Personlig opplysning"
     }
 
     @Test
     fun `løste oppgaver avviser alle operasjoner uavhengig av eier og nytt grunnlag`() {
         val løst = opprett()
             .ta(saksbehandler, clock(1)).getOrFail()
-            .løs(saksbehandler, InternOppgaveløsning.Forkastet, clock(2)).getOrFail()
+            .løs(saksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, clock(2)).getOrFail()
 
         listOf(saksbehandler, annenSaksbehandler).forEach {
             løst.ta(it, clock(3)) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
             løst.leggTilbake(it, clock(3)) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
-            løst.løs(it, InternOppgaveløsning.Forkastet, clock(3)) shouldBe
+            løst.overta(it, clock(3)) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
+            løst.løs(it, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, clock(3)) shouldBe
                 InternOppgaveFeil.OppgavenErLøst.left()
         }
         løst.oppdaterGrunnlag(grunnlag(), clock(3)) shouldBe InternOppgaveFeil.OppgavenErLøst.left()
@@ -194,7 +283,7 @@ class InternOppgaveTest {
         val oppdatert = tildelt.oppdaterGrunnlag(grunnlag, fixedClock).getOrFail()
         val tilbake = oppdatert.leggTilbake(saksbehandler, fixedClock).getOrFail()
         val tattPåNytt = tilbake.ta(saksbehandler, fixedClock).getOrFail()
-        val løst = tattPåNytt.løs(saksbehandler, InternOppgaveløsning.Forkastet, fixedClock).getOrFail()
+        val løst = tattPåNytt.løs(saksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, fixedClock).getOrFail()
 
         listOf(oppgave, tildelt, oppdatert, tilbake, tattPåNytt, løst).forEachIndexed { indeks, verdi ->
             verdi.versjon shouldBe indeks.toLong()
@@ -210,8 +299,9 @@ class InternOppgaveTest {
 
         shouldThrow<IllegalArgumentException> { opprett().ta(saksbehandler, clock(-1)) }
         shouldThrow<IllegalArgumentException> { tildelt.leggTilbake(saksbehandler, clock(1)) }
+        shouldThrow<IllegalArgumentException> { tildelt.overta(annenSaksbehandler, clock(1)) }
         shouldThrow<IllegalArgumentException> {
-            tildelt.løs(saksbehandler, InternOppgaveløsning.Forkastet, clock(1))
+            tildelt.løs(saksbehandler, InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, clock(1))
         }
         shouldThrow<IllegalArgumentException> { tildelt.oppdaterGrunnlag(grunnlag(), clock(1)) }
     }
@@ -219,7 +309,7 @@ class InternOppgaveTest {
     @Test
     fun `saksbehandler og beskrivelse kan ikke være blanke`() {
         listOf("", " ", "\n\t").forEach {
-            shouldThrow<IllegalArgumentException> { opprett().ta(it, fixedClock) }
+            shouldThrow<IllegalArgumentException> { opprett().ta(ObjectMother.saksbehandler(navIdent = it), fixedClock) }
             shouldThrow<IllegalArgumentException> { grunnlag(beskrivelse = it) }
             shouldThrow<IllegalArgumentException> { fraLagretTilstand(saksbehandler = it) }
         }
@@ -239,26 +329,15 @@ class InternOppgaveTest {
     }
 
     @Test
-    fun `løsning og løst må være satt sammen`() {
-        shouldThrow<IllegalArgumentException> {
-            fraLagretTilstand(saksbehandler = saksbehandler, løsning = InternOppgaveløsning.Forkastet)
-        }
-        shouldThrow<IllegalArgumentException> {
-            fraLagretTilstand(saksbehandler = saksbehandler, løst = nå(fixedClock))
-        }
-    }
-
-    @Test
     fun `løst oppgave må ha eier og løst må være lik sist endret`() {
         shouldThrow<IllegalArgumentException> {
-            fraLagretTilstand(løsning = InternOppgaveløsning.Forkastet, løst = nå(fixedClock))
+            fraLagretTilstand(løsning = InternOppgaveløsning(InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, nå(fixedClock)))
         }
         listOf(nå(clock(-1)), nå(clock(1))).forEach {
             shouldThrow<IllegalArgumentException> {
                 fraLagretTilstand(
-                    saksbehandler = saksbehandler,
-                    løsning = InternOppgaveløsning.Forkastet,
-                    løst = it,
+                    saksbehandler = saksbehandler.navIdent,
+                    løsning = InternOppgaveløsning(InternOppgaveløsning.Utfall.Forkastet, testbegrunnelse, it),
                 )
             }
         }
@@ -275,6 +354,8 @@ class InternOppgaveTest {
         beskrivelse = beskrivelse,
     )
 
+    private fun tekst(verdi: String) = NonBlankString.create(verdi)
+
     private fun clock(minutter: Long): Clock = Clock.offset(fixedClock, Duration.ofMinutes(minutter))
 
     private fun fraLagretTilstand(
@@ -282,7 +363,6 @@ class InternOppgaveTest {
         versjon: Long = 0,
         saksbehandler: String? = null,
         løsning: InternOppgaveløsning? = null,
-        løst: LocalDateTime? = null,
     ) = InternOppgave(
         id = InternOppgaveId.random(),
         sakId = sakId,
@@ -292,6 +372,6 @@ class InternOppgaveTest {
         versjon = versjon,
         saksbehandler = saksbehandler,
         løsning = løsning,
-        løst = løst,
+        dialog = emptyList(),
     )
 }
