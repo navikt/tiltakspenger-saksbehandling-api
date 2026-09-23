@@ -78,6 +78,7 @@ spec:
             envVarPrefix: DB
             users:
               - name: tpts_ds
+              - name: tpts_bigquery_views
   accessPolicy:
     outbound:
       rules:
