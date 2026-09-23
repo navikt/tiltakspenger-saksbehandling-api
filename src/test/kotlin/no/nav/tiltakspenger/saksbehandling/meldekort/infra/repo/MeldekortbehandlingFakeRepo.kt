@@ -190,8 +190,7 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
 
         if (meldekortbehandlingRespons == null ||
-            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING ||
-            meldekortbehandlingRespons.sistEndret != meldekortbehandling.sistEndret
+            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
         ) {
             return false
         }

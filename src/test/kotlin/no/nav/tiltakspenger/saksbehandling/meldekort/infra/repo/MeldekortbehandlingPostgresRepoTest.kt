@@ -7,7 +7,6 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.angre.angreMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
@@ -39,7 +38,7 @@ class MeldekortbehandlingPostgresRepoTest {
 
             val angretMeldekortbehandling = meldekortbehandling.angreMeldekortbehandling(saksbehandler, ObjectMother.clock).getOrFail()
 
-            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = angretMeldekortbehandling, null) shouldBe true
+            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = angretMeldekortbehandling, transactionContext = null) shouldBe true
 
             tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.also {
                 it.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
@@ -53,7 +52,7 @@ class MeldekortbehandlingPostgresRepoTest {
         withTestApplicationContextAndPostgres { tac ->
             val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(tac)!!
 
-            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = meldekortbehandling, null) shouldBe false
+            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = meldekortbehandling, transactionContext = null) shouldBe false
         }
     }
 

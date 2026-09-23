@@ -39,7 +39,7 @@ class AngreMeldekortbehandlingService(
             if (!meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(angreMeldekortbehandling)) {
                 return KanIkkeAngreMeldekortbehandling.MeldekortbehandlingErIkkeLengerKlarTilBeslutning.left()
             }
-            sak.oppdaterMeldekortbehandling(meldekortbehandling) to meldekortbehandling
+            sak.oppdaterMeldekortbehandling(angreMeldekortbehandling) to angreMeldekortbehandling
         }
     }
 }
