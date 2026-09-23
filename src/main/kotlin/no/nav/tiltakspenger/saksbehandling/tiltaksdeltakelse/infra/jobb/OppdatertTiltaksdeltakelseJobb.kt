@@ -157,13 +157,7 @@ class OppdatertTiltaksdeltakelseJobb(
                     opprettet = nå(clock),
                     grunnlag = Oppgavegrunnlag.EndretTiltaksdeltakelse(
                         kilde = Kilde.Tiltakshistorikk(sisteUbehandletEndring = markør),
-                        tiltaksdeltakerId = deltaker.id,
-                        eksternDeltakerId = deltaker.eksternId,
-                        deltakelseFraOgMed = nåtilstand.deltakelseFraOgMed,
-                        deltakelseTilOgMed = nåtilstand.deltakelseTilOgMed,
-                        dagerPerUke = nåtilstand.antallDagerPerUke,
-                        deltakelsesprosent = nåtilstand.deltakelseProsent,
-                        deltakerstatus = nåtilstand.deltakelseStatus,
+                        verdi = nåtilstand,
                     ),
                     tilleggstekst = tilleggstekst,
                 )

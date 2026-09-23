@@ -2,10 +2,13 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.json.serialize
@@ -18,12 +21,16 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.UUID
 
 class OppdatertTiltaksdeltakelseEksternOppgaveTest {
@@ -54,15 +61,9 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
             første.oppgaveId shouldBe oppgaveId
             første.tilleggstekst shouldBe "Endret deltakelsesmengde."
             (første.opprettet in før..nå(tac.clock)) shouldBe true
-            første.grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                kilde = Kilde.Tiltakshistorikk(deltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull()),
-                tiltaksdeltakerId = deltakelse.internDeltakelseId,
-                eksternDeltakerId = eksternId.toString(),
-                deltakelseFraOgMed = 1.april(2025),
-                deltakelseTilOgMed = 31.august(2025),
-                dagerPerUke = 2.5F,
-                deltakelsesprosent = 50F,
-                deltakerstatus = TiltakDeltakerstatus.Deltar,
+            første.grunnlag shouldEqualJson forventetGrunnlag(
+                markør = deltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull(),
+                nåtilstand = tac.hentNåtilstand(sak.fnr, deltakelse),
             )
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
 
@@ -75,15 +76,9 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
             referanser.size shouldBe 2
             referanser.first() shouldBe første
             referanser.last().tilleggstekst shouldBe "Deltakelsen er ikke aktuell."
-            referanser.last().grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                kilde = Kilde.Tiltakshistorikk(nyDeltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull()),
-                tiltaksdeltakerId = deltakelse.internDeltakelseId,
-                eksternDeltakerId = eksternId.toString(),
-                deltakelseFraOgMed = 1.april(2025),
-                deltakelseTilOgMed = 31.august(2025),
-                dagerPerUke = deltakelse.antallDagerPerUke,
-                deltakelsesprosent = deltakelse.deltakelseProsent,
-                deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
+            referanser.last().grunnlag shouldEqualJson forventetGrunnlag(
+                markør = nyDeltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull(),
+                nåtilstand = tac.hentNåtilstand(sak.fnr, deltakelse),
             )
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
         }
@@ -121,6 +116,23 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
         }
     }
+
+    /**
+     * Grunnlaget leses som rå json fra databasen, og jsonb normaliserer rekkefølge og mellomrom.
+     * Derfor sammenlignes det som json med det mappingen skriver, og ikke som streng.
+     */
+    private fun forventetGrunnlag(markør: LocalDateTime, nåtilstand: TiltaksdeltakelseFraRegister): String =
+        Oppgavegrunnlag.EndretTiltaksdeltakelse(Kilde.Tiltakshistorikk(markør), nåtilstand).toDbJson()
+
+    /** Nå-tilstanden jobben ser, slik fake-klienten leverer den. */
+    private suspend fun TestApplicationContextMedPostgres.hentNåtilstand(
+        fnr: Fnr,
+        deltakelse: TiltaksdeltakelseIntern,
+    ): TiltaksdeltakelseFraRegister =
+        tiltakContext.tiltaksdeltakelseKlient
+            .hentTiltaksdeltakelse(fnr, deltakelse.eksternDeltakelseId, CorrelationId.generate())
+            .getOrNull().shouldNotBeNull()
+            .tilTiltaksdeltakelseFraRegister(clock).shouldNotBeNull()
 
     /** Hendelsens innhold er uten betydning, siden jobben henter nå-tilstanden fra tiltakshistorikken. */
     private suspend fun TestApplicationContextMedPostgres.registrerEndring(deltakelse: TiltaksdeltakelseIntern): Tiltaksdeltaker {

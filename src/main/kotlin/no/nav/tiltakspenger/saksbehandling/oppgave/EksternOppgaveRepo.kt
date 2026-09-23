@@ -11,5 +11,5 @@ interface EksternOppgaveRepo {
     fun lagre(eksternOppgave: EksternOppgave, sessionContext: SessionContext? = null)
 
     /** Henter sakens referanser sortert stigende på registreringstidspunkt og deretter oppgave-ID. */
-    fun hentForSakId(sakId: SakId): List<EksternOppgave>
+    fun hentForSakId(sakId: SakId): List<LagretEksternOppgave>
 }

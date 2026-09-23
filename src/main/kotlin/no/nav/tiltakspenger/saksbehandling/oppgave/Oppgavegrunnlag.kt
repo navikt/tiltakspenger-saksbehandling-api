@@ -1,26 +1,21 @@
 package no.nav.tiltakspenger.saksbehandling.oppgave
 
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
-import java.time.LocalDate
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import java.time.LocalDateTime
 
+/**
+ * Grunnlaget lagres kun for sporbarhet og feilsøking.
+ * Det leses aldri tilbake til domenet, se [LagretEksternOppgave.grunnlag].
+ */
 sealed interface Oppgavegrunnlag {
+    /**
+     * [verdi] er nå-tilstanden fra tiltakshistorikk som førte til oppgaven.
+     */
     data class EndretTiltaksdeltakelse(
         val kilde: Kilde,
-        val tiltaksdeltakerId: TiltaksdeltakerId,
-        val eksternDeltakerId: String,
-        val deltakelseFraOgMed: LocalDate?,
-        val deltakelseTilOgMed: LocalDate?,
-        val dagerPerUke: Float?,
-        val deltakelsesprosent: Float?,
-        val deltakerstatus: TiltakDeltakerstatus,
+        val verdi: TiltaksdeltakelseFraRegister,
     ) : Oppgavegrunnlag {
-        /** Kildespesifikke referanser holdes adskilt fra øyeblikksbildet av deltakelsen. */
         sealed interface Kilde {
-            data class Kafka(val hendelseId: TiltaksdeltakerHendelseId) : Kilde
-
             /**
              * Øyeblikksbildet er nå-tilstanden hentet fra tiltakshistorikk-tjenesten.
              * [sisteUbehandletEndring] er markøren på deltakeren som ble behandlet, altså tidspunktet for siste mottatte hendelse.

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
+import io.kotest.assertions.json.shouldContainJsonKeyValue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -25,7 +26,6 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
@@ -79,8 +79,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             oppgaver.opprettedeOppgavetekster shouldBe listOf(forventetOppgavetekst)
             referanser.map { it.oppgaveId } shouldBe oppgaver.opprettedeOppgaveIder
             referanser.map { it.tilleggstekst } shouldBe listOf(forventetOppgavetekst)
-            referanser.map { (it.grunnlag as Oppgavegrunnlag.EndretTiltaksdeltakelse).tiltaksdeltakerId } shouldBe
-                listOf(tiltaksdeltakelse.internDeltakelseId)
+            referanser.single().grunnlag.shouldContainJsonKeyValue("$.verdi.eksternDeltakelseId", tiltaksdeltakelse.eksternDeltakelseId)
         }
 
         return sakContext.sakRepo.hentForSakId(sak.id)!!
