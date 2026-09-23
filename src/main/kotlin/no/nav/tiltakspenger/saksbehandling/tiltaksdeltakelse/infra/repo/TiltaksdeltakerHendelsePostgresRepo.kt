@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
 import no.nav.tiltakspenger.libs.common.nå
-import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode

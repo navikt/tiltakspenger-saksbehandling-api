@@ -25,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettOmgjøringOpphør
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettRevurderingInnvilgelse
@@ -69,11 +70,17 @@ class OppdatertTiltaksdeltakelseJobbTest {
         oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
 
         val oppgaver = oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
+        val referanser = eksternOppgaveRepo.hentForSakId(sak.id)
         if (forventetOppgavetekst == null) {
             oppgaver.opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
+            referanser.shouldBeEmpty()
         } else {
             oppgaver.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
             oppgaver.opprettedeOppgavetekster shouldBe listOf(forventetOppgavetekst)
+            referanser.map { it.oppgaveId } shouldBe oppgaver.opprettedeOppgaveIder
+            referanser.map { it.tilleggstekst } shouldBe listOf(forventetOppgavetekst)
+            referanser.map { (it.grunnlag as Oppgavegrunnlag.EndretTiltaksdeltakelse).tiltaksdeltakerId } shouldBe
+                listOf(tiltaksdeltakelse.internDeltakelseId)
         }
 
         return sakContext.sakRepo.hentForSakId(sak.id)!!

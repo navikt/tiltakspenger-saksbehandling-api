@@ -9,6 +9,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
@@ -16,6 +17,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
+import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
+import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -27,12 +32,14 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Hendelsene tolkes ikke — consumerne setter bare en markør ([Tiltaksdeltaker.sisteUbehandletEndringTidspunkt]) på deltakeren, og jobben henter nå-tilstanden for deltakelsen ferskt fra tiltakshistorikk-tjenesten.
  * Nå-tilstanden sammenlignes med saken, og relevante endringer fører til at en revurdering opprettes automatisk.
  * Automatiske søknadsbehandlinger på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
+ * Referansen til oppgaven lagres som en [EksternOppgave] i samme transaksjon som markøren nullstilles.
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -41,6 +48,8 @@ class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     private val startRevurderingService: StartRevurderingService,
     private val oppgaveKlient: OppgaveKlient,
+    private val eksternOppgaveRepo: EksternOppgaveRepo,
+    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -83,17 +92,23 @@ class OppdatertTiltaksdeltakelseJobb(
 
             sak.oppdaterAutomatiskeSøknadsbehandlingerPåVent(deltaker.id)
 
-            if (nåtilstand == null) {
+            val eksternOppgave = if (nåtilstand == null) {
                 // Enten finnes ikke deltakelsen i historikken, eller den har ukjent tiltakstype/kildestatus og kan ikke tolkes.
                 log.info { "Fant ingen lesbar nå-tilstand for deltakelsen i tiltakshistorikken: $logIder" }
+                null
             } else {
-                vurderEndringerOgOpprettRevurderingEllerOppgave(sak, deltaker, nåtilstand, logIder).getOrElse { feil ->
+                vurderEndringerOgOpprettRevurderingEllerOppgave(sak, deltaker, nåtilstand, markør, logIder).getOrElse { feil ->
+                    // Markøren står igjen, slik at oppgaveopprettelsen prøves på nytt ved neste kjøring.
                     feil.loggFeil(log, "opprettelse av gosysoppgave for endret tiltaksdeltakelse", logIder)
                     return
                 }
             }
 
-            tiltaksdeltakerRepo.markerEndringSomBehandlet(deltaker.id, markør)
+            sessionFactory.withTransactionContext { tx ->
+                eksternOppgave?.let { eksternOppgaveRepo.lagre(it, tx) }
+                tiltaksdeltakerRepo.markerEndringSomBehandlet(deltaker.id, markør, tx)
+            }
+            eksternOppgave?.let { log.info { "Lagret oppgaveId ${it.oppgaveId} for tiltaksdeltakelse: $logIder" } }
         }.onLeft {
             log.error(it) { "Feil ved behandling av endret tiltaksdeltakelse ($logIder)" }
         }
@@ -117,23 +132,41 @@ class OppdatertTiltaksdeltakelseJobb(
         sak: Sak,
         deltaker: Tiltaksdeltaker,
         nåtilstand: TiltaksdeltakelseFraRegister,
+        markør: LocalDateTime,
         logIder: String,
-    ): Either<HttpKlientError, Unit> {
+    ): Either<HttpKlientError, EksternOppgave?> {
         val endringer = sak.finnEndringer(deltaker.id, nåtilstand, clock)
         if (endringer == null) {
             log.info { "Fant ingen relevante endringer for $logIder" }
-            return Unit.right()
+            return null.right()
         }
 
         val revurderingSomSkalOpprettes = sak.vurderRevurdering(deltaker.id, endringer)
         if (revurderingSomSkalOpprettes == null) {
             log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
+            val tilleggstekst = endringer.getOppgaveTilleggstekst()
             return oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 fnr = sak.fnr,
                 oppgavebehov = Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                tilleggstekst = endringer.getOppgaveTilleggstekst(),
+                tilleggstekst = tilleggstekst,
             ).map { oppgaveId ->
                 log.info { "Opprettet Gosys-oppgave med id $oppgaveId for endret tiltaksdeltakelse: $logIder" }
+                EksternOppgave(
+                    oppgaveId = oppgaveId,
+                    sakId = sak.id,
+                    opprettet = nå(clock),
+                    grunnlag = Oppgavegrunnlag.EndretTiltaksdeltakelse(
+                        kilde = Kilde.Tiltakshistorikk(sisteUbehandletEndring = markør),
+                        tiltaksdeltakerId = deltaker.id,
+                        eksternDeltakerId = deltaker.eksternId,
+                        deltakelseFraOgMed = nåtilstand.deltakelseFraOgMed,
+                        deltakelseTilOgMed = nåtilstand.deltakelseTilOgMed,
+                        dagerPerUke = nåtilstand.antallDagerPerUke,
+                        deltakelsesprosent = nåtilstand.deltakelseProsent,
+                        deltakerstatus = nåtilstand.deltakelseStatus,
+                    ),
+                    tilleggstekst = tilleggstekst,
+                )
             }
         }
 
@@ -158,7 +191,7 @@ class OppdatertTiltaksdeltakelseJobb(
         }
 
         log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
-        return Unit.right()
+        return null.right()
     }
 
     private fun Sak.vurderRevurdering(

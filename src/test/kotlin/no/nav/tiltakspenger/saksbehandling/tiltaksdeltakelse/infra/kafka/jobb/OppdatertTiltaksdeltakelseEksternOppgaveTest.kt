@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.april
@@ -18,15 +20,15 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaks
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelserForEksternId
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class EndretTiltaksdeltakerEksternOppgaveTest {
+class OppdatertTiltaksdeltakelseEksternOppgaveTest {
     @Test
-    fun `oppgavegrunnlaget fra Komet beholdes når nye hendelser endrer deltakelsen`() {
+    fun `oppgavegrunnlaget fra tiltakshistorikken beholdes når nye endringer gir ny oppgave`() {
         withTestApplicationContextAndPostgres { tac ->
             val eksternId = UUID.randomUUID()
             val deltakelse = ObjectMother.tiltaksdeltakelse(
@@ -38,22 +40,14 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
                 fnr = ObjectMother.gyldigFnr(),
                 tiltaksdeltakelse = deltakelse,
             )
-            val melding = KometTiltakHendelseDTO(
-                id = eksternId,
-                startDato = 1.april(2025),
-                sluttDato = 31.august(2025),
-                status = KometTiltakHendelseDTO.DeltakerStatusDto(KometDeltakerStatusTypeDTO.DELTAR),
-                dagerPerUke = 2.5F,
-                prosentStilling = 50F,
-            )
-            tac.konsumer(melding)
-            val hendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(eksternId.toString()).single()
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(antallDagerPerUke = 2.5F, deltakelseProsent = 50F))
+            val deltaker = tac.registrerEndring(deltakelse)
             val oppgaveId = OppgaveId(UUID.randomUUID().toString())
             val klient = tac.oppgaveKlient as OppgaveFakeKlient
             klient.opprettOppgaveUtenDuplikatkontrollResponse = oppgaveId.right()
             val før = nå(tac.clock)
 
-            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(deltakelse.internDeltakelseId)
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
 
             val første = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
             første.sakId shouldBe sak.id
@@ -61,7 +55,7 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
             første.tilleggstekst shouldBe "Endret deltakelsesmengde."
             (første.opprettet in før..nå(tac.clock)) shouldBe true
             første.grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                kilde = Kilde.Kafka(hendelse.id),
+                kilde = Kilde.Tiltakshistorikk(deltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull()),
                 tiltaksdeltakerId = deltakelse.internDeltakelseId,
                 eksternDeltakerId = eksternId.toString(),
                 deltakelseFraOgMed = 1.april(2025),
@@ -70,34 +64,25 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
                 deltakelsesprosent = 50F,
                 deltakerstatus = TiltakDeltakerstatus.Deltar,
             )
-            tac.sessionFactory.hentTiltaksdeltakerHendelse(hendelse.id)!!.oppgaveId shouldBe oppgaveId
+            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
 
-            tac.konsumer(
-                KometTiltakHendelseDTO(
-                    id = eksternId,
-                    startDato = null,
-                    sluttDato = null,
-                    status = KometTiltakHendelseDTO.DeltakerStatusDto(KometDeltakerStatusTypeDTO.IKKE_AKTUELL),
-                    dagerPerUke = null,
-                    prosentStilling = null,
-                ),
-            )
-            val nyHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(eksternId.toString()).single { it.id != hendelse.id }
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell))
+            val nyDeltaker = tac.registrerEndring(deltakelse)
             klient.opprettOppgaveUtenDuplikatkontrollResponse = null
-            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(deltakelse.internDeltakelseId)
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(nyDeltaker)
 
             val referanser = tac.eksternOppgaveRepo.hentForSakId(sak.id)
             referanser.size shouldBe 2
             referanser.first() shouldBe første
             referanser.last().tilleggstekst shouldBe "Deltakelsen er ikke aktuell."
             referanser.last().grunnlag shouldBe Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                kilde = Kilde.Kafka(nyHendelse.id),
+                kilde = Kilde.Tiltakshistorikk(nyDeltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull()),
                 tiltaksdeltakerId = deltakelse.internDeltakelseId,
                 eksternDeltakerId = eksternId.toString(),
-                deltakelseFraOgMed = null,
-                deltakelseTilOgMed = null,
-                dagerPerUke = null,
-                deltakelsesprosent = null,
+                deltakelseFraOgMed = 1.april(2025),
+                deltakelseTilOgMed = 31.august(2025),
+                dagerPerUke = deltakelse.antallDagerPerUke,
+                deltakelsesprosent = deltakelse.deltakelseProsent,
                 deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
             )
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
@@ -105,7 +90,7 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
     }
 
     @Test
-    fun `oppgavefeil lar Komet-hendelsen være ubehandlet uten ekstern oppgave`() {
+    fun `oppgavefeil lar markøren stå uten ekstern oppgave`() {
         withTestApplicationContextAndPostgres { tac ->
             val eksternId = UUID.randomUUID()
             val deltakelse = ObjectMother.tiltaksdeltakelse(
@@ -117,36 +102,41 @@ class EndretTiltaksdeltakerEksternOppgaveTest {
                 fnr = ObjectMother.gyldigFnr(),
                 tiltaksdeltakelse = deltakelse,
             )
-            tac.konsumer(
-                KometTiltakHendelseDTO(
-                    id = eksternId,
-                    startDato = null,
-                    sluttDato = null,
-                    status = KometTiltakHendelseDTO.DeltakerStatusDto(KometDeltakerStatusTypeDTO.IKKE_AKTUELL),
-                    dagerPerUke = null,
-                    prosentStilling = null,
-                ),
-            )
-            val hendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(eksternId.toString()).single()
+            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell))
+            val deltaker = tac.registrerEndring(deltakelse)
             val klient = tac.oppgaveKlient as OppgaveFakeKlient
             klient.opprettOppgaveUtenDuplikatkontrollResponse = ObjectMother.httpKlientUventetStatus().left()
 
-            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(deltakelse.internDeltakelseId)
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
 
             tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
-            tac.sessionFactory.hentTiltaksdeltakerHendelse(hendelse.id) shouldBe hendelse
+            tac.hentDeltaker(deltakelse) shouldBe deltaker
 
             klient.opprettOppgaveUtenDuplikatkontrollResponse = null
-            tac.endretTiltaksdeltakerJobb.behandleHendelserForDeltaker(deltakelse.internDeltakelseId)
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
 
             val referanse = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
-            tac.sessionFactory.hentTiltaksdeltakerHendelse(hendelse.id)!!.oppgaveId shouldBe referanse.oppgaveId
+            referanse.oppgaveId shouldBe klient.opprettedeOppgaveIder.last()
+            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
         }
     }
 
-    private suspend fun TestApplicationContextMedPostgres.konsumer(melding: KometTiltakHendelseDTO) {
+    /** Hendelsens innhold er uten betydning, siden jobben henter nå-tilstanden fra tiltakshistorikken. */
+    private suspend fun TestApplicationContextMedPostgres.registrerEndring(deltakelse: TiltaksdeltakelseIntern): Tiltaksdeltaker {
+        val melding = KometTiltakHendelseDTO(
+            id = UUID.fromString(deltakelse.eksternDeltakelseId),
+            startDato = deltakelse.deltakelseFraOgMed,
+            sluttDato = deltakelse.deltakelseTilOgMed,
+            status = KometTiltakHendelseDTO.DeltakerStatusDto(KometDeltakerStatusTypeDTO.DELTAR),
+            dagerPerUke = null,
+            prosentStilling = null,
+        )
         tiltaksdeltakerKometConsumer.consume(melding.id, serialize(melding))
         clock.spol1timeFrem()
+        return hentDeltaker(deltakelse).also { it.sisteUbehandletEndringTidspunkt.shouldNotBeNull() }
     }
+
+    private fun TestApplicationContextMedPostgres.hentDeltaker(deltakelse: TiltaksdeltakelseIntern): Tiltaksdeltaker =
+        tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakelse.eksternDeltakelseId).shouldNotBeNull()
 }

@@ -25,6 +25,7 @@ import java.util.UUID
  * Bygger saker og hendelser gjennom prodstiene, og gjenskaper deretter den historiske køtilstanden med SQL.
  * Direkte SQL er nødvendig fordi den nye consumeren alltid setter markør og den gamle jobbens kvittering er fjernet.
  * Kjører den faktiske migreringsfilen mot historiske data etter at testdatabasen er migrert.
+ * DDL-en i migreringen er idempotent, så hele fila kan kjøres på nytt, og det er flyttingen av køen som testes her.
  */
 class TiltaksdeltakerKømigreringAggregatTest {
 
@@ -53,10 +54,10 @@ class TiltaksdeltakerKømigreringAggregatTest {
             repo.registrerUbehandletEndring(eldreMarkør.id, eldreMarkør.sakId, tidspunkt.minusMinutes(50))
             val historikkFør = tac.hentHistorikk()
             val migrering = javaClass.getResource(
-                "/db/migration/V252__flytt_ubehandlede_tiltaksdeltakerhendelser_til_markor.sql",
+                "/db/migration/V253__tiltaksdeltaker_sak_id_og_siste_ubehandlet_endring.sql",
             ).shouldNotBeNull().readText()
 
-            tac.sessionFactory.withSession { session -> session.run(sqlQuery(migrering).asUpdate) }
+            tac.sessionFactory.withSession { session -> session.run(sqlQuery(migrering).asExecute) }
 
             repo.hentTiltaksdeltaker(ubehandlet.eksternId).shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe tidspunkt.minusMinutes(20)
             repo.hentTiltaksdeltaker(behandlet.eksternId).shouldNotBeNull().sisteUbehandletEndringTidspunkt.shouldBeNull()

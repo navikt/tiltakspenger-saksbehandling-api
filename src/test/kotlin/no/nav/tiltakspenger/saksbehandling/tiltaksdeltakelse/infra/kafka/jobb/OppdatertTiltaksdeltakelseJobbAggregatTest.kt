@@ -205,6 +205,8 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         tiltaksdeltakelseKlient = klient,
         startRevurderingService = behandlingContext.startRevurderingService,
         oppgaveKlient = oppgaveKlient,
+        eksternOppgaveRepo = eksternOppgaveRepo,
+        sessionFactory = sessionFactory,
         clock = clock,
     )
 

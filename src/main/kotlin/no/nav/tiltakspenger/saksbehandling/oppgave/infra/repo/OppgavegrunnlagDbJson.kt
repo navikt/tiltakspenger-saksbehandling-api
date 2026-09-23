@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.Til
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toDb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.toTiltakDeltakerstatus
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -32,17 +33,22 @@ private sealed interface OppgavegrunnlagDb {
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = TiltaksdeltakelseKildeDb.Kafka::class, name = "KAFKA"),
+    JsonSubTypes.Type(value = TiltaksdeltakelseKildeDb.Tiltakshistorikk::class, name = "TILTAKSHISTORIKK"),
 )
 private sealed interface TiltaksdeltakelseKildeDb {
     class Kafka(val hendelseId: String) : TiltaksdeltakelseKildeDb
+
+    class Tiltakshistorikk(val sisteUbehandletEndring: LocalDateTime) : TiltaksdeltakelseKildeDb
 }
 
 private fun Kilde.toDb(): TiltaksdeltakelseKildeDb = when (this) {
     is Kilde.Kafka -> TiltaksdeltakelseKildeDb.Kafka(hendelseId.toString())
+    is Kilde.Tiltakshistorikk -> TiltaksdeltakelseKildeDb.Tiltakshistorikk(sisteUbehandletEndring)
 }
 
 private fun TiltaksdeltakelseKildeDb.toDomain(): Kilde = when (this) {
     is TiltaksdeltakelseKildeDb.Kafka -> Kilde.Kafka(TiltaksdeltakerHendelseId.fromString(hendelseId))
+    is TiltaksdeltakelseKildeDb.Tiltakshistorikk -> Kilde.Tiltakshistorikk(sisteUbehandletEndring)
 }
 
 fun Oppgavegrunnlag.toDbJson(): String = serialize(

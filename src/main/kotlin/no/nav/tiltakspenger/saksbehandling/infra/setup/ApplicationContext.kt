@@ -230,8 +230,6 @@ open class ApplicationContext(
         )
     }
 
-    // TODO: Skal erstatte endretTiltaksdeltakerJobb.
-    //  Er ikke skedulert ennå — se Jobber.kt.
     open val oppdatertTiltaksdeltakelseJobb by lazy {
         OppdatertTiltaksdeltakelseJobb(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
@@ -240,6 +238,8 @@ open class ApplicationContext(
             tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
             startRevurderingService = behandlingContext.startRevurderingService,
             oppgaveKlient = oppgaveKlient,
+            eksternOppgaveRepo = eksternOppgaveRepo,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

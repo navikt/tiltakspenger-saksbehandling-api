@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 sealed interface Oppgavegrunnlag {
     data class EndretTiltaksdeltakelse(
@@ -19,6 +20,12 @@ sealed interface Oppgavegrunnlag {
         /** Kildespesifikke referanser holdes adskilt fra øyeblikksbildet av deltakelsen. */
         sealed interface Kilde {
             data class Kafka(val hendelseId: TiltaksdeltakerHendelseId) : Kilde
+
+            /**
+             * Øyeblikksbildet er nå-tilstanden hentet fra tiltakshistorikk-tjenesten.
+             * [sisteUbehandletEndring] er markøren på deltakeren som ble behandlet, altså tidspunktet for siste mottatte hendelse.
+             */
+            data class Tiltakshistorikk(val sisteUbehandletEndring: LocalDateTime) : Kilde
         }
     }
 }

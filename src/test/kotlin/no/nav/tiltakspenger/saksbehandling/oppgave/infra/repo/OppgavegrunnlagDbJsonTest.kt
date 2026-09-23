@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.Til
 import org.junit.jupiter.api.Test
 import tools.jackson.databind.exc.InvalidTypeIdException
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Ren mapping testes uten database for å pinne lagringsformatet uavhengig av prodstiene.
@@ -47,6 +48,23 @@ class OppgavegrunnlagDbJsonTest {
                 deltakerstatus = TiltakDeltakerstatus.Avbrutt,
             ),
             """{"type":"ENDRET_TILTAKSDELTAKELSE","kilde":{"type":"KAFKA","hendelseId":"tiltaksdeltakerhendelse_01HSTRQBRM443VGB4WA822TE01"},"tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":null,"deltakelseTilOgMed":null,"dagerPerUke":null,"deltakelsesprosent":null,"deltakerstatus":"Avbrutt"}""",
+        )
+    }
+
+    @Test
+    fun `endret tiltaksdeltakelse med tiltakshistorikk som kilde`() {
+        verifiser(
+            Oppgavegrunnlag.EndretTiltaksdeltakelse(
+                kilde = Kilde.Tiltakshistorikk(LocalDateTime.of(2026, 1, 2, 13, 14, 15, 123456000)),
+                tiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02"),
+                eksternDeltakerId = "ekstern-123",
+                deltakelseFraOgMed = LocalDate.of(2026, 1, 2),
+                deltakelseTilOgMed = null,
+                dagerPerUke = 5.0f,
+                deltakelsesprosent = null,
+                deltakerstatus = TiltakDeltakerstatus.IkkeAktuell,
+            ),
+            """{"type":"ENDRET_TILTAKSDELTAKELSE","kilde":{"type":"TILTAKSHISTORIKK","sisteUbehandletEndring":"2026-01-02T13:14:15.123456"},"tiltaksdeltakerId":"tiltaksdeltaker_01HSTRQBRM443VGB4WA822TE02","eksternDeltakerId":"ekstern-123","deltakelseFraOgMed":"2026-01-02","deltakelseTilOgMed":null,"dagerPerUke":5.0,"deltakelsesprosent":null,"deltakerstatus":"IkkeAktuell"}""",
         )
     }
 
