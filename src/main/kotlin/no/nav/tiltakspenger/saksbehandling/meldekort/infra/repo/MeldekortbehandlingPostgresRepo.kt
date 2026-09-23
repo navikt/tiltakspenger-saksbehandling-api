@@ -410,8 +410,9 @@ class MeldekortbehandlingPostgresRepo(
 
     override fun angreMeldekortbehandlingSendtTilBeslutning(
         meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext?
     ): Boolean {
-        return sessionFactory.withTransaction { tx ->
+        return sessionFactory.withTransaction(transactionContext) { tx ->
             tx.run(
                 sqlQuery(
                     """
