@@ -4,6 +4,7 @@ import kotliquery.Row
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
@@ -139,8 +140,8 @@ class TiltaksdeltakerHendelsePostgresRepo(
         }
     }
 
-    fun markerSomBehandletMedOppgave(id: TiltaksdeltakerHendelseId, oppgaveId: OppgaveId) {
-        sessionFactory.withSession {
+    fun markerSomBehandletMedOppgave(id: TiltaksdeltakerHendelseId, oppgaveId: OppgaveId, sessionContext: TransactionContext) {
+        sessionFactory.withSession(sessionContext) {
             it.run(
                 sqlQuery(
                     """

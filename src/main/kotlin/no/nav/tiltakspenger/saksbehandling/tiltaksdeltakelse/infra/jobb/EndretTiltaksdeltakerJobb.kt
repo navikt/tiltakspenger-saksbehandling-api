@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
@@ -15,6 +16,10 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
+import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
+import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
+import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
@@ -27,6 +32,8 @@ class EndretTiltaksdeltakerJobb(
     private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
     private val sakRepo: SakRepo,
     private val oppgaveKlient: OppgaveKlient,
+    private val eksternOppgaveRepo: EksternOppgaveRepo,
+    private val sessionFactory: SessionFactory,
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val clock: Clock,
     private val startRevurderingService: StartRevurderingService,
@@ -122,16 +129,38 @@ class EndretTiltaksdeltakerJobb(
             } else {
                 log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
 
+                val tilleggstekst = endringer.getOppgaveTilleggstekst()
                 val oppgaveId = oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                     sak.fnr,
                     Oppgavebehov.ENDRET_TILTAKDELTAKER,
-                    endringer.getOppgaveTilleggstekst(),
+                    tilleggstekst,
                 ).getOrElse { feil ->
                     feil.loggFeil(log, "opprettelse av gosysoppgave for endret tiltaksdeltakelse", logIder)
                     return
                 }
 
-                tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletMedOppgave(hendelseId, oppgaveId)
+                sessionFactory.withTransactionContext { tx ->
+                    eksternOppgaveRepo.lagre(
+                        EksternOppgave(
+                            oppgaveId = oppgaveId,
+                            sakId = sakId,
+                            opprettet = nå(clock),
+                            grunnlag = Oppgavegrunnlag.EndretTiltaksdeltakelse(
+                                kilde = Kilde.Kafka(hendelseId),
+                                tiltaksdeltakerId = internDeltakerId,
+                                eksternDeltakerId = eksternDeltakerId,
+                                deltakelseFraOgMed = deltakerHendelse.deltakelseFraOgMed,
+                                deltakelseTilOgMed = deltakerHendelse.deltakelseTilOgMed,
+                                dagerPerUke = deltakerHendelse.dagerPerUke,
+                                deltakelsesprosent = deltakerHendelse.deltakelsesprosent,
+                                deltakerstatus = deltakerHendelse.deltakerstatus,
+                            ),
+                            tilleggstekst = tilleggstekst,
+                        ),
+                        tx,
+                    )
+                    tiltaksdeltakerHendelsePostgresRepo.markerSomBehandletMedOppgave(hendelseId, oppgaveId, tx)
+                }
 
                 log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse: $logIder" }
             }

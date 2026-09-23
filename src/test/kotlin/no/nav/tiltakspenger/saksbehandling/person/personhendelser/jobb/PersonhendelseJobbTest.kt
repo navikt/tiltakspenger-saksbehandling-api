@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.person.personhendelser.jobb
 
+import arrow.core.left
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
@@ -87,6 +88,7 @@ class PersonhendelseJobbTest {
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
             tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId shouldNotBe null
+            tac.eksternOppgaveRepo.hentForSakId(sak) shouldBe emptyList()
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
                 listOf(fnr to Oppgavebehov.DOED)
         }
@@ -131,8 +133,14 @@ class PersonhendelseJobbTest {
             tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
 
             tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId shouldNotBe null
+            tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
             (tac.oppgaveKlient as OppgaveFakeKlient).opprettedeOppgaverUtenDuplikatkontroll shouldBe
                 listOf(fnr to Oppgavebehov.ADRESSEBESKYTTELSE)
+
+            tac.personhendelseJobb.ryddOppPersonhendelse(id)
+
+            tac.personhendelseRepo.hent(sak.id) shouldBe emptyList()
+            tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
         }
     }
 
@@ -165,6 +173,31 @@ class PersonhendelseJobbTest {
             tac.personhendelseJobb.ryddOppPersonhendelse(id)
 
             tac.personhendelseRepo.hent(sak) shouldBe emptyList()
+            tac.eksternOppgaveRepo.hentForSakId(sak) shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `oppgavefeil bevarer personhendelsen ubehandlet uten sentral referanse og kan prøves på nytt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = ObjectMother.gyldigFnr()
+            val sak = iverksettMedPeriode(tac, fnr, periodeRundtNå)
+            val id = konsumerDødsfallhendelse(tac, fnr, sak)
+            val kilde = tac.personhendelseRepo.hent(id)!!
+            val klient = tac.oppgaveKlient as OppgaveFakeKlient
+            klient.opprettOppgaveUtenDuplikatkontrollResponse = ObjectMother.httpKlientUventetStatus().left()
+
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+
+            tac.personhendelseRepo.hent(id) shouldBe kilde
+            tac.personhendelseRepo.hentMedOppgaveId(id) shouldBe null
+            tac.eksternOppgaveRepo.hentForSakId(sak) shouldBe emptyList()
+
+            klient.opprettOppgaveUtenDuplikatkontrollResponse = null
+            tac.personhendelseJobb.opprettOppgaveForPersonhendelse(id)
+
+            tac.personhendelseRepo.hentMedOppgaveId(id)!!.oppgaveId shouldBe klient.opprettedeOppgaveIder.single()
+            tac.eksternOppgaveRepo.hentForSakId(sak) shouldBe emptyList()
         }
     }
 
@@ -239,15 +272,13 @@ class PersonhendelseJobbTest {
         fnr: Fnr,
         sakId: SakId,
     ): UUID {
-        tac.leesahConsumer.consume(
-            "key",
-            nyPersonhendelse(
-                fnr = fnr,
-                doedsfall = Doedsfall(LocalDate.now(tac.clock)),
-                clock = tac.clock,
-            ),
-        )
-        return tac.personhendelseRepo.hent(sakId).single().id
+        val hendelse = nyPersonhendelse(
+            fnr = fnr,
+            doedsfall = Doedsfall(LocalDate.now(tac.clock)),
+            clock = tac.clock,
+        ).apply { hendelseId = UUID.randomUUID().toString() }
+        tac.leesahConsumer.consume("key", hendelse)
+        return tac.personhendelseRepo.hent(sakId).single { it.hendelseId == hendelse.hendelseId }.id
     }
 
     /**

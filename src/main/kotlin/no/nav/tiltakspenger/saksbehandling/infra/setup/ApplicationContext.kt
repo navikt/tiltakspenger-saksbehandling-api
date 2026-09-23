@@ -40,7 +40,9 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.SammenligningVeilarboppfolgingKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
+import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
+import no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo.EksternOppgavePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.IdenthendelseService
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.infra.repo.IdenthendelseRepository
 import no.nav.tiltakspenger.saksbehandling.person.identhendelser.jobb.IdenthendelseJobb
@@ -166,6 +168,9 @@ open class ApplicationContext(
         )
     }
     open val navkontorService: NavkontorService by lazy { NavkontorService(navkontorKlient) }
+    open val eksternOppgaveRepo: EksternOppgaveRepo by lazy {
+        EksternOppgavePostgresRepo(sessionFactory as PostgresSessionFactory)
+    }
     open val oppgaveKlient: OppgaveKlient by lazy {
         OppgaveHttpClient(
             baseUrl = Configuration.oppgaveUrl,
@@ -229,6 +234,8 @@ open class ApplicationContext(
             tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
             sakRepo = sakContext.sakRepo,
             oppgaveKlient = oppgaveKlient,
+            eksternOppgaveRepo = eksternOppgaveRepo,
+            sessionFactory = sessionFactory,
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             startRevurderingService = behandlingContext.startRevurderingService,
             clock = clock,

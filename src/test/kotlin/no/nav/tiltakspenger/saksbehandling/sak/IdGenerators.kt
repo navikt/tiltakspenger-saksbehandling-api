@@ -4,6 +4,7 @@ import no.nav.tiltakspenger.libs.common.SaksnummerGeneratorForTest
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.DokumentInfoIdGeneratorSerial
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGeneratorSerial
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Delt instans slik at alle saksnummer er unike på tvers av hele testkjøringen; saksnummer har unik indeks i sak-tabellen.
@@ -17,4 +18,5 @@ data class IdGenerators(
     val journalpostIdGenerator: JournalpostIdGeneratorSerial = JournalpostIdGeneratorSerial(),
     val dokumentInfoIdGeneratorSerial: DokumentInfoIdGeneratorSerial = DokumentInfoIdGeneratorSerial(),
     val søknadstiltakIdGenerator: SøknadstiltakIdGenerator = SøknadstiltakIdGenerator(),
+    val oppgaveIdGenerator: AtomicLong = AtomicLong(1),
 )
