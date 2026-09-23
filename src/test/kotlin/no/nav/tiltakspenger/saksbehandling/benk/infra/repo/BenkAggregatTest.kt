@@ -546,7 +546,8 @@ class BenkAggregatTest {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sakUtenBeregning, _, _, meldekortbehandling) =
                 iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac)!!
-            val (sakMedBeregning) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(tac = tac)!!
+            val (sakMedBeregning, _, _, meldekortbehandlingMedBeregning) =
+                iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(tac = tac)!!
             val repo = tac.benkContext.benkRepo
 
             val oversikt = repo.hentMeldekort(meldekortCommand())
@@ -565,6 +566,8 @@ class BenkAggregatTest {
             oversikt.behandlinger.single { it.felles.sakId == sakMedBeregning.id }.let {
                 it.status shouldBe BenkBehandlingsstatus.KLAR_TIL_BESLUTNING
                 (it.beløp!! > 0) shouldBe true
+                it.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
+                    meldekortbehandlingMedBeregning.finnGyldigeKommandoer(ObjectMother.saksbehandler())
             }
 
             repo.hentMeldekort(meldekortCommand(type = BenkMeldekortType.MELDEKORTBEHANDLING)).totalAntall shouldBe 2

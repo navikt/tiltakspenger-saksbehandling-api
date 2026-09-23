@@ -225,11 +225,11 @@ class BenkGyldigeKommandoerTest {
         }
 
         @Test
-        fun `klar til beslutning kan avbrytes av saksbehandleren på saken`() {
+        fun `klar til beslutning kan avbrytes og angres av saksbehandleren på saken`() {
             meldekort(
                 BenkBehandlingsstatus.KLAR_TIL_BESLUTNING,
                 felles(saksbehandler = saksbehandler.navIdent),
-            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt)
+            ).finnGyldigeKommandoer(saksbehandler) shouldBe listOf(Avbryt, AngreSendTilBeslutning)
         }
 
         @Test
