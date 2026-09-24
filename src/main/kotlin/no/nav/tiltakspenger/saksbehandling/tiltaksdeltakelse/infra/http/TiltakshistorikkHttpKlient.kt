@@ -17,13 +17,13 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTilt
 
 /**
  * Klient for å hente tiltaksdeltakelser, bygget på `TiltakshistorikkHenter` i tiltakspenger-libs.
- * Henter direkte fra `tiltakshistorikk` (Team Valp), med identoppslag mot PDL — uten den avviklede appen `tiltakspenger-tiltak` som mellomledd.
+ * Henter direkte fra `tiltakshistorikk` (Team Valp), med identoppslag mot PDL.
  *
  * Kildekode: https://github.com/navikt/mulighetsrommet/tree/main/mulighetsrommet-tiltakshistorikk
  * Slack: #team-valp
  *
  * Klienten logger ikke feil selv: [KunneIkkeHenteTiltakshistorikk] returneres uendret, og feillogging gjøres én gang i kallende service ([no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.HentSaksopplysingerService], [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.service.TiltaksdeltakelseService]), som i tillegg har domenekonteksten.
- * Derimot logges hver vellykkede henting — rå respons til sikkerlogg — fordi libs-kontrakten legger det ansvaret på konsumenten (det lå tidligere i `tiltakspenger-tiltak`).
+ * Derimot logges hver vellykkede henting — rå respons til sikkerlogg — fordi libs-kontrakten legger det ansvaret på konsumenten.
  */
 class TiltakshistorikkHttpKlient(
     private val henteTjeneste: TiltakshistorikkHenter,

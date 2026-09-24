@@ -31,9 +31,6 @@ sealed interface EnvironmentConfig {
     val skjermingScope: String
     val skjermingUrl: String
 
-    val tiltakScope: String
-    val tiltakUrl: String
-
     val tiltakshistorikkScope: String
     val tiltakshistorikkUrl: String
 
@@ -131,9 +128,6 @@ data object LocalConfig : EnvironmentConfig {
     override val skjermingScope = "localhost"
     override val skjermingUrl = WIREMOCK_URL
 
-    override val tiltakScope = "localhost"
-    override val tiltakUrl = WIREMOCK_URL
-
     override val tiltakshistorikkScope = "localhost"
     override val tiltakshistorikkUrl = WIREMOCK_URL
 
@@ -223,9 +217,6 @@ data object DevConfig : EnvironmentConfig {
     override val skjermingScope = "dev-gcp:nom:skjermede-personer-pip"
     override val skjermingUrl = "https://skjermede-personer-pip.intern.dev.nav.no"
 
-    override val tiltakScope = "dev-gcp:tpts:tiltakspenger-tiltak"
-    override val tiltakUrl = "http://tiltakspenger-tiltak"
-
     override val tiltakshistorikkScope = "dev-gcp:team-mulighetsrommet:tiltakshistorikk"
     override val tiltakshistorikkUrl = "http://tiltakshistorikk.team-mulighetsrommet"
 
@@ -311,9 +302,6 @@ data object ProdConfig : EnvironmentConfig {
 
     override val skjermingScope = "prod-gcp:nom:skjermede-personer-pip"
     override val skjermingUrl = "https://skjermede-personer-pip.intern.nav.no"
-
-    override val tiltakScope = "prod-gcp:tpts:tiltakspenger-tiltak"
-    override val tiltakUrl = "http://tiltakspenger-tiltak"
 
     override val tiltakshistorikkScope = "prod-gcp:team-mulighetsrommet:tiltakshistorikk"
     override val tiltakshistorikkUrl = "http://tiltakshistorikk.team-mulighetsrommet"

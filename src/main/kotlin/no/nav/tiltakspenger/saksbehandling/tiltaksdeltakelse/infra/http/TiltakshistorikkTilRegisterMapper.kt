@@ -30,7 +30,7 @@ import java.time.LocalDate
  * Filtrerer og mapper til deltakelser som kan gi rett til tiltakspenger.
  * Deltakelser det er søkt tiltakspenger for skal ikke filtreres bort.
  *
- * Utvalgs- og statusreglene viderefører semantikken fra den avviklede kjeden via `tiltakspenger-tiltak`:
+ * Utvalgs- og statusreglene viderefører semantikken fra den tidligere integrasjonen:
  * kun tiltakstyper som gir rett ([no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser.girRett]), og kun deltakelser som er søkt for, har datoer, eller venter på oppstart.
  *
  * Et bevisst avvik fra tidligere oppførsel: en tiltakskode vi ikke kjenner felte før hele oppslaget ([IllegalStateException] i mappingen).
@@ -134,7 +134,7 @@ private fun erRelevant(
  * Kildens status oversatt til vår egen statusmodell.
  * Returnerer `null` for [Kildestatus.Ukjent] — en status vi ikke kjenner kan ikke tolkes, og deltakelsen utelates fra uttrekket (varsles av klienten).
  *
- * Tabellen viderefører mappingen fra `tiltakspenger-tiltak` sin `toDeltakerStatusDTO` én til én, inkludert Arena `IKKE_MOTT` → [Avbrutt].
+ * Tabellen viderefører den tidligere statusmappingen én til én, inkludert Arena `IKKE_MOTT` → [Avbrutt].
  * Det er et bevisst avvik fra libs sin egen [no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakerstatus], der fag har avklart at «ikke møtt» ikke er deltakelse — den overstyringen er et eget løft, og skal ikke gjøres i denne mappingen.
  */
 fun Kildestatus.tilTiltakDeltakerstatus(
@@ -201,7 +201,7 @@ private fun Kometstatus.Type.tilTiltakDeltakerstatus(): TiltakDeltakerstatus =
 
         Kometstatus.Type.FULLFORT -> Fullført
 
-        // Paritet med tiltakspenger-tiltak: en kladd er ikke delt hos kilden og skal aldri nå oss — om den likevel gjør det, er kontrakten brutt og oppslaget skal feile høylytt.
+        // Paritet med tidligere integrasjon: en kladd er ikke delt hos kilden og skal aldri nå oss — om den likevel gjør det, er kontrakten brutt og oppslaget skal feile høylytt.
         Kometstatus.Type.KLADD -> throw IllegalStateException("Kan ikke mappe kladd til intern status")
     }
 
