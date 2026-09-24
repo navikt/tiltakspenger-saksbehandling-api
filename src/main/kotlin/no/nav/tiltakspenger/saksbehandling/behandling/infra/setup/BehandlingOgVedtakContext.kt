@@ -30,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRamme
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.brev.ForhåndsvisRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.overta.OvertaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskBehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskForlengelseService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.distribuering.DistribuerRammevedtaksbrevService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.journalføring.JournalførRammevedtakService
@@ -119,6 +120,15 @@ open class BehandlingOgVedtakContext(
             statistikkService = statistikkService,
             sessionFactory = sessionFactory,
             clock = clock,
+        )
+    }
+    val delautomatiskForlengelseService: DelautomatiskForlengelseService by lazy {
+        DelautomatiskForlengelseService(
+            sakService = sakService,
+            taRammebehandlingService = taRammebehandlingService,
+            oppdaterRammebehandlingService = oppdaterRammebehandlingService,
+            sendRammebehandlingTilBeslutningService = sendRammebehandlingTilBeslutningService,
+            leggTilbakeRammebehandlingService = leggTilbakeRammebehandlingService,
         )
     }
     val behandleSøknadPåNyttService: BehandleSøknadPåNyttService by lazy {
