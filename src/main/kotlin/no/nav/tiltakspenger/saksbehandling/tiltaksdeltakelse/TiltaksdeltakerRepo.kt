@@ -40,6 +40,7 @@ interface TiltaksdeltakerRepo {
     /**
      * Kalles av kafka-consumerne når de mottar en hendelse for deltakeren.
      * Setter [Tiltaksdeltaker.sakId] og [Tiltaksdeltaker.sisteUbehandletEndringTidspunkt], som plukkes opp av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb].
+     * Markøren flyttes aldri bakover: et [tidspunkt] eldre enn en eksisterende markør beholder den eksisterende.
      */
     fun registrerUbehandletEndring(
         id: TiltaksdeltakerId,

@@ -145,7 +145,7 @@ class TiltaksdeltakerPostgresRepo(
                         """
                             update tiltaksdeltaker
                             set sak_id = :sak_id,
-                                siste_ubehandlet_endring = :tidspunkt
+                                siste_ubehandlet_endring = greatest(siste_ubehandlet_endring, :tidspunkt)
                             where id = :id
                         """.trimIndent(),
                         "id" to id.toString(),

@@ -72,6 +72,28 @@ class TiltaksdeltakerPostgresRepoTest {
     }
 
     @Test
+    fun `registrerUbehandletEndring flytter aldri markøren bakover`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val fnr = ObjectMother.gyldigFnr()
+            val saksnummer = hentEllerOpprettSakForSystembruker(tac = tac, fnr = fnr)
+            val sakId = tac.sakContext.sakRepo.hentForSaksnummer(saksnummer)!!.id
+            val repo = tac.tiltakContext.tiltaksdeltakerRepo
+            val id = TiltaksdeltakerId.random()
+            repo.lagre(id = id, eksternId = "deltaker-2", tiltakstype = TiltakResponsDTO.TiltakTypeDTO.GRUPPEAMO, sakId = sakId)
+            val tidspunkt = nå(tac.clock).withNano(0)
+
+            repo.registrerUbehandletEndring(id, sakId, tidspunkt)
+            repo.hentTiltaksdeltaker("deltaker-2").shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe tidspunkt
+
+            repo.registrerUbehandletEndring(id, sakId, tidspunkt.minusMinutes(5))
+            repo.hentTiltaksdeltaker("deltaker-2").shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe tidspunkt
+
+            repo.registrerUbehandletEndring(id, sakId, tidspunkt.plusMinutes(5))
+            repo.hentTiltaksdeltaker("deltaker-2").shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe tidspunkt.plusMinutes(5)
+        }
+    }
+
+    @Test
     fun `markerEndringSomBehandlet nullstiller kun dersom markøren er uendret`() {
         withTestApplicationContextAndPostgres { tac ->
             val fnr = ObjectMother.gyldigFnr()

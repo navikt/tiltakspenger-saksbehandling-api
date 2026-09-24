@@ -100,6 +100,7 @@ class TiltaksdeltakerKømigreringAggregatTest {
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             søknadRepo = søknadContext.søknadRepo,
             tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            sessionFactory = sessionFactory,
             clock = clock,
         ).shouldNotBeNull()
         sessionFactory.withSession { session ->

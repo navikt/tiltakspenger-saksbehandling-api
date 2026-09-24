@@ -65,7 +65,7 @@ class TiltaksdeltakerFakeRepo : TiltaksdeltakerRepo {
         sessionContext: SessionContext?,
     ) {
         sakIder.get()[id] = sakId
-        ubehandledeEndringer.get()[id] = tidspunkt
+        ubehandledeEndringer.get().merge(id, tidspunkt) { eksisterende, ny -> maxOf(eksisterende, ny) }
     }
 
     override fun hentMedUbehandledeEndringer(eldreEnn: LocalDateTime): List<Tiltaksdeltaker> {

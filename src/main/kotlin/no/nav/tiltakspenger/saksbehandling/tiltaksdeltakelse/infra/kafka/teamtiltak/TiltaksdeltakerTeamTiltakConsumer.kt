@@ -8,6 +8,7 @@ import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SøknadRepo
 import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
@@ -23,6 +24,7 @@ class TiltaksdeltakerTeamTiltakConsumer(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     private val søknadRepo: SøknadRepo,
     private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+    private val sessionFactory: SessionFactory,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig,
@@ -51,6 +53,7 @@ class TiltaksdeltakerTeamTiltakConsumer(
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             søknadRepo = søknadRepo,
             tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }
@@ -68,6 +71,7 @@ class TiltaksdeltakerTeamTiltakConsumer(
             tiltaksdeltakerRepo: TiltaksdeltakerRepo,
             søknadRepo: SøknadRepo,
             tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+            sessionFactory: SessionFactory,
             clock: Clock,
         ): TiltaksdeltakerHendelseId? {
             logger.info { "Mottatt tiltaksdeltakelse fra team tiltak med key $deltakerId" }
@@ -91,12 +95,15 @@ class TiltaksdeltakerTeamTiltakConsumer(
             logger.info { "Fant sak $sakId for team tiltak-deltaker med id $deltakerId" }
             val hendelseDTO = deserialize<TeamTiltakHendelseDTO>(melding)
             val tiltaksdeltakerHendelse = hendelseDTO.tilTiltaksdeltakerHendelse(sakId, tiltaksdeltakerId)
-            tiltaksdeltakerHendelsePostgresRepo.lagre(
-                tiltaksdeltakerHendelse,
-                melding,
-                TiltaksdeltakerHendelseKilde.TeamTiltak,
-            )
-            tiltaksdeltakerRepo.registrerUbehandletEndring(tiltaksdeltakerId, sakId, nå(clock))
+            sessionFactory.withTransactionContext { tx ->
+                tiltaksdeltakerHendelsePostgresRepo.lagre(
+                    tiltaksdeltakerHendelse,
+                    melding,
+                    TiltaksdeltakerHendelseKilde.TeamTiltak,
+                    tx,
+                )
+                tiltaksdeltakerRepo.registrerUbehandletEndring(tiltaksdeltakerId, sakId, nå(clock), tx)
+            }
             logger.info { "Lagret melding for team tiltak-deltaker med id $deltakerId" }
             return tiltaksdeltakerHendelse.id
         }

@@ -11,7 +11,6 @@ import java.time.LocalDateTime
  * @param eksternId iden deltakelsen har hos kilden nå.
  * @param utdatertEksternId forrige eksterne id, satt når en deltakelse flyttes ut av Arena og får ny id hos den nye kilden.
  * @param sakId saken deltakeren er knyttet til.
- * Settes ved oppretting, og av backfill i V249 for eldre rader.
  * @param sisteUbehandletEndringTidspunkt tidspunktet for siste hendelse som ikke er behandlet av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb].
  * Null betyr at det ikke finnes en ubehandlet endring.
  */
