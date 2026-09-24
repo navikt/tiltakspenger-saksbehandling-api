@@ -429,7 +429,7 @@ class BenkPostgresRepo(
               and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
         """
 
-        /** Meldekortene fra bruker som ingen har tatt tak i. De har aldri en tildelt saksbehandler eller beslutter. */
+        /** Meldekortene fra bruker som ingen har tatt tak i (har aldri en tildelt saksbehandler eller beslutter). */
         @Language("PostgreSQL")
         const val MELDEKORT_FRA_BRUKER = """
             select
@@ -576,8 +576,7 @@ class BenkPostgresRepo(
          * Avgrenser en base til radene den innloggede er tildelt.
          * Avgrensningen ligger i basen og ikke i filteret, slik at `totalAntallUfiltrert` betyr «mine i seksjonen» og ikke «alle i fanen».
          * Postgres skyver predikatet ned i basen, så seksjonen leser de samme åpne radene som fanen, via de samme indeksene.
-         * Meldekortseksjonen bruker bare [MELDEKORTBEHANDLINGER]: meldekortene fra bruker er aldri tildelt noen,
-         * og predikatet kan ikke skyves ned i `union all`-en i [MELDEKORT] fordi armene har ulike kolonnetyper (varchar mot text).
+         * Meldekortseksjonen bruker bare [MELDEKORTBEHANDLINGER]: meldekortene fra bruker er aldri tildelt noen, og predikatet kan ikke skyves ned i `union all`-en i [MELDEKORT] fordi armene har ulike kolonnetyper (varchar mot text).
          */
         @Language("PostgreSQL")
         fun tildeltInnlogget(base: String): String = """
