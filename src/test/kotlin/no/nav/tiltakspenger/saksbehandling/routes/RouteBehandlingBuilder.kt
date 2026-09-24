@@ -49,6 +49,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.TaKlagebehandlin
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.TaKlagebehandlingMedMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.ta.TaKlagebehandlingMedRammebehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.VurderKlagebehandlingBuilder
+import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.angre.AngreMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.avbryt.AvbrytMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.brev.ForhåndsvisVedtaksbrevForMeldekortbehandlingBuilder
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.route.gjenoppta.GjenopptaMeldekortbehandlingBuilder
@@ -124,6 +125,7 @@ object RouteBehandlingBuilder :
     GjenåpneSøknadsbehandlingBuilder,
     OpprettMeldekortbehandlingBuilder,
     AvbrytMeldekortbehandlingBuilder,
+    AngreMeldekortbehandlingBuilder,
     LeggTilbakeMeldekortbehandlingBuilder,
     SendMeldekortbehandlingTilBeslutningBuilder,
     OppdaterMeldekortbehandlingBuilder,

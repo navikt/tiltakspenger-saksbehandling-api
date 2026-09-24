@@ -2,10 +2,14 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.repo
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.angre.angreMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
@@ -23,6 +27,34 @@ import org.junit.jupiter.api.Test
  * Sann-siden av de samme vaktene er dekket av rutetestene i `meldekort/infra/route/`.
  */
 class MeldekortbehandlingPostgresRepoTest {
+
+    @Test
+    fun `angreMeldekortbehandling gir sann når saksbehandler angrer meldekortbehandlingen sendt til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+
+            val saksbehandler = ObjectMother.saksbehandler()
+
+            val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(tac, saksbehandler = saksbehandler)!!
+
+            val angretMeldekortbehandling = meldekortbehandling.angreMeldekortbehandling(saksbehandler, ObjectMother.clock).getOrFail()
+
+            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = angretMeldekortbehandling, transactionContext = null) shouldBe true
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.also {
+                it.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+                it.sendtTilBeslutning shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `angreMeldekortbehandling gir usann når saksbehandler angrer en meldekortbehandling sendt til beslutning for sent`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(tac)!!
+
+            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = meldekortbehandling, transactionContext = null) shouldBe false
+        }
+    }
 
     /**
      * Rutetestene for tildeling (`TaMeldekortbehandlingRouteTest` med flere) kjører mot fakes, ikke postgres.

@@ -87,6 +87,11 @@ interface MeldekortbehandlingRepo {
         sessionContext: SessionContext? = null,
     ): Boolean
 
+    fun angreMeldekortbehandlingSendtTilBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext? = null,
+    ): Boolean
+
     fun hentBehandlingerTilDatadeling(limit: Int = 10): List<Meldekortbehandling>
 
     fun markerBehandlingSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime)

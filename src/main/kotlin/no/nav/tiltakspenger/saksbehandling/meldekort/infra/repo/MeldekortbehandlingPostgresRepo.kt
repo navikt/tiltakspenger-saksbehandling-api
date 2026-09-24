@@ -408,6 +408,30 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
+    override fun angreMeldekortbehandlingSendtTilBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            tx.run(
+                sqlQuery(
+                    """
+                        update meldekortbehandling set
+                            status = :status,
+                            sist_endret = :sist_endret,
+                            sendt_til_beslutning = null
+                        where status = 'KLAR_TIL_BESLUTNING' and id = :id
+                    """,
+
+                    "id" to meldekortbehandling.id.toString(),
+                    "status" to meldekortbehandling.status.toDb(),
+                    "sist_endret" to meldekortbehandling.sistEndret,
+
+                ).asUpdate,
+            ) > 0
+        }
+    }
+
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {
         return sessionFactory.withSession { session ->
             session.run(

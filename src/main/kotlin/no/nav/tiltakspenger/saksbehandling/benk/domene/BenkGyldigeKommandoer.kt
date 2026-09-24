@@ -206,5 +206,8 @@ private fun finnGyldigeMeldekortKommandoer(
         ) {
             add(Avbryt)
         }
+        if (status == KLAR_TIL_BESLUTNING && felles.saksbehandler == navIdent) {
+            add(AngreSendTilBeslutning)
+        }
     }
 }

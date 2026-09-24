@@ -26,11 +26,11 @@ class TaOgOvertaRammebehandlingerTest {
     fun `må ha både saksbehandler- og beslutterrolle for å ta flere behandlinger med ulike rollekrav`() {
         withTestApplicationContext { tac ->
             val (sak1, _, behandling1) = opprettSøknadsbehandlingKlarTilBehandling(tac)
-            val (sak2, _, behandling2) = sendSøknadsbehandlingTilBeslutning(tac) // Denne setter en standard saksbehandler - spør Anders :)
+            val (sak2, _, behandling2) = sendSøknadsbehandlingTilBeslutning(tac)
 
             val behandlinger = listOf(sak1.id to behandling1.id, sak2.id to behandling2)
 
-            // Ingen saksbeholder- eller beslutterrolle
+            // Ingen saksbehandler- eller beslutterrolle
             taRammebehandlinger(
                 tac,
                 behandlinger = behandlinger,

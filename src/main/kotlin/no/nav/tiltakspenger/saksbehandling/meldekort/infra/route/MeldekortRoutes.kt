@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 import io.ktor.server.routing.Route
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.meldekort.service.AngreMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.AvbrytMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.ForhåndsvisBrevMeldekortbehandlingService
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.GjenopptaMeldekortbehandlingService
@@ -32,6 +33,7 @@ fun Route.meldekortRoutes(
     avbrytMeldekortbehandlingService: AvbrytMeldekortbehandlingService,
     settMeldekortbehandlingPåVentService: SettMeldekortbehandlingPåVentService,
     gjenopptaMeldekortbehandlingService: GjenopptaMeldekortbehandlingService,
+    angreMeldekortbehandlingService: AngreMeldekortbehandlingService,
     clock: Clock,
     tilgangskontrollService: TilgangskontrollService,
     forhåndsvisBrevMeldekortbehandlingService: ForhåndsvisBrevMeldekortbehandlingService,
@@ -68,6 +70,7 @@ fun Route.meldekortRoutes(
         clock,
     )
     gjenopptaMeldekortbehandlingRoute(auditService, gjenopptaMeldekortbehandlingService, tilgangskontrollService, clock)
+    angreMeldekortbehandlingRoute(auditService, angreMeldekortbehandlingService, tilgangskontrollService, clock)
     forhåndsvisBrevMeldekortbehandlingRoute(
         forhåndsvisBrevMeldekortbehandlingService,
         auditService,

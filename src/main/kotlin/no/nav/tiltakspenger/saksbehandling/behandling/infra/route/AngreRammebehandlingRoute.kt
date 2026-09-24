@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.KunneIkkeAngreBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.AngreRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
-import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerEllerBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 import no.nav.tiltakspenger.saksbehandling.sak.infra.routes.toSakDTO
@@ -39,7 +39,7 @@ fun Route.angreRammebehandlingRoute(
         call.withSakId { sakId ->
             call.withRammebehandlingId { behandlingId ->
                 val correlationId = call.correlationId()
-                krevSaksbehandlerEllerBeslutterRolle(saksbehandler)
+                krevSaksbehandlerRolle(saksbehandler)
                 tilgangskontrollService.harTilgangTilPersonForSakId(sakId, saksbehandler, token)
                 angreBehandlingService.angreBehandling(sakId, behandlingId, saksbehandler).fold(
                     ifLeft = { feil ->
