@@ -22,7 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 interface SendRevurderingTilBeslutningBuilder {
@@ -74,7 +74,7 @@ interface SendRevurderingTilBeslutningBuilder {
         revurderingInnvilgelsesperioder: Innvilgelsesperioder = søknadsbehandlingInnvilgelsesperioder,
         // Default: revurderingen gjelder samme deltakelse som innvilgelsen.
         // Send inn en kopi med endret periode for å teste endret deltakelse.
-        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse? = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        oppdatertTiltaksdeltakelse: TiltaksdeltakelseIntern? = revurderingInnvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Tuple4<Sak, Søknad, Rammevedtak, String> {
         val (sak, søknad, rammevedtakSøknadsbehandling, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingInnvilgelse(

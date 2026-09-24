@@ -9,7 +9,7 @@ import java.time.LocalDate
  * Visningsnavn er typisk på formen "Tiltakstype hos Arrangør".
  * Ettersom navnet til arrangøren kan inneholde geolokaliserende informajson  brukes kun tiltakstypen hvis bruker har adressebeskyttelse.
  *
- * se [Tiltaksdeltakelse]
+ * se [TiltaksdeltakelseIntern]
  * @param eksternDeltakelseId mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api).
  * Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (UUID).
  * Kalles ekstern_id i databasen.

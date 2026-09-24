@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import java.time.Clock
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTiltaksdeltakelse
 
 /**
  * Klient for å hente tiltaksdeltakelser, bygget på `TiltakshistorikkHenter` i tiltakspenger-libs.
@@ -47,6 +48,16 @@ class TiltakshistorikkHttpKlient(
     ): Either<KunneIkkeHenteTiltakshistorikk, List<TiltaksdeltakelseMedArrangørnavn>> {
         return hentOgLogg(fnr, correlationId).map {
             it.tiltakshistorikk.tilTiltaksdeltakelserMedArrangørnavn(harAdressebeskyttelse, clock)
+        }
+    }
+
+    override suspend fun hentTiltaksdeltakelse(
+        fnr: Fnr,
+        eksternDeltakerId: String,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeHenteTiltakshistorikk, LibsTiltaksdeltakelse?> {
+        return hentOgLogg(fnr, correlationId).map {
+            it.tiltakshistorikk.finnDeltakelse(eksternDeltakerId)
         }
     }
 

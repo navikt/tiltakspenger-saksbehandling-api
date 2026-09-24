@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 
 interface IverksettSøknadsbehandlingBuilder {
@@ -42,7 +42,7 @@ interface IverksettSøknadsbehandlingBuilder {
         jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
-        tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(
@@ -81,7 +81,7 @@ interface IverksettSøknadsbehandlingBuilder {
         fnr: Fnr = Fnr.random(),
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         resultat: SøknadsbehandlingsresultatType = SøknadsbehandlingsresultatType.INNVILGELSE,
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
     ): Tuple4<Sak, Søknad, Rammevedtak, RammebehandlingDTOJson> {
         val (sak, søknad, søknadsbehandling) = opprettAutomatiskBehandlingKlarTilBeslutning(
             tac = tac,

@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.route
 
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import java.time.LocalDate
 
 data class TiltaksdeltakelseDTO(
@@ -18,7 +18,7 @@ data class TiltaksdeltakelseDTO(
     val internDeltakelseId: String,
 )
 
-fun Tiltaksdeltakelse.toDTO(): TiltaksdeltakelseDTO {
+fun TiltaksdeltakelseIntern.toDTO(): TiltaksdeltakelseDTO {
     return TiltaksdeltakelseDTO(
         eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,

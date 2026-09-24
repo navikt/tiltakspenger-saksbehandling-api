@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Innvilgelsesperiode
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.KunneIkkeOppdatereSaksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 
 sealed interface Rammebehandlingsresultat {
 
@@ -21,7 +21,7 @@ sealed interface Rammebehandlingsresultat {
     val innvilgelsesperioder: Innvilgelsesperioder?
 
     /** Vil være null ved stans og når behandlingen er uferdig */
-    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>?
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<TiltaksdeltakelseIntern>?
 
     /** Vil være null ved stans og når behandlingen er uferdig */
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>?
@@ -104,7 +104,7 @@ enum class RevurderingsresultatType {
  * Dersom vi tillater behandlingene og være "dirty", er det eneste vi må påse at vi nullstiller ValgteTiltaksdeltakelser dersom de forvinner eller perioden krymper.
  */
 fun skalNullstilleResultatVedNyeSaksopplysninger(
-    valgteTiltaksdeltakelser: List<Tiltaksdeltakelse>,
+    valgteTiltaksdeltakelser: List<TiltaksdeltakelseIntern>,
     nyeSaksopplysninger: Saksopplysninger,
 ): Boolean {
     return if (valgteTiltaksdeltakelser.size != nyeSaksopplysninger.tiltaksdeltakelser.size) {

@@ -221,7 +221,7 @@ class RammebehandlingDTOTest {
                     tiltaksdeltakerId = internTiltaksdeltakelseId,
                 ),
             ),
-            hentSaksopplysninger = { _, _, _, _, _ ->
+            hentSaksopplysninger = { _, _, _, _, _, _ ->
                 saksopplysninger(
                     fom = vedtaksperiode.fraOgMed,
                     tom = vedtaksperiode.tilOgMed,

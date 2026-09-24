@@ -68,7 +68,7 @@ class LeserolleTilgangRammebehandlingTest {
                         sak = sak,
                         søknad = søknad,
                         saksbehandler = bruker,
-                        hentSaksopplysninger = { _, _, _, _, _ -> error("Skal ikke kalles") },
+                        hentSaksopplysninger = { _, _, _, _, _, _ -> error("Skal ikke kalles") },
                         correlationId = CorrelationId.generate(),
                         klagebehandling = null,
                         clock = ObjectMother.clock,
@@ -94,7 +94,7 @@ class LeserolleTilgangRammebehandlingTest {
                             klagebehandlingId = null,
                         ),
                         clock = ObjectMother.clock,
-                        hentSaksopplysninger = { _, _, _, _, _ -> error("Skal ikke kalles") },
+                        hentSaksopplysninger = { _, _, _, _, _, _ -> error("Skal ikke kalles") },
                     )
                 }
             }

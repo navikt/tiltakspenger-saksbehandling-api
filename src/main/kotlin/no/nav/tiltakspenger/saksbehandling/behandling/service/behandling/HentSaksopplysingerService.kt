@@ -58,8 +58,8 @@ class HentSaksopplysingerService(
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
+        sakId: SakId,
         sessionContext: SessionContext? = null,
-        sakId: SakId? = null,
         saksnummer: Saksnummer? = null,
         behandlingId: RammebehandlingId? = null,
     ): Saksopplysninger {
@@ -71,6 +71,7 @@ class HentSaksopplysingerService(
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
             inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
+            sakId = sakId,
             sessionContext = sessionContext,
             loggkontekst = lagLoggcontext(
                 correlationId = correlationId,
@@ -122,6 +123,7 @@ class HentSaksopplysingerService(
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         aktuelleTiltaksdeltakelserForBehandlingen: List<TiltaksdeltakerId>,
         inkluderOverlappendeTiltaksdeltakelserDetErSøktOm: Boolean,
+        sakId: SakId,
         sessionContext: SessionContext? = null,
         loggkontekst: String,
     ): Tiltaksdeltakelser {
@@ -159,9 +161,10 @@ class HentSaksopplysingerService(
             val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
                 eksternId = it.eksternDeltakelseId,
                 tiltakstype = it.typeKode.tilTiltakstype(),
+                sakId = sakId,
                 sessionContext = sessionContext,
             )
-            it.toTiltaksdeltakelse(internDeltakelseId)
+            it.tilTiltaksdeltakelseIntern(internDeltakelseId)
         }
         return Tiltaksdeltakelser(tiltaksdeltakelser)
     }

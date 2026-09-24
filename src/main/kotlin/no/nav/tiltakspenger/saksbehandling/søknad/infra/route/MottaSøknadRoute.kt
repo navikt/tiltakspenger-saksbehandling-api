@@ -42,6 +42,7 @@ fun Route.mottaSøknadRoute(
             val internTiltaksdeltakelsesId = tiltaksdeltakerRepo.hentEllerLagre(
                 eksternId = søknadDTO.tiltak.id,
                 tiltakstype = TiltakResponsDTO.TiltakTypeDTO.valueOf(søknadDTO.tiltak.typeKode),
+                sakId = sak.id,
             )
 
             // Oppretter søknad og lagrer den med kobling til angitt sak

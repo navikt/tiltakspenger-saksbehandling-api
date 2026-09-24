@@ -47,23 +47,45 @@ fun Tiltakshistorikk.tilTiltaksdeltakelserFraRegister(
             val status = deltakelse.kildestatus.tilTiltakDeltakerstatus(deltakelse.fraOgMed, clock)
                 ?: return@mapNotNull null
             if (!erRelevant(deltakelse, status, søktFor)) return@mapNotNull null
-            TiltaksdeltakelseFraRegister(
-                eksternDeltakelseId = deltakelse.id.verdi,
-                gjennomføringId = deltakelse.gjennomføringId?.verdi,
-                typeNavn = deltakelse.tiltakstypenavn,
-                typeKode = deltakelse.tiltakstype.tilDTO(),
-                rettPåTiltakspenger = true,
-                deltakelseFraOgMed = deltakelse.fraOgMed,
-                deltakelseTilOgMed = deltakelse.tilOgMed,
-                deltakelseStatus = status,
-                deltakelseProsent = deltakelse.omfang.deltakelsesprosent,
-                antallDagerPerUke = deltakelse.omfang.dagerPerUke,
-                kilde = deltakelse.kildestatus.kilde.tilLokalKilde(),
-                deltidsprosentGjennomforing = deltakelse.omfang.deltidsprosentPåGjennomføring?.toDouble(),
-            )
+            deltakelse.tilTiltaksdeltakelseFraRegister(status)
         },
     )
 }
+
+/**
+ * Slår opp nå-tilstanden for én deltakelse på ekstern id, uten mapping eller utvalgsregler.
+ * Brukes når en endring på deltakeren skal trigge et ferskt oppslag mot kilden — mappingen til vår interne modell gjøres av kalleren med [tilTiltaksdeltakelseFraRegister].
+ * Gir null dersom deltakelsen ikke finnes i historikken.
+ */
+fun Tiltakshistorikk.finnDeltakelse(eksternDeltakerId: String): Tiltaksdeltakelse? {
+    return deltakelser.deltakelser.find { it.id.verdi == eksternDeltakerId }
+}
+
+/**
+ * Mapper nå-tilstanden fra libs-domenet til vår interne modell.
+ * Gir null for deltakelser som ikke gir rett, eller har ukjent kildestatus — disse kan ikke tolkes (varsles av klienten).
+ */
+fun Tiltaksdeltakelse.tilTiltaksdeltakelseFraRegister(clock: Clock): TiltaksdeltakelseFraRegister? {
+    if (this !is Tiltaksdeltakelse.GirRett) return null
+    val status = kildestatus.tilTiltakDeltakerstatus(fraOgMed, clock) ?: return null
+    return tilTiltaksdeltakelseFraRegister(status)
+}
+
+private fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseFraRegister(status: TiltakDeltakerstatus): TiltaksdeltakelseFraRegister =
+    TiltaksdeltakelseFraRegister(
+        eksternDeltakelseId = id.verdi,
+        gjennomføringId = gjennomføringId?.verdi,
+        typeNavn = tiltakstypenavn,
+        typeKode = tiltakstype.tilDTO(),
+        rettPåTiltakspenger = true,
+        deltakelseFraOgMed = fraOgMed,
+        deltakelseTilOgMed = tilOgMed,
+        deltakelseStatus = status,
+        deltakelseProsent = omfang.deltakelsesprosent,
+        antallDagerPerUke = omfang.dagerPerUke,
+        kilde = kildestatus.kilde.tilLokalKilde(),
+        deltidsprosentGjennomforing = omfang.deltidsprosentPåGjennomføring?.toDouble(),
+    )
 
 /**
  * Samme utvalg som [tilTiltaksdeltakelserFraRegister], men med visningsnavn i stedet for full saksopplysning.

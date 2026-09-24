@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdate
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterSaksopplysningerForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 
@@ -32,7 +32,7 @@ class OppdaterRammebehandlingSaksopplysningerTest {
             tac.leggTilPerson(
                 fnr = sak.fnr,
                 person = personopplysningerForBrukerFraPdl,
-                tiltaksdeltakelse = Tiltaksdeltakelse(
+                tiltaksdeltakelse = TiltaksdeltakelseIntern(
                     eksternDeltakelseId = behandling.saksopplysninger.tiltaksdeltakelser.value.first().eksternDeltakelseId,
                     gjennomføringId = null,
                     typeNavn = "Testnavn",

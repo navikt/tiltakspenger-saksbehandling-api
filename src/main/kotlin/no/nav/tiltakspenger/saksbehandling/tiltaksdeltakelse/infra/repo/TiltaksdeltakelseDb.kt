@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 
@@ -19,8 +19,8 @@ data class TiltaksdeltakelseDb(
     val deltidsprosentGjennomforing: Double? = null,
     val internDeltakelseId: String,
 ) {
-    fun toDomain(): Tiltaksdeltakelse {
-        return Tiltaksdeltakelse(
+    fun toDomain(): TiltaksdeltakelseIntern {
+        return TiltaksdeltakelseIntern(
             eksternDeltakelseId = eksternDeltagelseId,
             gjennomføringId = gjennomføringId,
             typeNavn = typeNavn,
@@ -38,7 +38,7 @@ data class TiltaksdeltakelseDb(
     }
 }
 
-fun Tiltaksdeltakelse.toDbJson(): TiltaksdeltakelseDb {
+fun TiltaksdeltakelseIntern.toDbJson(): TiltaksdeltakelseDb {
     return TiltaksdeltakelseDb(
         eksternDeltagelseId = this.eksternDeltakelseId,
         gjennomføringId = this.gjennomføringId,

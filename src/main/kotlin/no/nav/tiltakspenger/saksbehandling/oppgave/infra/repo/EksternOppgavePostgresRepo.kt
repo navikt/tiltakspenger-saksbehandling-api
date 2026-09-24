@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFacto
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
+import no.nav.tiltakspenger.saksbehandling.oppgave.LagretEksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 
 class EksternOppgavePostgresRepo(
@@ -31,7 +32,7 @@ class EksternOppgavePostgresRepo(
         }
     }
 
-    override fun hentForSakId(sakId: SakId): List<EksternOppgave> =
+    override fun hentForSakId(sakId: SakId): List<LagretEksternOppgave> =
         sessionFactory.withSession { session ->
             session.run(
                 sqlQuery(
@@ -46,11 +47,11 @@ class EksternOppgavePostgresRepo(
             )
         }
 
-    private fun Row.toEksternOppgave() = EksternOppgave(
+    private fun Row.toEksternOppgave() = LagretEksternOppgave(
         oppgaveId = OppgaveId(string("oppgave_id")),
         sakId = SakId.fromString(string("sak_id")),
         opprettet = localDateTime("opprettet"),
-        grunnlag = string("grunnlag").toOppgavegrunnlag(),
+        grunnlag = string("grunnlag"),
         tilleggstekst = stringOrNull("tilleggstekst"),
     )
 }

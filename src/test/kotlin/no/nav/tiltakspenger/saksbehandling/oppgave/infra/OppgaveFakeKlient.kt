@@ -17,7 +17,7 @@ class OppgaveFakeKlient(
     var erFerdigstiltResponse: Boolean = true,
     private val genererOppgaveId: () -> OppgaveId = { OppgaveId(UUID.randomUUID().toString()) },
 ) : OppgaveKlient {
-    private val opprettedeUtenDuplikatkontroll = Atomic(mutableListOf<Pair<Fnr, Oppgavebehov>>())
+    private val opprettedeUtenDuplikatkontroll = Atomic(mutableListOf<OppgaveUtenDuplikatkontroll>())
     private val oppgaverMedJournalpost = ConcurrentHashMap<Pair<JournalpostId, Oppgavebehov>, OppgaveId>()
     private val oppgaveIder = CopyOnWriteArrayList<OppgaveId>()
 
@@ -27,7 +27,8 @@ class OppgaveFakeKlient(
     var opprettOppgaveUtenDuplikatkontrollResponse: Either<HttpKlientError, OppgaveId>? = null
 
     /** Oppgavene opprettet uten duplikatkontroll, i rekkefølge, slik at testene kan asserte på fnr og oppgavebehov. */
-    val opprettedeOppgaverUtenDuplikatkontroll: List<Pair<Fnr, Oppgavebehov>> get() = opprettedeUtenDuplikatkontroll.get().toList()
+    val opprettedeOppgaverUtenDuplikatkontroll: List<Pair<Fnr, Oppgavebehov>> get() = opprettedeUtenDuplikatkontroll.get().map { it.fnr to it.oppgavebehov }
+    val opprettedeOppgavetekster: List<String?> get() = opprettedeUtenDuplikatkontroll.get().map { it.tilleggstekst }
 
     override suspend fun opprettOppgave(fnr: Fnr, journalpostId: JournalpostId, oppgavebehov: Oppgavebehov): Either<HttpKlientError, OppgaveId> {
         opprettOppgaveResponse?.let { return it }
@@ -45,7 +46,7 @@ class OppgaveFakeKlient(
         oppgavebehov: Oppgavebehov,
         tilleggstekst: String?,
     ): Either<HttpKlientError, OppgaveId> {
-        opprettedeUtenDuplikatkontroll.get().add(fnr to oppgavebehov)
+        opprettedeUtenDuplikatkontroll.get().add(OppgaveUtenDuplikatkontroll(fnr, oppgavebehov, tilleggstekst))
         opprettOppgaveUtenDuplikatkontrollResponse?.let { return it }
         return genererOppgaveId().also { oppgaveIder.add(it) }.right()
     }
@@ -54,3 +55,9 @@ class OppgaveFakeKlient(
         return erFerdigstiltResponse.right()
     }
 }
+
+private data class OppgaveUtenDuplikatkontroll(
+    val fnr: Fnr,
+    val oppgavebehov: Oppgavebehov,
+    val tilleggstekst: String?,
+)

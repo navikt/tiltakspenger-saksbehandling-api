@@ -144,12 +144,12 @@ class TiltaksdeltakelseTest {
         getTiltaksdeltakelse(periode).overlapperMed(tiltaksdeltakelse) shouldBe true
     }
 
-    private fun getTiltaksdeltakelse(periode: Periode): Tiltaksdeltakelse {
+    private fun getTiltaksdeltakelse(periode: Periode): TiltaksdeltakelseIntern {
         return getTiltaksdeltakelse(periode.fraOgMed, periode.tilOgMed)
     }
 
-    private fun getTiltaksdeltakelse(fom: LocalDate?, tom: LocalDate?): Tiltaksdeltakelse {
-        return Tiltaksdeltakelse(
+    private fun getTiltaksdeltakelse(fom: LocalDate?, tom: LocalDate?): TiltaksdeltakelseIntern {
+        return TiltaksdeltakelseIntern(
             eksternDeltakelseId = UUID.randomUUID().toString(),
             gjennomføringId = UUID.randomUUID().toString(),
             typeNavn = "Avklaring",

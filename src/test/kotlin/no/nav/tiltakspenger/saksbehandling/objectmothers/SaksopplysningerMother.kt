@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Sa
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltakspengevedtakFraArena
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ytelser
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -18,7 +18,7 @@ interface SaksopplysningerMother {
         fom: LocalDate = 1.januar(2023),
         tom: LocalDate = 31.mars(2023),
         fødselsdato: LocalDate = ObjectMother.fødselsdato(),
-        tiltaksdeltakelse: List<Tiltaksdeltakelse> = listOf(ObjectMother.tiltaksdeltakelse(fom = fom, tom = tom)),
+        tiltaksdeltakelse: List<TiltaksdeltakelseIntern> = listOf(ObjectMother.tiltaksdeltakelse(fom = fom, tom = tom)),
         oppslagsperiode: Periode = Periode(fom, tom),
         clock: Clock = ObjectMother.clock,
         oppslagstidspunkt: LocalDateTime = nå(clock),

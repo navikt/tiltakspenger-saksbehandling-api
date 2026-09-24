@@ -139,7 +139,7 @@ interface SakMother : MotherOfAllMothers {
                     sak = sak,
                     søknad = søknad,
                     saksbehandler = saksbehandler,
-                    hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
+                    hentSaksopplysninger = { _, _, _, _, _, _ -> saksopplysninger },
                     clock = clock,
                     correlationId = correlationId,
                     klagebehandling = klagebehandling,
@@ -241,7 +241,7 @@ interface SakMother : MotherOfAllMothers {
             runBlocking {
                 Søknadsbehandling.opprettAutomatiskBehandling(
                     søknad = søknad,
-                    hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
+                    hentSaksopplysninger = { _, _, _, _, _, _ -> saksopplysninger },
                     clock = clock,
                     sak = sak,
                     correlationId = correlationId,

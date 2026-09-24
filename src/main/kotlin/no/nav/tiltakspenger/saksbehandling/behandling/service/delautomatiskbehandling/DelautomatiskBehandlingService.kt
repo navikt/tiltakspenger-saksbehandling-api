@@ -37,7 +37,7 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.Statistikkh
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.utbetaling.service.SimulerService
 import java.time.Clock
 import java.time.LocalDate
@@ -366,7 +366,7 @@ class DelautomatiskBehandlingService(
         return manueltBehandlesGrunner
     }
 
-    private fun getSoknadstiltakFraSaksopplysning(behandling: Søknadsbehandling): Tiltaksdeltakelse? {
+    private fun getSoknadstiltakFraSaksopplysning(behandling: Søknadsbehandling): TiltaksdeltakelseIntern? {
         require(
             behandling.søknad is InnvilgbarSøknad &&
                 behandling.søknad.erDigitalSøknad(),
@@ -375,14 +375,14 @@ class DelautomatiskBehandlingService(
     }
 
     private fun tiltakManglerPeriode(
-        tiltakFraSaksopplysning: Tiltaksdeltakelse,
+        tiltakFraSaksopplysning: TiltaksdeltakelseIntern,
     ): Boolean {
         return tiltakFraSaksopplysning.deltakelseFraOgMed == null || tiltakFraSaksopplysning.deltakelseTilOgMed == null
     }
 
     private fun tiltakFraSoknadHarEndretPeriode(
         tiltakFraSoknad: Søknadstiltak,
-        tiltakFraSaksopplysning: Tiltaksdeltakelse,
+        tiltakFraSaksopplysning: TiltaksdeltakelseIntern,
     ): Boolean =
         tiltakFraSaksopplysning.deltakelseFraOgMed != tiltakFraSoknad.deltakelseFom ||
             tiltakFraSaksopplysning.deltakelseTilOgMed != tiltakFraSoknad.deltakelseTom
@@ -436,7 +436,7 @@ class DelautomatiskBehandlingService(
         }
     }
 
-    private fun Tiltaksdeltakelse.getDeltakelsesprosent(): Float? {
+    private fun TiltaksdeltakelseIntern.getDeltakelsesprosent(): Float? {
         return deltakelseProsent
             ?: deltidsprosentGjennomforing?.toFloat()
     }

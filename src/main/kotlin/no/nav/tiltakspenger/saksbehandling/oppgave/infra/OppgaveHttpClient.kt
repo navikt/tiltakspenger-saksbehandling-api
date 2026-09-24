@@ -102,8 +102,8 @@ class OppgaveHttpClient(
         val callId = UUID.randomUUID()
         val opprettOppgaveRequest = when (oppgavebehov) {
             Oppgavebehov.ENDRET_TILTAKDELTAKER -> OpprettOppgaveRequest.opprettOppgaveRequestForEndretTiltaksdeltaker(
-                fnr,
-                tilleggstekst,
+                fnr = fnr,
+                tilleggstekst = tilleggstekst,
                 clock = clock,
             )
 

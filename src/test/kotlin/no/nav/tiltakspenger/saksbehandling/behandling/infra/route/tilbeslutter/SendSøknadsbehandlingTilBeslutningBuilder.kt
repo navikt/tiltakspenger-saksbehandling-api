@@ -20,7 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 
 interface SendSøknadsbehandlingTilBeslutningBuilder {
 
@@ -34,7 +34,7 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
         skalSendeVedtaksbrev: Boolean = true,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
-        tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
     ): Tuple4<Sak, Søknad, RammebehandlingId, String> {
         val (sak, søknad, behandling) = when (resultat) {
@@ -50,9 +50,11 @@ interface SendSøknadsbehandlingTilBeslutningBuilder {
             )
 
             SøknadsbehandlingsresultatType.AVSLAG -> opprettSøknadsbehandlingUnderBehandlingMedAvslag(
-                tac,
-                fnr,
-                saksbehandler,
+                tac = tac,
+                fnr = fnr,
+                saksbehandler = saksbehandler,
+                sakId = sakId,
+                tiltaksdeltakelse = tiltaksdeltakelse,
             )
         }
 

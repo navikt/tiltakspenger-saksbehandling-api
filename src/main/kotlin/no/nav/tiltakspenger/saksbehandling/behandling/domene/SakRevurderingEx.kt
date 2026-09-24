@@ -98,6 +98,7 @@ private suspend fun Sak.startRevurderingStans(
             //  Vi kan begrense denne litt mer ved å fjerne de tiltaksdeltakelsene det ikke er innvilget for, men vi kan utsette det til etter satsingsperioden.
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
+            id,
         ),
         opprettet = opprettet,
         automatiskOpprettetGrunn = automatiskOpprettetGrunn,
@@ -131,6 +132,7 @@ private suspend fun Sak.startRevurderingInnvilgelse(
             //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
+            id,
         ),
         opprettet = opprettet,
         klagebehandling = klagebehandling,
@@ -168,6 +170,7 @@ private suspend fun Sak.startRevurderingOmgjøring(
             //  Det er vanskelig å begrense denne så lenge vi ikke vet på forhånd om dette er en revurdering av tidligere innvilget perioder, forlengelse eller en kombinasjon.
             this.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.søknadstiltak.tiltaksdeltakerId }.distinct(),
             false,
+            id,
         ),
         opprettet = opprettet,
         omgjørRammevedtak = gjeldendeRammevedtak,

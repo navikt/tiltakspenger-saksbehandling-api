@@ -24,6 +24,7 @@ fun Route.søknadRoutes(
         auditService,
         tilgangskontrollService,
         startBehandlingAvManueltRegistrertSøknadService,
+        sakService,
         tiltaksdeltakerRepo,
     )
     validerJournalpostRoute(validerJournalpostService, tilgangskontrollService)

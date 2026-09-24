@@ -37,7 +37,8 @@ class GjenåpneSøknadsbehandlingService(
             tidspunkt = nå(clock),
         ).getOrElse { return it.left() }
 
-        val søknadId = (sakMedGjenåpnetSøknad.hentRammebehandling(kommando.avbruttBehandlingId) as Søknadsbehandling).søknad.id
+        val søknadId =
+            (sakMedGjenåpnetSøknad.hentRammebehandling(kommando.avbruttBehandlingId) as Søknadsbehandling).søknad.id
 
         val (oppdatertSak, nySøknadsbehandling, statistikkhendelser) = sakMedGjenåpnetSøknad.startSøknadsbehandlingPåNytt(
             kommando = StartSøknadsbehandlingPåNyttKommando(
@@ -48,14 +49,14 @@ class GjenåpneSøknadsbehandlingService(
                 correlationId = kommando.correlationId,
             ),
             clock = clock,
-            hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm ->
+            hentSaksopplysninger = { fnr, correlationId, tiltaksdeltakelserDetErSøktTiltakspengerFor, aktuelleTiltaksdeltakelserForBehandlingen, inkluderOverlappendeTiltaksdeltakelserDetErSøktOm, sakId ->
                 hentSaksopplysingerService.hentSaksopplysningerFraRegistre(
                     fnr = fnr,
                     correlationId = correlationId,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
                     aktuelleTiltaksdeltakelserForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen,
                     inkluderOverlappendeTiltaksdeltakelserDetErSøktOm = inkluderOverlappendeTiltaksdeltakelserDetErSøktOm,
-                    sakId = sak.id,
+                    sakId = sakId,
                     saksnummer = sak.saksnummer,
                 )
             },

@@ -30,7 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import java.time.Clock
 
 interface StartSøknadsbehandlingBuilder {
@@ -40,7 +40,7 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
         barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = if (sakId == null) {
@@ -69,7 +69,7 @@ interface StartSøknadsbehandlingBuilder {
     suspend fun ApplicationTestBuilder.opprettAutomatiskBehandlingKlarTilBeslutning(
         tac: TestApplicationContext,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad) = opprettSakOgSøknad(tac, fnr, tiltaksdeltakelse = tiltaksdeltakelse)
         søknad.shouldBeInstanceOf<InnvilgbarSøknad>()
@@ -89,7 +89,7 @@ interface StartSøknadsbehandlingBuilder {
         tac: TestApplicationContext,
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
         manueltBehandlesGrunner: List<ManueltBehandlesGrunn> = emptyList(),
         clock: Clock = fixedClock,
         barnetillegg: List<BarnetilleggFraSøknad> = emptyList(),
@@ -125,7 +125,7 @@ interface StartSøknadsbehandlingBuilder {
         sakId: SakId? = null,
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
-        tiltaksdeltakelse: Tiltaksdeltakelse = tac.tiltaksdeltakelse(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingKlarTilBehandling(
@@ -156,7 +156,7 @@ interface StartSøknadsbehandlingBuilder {
         skalSendeVedtaksbrev: Boolean = true,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
-        tiltaksdeltakelse: Tiltaksdeltakelse = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         clock: Clock = fixedClock,
     ): Triple<Sak, Søknad, Søknadsbehandling> {
@@ -193,12 +193,16 @@ interface StartSøknadsbehandlingBuilder {
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
         clock: Clock = fixedClock,
+        sakId: SakId? = null,
+        tiltaksdeltakelse: TiltaksdeltakelseIntern = tac.tiltaksdeltakelse(),
     ): Triple<Sak, Søknad, Søknadsbehandling> {
         val (sak, søknad, behandling) = opprettSøknadsbehandlingUnderBehandling(
             tac = tac,
             fnr = fnr,
             saksbehandler = saksbehandler,
             clock = clock,
+            sakId = sakId,
+            tiltaksdeltakelse = tiltaksdeltakelse,
         )
 
         val (oppdatertSak, oppdatertBehandling) = oppdaterSøknadsbehandlingAvslag(

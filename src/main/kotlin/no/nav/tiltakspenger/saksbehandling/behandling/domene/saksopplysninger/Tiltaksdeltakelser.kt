@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
 import no.nav.tiltakspenger.libs.periode.Periode
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import kotlin.collections.ArrayList
 
@@ -10,10 +10,10 @@ import kotlin.collections.ArrayList
  * Kan være på tvers av kildesystemer (Arena, Komet, Team Tiltak)
  */
 data class Tiltaksdeltakelser(
-    val value: List<Tiltaksdeltakelse>,
-) : List<Tiltaksdeltakelse> by value {
+    val value: List<TiltaksdeltakelseIntern>,
+) : List<TiltaksdeltakelseIntern> by value {
 
-    constructor(value: Tiltaksdeltakelse) : this(listOf(value))
+    constructor(value: TiltaksdeltakelseIntern) : this(listOf(value))
 
     init {
         value.map { it.eksternDeltakelseId }.also {
@@ -39,14 +39,14 @@ data class Tiltaksdeltakelser(
         }
     }
 
-    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): Tiltaksdeltakelse? {
+    fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): TiltaksdeltakelseIntern? {
         return this.find { it.internDeltakelseId == internDeltakelseId }
     }
 
     /** Filtrerer bort tiltaksdeltakelser med ufullstendige perioder */
     val perioder by lazy { value.mapNotNull { it.periode } }
 
-    inline fun filter(predicate: (Tiltaksdeltakelse) -> Boolean): Tiltaksdeltakelser {
+    inline fun filter(predicate: (TiltaksdeltakelseIntern) -> Boolean): Tiltaksdeltakelser {
         return Tiltaksdeltakelser(filterTo(ArrayList(), predicate))
     }
 

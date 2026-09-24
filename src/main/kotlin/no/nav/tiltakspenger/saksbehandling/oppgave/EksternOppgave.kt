@@ -18,3 +18,16 @@ data class EksternOppgave(
     val grunnlag: Oppgavegrunnlag,
     val tilleggstekst: String?,
 )
+
+/**
+ * En lagret [EksternOppgave], der [grunnlag] er json-en slik den ligger i databasen.
+ * Grunnlaget deserialiseres ikke, siden det kun er for sporbarhet og feilsøking.
+ * Eldre rader kan derfor ha et annet format enn det som skrives i dag.
+ */
+data class LagretEksternOppgave(
+    val oppgaveId: OppgaveId,
+    val sakId: SakId,
+    val opprettet: LocalDateTime,
+    val grunnlag: String,
+    val tilleggstekst: String?,
+)

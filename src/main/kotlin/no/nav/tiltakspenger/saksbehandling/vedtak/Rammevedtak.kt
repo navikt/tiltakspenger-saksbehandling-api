@@ -38,7 +38,7 @@ import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjørRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsgrad
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperiode
 import no.nav.tiltakspenger.saksbehandling.omgjøring.Omgjøringsperioder
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.VedtattUtbetaling
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -120,7 +120,7 @@ data class Rammevedtak(
     val antallDagerPerMeldeperiode: IkkeTomPeriodisering<AntallDagerForMeldeperiode>? =
         rammebehandling.antallDagerPerMeldeperiode
 
-    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<Tiltaksdeltakelse>? = rammebehandling.valgteTiltaksdeltakelser
+    val valgteTiltaksdeltakelser: IkkeTomPeriodisering<TiltaksdeltakelseIntern>? = rammebehandling.valgteTiltaksdeltakelser
 
     val innvilgelsesperioder: Innvilgelsesperioder? = rammebehandling.innvilgelsesperioder
 
@@ -137,7 +137,7 @@ data class Rammevedtak(
         }.leggSammen()
     }
 
-    val gjeldendeTiltaksdeltakelser: Periodisering<Tiltaksdeltakelse> by lazy {
+    val gjeldendeTiltaksdeltakelser: Periodisering<TiltaksdeltakelseIntern> by lazy {
         if (valgteTiltaksdeltakelser == null) return@lazy TomPeriodisering.instance()
 
         valgteTiltaksdeltakelser.filter { gjeldendeInnvilgetPerioder.overlapper(it.periode) }

@@ -33,9 +33,7 @@ data class KometTiltakHendelseDTO(
             deltakelsesprosent = prosentStilling,
             deltakerstatus = status.type.toTiltakDeltakerStatus(),
             sakId = sakId,
-            oppgaveId = null,
             internDeltakerId = tiltaksdeltakerId,
-            behandlingId = null,
         )
 
     private fun KometDeltakerStatusTypeDTO.toTiltakDeltakerStatus(): TiltakDeltakerstatus =

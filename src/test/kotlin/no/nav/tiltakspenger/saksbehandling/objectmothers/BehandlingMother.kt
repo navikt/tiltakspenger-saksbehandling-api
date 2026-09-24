@@ -63,7 +63,7 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.Clock
 import java.time.LocalDate
@@ -105,7 +105,7 @@ interface BehandlingMother : MotherOfAllMothers {
         fnr: Fnr = Fnr.random(),
         saksbehandler: Saksbehandler = saksbehandler(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
-        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
                 tom = søknad.tiltak.deltakelseTom,
@@ -136,7 +136,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
-        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
                 tom = søknad.tiltak.deltakelseTom,
@@ -162,7 +162,7 @@ interface BehandlingMother : MotherOfAllMothers {
         saksnummer: Saksnummer = ObjectMother.nesteSaksnummer(),
         fnr: Fnr = Fnr.random(),
         søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(),
-        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _ ->
+        hentSaksopplysninger: HentSaksopplysninger = { _, _, _, _, _, _ ->
             saksopplysninger(
                 fom = søknad.tiltak.deltakelseFom,
                 tom = søknad.tiltak.deltakelseTom,
@@ -223,7 +223,7 @@ interface BehandlingMother : MotherOfAllMothers {
             fnr = fnr,
             saksbehandler = saksbehandler,
             søknad = søknad,
-            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger },
+            hentSaksopplysninger = { _, _, _, _, _, _ -> saksopplysninger },
             clock = clock,
         ).oppdater(
             when (resultat) {
@@ -515,7 +515,7 @@ interface BehandlingMother : MotherOfAllMothers {
             saksnummer = saksnummer,
             fnr = fnr,
             saksbehandler = saksbehandler,
-            hentSaksopplysninger = { _, _, _, _, _ -> saksopplysninger() },
+            hentSaksopplysninger = { _, _, _, _, _, _ -> saksopplysninger() },
             clock = clock,
         ).avbryt(
             avbruttAv = avbruttAv,
@@ -542,7 +542,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
     deltarPåIntroduksjonsprogram: Boolean = false,
     deltarPåKvp: Boolean = false,
     tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    tiltaksdeltakelse: Tiltaksdeltakelse? = null,
+    tiltaksdeltakelse: TiltaksdeltakelseIntern? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltakelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknadId: SøknadId = SøknadId.random(),
