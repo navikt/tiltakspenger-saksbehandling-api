@@ -50,7 +50,7 @@ data class BenkResponsMedTilgangDTO(
 /**
  * Svaret på mine-fanen: én oversikt per seksjon, med nøkkel fanen seksjonen tilhører.
  * Hver oversikt har samme format som fanens egen, slik at frontenden kan bruke fanens tabell.
- * Seksjonene pagineres ikke — `side` er alltid 0.
+ * Seksjonene pagineres ikke — alle radene er med, og `side` er alltid 0.
  */
 data class BenkMineResponsMedTilgangDTO(
     val antallPerTab: Map<BenkFaneDTO, Int>,

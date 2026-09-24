@@ -93,7 +93,7 @@ data class HentBenkKommando<F : BenkFiltrering, K : BenkSorteringKolonne>(
  *
  * [fane] avgrenser til én seksjon; `null` viser alle.
  * Fanens egne filtre (status, resultat osv.) tilbys ikke — de er gjort for å finne arbeid i køen, ikke i egen liste.
- * Seksjonene pagineres ikke: listen er avgrenset til én saksbehandler, og hver seksjon har [BenkPaginering.SIDEANTALL] rader som øvre grense.
+ * Seksjonene pagineres ikke og har ingen øvre grense: listen er avgrenset til én saksbehandler, og saksbehandler skal se alt hen er tildelt uten å bla.
  */
 data class HentMineKommando(
     val fane: BenkFane?,
