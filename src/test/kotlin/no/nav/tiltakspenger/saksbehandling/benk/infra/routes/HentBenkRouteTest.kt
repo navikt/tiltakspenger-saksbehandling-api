@@ -468,11 +468,11 @@ class HentBenkRouteTest {
     }
 
     /**
-     * Seksjonene deler ett bulkkall mot Tilgangsmaskinen, og tilgangsfilteret gjelder hver seksjon for seg.
+     * Seksjonene deler ett bulkkall mot Tilgangsmaskinen, og radene uten tilgang blir med - sladdet - slik som i fanene.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `mine-fanen tar bort radene uten tilgang med skjulUtenTilgang`() {
+    fun `mine-fanen tar med radene uten tilgang`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
             val fnrUtenTilgang = Fnr.random()
@@ -495,11 +495,6 @@ class HentBenkRouteTest {
                 it["totalAntall"].asInt() shouldBe 2
                 it["behandlinger"].size() shouldBe 2
                 it["oppsummering"]["antallSkjermet"].asInt() shouldBe 1
-            }
-            objectMapper.readTree(hentBenk(tac, "/benk/mine", """{"filters": {"skjulUtenTilgang": true}}"""))["seksjoner"]["SØKNADER"].let {
-                it["totalAntall"].asInt() shouldBe 1
-                it["totalAntallUfiltrert"].asInt() shouldBe 2
-                it["behandlinger"].single()["tilgang"]["vurdering"].asString() shouldBe "HAR_TILGANG"
                 it["oppsummering"]["antallUtenTilgang"].asInt() shouldBe 1
             }
         }

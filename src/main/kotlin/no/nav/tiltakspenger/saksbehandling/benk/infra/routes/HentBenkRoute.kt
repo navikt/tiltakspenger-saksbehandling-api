@@ -242,7 +242,6 @@ private suspend fun RoutingContext.mine(benkService: BenkService) {
             fane = seksjon,
             skjulPåVent = body.filters.skjulPåVent,
             skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
-            skjulUtenTilgang = body.filters.skjulUtenTilgang,
             sortering = BenkMineSortering(
                 søknader = body.sortering[BenkFaneDTO.SØKNADER].tilSøknaderSortering(),
                 revurderinger = body.sortering[BenkFaneDTO.REVURDERINGER].tilRevurderingerSortering(),
@@ -419,6 +418,5 @@ private data class HentMineBody(
         val seksjon: BenkFaneDTO? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
-        val skjulUtenTilgang: Boolean = false,
     )
 }

@@ -99,7 +99,6 @@ data class HentMineKommando(
     val fane: BenkFane?,
     val skjulPåVent: Boolean = false,
     val skjulVenterPåAnnenSaksbehandler: Boolean = false,
-    val skjulUtenTilgang: Boolean = false,
     val sortering: BenkMineSortering = BenkMineSortering(),
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
@@ -119,7 +118,6 @@ data class HentMineKommando(
             saksbehandler = null,
             skjulPåVent = skjulPåVent,
             skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
-            skjulUtenTilgang = skjulUtenTilgang,
         ),
         sortering.søknader,
     )
@@ -131,7 +129,6 @@ data class HentMineKommando(
             saksbehandler = null,
             skjulPåVent = skjulPåVent,
             skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
-            skjulUtenTilgang = skjulUtenTilgang,
         ),
         sortering.revurderinger,
     )
@@ -143,7 +140,6 @@ data class HentMineKommando(
             saksbehandler = null,
             skjulPåVent = skjulPåVent,
             skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
-            skjulUtenTilgang = skjulUtenTilgang,
         ),
         sortering.meldekort,
     )
@@ -154,7 +150,6 @@ data class HentMineKommando(
             resultat = null,
             saksbehandler = null,
             skjulPåVent = skjulPåVent,
-            skjulUtenTilgang = skjulUtenTilgang,
         ),
         sortering.klage,
     )
@@ -168,7 +163,6 @@ data class HentMineKommando(
             minstebeløp = 0,
             skjulPåVent = skjulPåVent,
             skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
-            skjulUtenTilgang = skjulUtenTilgang,
         ),
         sortering.tilbakekreving,
     )

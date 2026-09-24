@@ -4,8 +4,9 @@ import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
-import no.nav.tiltakspenger.libs.common.Fnr
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
@@ -100,7 +101,7 @@ class BenkService(
         BenkMineResponsMedTilgang(
             antallPerFane = antallPerFane,
             seksjoner = seksjoner.mapValues { (_, oversikt) ->
-                oversikt.medTilgang(tilganger, kommando.skjulUtenTilgang, side = 0)
+                oversikt.medTilgang(tilganger, side = 0)
             },
         )
     }
@@ -122,7 +123,7 @@ class BenkService(
 
         BenkResponsMedTilgang(
             antallPerFane = antallPerFane,
-            oversikt = oversikt.medTilgang(tilganger, kommando.filtrering.skjulUtenTilgang, kommando.paginering.side),
+            oversikt = oversikt.medTilgang(tilganger, kommando.paginering.side),
         )
     }
 
@@ -144,16 +145,12 @@ class BenkService(
     /**
      * Beriker radene med tilgang og personmarkører.
      * Nøkkelsettet i [tilganger] er garantert av bulksvarets egen validering, så oppslaget kan ikke bomme.
-     *
-     * Tilgangen er først kjent nå, så [skjulUtenTilgang] kan ikke være en del av spørringen.
-     * Siden kan derfor få færre rader enn sideantallet, og totalAntall trekker fra radene som ble tatt bort her.
      */
     private fun <T : BenkBehandling> BenkOversikt<T>.medTilgang(
         tilganger: Map<Fnr, TilgangsvurderingBulk>,
-        skjulUtenTilgang: Boolean,
         side: Int,
     ): BenkOversiktMedTilgang<T> {
-        val alleRader = behandlinger.map { behandling ->
+        val rader = behandlinger.map { behandling ->
             val tilgang = tilganger.getValue(behandling.fnr)
             BenkRad(
                 behandling = behandling,
@@ -161,19 +158,15 @@ class BenkService(
                 personmarkører = BenkPersonmarkører.fra(tilgang),
             )
         }
-        val oppsummering = BenkOppsummering.fra(alleRader)
 
-        BenkResponsMedTilgang(
-            antallPerFane = antallPerFane,
-            oversikt = BenkOversiktMedTilgang(
-                rader = alleRader,
-                totalAntall = oversikt.totalAntall,
-                totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
-                oppsummering = oppsummering,
-                saksbehandlere = oversikt.saksbehandlere,
-                besluttere = oversikt.besluttere,
-                side = kommando.paginering.side,
-            ),
+        return BenkOversiktMedTilgang(
+            rader = rader,
+            totalAntall = totalAntall,
+            totalAntallUfiltrert = totalAntallUfiltrert,
+            oppsummering = BenkOppsummering.fra(rader),
+            saksbehandlere = saksbehandlere,
+            besluttere = besluttere,
+            side = side,
         )
     }
 }
