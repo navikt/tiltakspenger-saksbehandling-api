@@ -15,18 +15,6 @@ from (
      ) sub
 where t.id = sub.tiltaksdeltaker_id;
 
--- Backfill av deltakere uten søknadstiltak (opprettet ifm saksopplysningsinnhenting av overlappende deltakelser).
--- De refereres fra behandlingens saksopplysninger-json, så saken finnes der.
-update tiltaksdeltaker t
-set sak_id = b.sak_id
-from behandling b
-where t.sak_id is null
-  and b.saksopplysninger::text like '%' || t.id || '%';
-
--- Alle rader skal være dekket av backfillene over.
--- Feiler høylytt dersom det finnes en deltaker verken søknadstiltak eller en behandling refererer — det skal ikke finnes i prod.
-alter table tiltaksdeltaker alter column sak_id set not null;
-
 -- Jobben som plukker ubehandlede endringer spør på denne kolonnen.
 create index if not exists idx_tiltaksdeltaker_siste_ubehandlet_endring
     on tiltaksdeltaker (siste_ubehandlet_endring)
