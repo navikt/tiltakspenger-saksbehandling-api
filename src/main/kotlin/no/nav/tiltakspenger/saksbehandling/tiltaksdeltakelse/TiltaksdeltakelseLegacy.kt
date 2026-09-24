@@ -6,6 +6,8 @@ import no.nav.tiltakspenger.saksbehandling.felles.ÅpenPeriode
 import java.time.LocalDate
 
 /**
+ * TODO abn: Denne bør erstattes av Tiltaksdeltakelse fra libs.
+ *
  * @param eksternDeltakelseId mappes fra aktivitetId som vi mottar fra søknadsfrontenden (via søknad-api).
  * Dette er tiltaksdeltakelseIDen og vil kun være forskjellig avhengig om den kommer fra Arena (TA1234567), Komet (UUID) eller team Tiltak (?).
  * Kalles ekstern_id i databasen.
