@@ -10,7 +10,7 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
  *
  * [saksbehandlere] og [besluttere] er identene som er tildelt en rad i fanen, uten filter — nedtrekkslisten i benken viser dem som filtervalg.
  */
-data class BenkOversikt<T : BenkBehandling>(
+data class BenkOversikt<out T : BenkBehandling>(
     val behandlinger: List<T>,
     val totalAntall: Int,
     val totalAntallUfiltrert: Int,
@@ -30,6 +30,6 @@ data class BenkAntallPerFane(
     val meldekort: Int,
     val klage: Int,
     val tilbakekreving: Int,
-    /** Antallet er per innlogget saksbehandler, til forskjell fra de andre fanene sine. */
+    /** Antallet er per innlogget saksbehandler, til forskjell fra de andre fanenes: behandlingene hen er tildelt som saksbehandler eller beslutter. */
     val mine: Int,
 )

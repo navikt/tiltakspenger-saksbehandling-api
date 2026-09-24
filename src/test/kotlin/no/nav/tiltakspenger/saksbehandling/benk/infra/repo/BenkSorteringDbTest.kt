@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderKolonne
@@ -86,19 +85,6 @@ class BenkSorteringDbTest {
             BenkTilbakekrevingKolonne.BESLUTTER to "beslutter",
             BenkTilbakekrevingKolonne.VENTESTATUS_FRIST to "vente_frist",
             BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE to "kravgrunnlag_periode",
-        )
-    }
-
-    @Test
-    fun `minekolonner`() {
-        BenkMineKolonne.entries.associateWith { it.toDbString() } shouldBe mapOf(
-            BenkMineKolonne.FNR to "fnr",
-            BenkMineKolonne.TYPE to "behandlingstype",
-            BenkMineKolonne.STATUS to "status",
-            BenkMineKolonne.STARTET to "startet",
-            BenkMineKolonne.SIST_ENDRET to "sist_endret",
-            BenkMineKolonne.BESLUTTER to "beslutter",
-            BenkMineKolonne.VENTESTATUS_FRIST to "vente_frist",
         )
     }
 

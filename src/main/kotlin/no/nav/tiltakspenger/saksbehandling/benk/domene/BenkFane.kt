@@ -11,6 +11,9 @@ enum class BenkFane {
     KLAGE,
     TILBAKEKREVING,
 
-    /** Behandlingene den innloggede saksbehandleren er tildelt, som saksbehandler eller beslutter, på tvers av alle behandlingstyper. */
+    /**
+     * Behandlingene den innloggede saksbehandleren er tildelt, som saksbehandler eller beslutter.
+     * Fanen har ingen egen spørring, men viser de andre fanene som seksjoner avgrenset til den innloggede — se [HentMineKommando].
+     */
     MINE,
 }

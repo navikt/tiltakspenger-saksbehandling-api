@@ -12,11 +12,16 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.skalSladdeFor
  *
  * Rader saksbehandleren ikke har persontilgang til, sladdes allerede i `BenkRad.toDTO`.
  * Sladdingen her kommer i tillegg, og gjelder rollene som ikke skal se personopplysninger i det hele tatt.
+ * [BenkMineResponsMedTilgangDTO] sladdes likt, seksjon for seksjon.
  * [BenkResponsUtenTilgangDTO] har ingenting å sladde.
  */
 
 fun BenkResponsMedTilgangDTO.sladdet(): BenkResponsMedTilgangDTO = this.copy(
     oversikt = oversikt.sladdet(),
+)
+
+fun BenkMineResponsMedTilgangDTO.sladdet(): BenkMineResponsMedTilgangDTO = this.copy(
+    seksjoner = seksjoner.mapValues { (_, oversikt) -> oversikt.sladdet() },
 )
 
 private fun BenkOversiktDTO.sladdet(): BenkOversiktDTO = this.copy(
@@ -70,4 +75,7 @@ private fun BenkVentestatusDTO.sladdet(): BenkVentestatusDTO = this.copy(
 )
 
 fun BenkResponsMedTilgangDTO.sladdetFor(saksbehandler: Saksbehandler): BenkResponsMedTilgangDTO =
+    if (skalSladdeFor(saksbehandler)) sladdet() else this
+
+fun BenkMineResponsMedTilgangDTO.sladdetFor(saksbehandler: Saksbehandler): BenkMineResponsMedTilgangDTO =
     if (skalSladdeFor(saksbehandler)) sladdet() else this

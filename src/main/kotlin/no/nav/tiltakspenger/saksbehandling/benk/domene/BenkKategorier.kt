@@ -70,15 +70,3 @@ enum class BenkTilbakekrevingKilde {
     RAMMEVEDTAK,
     MELDEKORT,
 }
-
-/**
- * Behandlingstypene mine-fanen kan filtreres på.
- * Innsendte og korrigerte meldekort er aldri tildelt en saksbehandler, og kan derfor aldri være «mine».
- */
-enum class BenkBehandlingstype {
-    SØKNADSBEHANDLING,
-    REVURDERING,
-    MELDEKORTBEHANDLING,
-    KLAGEBEHANDLING,
-    TILBAKEKREVING,
-}

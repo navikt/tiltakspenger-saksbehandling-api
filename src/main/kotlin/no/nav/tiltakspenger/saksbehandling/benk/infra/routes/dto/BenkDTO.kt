@@ -6,10 +6,10 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderi
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingstype
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineResponsMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOppsummering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPersonmarkører
@@ -48,6 +48,20 @@ data class BenkResponsMedTilgangDTO(
 }
 
 /**
+ * Svaret på mine-fanen: én oversikt per seksjon, med nøkkel fanen seksjonen tilhører.
+ * Hver oversikt har samme format som fanens egen, slik at frontenden kan bruke fanens tabell.
+ * Seksjonene pagineres ikke — `side` er alltid 0.
+ */
+data class BenkMineResponsMedTilgangDTO(
+    val antallPerTab: Map<BenkFaneDTO, Int>,
+    val seksjoner: Map<BenkFaneDTO, BenkOversiktDTO>,
+    val error: String? = null,
+) : BenkResponsDTO {
+    override val harTilgang: Boolean = true
+    val tab: BenkFaneDTO = BenkFaneDTO.MINE
+}
+
+/**
  * Svaret til en bruker uten benkrolle.
  * Frontenden skjuler benken og trenger ikke resten av payloaden.
  * */
@@ -79,18 +93,6 @@ enum class BenkFaneDTO {
     KLAGE,
     TILBAKEKREVING,
     MINE,
-}
-
-/**
- * Filteret på behandlingstype i mine-fanen.
- * Til forskjell fra [BenkBehandlingstypeDTO] på radene er innsendte og korrigerte meldekort utelatt — de er aldri tildelt noen.
- */
-enum class BenkMineTypeDTO {
-    SØKNADSBEHANDLING,
-    REVURDERING,
-    MELDEKORTBEHANDLING,
-    KLAGEBEHANDLING,
-    TILBAKEKREVING,
 }
 
 enum class BenkBehandlingsstatusDTO {
@@ -203,12 +205,13 @@ fun BenkAntallPerFane.toDTO(): Map<BenkFaneDTO, Int> = mapOf(
     BenkFaneDTO.MINE to mine,
 )
 
-fun BenkMineTypeDTO.tilDomene(): BenkBehandlingstype = when (this) {
-    BenkMineTypeDTO.SØKNADSBEHANDLING -> BenkBehandlingstype.SØKNADSBEHANDLING
-    BenkMineTypeDTO.REVURDERING -> BenkBehandlingstype.REVURDERING
-    BenkMineTypeDTO.MELDEKORTBEHANDLING -> BenkBehandlingstype.MELDEKORTBEHANDLING
-    BenkMineTypeDTO.KLAGEBEHANDLING -> BenkBehandlingstype.KLAGEBEHANDLING
-    BenkMineTypeDTO.TILBAKEKREVING -> BenkBehandlingstype.TILBAKEKREVING
+fun BenkFaneDTO.tilDomene(): BenkFane = when (this) {
+    BenkFaneDTO.SØKNADER -> BenkFane.SØKNADER
+    BenkFaneDTO.REVURDERINGER -> BenkFane.REVURDERINGER
+    BenkFaneDTO.MELDEKORT -> BenkFane.MELDEKORT
+    BenkFaneDTO.KLAGE -> BenkFane.KLAGE
+    BenkFaneDTO.TILBAKEKREVING -> BenkFane.TILBAKEKREVING
+    BenkFaneDTO.MINE -> BenkFane.MINE
 }
 
 fun <T : BenkBehandling> BenkResponsMedTilgang<T>.toDTO(
@@ -220,6 +223,16 @@ fun <T : BenkBehandling> BenkResponsMedTilgang<T>.toDTO(
         tab = fane.toDTO(),
         antallPerTab = antallPerFane.toDTO(),
         oversikt = oversikt.toDTO(saksbehandler),
+        error = error,
+    ).sladdetFor(saksbehandler)
+
+fun BenkMineResponsMedTilgang.toDTO(
+    saksbehandler: Saksbehandler,
+    error: String? = null,
+): BenkMineResponsMedTilgangDTO =
+    BenkMineResponsMedTilgangDTO(
+        antallPerTab = antallPerFane.toDTO(),
+        seksjoner = seksjoner.entries.associate { (fane, oversikt) -> fane.toDTO() to oversikt.toDTO(saksbehandler) },
         error = error,
     ).sladdetFor(saksbehandler)
 

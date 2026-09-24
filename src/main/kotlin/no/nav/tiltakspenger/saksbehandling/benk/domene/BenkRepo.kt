@@ -44,14 +44,13 @@ interface BenkRepo {
     ): BenkOversikt<BenkTilbakekreving>
 
     /**
-     * Mine-fanen er den eneste med blandede radtyper — radene er derfor den felles [BenkBehandling]-typen.
+     * Seksjonene i mine-fanen: hver fanes egen spørring, avgrenset til behandlingene den innloggede er tildelt.
+     * Bare seksjonene i [HentMineKommando.seksjoner] hentes.
      */
     fun hentMine(
-        command: HentBenkKommando<BenkMineFiltrering, BenkMineKolonne>,
+        kommando: HentMineKommando,
         sessionContext: SessionContext? = null,
-        limit: Int = BenkPaginering.SIDEANTALL,
-        offset: Int = 0,
-    ): BenkOversikt<BenkBehandling>
+    ): Map<BenkFane, BenkOversikt<BenkBehandling>>
 
     /**
      * [navIdent] trengs fordi mine-fanen teller radene til den innloggede.

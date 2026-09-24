@@ -399,7 +399,6 @@ class HentBenkRouteTest {
                 "meldekort" to "MELDEKORT",
                 "klage" to "KLAGE",
                 "tilbakekreving" to "TILBAKEKREVING",
-                "mine" to "MINE",
             ).forEach { (path, fane) ->
                 hentBenk(tac, "/benk/$path", """{}""").let {
                     it.fane() shouldBe fane
@@ -411,12 +410,12 @@ class HentBenkRouteTest {
     }
 
     /**
-     * Mine-fanen er filtrert på den innloggede i basen, så radene til andre saksbehandlere kommer aldri med.
-     * Typefilteret dekker alle behandlingstypene, og radene bærer sin egen type slik frontenden kan lenke riktig.
+     * Mine-fanen svarer med én seksjon per fane i stedet for én oversikt, avgrenset til den innloggede.
+     * Hver seksjon har fanens eget format, slik at frontenden kan bruke fanens tabell.
      */
     @Test
     @IsolatedDatabaseTest
-    fun `mine-fanen svarer med behandlingene tildelt innlogget, på tvers av typer`() {
+    fun `mine-fanen svarer med én seksjon per fane, avgrenset til innlogget`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
             opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
@@ -424,19 +423,84 @@ class HentBenkRouteTest {
             hentBenk(tac, "/benk/mine", """{}""").let {
                 it.fane() shouldBe "MINE"
                 it.error() shouldBe null
-                it.antallIOversikten() shouldBe 1
                 objectMapper.readTree(it).let { json ->
+                    json["harTilgang"].asBoolean() shouldBe true
                     json["antallPerTab"]["MINE"].asInt() shouldBe 1
-                    json["oversikt"]["behandlinger"].single()["type"].asString() shouldBe "SØKNADSBEHANDLING"
+                    json["seksjoner"].seksjonsnavn() shouldBe listOf("SØKNADER", "REVURDERINGER", "MELDEKORT", "KLAGE", "TILBAKEKREVING")
+                    json["seksjoner"]["SØKNADER"]["totalAntall"].asInt() shouldBe 1
+                    json["seksjoner"]["SØKNADER"]["behandlinger"].single()["type"].asString() shouldBe "SØKNADSBEHANDLING"
+                    json["seksjoner"]["REVURDERINGER"]["totalAntall"].asInt() shouldBe 0
                 }
             }
-            hentBenk(tac, "/benk/mine", """{"filters": {"type": "SØKNADSBEHANDLING"}}""").antallIOversikten() shouldBe 1
-            hentBenk(tac, "/benk/mine", """{"filters": {"type": "REVURDERING"}}""").antallIOversikten() shouldBe 0
+
+            hentBenk(tac, "/benk/mine", """{"filters": {"seksjon": "KLAGE"}}""").let {
+                it.error() shouldBe null
+                objectMapper.readTree(it)["seksjoner"].seksjonsnavn() shouldBe listOf("KLAGE")
+            }
+
+            hentBenk(tac, "/benk/mine", """{"sortering": {"SØKNADER": "sist_endret,DESC"}}""").let {
+                it.error() shouldBe null
+                objectMapper.readTree(it)["seksjoner"]["SØKNADER"]["totalAntall"].asInt() shouldBe 1
+            }
 
             // En annen saksbehandler ser sin egen rad på samme fane.
             hentBenk(tac, "/benk/mine", """{}""", saksbehandler = ObjectMother.saksbehandler()).let {
-                it.antallIOversikten() shouldBe 1
-                objectMapper.readTree(it)["antallPerTab"]["MINE"].asInt() shouldBe 1
+                objectMapper.readTree(it).let { json ->
+                    json["antallPerTab"]["MINE"].asInt() shouldBe 1
+                    json["seksjoner"]["SØKNADER"]["totalAntall"].asInt() shouldBe 1
+                }
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen gir alle seksjonene med error når seksjonen er ugyldig`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            listOf("""{"filters": {"seksjon": "MINE"}}""", """{"filters": {"seksjon": "FINNES_IKKE"}}""").forEach { body ->
+                hentBenk(tac, "/benk/mine", body).let {
+                    it.fane() shouldBe "MINE"
+                    it.error() shouldBe "Noen av filterverdiene kunne ikke tolkes, så standardvisningen brukes"
+                    objectMapper.readTree(it)["seksjoner"].size() shouldBe 5
+                }
+            }
+        }
+    }
+
+    /**
+     * Seksjonene deler ett bulkkall mot Tilgangsmaskinen, og tilgangsfilteret gjelder hver seksjon for seg.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen tar bort radene uten tilgang med skjulUtenTilgang`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
+            val fnrUtenTilgang = Fnr.random()
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler, fnr = fnrUtenTilgang)
+            tac.tilgangsmaskinFakeClient.leggTil(
+                fnrUtenTilgang,
+                Tilgangsvurdering.Avvist(
+                    årsak = TilgangsvurderingAvvistÅrsak.SKJERMET,
+                    begrunnelse = "Du har ikke tilgang",
+                    metadata = AvvistMetadata(
+                        type = "test",
+                        avvisningskode = "test",
+                        navIdent = "test",
+                        brukerIdent = fnrUtenTilgang,
+                    ),
+                ),
+            )
+
+            objectMapper.readTree(hentBenk(tac, "/benk/mine", """{}"""))["seksjoner"]["SØKNADER"].let {
+                it["totalAntall"].asInt() shouldBe 2
+                it["behandlinger"].size() shouldBe 2
+                it["oppsummering"]["antallSkjermet"].asInt() shouldBe 1
+            }
+            objectMapper.readTree(hentBenk(tac, "/benk/mine", """{"filters": {"skjulUtenTilgang": true}}"""))["seksjoner"]["SØKNADER"].let {
+                it["totalAntall"].asInt() shouldBe 1
+                it["totalAntallUfiltrert"].asInt() shouldBe 2
+                it["behandlinger"].single()["tilgang"]["vurdering"].asString() shouldBe "HAR_TILGANG"
+                it["oppsummering"]["antallUtenTilgang"].asInt() shouldBe 1
             }
         }
     }
@@ -504,6 +568,8 @@ class HentBenkRouteTest {
 
     private fun JsonNode.radMedTilgang(): JsonNode =
         this["behandlinger"].single { it["tilgang"]["vurdering"].asString() == "HAR_TILGANG" }
+
+    private fun JsonNode.seksjonsnavn(): List<String> = properties().map { it.key }
 
     private fun String.antallIOversikten(): Int = objectMapper.readTree(this)["oversikt"]["totalAntall"].asInt()
 

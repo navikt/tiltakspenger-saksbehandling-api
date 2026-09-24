@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderKolonne
@@ -91,16 +90,6 @@ fun BenkTilbakekrevingKolonne.toDbString(): String = when (this) {
 
     // Composit-typen periode sammenlignes feltvis, altså fra_og_med først og deretter til_og_med.
     BenkTilbakekrevingKolonne.KRAVGRUNNLAG_PERIODE -> "kravgrunnlag_periode"
-}
-
-fun BenkMineKolonne.toDbString(): String = when (this) {
-    BenkMineKolonne.FNR -> "fnr"
-    BenkMineKolonne.TYPE -> "behandlingstype"
-    BenkMineKolonne.STATUS -> "status"
-    BenkMineKolonne.STARTET -> "startet"
-    BenkMineKolonne.SIST_ENDRET -> "sist_endret"
-    BenkMineKolonne.BESLUTTER -> "beslutter"
-    BenkMineKolonne.VENTESTATUS_FRIST -> "vente_frist"
 }
 
 fun BenkSorteringRetning.toDbString(): String = when (this) {

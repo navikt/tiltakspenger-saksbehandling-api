@@ -76,19 +76,6 @@ data class BenkTilbakekrevingFiltrering(
 ) : BenkFiltrering
 
 /**
- * Mine-fanen er alltid filtrert på den innloggede saksbehandleren — i basen, ikke som et valg — så [saksbehandler] er ubrukt her.
- * Statusene er ikke felles på tvers av typene (tilbakekreving har sine egne), så fanen filtrerer på type i stedet for status.
- */
-data class BenkMineFiltrering(
-    val type: BenkBehandlingstype?,
-    override val skjulPåVent: Boolean = false,
-    override val skjulUtenTilgang: Boolean = false,
-) : BenkFiltrering {
-    override val saksbehandler: String? = null
-    override val skjulVenterPåAnnenSaksbehandler: Boolean = false
-}
-
-/**
  * Ett kall henter én fane.
  * Kommandoen er derfor generisk over fanens filter og fanens sorteringskolonner, slik at feil kombinasjon ikke kompilerer.
  */
@@ -99,3 +86,109 @@ data class HentBenkKommando<F : BenkFiltrering, K : BenkSorteringKolonne>(
     override val saksbehandler: Saksbehandler,
     override val correlationId: CorrelationId,
 ) : ServiceCommand
+
+/**
+ * Mine-fanen er behandlingene den innloggede er tildelt, som saksbehandler eller beslutter, vist som én seksjon per fane.
+ * Hver seksjon er fanens egen spørring avgrenset til den innloggede, så radene, kolonnene og sorteringen er de samme som i fanen.
+ *
+ * [fane] avgrenser til én seksjon; `null` viser alle.
+ * Fanens egne filtre (status, resultat osv.) tilbys ikke — de er gjort for å finne arbeid i køen, ikke i egen liste.
+ * Seksjonene pagineres ikke: listen er avgrenset til én saksbehandler, og hver seksjon har [BenkPaginering.SIDEANTALL] rader som øvre grense.
+ */
+data class HentMineKommando(
+    val fane: BenkFane?,
+    val skjulPåVent: Boolean = false,
+    val skjulVenterPåAnnenSaksbehandler: Boolean = false,
+    val skjulUtenTilgang: Boolean = false,
+    val sortering: BenkMineSortering = BenkMineSortering(),
+    override val saksbehandler: Saksbehandler,
+    override val correlationId: CorrelationId,
+) : ServiceCommand {
+    init {
+        require(fane != BenkFane.MINE) { "Mine-fanen kan ikke være en seksjon i seg selv" }
+    }
+
+    /** Seksjonene som skal hentes, i rekkefølgen benken viser fanene. */
+    val seksjoner: List<BenkFane> = BenkFane.entries.filter { it != BenkFane.MINE && (fane == null || it == fane) }
+
+    fun søknader(): HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne> = kommando(
+        BenkSøknaderFiltrering(
+            status = null,
+            søknadstype = null,
+            resultat = null,
+            saksbehandler = null,
+            skjulPåVent = skjulPåVent,
+            skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
+            skjulUtenTilgang = skjulUtenTilgang,
+        ),
+        sortering.søknader,
+    )
+
+    fun revurderinger(): HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne> = kommando(
+        BenkRevurderingerFiltrering(
+            status = null,
+            resultat = null,
+            saksbehandler = null,
+            skjulPåVent = skjulPåVent,
+            skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
+            skjulUtenTilgang = skjulUtenTilgang,
+        ),
+        sortering.revurderinger,
+    )
+
+    fun meldekort(): HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne> = kommando(
+        BenkMeldekortFiltrering(
+            status = null,
+            type = null,
+            saksbehandler = null,
+            skjulPåVent = skjulPåVent,
+            skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
+            skjulUtenTilgang = skjulUtenTilgang,
+        ),
+        sortering.meldekort,
+    )
+
+    fun klager(): HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne> = kommando(
+        BenkKlageFiltrering(
+            status = null,
+            resultat = null,
+            saksbehandler = null,
+            skjulPåVent = skjulPåVent,
+            skjulUtenTilgang = skjulUtenTilgang,
+        ),
+        sortering.klage,
+    )
+
+    /** Minstebeløpet er 0: en tilbakekreving den innloggede er tildelt, er «min» uansett beløp. */
+    fun tilbakekrevinger(): HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne> = kommando(
+        BenkTilbakekrevingFiltrering(
+            status = null,
+            kilde = null,
+            saksbehandler = null,
+            minstebeløp = 0,
+            skjulPåVent = skjulPåVent,
+            skjulVenterPåAnnenSaksbehandler = skjulVenterPåAnnenSaksbehandler,
+            skjulUtenTilgang = skjulUtenTilgang,
+        ),
+        sortering.tilbakekreving,
+    )
+
+    private fun <F : BenkFiltrering, K : BenkSorteringKolonne> kommando(
+        filtrering: F,
+        sortering: BenkSortering<K>,
+    ): HentBenkKommando<F, K> = HentBenkKommando(
+        filtrering = filtrering,
+        sortering = sortering,
+        saksbehandler = saksbehandler,
+        correlationId = correlationId,
+    )
+}
+
+/** Sorteringen per seksjon i mine-fanen, med samme standard som i fanene. */
+data class BenkMineSortering(
+    val søknader: BenkSortering<BenkSøknaderKolonne> = BenkSortering(BenkSøknaderKolonne.STANDARD, BenkSorteringRetning.ASC),
+    val revurderinger: BenkSortering<BenkRevurderingerKolonne> = BenkSortering(BenkRevurderingerKolonne.STANDARD, BenkSorteringRetning.ASC),
+    val meldekort: BenkSortering<BenkMeldekortKolonne> = BenkSortering(BenkMeldekortKolonne.STANDARD, BenkSorteringRetning.ASC),
+    val klage: BenkSortering<BenkKlageKolonne> = BenkSortering(BenkKlageKolonne.STANDARD, BenkSorteringRetning.ASC),
+    val tilbakekreving: BenkSortering<BenkTilbakekrevingKolonne> = BenkSortering(BenkTilbakekrevingKolonne.STANDARD, BenkSorteringRetning.ASC),
+)

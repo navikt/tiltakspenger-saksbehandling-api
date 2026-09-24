@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingstype
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
@@ -25,8 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortType
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineFiltrering
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineSortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
@@ -45,6 +44,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentBenkKommando
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentMineKommando
 import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
@@ -173,15 +173,17 @@ class BenkAggregatTest {
     /**
      * Til forskjell fra de andre fanene er den innloggede saksbehandleren selve utvalget i mine-fanen, så den er et eget argument her.
      */
-    private fun mineCommand(
-        type: BenkBehandlingstype? = null,
+    private fun mineKommando(
+        fane: BenkFane? = null,
         innlogget: Saksbehandler = ObjectMother.saksbehandler(),
-        kolonne: BenkMineKolonne = BenkMineKolonne.STARTET,
-        retning: BenkSorteringRetning = BenkSorteringRetning.ASC,
         skjulPåVent: Boolean = false,
-    ) = HentBenkKommando(
-        filtrering = BenkMineFiltrering(type = type, skjulPåVent = skjulPåVent),
-        sortering = BenkSortering(kolonne, retning),
+        skjulEgneTilBeslutning: Boolean = false,
+        sortering: BenkMineSortering = BenkMineSortering(),
+    ) = HentMineKommando(
+        fane = fane,
+        skjulPåVent = skjulPåVent,
+        skjulVenterPåAnnenSaksbehandler = skjulEgneTilBeslutning,
+        sortering = sortering,
         saksbehandler = innlogget,
         correlationId = CorrelationId.generate(),
     )
@@ -1113,7 +1115,7 @@ class BenkAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `mine-fanen viser alle behandlingstyper tildelt innlogget saksbehandler`() {
+    fun `mine-fanen viser behandlingene tildelt innlogget saksbehandler, som én seksjon per fane`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val meg = ObjectMother.saksbehandler()
             val (sakSøknad, _, søknadsbehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
@@ -1133,83 +1135,99 @@ class BenkAggregatTest {
             mottaManueltMeldekortForKjede(tac, sakInnsendt)
             tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
 
-            val oversikt = tac.benkContext.benkRepo.hentMine(mineCommand())
+            val seksjoner = tac.benkContext.benkRepo.hentMine(mineKommando())
 
-            oversikt.totalAntall shouldBe 5
-            oversikt.totalAntallUfiltrert shouldBe 5
+            seksjoner.keys.toList() shouldBe listOf(
+                BenkFane.SØKNADER,
+                BenkFane.REVURDERINGER,
+                BenkFane.MELDEKORT,
+                BenkFane.KLAGE,
+                BenkFane.TILBAKEKREVING,
+            )
+            // Det ufiltrerte totalet er «mine i seksjonen», ikke alle i fanen.
+            seksjoner.values.forEach {
+                it.totalAntall shouldBe 1
+                it.totalAntallUfiltrert shouldBe 1
+            }
 
-            val rader = oversikt.behandlinger.associateBy { it.felles.sakId }
-            (rader.getValue(sakSøknad.id) as BenkSøknadsbehandling).let {
+            (seksjoner.getValue(BenkFane.SØKNADER).behandlinger.single() as BenkSøknadsbehandling).let {
+                it.felles.sakId shouldBe sakSøknad.id
                 it.id shouldBe søknadsbehandling.id
                 it.status shouldBe BenkBehandlingsstatus.UNDER_BEHANDLING
-                it.søknadstype shouldBe BenkSøknadstype.DIGITAL
                 it.resultat shouldBe BenkSøknadsbehandlingResultat.INNVILGELSE
                 it.felles.saksbehandler shouldBe meg.navIdent
             }
-            (rader.getValue(sakRevurdering.id) as BenkRevurdering).let {
+            (seksjoner.getValue(BenkFane.REVURDERINGER).behandlinger.single() as BenkRevurdering).let {
                 it.id shouldBe revurdering.id
                 it.resultat shouldBe BenkRevurderingResultat.STANS
-                it.felles.saksbehandler shouldBe meg.navIdent
             }
-            (rader.getValue(sakMeldekort.id) as BenkMeldekort).let {
+            (seksjoner.getValue(BenkFane.MELDEKORT).behandlinger.single() as BenkMeldekort).let {
+                it.felles.sakId shouldBe sakMeldekort.id
                 it.id shouldBe meldekortbehandling.id
                 it.type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
-                it.meldeperioder shouldBe listOf(meldekortbehandling.periode)
-                it.beløp shouldBe null
-                it.felles.saksbehandler shouldBe meg.navIdent
             }
-            (rader.getValue(sakKlage.id) as BenkKlagebehandling).let {
+            (seksjoner.getValue(BenkFane.KLAGE).behandlinger.single() as BenkKlagebehandling).let {
+                it.felles.sakId shouldBe sakKlage.id
                 it.id shouldBe klagebehandling.id
                 it.resultat shouldBe BenkKlagebehandlingResultat.AVVIST
-                it.felles.saksbehandler shouldBe meg.navIdent
-                it.felles.beslutter shouldBe null
             }
-            (rader.getValue(sakTilbakekreving.id) as BenkTilbakekreving).let {
+            (seksjoner.getValue(BenkFane.TILBAKEKREVING).behandlinger.single() as BenkTilbakekreving).let {
                 it.id shouldBe tilbakekreving.id
                 it.status shouldBe BenkTilbakekrevingStatus.UNDER_BEHANDLING
-                it.kilde shouldBe BenkTilbakekrevingKilde.MELDEKORT
-                it.beløp shouldBe tilbakekreving.totaltFeilutbetaltBeløp
                 it.kravgrunnlagPeriode shouldBe tilbakekreving.kravgrunnlagTotalPeriode
-                it.felles.saksbehandler shouldBe meg.navIdent
             }
 
             // Den andre saksbehandleren ser sin egen behandling — og bare den.
-            tac.benkContext.benkRepo.hentMine(mineCommand(innlogget = ObjectMother.saksbehandler("Z999999"))).let {
-                it.totalAntall shouldBe 1
-                it.behandlinger.single().felles.sakId shouldBe sakAnnen.id
+            tac.benkContext.benkRepo.hentMine(mineKommando(innlogget = ObjectMother.saksbehandler("Z999999"))).let {
+                it.getValue(BenkFane.SØKNADER).behandlinger.single().felles.sakId shouldBe sakAnnen.id
+                it.values.sumOf { oversikt -> oversikt.totalAntall } shouldBe 1
             }
         }
     }
 
     @Test
     @IsolatedDatabaseTest
-    fun `mine-fanen treffer identen som beslutter også`() {
+    fun `mine-fanen treffer identen som beslutter, også på tilbakekreving`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val beslutter = ObjectMother.saksbehandlerOgBeslutter("Z888888")
             val (sakUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            val (sakTilGodkjenning, tilGodkjenning) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
             val repo = tac.benkContext.benkRepo
 
-            repo.hentMine(mineCommand(innlogget = beslutter)).totalAntall shouldBe 0
+            repo.hentMine(mineKommando(innlogget = beslutter)).values.sumOf { it.totalAntall } shouldBe 0
 
             taRammebehandlinger(tac, listOf(sakUnderBeslutning.id to underBeslutningId), beslutter)
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sakTilGodkjenning.id,
+                tilbakekrevingId = tilGodkjenning.id,
+                saksbehandler = beslutter,
+            )!!
 
-            repo.hentMine(mineCommand(innlogget = beslutter)).let {
-                it.totalAntall shouldBe 1
-                it.behandlinger.single().let { rad ->
-                    rad.felles.sakId shouldBe sakUnderBeslutning.id
-                    rad.felles.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+            repo.hentMine(mineKommando(innlogget = beslutter)).let {
+                it.getValue(BenkFane.SØKNADER).behandlinger.single().felles.let { rad ->
+                    rad.sakId shouldBe sakUnderBeslutning.id
+                    rad.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+                    rad.beslutter shouldBe beslutter.navIdent
+                }
+                (it.getValue(BenkFane.TILBAKEKREVING).behandlinger.single() as BenkTilbakekreving).let { rad ->
+                    rad.felles.sakId shouldBe sakTilGodkjenning.id
+                    rad.status shouldBe BenkTilbakekrevingStatus.UNDER_GODKJENNING
                     rad.felles.beslutter shouldBe beslutter.navIdent
                 }
             }
+            repo.hentAntallPerFane(beslutter.navIdent).mine shouldBe 2
         }
     }
 
     @Test
     @IsolatedDatabaseTest
-    fun `mine-fanen filtrerer på type og skjulPåVent, og sorterer synkende`() {
+    fun `mine-fanen avgrenser til én seksjon, og filtrerer på skjulPåVent og skjulEgneTilBeslutning`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
-            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val (sakUnderBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
             val (sakMeldekort) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac)!!
+            // Sendt til beslutning av meg, men fortsatt «min» som saksbehandler.
+            sendSøknadsbehandlingTilBeslutning(tac = tac)
             // En behandling under behandling som settes på vent mister saksbehandleren sin.
             // For å få en på-vent-rad som fortsatt er «min», settes den på vent fra under beslutning — da beholdes saksbehandleren.
             val beslutter = ObjectMother.saksbehandlerOgBeslutter("Z777777")
@@ -1223,24 +1241,42 @@ class BenkAggregatTest {
             )!!
             val repo = tac.benkContext.benkRepo
 
-            repo.hentMine(mineCommand()).totalAntall shouldBe 3
-            repo.hentMine(mineCommand(type = BenkBehandlingstype.SØKNADSBEHANDLING)).totalAntall shouldBe 2
-            repo.hentMine(mineCommand(type = BenkBehandlingstype.KLAGEBEHANDLING)).totalAntall shouldBe 0
-            repo.hentMine(mineCommand(type = BenkBehandlingstype.MELDEKORTBEHANDLING)).let {
-                it.totalAntall shouldBe 1
-                it.behandlinger.single().felles.sakId shouldBe sakMeldekort.id
+            repo.hentMine(mineKommando()).let {
+                it.getValue(BenkFane.SØKNADER).totalAntall shouldBe 3
+                it.getValue(BenkFane.MELDEKORT).totalAntall shouldBe 1
             }
-            repo.hentMine(mineCommand(skjulPåVent = true)).let {
+            repo.hentMine(mineKommando(fane = BenkFane.MELDEKORT)).let {
+                it.keys shouldBe setOf(BenkFane.MELDEKORT)
+                it.getValue(BenkFane.MELDEKORT).behandlinger.single().felles.sakId shouldBe sakMeldekort.id
+            }
+            repo.hentMine(mineKommando(fane = BenkFane.SØKNADER, skjulPåVent = true)).getValue(BenkFane.SØKNADER).let {
                 it.totalAntall shouldBe 2
                 it.totalAntallUfiltrert shouldBe 3
                 it.behandlinger.none { b -> b.felles.sakId == sakPåVent.id } shouldBe true
             }
-
-            repo.hentMine(
-                mineCommand(kolonne = BenkMineKolonne.SIST_ENDRET, retning = BenkSorteringRetning.DESC),
-            ).behandlinger.zipWithNext().forEach { (før, etter) ->
-                (før.felles.sistEndret >= etter.felles.sistEndret) shouldBe true
+            repo.hentMine(mineKommando(fane = BenkFane.SØKNADER, skjulEgneTilBeslutning = true)).getValue(BenkFane.SØKNADER).let {
+                it.behandlinger.map { b -> b.felles.sakId } shouldBe listOf(sakUnderBehandling.id)
+                it.totalAntallUfiltrert shouldBe 3
             }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen sorterer hver seksjon med fanens egne kolonner`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+
+            val sortering = BenkMineSortering(
+                søknader = BenkSortering(BenkSøknaderKolonne.SIST_ENDRET, BenkSorteringRetning.DESC),
+            )
+            tac.benkContext.benkRepo.hentMine(mineKommando(sortering = sortering)).getValue(BenkFane.SØKNADER)
+                .behandlinger.also { it.size shouldBe 3 }
+                .zipWithNext().forEach { (før, etter) ->
+                    (før.felles.sistEndret >= etter.felles.sistEndret) shouldBe true
+                }
         }
     }
 
