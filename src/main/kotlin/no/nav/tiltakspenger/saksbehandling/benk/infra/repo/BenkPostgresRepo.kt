@@ -119,22 +119,23 @@ class BenkPostgresRepo(
     /**
      * Hver seksjon er fanens egen spørring med basen avgrenset av [tildeltInnlogget].
      * Seksjonene pagineres ikke, så hver av dem har [BenkPaginering.SIDEANTALL] rader som øvre grense.
+     *
+     * Spørringene slås opp per fane i stedet for en `when`, fordi mine-fanen aldri er en seksjon — [HentMineKommando] avviser den.
+     * En gren for den ville vært død kode.
      */
     override fun hentMine(
         kommando: HentMineKommando,
         sessionContext: SessionContext?,
     ): Map<BenkFane, BenkOversikt<BenkBehandling>> = sessionFactory.withSession(sessionContext) { session ->
         val limit = BenkPaginering.SIDEANTALL
-        kommando.seksjoner.associateWith { fane ->
-            when (fane) {
-                BenkFane.SØKNADER -> session.hentSøknader(kommando.søknader(), tildeltInnlogget(SØKNADER), limit, 0)
-                BenkFane.REVURDERINGER -> session.hentRevurderinger(kommando.revurderinger(), tildeltInnlogget(REVURDERINGER), limit, 0)
-                BenkFane.MELDEKORT -> session.hentMeldekort(kommando.meldekort(), tildeltInnlogget(MELDEKORTBEHANDLINGER), limit, 0)
-                BenkFane.KLAGE -> session.hentKlager(kommando.klager(), tildeltInnlogget(KLAGE), limit, 0)
-                BenkFane.TILBAKEKREVING -> session.hentTilbakekrevinger(kommando.tilbakekrevinger(), tildeltInnlogget(TILBAKEKREVING), limit, 0)
-                BenkFane.MINE -> throw IllegalStateException("Mine-fanen er ikke en seksjon i seg selv")
-            }
-        }
+        val seksjonsspørringer: Map<BenkFane, () -> BenkOversikt<BenkBehandling>> = mapOf(
+            BenkFane.SØKNADER to { session.hentSøknader(kommando.søknader(), tildeltInnlogget(SØKNADER), limit, 0) },
+            BenkFane.REVURDERINGER to { session.hentRevurderinger(kommando.revurderinger(), tildeltInnlogget(REVURDERINGER), limit, 0) },
+            BenkFane.MELDEKORT to { session.hentMeldekort(kommando.meldekort(), tildeltInnlogget(MELDEKORTBEHANDLINGER), limit, 0) },
+            BenkFane.KLAGE to { session.hentKlager(kommando.klager(), tildeltInnlogget(KLAGE), limit, 0) },
+            BenkFane.TILBAKEKREVING to { session.hentTilbakekrevinger(kommando.tilbakekrevinger(), tildeltInnlogget(TILBAKEKREVING), limit, 0) },
+        )
+        kommando.seksjoner.associateWith { fane -> seksjonsspørringer.getValue(fane)() }
     }
 
     /**
