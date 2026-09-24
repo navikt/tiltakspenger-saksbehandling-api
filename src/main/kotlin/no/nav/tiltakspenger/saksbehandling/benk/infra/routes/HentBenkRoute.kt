@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineSortering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkPaginering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkResponsMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
@@ -30,9 +31,11 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentBenkKommando
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentMineKommando
 import no.nav.tiltakspenger.saksbehandling.benk.domene.KunneIkkeHenteBenk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.tilSortering
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkFaneDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingStatusDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkMeldekortTypeDTO
@@ -75,6 +78,7 @@ fun Route.hentBenkRoute(
     post("$PATH/meldekort") { meldekort(benkService) }
     post("$PATH/klage") { klage(benkService) }
     post("$PATH/tilbakekreving") { tilbakekreving(benkService) }
+    post("$PATH/mine") { mine(benkService) }
 
     // Catch-all for feilskrevne faner i url-en — svarer med søknadsfanen og error satt.
     post("$PATH/{...}") { feilskrevetFane(benkService) }
@@ -109,7 +113,7 @@ private suspend fun RoutingContext.svarMedSøknader(
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
-            sortering = body.sortering.tilSortering(BenkSøknaderKolonne.entries, BenkSøknaderKolonne.KRAVTIDSPUNKT),
+            sortering = body.sortering.tilSøknaderSortering(),
             paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
@@ -134,7 +138,7 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
-            sortering = body.sortering.tilSortering(BenkRevurderingerKolonne.entries, BenkRevurderingerKolonne.STARTET),
+            sortering = body.sortering.tilRevurderingerSortering(),
             paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
@@ -159,7 +163,7 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
-            sortering = body.sortering.tilSortering(BenkMeldekortKolonne.entries, BenkMeldekortKolonne.PERIODE),
+            sortering = body.sortering.tilMeldekortSortering(),
             paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
@@ -183,7 +187,7 @@ private suspend fun RoutingContext.klage(benkService: BenkService) {
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
             ),
-            sortering = body.sortering.tilSortering(BenkKlageKolonne.entries, BenkKlageKolonne.KRAVTIDSPUNKT),
+            sortering = body.sortering.tilKlageSortering(),
             paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
@@ -209,7 +213,7 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
             ),
-            sortering = body.sortering.tilSortering(BenkTilbakekrevingKolonne.entries, BenkTilbakekrevingKolonne.STARTET),
+            sortering = body.sortering.tilTilbakekrevingSortering(),
             paginering = BenkPaginering.fra(body.side),
             saksbehandler = saksbehandler,
             correlationId = call.correlationId(),
@@ -219,6 +223,53 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
 
     svarMedBenk(respons, BenkFane.TILBAKEKREVING, saksbehandler, error)
 }
+
+/**
+ * Mine-fanen svarer med én seksjon per fane i stedet for én oversikt, så den har sitt eget svar.
+ * Sorteringen er per seksjon, fordi hver seksjon er en tabell med fanens egne kolonner.
+ */
+private suspend fun RoutingContext.mine(benkService: BenkService) {
+    logger.debug { "Mottatt post-request på $PATH/mine" }
+    val (saksbehandler, token) = autentiserMedBenktilgang(benkService) ?: return
+    val (body, bodyError) = call.parseBodyEllerDefault(HentMineBody())
+
+    // Mine-fanen kan ikke være en seksjon i seg selv, og behandles som en ugyldig filterverdi.
+    val seksjon = body.filters.seksjon?.tilDomene()?.takeIf { it != BenkFane.MINE }
+    val error = bodyError ?: FEIL_UGYLDIGE_FILTERVERDIER.takeIf { body.filters.seksjon != null && seksjon == null }
+
+    val respons = benkService.hentMine(
+        kommando = HentMineKommando(
+            fane = seksjon,
+            skjulPåVent = body.filters.skjulPåVent,
+            skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
+            sortering = BenkMineSortering(
+                søknader = body.sortering[BenkFaneDTO.SØKNADER].tilSøknaderSortering(),
+                revurderinger = body.sortering[BenkFaneDTO.REVURDERINGER].tilRevurderingerSortering(),
+                meldekort = body.sortering[BenkFaneDTO.MELDEKORT].tilMeldekortSortering(),
+                klage = body.sortering[BenkFaneDTO.KLAGE].tilKlageSortering(),
+                tilbakekreving = body.sortering[BenkFaneDTO.TILBAKEKREVING].tilTilbakekrevingSortering(),
+            ),
+            saksbehandler = saksbehandler,
+            correlationId = call.correlationId(),
+        ),
+        saksbehandlerToken = token,
+    )
+
+    respons.fold(
+        ifLeft = { call.respond500InternalServerError(Standardfeil.serverfeil()) },
+        ifRight = { call.respondJson(value = it.toDTO(saksbehandler, error)) },
+    )
+}
+
+private fun String?.tilSøknaderSortering() = tilSortering(BenkSøknaderKolonne.entries, BenkSøknaderKolonne.STANDARD)
+
+private fun String?.tilRevurderingerSortering() = tilSortering(BenkRevurderingerKolonne.entries, BenkRevurderingerKolonne.STANDARD)
+
+private fun String?.tilMeldekortSortering() = tilSortering(BenkMeldekortKolonne.entries, BenkMeldekortKolonne.STANDARD)
+
+private fun String?.tilKlageSortering() = tilSortering(BenkKlageKolonne.entries, BenkKlageKolonne.STANDARD)
+
+private fun String?.tilTilbakekrevingSortering() = tilSortering(BenkTilbakekrevingKolonne.entries, BenkTilbakekrevingKolonne.STANDARD)
 
 /**
  * Svarer ut fanen, eller en serverfeil når tilgangskontrollen ikke lot seg gjennomføre.
@@ -351,4 +402,21 @@ private data class HentTilbakekrevingBody(
             0
         }
     }
+}
+
+/**
+ * Requesten til mine-fanen.
+ * Fanen har ikke saksbehandlerfilteret — den er alltid avgrenset til den innloggede.
+ * [sortering] er per seksjon, med fanens egne kolonner; en seksjon uten sortering får fanens standard.
+ * [Filters.seksjon] viser bare én av seksjonene; `null` viser alle.
+ */
+private data class HentMineBody(
+    val sortering: Map<BenkFaneDTO, String> = emptyMap(),
+    val filters: Filters = Filters(),
+) {
+    data class Filters(
+        val seksjon: BenkFaneDTO? = null,
+        val skjulPåVent: Boolean = false,
+        val skjulEgneTilBeslutning: Boolean = false,
+    )
 }

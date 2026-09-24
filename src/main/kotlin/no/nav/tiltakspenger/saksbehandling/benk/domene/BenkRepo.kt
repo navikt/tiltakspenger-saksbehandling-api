@@ -43,5 +43,18 @@ interface BenkRepo {
         offset: Int = 0,
     ): BenkOversikt<BenkTilbakekreving>
 
-    fun hentAntallPerFane(sessionContext: SessionContext? = null): BenkAntallPerFane
+    /**
+     * Seksjonene i mine-fanen: hver fanes egen spørring, avgrenset til behandlingene den innloggede er tildelt.
+     * Bare seksjonene i [HentMineKommando.seksjoner] hentes.
+     */
+    fun hentMine(
+        kommando: HentMineKommando,
+        sessionContext: SessionContext? = null,
+    ): Map<BenkFane, BenkOversikt<BenkBehandling>>
+
+    /**
+     * [navIdent] trengs fordi mine-fanen teller radene til den innloggede.
+     * De andre fanene telles uavhengig av hvem som spør.
+     */
+    fun hentAntallPerFane(navIdent: String, sessionContext: SessionContext? = null): BenkAntallPerFane
 }

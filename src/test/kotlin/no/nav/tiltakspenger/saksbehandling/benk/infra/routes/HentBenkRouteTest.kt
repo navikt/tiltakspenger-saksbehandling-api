@@ -54,7 +54,8 @@ class HentBenkRouteTest {
                     "REVURDERINGER": 0,
                     "MELDEKORT": 0,
                     "KLAGE": 0,
-                    "TILBAKEKREVING": 0
+                    "TILBAKEKREVING": 0,
+                    "MINE": 0
                   },
                   "oversikt": {
                     "behandlinger": [
@@ -409,6 +410,97 @@ class HentBenkRouteTest {
     }
 
     /**
+     * Mine-fanen svarer med én seksjon per fane i stedet for én oversikt, avgrenset til den innloggede.
+     * Hver seksjon har fanens eget format, slik at frontenden kan bruke fanens tabell.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen svarer med én seksjon per fane, avgrenset til innlogget`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+
+            hentBenk(tac, "/benk/mine", """{}""").let {
+                it.fane() shouldBe "MINE"
+                it.error() shouldBe null
+                objectMapper.readTree(it).let { json ->
+                    json["harTilgang"].asBoolean() shouldBe true
+                    json["antallPerTab"]["MINE"].asInt() shouldBe 1
+                    json["seksjoner"].seksjonsnavn() shouldBe listOf("SØKNADER", "REVURDERINGER", "MELDEKORT", "KLAGE", "TILBAKEKREVING")
+                    json["seksjoner"]["SØKNADER"]["totalAntall"].asInt() shouldBe 1
+                    json["seksjoner"]["SØKNADER"]["behandlinger"].single()["type"].asString() shouldBe "SØKNADSBEHANDLING"
+                    json["seksjoner"]["REVURDERINGER"]["totalAntall"].asInt() shouldBe 0
+                }
+            }
+
+            hentBenk(tac, "/benk/mine", """{"filters": {"seksjon": "KLAGE"}}""").let {
+                it.error() shouldBe null
+                objectMapper.readTree(it)["seksjoner"].seksjonsnavn() shouldBe listOf("KLAGE")
+            }
+
+            hentBenk(tac, "/benk/mine", """{"sortering": {"SØKNADER": "sist_endret,DESC"}}""").let {
+                it.error() shouldBe null
+                objectMapper.readTree(it)["seksjoner"]["SØKNADER"]["totalAntall"].asInt() shouldBe 1
+            }
+
+            // En annen saksbehandler ser sin egen rad på samme fane.
+            hentBenk(tac, "/benk/mine", """{}""", saksbehandler = ObjectMother.saksbehandler()).let {
+                objectMapper.readTree(it).let { json ->
+                    json["antallPerTab"]["MINE"].asInt() shouldBe 1
+                    json["seksjoner"]["SØKNADER"]["totalAntall"].asInt() shouldBe 1
+                }
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen gir alle seksjonene med error når seksjonen er ugyldig`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            listOf("""{"filters": {"seksjon": "MINE"}}""", """{"filters": {"seksjon": "FINNES_IKKE"}}""").forEach { body ->
+                hentBenk(tac, "/benk/mine", body).let {
+                    it.fane() shouldBe "MINE"
+                    it.error() shouldBe "Noen av filterverdiene kunne ikke tolkes, så standardvisningen brukes"
+                    objectMapper.readTree(it)["seksjoner"].size() shouldBe 5
+                }
+            }
+        }
+    }
+
+    /**
+     * Seksjonene deler ett bulkkall mot Tilgangsmaskinen, og radene uten tilgang blir med - sladdet - slik som i fanene.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen tar med radene uten tilgang`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
+            val fnrUtenTilgang = Fnr.random()
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler, fnr = fnrUtenTilgang)
+            tac.tilgangsmaskinFakeClient.leggTil(
+                fnrUtenTilgang,
+                Tilgangsvurdering.Avvist(
+                    årsak = TilgangsvurderingAvvistÅrsak.SKJERMET,
+                    begrunnelse = "Du har ikke tilgang",
+                    metadata = AvvistMetadata(
+                        type = "test",
+                        avvisningskode = "test",
+                        navIdent = "test",
+                        brukerIdent = fnrUtenTilgang,
+                    ),
+                ),
+            )
+
+            objectMapper.readTree(hentBenk(tac, "/benk/mine", """{}"""))["seksjoner"]["SØKNADER"].let {
+                it["totalAntall"].asInt() shouldBe 2
+                it["behandlinger"].size() shouldBe 2
+                it["oppsummering"]["antallSkjermet"].asInt() shouldBe 1
+                it["oppsummering"]["antallUtenTilgang"].asInt() shouldBe 1
+            }
+        }
+    }
+
+    /**
      * Uten en tilgangsvurdering vet vi ikke hvilke rader saksbehandleren har lov til å se.
      * Da svarer benken med en serverfeil framfor å vise radene.
      */
@@ -471,6 +563,8 @@ class HentBenkRouteTest {
 
     private fun JsonNode.radMedTilgang(): JsonNode =
         this["behandlinger"].single { it["tilgang"]["vurdering"].asString() == "HAR_TILGANG" }
+
+    private fun JsonNode.seksjonsnavn(): List<String> = properties().map { it.key }
 
     private fun String.antallIOversikten(): Int = objectMapper.readTree(this)["oversikt"]["totalAntall"].asInt()
 

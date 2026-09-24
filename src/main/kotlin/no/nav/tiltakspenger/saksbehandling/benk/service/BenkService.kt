@@ -2,8 +2,11 @@ package no.nav.tiltakspenger.saksbehandling.benk.service
 
 import arrow.core.Either
 import arrow.core.raise.either
+import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
@@ -11,6 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineResponsMedTilgang
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOppsummering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversikt
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkOversiktMedTilgang
@@ -29,7 +33,9 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentBenkKommando
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentMineKommando
 import no.nav.tiltakspenger.saksbehandling.benk.domene.KunneIkkeHenteBenk
+import no.nav.tiltakspenger.saksbehandling.felles.ServiceCommand
 
 /**
  * Henter én fane av benken og beriker alle radene med tilgang og personmarkører.
@@ -82,6 +88,25 @@ class BenkService(
         }
 
     /**
+     * Seksjonene i mine-fanen deler ett bulkkall mot Tilgangsmaskinen, slik at fanen ikke koster ett kall per seksjon.
+     */
+    suspend fun hentMine(
+        kommando: HentMineKommando,
+        saksbehandlerToken: String,
+    ): Either<KunneIkkeHenteBenk, BenkMineResponsMedTilgang> = either {
+        val antallPerFane = benkRepo.hentAntallPerFane(kommando.saksbehandler.navIdent)
+        val seksjoner = benkRepo.hentMine(kommando)
+        val tilganger = hentTilganger(seksjoner.values.flatMap { it.fødselsnummere() }, kommando, saksbehandlerToken).bind()
+
+        BenkMineResponsMedTilgang(
+            antallPerFane = antallPerFane,
+            seksjoner = seksjoner.mapValues { (_, oversikt) ->
+                oversikt.medTilgang(tilganger, side = 0)
+            },
+        )
+    }
+
+    /**
      * Svaret til en bruker uten benkrolle.
      * Ruten svarer med dette før fanespørringen, så det ikke gjøres databaseoppslag eller tilgangskall.
      */
@@ -92,32 +117,40 @@ class BenkService(
         saksbehandlerToken: String,
         hent: (limit: Int, offset: Int) -> BenkOversikt<T>,
     ): Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<T>> = either {
-        val antallPerFane = benkRepo.hentAntallPerFane()
+        val antallPerFane = benkRepo.hentAntallPerFane(kommando.saksbehandler.navIdent)
         val oversikt = hent(kommando.paginering.limit(), kommando.paginering.offset())
+        val tilganger = hentTilganger(oversikt.fødselsnummere(), kommando, saksbehandlerToken).bind()
 
-        val fnrs = oversikt.fødselsnummere().toNonEmptyListOrNull()
-            ?: return@either BenkResponsMedTilgang(
-                antallPerFane = antallPerFane,
-                oversikt = BenkOversiktMedTilgang(
-                    rader = emptyList(),
-                    totalAntall = oversikt.totalAntall,
-                    totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
-                    oppsummering = BenkOppsummering.fra(emptyList<BenkRad<T>>()),
-                    saksbehandlere = oversikt.saksbehandlere,
-                    besluttere = oversikt.besluttere,
-                    side = kommando.paginering.side,
-                ),
-            )
+        BenkResponsMedTilgang(
+            antallPerFane = antallPerFane,
+            oversikt = oversikt.medTilgang(tilganger, kommando.paginering.side),
+        )
+    }
 
-        val tilganger = tilgangskontrollService.harTilgangTilPersoner(
-            fnrs = fnrs,
+    /** Uten personer å slå opp gjøres det ikke noe kall, og svaret er et tomt oppslag. */
+    private suspend fun hentTilganger(
+        fnrs: List<Fnr>,
+        kommando: ServiceCommand,
+        saksbehandlerToken: String,
+    ): Either<KunneIkkeHenteBenk, Map<Fnr, TilgangsvurderingBulk>> {
+        val unike = fnrs.distinct().sortedBy { it.verdi }.toNonEmptyListOrNull() ?: return emptyMap<Fnr, TilgangsvurderingBulk>().right()
+        return tilgangskontrollService.harTilgangTilPersoner(
+            fnrs = unike,
             saksbehandlerToken = saksbehandlerToken,
             saksbehandler = kommando.saksbehandler,
             correlationId = kommando.correlationId,
-        ).mapLeft { KunneIkkeHenteBenk.Tilgangskontroll }.bind()
+        ).mapLeft { KunneIkkeHenteBenk.Tilgangskontroll }
+    }
 
-        // Nøkkelsettet er garantert av bulksvarets egen validering, så oppslaget kan ikke bomme.
-        val alleRader = oversikt.behandlinger.map { behandling ->
+    /**
+     * Beriker radene med tilgang og personmarkører.
+     * Nøkkelsettet i [tilganger] er garantert av bulksvarets egen validering, så oppslaget kan ikke bomme.
+     */
+    private fun <T : BenkBehandling> BenkOversikt<T>.medTilgang(
+        tilganger: Map<Fnr, TilgangsvurderingBulk>,
+        side: Int,
+    ): BenkOversiktMedTilgang<T> {
+        val rader = behandlinger.map { behandling ->
             val tilgang = tilganger.getValue(behandling.fnr)
             BenkRad(
                 behandling = behandling,
@@ -125,19 +158,15 @@ class BenkService(
                 personmarkører = BenkPersonmarkører.fra(tilgang),
             )
         }
-        val oppsummering = BenkOppsummering.fra(alleRader)
 
-        BenkResponsMedTilgang(
-            antallPerFane = antallPerFane,
-            oversikt = BenkOversiktMedTilgang(
-                rader = alleRader,
-                totalAntall = oversikt.totalAntall,
-                totalAntallUfiltrert = oversikt.totalAntallUfiltrert,
-                oppsummering = oppsummering,
-                saksbehandlere = oversikt.saksbehandlere,
-                besluttere = oversikt.besluttere,
-                side = kommando.paginering.side,
-            ),
+        return BenkOversiktMedTilgang(
+            rader = rader,
+            totalAntall = totalAntall,
+            totalAntallUfiltrert = totalAntallUfiltrert,
+            oppsummering = BenkOppsummering.fra(rader),
+            saksbehandlere = saksbehandlere,
+            besluttere = besluttere,
+            side = side,
         )
     }
 }

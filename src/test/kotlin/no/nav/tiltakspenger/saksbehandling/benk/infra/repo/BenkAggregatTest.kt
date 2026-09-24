@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.nå
@@ -13,14 +14,19 @@ import no.nav.tiltakspenger.libs.meldekort.BrukerutfyltMeldekortDTO
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandlingStatus
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekort
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMeldekortType
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkMineSortering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurdering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRevurderingerKolonne
@@ -29,13 +35,16 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSorteringRetning
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknaderKolonne
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadsbehandlingResultat
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkSøknadstype
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekreving
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKilde
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentBenkKommando
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentMineKommando
 import no.nav.tiltakspenger.saksbehandling.benk.domene.finnGyldigeKommandoer
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
@@ -70,6 +79,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRev
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
@@ -158,6 +168,24 @@ class BenkAggregatTest {
     ) = command(
         BenkTilbakekrevingFiltrering(status, kilde, saksbehandler, minstebeløp, skjulPåVent, skjulVenterPåAnnenSaksbehandler),
         kolonne,
+    )
+
+    /**
+     * Til forskjell fra de andre fanene er den innloggede saksbehandleren selve utvalget i mine-fanen, så den er et eget argument her.
+     */
+    private fun mineKommando(
+        fane: BenkFane? = null,
+        innlogget: Saksbehandler = ObjectMother.saksbehandler(),
+        skjulPåVent: Boolean = false,
+        skjulEgneTilBeslutning: Boolean = false,
+        sortering: BenkMineSortering = BenkMineSortering(),
+    ) = HentMineKommando(
+        fane = fane,
+        skjulPåVent = skjulPåVent,
+        skjulVenterPåAnnenSaksbehandler = skjulEgneTilBeslutning,
+        sortering = sortering,
+        saksbehandler = innlogget,
+        correlationId = CorrelationId.generate(),
     )
 
     @Test
@@ -1066,14 +1094,189 @@ class BenkAggregatTest {
             opprettSakOgKlagebehandlingTilAvvisning(tac = tac)
             opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
 
-            tac.benkContext.benkRepo.hentAntallPerFane() shouldBe
+            tac.benkContext.benkRepo.hentAntallPerFane(ObjectMother.saksbehandler().navIdent) shouldBe
                 BenkAntallPerFane(
                     søknader = 1,
                     revurderinger = 1,
                     meldekort = 1,
                     klage = 1,
                     tilbakekreving = 1,
+                    // Klagen er tildelt en annen saksbehandler, og tilbakekrevingen er ikke tildelt noen.
+                    mine = 3,
                 )
+
+            // Mine-tallet er per innlogget saksbehandler, til forskjell fra de andre fanenes.
+            tac.benkContext.benkRepo.hentAntallPerFane("Z000000").let {
+                it.mine shouldBe 0
+                it.søknader shouldBe 1
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen viser behandlingene tildelt innlogget saksbehandler, som én seksjon per fane`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val meg = ObjectMother.saksbehandler()
+            val (sakSøknad, _, søknadsbehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val (sakRevurdering, _, _, revurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac)
+            oppdaterRevurderingStans(tac = tac, sakId = sakRevurdering.id, behandlingId = revurdering.id)
+            val (sakMeldekort, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac)!!
+            val (sakKlage, klagebehandling, _) = opprettSakOgKlagebehandlingTilAvvisning(tac = tac, saksbehandler = meg)!!
+            val (sakTilbakekreving, tilbakekreving) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
+            tildelTilbakekrevingBehandling(tac, sakTilbakekreving.id, tilbakekreving.id, meg)!!
+
+            // Ikke mine: en behandling tildelt noen andre, og et innsendt meldekort som venter på at noen tar det.
+            val (sakAnnen) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+                tac = tac,
+                saksbehandler = ObjectMother.saksbehandler("Z999999"),
+            )
+            val (sakInnsendt) = iverksettSøknadsbehandling(tac = tac)
+            mottaManueltMeldekortForKjede(tac, sakInnsendt)
+            tac.meldekortContext.automatiskMeldekortbehandlingJobb.behandleBrukersMeldekort(tac.clock)
+
+            val seksjoner = tac.benkContext.benkRepo.hentMine(mineKommando())
+
+            seksjoner.keys.toList() shouldBe listOf(
+                BenkFane.SØKNADER,
+                BenkFane.REVURDERINGER,
+                BenkFane.MELDEKORT,
+                BenkFane.KLAGE,
+                BenkFane.TILBAKEKREVING,
+            )
+            // Det ufiltrerte totalet er «mine i seksjonen», ikke alle i fanen.
+            seksjoner.values.forEach {
+                it.totalAntall shouldBe 1
+                it.totalAntallUfiltrert shouldBe 1
+            }
+
+            (seksjoner.getValue(BenkFane.SØKNADER).behandlinger.single() as BenkSøknadsbehandling).let {
+                it.felles.sakId shouldBe sakSøknad.id
+                it.id shouldBe søknadsbehandling.id
+                it.status shouldBe BenkBehandlingsstatus.UNDER_BEHANDLING
+                it.resultat shouldBe BenkSøknadsbehandlingResultat.INNVILGELSE
+                it.felles.saksbehandler shouldBe meg.navIdent
+            }
+            (seksjoner.getValue(BenkFane.REVURDERINGER).behandlinger.single() as BenkRevurdering).let {
+                it.id shouldBe revurdering.id
+                it.resultat shouldBe BenkRevurderingResultat.STANS
+            }
+            (seksjoner.getValue(BenkFane.MELDEKORT).behandlinger.single() as BenkMeldekort).let {
+                it.felles.sakId shouldBe sakMeldekort.id
+                it.id shouldBe meldekortbehandling.id
+                it.type shouldBe BenkMeldekortType.MELDEKORTBEHANDLING
+            }
+            (seksjoner.getValue(BenkFane.KLAGE).behandlinger.single() as BenkKlagebehandling).let {
+                it.felles.sakId shouldBe sakKlage.id
+                it.id shouldBe klagebehandling.id
+                it.resultat shouldBe BenkKlagebehandlingResultat.AVVIST
+            }
+            (seksjoner.getValue(BenkFane.TILBAKEKREVING).behandlinger.single() as BenkTilbakekreving).let {
+                it.id shouldBe tilbakekreving.id
+                it.status shouldBe BenkTilbakekrevingStatus.UNDER_BEHANDLING
+                it.kravgrunnlagPeriode shouldBe tilbakekreving.kravgrunnlagTotalPeriode
+            }
+
+            // Den andre saksbehandleren ser sin egen behandling — og bare den.
+            tac.benkContext.benkRepo.hentMine(mineKommando(innlogget = ObjectMother.saksbehandler("Z999999"))).let {
+                it.getValue(BenkFane.SØKNADER).behandlinger.single().felles.sakId shouldBe sakAnnen.id
+                it.values.sumOf { oversikt -> oversikt.totalAntall } shouldBe 1
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen treffer identen som beslutter, også på tilbakekreving`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val beslutter = ObjectMother.saksbehandlerOgBeslutter("Z888888")
+            val (sakUnderBeslutning, _, underBeslutningId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            val (sakTilGodkjenning, tilGodkjenning) = opprettTilbakekrevingBehandlingTilGodkjenning(tac = tac)
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentMine(mineKommando(innlogget = beslutter)).values.sumOf { it.totalAntall } shouldBe 0
+
+            taRammebehandlinger(tac, listOf(sakUnderBeslutning.id to underBeslutningId), beslutter)
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sakTilGodkjenning.id,
+                tilbakekrevingId = tilGodkjenning.id,
+                saksbehandler = beslutter,
+            )!!
+
+            repo.hentMine(mineKommando(innlogget = beslutter)).let {
+                it.getValue(BenkFane.SØKNADER).behandlinger.single().felles.let { rad ->
+                    rad.sakId shouldBe sakUnderBeslutning.id
+                    rad.saksbehandler shouldBe ObjectMother.saksbehandler().navIdent
+                    rad.beslutter shouldBe beslutter.navIdent
+                }
+                (it.getValue(BenkFane.TILBAKEKREVING).behandlinger.single() as BenkTilbakekreving).let { rad ->
+                    rad.felles.sakId shouldBe sakTilGodkjenning.id
+                    rad.status shouldBe BenkTilbakekrevingStatus.UNDER_GODKJENNING
+                    rad.felles.beslutter shouldBe beslutter.navIdent
+                }
+            }
+            repo.hentAntallPerFane(beslutter.navIdent).mine shouldBe 2
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen avgrenser til én seksjon, og filtrerer på skjulPåVent og skjulEgneTilBeslutning`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (sakUnderBehandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val (sakMeldekort) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac)!!
+            // Sendt til beslutning av meg, men fortsatt «min» som saksbehandler.
+            sendSøknadsbehandlingTilBeslutning(tac = tac)
+            // En behandling under behandling som settes på vent mister saksbehandleren sin.
+            // For å få en på-vent-rad som fortsatt er «min», settes den på vent fra under beslutning — da beholdes saksbehandleren.
+            val beslutter = ObjectMother.saksbehandlerOgBeslutter("Z777777")
+            val (sakPåVent, _, påVentId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            taRammebehandlinger(tac, listOf(sakPåVent.id to påVentId), beslutter)
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sakPåVent.id,
+                rammebehandlingId = påVentId,
+                saksbehandler = beslutter,
+            )!!
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentMine(mineKommando()).let {
+                it.getValue(BenkFane.SØKNADER).totalAntall shouldBe 3
+                it.getValue(BenkFane.MELDEKORT).totalAntall shouldBe 1
+            }
+            repo.hentMine(mineKommando(fane = BenkFane.MELDEKORT)).let {
+                it.keys shouldBe setOf(BenkFane.MELDEKORT)
+                it.getValue(BenkFane.MELDEKORT).behandlinger.single().felles.sakId shouldBe sakMeldekort.id
+            }
+            repo.hentMine(mineKommando(fane = BenkFane.SØKNADER, skjulPåVent = true)).getValue(BenkFane.SØKNADER).let {
+                it.totalAntall shouldBe 2
+                it.totalAntallUfiltrert shouldBe 3
+                it.behandlinger.none { b -> b.felles.sakId == sakPåVent.id } shouldBe true
+            }
+            repo.hentMine(mineKommando(fane = BenkFane.SØKNADER, skjulEgneTilBeslutning = true)).getValue(BenkFane.SØKNADER).let {
+                it.behandlinger.map { b -> b.felles.sakId } shouldBe listOf(sakUnderBehandling.id)
+                it.totalAntallUfiltrert shouldBe 3
+            }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `mine-fanen sorterer hver seksjon med fanens egne kolonner`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+
+            val sortering = BenkMineSortering(
+                søknader = BenkSortering(BenkSøknaderKolonne.SIST_ENDRET, BenkSorteringRetning.DESC),
+            )
+            tac.benkContext.benkRepo.hentMine(mineKommando(sortering = sortering)).getValue(BenkFane.SØKNADER)
+                .behandlinger.also { it.size shouldBe 3 }
+                .zipWithNext().forEach { (før, etter) ->
+                    (før.felles.sistEndret >= etter.felles.sistEndret) shouldBe true
+                }
         }
     }
 

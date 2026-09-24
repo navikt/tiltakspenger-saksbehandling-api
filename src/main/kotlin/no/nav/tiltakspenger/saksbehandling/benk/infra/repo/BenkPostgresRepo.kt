@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsfelles
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFiltrering
+import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageFiltrering
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlageKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkKlagebehandling
@@ -46,6 +46,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingKolonne
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkTilbakekrevingStatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkVentestatus
 import no.nav.tiltakspenger.saksbehandling.benk.domene.HentBenkKommando
+import no.nav.tiltakspenger.saksbehandling.benk.domene.HentMineKommando
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingId
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingId
@@ -75,21 +76,7 @@ class BenkPostgresRepo(
         limit: Int,
         offset: Int,
     ): BenkOversikt<BenkSøknadsbehandling> = sessionFactory.withSession(sessionContext) { session ->
-        session.hentFane(
-            base = SØKNADER,
-            filterSql = SØKNADER_FILTER,
-            params = command.filtrering.tilParams() + arrayOf(
-                "status" to command.filtrering.status.tilParam(),
-                "soknadstype" to command.filtrering.søknadstype.tilParam(),
-                "resultat" to command.filtrering.resultat.tilParam(),
-                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
-                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
-            ),
-            sortering = command.sortering.tilOrderBy { it.toDbString() },
-            limit = limit,
-            offset = offset,
-            map = { it.tilSøknadsbehandling() },
-        )
+        session.hentSøknader(command, SØKNADER, limit, offset)
     }
 
     override fun hentRevurderinger(
@@ -98,20 +85,7 @@ class BenkPostgresRepo(
         limit: Int,
         offset: Int,
     ): BenkOversikt<BenkRevurdering> = sessionFactory.withSession(sessionContext) { session ->
-        session.hentFane(
-            base = REVURDERINGER,
-            filterSql = REVURDERINGER_FILTER,
-            params = command.filtrering.tilParams() + arrayOf(
-                "status" to command.filtrering.status.tilParam(),
-                "resultat" to command.filtrering.resultat.tilParam(),
-                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
-                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
-            ),
-            sortering = command.sortering.tilOrderBy { it.toDbString() },
-            limit = limit,
-            offset = offset,
-            map = { it.tilRevurdering() },
-        )
+        session.hentRevurderinger(command, REVURDERINGER, limit, offset)
     }
 
     override fun hentMeldekort(
@@ -120,20 +94,7 @@ class BenkPostgresRepo(
         limit: Int,
         offset: Int,
     ): BenkOversikt<BenkMeldekort> = sessionFactory.withSession(sessionContext) { session ->
-        session.hentFane(
-            base = MELDEKORT,
-            filterSql = MELDEKORT_FILTER,
-            params = command.filtrering.tilParams() + arrayOf(
-                "status" to command.filtrering.status.tilParam(),
-                "type" to command.filtrering.type.tilParam(),
-                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
-                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
-            ),
-            sortering = command.sortering.tilOrderBy { it.toDbString() },
-            limit = limit,
-            offset = offset,
-            map = { it.tilMeldekort() },
-        )
+        session.hentMeldekort(command, MELDEKORT, limit, offset)
     }
 
     override fun hentKlager(
@@ -142,18 +103,7 @@ class BenkPostgresRepo(
         limit: Int,
         offset: Int,
     ): BenkOversikt<BenkKlagebehandling> = sessionFactory.withSession(sessionContext) { session ->
-        session.hentFane(
-            base = KLAGE,
-            filterSql = KLAGE_FILTER,
-            params = command.filtrering.tilParams() + arrayOf(
-                "status" to command.filtrering.status.tilParam(),
-                "resultat" to command.filtrering.resultat.tilParam(),
-            ),
-            sortering = command.sortering.tilOrderBy { it.toDbString() },
-            limit = limit,
-            offset = offset,
-            map = { it.tilKlagebehandling() },
-        )
+        session.hentKlager(command, KLAGE, limit, offset)
     }
 
     override fun hentTilbakekrevinger(
@@ -162,38 +112,55 @@ class BenkPostgresRepo(
         limit: Int,
         offset: Int,
     ): BenkOversikt<BenkTilbakekreving> = sessionFactory.withSession(sessionContext) { session ->
-        session.hentFane(
-            base = TILBAKEKREVING,
-            filterSql = TILBAKEKREVING_FILTER,
-            params = command.filtrering.tilParams() + arrayOf(
-                "status" to command.filtrering.status.tilParam(),
-                "kilde" to command.filtrering.kilde.tilParam(),
-                "minstebelop" to command.filtrering.minstebeløp,
-                "skjul_venter_pa_annen_saksbehandler" to command.filtrering.skjulVenterPåAnnenSaksbehandler,
-                "innlogget_saksbehandler" to command.saksbehandler.navIdent,
-            ),
-            sortering = command.sortering.tilOrderBy { it.toDbString() },
-            limit = limit,
-            offset = offset,
-            map = { it.tilTilbakekreving() },
-        )
+        session.hentTilbakekrevinger(command, TILBAKEKREVING, limit, offset)
     }
 
     /**
-     * `!!` er trygt: spørringen er en ren aggregering uten `from`-tabell, og gir alltid nøyaktig én rad — også når alle fanene er tomme.
+     * Hver seksjon er fanens egen spørring med basen avgrenset av [tildeltInnlogget].
+     * Seksjonene pagineres ikke og har ingen øvre grense: listen er avgrenset til én saksbehandler, og saksbehandler skal se alt hen er tildelt uten å bla.
+     *
+     * Spørringene slås opp per fane i stedet for en `when`, fordi mine-fanen aldri er en seksjon — [HentMineKommando] avviser den.
+     * En gren for den ville vært død kode.
      */
-    override fun hentAntallPerFane(sessionContext: SessionContext?): BenkAntallPerFane =
+    override fun hentMine(
+        kommando: HentMineKommando,
+        sessionContext: SessionContext?,
+    ): Map<BenkFane, BenkOversikt<BenkBehandling>> = sessionFactory.withSession(sessionContext) { session ->
+        val seksjonsspørringer: Map<BenkFane, () -> BenkOversikt<BenkBehandling>> = mapOf(
+            BenkFane.SØKNADER to { session.hentSøknader(kommando.søknader(), tildeltInnlogget(SØKNADER), limit = null, offset = 0) },
+            BenkFane.REVURDERINGER to { session.hentRevurderinger(kommando.revurderinger(), tildeltInnlogget(REVURDERINGER), limit = null, offset = 0) },
+            BenkFane.MELDEKORT to { session.hentMeldekort(kommando.meldekort(), tildeltInnlogget(MELDEKORTBEHANDLINGER), limit = null, offset = 0) },
+            BenkFane.KLAGE to { session.hentKlager(kommando.klager(), tildeltInnlogget(KLAGE), limit = null, offset = 0) },
+            BenkFane.TILBAKEKREVING to { session.hentTilbakekrevinger(kommando.tilbakekrevinger(), tildeltInnlogget(TILBAKEKREVING), limit = null, offset = 0) },
+        )
+        kommando.seksjoner.associateWith { fane -> seksjonsspørringer.getValue(fane)() }
+    }
+
+    /**
+     * Hver base skannes én gang: samme aggregering gir både fanens antall og antallet den innloggede er tildelt.
+     * Mine-antallet koster derfor ingen ekstra skann av tabellene, bare et filter i aggregeringen.
+     *
+     * `!!` er trygt: spørringen er en kryssprodukt av rene aggregeringer, som hver gir nøyaktig én rad — også når alle fanene er tomme.
+     */
+    override fun hentAntallPerFane(navIdent: String, sessionContext: SessionContext?): BenkAntallPerFane =
         sessionFactory.withSession(sessionContext) { session ->
             session.run(
                 sqlQuery(
                     """
                     select
-                        (select count(*) from ($SØKNADER) s)        as søknader,
-                        (select count(*) from ($REVURDERINGER) r)   as revurderinger,
-                        (select count(*) from ($MELDEKORT) m)       as meldekort,
-                        (select count(*) from ($KLAGE) k)           as klage,
-                        (select count(*) from ($TILBAKEKREVING) t)  as tilbakekreving
+                        s.antall                                    as søknader,
+                        r.antall                                    as revurderinger,
+                        m.antall                                    as meldekort,
+                        k.antall                                    as klage,
+                        t.antall                                    as tilbakekreving,
+                        s.mine + r.mine + m.mine + k.mine + t.mine  as mine
+                    from ${telling(SØKNADER)} s
+                        cross join ${telling(REVURDERINGER)} r
+                        cross join ${telling(MELDEKORT)} m
+                        cross join ${telling(KLAGE)} k
+                        cross join ${telling(TILBAKEKREVING)} t
                     """.trimIndent(),
+                    "innlogget_saksbehandler" to navIdent,
                 ).map {
                     BenkAntallPerFane(
                         søknader = it.int("søknader"),
@@ -201,10 +168,103 @@ class BenkPostgresRepo(
                         meldekort = it.int("meldekort"),
                         klage = it.int("klage"),
                         tilbakekreving = it.int("tilbakekreving"),
+                        mine = it.int("mine"),
                     )
                 }.asSingle,
             )!!
         }
+
+    private fun Session.hentSøknader(
+        command: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
+        base: String,
+        limit: Int?,
+        offset: Int,
+    ): BenkOversikt<BenkSøknadsbehandling> = hentFane(
+        base = base,
+        filterSql = SØKNADER_FILTER,
+        params = command.tilParams() + arrayOf(
+            "status" to command.filtrering.status.tilParam(),
+            "soknadstype" to command.filtrering.søknadstype.tilParam(),
+            "resultat" to command.filtrering.resultat.tilParam(),
+        ),
+        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        limit = limit,
+        offset = offset,
+        map = { it.tilSøknadsbehandling() },
+    )
+
+    private fun Session.hentRevurderinger(
+        command: HentBenkKommando<BenkRevurderingerFiltrering, BenkRevurderingerKolonne>,
+        base: String,
+        limit: Int?,
+        offset: Int,
+    ): BenkOversikt<BenkRevurdering> = hentFane(
+        base = base,
+        filterSql = REVURDERINGER_FILTER,
+        params = command.tilParams() + arrayOf(
+            "status" to command.filtrering.status.tilParam(),
+            "resultat" to command.filtrering.resultat.tilParam(),
+        ),
+        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        limit = limit,
+        offset = offset,
+        map = { it.tilRevurdering() },
+    )
+
+    private fun Session.hentMeldekort(
+        command: HentBenkKommando<BenkMeldekortFiltrering, BenkMeldekortKolonne>,
+        base: String,
+        limit: Int?,
+        offset: Int,
+    ): BenkOversikt<BenkMeldekort> = hentFane(
+        base = base,
+        filterSql = MELDEKORT_FILTER,
+        params = command.tilParams() + arrayOf(
+            "status" to command.filtrering.status.tilParam(),
+            "type" to command.filtrering.type.tilParam(),
+        ),
+        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        limit = limit,
+        offset = offset,
+        map = { it.tilMeldekort() },
+    )
+
+    private fun Session.hentKlager(
+        command: HentBenkKommando<BenkKlageFiltrering, BenkKlageKolonne>,
+        base: String,
+        limit: Int?,
+        offset: Int,
+    ): BenkOversikt<BenkKlagebehandling> = hentFane(
+        base = base,
+        filterSql = KLAGE_FILTER,
+        params = command.tilParams() + arrayOf(
+            "status" to command.filtrering.status.tilParam(),
+            "resultat" to command.filtrering.resultat.tilParam(),
+        ),
+        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        limit = limit,
+        offset = offset,
+        map = { it.tilKlagebehandling() },
+    )
+
+    private fun Session.hentTilbakekrevinger(
+        command: HentBenkKommando<BenkTilbakekrevingFiltrering, BenkTilbakekrevingKolonne>,
+        base: String,
+        limit: Int?,
+        offset: Int,
+    ): BenkOversikt<BenkTilbakekreving> = hentFane(
+        base = base,
+        filterSql = TILBAKEKREVING_FILTER,
+        params = command.tilParams() + arrayOf(
+            "status" to command.filtrering.status.tilParam(),
+            "kilde" to command.filtrering.kilde.tilParam(),
+            "minstebelop" to command.filtrering.minstebeløp,
+        ),
+        sortering = command.sortering.tilOrderBy { it.toDbString() },
+        limit = limit,
+        offset = offset,
+        map = { it.tilTilbakekreving() },
+    )
 
     /**
      * Kjører de to spørringene én fane består av.
@@ -212,13 +272,15 @@ class BenkPostgresRepo(
      * Tellespørringen er én aggregering over basespørringen, og gir alltid nøyaktig én rad — også når fanen er tom.
      * Den gir begge totalene og identlistene i samme skann, slik at listene ikke koster et eget gjennomløp av basen.
      * Identene er ufiltrerte: nedtrekkslisten skal vise hvem som finnes i fanen, ikke bare hvem det allerede er filtrert på.
+     *
+     * [limit] `null` henter alle radene — Postgres tolker `limit null` som ingen grense.
      */
     private fun <T : BenkBehandling> Session.hentFane(
         @Language("PostgreSQL") base: String,
         filterSql: String,
         params: Array<Pair<String, Any?>>,
         sortering: String,
-        limit: Int,
+        limit: Int?,
         offset: Int,
         map: (Row) -> T,
     ): BenkOversikt<T> {
@@ -330,11 +392,11 @@ class BenkPostgresRepo(
         """
 
         /**
-         * Meldekortfanen samler to kilder: meldekortbehandlingene saksbehandler har startet, og meldekortene fra bruker som ingen har tatt tak i.
+         * Meldekortbehandlingene saksbehandler har startet.
          * Beløpet finnes bare for behandlinger som er beregnet, og summeres ut av `beregninger`-jsonb-en.
          */
         @Language("PostgreSQL")
-        const val MELDEKORT = """
+        const val MELDEKORTBEHANDLINGER = """
             select
                 s.id                            as sak_id,
                 s.fnr                           as fnr,
@@ -366,7 +428,11 @@ class BenkPostgresRepo(
                 join sak s on m.sak_id = s.id
             where m.avbrutt is null
               and m.status in ('KLAR_TIL_BEHANDLING', 'UNDER_BEHANDLING', 'KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')
-            union all
+        """
+
+        /** Meldekortene fra bruker som ingen har tatt tak i (har aldri en tildelt saksbehandler eller beslutter). */
+        @Language("PostgreSQL")
+        const val MELDEKORT_FRA_BRUKER = """
             select
                 s.id,
                 s.fnr,
@@ -416,6 +482,13 @@ class BenkPostgresRepo(
                       and mb.sist_endret >= siste.mottatt
                 ) behandlet on true
             where behandlet.antall = 0
+        """
+
+        /** Meldekortfanen samler meldekortbehandlingene og meldekortene fra bruker. */
+        const val MELDEKORT = """
+            $MELDEKORTBEHANDLINGER
+            union all
+            $MELDEKORT_FRA_BRUKER
         """
 
         /**
@@ -492,6 +565,35 @@ class BenkPostgresRepo(
                 join sak s on tb.sak_id = s.id
                 join utbetaling u on tb.utbetaling_id = u.id
             where tb.status in ('OPPRETTET', 'TIL_FORHÅNDSVARSEL', 'TIL_BEHANDLING', 'TIL_GODKJENNING')
+        """
+
+        /**
+         * Radene den innloggede er tildelt, som saksbehandler eller beslutter.
+         * Mine-fanen avgrenser basene med dette, og fanetellingen teller det i samme skann som fanens eget antall.
+         */
+        const val TILDELT_INNLOGGET = "(saksbehandler = :innlogget_saksbehandler or beslutter = :innlogget_saksbehandler)"
+
+        /**
+         * Avgrenser en base til radene den innloggede er tildelt.
+         * Avgrensningen ligger i basen og ikke i filteret, slik at `totalAntallUfiltrert` betyr «mine i seksjonen» og ikke «alle i fanen».
+         * Postgres skyver predikatet ned i basen, så seksjonen leser de samme åpne radene som fanen, via de samme indeksene.
+         * Meldekortseksjonen bruker bare [MELDEKORTBEHANDLINGER]: meldekortene fra bruker er aldri tildelt noen, og predikatet kan ikke skyves ned i `union all`-en i [MELDEKORT] fordi armene har ulike kolonnetyper (varchar mot text).
+         */
+        @Language("PostgreSQL")
+        fun tildeltInnlogget(base: String): String = """
+            select * from ($base) alle
+            where $TILDELT_INNLOGGET
+        """
+
+        /** Fanens antall og antallet den innloggede er tildelt, i ett skann av basen. */
+        @Language("PostgreSQL")
+        fun telling(base: String): String = """
+            (
+                select
+                    count(*)                                    as antall,
+                    count(*) filter (where $TILDELT_INNLOGGET)  as mine
+                from ($base) fane
+            )
         """
 
         /**
@@ -598,9 +700,15 @@ private fun <K : BenkSorteringKolonne> BenkSortering<K>.tilOrderBy(kolonneTilDb:
  */
 private fun Enum<*>?.tilParam(): String? = this?.name
 
-private fun BenkFiltrering.tilParams(): Array<Pair<String, Any?>> = arrayOf(
-    "saksbehandler" to saksbehandler,
-    "skjul_pa_vent" to skjulPåVent,
+/**
+ * Parameterne alle fanene deler.
+ * `innlogget_saksbehandler` brukes av venter-på-annen-filteret og av [BenkPostgresRepo.tildeltInnlogget]; fanene som ikke bruker det, ignorerer det.
+ */
+private fun HentBenkKommando<*, *>.tilParams(): Array<Pair<String, Any?>> = arrayOf(
+    "saksbehandler" to filtrering.saksbehandler,
+    "skjul_pa_vent" to filtrering.skjulPåVent,
+    "skjul_venter_pa_annen_saksbehandler" to filtrering.skjulVenterPåAnnenSaksbehandler,
+    "innlogget_saksbehandler" to saksbehandler.navIdent,
 )
 
 private fun <T : Enum<T>> Row.enumOrNull(column: String, entries: List<T>): T? {

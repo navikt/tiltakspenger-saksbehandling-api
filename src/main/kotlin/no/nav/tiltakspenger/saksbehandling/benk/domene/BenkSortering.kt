@@ -38,6 +38,12 @@ enum class BenkSøknaderKolonne(override val verdi: String) : BenkSorteringKolon
     SAKSBEHANDLER("saksbehandler"),
     BESLUTTER("beslutter"),
     VENTESTATUS_FRIST("ventestatus_frist"),
+    ;
+
+    companion object {
+        /** Sorteringen fanen har når requesten ikke ber om en. */
+        val STANDARD: BenkSøknaderKolonne = KRAVTIDSPUNKT
+    }
 }
 
 enum class BenkRevurderingerKolonne(override val verdi: String) : BenkSorteringKolonne {
@@ -49,6 +55,12 @@ enum class BenkRevurderingerKolonne(override val verdi: String) : BenkSorteringK
     SAKSBEHANDLER("saksbehandler"),
     BESLUTTER("beslutter"),
     VENTESTATUS_FRIST("ventestatus_frist"),
+    ;
+
+    companion object {
+        /** Sorteringen fanen har når requesten ikke ber om en. */
+        val STANDARD: BenkRevurderingerKolonne = STARTET
+    }
 }
 
 enum class BenkMeldekortKolonne(override val verdi: String) : BenkSorteringKolonne {
@@ -61,6 +73,12 @@ enum class BenkMeldekortKolonne(override val verdi: String) : BenkSorteringKolon
     SAKSBEHANDLER("saksbehandler"),
     BESLUTTER("beslutter"),
     VENTESTATUS_FRIST("ventestatus_frist"),
+    ;
+
+    companion object {
+        /** Sorteringen fanen har når requesten ikke ber om en. */
+        val STANDARD: BenkMeldekortKolonne = PERIODE
+    }
 }
 
 enum class BenkKlageKolonne(override val verdi: String) : BenkSorteringKolonne {
@@ -71,6 +89,12 @@ enum class BenkKlageKolonne(override val verdi: String) : BenkSorteringKolonne {
     SIST_ENDRET("sist_endret"),
     SAKSBEHANDLER("saksbehandler"),
     VENTESTATUS_FRIST("ventestatus_frist"),
+    ;
+
+    companion object {
+        /** Sorteringen fanen har når requesten ikke ber om en. */
+        val STANDARD: BenkKlageKolonne = KRAVTIDSPUNKT
+    }
 }
 
 enum class BenkTilbakekrevingKolonne(override val verdi: String) : BenkSorteringKolonne {
@@ -84,6 +108,12 @@ enum class BenkTilbakekrevingKolonne(override val verdi: String) : BenkSortering
     BESLUTTER("beslutter"),
     VENTESTATUS_FRIST("ventestatus_frist"),
     KRAVGRUNNLAG_PERIODE("kravgrunnlag_periode"),
+    ;
+
+    companion object {
+        /** Sorteringen fanen har når requesten ikke ber om en. */
+        val STANDARD: BenkTilbakekrevingKolonne = STARTET
+    }
 }
 
 /**

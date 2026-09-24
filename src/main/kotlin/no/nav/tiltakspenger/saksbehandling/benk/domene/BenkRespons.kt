@@ -103,6 +103,17 @@ data class BenkResponsMedTilgang<T : BenkBehandling>(
     override val harTilgang: Boolean = true
 }
 
+/**
+ * Svaret på mine-fanen: én oversikt per seksjon, med samme radformat som fanen seksjonen tilhører.
+ * Seksjonene som ikke ble spurt om (typefilteret), er utelatt.
+ */
+data class BenkMineResponsMedTilgang(
+    val antallPerFane: BenkAntallPerFane,
+    val seksjoner: Map<BenkFane, BenkOversiktMedTilgang<BenkBehandling>>,
+) : BenkRespons<BenkBehandling> {
+    override val harTilgang: Boolean = true
+}
+
 /** Svaret til en bruker uten benkrolle — ingen telling eller rader, så det gjøres ingen databaseoppslag. */
 data object BenkResponsUtenTilgang : BenkRespons<Nothing> {
     override val harTilgang: Boolean = false
