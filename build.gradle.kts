@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val kotlinxCoroutinesVersion = "1.11.0"
 val kotestVersion = "6.2.4"
-val felleslibVersion = "0.0.20260922121018"
+val felleslibVersion = "0.0.20260925103121"
 val mockkVersion = "1.14.11"
 val ktorVersion = "3.5.2"
 val testContainersVersion = "2.0.5"
@@ -87,29 +87,29 @@ dependencies {
         implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
     }
 
-    implementation("com.github.navikt.tiltakspenger-libs:soknad-dtos:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:tiltak-dtos:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:tiltaksdeltakelse-domene:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:tiltaksdeltakelse-infrastruktur:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:arenatiltak-dtos:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:person-dtos:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:periodisering:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:personklient-domene:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:personklient-infrastruktur:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:persistering-infrastruktur:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:jobber:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:meldekort-dtos:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:meldekort:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:kafka-avro:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:satser:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:soknad-dtos:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:tiltak-dtos:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:tiltaksdeltakelse-domene:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:tiltaksdeltakelse-infrastruktur:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:arenatiltak-dtos:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:person-dtos:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:periodisering:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:personklient-domene:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:personklient-infrastruktur:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:persistering-domene:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:persistering-infrastruktur:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:jobber:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:common:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:json:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:httpklient-infrastruktur:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:ktor-common:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:logging:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:meldekort-dtos:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:meldekort:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:kafka:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:kafka-avro:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:texas:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:satser:$felleslibVersion")
 
     implementation("io.github.oshai:kotlin-logging-jvm:8.0.4")
     implementation("ch.qos.logback:logback-classic:1.6.3")
@@ -160,7 +160,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     // Delte arkitekturregler; drar inn konsist transitivt (api-avhengighet). Egen versjon inntil felleslibVersion bumpes.
-    testImplementation("com.github.navikt.tiltakspenger-libs:konsist-regler:$felleslibVersion")
+    testImplementation("no.nav.tiltakspenger.libs:konsist-regler:$felleslibVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("io.mockk:mockk-dsl-jvm:$mockkVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
@@ -173,12 +173,12 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
     testImplementation("io.github.serpro69:kotlin-faker:1.16.2")
-    testImplementation("com.github.navikt.tiltakspenger-libs:ktor-test-common:$felleslibVersion")
-    testImplementation("com.github.navikt.tiltakspenger-libs:auth-test-core:$felleslibVersion")
-    testImplementation("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
-    testImplementation(testFixtures("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion"))
-    testImplementation(testFixtures("com.github.navikt.tiltakspenger-libs:tiltaksdeltakelse-domene:$felleslibVersion"))
-    testImplementation("com.github.navikt.tiltakspenger-libs:persistering-test-common:$felleslibVersion")
+    testImplementation("no.nav.tiltakspenger.libs:ktor-test-common:$felleslibVersion")
+    testImplementation("no.nav.tiltakspenger.libs:auth-test-core:$felleslibVersion")
+    testImplementation("no.nav.tiltakspenger.libs:test-common:$felleslibVersion")
+    testImplementation(testFixtures("no.nav.tiltakspenger.libs:httpklient-infrastruktur:$felleslibVersion"))
+    testImplementation(testFixtures("no.nav.tiltakspenger.libs:tiltaksdeltakelse-domene:$felleslibVersion"))
+    testImplementation("no.nav.tiltakspenger.libs:persistering-test-common:$felleslibVersion")
 }
 
 fun isNonStable(version: String): Boolean {
