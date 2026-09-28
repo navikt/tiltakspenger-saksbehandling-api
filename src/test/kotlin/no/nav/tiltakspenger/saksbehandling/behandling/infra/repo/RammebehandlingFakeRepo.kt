@@ -106,7 +106,8 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         val behandling = data.get()[behandlingId]
         if (behandling == null ||
             behandling.saksbehandler == null ||
-            behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING &&
+            behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING
         ) {
             return false
         }

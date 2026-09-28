@@ -20,9 +20,9 @@ fun Meldekortbehandling.angreMeldekortbehandling(
     val nå = nå(clock)
 
     return when (this.status) {
-        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
+        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
             require(this is MeldekortbehandlingManuell) {
-                "Forventet MeldekortbehandlingManuell for status KLAR_TIL_BESLUTNING, var ${this::class.simpleName}"
+                "Forventet MeldekortbehandlingManuell for status $status, var ${this::class.simpleName}"
             }
 
             MeldekortUnderBehandling(
@@ -52,7 +52,6 @@ fun Meldekortbehandling.angreMeldekortbehandling(
 
         MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
         MeldekortbehandlingStatus.UNDER_BEHANDLING,
-        MeldekortbehandlingStatus.UNDER_BESLUTNING,
         MeldekortbehandlingStatus.GODKJENT,
         MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
         MeldekortbehandlingStatus.AVBRUTT,
@@ -65,9 +64,11 @@ fun Meldekortbehandling.kanAngreMeldekortbehandling(
     saksbehandler: Saksbehandler,
 ): Either<KanIkkeAngreMeldekortbehandling, Unit> {
     return when (this.status) {
-        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING -> {
+        MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
             if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeAngreMeldekortbehandling.MåVæreSammeSaksbehandlerForÅAngreMeldekortbehandlingen.left()
+            } else if (this.status == MeldekortbehandlingStatus.UNDER_BESLUTNING && this.erSattPåVent) {
+                KanIkkeAngreMeldekortbehandling.MeldekortbehandlingenErSattPåVent.left()
             } else {
                 Unit.right()
             }
@@ -75,7 +76,6 @@ fun Meldekortbehandling.kanAngreMeldekortbehandling(
 
         MeldekortbehandlingStatus.KLAR_TIL_BEHANDLING,
         MeldekortbehandlingStatus.UNDER_BEHANDLING,
-        MeldekortbehandlingStatus.UNDER_BESLUTNING,
         MeldekortbehandlingStatus.GODKJENT,
         MeldekortbehandlingStatus.AUTOMATISK_BEHANDLET,
         MeldekortbehandlingStatus.AVBRUTT,

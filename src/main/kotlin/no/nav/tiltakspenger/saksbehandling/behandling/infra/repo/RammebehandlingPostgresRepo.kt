@@ -137,11 +137,12 @@ class RammebehandlingPostgresRepo(
                     """
                     update behandling set
                         status = :status,
-                        sist_endret = :sist_endret
-                    where id = :id and saksbehandler is not null and status = 'KLAR_TIL_BESLUTNING'
+                        sist_endret = :sist_endret,
+                        sendt_til_beslutning = null,
+                        beslutter = null
+                    where id = :id and saksbehandler is not null and (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING')
                     """,
                     "id" to rammebehandling.id.toString(),
-                    "saksbehandler" to rammebehandling.saksbehandler,
                     "status" to rammebehandling.status.toDb(),
                     "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,

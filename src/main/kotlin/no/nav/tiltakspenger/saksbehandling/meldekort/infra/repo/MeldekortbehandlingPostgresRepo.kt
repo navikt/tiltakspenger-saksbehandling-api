@@ -413,7 +413,7 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
-    override fun angreMeldekortbehandlingSendtTilBeslutning(
+    override fun angreBehandling(
         meldekortbehandling: Meldekortbehandling,
         transactionContext: TransactionContext?,
     ): Boolean {
@@ -424,8 +424,9 @@ class MeldekortbehandlingPostgresRepo(
                         update meldekortbehandling set
                             status = :status,
                             sist_endret = :sist_endret,
-                            sendt_til_beslutning = null
-                        where status = 'KLAR_TIL_BESLUTNING' and id = :id
+                            sendt_til_beslutning = null,
+                            beslutter = null
+                        where (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING') and id = :id
                     """,
 
                     "id" to meldekortbehandling.id.toString(),

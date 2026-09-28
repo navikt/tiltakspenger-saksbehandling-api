@@ -36,8 +36,8 @@ class AngreMeldekortbehandlingService(
             saksbehandler,
             clock,
         ).map { angreMeldekortbehandling ->
-            if (!meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(angreMeldekortbehandling)) {
-                return KanIkkeAngreMeldekortbehandling.MeldekortbehandlingErIkkeLengerKlarTilBeslutning.left()
+            if (!meldekortbehandlingRepo.angreBehandling(angreMeldekortbehandling)) {
+                return KanIkkeAngreMeldekortbehandling.MeldekortbehandlingErIkkeLengerSendtTilBeslutning.left()
             }
             sak.oppdaterMeldekortbehandling(angreMeldekortbehandling) to angreMeldekortbehandling
         }

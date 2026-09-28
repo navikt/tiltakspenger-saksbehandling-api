@@ -182,15 +182,15 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         }
     }
 
-    override fun angreMeldekortbehandlingSendtTilBeslutning(
+    override fun angreBehandling(
         meldekortbehandling: Meldekortbehandling,
         transactionContext: TransactionContext?,
-
     ): Boolean {
         val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
 
         if (meldekortbehandlingRespons == null ||
-            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
+            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING &&
+            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING
         ) {
             return false
         }
@@ -198,6 +198,7 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         if (meldekortbehandling is MeldekortbehandlingManuell) {
             data.get()[meldekortbehandling.id] = meldekortbehandling.copy(
                 sendtTilBeslutning = null,
+                beslutter = null
             )
             return true
         } else {
