@@ -5,6 +5,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -147,6 +148,72 @@ class RammebehandlingPostgresRepo(
                     "sist_endret" to rammebehandling.sistEndret,
                 ).asUpdate,
             ) > 0
+        }
+    }
+
+    /**Kommentar til Anders: tanken er her å lage en ny db-funksjon med ´where´ i spørringen sånn at en
+    //beslutter ikke kan underkjenne en rammebehandling som er angret av en sakebehandler
+    //dvs. at den da må være semantisk lik den "gamle" spørringen [lagre] -> konsekvens: hvis vi legger til en ny
+     tabell i [oppdaterRammebehandling] så må den også legges inn her
+     */
+    override fun underkjennBehandling(
+        rammebehandling: Rammebehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            val oppdatert = tx.run(
+                queryOf(
+                    """
+                    update behandling set
+                        vedtaksperiode = :vedtaksperiode::periode,
+                        status = :status,
+                        sist_endret = :sist_endret,
+                        saksbehandler = :saksbehandler,
+                        beslutter = :beslutter,
+                        attesteringer = :attesteringer::jsonb,
+                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                        sendt_til_beslutning = :sendt_til_beslutning,
+                        sendt_til_datadeling = :sendt_til_datadeling,
+                        oppgave_id = :oppgave_id,
+                        valgt_hjemmel_har_ikke_rettighet = :valgt_hjemmel_har_ikke_rettighet::jsonb,
+                        fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
+                        begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
+                        saksopplysninger = :saksopplysninger::jsonb,
+                        barneTillegg = :barnetillegg::jsonb,
+                        avbrutt = :avbrutt::jsonb,
+                        ventestatus = :ventestatus::jsonb,
+                        venter_til = :venter_til,
+                        avslagsgrunner = :avslagsgrunner::jsonb,
+                        resultat = :resultat,
+                        soknad_id = :soknad_id,
+                        automatisk_saksbehandlet = :automatisk_saksbehandlet,
+                        manuelt_behandles_grunner = :manuelt_behandles_grunner::jsonb,
+                        beregning = :beregning::jsonb,
+                        simulering = :simulering::jsonb,
+                        simulering_metadata = CASE WHEN :simulering::varchar IS NULL THEN NULL ELSE simulering_metadata END,
+                        utbetalingskontroll = :utbetalingskontroll::jsonb,
+                        navkontor = :navkontor,
+                        navkontor_navn = :navkontor_navn,
+                        har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
+                        innvilgelsesperioder = :innvilgelsesperioder::jsonb,
+                        omgjør_rammevedtak = :omgjoer_rammevedtak::jsonb,
+                        klagebehandling_id = :klagebehandling_id,
+                        automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
+                        skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
+                    where id = :id and status = 'UNDER_BESLUTNING' and beslutter = :forventet_beslutter
+                    """.trimIndent(),
+                    rammebehandling.tilDbParams() + ("forventet_beslutter" to utøvendeBeslutter.navIdent),
+                ).asUpdate,
+            ) > 0
+            // Klagebehandlingen lagres bare når vakten slapp gjennom, slik at et avvist kappløp ikke etterlater endringer.
+            if (oppdatert && rammebehandling.klagebehandling != null) {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(
+                    klagebehandling = rammebehandling.klagebehandling!!,
+                    session = tx,
+                )
+            }
+            oppdatert
         }
     }
 

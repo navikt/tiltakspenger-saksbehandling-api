@@ -41,7 +41,7 @@ class AngreRammebehandlingService(
                 oppdatert
             }
 
-            if (!vellykket) KunneIkkeAngreBehandling.BehandlingErIkkeLengerSendtTilBeslutning.left()
+            if (!vellykket) return KunneIkkeAngreBehandling.BehandlingenErIkkeLengerSendtTilBeslutning.left()
 
             oppdatertSak to oppdatertRammebehandling
         }

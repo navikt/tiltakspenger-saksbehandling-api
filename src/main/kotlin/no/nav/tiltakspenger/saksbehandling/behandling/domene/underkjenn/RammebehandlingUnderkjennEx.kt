@@ -1,5 +1,8 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.underkjenn
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -21,7 +24,7 @@ import java.time.Clock
 
 /**
  * Underkjenner rammebehandlingen og sender den tilbake til saksbehandler.
- * Forutsetningene håndheves av [krevKanUnderkjenne], som kaster dersom de ikke er oppfylt.
+ * Forutsetningene håndheves av [kanUnderkjenne], og feilene derfra returneres som venstre-verdi.
  *
  * Hvis saken har blitt behandlet automatisk fjernes automatisk saksbehandler og flagget som sier at den har blitt behandlet automatisk ved underkjenning.
  */
@@ -29,8 +32,8 @@ fun Rammebehandling.underkjenn(
     utøvendeBeslutter: Saksbehandler,
     attestering: Attestering,
     clock: Clock,
-): Pair<Rammebehandling, Statistikkhendelser> {
-    krevKanUnderkjenne(utøvendeBeslutter)
+): Either<KanIkkeUnderkjenne, Pair<Rammebehandling, Statistikkhendelser>> {
+    kanUnderkjenne(utøvendeBeslutter).onLeft { return it.left() }
 
     val attesteringer = attesteringer.leggTil(attestering)
 
@@ -63,21 +66,25 @@ fun Rammebehandling.underkjenn(
     val statistikkhendelser = Statistikkhendelser(
         oppdatertRammebehandling.genererSaksstatistikk(StatistikkhendelseType.UNDERKJENT_BEHANDLING),
     )
-    return oppdatertRammebehandling to statistikkhendelser
+    return (oppdatertRammebehandling to statistikkhendelser).right()
 }
 
 /**
- * Krever at [utøvendeBeslutter] kan underkjenne behandlingen, og kaster ellers.
+ * Avgjør om [utøvendeBeslutter] kan underkjenne behandlingen.
+ * Krever at [utøvendeBeslutter] har rollen beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  *
- * Betingelsene speiler hvilke tilstander [underkjenn] faktisk håndterer:
+ * Betingelsene speiler hvilke tilstander [underkjenn] faktisk håndterer, og sjekkes i denne rekkefølgen:
  *  - behandlingen må være [UNDER_BESLUTNING]
- *  - [utøvendeBeslutter] må ha beslutterrollen og være beslutteren på behandlingen
+ *  - [utøvendeBeslutter] må være beslutteren på behandlingen
  *  - behandlingen kan ikke allerede være godkjent
  *  - behandlingen kan ikke stå på vent
  *
- * Kaster i stedet for å returnere en venstre-verdi, fordi tilstandene her ikke er noe en saksbehandler kan treffe fra saksbehandlingsflyten.
+ * Statusen sjekkes først, fordi saksbehandleren kan ha angret sendingen til beslutning i mellomtiden.
+ * Da er beslutteren fjernet fra behandlingen, og beslutteren skal få vite at behandlingen ikke lenger er under beslutning.
  */
-private fun Rammebehandling.krevKanUnderkjenne(utøvendeBeslutter: Saksbehandler) {
+private fun Rammebehandling.kanUnderkjenne(utøvendeBeslutter: Saksbehandler): Either<KanIkkeUnderkjenne, Unit> {
+    krevBeslutterRolle(utøvendeBeslutter)
+
     when (status) {
         UNDER_BESLUTNING -> Unit
 
@@ -87,17 +94,17 @@ private fun Rammebehandling.krevKanUnderkjenne(utøvendeBeslutter: Saksbehandler
         VEDTATT,
         AVBRUTT,
         UNDER_AUTOMATISK_BEHANDLING,
-        -> throw IllegalStateException(
-            "Må ha status UNDER_BESLUTNING for å sende tilbake. Behandlingsstatus: $status",
-        )
+        -> return KanIkkeUnderkjenne.RammebehandlingenErIkkeUnderBeslutning(status).left()
     }
 
-    krevBeslutterRolle(utøvendeBeslutter)
-    check(this.beslutter == utøvendeBeslutter.navIdent) {
-        "Kun beslutter som har saken kan sende tilbake"
+    if (this.beslutter != utøvendeBeslutter.navIdent) {
+        return KanIkkeUnderkjenne.BeslutterMåVæreTildeltRammebehandlingen.left()
     }
-    check(!this.attesteringer.any { it.isGodkjent() }) {
-        "Behandlingen er allerede godkjent"
+    if (this.attesteringer.any { it.isGodkjent() }) {
+        return KanIkkeUnderkjenne.RammebehandlingenErAlleredeGodkjent.left()
     }
-    check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan underkjennes." }
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeUnderkjenne.RammebehandlingenErSattPåVent.left()
+    }
+    return Unit.right()
 }

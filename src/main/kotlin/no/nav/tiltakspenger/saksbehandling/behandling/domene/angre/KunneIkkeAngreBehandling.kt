@@ -25,8 +25,4 @@ sealed interface KunneIkkeAngreBehandling : Loggbar {
     data object BehandlingenErIkkeLengerSendtTilBeslutning : KunneIkkeAngreBehandling {
         override val loggkontekst = Loggkontekst("behandlingen er ikke lenger sendt til beslutning")
     }
-
-    data object BehandlingErIkkeLengerSendtTilBeslutning : KunneIkkeAngreBehandling {
-        override val loggkontekst: Loggkontekst = Loggkontekst("behandlingen er ikke lenger sendt til beslutning")
-    }
 }
