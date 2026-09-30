@@ -5,6 +5,9 @@ import arrow.core.raise.either
 import arrow.core.toNonEmptyListOrThrow
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
@@ -31,7 +34,7 @@ class AdressebeskyttelseOgSkjermingService(
 
     /**
      * Svarer med adressebeskyttelsen og skjermingen til hver av [fnrs].
-     * PDL og skjermingsregisteret spørres bare om personene som ikke ligger i cachen.
+     * PDL og skjermingsregisteret spørres bare om personene som ikke ligger i cachen, og bolkene slås opp samtidig.
      * En person PDL ikke gir avklart adressebeskyttelse for, regnes som ugradert, og en person skjermingsregisteret ikke svarer for, som ikke skjermet.
      */
     suspend fun hent(
@@ -40,27 +43,37 @@ class AdressebeskyttelseOgSkjermingService(
     ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming, Map<Fnr, AdressebeskyttelseOgSkjerming>> = either {
         val unike = fnrs.distinct()
         val fraCache = cache.getAllPresent(unike)
-        val nye = unike.filterNot { it in fraCache }
-            .chunked(MAKS_ANTALL_PER_KALL)
-            .flatMap { bolk -> slåOpp(bolk, correlationId).bind().entries }
-            .associate { it.key to it.value }
+        val nye = coroutineScope {
+            unike.filterNot { it in fraCache }
+                .chunked(MAKS_ANTALL_PER_KALL)
+                .map { bolk -> async { slåOpp(bolk, correlationId) } }
+                .awaitAll()
+        }.fold(emptyMap<Fnr, AdressebeskyttelseOgSkjerming>()) { alle, bolk -> alle + bolk.bind() }
         cache.putAll(nye)
         fraCache + nye
     }
 
-    // Bolkene er aldri tomme, så toNonEmptyListOrThrow kaster ikke.
+    /**
+     * Skjermingsregisteret og PDL spørres samtidig.
+     * Bolkene er aldri tomme, så toNonEmptyListOrThrow kaster ikke.
+     */
     private suspend fun slåOpp(
         fnrs: List<Fnr>,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming, Map<Fnr, AdressebeskyttelseOgSkjerming>> = either {
-        val skjermet = skjermingsklient.erSkjermetPersoner(fnrs.toNonEmptyListOrThrow(), correlationId)
+        val (skjermingssvar, adressebeskyttelsessvar) = coroutineScope {
+            val skjerming = async { skjermingsklient.erSkjermetPersoner(fnrs.toNonEmptyListOrThrow(), correlationId) }
+            val adressebeskyttelse = async { personKlient.hentAdressebeskyttelse(fnrs) }
+            skjerming.await() to adressebeskyttelse.await()
+        }
+        val skjermet = skjermingssvar
             .mapLeft {
                 KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotSkjerming(
                     loggkontekst = it.httpKlientError.loggkontekst("skjermingsoppslag for ${fnrs.size} personer"),
                     sikkerloggkontekst = it.httpKlientError.sikkerloggkontekst("skjermingsoppslag"),
                 )
             }.bind()
-        val adressebeskyttelse = personKlient.hentAdressebeskyttelse(fnrs).bind()
+        val adressebeskyttelse = adressebeskyttelsessvar.bind()
         fnrs.associateWith { fnr ->
             AdressebeskyttelseOgSkjerming(
                 adressebeskyttelse = adressebeskyttelse[fnr] ?: Adressebeskyttelse.UGRADERT,

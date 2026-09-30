@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -18,6 +19,9 @@ import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import org.junit.jupiter.api.Test
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 class AdressebeskyttelseOgSkjermingServiceTest {
 
@@ -75,8 +79,21 @@ class AdressebeskyttelseOgSkjermingServiceTest {
 
         service.hent(mange + mange.take(10), CorrelationId.generate()).getOrNull()?.size shouldBe mange.size
 
-        personKlient.oppslag.map { it.size } shouldBe listOf(1000, mange.size - 1000)
-        skjermingsklient.oppslag shouldBe personKlient.oppslag
+        personKlient.oppslag.map { it.size }.sorted() shouldBe listOf(mange.size - 1000, 1000)
+        skjermingsklient.oppslag.toSet() shouldBe personKlient.oppslag.toSet()
+    }
+
+    @Test
+    fun `slår opp bolkene og de to registrene samtidig`() = runTest {
+        val service = AdressebeskyttelseOgSkjermingService(
+            TellendePersonKlient(forsinkelse = 100.milliseconds),
+            TellendeSkjermingsklient(forsinkelse = 100.milliseconds),
+        )
+
+        service.hent(List(1001) { Fnr.random() }.distinct(), CorrelationId.generate())
+
+        // To bolker med to kall hver ville tatt 400 ms etter hverandre.
+        testScheduler.currentTime shouldBe 100
     }
 
     @Test
@@ -124,13 +141,15 @@ class AdressebeskyttelseOgSkjermingServiceTest {
     private inner class TellendePersonKlient(
         private val feiler: Boolean = false,
         private val finnes: Boolean = true,
+        private val forsinkelse: Duration = Duration.ZERO,
     ) : PersonKlient {
-        val oppslag = mutableListOf<List<Fnr>>()
+        val oppslag = CopyOnWriteArrayList<List<Fnr>>()
 
         override suspend fun hentAdressebeskyttelse(
             fnrs: List<Fnr>,
         ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl, Map<Fnr, Adressebeskyttelse>> {
             oppslag.add(fnrs)
+            delay(forsinkelse)
             if (feiler) {
                 return KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl(
                     loggkontekst = Loggkontekst("PDL svarte ikke"),
@@ -157,14 +176,18 @@ class AdressebeskyttelseOgSkjermingServiceTest {
         override suspend fun hentIdenter(aktorId: String): List<Personident> = throw NotImplementedError()
     }
 
-    private inner class TellendeSkjermingsklient(private val feiler: Boolean = false) : FellesSkjermingsklient {
-        val oppslag = mutableListOf<List<Fnr>>()
+    private inner class TellendeSkjermingsklient(
+        private val feiler: Boolean = false,
+        private val forsinkelse: Duration = Duration.ZERO,
+    ) : FellesSkjermingsklient {
+        val oppslag = CopyOnWriteArrayList<List<Fnr>>()
 
         override suspend fun erSkjermetPersoner(
             fnrListe: NonEmptyList<Fnr>,
             correlationId: CorrelationId,
         ): Either<FellesSkjermingError, Map<Fnr, Boolean>> {
             oppslag.add(fnrListe.toList())
+            delay(forsinkelse)
             if (feiler) {
                 return FellesSkjermingError.Ikke2xx(
                     uventetStatus(
