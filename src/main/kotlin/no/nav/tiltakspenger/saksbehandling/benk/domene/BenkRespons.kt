@@ -2,10 +2,12 @@ package no.nav.tiltakspenger.saksbehandling.benk.domene
 
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
+import no.nav.tiltakspenger.saksbehandling.person.AdressebeskyttelseOgSkjerming
 
 /**
  * Én rad i benken, beriket med det saksbehandleren trenger for å se hva raden gjelder.
- * Både tilgangen og personmarkørene kommer fra Tilgangsmaskinen.
+ * Tilgangen kommer fra Tilgangsmaskinen; se [BenkPersonmarkører] for hvor markørene kommer fra.
  */
 data class BenkRad<T : BenkBehandling>(
     val behandling: T,
@@ -14,11 +16,11 @@ data class BenkRad<T : BenkBehandling>(
 )
 
 /**
- * Markørene sier hvorfor saksbehandleren ikke får se raden.
+ * Markørene sier om personen raden gjelder har adressebeskyttelse eller er skjermet.
  *
- * De utledes av regelen som avviste tilgangen, og er derfor bare kjent for rader saksbehandleren ikke har tilgang til.
- * Benken slår ikke opp PDL eller skjermingsregisteret, fordi det ville gitt unødvendig last for hver sidevisning (avklart 2026-09-16).
+ * For rader uten tilgang utledes de av regelen som avviste tilgangen.
  * Tilgangsmaskinen evaluerer reglene i rekkefølge og rapporterer den første som avviser, så en person som både er skjermet og har strengt fortrolig adresse får bare kode 6.
+ * For rader med tilgang er de bare kjent når filteret på adressebeskyttelse og skjerming er valgt, og kommer da fra PDL og skjermingsregisteret.
  */
 data class BenkPersonmarkører(
     val skjermet: Boolean,
@@ -26,21 +28,32 @@ data class BenkPersonmarkører(
     val kode7: Boolean,
 ) {
     companion object {
+        private val INGEN = BenkPersonmarkører(skjermet = false, kode6 = false, kode7 = false)
+
         /**
          * Kode 6 dekker både strengt fortrolig og strengt fortrolig utland; kode 7 er fortrolig adresse.
-         * Alle markørene er false når tilgangen er godkjent, og når avvisningen kom fra en regel utenfor kjernesettet.
+         * En avvisning fra en regel utenfor kjernesettet gir ingen markører.
+         * En godkjent rad får markørene fra [adressebeskyttelseOgSkjerming], eller ingen når den ikke er slått opp.
          */
-        fun fra(tilgang: TilgangsvurderingBulk): BenkPersonmarkører {
-            val årsak = when (tilgang) {
-                TilgangsvurderingBulk.Godkjent -> null
-                is TilgangsvurderingBulk.Avvist -> tilgang.årsak
-            }
-            return BenkPersonmarkører(
-                skjermet = årsak == TilgangsvurderingAvvistÅrsak.SKJERMET,
-                kode6 = årsak == TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG ||
-                    årsak == TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND,
-                kode7 = årsak == TilgangsvurderingAvvistÅrsak.FORTROLIG,
+        fun fra(
+            tilgang: TilgangsvurderingBulk,
+            adressebeskyttelseOgSkjerming: AdressebeskyttelseOgSkjerming? = null,
+        ): BenkPersonmarkører = when (tilgang) {
+            is TilgangsvurderingBulk.Avvist -> BenkPersonmarkører(
+                skjermet = tilgang.årsak == TilgangsvurderingAvvistÅrsak.SKJERMET,
+                kode6 = tilgang.årsak == TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG ||
+                    tilgang.årsak == TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND,
+                kode7 = tilgang.årsak == TilgangsvurderingAvvistÅrsak.FORTROLIG,
             )
+
+            TilgangsvurderingBulk.Godkjent -> adressebeskyttelseOgSkjerming?.let {
+                BenkPersonmarkører(
+                    skjermet = it.skjermet,
+                    kode6 = it.adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG ||
+                        it.adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND,
+                    kode7 = it.adressebeskyttelse == Adressebeskyttelse.FORTROLIG,
+                )
+            } ?: INGEN
         }
     }
 }
@@ -48,6 +61,7 @@ data class BenkPersonmarkører(
 /**
  * Tellingene gjelder radene på den returnerte siden, ikke alle radene som matcher filteret.
  * Samme person teller flere ganger dersom personen har flere rader på siden.
+ * Markørene telles bare på radene uten tilgang, fordi benken viser dem som en del av antallet uten tilgang.
  */
 data class BenkOppsummering(
     val antallMedTilgang: Int,
@@ -60,16 +74,17 @@ data class BenkOppsummering(
         fun <T : BenkBehandling> fra(rader: List<BenkRad<T>>): BenkOppsummering = BenkOppsummering(
             antallMedTilgang = rader.count { it.tilgang is TilgangsvurderingBulk.Godkjent },
             antallUtenTilgang = rader.count { it.tilgang is TilgangsvurderingBulk.Avvist },
-            antallSkjermet = rader.count { it.personmarkører.skjermet },
-            antallKode6 = rader.count { it.personmarkører.kode6 },
-            antallKode7 = rader.count { it.personmarkører.kode7 },
+            antallSkjermet = rader.count { it.utenTilgang && it.personmarkører.skjermet },
+            antallKode6 = rader.count { it.utenTilgang && it.personmarkører.kode6 },
+            antallKode7 = rader.count { it.utenTilgang && it.personmarkører.kode7 },
         )
     }
 }
 
+private val BenkRad<*>.utenTilgang: Boolean get() = tilgang is TilgangsvurderingBulk.Avvist
+
 /**
  * Radene i én fane med tilgang og personmarkører, sammen med tellingene benken viser over tabellen.
- * Tilgangen kommer fra Tilgangsmaskinen, og personmarkørene fra regelen som eventuelt avviste den.
  */
 data class BenkOversiktMedTilgang<T : BenkBehandling>(
     val rader: List<BenkRad<T>>,

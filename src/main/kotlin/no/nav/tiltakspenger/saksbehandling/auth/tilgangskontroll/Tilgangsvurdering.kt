@@ -31,7 +31,6 @@ sealed interface Tilgangsvurdering {
  * Utfallet av et bulkoppslag mot tilgangsmaskinen.
  *
  * Typen er skilt fra [Tilgangsvurdering] fordi bulkoppslaget ikke har metadata per person.
- * Bulkoppslaget bruker i tillegg Tilgangsmaskinens komplette regelsett, som kan avvise av flere grunner enn kjernereglene.
  */
 sealed interface TilgangsvurderingBulk {
     data object Godkjent : TilgangsvurderingBulk
@@ -54,8 +53,8 @@ data class Tilgangsvurderinger(
 /**
  * Grunnen Tilgangsmaskinen avviste tilgangen med, i vårt vokabular.
  *
- * STRENGT_FORTROLIG, STRENGT_FORTROLIG_UTLAND, FORTROLIG, SKJERMET og HABILITET kommer fra kjernereglene.
- * GEOGRAFISK, UKJENT_BOSTED, PERSON_UTLAND, AVDØD og VERGE kommer fra de overstyrbare reglene, som bare det komplette regelsettet (bulk) bruker.
+ * STRENGT_FORTROLIG, STRENGT_FORTROLIG_UTLAND, FORTROLIG, SKJERMET og HABILITET kommer fra kjernereglene, som både enkelt- og bulkoppslaget bruker.
+ * GEOGRAFISK, UKJENT_BOSTED, PERSON_UTLAND, AVDØD og VERGE kommer fra de overstyrbare reglene, som vi ikke spør etter, men som tolkes dersom Tilgangsmaskinen likevel svarer med dem.
  * UKJENT er koden vi ikke kjenner igjen, og lar en ny regel hos Tilgangsmaskinen passere uten å felle kallet.
  * https://confluence.adeo.no/spaces/TM/pages/621546888/Tilgangsmaskin+API+og+regelsett
  */
@@ -79,7 +78,7 @@ enum class TilgangsvurderingAvvistÅrsak {
     ;
 
     /**
-     * Enkeltoppslaget mot `/api/v1/kjerne` gir i praksis bare de fem første årsakene.
+     * Kjernereglene gir i praksis bare de fem første årsakene.
      * En avvisning skal likevel bli en 403 uansett hvilken regel som avviste, så de øvrige faller til [Tilgangsnektårsak.ANNET].
      * VERGE beholder mappingen fordi [Tilgangsnektårsak] har en verdi for det, selv om kjernereglene i dag ikke avviser på vergemål.
      */

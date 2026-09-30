@@ -18,6 +18,22 @@ data class BenkOversikt<out T : BenkBehandling>(
     val besluttere: List<String>,
 ) {
     fun fødselsnummere(): List<Fnr> = behandlinger.map { it.fnr }.distinct().sortedBy { it.verdi }
+
+    /**
+     * Beholder radene som gjelder [personer], og teller [totalAntall] på nytt.
+     * Gjelder bare oversikter der alle radene er hentet, som seksjonene i mine-fanen.
+     */
+    fun avgrensTil(personer: Set<Fnr>): BenkOversikt<T> {
+        require(totalAntall == behandlinger.size) { "Kan bare avgrense en oversikt der alle radene er hentet, men fikk ${behandlinger.size} av $totalAntall" }
+        val rader = behandlinger.filter { it.fnr in personer }
+        return BenkOversikt(
+            behandlinger = rader,
+            totalAntall = rader.size,
+            totalAntallUfiltrert = totalAntallUfiltrert,
+            saksbehandlere = saksbehandlere,
+            besluttere = besluttere,
+        )
+    }
 }
 
 /**

@@ -161,7 +161,7 @@ class TilgangsmaskinHttpClientTest {
                 årsak = TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG,
                 begrunnelse = "Du har ikke tilgang til brukere med strengt fortrolig adresse",
             ),
-            // Geografisk tilgang er en overstyrbar regel utenfor kjernesettet, og bulkoppslaget er det eneste som kan gi den.
+            // Geografisk tilgang er en overstyrbar regel utenfor kjernesettet, men koden skal tolkes dersom Tilgangsmaskinen svarer med den.
             fnr3 to TilgangsvurderingBulk.Avvist(
                 årsak = TilgangsvurderingAvvistÅrsak.GEOGRAFISK,
                 begrunnelse = "Du har ikke geografisk tilgang",

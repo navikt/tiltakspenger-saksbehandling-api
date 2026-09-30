@@ -516,6 +516,7 @@ open class ApplicationContext(
         BenkContext(
             sessionFactory = sessionFactory,
             tilgangskontrollService = tilgangskontrollService,
+            adressebeskyttelseOgSkjermingService = personContext.adressebeskyttelseOgSkjermingService,
         )
     }
 

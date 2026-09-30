@@ -21,6 +21,8 @@ import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
+import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
@@ -455,6 +457,30 @@ class HentBenkRouteTest {
 
     @Test
     @IsolatedDatabaseTest
+    fun `filteret på adressebeskyttelse og skjerming virker i mine-fanen`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fortrolig = Fnr.random()
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, saksbehandler = saksbehandler, fnr = fortrolig)
+            // Byggeren registrerer personen uten adressebeskyttelse, så den overstyres etterpå.
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                fnr = fortrolig,
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fortrolig, fortrolig = true),
+            )
+
+            objectMapper.readTree(
+                hentBenk(tac, "/benk/mine", """{"filters": {"beskyttelse": "ADRESSEBESKYTTET_ELLER_SKJERMET"}}"""),
+            )["seksjoner"]["SØKNADER"].let {
+                it["totalAntall"].asInt() shouldBe 1
+                it["behandlinger"].single()["fnr"]["verdi"].asString() shouldBe fortrolig.verdi
+                it["behandlinger"].single()["personmarkører"]["kode7"].asBoolean() shouldBe true
+            }
+            objectMapper.readTree(hentBenk(tac, "/benk/mine", """{}"""))["seksjoner"]["SØKNADER"]["totalAntall"].asInt() shouldBe 2
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
     fun `mine-fanen gir alle seksjonene med error når seksjonen er ugyldig`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             listOf("""{"filters": {"seksjon": "MINE"}}""", """{"filters": {"seksjon": "FINNES_IKKE"}}""").forEach { body ->
@@ -497,6 +523,69 @@ class HentBenkRouteTest {
                 it["oppsummering"]["antallSkjermet"].asInt() shouldBe 1
                 it["oppsummering"]["antallUtenTilgang"].asInt() shouldBe 1
             }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `filteret på adressebeskyttelse og skjerming viser bare personer med adressebeskyttelse eller skjerming`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val fortrolig = Fnr.random()
+            val skjermet = Fnr.random()
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, fnr = fortrolig)
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac, fnr = skjermet)
+            // Byggeren registrerer personen uten adressebeskyttelse, så den overstyres etterpå.
+            (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
+                fnr = fortrolig,
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fortrolig, fortrolig = true),
+            )
+            (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(skjermet, skjermet = true)
+
+            val respons = hentBenk(
+                tac,
+                "/benk/soknader",
+                """{"filters": {"beskyttelse": "ADRESSEBESKYTTET_ELLER_SKJERMET"}}""",
+            )
+
+            respons.antallIOversikten() shouldBe 2
+            objectMapper.readTree(respons)["oversikt"]["totalAntallUfiltrert"].asInt() shouldBe 3
+            objectMapper.readTree(respons)["oversikt"].let { oversikt ->
+                val rader = oversikt["behandlinger"].asSequence().associateBy { it["fnr"]["verdi"].asString() }
+                rader.keys shouldBe setOf(fortrolig.verdi, skjermet.verdi)
+                // Radene har tilgang, så markørene kommer fra oppslaget og telles ikke i oppsummeringen.
+                rader.getValue(fortrolig.verdi)["personmarkører"].toString() shouldEqualJson """{"skjermet": false, "kode6": false, "kode7": true}"""
+                rader.getValue(skjermet.verdi)["personmarkører"].toString() shouldEqualJson """{"skjermet": true, "kode6": false, "kode7": false}"""
+                oversikt["oppsummering"]["antallKode7"].asInt() shouldBe 0
+                oversikt["oppsummering"]["antallSkjermet"].asInt() shouldBe 0
+            }
+            hentBenk(tac, "/benk/soknader", """{}""").antallIOversikten() shouldBe 3
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `benken svarer 500 når oppslaget av adressebeskyttelse og skjerming feiler, men bare med filteret valgt`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            opprettSøknadsbehandlingKlarTilBehandling(tac = tac)
+            (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).feilVedBolkoppslag()
+
+            hentBenk(
+                tac,
+                "/benk/soknader",
+                """{"filters": {"beskyttelse": "ADRESSEBESKYTTET_ELLER_SKJERMET"}}""",
+                forventet = ForventetRespons.json(
+                    500,
+                    """
+                    {
+                      "melding": "Noe gikk galt på serversiden",
+                      "kode": "server_feil"
+                    }
+                    """.trimIndent(),
+                    "application/json; charset=UTF-8",
+                ),
+            )
+            hentBenk(tac, "/benk/soknader", """{}""").antallIOversikten() shouldBe 1
         }
     }
 

@@ -3,13 +3,15 @@ package no.nav.tiltakspenger.saksbehandling.benk.domene
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
+import no.nav.tiltakspenger.saksbehandling.person.AdressebeskyttelseOgSkjerming
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 
 /**
- * Markørene utledes av regelen Tilgangsmaskinen avviste på, og ingenting annet.
- * Benken gjør ingen oppslag mot PDL eller skjermingsregisteret for å fylle dem.
+ * For rader uten tilgang utledes markørene av regelen Tilgangsmaskinen avviste på, og ingenting annet.
+ * For rader med tilgang kommer de fra oppslaget i PDL og skjermingsregisteret, når det er gjort.
  */
 class BenkPersonmarkørerTest {
 
@@ -63,8 +65,32 @@ class BenkPersonmarkørerTest {
     }
 
     @Test
-    fun `godkjent tilgang gir ingen markører`() {
+    fun `godkjent tilgang uten oppslag gir ingen markører`() {
         BenkPersonmarkører.fra(TilgangsvurderingBulk.Godkjent) shouldBe ingenMarkører
+    }
+
+    @Test
+    fun `godkjent tilgang får markørene fra oppslaget, også flere samtidig`() {
+        BenkPersonmarkører.fra(
+            TilgangsvurderingBulk.Godkjent,
+            AdressebeskyttelseOgSkjerming(Adressebeskyttelse.STRENGT_FORTROLIG, skjermet = true),
+        ) shouldBe BenkPersonmarkører(skjermet = true, kode6 = true, kode7 = false)
+        BenkPersonmarkører.fra(
+            TilgangsvurderingBulk.Godkjent,
+            AdressebeskyttelseOgSkjerming(Adressebeskyttelse.FORTROLIG, skjermet = false),
+        ) shouldBe BenkPersonmarkører(skjermet = false, kode6 = false, kode7 = true)
+        BenkPersonmarkører.fra(
+            TilgangsvurderingBulk.Godkjent,
+            AdressebeskyttelseOgSkjerming(Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND, skjermet = false),
+        ) shouldBe BenkPersonmarkører(skjermet = false, kode6 = true, kode7 = false)
+    }
+
+    @Test
+    fun `avvist tilgang bruker avvisningen, ikke oppslaget`() {
+        BenkPersonmarkører.fra(
+            TilgangsvurderingBulk.Avvist(årsak = TilgangsvurderingAvvistÅrsak.SKJERMET, begrunnelse = "Du har ikke tilgang"),
+            AdressebeskyttelseOgSkjerming(Adressebeskyttelse.STRENGT_FORTROLIG, skjermet = true),
+        ) shouldBe BenkPersonmarkører(skjermet = true, kode6 = false, kode7 = false)
     }
 
     private val ingenMarkører = BenkPersonmarkører(skjermet = false, kode6 = false, kode7 = false)

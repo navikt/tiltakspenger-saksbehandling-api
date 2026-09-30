@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.domene
 
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 
 /**
@@ -57,4 +58,10 @@ interface BenkRepo {
      * De andre fanene telles uavhengig av hvem som spør.
      */
     fun hentAntallPerFane(navIdent: String, sessionContext: SessionContext? = null): BenkAntallPerFane
+
+    /**
+     * Fødselsnumrene til personene som har minst én rad i [fane], uten filter.
+     * Mine-fanen har ingen egen spørring, og gir [IllegalArgumentException].
+     */
+    fun hentPersoner(fane: BenkFane, sessionContext: SessionContext? = null): List<Fnr>
 }

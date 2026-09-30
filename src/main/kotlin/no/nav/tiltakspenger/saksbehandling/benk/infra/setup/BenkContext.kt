@@ -6,15 +6,21 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangskontrol
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkRepo
 import no.nav.tiltakspenger.saksbehandling.benk.infra.repo.BenkPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.benk.service.BenkService
+import no.nav.tiltakspenger.saksbehandling.person.AdressebeskyttelseOgSkjermingService
 
 open class BenkContext(
     sessionFactory: SessionFactory,
     tilgangskontrollService: TilgangskontrollService,
+    adressebeskyttelseOgSkjermingService: AdressebeskyttelseOgSkjermingService,
 ) {
     open val benkRepo: BenkRepo by lazy {
         BenkPostgresRepo(sessionFactory as PostgresSessionFactory)
     }
     open val benkService: BenkService by lazy {
-        BenkService(benkRepo = benkRepo, tilgangskontrollService = tilgangskontrollService)
+        BenkService(
+            benkRepo = benkRepo,
+            tilgangskontrollService = tilgangskontrollService,
+            adressebeskyttelseOgSkjermingService = adressebeskyttelseOgSkjermingService,
+        )
     }
 }

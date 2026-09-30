@@ -103,6 +103,14 @@ enum class BenkBehandlingsstatusDTO {
     UNDER_BESLUTNING,
 }
 
+/**
+ * Filterverdien for adressebeskyttelse og skjerming.
+ * Uten verdi vises alle personene.
+ */
+enum class BenkBeskyttelseDTO {
+    ADRESSEBESKYTTET_ELLER_SKJERMET,
+}
+
 enum class BenkBehandlingstypeDTO {
     SØKNADSBEHANDLING,
     REVURDERING,

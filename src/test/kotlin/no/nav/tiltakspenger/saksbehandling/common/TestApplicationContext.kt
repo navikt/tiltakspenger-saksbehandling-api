@@ -429,6 +429,7 @@ sealed class TestApplicationContext(
         object : BenkContext(
             sessionFactory = sessionFactory,
             tilgangskontrollService = tilgangskontrollService,
+            adressebeskyttelseOgSkjermingService = personContext.adressebeskyttelseOgSkjermingService,
         ) {
             override val benkRepo: BenkRepo get() = benkRepoOverride ?: super.benkRepo
         }

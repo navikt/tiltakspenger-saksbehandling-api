@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
+import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkAntallPerFane
 import no.nav.tiltakspenger.saksbehandling.benk.domene.BenkBehandling
@@ -76,6 +77,8 @@ class BenkFakeRepo : BenkRepo {
     ): Map<BenkFane, BenkOversikt<BenkBehandling>> = kreverPostgres()
 
     override fun hentAntallPerFane(navIdent: String, sessionContext: SessionContext?): BenkAntallPerFane = kreverPostgres()
+
+    override fun hentPersoner(fane: BenkFane, sessionContext: SessionContext?): List<Fnr> = kreverPostgres()
 
     private fun kreverPostgres(): Nothing = throw UnsupportedOperationException(
         "Benk v2 har ingen in-memory-implementasjon. Kjør testen isolert mot postgres, slik BenkAggregatTest og HentBenkRouteTest gjør.",

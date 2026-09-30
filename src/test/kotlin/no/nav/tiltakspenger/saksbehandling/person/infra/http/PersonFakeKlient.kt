@@ -3,6 +3,8 @@
 package no.nav.tiltakspenger.saksbehandling.person.infra.http
 
 import arrow.atomic.Atomic
+import arrow.core.Either
+import arrow.core.right
 import io.github.serpro69.kfaker.faker
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -10,7 +12,9 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.EndringsMetadata
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjon
 import no.nav.tiltakspenger.libs.personklient.pdl.dto.ForelderBarnRelasjonRolle
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
+import no.nav.tiltakspenger.saksbehandling.person.KunneIkkeHenteAdressebeskyttelseEllerSkjerming
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.Personident
 import java.time.Clock
@@ -34,6 +38,20 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
 
     override suspend fun hentPersonBolk(fnrs: List<Fnr>): List<EnkelPerson> =
         fnrs.map { fnr -> hentEnkelPerson(fnr) }
+
+    /** Graderingen utledes av de samme personopplysningene som [hentEnkelPerson] gir. */
+    override suspend fun hentAdressebeskyttelse(
+        fnrs: List<Fnr>,
+    ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl, Map<Fnr, Adressebeskyttelse>> =
+        fnrs.associateWith { fnr ->
+            val person = hentEnkelPerson(fnr)
+            when {
+                person.strengtFortroligUtland -> Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND
+                person.strengtFortrolig -> Adressebeskyttelse.STRENGT_FORTROLIG
+                person.fortrolig -> Adressebeskyttelse.FORTROLIG
+                else -> Adressebeskyttelse.UGRADERT
+            }
+        }.right()
 
     override suspend fun hentIdenter(aktorId: String): List<Personident> {
         return emptyList()

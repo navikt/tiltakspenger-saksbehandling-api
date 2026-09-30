@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.benk.infra.routes
 
 import arrow.core.Either
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 import io.ktor.server.request.receiveText
@@ -35,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.benk.domene.HentMineKommando
 import no.nav.tiltakspenger.saksbehandling.benk.domene.KunneIkkeHenteBenk
 import no.nav.tiltakspenger.saksbehandling.benk.domene.tilSortering
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkBehandlingsstatusDTO
+import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkBeskyttelseDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkFaneDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingResultatDTO
 import no.nav.tiltakspenger.saksbehandling.benk.infra.routes.dto.BenkKlagebehandlingStatusDTO
@@ -51,6 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.infra.route.kanSeBenken
+import no.nav.tiltakspenger.saksbehandling.infra.route.loggOgSvarFeil
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandling
 
 private const val PATH = "/benk"
@@ -112,6 +115,7 @@ private suspend fun RoutingContext.svarMedSøknader(
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
+                kunAdressebeskyttetEllerSkjermet = body.filters.beskyttelse != null,
             ),
             sortering = body.sortering.tilSøknaderSortering(),
             paginering = BenkPaginering.fra(body.side),
@@ -137,6 +141,7 @@ private suspend fun RoutingContext.revurderinger(benkService: BenkService) {
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
+                kunAdressebeskyttetEllerSkjermet = body.filters.beskyttelse != null,
             ),
             sortering = body.sortering.tilRevurderingerSortering(),
             paginering = BenkPaginering.fra(body.side),
@@ -162,6 +167,7 @@ private suspend fun RoutingContext.meldekort(benkService: BenkService) {
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
+                kunAdressebeskyttetEllerSkjermet = body.filters.beskyttelse != null,
             ),
             sortering = body.sortering.tilMeldekortSortering(),
             paginering = BenkPaginering.fra(body.side),
@@ -186,6 +192,7 @@ private suspend fun RoutingContext.klage(benkService: BenkService) {
                 resultat = body.filters.resultat?.tilDomene(),
                 saksbehandler = body.filters.saksbehandler,
                 skjulPåVent = body.filters.skjulPåVent,
+                kunAdressebeskyttetEllerSkjermet = body.filters.beskyttelse != null,
             ),
             sortering = body.sortering.tilKlageSortering(),
             paginering = BenkPaginering.fra(body.side),
@@ -212,6 +219,7 @@ private suspend fun RoutingContext.tilbakekreving(benkService: BenkService) {
                 minstebeløp = body.filters.minstebeløp(),
                 skjulPåVent = body.filters.skjulPåVent,
                 skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
+                kunAdressebeskyttetEllerSkjermet = body.filters.beskyttelse != null,
             ),
             sortering = body.sortering.tilTilbakekrevingSortering(),
             paginering = BenkPaginering.fra(body.side),
@@ -242,6 +250,7 @@ private suspend fun RoutingContext.mine(benkService: BenkService) {
             fane = seksjon,
             skjulPåVent = body.filters.skjulPåVent,
             skjulVenterPåAnnenSaksbehandler = body.filters.skjulEgneTilBeslutning,
+            kunAdressebeskyttetEllerSkjermet = body.filters.beskyttelse != null,
             sortering = BenkMineSortering(
                 søknader = body.sortering[BenkFaneDTO.SØKNADER].tilSøknaderSortering(),
                 revurderinger = body.sortering[BenkFaneDTO.REVURDERINGER].tilRevurderingerSortering(),
@@ -256,7 +265,7 @@ private suspend fun RoutingContext.mine(benkService: BenkService) {
     )
 
     respons.fold(
-        ifLeft = { call.respond500InternalServerError(Standardfeil.serverfeil()) },
+        ifLeft = { svarMedFeil(it, BenkFane.MINE) },
         ifRight = { call.respondJson(value = it.toDTO(saksbehandler, error)) },
     )
 }
@@ -271,10 +280,7 @@ private fun String?.tilKlageSortering() = tilSortering(BenkKlageKolonne.entries,
 
 private fun String?.tilTilbakekrevingSortering() = tilSortering(BenkTilbakekrevingKolonne.entries, BenkTilbakekrevingKolonne.STANDARD)
 
-/**
- * Svarer ut fanen, eller en serverfeil når tilgangskontrollen ikke lot seg gjennomføre.
- * Ruten logger ikke ved [KunneIkkeHenteBenk]; servicen har allerede logget kallet én gang.
- */
+/** Svarer ut fanen, eller en serverfeil når fanen ikke kunne hentes. */
 private suspend fun <T : BenkBehandling> RoutingContext.svarMedBenk(
     respons: Either<KunneIkkeHenteBenk, BenkResponsMedTilgang<T>>,
     fane: BenkFane,
@@ -282,9 +288,28 @@ private suspend fun <T : BenkBehandling> RoutingContext.svarMedBenk(
     error: String?,
 ) {
     respons.fold(
-        ifLeft = { call.respond500InternalServerError(Standardfeil.serverfeil()) },
+        ifLeft = { svarMedFeil(it, fane) },
         ifRight = { call.respondJson(value = it.toDTO(fane, saksbehandler, error)) },
     )
+}
+
+/**
+ * Begge feilene gir serverfeil, og hver av dem logges nøyaktig én gang.
+ * Tilgangskontrollen logger bulkkallet selv, med saksbehandleren og correlationId-en, så ruten logger ikke den.
+ * Oppslaget av adressebeskyttelse og skjerming logger ikke, så ruten logger det med konteksten feilen bærer.
+ */
+private suspend fun RoutingContext.svarMedFeil(feil: KunneIkkeHenteBenk, fane: BenkFane) {
+    when (feil) {
+        KunneIkkeHenteBenk.Tilgangskontroll -> call.respond500InternalServerError(Standardfeil.serverfeil())
+
+        is KunneIkkeHenteBenk.AdressebeskyttelseOgSkjerming -> call.loggOgSvarFeil(
+            logger = logger,
+            operasjon = "Filtrering av benken på adressebeskyttelse og skjerming",
+            feil = feil,
+            statusOgErrorJson = HttpStatusCode.InternalServerError to Standardfeil.serverfeil(),
+            kontekst = "Fane $fane, correlationId ${call.correlationId()}",
+        )
+    }
 }
 
 /**
@@ -337,6 +362,7 @@ private data class HentSøknaderBody(
         val søknadstype: BenkSøknadstypeDTO? = null,
         val resultat: BenkSøknadsbehandlingResultatDTO? = null,
         val saksbehandler: String? = null,
+        val beskyttelse: BenkBeskyttelseDTO? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
     )
@@ -351,6 +377,7 @@ private data class HentRevurderingerBody(
         val status: BenkBehandlingsstatusDTO? = null,
         val resultat: BenkRevurderingResultatDTO? = null,
         val saksbehandler: String? = null,
+        val beskyttelse: BenkBeskyttelseDTO? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
     )
@@ -365,6 +392,7 @@ private data class HentMeldekortBody(
         val status: BenkBehandlingsstatusDTO? = null,
         val type: BenkMeldekortTypeDTO? = null,
         val saksbehandler: String? = null,
+        val beskyttelse: BenkBeskyttelseDTO? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
     )
@@ -379,6 +407,7 @@ private data class HentKlageBody(
         val status: BenkKlagebehandlingStatusDTO? = null,
         val resultat: BenkKlagebehandlingResultatDTO? = null,
         val saksbehandler: String? = null,
+        val beskyttelse: BenkBeskyttelseDTO? = null,
         val skjulPåVent: Boolean = false,
     )
 }
@@ -392,6 +421,7 @@ private data class HentTilbakekrevingBody(
         val status: BenkTilbakekrevingStatusDTO? = null,
         val kilde: BenkTilbakekrevingKildeDTO? = null,
         val saksbehandler: String? = null,
+        val beskyttelse: BenkBeskyttelseDTO? = null,
         val kunOverMinstebeløp: Boolean = false,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
@@ -416,6 +446,7 @@ private data class HentMineBody(
 ) {
     data class Filters(
         val seksjon: BenkFaneDTO? = null,
+        val beskyttelse: BenkBeskyttelseDTO? = null,
         val skjulPåVent: Boolean = false,
         val skjulEgneTilBeslutning: Boolean = false,
     )

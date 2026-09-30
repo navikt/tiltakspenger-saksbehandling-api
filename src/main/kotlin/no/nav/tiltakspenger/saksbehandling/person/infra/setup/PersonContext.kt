@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.PersonRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
+import no.nav.tiltakspenger.saksbehandling.person.AdressebeskyttelseOgSkjermingService
 import no.nav.tiltakspenger.saksbehandling.person.PersonKlient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonHttpklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.repo.PersonPostgresRepo
@@ -64,6 +65,12 @@ open class PersonContext(
         PersonService(
             personRepo = personRepo,
             personClient = personKlient,
+        )
+    }
+    val adressebeskyttelseOgSkjermingService by lazy {
+        AdressebeskyttelseOgSkjermingService(
+            personKlient = personKlient,
+            skjermingsklient = fellesSkjermingsklient,
         )
     }
     val auditService by lazy {

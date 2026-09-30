@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.benk.infra.repo
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -1080,6 +1081,74 @@ class BenkAggregatTest {
                 it.felles.sakId shouldBe sakKunOpprettet.id
                 it.status shouldBe BenkTilbakekrevingStatus.OPPRETTET
             }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `hver fane gir personene som har en rad i fanen`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val søknad = ObjectMother.gyldigFnr()
+            val revurdering = ObjectMother.gyldigFnr()
+            val meldekort = ObjectMother.gyldigFnr()
+            val klage = ObjectMother.gyldigFnr()
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = søknad)
+            val (sak, _, _, åpenRevurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac, fnr = revurdering)
+            oppdaterRevurderingStans(tac = tac, sakId = sak.id, behandlingId = åpenRevurdering.id)
+            iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac, fnr = meldekort)
+            opprettSakOgKlagebehandlingTilAvvisning(tac = tac, fnr = klage)
+            val (tilbakekrevingSak) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
+
+            val repo = tac.benkContext.benkRepo
+
+            repo.hentPersoner(BenkFane.SØKNADER) shouldBe listOf(søknad)
+            repo.hentPersoner(BenkFane.REVURDERINGER) shouldBe listOf(revurdering)
+            repo.hentPersoner(BenkFane.MELDEKORT) shouldBe listOf(meldekort)
+            repo.hentPersoner(BenkFane.KLAGE) shouldBe listOf(klage)
+            repo.hentPersoner(BenkFane.TILBAKEKREVING) shouldBe listOf(tilbakekrevingSak.fnr)
+            shouldThrow<IllegalArgumentException> { repo.hentPersoner(BenkFane.MINE) }
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `personavgrensningen tar bort radene til andre personer i alle fanene`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val søknad = ObjectMother.gyldigFnr()
+            val revurdering = ObjectMother.gyldigFnr()
+            val meldekort = ObjectMother.gyldigFnr()
+            val klage = ObjectMother.gyldigFnr()
+            val sistOpprettet = ObjectMother.gyldigFnr()
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = søknad)
+            opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac, fnr = sistOpprettet)
+            val (sak, _, _, åpenRevurdering) = iverksettSøknadsbehandlingOgStartRevurderingStans(tac = tac, fnr = revurdering)
+            oppdaterRevurderingStans(tac = tac, sakId = sak.id, behandlingId = åpenRevurdering.id)
+            iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac = tac, fnr = meldekort)
+            opprettSakOgKlagebehandlingTilAvvisning(tac = tac, fnr = klage)
+            val (tilbakekrevingSak) = opprettTilbakekrevingBehandlingTilBehandling(tac = tac)
+
+            val repo = tac.benkContext.benkRepo
+
+            // Avgrensningen skjer før limit: den sist opprettede kommer sist i sorteringen, men er likevel den ene raden på siden.
+            repo.hentSøknader(søknaderCommand().avgrensTil(setOf(sistOpprettet)), limit = 1).let {
+                it.behandlinger.map { rad -> rad.fnr } shouldBe listOf(sistOpprettet)
+                it.totalAntall shouldBe 1
+            }
+
+            val søknader = repo.hentSøknader(søknaderCommand().avgrensTil(setOf(søknad)))
+            søknader.totalAntall shouldBe 1
+            søknader.totalAntallUfiltrert shouldBe 2
+            søknader.behandlinger.map { it.fnr } shouldBe listOf(søknad)
+            repo.hentSøknader(søknaderCommand().avgrensTil(emptySet())).totalAntall shouldBe 0
+
+            repo.hentRevurderinger(revurderingerCommand().avgrensTil(setOf(revurdering))).totalAntall shouldBe 1
+            repo.hentRevurderinger(revurderingerCommand().avgrensTil(emptySet())).totalAntall shouldBe 0
+            repo.hentMeldekort(meldekortCommand().avgrensTil(setOf(meldekort))).totalAntall shouldBe 1
+            repo.hentMeldekort(meldekortCommand().avgrensTil(emptySet())).totalAntall shouldBe 0
+            repo.hentKlager(klageCommand().avgrensTil(setOf(klage))).totalAntall shouldBe 1
+            repo.hentKlager(klageCommand().avgrensTil(emptySet())).totalAntall shouldBe 0
+            repo.hentTilbakekrevinger(tilbakekrevingCommand().avgrensTil(setOf(tilbakekrevingSak.fnr))).totalAntall shouldBe 1
+            repo.hentTilbakekrevinger(tilbakekrevingCommand().avgrensTil(emptySet())).totalAntall shouldBe 0
         }
     }
 

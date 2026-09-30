@@ -174,6 +174,23 @@ class BenkPostgresRepo(
             )!!
         }
 
+    // TODO: Stram typen, så mine-fanen ikke kan sendes inn og grenen som kaster forsvinner.
+    override fun hentPersoner(fane: BenkFane, sessionContext: SessionContext?): List<Fnr> =
+        sessionFactory.withSession(sessionContext) { session ->
+            val base = when (fane) {
+                BenkFane.SØKNADER -> SØKNADER
+                BenkFane.REVURDERINGER -> REVURDERINGER
+                BenkFane.MELDEKORT -> MELDEKORT
+                BenkFane.KLAGE -> KLAGE
+                BenkFane.TILBAKEKREVING -> TILBAKEKREVING
+                BenkFane.MINE -> throw IllegalArgumentException("Mine-fanen har ingen egen spørring, så personene må hentes fra seksjonene")
+            }
+            session.run(
+                sqlQuery("select distinct fnr from ($base) fane order by fnr")
+                    .map { Fnr.fromString(it.string("fnr")) }.asList,
+            )
+        }
+
     private fun Session.hentSøknader(
         command: HentBenkKommando<BenkSøknaderFiltrering, BenkSøknaderKolonne>,
         base: String,
@@ -618,6 +635,9 @@ class BenkPostgresRepo(
          */
         const val PÅ_VENT_FILTER = "(not :skjul_pa_vent or not er_satt_på_vent)"
 
+        /** Avgrenser fanen til fødselsnumrene i `:personer`, eller slipper alle gjennom når parameteren er null. */
+        const val PERSON_FILTER = "(:personer::text[] is null or fnr = any(:personer::text[]))"
+
         /**
          * Saksbehandler kan ikke beslutte sin egen behandling, så radene hen allerede har sendt til beslutning er støy i køen hens.
          * `is distinct from` i stedet for `<>` fordi en rad uten tildelt saksbehandler aldri skal filtreres bort av dette filteret.
@@ -651,6 +671,7 @@ class BenkPostgresRepo(
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $PERSON_FILTER
             and $VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
 
@@ -659,6 +680,7 @@ class BenkPostgresRepo(
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $PERSON_FILTER
             and $VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
 
@@ -667,6 +689,7 @@ class BenkPostgresRepo(
             and (:type::text is null or type = :type::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $PERSON_FILTER
             and $VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
 
@@ -675,6 +698,7 @@ class BenkPostgresRepo(
             and (:resultat::text is null or resultat = :resultat::text)
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $PERSON_FILTER
         """
 
         const val TILBAKEKREVING_FILTER = """
@@ -683,6 +707,7 @@ class BenkPostgresRepo(
             and beløp >= :minstebelop
             and $SAKSBEHANDLER_FILTER
             and $PÅ_VENT_FILTER
+            and $PERSON_FILTER
             and $TILBAKEKREVING_VENTER_PÅ_ANNEN_SAKSBEHANDLER_FILTER
         """
     }
@@ -709,6 +734,7 @@ private fun HentBenkKommando<*, *>.tilParams(): Array<Pair<String, Any?>> = arra
     "skjul_pa_vent" to filtrering.skjulPåVent,
     "skjul_venter_pa_annen_saksbehandler" to filtrering.skjulVenterPåAnnenSaksbehandler,
     "innlogget_saksbehandler" to saksbehandler.navIdent,
+    "personer" to personer?.map { it.verdi }?.toTypedArray(),
 )
 
 private fun <T : Enum<T>> Row.enumOrNull(column: String, entries: List<T>): T? {
