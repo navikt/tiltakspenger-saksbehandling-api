@@ -141,11 +141,12 @@ class RammebehandlingPostgresRepo(
                         sist_endret = :sist_endret,
                         sendt_til_beslutning = null,
                         beslutter = null
-                    where id = :id and saksbehandler is not null and (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING')
+                    where id = :id and saksbehandler = :saksbehandler and (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING')
                     """,
                     "id" to rammebehandling.id.toString(),
                     "status" to rammebehandling.status.toDb(),
                     "sist_endret" to rammebehandling.sistEndret,
+                    "saksbehandler" to rammebehandling.saksbehandler
                 ).asUpdate,
             ) > 0
         }
@@ -154,9 +155,11 @@ class RammebehandlingPostgresRepo(
     /**Kommentar til Anders: tanken er her å lage en ny db-funksjon med ´where´ i spørringen sånn at en
     //beslutter ikke kan underkjenne en rammebehandling som er angret av en sakebehandler
     //dvs. at den da må være semantisk lik den "gamle" spørringen [lagre] -> konsekvens: hvis vi legger til en ny
-     tabell i [oppdaterRammebehandling] så må den også legges inn her
+     tabell i [oppdaterRammebehandling] så må den også legges inn her.
+
+     Det er også sånn at denne nå brukes når beslutter underkjenner eller iverksetter, de samme betingelsene i where gjelder for begge
      */
-    override fun underkjennBehandling(
+    override fun lagreHvisFortsattUnderBeslutning(
         rammebehandling: Rammebehandling,
         utøvendeBeslutter: Saksbehandler,
         transactionContext: TransactionContext?,

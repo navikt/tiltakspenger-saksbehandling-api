@@ -38,11 +38,11 @@ interface RammebehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean
 
-    fun underkjennBehandling(
+    fun lagreHvisFortsattUnderBeslutning(
         rammebehandling: Rammebehandling,
         utøvendeBeslutter: Saksbehandler,
         transactionContext: TransactionContext?
-    ) : Boolean
+    ): Boolean
 
     fun angreBehandling(
         rammebehandling: Rammebehandling,

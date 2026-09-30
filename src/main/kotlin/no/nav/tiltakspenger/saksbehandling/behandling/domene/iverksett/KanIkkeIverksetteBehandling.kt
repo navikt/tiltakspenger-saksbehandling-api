@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KanIkkeIverksetteUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.KunneIkkeSimulere
@@ -18,4 +19,12 @@ sealed interface KanIkkeIverksetteBehandling {
     data object UgyldigeMeldeperioderHelg : KanIkkeIverksetteBehandling
 
     data object VedtakErIkkeSisteVedtakPåSaken : KanIkkeIverksetteBehandling
+
+    data class BehandlingenHarEnAnnenStatusEnnUnderBeslutning(val status: Rammebehandlingsstatus) : KanIkkeIverksetteBehandling
+
+    data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeIverksetteBehandling
+
+    data object BehandlingenErAlleredeGodkjent : KanIkkeIverksetteBehandling
+
+    data object BehandlingenErSattPåVent : KanIkkeIverksetteBehandling
 }

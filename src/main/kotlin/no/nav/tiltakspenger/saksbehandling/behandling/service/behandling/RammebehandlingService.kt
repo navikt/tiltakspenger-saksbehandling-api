@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -74,7 +73,7 @@ class RammebehandlingService(
                 val statistikkDTO = statistikkService.generer(statistikkhendelser)
 
                 val vellykket = sessionFactory.withTransactionContext { tx ->
-                    val oppdatert = rammebehandlingRepo.underkjennBehandling(oppdatertRammebehandling, utøvendeBeslutter = beslutter, transactionContext = tx)
+                    val oppdatert = rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(oppdatertRammebehandling, utøvendeBeslutter = beslutter, transactionContext = tx)
                     if (oppdatert) statistikkService.lagre(statistikkDTO, tx)
                     oppdatert
                 }
