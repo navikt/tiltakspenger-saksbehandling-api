@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 import no.nav.tiltakspenger.saksbehandling.felles.uventetStatus
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -30,6 +31,16 @@ class AdressebeskyttelseOgSkjermingServiceTest {
     private val strengtFortrolig = Fnr.random()
     private val strengtFortroligUtland = Fnr.random()
     private val skjermet = Fnr.random()
+    private val samtidigeKall = AtomicInteger(0)
+    private val flestSamtidigeKall = AtomicInteger(0)
+
+    /** Teller kallet som i gang mens det venter, så testen kan se hvor mange kall som overlapper. */
+    private suspend fun registrerKall(forsinkelse: Duration) {
+        flestSamtidigeKall.accumulateAndGet(samtidigeKall.incrementAndGet(), ::maxOf)
+        delay(forsinkelse)
+        samtidigeKall.decrementAndGet()
+    }
+
     private val alle = listOf(ubeskyttet, fortrolig, strengtFortrolig, strengtFortroligUtland, skjermet)
     private val forventet = mapOf(
         ubeskyttet to AdressebeskyttelseOgSkjerming(Adressebeskyttelse.UGRADERT, skjermet = false),
@@ -86,14 +97,14 @@ class AdressebeskyttelseOgSkjermingServiceTest {
     @Test
     fun `slår opp bolkene og de to registrene samtidig`() = runTest {
         val service = AdressebeskyttelseOgSkjermingService(
-            TellendePersonKlient(forsinkelse = 100.milliseconds),
-            TellendeSkjermingsklient(forsinkelse = 100.milliseconds),
+            TellendePersonKlient(forsinkelse = 200.milliseconds),
+            TellendeSkjermingsklient(forsinkelse = 200.milliseconds),
         )
 
         service.hent(List(1001) { Fnr.random() }.distinct(), CorrelationId.generate())
 
-        // To bolker med to kall hver ville tatt 400 ms etter hverandre.
-        testScheduler.currentTime shouldBe 100
+        // To bolker med to kall hver; etter hverandre ville det aldri vært mer enn ett kall i gang.
+        flestSamtidigeKall.get() shouldBe 4
     }
 
     @Test
@@ -149,7 +160,7 @@ class AdressebeskyttelseOgSkjermingServiceTest {
             fnrs: List<Fnr>,
         ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl, Map<Fnr, Adressebeskyttelse>> {
             oppslag.add(fnrs)
-            delay(forsinkelse)
+            registrerKall(forsinkelse)
             if (feiler) {
                 return KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl(
                     loggkontekst = Loggkontekst("PDL svarte ikke"),
@@ -187,7 +198,7 @@ class AdressebeskyttelseOgSkjermingServiceTest {
             correlationId: CorrelationId,
         ): Either<FellesSkjermingError, Map<Fnr, Boolean>> {
             oppslag.add(fnrListe.toList())
-            delay(forsinkelse)
+            registrerKall(forsinkelse)
             if (feiler) {
                 return FellesSkjermingError.Ikke2xx(
                     uventetStatus(

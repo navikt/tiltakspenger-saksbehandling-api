@@ -3,11 +3,10 @@ package no.nav.tiltakspenger.saksbehandling.person
 import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.toNonEmptyListOrThrow
+import arrow.fx.coroutines.parMap
+import arrow.fx.coroutines.parZip
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.personklient.skjerming.FellesSkjermingsklient
@@ -43,42 +42,40 @@ class AdressebeskyttelseOgSkjermingService(
     ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming, Map<Fnr, AdressebeskyttelseOgSkjerming>> = either {
         val unike = fnrs.distinct()
         val fraCache = cache.getAllPresent(unike)
-        val nye = coroutineScope {
-            unike.filterNot { it in fraCache }
-                .chunked(MAKS_ANTALL_PER_KALL)
-                .map { bolk -> async { slåOpp(bolk, correlationId) } }
-                .awaitAll()
-        }.fold(emptyMap<Fnr, AdressebeskyttelseOgSkjerming>()) { alle, bolk -> alle + bolk.bind() }
+        val nye = unike.filterNot { it in fraCache }
+            .chunked(MAKS_ANTALL_PER_KALL)
+            .parMap { bolk -> slåOpp(bolk, correlationId).bind() }
+            .fold(emptyMap<Fnr, AdressebeskyttelseOgSkjerming>()) { alle, bolk -> alle + bolk }
         cache.putAll(nye)
         fraCache + nye
     }
 
     /**
-     * Skjermingsregisteret og PDL spørres samtidig.
+     * Skjermingsregisteret og PDL spørres samtidig, og feiler det ene kallet, avbrytes det andre.
      * Bolkene er aldri tomme, så toNonEmptyListOrThrow kaster ikke.
      */
     private suspend fun slåOpp(
         fnrs: List<Fnr>,
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming, Map<Fnr, AdressebeskyttelseOgSkjerming>> = either {
-        val (skjermingssvar, adressebeskyttelsessvar) = coroutineScope {
-            val skjerming = async { skjermingsklient.erSkjermetPersoner(fnrs.toNonEmptyListOrThrow(), correlationId) }
-            val adressebeskyttelse = async { personKlient.hentAdressebeskyttelse(fnrs) }
-            skjerming.await() to adressebeskyttelse.await()
-        }
-        val skjermet = skjermingssvar
-            .mapLeft {
-                KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotSkjerming(
-                    loggkontekst = it.httpKlientError.loggkontekst("skjermingsoppslag for ${fnrs.size} personer"),
-                    sikkerloggkontekst = it.httpKlientError.sikkerloggkontekst("skjermingsoppslag"),
+        parZip(
+            {
+                skjermingsklient.erSkjermetPersoner(fnrs.toNonEmptyListOrThrow(), correlationId)
+                    .mapLeft {
+                        KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotSkjerming(
+                            loggkontekst = it.httpKlientError.loggkontekst("skjermingsoppslag for ${fnrs.size} personer"),
+                            sikkerloggkontekst = it.httpKlientError.sikkerloggkontekst("skjermingsoppslag"),
+                        )
+                    }.bind()
+            },
+            { personKlient.hentAdressebeskyttelse(fnrs).bind() },
+        ) { skjermet, adressebeskyttelse ->
+            fnrs.associateWith { fnr ->
+                AdressebeskyttelseOgSkjerming(
+                    adressebeskyttelse = adressebeskyttelse[fnr] ?: Adressebeskyttelse.UGRADERT,
+                    skjermet = skjermet[fnr] == true,
                 )
-            }.bind()
-        val adressebeskyttelse = adressebeskyttelsessvar.bind()
-        fnrs.associateWith { fnr ->
-            AdressebeskyttelseOgSkjerming(
-                adressebeskyttelse = adressebeskyttelse[fnr] ?: Adressebeskyttelse.UGRADERT,
-                skjermet = skjermet[fnr] == true,
-            )
+            }
         }
     }
 

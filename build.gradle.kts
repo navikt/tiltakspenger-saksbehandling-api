@@ -150,6 +150,7 @@ dependencies {
     // Arrow
     implementation("io.arrow-kt:arrow-core:2.2.3")
     implementation("io.arrow-kt:arrow-core-jackson:2.2.3")
+    implementation("io.arrow-kt:arrow-fx-coroutines:2.2.3")
 
     // Caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
