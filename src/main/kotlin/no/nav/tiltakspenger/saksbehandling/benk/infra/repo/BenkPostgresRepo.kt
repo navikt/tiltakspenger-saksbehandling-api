@@ -473,32 +473,40 @@ class BenkPostgresRepo(
                 null::int,
                 siste.id
             from (
-                select distinct on (sak_id, meldeperiode_kjede_id)
-                    id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt
-                from meldekort_bruker
-                where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
-                order by sak_id, meldeperiode_kjede_id, mottatt desc
+                select apne.*
+                from (
+                    select distinct on (sak_id, meldeperiode_kjede_id)
+                        id, sak_id, meldeperiode_id, meldeperiode_kjede_id, mottatt
+                    from meldekort_bruker
+                    where behandlet_automatisk_status != 'BEHANDLET' and behandles_automatisk = false
+                    order by sak_id, meldeperiode_kjede_id, mottatt desc
+                ) apne
+                    /*
+                     * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere enn eller samtidig med innsendingen.
+                     * Da er meldekortet potensielt allerede tatt stilling til.
+                     *
+                     * Skrevet som en lateral framfor `not exists` for å tvinge ett indeksoppslag per meldekort.
+                     * Som anti-join la planleggeren en hash over hele meldekortbehandling — inkludert all historikk — fordi `@>` ikke kan være en hash-condition.
+                     * Målt mot Postgres 17 ved 50k meldekortbehandlinger: 21ms som anti-join, 7ms som lateral.
+                     * sak_id-betingelsen er bærende: kjedeId er bare datointervallet, og er ikke unik på tvers av saker.
+                     * Det telles framfor `limit 1` + null-sjekk fordi IDE-analysen feilaktig flagger null-sjekken som alltid false — den modellerer ikke null-paddingen fra left join.
+                     */
+                    left join lateral (
+                        select count(*) as antall
+                        from meldekortbehandling mb
+                        where mb.sak_id = apne.sak_id
+                          and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', apne.meldeperiode_kjede_id))
+                          and mb.sist_endret >= apne.mottatt
+                    ) behandlet on true
+                where behandlet.antall = 0
+                /*
+                 * Sperre mot at planleggeren trekker underspørringen opp og kobler mot sak og meldeperiode før filteret.
+                 * Filteret fjerner nesten alle radene: i prod 30.09.2026 gjensto 45 av 5532 åpne meldekort, og koblingene før filteret sto for rundt en firedel av tiden.
+                 */
+                offset 0
             ) siste
                 join sak s on s.id = siste.sak_id
                 join meldeperiode mp on mp.id = siste.meldeperiode_id
-                /*
-                 * Filtrerer bort meldekort der det allerede finnes en meldekortbehandling som er nyere enn eller samtidig med innsendingen.
-                 * Da er meldekortet potensielt allerede tatt stilling til.
-                 *
-                 * Skrevet som en lateral framfor `not exists` for å tvinge ett indeksoppslag per meldekort.
-                 * Som anti-join la planleggeren en hash over hele meldekortbehandling — inkludert all historikk — fordi `@>` ikke kan være en hash-condition.
-                 * Målt mot Postgres 17 ved 50k meldekortbehandlinger: 21ms som anti-join, 7ms som lateral.
-                 * sak_id-betingelsen er bærende: kjedeId er bare datointervallet, og er ikke unik på tvers av saker.
-                 * Det telles framfor `limit 1` + null-sjekk fordi IDE-analysen feilaktig flagger null-sjekken som alltid false — den modellerer ikke null-paddingen fra left join.
-                 */
-                left join lateral (
-                    select count(*) as antall
-                    from meldekortbehandling mb
-                    where mb.sak_id = siste.sak_id
-                      and mb.meldeperioder @> jsonb_build_array(jsonb_build_object('kjedeId', siste.meldeperiode_kjede_id))
-                      and mb.sist_endret >= siste.mottatt
-                ) behandlet on true
-            where behandlet.antall = 0
         """
 
         /** Meldekortfanen samler meldekortbehandlingene og meldekortene fra bruker. */
