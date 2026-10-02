@@ -10,9 +10,9 @@ import java.time.LocalDate
 /**
  * Endringen lagres som en liste av enkeltendringer, slik den ble lagret før endringene ble tolket til ett utfall.
  * Formatet er beholdt for å kunne lese rader som allerede er lagret.
+ * Eldre rader kan inneholde feltet `hendelseId`, som ignoreres ved lesing.
  */
 private data class AutomatiskOpprettetRevurderingGrunnDbJson(
-    val hendelseId: String? = null,
     val endringer: List<TiltaksdeltakerEndringDbJson>,
 )
 
@@ -39,7 +39,6 @@ private enum class TiltaksdeltakerEndringTypeDb {
 fun AutomatiskOpprettetRevurderingGrunn.toDbJson(): String {
     return serialize(
         AutomatiskOpprettetRevurderingGrunnDbJson(
-            hendelseId = hendelseId,
             endringer = endring.toDbJson(),
         ),
     )
@@ -48,7 +47,6 @@ fun AutomatiskOpprettetRevurderingGrunn.toDbJson(): String {
 fun String.toAutomatiskOpprettetRevurderingGrunn(): AutomatiskOpprettetRevurderingGrunn {
     val dbJson = deserialize<AutomatiskOpprettetRevurderingGrunnDbJson>(this)
     return AutomatiskOpprettetRevurderingGrunn(
-        hendelseId = dbJson.hendelseId,
         endring = dbJson.endringer.toDomain(),
     )
 }

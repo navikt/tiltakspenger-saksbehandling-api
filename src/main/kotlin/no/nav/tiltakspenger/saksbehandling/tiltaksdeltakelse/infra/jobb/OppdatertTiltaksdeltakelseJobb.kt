@@ -174,10 +174,7 @@ class OppdatertTiltaksdeltakelseJobb(
             revurderingType = revurderingSomSkalOpprettes.type,
             vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
             klagebehandlingId = null,
-            automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
-                endring = endring,
-                hendelseId = null,
-            ),
+            automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(endring = endring),
         )
 
         val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak).getOrElse { feil ->

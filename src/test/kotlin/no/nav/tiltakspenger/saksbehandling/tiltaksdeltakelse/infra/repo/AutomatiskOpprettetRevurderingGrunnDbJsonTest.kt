@@ -22,15 +22,10 @@ import org.junit.jupiter.params.provider.MethodSource
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AutomatiskOpprettetRevurderingGrunnDbJsonTest {
 
-    private val hendelseId = "01JQ8Z4XW9K5N2P7R3T6V8Y1BC"
-
-    private fun grunn(endring: TiltaksdeltakerEndring) = AutomatiskOpprettetRevurderingGrunn(
-        hendelseId = hendelseId,
-        endring = endring,
-    )
+    private fun grunn(endring: TiltaksdeltakerEndring) = AutomatiskOpprettetRevurderingGrunn(endring = endring)
 
     private fun json(vararg endringer: String): String =
-        """{ "hendelseId": "$hendelseId", "endringer": [${endringer.joinToString(",")}] }"""
+        """{ "endringer": [${endringer.joinToString(",")}] }"""
 
     private fun endringJson(
         type: String,
@@ -95,9 +90,9 @@ class AutomatiskOpprettetRevurderingGrunnDbJsonTest {
     }
 
     @Test
-    fun `eldre rad uten hendelseId leses`() {
-        """{ "endringer": [${endringJson("AVBRUTT_DELTAKELSE")}] }""".toAutomatiskOpprettetRevurderingGrunn() shouldBe
-            AutomatiskOpprettetRevurderingGrunn(hendelseId = null, endring = TiltaksdeltakerEndring.AvbruttDeltakelse)
+    fun `eldre rad med hendelseId leses`() {
+        """{ "hendelseId": "01JQ8Z4XW9K5N2P7R3T6V8Y1BC", "endringer": [${endringJson("AVBRUTT_DELTAKELSE")}] }""".toAutomatiskOpprettetRevurderingGrunn() shouldBe
+            AutomatiskOpprettetRevurderingGrunn(endring = TiltaksdeltakerEndring.AvbruttDeltakelse)
     }
 
     @Test

@@ -312,7 +312,6 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
-            grunn.hendelseId.shouldBeNull()
             grunn.endring shouldBe TiltaksdeltakerEndring.AvbruttDeltakelse
         }
     }
