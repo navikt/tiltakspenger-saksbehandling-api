@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.texas.saksbehandler
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditLogEvent
 import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.KunneIkkeAngreBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
@@ -75,10 +76,6 @@ fun Route.angreMeldekortbehandlingRoute(
 }
 
 fun KanIkkeAngreMeldekortbehandling.statusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
-    KanIkkeAngreMeldekortbehandling.KanIkkeVæreTattAvEnBeslutter -> HttpStatusCode.Forbidden to ErrorJson(
-        melding = "Kan ikke angre meldekortbehandling som er tatt av en beslutter",
-        kode = "meldekortbehandlingen_kan_ikke_være_tatt_av_beslutter",
-    )
 
     KanIkkeAngreMeldekortbehandling.MeldekortbehandlingFinnesIkke -> HttpStatusCode.BadRequest to ErrorJson(
         melding = "Kan ikke angre en meldekortbehandling som ikke finnes",
@@ -95,8 +92,13 @@ fun KanIkkeAngreMeldekortbehandling.statusOgErrorJson(): Pair<HttpStatusCode, Er
         kode = "maa_vaere_saksbehandler_for_meldekortbehandlingen",
     )
 
-    KanIkkeAngreMeldekortbehandling.MeldekortbehandlingErIkkeLengerKlarTilBeslutning -> HttpStatusCode.BadRequest to ErrorJson(
-        melding = "meldekortbehandlingen er ikke lenger klar til beslutning",
-        kode = "meldekortbehandlingen_må_være_klar_til_beslutning",
+    KanIkkeAngreMeldekortbehandling.MeldekortbehandlingErIkkeLengerSendtTilBeslutning -> HttpStatusCode.Conflict to ErrorJson(
+        melding = "Meldekortbehandlingen er ikke lenger sendt til beslutning.",
+        kode = "må_være_sendt_til_beslutning"
+    )
+
+    KanIkkeAngreMeldekortbehandling.MeldekortbehandlingenErSattPåVent -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Meldekortbehandlingen er satt på vent.",
+        kode = "meldekortbehandlingen_kan_ikke_være_satt_på_vent"
     )
 }

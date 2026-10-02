@@ -20,6 +20,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/underkjenn"
@@ -75,5 +76,30 @@ private fun KanIkkeUnderkjenne.toStatusAndErrorJson(): Pair<HttpStatusCode, Erro
     KanIkkeUnderkjenne.ManglerBegrunnelse -> HttpStatusCode.BadRequest to ErrorJson(
         "Begrunnelse må være utfylt",
         "begrunnelse_må_være_utfylt",
+    )
+
+    is KanIkkeUnderkjenne.RammebehandlingenErIkkeUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
+        "Behandlingen er ikke under beslutning. Status: $status.",
+        "behandlingen_er_ikke_under_beslutning",
+    )
+
+    KanIkkeUnderkjenne.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
+        "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+        "behandlingen_er_ikke_under_beslutning",
+    )
+
+    KanIkkeUnderkjenne.BeslutterMåVæreTildeltRammebehandlingen -> HttpStatusCode.BadRequest to ErrorJson(
+        "Du kan ikke underkjenne behandlingen, da du ikke er beslutter for den.",
+        "må_være_beslutter_for_behandlingen",
+    )
+
+    KanIkkeUnderkjenne.RammebehandlingenErAlleredeGodkjent -> HttpStatusCode.BadRequest to ErrorJson(
+        "Behandlingen er allerede godkjent.",
+        "behandlingen_er_allerede_godkjent",
+    )
+
+    KanIkkeUnderkjenne.RammebehandlingenErSattPåVent -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Kan ikke underkjenne fordi behandlingen er satt på vent.",
+        kode = "Behandlingen_kan_ikke_være_satt_på_vent"
     )
 }

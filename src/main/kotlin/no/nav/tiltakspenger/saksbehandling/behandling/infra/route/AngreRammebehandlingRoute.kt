@@ -70,12 +70,22 @@ fun Route.angreRammebehandlingRoute(
 
 fun KunneIkkeAngreBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
     is KunneIkkeAngreBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅAngre -> HttpStatusCode.BadRequest to ErrorJson(
-        "Kan ikke angre behandling med status $status.",
-        "behandlingen_kan_ikke_angres",
+        melding = "Kan ikke angre behandling med status $status.",
+        kode = "behandlingen_kan_ikke_angres",
     )
 
     KunneIkkeAngreBehandling.MåVæreSaksbehandlerForBehandlingen -> HttpStatusCode.Forbidden to ErrorJson(
-        "Du må være saksbehandleren som er tildelt behandlingen for å angre.",
-        "maa_vaere_saksbehandler_for_behandlingen",
+        melding = "Du må være saksbehandleren som er tildelt behandlingen for å angre.",
+        kode = "maa_vaere_saksbehandler_for_behandlingen",
+    )
+
+    KunneIkkeAngreBehandling.BehandlingenErIkkeLengerSendtTilBeslutning -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Behandlingen er ikke lenger sendt til beslutning.",
+        kode = "må_være_sendt_til_beslutning"
+    )
+
+    KunneIkkeAngreBehandling.BehandlingenErSattPåVent -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Behandlingen er satt på vent.",
+        kode = "behandlingen_kan_ikke_være_satt_på_vent"
     )
 }
