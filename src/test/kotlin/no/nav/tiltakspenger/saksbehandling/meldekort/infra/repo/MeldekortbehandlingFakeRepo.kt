@@ -189,6 +189,7 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
 
         if (meldekortbehandlingRespons == null ||
+            meldekortbehandlingRespons.saksbehandler != meldekortbehandling.saksbehandler ||
             meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING &&
             meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING
         ) {
@@ -204,6 +205,24 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         } else {
             throw IllegalStateException("Kan ikke angre meldekortbehandling som ikke er behandlet manuelt")
         }
+    }
+
+    override fun oppdaterHvisFortsattUnderBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
+
+        if (meldekortbehandlingRespons == null ||
+            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING ||
+            meldekortbehandlingRespons.beslutter != utøvendeBeslutter.navIdent
+        ) {
+            return false
+        }
+
+        data.get()[meldekortbehandling.id] = meldekortbehandling
+        return true
     }
 
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {

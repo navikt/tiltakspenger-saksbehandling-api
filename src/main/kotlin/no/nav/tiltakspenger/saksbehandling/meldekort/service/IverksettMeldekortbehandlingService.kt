@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -79,11 +81,11 @@ class IverksettMeldekortbehandlingService(
         behandlingMedKontroll.validerKanIverksetteUtbetaling().onLeft {
             it.logg(logger) { "Utbetaling på meldekortbehandlingen har et resultat som ikke kan iverksettes. sakId: $sakId, meldekortId: $meldekortId" }
             // Lagrer kontrollen slik at beslutter ser hva som avviker.
-            meldekortbehandlingRepo.oppdater(behandlingMedKontroll)
+            meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(meldekortbehandling = behandlingMedKontroll, utøvendeBeslutter = kommando.beslutter)
             return KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke(it, sakMedKontroll).left()
         }
 
-        return (behandlingMedKontroll as MeldekortbehandlingManuell).iverksettMeldekort(kommando.beslutter, clock, kommando.correlationId).map { (iverksattMeldekortbehandling, klagestatistikk) ->
+        return (behandlingMedKontroll as MeldekortbehandlingManuell).iverksettMeldekort(kommando.beslutter, clock, kommando.correlationId).flatMap { (iverksattMeldekortbehandling, klagestatistikk) ->
             val meldekortvedtak = iverksattMeldekortbehandling.opprettVedtak(
                 forrigeUtbetaling = sakMedKontroll.utbetalinger.lastOrNull(),
                 clock = clock,
@@ -93,21 +95,31 @@ class IverksettMeldekortbehandlingService(
             val statistikkDTO = statistikkService.generer(meldekortstatistikk + klagestatistikk)
             val oppdatertSak = sakMedKontroll.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortvedtak(meldekortvedtak)
-            sessionFactory.withTransactionContext { tx ->
-                meldekortbehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
-                meldekortvedtakRepo.lagre(meldekortvedtak, tx)
-                statistikkService.lagre(statistikkDTO, tx)
-                sakService.markerSkalSendesTilMeldekortApi(sakId = sakId, sessionContext = tx)
+            val vellykket = sessionFactory.withTransactionContext { tx ->
+                //meldekortbehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
 
-                runBlocking {
-                    tx.onSuccess {
-                        if (meldekortvedtak.meldekortbehandling.harFeilutbetaling()) {
-                            logger.info { "Meldekort med feilutbetaling har blitt iverksatt - Meldekort-id $meldekortId - vedtak-id: ${meldekortvedtak.id} - sak-id: $sakId" }
+                val oppdatert = meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(meldekortbehandling = iverksattMeldekortbehandling, utøvendeBeslutter = kommando.beslutter, transactionContext = tx)
+
+                if(oppdatert){
+                    meldekortvedtakRepo.lagre(meldekortvedtak, tx)
+                    statistikkService.lagre(statistikkDTO, tx)
+                    sakService.markerSkalSendesTilMeldekortApi(sakId = sakId, sessionContext = tx)
+
+                    runBlocking {
+                        tx.onSuccess {
+                            if (meldekortvedtak.meldekortbehandling.harFeilutbetaling()) {
+                                logger.info { "Meldekort med feilutbetaling har blitt iverksatt - Meldekort-id $meldekortId - vedtak-id: ${meldekortvedtak.id} - sak-id: $sakId" }
+                            }
                         }
                     }
                 }
+                oppdatert
             }
-            oppdatertSak to iverksattMeldekortbehandling
+            if(vellykket){
+                (oppdatertSak to iverksattMeldekortbehandling).right()
+            } else {
+                KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
+            }
         }
     }
 }

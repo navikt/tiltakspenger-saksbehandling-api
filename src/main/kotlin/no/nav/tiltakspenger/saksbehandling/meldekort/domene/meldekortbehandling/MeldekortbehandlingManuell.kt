@@ -122,12 +122,14 @@ data class MeldekortbehandlingManuell(
         correlationId: CorrelationId,
     ): Either<KanIkkeIverksetteMeldekortbehandling, Pair<MeldekortbehandlingManuell, Statistikkhendelser>> {
         krevBeslutterRolle(beslutter)
-        if (saksbehandler == beslutter.navIdent) {
-            return KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
-        }
         if (status != MeldekortbehandlingStatus.UNDER_BESLUTNING) {
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
+
+        if (saksbehandler == beslutter.navIdent) {
+            return KanIkkeIverksetteMeldekortbehandling.SaksbehandlerOgBeslutterKanIkkeVæreLik.left()
+        }
+
         if (this.beslutter != beslutter.navIdent) {
             return KanIkkeIverksetteMeldekortbehandling.MåVæreBeslutterForMeldekortet.left()
         }

@@ -437,6 +437,60 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
+    override fun oppdaterHvisFortsattUnderBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext?
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            val oppdatert = tx.run(
+                sqlQuery(
+                    """
+                    update meldekortbehandling set
+                        meldeperioder = :meldeperioder::jsonb,
+                        beregninger = :beregninger::jsonb,
+                        saksbehandler = :saksbehandler,
+                        beslutter = :forventet_beslutter,
+                        status = :status,
+                        navkontor = :navkontor,
+                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                        sendt_til_beslutning = :sendt_til_beslutning,
+                        begrunnelse = :begrunnelse,
+                        attesteringer = :attesteringer::jsonb,
+                        avbrutt = :avbrutt::jsonb,
+                        ventestatus = :ventestatus::jsonb,
+                        sist_endret = :sist_endret,
+                        utbetalingskontroll = :utbetalingskontroll::jsonb,
+                        klagebehandling_id = :klagebehandling_id
+                    where id = :id and beslutter = :forventet_beslutter and status = 'UNDER_BESLUTNING'
+                    """,
+                    "id" to meldekortbehandling.id.toString(),
+                    "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
+                    "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
+                    "saksbehandler" to meldekortbehandling.saksbehandler,
+                    "forventet_beslutter" to utøvendeBeslutter.navIdent,
+                    "status" to meldekortbehandling.status.toDb(),
+                    "navkontor" to meldekortbehandling.navkontor.kontornummer,
+                    "iverksatt_tidspunkt" to meldekortbehandling.iverksattTidspunkt,
+                    "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
+                    "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
+                    "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
+                    "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
+                    "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
+                    "sist_endret" to meldekortbehandling.sistEndret,
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
+                    "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
+                ).asUpdate
+            ) > 0
+            if(oppdatert){
+                meldekortbehandling.klagebehandling?.let {
+                    KlagebehandlingPostgresRepo.lagreKlagebehandling(klagebehandling = it, session = tx)
+                }
+            }
+            oppdatert
+        }
+    }
+
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {
         return sessionFactory.withSession { session ->
             session.run(

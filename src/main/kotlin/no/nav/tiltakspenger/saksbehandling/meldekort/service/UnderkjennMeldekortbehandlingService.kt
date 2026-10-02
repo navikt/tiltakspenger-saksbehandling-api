@@ -34,9 +34,12 @@ class UnderkjennMeldekortbehandlingService(
             besluttersBegrunnelse = begrunnelse,
             beslutter = command.saksbehandler,
             clock = clock,
-        ).map {
-            meldekortbehandlingRepo.oppdater(it)
-            sak.oppdaterMeldekortbehandling(it) to it
+        ).map { oppdatertMeldekortbehandling ->
+            //meldekortbehandlingRepo.oppdater(it)
+            if(meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(oppdatertMeldekortbehandling, utøvendeBeslutter = command.saksbehandler)){
+                return KanIkkeUnderkjenneMeldekortbehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
+            }
+            sak.oppdaterMeldekortbehandling(oppdatertMeldekortbehandling) to oppdatertMeldekortbehandling
         }
     }
 }

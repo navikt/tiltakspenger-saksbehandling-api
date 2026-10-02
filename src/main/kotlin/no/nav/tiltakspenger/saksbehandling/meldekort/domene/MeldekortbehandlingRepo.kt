@@ -92,6 +92,12 @@ interface MeldekortbehandlingRepo {
         transactionContext: TransactionContext? = null,
     ): Boolean
 
+    fun oppdaterHvisFortsattUnderBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext? = null,
+    ): Boolean
+
     fun hentBehandlingerTilDatadeling(limit: Int = 10): List<Meldekortbehandling>
 
     fun markerBehandlingSendtTilDatadeling(meldekortId: MeldekortId, tidspunkt: LocalDateTime)

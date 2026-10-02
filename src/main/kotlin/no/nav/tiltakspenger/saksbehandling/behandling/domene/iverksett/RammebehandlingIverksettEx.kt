@@ -136,7 +136,7 @@ private fun Rammebehandling.kanIverksette(utøvendeBeslutter: Saksbehandler): Ei
         VEDTATT,
         AVBRUTT,
         UNDER_AUTOMATISK_BEHANDLING,
-        -> return KanIkkeIverksetteBehandling.BehandlingenErIkkeUnderBeslutning(status).left()
+        -> return KanIkkeIverksetteBehandling.BehandlingenHarEnAnnenStatusEnnUnderBeslutning(status).left()
     }
 
     if (this.beslutter != utøvendeBeslutter.navIdent) {

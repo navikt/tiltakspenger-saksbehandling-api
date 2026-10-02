@@ -10,4 +10,6 @@ sealed interface KanIkkeUnderkjenneMeldekortbehandling {
     data object BehandlingenErAlleredeBesluttet : KanIkkeUnderkjenneMeldekortbehandling
 
     data object MåVæreBeslutterForMeldekortet : KanIkkeUnderkjenneMeldekortbehandling
+
+    data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeUnderkjenneMeldekortbehandling
 }
