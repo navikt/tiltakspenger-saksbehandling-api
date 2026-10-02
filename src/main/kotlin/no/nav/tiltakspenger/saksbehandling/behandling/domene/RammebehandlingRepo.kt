@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene
 
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
-import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import java.time.LocalDateTime
@@ -41,7 +40,7 @@ interface RammebehandlingRepo {
     fun lagreHvisFortsattUnderBeslutning(
         rammebehandling: Rammebehandling,
         utøvendeBeslutter: Saksbehandler,
-        transactionContext: TransactionContext?
+        transactionContext: TransactionContext?,
     ): Boolean
 
     fun angreBehandling(

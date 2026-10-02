@@ -78,7 +78,7 @@ class RammebehandlingService(
                     oppdatert
                 }
 
-                if(!vellykket) return KanIkkeUnderkjenne.BehandlingenErIkkeLengerUnderBeslutning.left()
+                if (!vellykket) return KanIkkeUnderkjenne.BehandlingenErIkkeLengerUnderBeslutning.left()
 
                 oppdatertSak to oppdatertRammebehandling
             }

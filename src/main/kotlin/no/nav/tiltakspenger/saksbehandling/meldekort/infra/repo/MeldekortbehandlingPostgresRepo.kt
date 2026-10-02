@@ -431,7 +431,7 @@ class MeldekortbehandlingPostgresRepo(
                     "id" to meldekortbehandling.id.toString(),
                     "status" to meldekortbehandling.status.toDb(),
                     "sist_endret" to meldekortbehandling.sistEndret,
-                    "saksbehandler" to meldekortbehandling.saksbehandler
+                    "saksbehandler" to meldekortbehandling.saksbehandler,
                 ).asUpdate,
             ) > 0
         }
@@ -440,7 +440,7 @@ class MeldekortbehandlingPostgresRepo(
     override fun oppdaterHvisFortsattUnderBeslutning(
         meldekortbehandling: Meldekortbehandling,
         utøvendeBeslutter: Saksbehandler,
-        transactionContext: TransactionContext?
+        transactionContext: TransactionContext?,
     ): Boolean {
         return sessionFactory.withTransaction(transactionContext) { tx ->
             val oppdatert = tx.run(
@@ -480,9 +480,9 @@ class MeldekortbehandlingPostgresRepo(
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
-                ).asUpdate
+                ).asUpdate,
             ) > 0
-            if(oppdatert){
+            if (oppdatert) {
                 meldekortbehandling.klagebehandling?.let {
                     KlagebehandlingPostgresRepo.lagreKlagebehandling(klagebehandling = it, session = tx)
                 }

@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.underkjenn
 
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.KunneIkkeAngreBehandling
 import no.nav.tiltakspenger.saksbehandling.felles.Loggbar
 import no.nav.tiltakspenger.saksbehandling.felles.Loggkontekst
 

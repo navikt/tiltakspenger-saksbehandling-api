@@ -81,11 +81,11 @@ fun KunneIkkeAngreBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJ
 
     KunneIkkeAngreBehandling.BehandlingenErIkkeLengerSendtTilBeslutning -> HttpStatusCode.BadRequest to ErrorJson(
         melding = "Behandlingen er ikke lenger sendt til beslutning.",
-        kode = "må_være_sendt_til_beslutning"
+        kode = "må_være_sendt_til_beslutning",
     )
 
     KunneIkkeAngreBehandling.BehandlingenErSattPåVent -> HttpStatusCode.BadRequest to ErrorJson(
         melding = "Behandlingen er satt på vent.",
-        kode = "behandlingen_kan_ikke_være_satt_på_vent"
+        kode = "behandlingen_kan_ikke_være_satt_på_vent",
     )
 }

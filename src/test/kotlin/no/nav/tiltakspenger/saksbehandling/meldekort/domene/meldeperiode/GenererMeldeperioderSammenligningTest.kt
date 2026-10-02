@@ -115,7 +115,7 @@ class GenererMeldeperioderSammenligningTest {
             attestering = ObjectMother.godkjentAttestering(beslutter, clock),
             correlationId = CorrelationId.generate(),
             clock = clock,
-        ).first
+        ).getOrFail().first
 
         val (sakMedVedtak, rammevedtak) = sak.oppdaterRammebehandling(iverksattBehandling)
             .opprettRammevedtak(iverksattBehandling, clock)

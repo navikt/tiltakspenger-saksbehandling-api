@@ -38,7 +38,7 @@ class MeldekortbehandlingPostgresRepoTest {
 
             val angretMeldekortbehandling = meldekortbehandling.angreMeldekortbehandling(saksbehandler, ObjectMother.clock).getOrFail()
 
-            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = angretMeldekortbehandling, transactionContext = null) shouldBe true
+            tac.meldekortContext.meldekortbehandlingRepo.angreBehandling(meldekortbehandling = angretMeldekortbehandling, transactionContext = null) shouldBe true
 
             tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.also {
                 it.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
@@ -52,7 +52,7 @@ class MeldekortbehandlingPostgresRepoTest {
         withTestApplicationContextAndPostgres { tac ->
             val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(tac)!!
 
-            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = meldekortbehandling, transactionContext = null) shouldBe false
+            tac.meldekortContext.meldekortbehandlingRepo.angreBehandling(meldekortbehandling = meldekortbehandling, transactionContext = null) shouldBe false
         }
     }
 

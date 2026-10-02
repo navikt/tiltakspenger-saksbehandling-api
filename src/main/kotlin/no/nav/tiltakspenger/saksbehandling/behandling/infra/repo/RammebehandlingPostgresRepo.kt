@@ -146,15 +146,15 @@ class RammebehandlingPostgresRepo(
                     "id" to rammebehandling.id.toString(),
                     "status" to rammebehandling.status.toDb(),
                     "sist_endret" to rammebehandling.sistEndret,
-                    "saksbehandler" to rammebehandling.saksbehandler
+                    "saksbehandler" to rammebehandling.saksbehandler,
                 ).asUpdate,
             ) > 0
         }
     }
 
     /**Kommentar til Anders: tanken er her å lage en ny db-funksjon med ´where´ i spørringen sånn at en
-    //beslutter ikke kan underkjenne en rammebehandling som er angret av en sakebehandler
-    //dvs. at den da må være semantisk lik den "gamle" spørringen [lagre] -> konsekvens: hvis vi legger til en ny
+     //beslutter ikke kan underkjenne en rammebehandling som er angret av en sakebehandler
+     //dvs. at den da må være semantisk lik den "gamle" spørringen [lagre] -> konsekvens: hvis vi legger til en ny
      tabell i [oppdaterRammebehandling] så må den også legges inn her.
 
      Det er også sånn at denne nå brukes når beslutter underkjenner eller iverksetter, de samme betingelsene i where gjelder for begge

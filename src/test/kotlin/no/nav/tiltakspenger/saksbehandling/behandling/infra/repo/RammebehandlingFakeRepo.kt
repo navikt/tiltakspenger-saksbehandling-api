@@ -3,7 +3,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import arrow.atomic.Atomic
-import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -15,7 +14,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
-import no.nav.tiltakspenger.saksbehandling.klage.domene.AktivTilknyttetBehandling
 import java.time.LocalDateTime
 
 class RammebehandlingFakeRepo : RammebehandlingRepo {
@@ -108,10 +106,11 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         val behandlingId = rammebehandling.id
         val behandling = data.get()[behandlingId]
         if (behandling == null ||
-            behandlingId == behandling.id ||
             rammebehandling.saksbehandler != behandling.saksbehandler ||
-            behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING &&
-            behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING
+            (
+                behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING &&
+                    behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING
+                )
         ) {
             return false
         }
@@ -122,7 +121,7 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
     override fun lagreHvisFortsattUnderBeslutning(
         rammebehandling: Rammebehandling,
         utøvendeBeslutter: Saksbehandler,
-        transactionContext: TransactionContext?
+        transactionContext: TransactionContext?,
     ): Boolean {
         val behandlingId = rammebehandling.id
         val behandling = data.get()[behandlingId]
@@ -130,13 +129,13 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         if (behandling == null ||
             behandlingId == behandling.id ||
             utøvendeBeslutter.navIdent != behandling.beslutter ||
-            behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING){
+            behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING
+        ) {
             return false
         }
 
         data.get()[behandlingId] = rammebehandling
         return true
-
     }
 
     override fun overtaSaksbehandler(

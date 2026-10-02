@@ -421,7 +421,7 @@ interface BehandlingMother : MotherOfAllMothers {
                 tidspunkt = nå(clock),
             ),
             clock = clock,
-        ).first as Søknadsbehandling
+        ).getOrFail().first as Søknadsbehandling
     }
 
     /**
@@ -489,7 +489,7 @@ interface BehandlingMother : MotherOfAllMothers {
             attestering = godkjentAttestering(beslutter, clock),
             correlationId = correlationId,
             clock = clock,
-        ).first as Søknadsbehandling
+        ).getOrFail().first as Søknadsbehandling
     }
 
     fun nyAvbruttSøknadsbehandling(

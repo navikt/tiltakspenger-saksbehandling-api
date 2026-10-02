@@ -96,11 +96,11 @@ class IverksettMeldekortbehandlingService(
             val oppdatertSak = sakMedKontroll.oppdaterMeldekortbehandling(iverksattMeldekortbehandling)
                 .leggTilMeldekortvedtak(meldekortvedtak)
             val vellykket = sessionFactory.withTransactionContext { tx ->
-                //meldekortbehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
+                // meldekortbehandlingRepo.oppdater(iverksattMeldekortbehandling, tx)
 
                 val oppdatert = meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(meldekortbehandling = iverksattMeldekortbehandling, utøvendeBeslutter = kommando.beslutter, transactionContext = tx)
 
-                if(oppdatert){
+                if (oppdatert) {
                     meldekortvedtakRepo.lagre(meldekortvedtak, tx)
                     statistikkService.lagre(statistikkDTO, tx)
                     sakService.markerSkalSendesTilMeldekortApi(sakId = sakId, sessionContext = tx)
@@ -115,7 +115,7 @@ class IverksettMeldekortbehandlingService(
                 }
                 oppdatert
             }
-            if(vellykket){
+            if (vellykket) {
                 (oppdatertSak to iverksattMeldekortbehandling).right()
             } else {
                 KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeLengerUnderBeslutning.left()

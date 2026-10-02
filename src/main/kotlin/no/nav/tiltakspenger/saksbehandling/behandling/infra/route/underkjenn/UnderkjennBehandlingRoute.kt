@@ -20,7 +20,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.dto.tilRammebe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
-import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 
 private const val PATH = "/sak/{sakId}/behandling/{behandlingId}/underkjenn"
@@ -100,6 +99,6 @@ private fun KanIkkeUnderkjenne.toStatusAndErrorJson(): Pair<HttpStatusCode, Erro
 
     KanIkkeUnderkjenne.RammebehandlingenErSattPåVent -> HttpStatusCode.BadRequest to ErrorJson(
         melding = "Kan ikke underkjenne fordi behandlingen er satt på vent.",
-        kode = "Behandlingen_kan_ikke_være_satt_på_vent"
+        kode = "Behandlingen_kan_ikke_være_satt_på_vent",
     )
 }

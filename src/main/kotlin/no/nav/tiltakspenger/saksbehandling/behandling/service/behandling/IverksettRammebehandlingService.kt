@@ -65,8 +65,8 @@ class IverksettRammebehandlingService(
         // TODO jah: Mye som kan flyttes ut av service her
         val behandling: Rammebehandling = sak.hentRammebehandling(rammebehandlingId)!!
 
-        //Saken har blitt angret av saksbehandler
-        if(behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING) {
+        // Saken har blitt angret av saksbehandler
+        if (behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING) {
             return KanIkkeIverksetteBehandling.BehandlingenHarEnAnnenStatusEnnUnderBeslutning(behandling.status).left()
         }
 
@@ -86,7 +86,7 @@ class IverksettRammebehandlingService(
 
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
             it.logg(logger) { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${behandlingMedUtbetalingskontroll.loggkontekst(correlationId)}" }
-            //rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
+            // rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
 
             val vellykket = sessionFactory.withTransactionContext { tx ->
                 val oppdatert = rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(rammebehandling = behandlingMedUtbetalingskontroll, utøvendeBeslutter = beslutter, transactionContext = tx)
@@ -94,8 +94,7 @@ class IverksettRammebehandlingService(
             }
             val oppdaterSak = sak.oppdaterRammebehandling(behandlingMedUtbetalingskontroll)
 
-
-            if(!vellykket) return KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
+            if (!vellykket) return KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
 
             return KanIkkeIverksetteBehandling.UtbetalingFeil(
                 it,
@@ -177,7 +176,7 @@ class IverksettRammebehandlingService(
     private suspend fun Sak.iverksettAvslag(
         rammevedtak: Rammevedtak,
         statistikkhendelser: Statistikkhendelser,
-        utøvendeBeslutter: Saksbehandler
+        utøvendeBeslutter: Saksbehandler,
     ): Either<KanIkkeIverksetteBehandling, Sak> {
         val vellykket = lagreIverksattVedtak(
             rammevedtak = rammevedtak,
@@ -191,7 +190,7 @@ class IverksettRammebehandlingService(
             },
         )
 
-        if(!vellykket) return KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
+        if (!vellykket) return KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
 
         return this.right()
     }
@@ -275,7 +274,7 @@ class IverksettRammebehandlingService(
             },
         )
 
-        if(!vellykket) return KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
+        if (!vellykket) return KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
 
         return sakOppdatertMedMeldekortbehandlinger.right()
     }
@@ -292,14 +291,14 @@ class IverksettRammebehandlingService(
         utøvendeBeslutter: Saksbehandler,
         tilleggsoperasjoner: (tx: TransactionContext) -> Unit,
         onSuccess: () -> Unit = {},
-    ): Boolean{
+    ): Boolean {
         // journalføring og dokumentdistribusjon skjer i egen jobb
 
         val statistikkDTO = statistikkService.generer(statistikkhendelser)
         val vellykket = sessionFactory.withTransactionContext { tx ->
-            //rammebehandlingRepo.lagre(rammevedtak.rammebehandling, tx)
+            // rammebehandlingRepo.lagre(rammevedtak.rammebehandling, tx)
             val godkjent = rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(rammebehandling = rammevedtak.rammebehandling, utøvendeBeslutter = utøvendeBeslutter, transactionContext = tx)
-            if(godkjent){
+            if (godkjent) {
                 rammevedtakRepo.lagre(rammevedtak, tx)
                 statistikkService.lagre(statistikkDTO, tx)
                 tilleggsoperasjoner(tx)

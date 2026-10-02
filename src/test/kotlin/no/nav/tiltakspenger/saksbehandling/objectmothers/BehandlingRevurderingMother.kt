@@ -194,7 +194,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             attestering = attestering,
             correlationId = correlationId,
             clock = clock,
-        ).first as Revurdering
+        ).getOrFail().first as Revurdering
     }
 
     /**
@@ -360,7 +360,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             attestering = attestering,
             correlationId = correlationId,
             clock = clock,
-        ).first as Revurdering
+        ).getOrFail().first as Revurdering
     }
 
     fun nyOpprettetRevurderingOmgjøring(
@@ -523,7 +523,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         attestering = attestering,
         correlationId = correlationId,
         clock = clock,
-    ).first
+    ).getOrFail().first
 
     fun RevurderingsresultatType.tilStartRevurderingType(): StartRevurderingType {
         return when (this) {

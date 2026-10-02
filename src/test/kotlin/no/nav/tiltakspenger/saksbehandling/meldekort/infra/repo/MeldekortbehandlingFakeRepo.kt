@@ -190,8 +190,10 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
 
         if (meldekortbehandlingRespons == null ||
             meldekortbehandlingRespons.saksbehandler != meldekortbehandling.saksbehandler ||
-            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING &&
-            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING
+            (
+                meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING &&
+                    meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING
+                )
         ) {
             return false
         }
@@ -199,7 +201,7 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         if (meldekortbehandling is MeldekortbehandlingManuell) {
             data.get()[meldekortbehandling.id] = meldekortbehandling.copy(
                 sendtTilBeslutning = null,
-                beslutter = null
+                beslutter = null,
             )
             return true
         } else {

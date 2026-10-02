@@ -105,6 +105,6 @@ fun KanIkkeUnderkjenneMeldekortbehandling.toErrorJson(): Pair<HttpStatusCode, Er
 
     KanIkkeUnderkjenneMeldekortbehandling.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
         melding = "Meldekortbehandlingen er ikke lenger sendt til beslutning.",
-        kode = "må_være_sendt_til_beslutning"
+        kode = "må_være_sendt_til_beslutning",
     )
 }

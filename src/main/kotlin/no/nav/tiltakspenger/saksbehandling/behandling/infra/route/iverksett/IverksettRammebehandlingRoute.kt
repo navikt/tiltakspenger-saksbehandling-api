@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.route.omgjøringsgru
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.IverksettRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevBeslutterRolle
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil.behandlingenEiesAvAnnenSaksbehandler
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.routes.tilErrorJson
@@ -105,6 +106,33 @@ private suspend fun ApplicationCall.handleIverksettFeil(feil: KanIkkeIverksetteB
             HttpStatusCode.Conflict to ErrorJson(
                 "Vedtaket som iverksettes må være det siste vedtaket på saken. Saken kan ha blitt endret av et nytt vedtak etter at behandlingen ble sendt til godkjenning, og må sendes tilbake for å vurderes på nytt.",
                 "vedtak_er_ikke_siste_vedtak_på_saken",
+            ),
+        )
+
+        is KanIkkeIverksetteBehandling.BehandlingenHarEnAnnenStatusEnnUnderBeslutning -> respondJson(
+            HttpStatusCode.Conflict to ErrorJson(
+                "Behandlingen er ikke under beslutning. Status: ${feil.status}.",
+                "behandlingen_er_ikke_under_beslutning",
+            ),
+        )
+
+        KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning -> respondJson(
+            HttpStatusCode.Conflict to ErrorJson(
+                "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+                "behandlingen_er_ikke_under_beslutning",
+            ),
+        )
+
+        KanIkkeIverksetteBehandling.BehandlingenErAlleredeGodkjent -> respondJson(
+            HttpStatusCode.BadRequest to ErrorJson(
+                "Behandlingen er allerede godkjent.",
+                "behandlingen_er_allerede_godkjent",
+            ),
+        )
+
+        KanIkkeIverksetteBehandling.BehandlingenErSattPåVent -> respondJson(
+            HttpStatusCode.BadRequest to Standardfeil.behandlingenErSattPåVent(
+                melding = "Kan ikke iverksette fordi behandlingen er satt på vent.",
             ),
         )
     }
