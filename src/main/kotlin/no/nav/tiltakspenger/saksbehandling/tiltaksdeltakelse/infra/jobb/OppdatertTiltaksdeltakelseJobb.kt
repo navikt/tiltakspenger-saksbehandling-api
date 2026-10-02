@@ -97,7 +97,13 @@ class OppdatertTiltaksdeltakelseJobb(
                 log.info { "Fant ingen lesbar nå-tilstand for deltakelsen i tiltakshistorikken: $logIder" }
                 null
             } else {
-                vurderEndringerOgOpprettRevurderingEllerOppgave(sak, deltaker, nåtilstand, markør, logIder).getOrElse { feil ->
+                vurderEndringerOgOpprettRevurderingEllerOppgave(
+                    sak,
+                    deltaker,
+                    nåtilstand,
+                    markør,
+                    logIder,
+                ).getOrElse { feil ->
                     // Markøren står igjen, slik at oppgaveopprettelsen prøves på nytt ved neste kjøring.
                     feil.loggFeil(log, "opprettelse av gosysoppgave for endret tiltaksdeltakelse", logIder)
                     return
@@ -105,10 +111,12 @@ class OppdatertTiltaksdeltakelseJobb(
             }
 
             sessionFactory.withTransactionContext { tx ->
-                eksternOppgave?.let { eksternOppgaveRepo.lagre(it, tx) }
                 tiltaksdeltakerRepo.markerEndringSomBehandlet(deltaker.id, markør, tx)
+                eksternOppgave?.also {
+                    eksternOppgaveRepo.lagre(it, tx)
+                    log.info { "Lagret oppgaveId ${it.oppgaveId} for tiltaksdeltakelse: $logIder" }
+                }
             }
-            eksternOppgave?.let { log.info { "Lagret oppgaveId ${it.oppgaveId} for tiltaksdeltakelse: $logIder" } }
         }.onLeft {
             log.error(it) { "Feil ved behandling av endret tiltaksdeltakelse ($logIder)" }
         }
@@ -135,16 +143,23 @@ class OppdatertTiltaksdeltakelseJobb(
         markør: LocalDateTime,
         logIder: String,
     ): Either<HttpKlientError, EksternOppgave?> {
-        val endringer = sak.finnEndringer(deltaker.id, nåtilstand, clock)
-        if (endringer == null) {
+        val endring = sak.finnEndringer(deltaker.id, nåtilstand, clock)
+
+        if (endring == null) {
             log.info { "Fant ingen relevante endringer for $logIder" }
             return null.right()
         }
 
-        val revurderingSomSkalOpprettes = sak.vurderRevurdering(deltaker.id, endringer)
+        if (endring is TiltaksdeltakerEndring.AvsluttetSomForventet) {
+            log.info { "Tiltaksdeltakelsen er avsluttet som forventet, gjør ingenting for $logIder" }
+            return null.right()
+        }
+
+        val revurderingSomSkalOpprettes = sak.vurderRevurdering(deltaker.id, endring)
+
         if (revurderingSomSkalOpprettes == null) {
             log.info { "Tiltaksdeltakelse er endret uten å opprette revurdering, oppretter oppgave ($logIder)" }
-            val tilleggstekst = endringer.getOppgaveTilleggstekst()
+            val tilleggstekst = endring.getOppgaveTilleggstekst()
             return oppgaveKlient.opprettOppgaveUtenDuplikatkontroll(
                 fnr = sak.fnr,
                 oppgavebehov = Oppgavebehov.ENDRET_TILTAKDELTAKER,
@@ -172,7 +187,7 @@ class OppdatertTiltaksdeltakelseJobb(
             vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
             klagebehandlingId = null,
             automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(
-                endringer = endringer,
+                endring = endring,
                 hendelseId = null,
             ),
         )
@@ -190,7 +205,7 @@ class OppdatertTiltaksdeltakelseJobb(
 
     private fun Sak.vurderRevurdering(
         deltakerId: TiltaksdeltakerId,
-        endringer: TiltaksdeltakerEndringer,
+        endring: TiltaksdeltakerEndring,
     ): AutomatiskRevurdering? {
         if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
             log.info {
@@ -199,21 +214,23 @@ class OppdatertTiltaksdeltakelseJobb(
             return null
         }
 
-        if (endringer.avbrutt != null) {
-            return vurderRevurderingForAvbrudd(deltakerId)
-        }
+        return when (endring) {
+            is TiltaksdeltakerEndring.AvbruttDeltakelse -> vurderRevurderingForAvbrudd(deltakerId)
 
-        if (endringer.forlengelse != null) {
-            val forlengelse = vurderRevurderingForForlengelse(endringer.forlengelse!!)
-            if (forlengelse != null) return forlengelse
-        }
+            // En forlengelse som allerede er innvilget kan fortsatt kreve omgjøring dersom deltakelsesmengden er endret samtidig.
+            is TiltaksdeltakerEndring.Forlengelse -> vurderRevurderingForForlengelse(endring)
+                ?: endring.endretDeltakelsesmengde?.let { vurderOmgjøring(deltakerId) }
 
-        return when {
-            endringer.endretStartdato != null ||
-                endringer.endretSluttdato != null ||
-                endringer.endretDeltakelsesmengde != null -> vurderOmgjøring(deltakerId)
+            is TiltaksdeltakerEndring.AndreEndringer -> {
+                val harEndretPeriodeEllerMengde = endring.endretStartdato != null ||
+                    endring.endretSluttdato != null ||
+                    endring.endretDeltakelsesmengde != null
+                if (harEndretPeriodeEllerMengde) vurderOmgjøring(deltakerId) else null
+            }
 
-            else -> null
+            is TiltaksdeltakerEndring.IkkeAktuellDeltakelse,
+            is TiltaksdeltakerEndring.AvsluttetSomForventet,
+            -> null
         }
     }
 

@@ -142,8 +142,8 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 oppdatertSak.rammebehandlinger shouldHaveSize behandlingerFør.size + 1
                 val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
-                revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe
-                    listOf(TiltaksdeltakerEndring.Forlengelse(nySluttdato))
+                revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
+                    TiltaksdeltakerEndring.Forlengelse(nySluttdato)
             } else {
                 oppdatertSak.rammebehandlinger.map { it.id } shouldBe behandlingerFør
             }
@@ -170,8 +170,8 @@ class OppdatertTiltaksdeltakelseJobbTest {
             oppdatertSak.rammebehandlinger shouldHaveSize 2
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
-            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe
-                listOf(TiltaksdeltakerEndring.Forlengelse(5.juni(2025)))
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
+                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
         }
     }
 
@@ -337,7 +337,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
             grunn.hendelseId.shouldBeNull()
-            grunn.endringer shouldBe listOf(TiltaksdeltakerEndring.AvbruttDeltakelse)
+            grunn.endring shouldBe TiltaksdeltakerEndring.AvbruttDeltakelse
         }
     }
 
@@ -373,14 +373,14 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
-            grunn.endringer shouldBe if (endretDeltakelsesmengde) {
-                listOf(
-                    TiltaksdeltakerEndring.EndretDeltakelsesmengde(tiltaksdeltakelse.deltakelseProsent, 3F),
-                    TiltaksdeltakerEndring.Forlengelse(5.juni(2025)),
-                )
-            } else {
-                listOf(TiltaksdeltakerEndring.Forlengelse(5.juni(2025)))
-            }
+            grunn.endring shouldBe TiltaksdeltakerEndring.Forlengelse(
+                nySluttdato = 5.juni(2025),
+                endretDeltakelsesmengde = if (endretDeltakelsesmengde) {
+                    TiltaksdeltakerEndring.EndretDeltakelsesmengde(tiltaksdeltakelse.deltakelseProsent, 3F)
+                } else {
+                    null
+                },
+            )
         }
     }
 
@@ -414,7 +414,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
             revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
                 .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(sak.rammevedtaksliste.single().id)
-            grunn.endringer shouldBe listOf(TiltaksdeltakerEndring.EndretStartdato(6.januar(2025)))
+            grunn.endring shouldBe TiltaksdeltakerEndring.AndreEndringer(
+                endretStartdato = TiltaksdeltakerEndring.EndretStartdato(6.januar(2025)),
+            )
         }
     }
 
@@ -626,7 +628,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
                 .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(førsteVedtak.id)
-            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe listOf(TiltaksdeltakerEndring.AvbruttDeltakelse)
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.AvbruttDeltakelse
             tac.assertMarkørNullstilt(første.eksternDeltakelseId)
         }
     }
@@ -712,9 +714,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
                     .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(førsteVedtak.id)
-                revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe listOf(
-                    TiltaksdeltakerEndring.EndretDeltakelsesmengde(første.deltakelseProsent, 3F),
-                    TiltaksdeltakerEndring.Forlengelse(9.mai(2025)),
+                revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.Forlengelse(
+                    nySluttdato = 9.mai(2025),
+                    endretDeltakelsesmengde = TiltaksdeltakerEndring.EndretDeltakelsesmengde(første.deltakelseProsent, 3F),
                 )
             } else {
                 oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedBeggeVedtak.rammebehandlinger.map { it.id }
@@ -739,8 +741,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
                 .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(vedtak.id)
-            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe
-                listOf(TiltaksdeltakerEndring.EndretSluttdato(3.mai(2025)))
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.AndreEndringer(
+                endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(3.mai(2025)),
+            )
             tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }

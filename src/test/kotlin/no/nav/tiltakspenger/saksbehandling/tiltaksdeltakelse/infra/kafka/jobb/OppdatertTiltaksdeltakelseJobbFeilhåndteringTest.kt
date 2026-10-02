@@ -166,8 +166,8 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             val etterRetry = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
             etterRetry.rammebehandlinger.size shouldBe 2
             etterRetry.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe
-                listOf(TiltaksdeltakerEndring.Forlengelse(5.juni(2025)))
+                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
+                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
 
             jobb.behandleDeltaker(deltaker)
             jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
@@ -213,8 +213,8 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             val etterNyMarkør = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
             etterNyMarkør.rammebehandlinger.size shouldBe 2
             etterNyMarkør.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe
-                listOf(TiltaksdeltakerEndring.Forlengelse(5.juni(2025)))
+                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
+                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
         }
     }
 
@@ -246,8 +246,8 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             val etterFeiletKvittering = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
             etterFeiletKvittering.rammebehandlinger.size shouldBe 2
             etterFeiletKvittering.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe
-                listOf(TiltaksdeltakerEndring.Forlengelse(5.juni(2025)))
+                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
+                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
 
             jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
 
@@ -348,8 +348,8 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
             oppdatertSak.rammebehandlinger.size shouldBe 2
             oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endringer shouldBe
-                listOf(TiltaksdeltakerEndring.Forlengelse(5.juni(2025)))
+                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
+                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
         }
     }
 

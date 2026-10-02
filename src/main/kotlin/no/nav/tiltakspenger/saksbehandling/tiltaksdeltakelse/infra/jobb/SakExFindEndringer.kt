@@ -6,21 +6,20 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseLegacy
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndringer.Companion.tilEndringer
 import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Sammenligner nå-tilstanden fra tiltakshistorikk med den ferskeste kjente tilstanden for deltakelsen i saken.
+ * Sammenligner nå-tilstanden fra tiltakshistorikk med den ferskeste kjente tilstanden for deltakelsen i saken, og tolker forskjellen til ett utfall.
  * Gir null dersom deltakelsen ikke er kjent fra noen vedtatt eller åpen manuell behandling, eller dersom ingenting er endret.
  */
 fun Sak.finnEndringer(
     tiltaksdeltakerId: TiltaksdeltakerId,
-    nåtilstand: TiltaksdeltakelseLegacy,
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
     clock: Clock,
-): TiltaksdeltakerEndringer? {
+): TiltaksdeltakerEndring? {
     val kjentTilstand = finnSisteRelevanteTiltaksdeltakelse(tiltaksdeltakerId, clock) ?: return null
-    return finnEndringer(nåtilstand, kjentTilstand, clock)
+    return kjentTilstand.finnEndringer(oppdatertDeltakelse, clock)
 }
 
 /**
@@ -68,111 +67,100 @@ private fun Sak.finnSisteRelevanteTiltaksdeltakelse(
 }
 
 /**
- * Finner endringene mellom nå-tilstanden fra tiltakshistorikk og tilstanden saken kjenner til.
+ * Tolker endringene mellom nå-tilstanden fra tiltakshistorikk og tilstanden saken kjenner til.
+ * Utfallene prioriteres i rekkefølgen avbrutt, ikke aktuell, forlengelse og andre endringer.
+ * Avsluttet som forventet gis bare når statusendringen er den eneste endringen.
  * Gir null dersom ingenting relevant er endret.
  */
-private fun finnEndringer(
-    nåtilstand: TiltaksdeltakelseLegacy,
-    kjentTilstand: TiltaksdeltakelseLegacy,
+private fun TiltaksdeltakelseLegacy.finnEndringer(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
     clock: Clock,
-): TiltaksdeltakerEndringer? {
-    val endringer = mutableListOf<TiltaksdeltakerEndring>()
-    val sammeFom = nåtilstand.deltakelseFraOgMed == kjentTilstand.deltakelseFraOgMed
-    val sammeTom = nåtilstand.deltakelseTilOgMed == kjentTilstand.deltakelseTilOgMed
+): TiltaksdeltakerEndring? {
+    return when {
+        erUendret(oppdatertDeltakelse) -> null
 
-    val sammeAntallDagerPerUke = floatIsEqual(nåtilstand.antallDagerPerUke, kjentTilstand.antallDagerPerUke)
-    val sammeDeltakelsesprosent = floatIsEqual(nåtilstand.deltakelseProsent, kjentTilstand.deltakelseProsent)
-    val sammeStatus = nåtilstand.deltakelseStatus == kjentTilstand.deltakelseStatus
+        erAvsluttetSomForventet(oppdatertDeltakelse, clock) -> TiltaksdeltakerEndring.AvsluttetSomForventet
 
-    if (sammeFom &&
-        sammeTom &&
-        sammeAntallDagerPerUke &&
-        sammeDeltakelsesprosent &&
-        (sammeStatus || deltakelsenErAvsluttetSomForventet(nåtilstand, clock))
-    ) {
-        return null
-    }
+        erAvbruttDeltakelse(oppdatertDeltakelse, clock) -> TiltaksdeltakerEndring.AvbruttDeltakelse
 
-    if (erAvbruttDeltakelse(nåtilstand, sammeStatus, sammeTom, kjentTilstand, clock)) {
-        endringer.add(TiltaksdeltakerEndring.AvbruttDeltakelse)
-        return endringer.tilEndringer()
-    }
+        erIkkeAktuellDeltakelse(oppdatertDeltakelse) -> TiltaksdeltakerEndring.IkkeAktuellDeltakelse
 
-    if (!sammeStatus && nåtilstand.deltakelseStatus == TiltakDeltakerstatus.IkkeAktuell) {
-        endringer.add(TiltaksdeltakerEndring.IkkeAktuellDeltakelse)
-        return endringer.tilEndringer()
-    }
+        erForlengelse(oppdatertDeltakelse) -> TiltaksdeltakerEndring.Forlengelse(
+            nySluttdato = oppdatertDeltakelse.deltakelseTilOgMed!!,
+            endretDeltakelsesmengde = endretDeltakelsesmengde(oppdatertDeltakelse),
+        )
 
-    if (!sammeDeltakelsesprosent || !sammeAntallDagerPerUke) {
-        endringer.add(
-            TiltaksdeltakerEndring.EndretDeltakelsesmengde(
-                nåtilstand.deltakelseProsent,
-                nåtilstand.antallDagerPerUke,
-            ),
+        else -> TiltaksdeltakerEndring.AndreEndringer(
+            endretDeltakelsesmengde = endretDeltakelsesmengde(oppdatertDeltakelse),
+            endretStartdato = endretStartdato(oppdatertDeltakelse),
+            endretSluttdato = endretSluttdato(oppdatertDeltakelse),
+            endretStatus = endretStatus(oppdatertDeltakelse),
         )
     }
-
-    if (erForlengelse(nåtilstand, sammeFom, kjentTilstand)) {
-        endringer.add(TiltaksdeltakerEndring.Forlengelse(nåtilstand.deltakelseTilOgMed!!))
-        return endringer.tilEndringer()
-    }
-
-    if (!sammeFom) {
-        endringer.add(TiltaksdeltakerEndring.EndretStartdato(nåtilstand.deltakelseFraOgMed))
-    }
-    if (!sammeTom) {
-        endringer.add(TiltaksdeltakerEndring.EndretSluttdato(nåtilstand.deltakelseTilOgMed))
-    }
-    if (!sammeStatus) {
-        endringer.add(TiltaksdeltakerEndring.EndretStatus(nåtilstand.deltakelseStatus))
-    }
-
-    return endringer.tilEndringer()
 }
 
-private fun floatIsEqual(a: Float?, b: Float?): Boolean {
-    return if (a == null && b == 0F) {
-        true
-    } else if (b == null && a == 0F) {
-        true
-    } else {
-        compareValues(a, b) == 0
-    }
+private fun TiltaksdeltakelseLegacy.harSammeFraOgMed(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+    return deltakelseFraOgMed == oppdatertDeltakelse.deltakelseFraOgMed
 }
 
-private fun deltakelsenErAvsluttetSomForventet(
-    nåtilstand: TiltaksdeltakelseLegacy,
+private fun TiltaksdeltakelseLegacy.harSammeTilOgMed(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+    return deltakelseTilOgMed == oppdatertDeltakelse.deltakelseTilOgMed
+}
+
+private fun TiltaksdeltakelseLegacy.harSammeStatus(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+    return deltakelseStatus == oppdatertDeltakelse.deltakelseStatus
+}
+
+private fun TiltaksdeltakelseLegacy.harSammeDeltakelsesmengde(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+    return compareValues(deltakelseProsent ?: 0F, oppdatertDeltakelse.deltakelseProsent ?: 0F) == 0 &&
+        compareValues(antallDagerPerUke ?: 0F, oppdatertDeltakelse.antallDagerPerUke ?: 0F) == 0
+}
+
+private fun TiltaksdeltakelseLegacy.erUendret(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+    return harSammeFraOgMed(oppdatertDeltakelse) &&
+        harSammeTilOgMed(oppdatertDeltakelse) &&
+        harSammeDeltakelsesmengde(oppdatertDeltakelse) &&
+        harSammeStatus(oppdatertDeltakelse)
+}
+
+/**
+ * Gjelder bare når statusen er den eneste endringen, og den nye statusen er en forventet avslutning med sluttdato i dag eller tidligere.
+ */
+private fun TiltaksdeltakelseLegacy.erAvsluttetSomForventet(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
     clock: Clock,
 ): Boolean {
-    // Interface-propertyen kan ikke smart-castes, så den bindes lokalt først.
-    val tilOgMed = nåtilstand.deltakelseTilOgMed
-    return (
-        (nåtilstand.deltakelseStatus == TiltakDeltakerstatus.HarSluttet || nåtilstand.deltakelseStatus == TiltakDeltakerstatus.Fullført) &&
-            tilOgMed != null &&
-            !tilOgMed.isAfter(LocalDate.now(clock))
-        )
+    val bareStatusErEndret = harSammeFraOgMed(oppdatertDeltakelse) &&
+        harSammeTilOgMed(oppdatertDeltakelse) &&
+        harSammeDeltakelsesmengde(oppdatertDeltakelse) &&
+        !harSammeStatus(oppdatertDeltakelse)
+
+    if (!bareStatusErEndret) {
+        return false
+    }
+
+    val nyStatusErAvsluttet = oppdatertDeltakelse.deltakelseStatus == TiltakDeltakerstatus.HarSluttet ||
+        oppdatertDeltakelse.deltakelseStatus == TiltakDeltakerstatus.Fullført
+    val nySluttdato = oppdatertDeltakelse.deltakelseTilOgMed
+
+    return nyStatusErAvsluttet && nySluttdato != null && !nySluttdato.isAfter(LocalDate.now(clock))
 }
 
-private fun erAvbruttDeltakelse(
-    nåtilstand: TiltaksdeltakelseLegacy,
-    sammeStatus: Boolean,
-    sammeTom: Boolean,
-    kjentTilstand: TiltaksdeltakelseLegacy,
+private fun TiltaksdeltakelseLegacy.erAvbruttDeltakelse(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
     clock: Clock,
 ): Boolean {
-    val statusEndretTilAvbrutt = !sammeStatus && nåtilstand.deltakelseStatus == TiltakDeltakerstatus.Avbrutt
-    if (statusEndretTilAvbrutt) return true
-
-    return !sammeTom && erSluttdatoAvkortetTilFortiden(nåtilstand, kjentTilstand, clock)
+    val statusEndretTilAvbrutt = !harSammeStatus(oppdatertDeltakelse) &&
+        oppdatertDeltakelse.deltakelseStatus == TiltakDeltakerstatus.Avbrutt
+    return statusEndretTilAvbrutt || erSluttdatoAvkortetTilFortiden(oppdatertDeltakelse, clock)
 }
 
-private fun erSluttdatoAvkortetTilFortiden(
-    nåtilstand: TiltaksdeltakelseLegacy,
-    kjentTilstand: TiltaksdeltakelseLegacy,
+private fun TiltaksdeltakelseLegacy.erSluttdatoAvkortetTilFortiden(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
     clock: Clock,
 ): Boolean {
-    val nySluttdato = nåtilstand.deltakelseTilOgMed ?: return false
-    val gammelSluttdato = kjentTilstand.deltakelseTilOgMed
+    val nySluttdato = oppdatertDeltakelse.deltakelseTilOgMed ?: return false
+    val gammelSluttdato = deltakelseTilOgMed
 
     // En null tilOgMed i kjent tilstand betyr en åpen/uavsluttet deltakelse.
     // Å sette en tilOgMed i fortiden er da en avkorting og regnes som avbrutt.
@@ -181,13 +169,58 @@ private fun erSluttdatoAvkortetTilFortiden(
     return erAvkortet && erIFortiden
 }
 
+private fun TiltaksdeltakelseLegacy.erIkkeAktuellDeltakelse(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+    return !harSammeStatus(oppdatertDeltakelse) &&
+        oppdatertDeltakelse.deltakelseStatus == TiltakDeltakerstatus.IkkeAktuell
+}
+
 // En null tilOgMed i kjent tilstand betyr en åpen/uavsluttet deltakelse.
 // Å sette en sluttdato på en åpen deltakelse er en innskrenking, ikke en forlengelse.
-private fun erForlengelse(
-    nåtilstand: TiltaksdeltakelseLegacy,
-    sammeFom: Boolean,
-    kjentTilstand: TiltaksdeltakelseLegacy,
-): Boolean {
-    val gammelSluttdato = kjentTilstand.deltakelseTilOgMed ?: return false
-    return sammeFom && nåtilstand.deltakelseTilOgMed?.isAfter(gammelSluttdato) == true
+private fun TiltaksdeltakelseLegacy.erForlengelse(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+    val gammelSluttdato = deltakelseTilOgMed ?: return false
+    return harSammeFraOgMed(oppdatertDeltakelse) &&
+        oppdatertDeltakelse.deltakelseTilOgMed?.isAfter(gammelSluttdato) == true
+}
+
+private fun TiltaksdeltakelseLegacy.endretDeltakelsesmengde(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+): TiltaksdeltakerEndring.EndretDeltakelsesmengde? {
+    if (harSammeDeltakelsesmengde(oppdatertDeltakelse)) {
+        return null
+    }
+
+    return TiltaksdeltakerEndring.EndretDeltakelsesmengde(
+        oppdatertDeltakelse.deltakelseProsent,
+        oppdatertDeltakelse.antallDagerPerUke,
+    )
+}
+
+private fun TiltaksdeltakelseLegacy.endretStartdato(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+): TiltaksdeltakerEndring.EndretStartdato? {
+    if (harSammeFraOgMed(oppdatertDeltakelse)) {
+        return null
+    }
+
+    return TiltaksdeltakerEndring.EndretStartdato(oppdatertDeltakelse.deltakelseFraOgMed)
+}
+
+private fun TiltaksdeltakelseLegacy.endretSluttdato(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+): TiltaksdeltakerEndring.EndretSluttdato? {
+    if (harSammeTilOgMed(oppdatertDeltakelse)) {
+        return null
+    }
+
+    return TiltaksdeltakerEndring.EndretSluttdato(oppdatertDeltakelse.deltakelseTilOgMed)
+}
+
+private fun TiltaksdeltakelseLegacy.endretStatus(
+    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+): TiltaksdeltakerEndring.EndretStatus? {
+    if (harSammeStatus(oppdatertDeltakelse)) {
+        return null
+    }
+
+    return TiltaksdeltakerEndring.EndretStatus(oppdatertDeltakelse.deltakelseStatus)
 }

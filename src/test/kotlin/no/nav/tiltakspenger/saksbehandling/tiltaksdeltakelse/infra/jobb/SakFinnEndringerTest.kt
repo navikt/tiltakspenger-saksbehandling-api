@@ -9,7 +9,9 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AndreEndringer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvsluttetSomForventet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretDeltakelsesmengde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretSluttdato
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretStartdato
@@ -48,7 +50,7 @@ class SakFinnEndringerTest {
 
         sak.finnEndringer(
             tiltaksdeltakerId = TiltaksdeltakerId.random(),
-            nåtilstand = kjentTilstand.copy(deltakelseProsent = 60F),
+            oppdatertDeltakelse = kjentTilstand.copy(deltakelseProsent = 60F),
             clock = clock,
         ).shouldBeNull()
     }
@@ -64,8 +66,8 @@ class SakFinnEndringerTest {
         val oppdatertSak = sak.medNyereÅpenBehandling(nyereTilstand)
 
         oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand, clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand, clock)?.toList() shouldBe
-            listOf(EndretDeltakelsesmengde(vedtattTilstand.deltakelseProsent, vedtattTilstand.antallDagerPerUke))
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand, clock) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(vedtattTilstand.deltakelseProsent, vedtattTilstand.antallDagerPerUke))
     }
 
     @Test
@@ -80,8 +82,8 @@ class SakFinnEndringerTest {
 
         oppdatertSak.rammebehandlinger.last().erUnderAutomatiskBehandling shouldBe true
         oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand, clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand, clock)?.toList() shouldBe
-            listOf(EndretDeltakelsesmengde(60F, 1F))
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand, clock) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F))
     }
 
     @Test
@@ -100,8 +102,8 @@ class SakFinnEndringerTest {
         val nåtilstand = vedtattTilstand.copy(deltakelseProsent = 60F, antallDagerPerUke = 1F)
 
         oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand, clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nåtilstand, clock)?.toList() shouldBe
-            listOf(EndretDeltakelsesmengde(60F, 1F))
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nåtilstand, clock) shouldBe
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F))
     }
 
     @ParameterizedTest
@@ -116,7 +118,7 @@ class SakFinnEndringerTest {
     ) {
         val nåtilstand = kjentTilstand.copy(deltakelseProsent = prosent, antallDagerPerUke = dager)
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe listOf(EndretDeltakelsesmengde(prosent, dager))
+        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(prosent, dager))
     }
 
     @ParameterizedTest
@@ -136,9 +138,9 @@ class SakFinnEndringerTest {
             deltakelseTilOgMed = nySluttdato,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe listOf(
-            EndretDeltakelsesmengde(prosent, dager),
-            Forlengelse(nySluttdato),
+        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe Forlengelse(
+            nySluttdato = nySluttdato,
+            endretDeltakelsesmengde = EndretDeltakelsesmengde(prosent, dager),
         )
     }
 
@@ -187,7 +189,7 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseProsent = gammelProsent, antallDagerPerUke = gamleDager)
         val nåtilstand = kjent.copy(deltakelseProsent = nyProsent, antallDagerPerUke = nyeDager)
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe listOf(EndretDeltakelsesmengde(nyProsent, nyeDager))
+        finnEndringerPåSak(kjent, nåtilstand) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(nyProsent, nyeDager))
     }
 
     @Test
@@ -197,7 +199,7 @@ class SakFinnEndringerTest {
         finnEndringerPåSak(
             kjentTilstand,
             kjentTilstand.copy(deltakelseTilOgMed = nySluttdato),
-        ) shouldBe listOf(Forlengelse(nySluttdato))
+        ) shouldBe Forlengelse(nySluttdato)
     }
 
     @Test
@@ -212,7 +214,7 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
         )
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe listOf(Forlengelse(nySluttdato))
+        finnEndringerPåSak(kjent, nåtilstand) shouldBe Forlengelse(nySluttdato)
     }
 
     @ParameterizedTest
@@ -220,7 +222,7 @@ class SakFinnEndringerTest {
     fun `avkorting til før eller på dagens dato er avbrutt selv uten statusendring`(dagerFraIDag: Long) {
         val nåtilstand = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe listOf(AvbruttDeltakelse)
+        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     @Test
@@ -230,7 +232,7 @@ class SakFinnEndringerTest {
         finnEndringerPåSak(
             kjentTilstand,
             kjentTilstand.copy(deltakelseTilOgMed = nySluttdato),
-        ) shouldBe listOf(EndretSluttdato(nySluttdato))
+        ) shouldBe AndreEndringer(endretSluttdato = EndretSluttdato(nySluttdato))
     }
 
     @ParameterizedTest
@@ -239,7 +241,7 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
         val nåtilstand = kjent.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe listOf(AvbruttDeltakelse)
+        finnEndringerPåSak(kjent, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     @Test
@@ -248,7 +250,7 @@ class SakFinnEndringerTest {
         val nySluttdato = iDag.plusDays(1)
 
         finnEndringerPåSak(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
-            listOf(EndretSluttdato(nySluttdato))
+            AndreEndringer(endretSluttdato = EndretSluttdato(nySluttdato))
     }
 
     @Test
@@ -256,7 +258,7 @@ class SakFinnEndringerTest {
         finnEndringerPåSak(
             kjentTilstand,
             kjentTilstand.copy(deltakelseTilOgMed = null),
-        ) shouldBe listOf(EndretSluttdato(null))
+        ) shouldBe AndreEndringer(endretSluttdato = EndretSluttdato(null))
     }
 
     @Test
@@ -272,7 +274,7 @@ class SakFinnEndringerTest {
         val nySluttdato = iDag.minusDays(1)
 
         finnEndringerPåSak(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
-            listOf(Forlengelse(nySluttdato))
+            Forlengelse(nySluttdato)
     }
 
     @ParameterizedTest
@@ -283,7 +285,7 @@ class SakFinnEndringerTest {
         finnEndringerPåSak(
             kjentTilstand,
             kjentTilstand.copy(deltakelseFraOgMed = nyStartdato),
-        ) shouldBe listOf(EndretStartdato(nyStartdato))
+        ) shouldBe AndreEndringer(endretStartdato = EndretStartdato(nyStartdato))
     }
 
     @Test
@@ -291,14 +293,14 @@ class SakFinnEndringerTest {
         finnEndringerPåSak(
             kjentTilstand,
             kjentTilstand.copy(deltakelseFraOgMed = null),
-        ) shouldBe listOf(EndretStartdato(null))
+        ) shouldBe AndreEndringer(endretStartdato = EndretStartdato(null))
     }
 
     @Test
     fun `manglende startdato erstattes med en dato`() {
         val kjent = kjentTilstand.copy(deltakelseFraOgMed = null)
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseFraOgMed = iDag)) shouldBe listOf(EndretStartdato(iDag))
+        finnEndringerPåSak(kjent, kjent.copy(deltakelseFraOgMed = iDag)) shouldBe AndreEndringer(endretStartdato = EndretStartdato(iDag))
     }
 
     @Test
@@ -317,9 +319,9 @@ class SakFinnEndringerTest {
             deltakelseTilOgMed = nySluttdato,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe listOf(
-            EndretStartdato(nyStartdato),
-            EndretSluttdato(nySluttdato),
+        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AndreEndringer(
+            endretStartdato = EndretStartdato(nyStartdato),
+            endretSluttdato = EndretSluttdato(nySluttdato),
         )
     }
 
@@ -330,13 +332,13 @@ class SakFinnEndringerTest {
         "HarSluttet, -1",
         "HarSluttet, 0",
     )
-    fun `forventet avslutning før eller på dagens dato gir ingen endringer`(
+    fun `forventet avslutning før eller på dagens dato gir avsluttet som forventet`(
         nyStatus: TiltakDeltakerstatus,
         dagerFraIDag: Long,
     ) {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)).shouldBeNull()
+        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AvsluttetSomForventet
     }
 
     @ParameterizedTest
@@ -344,7 +346,7 @@ class SakFinnEndringerTest {
     fun `avsluttet status før sluttdato gir endret status`(nyStatus: TiltakDeltakerstatus) {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(1))
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe listOf(EndretStatus(nyStatus))
+        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
     }
 
     @ParameterizedTest
@@ -352,7 +354,7 @@ class SakFinnEndringerTest {
     fun `avsluttet status uten sluttdato gir endret status`(nyStatus: TiltakDeltakerstatus) {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe listOf(EndretStatus(nyStatus))
+        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
     }
 
     @ParameterizedTest
@@ -361,9 +363,9 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag)
         val nåtilstand = kjent.copy(deltakelseStatus = nyStatus, antallDagerPerUke = 1F)
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe listOf(
-            EndretDeltakelsesmengde(50F, 1F),
-            EndretStatus(nyStatus),
+        finnEndringerPåSak(kjent, nåtilstand) shouldBe AndreEndringer(
+            endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 1F),
+            endretStatus = EndretStatus(nyStatus),
         )
     }
 
@@ -375,7 +377,7 @@ class SakFinnEndringerTest {
         )
 
         finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = TiltakDeltakerstatus.Deltar)) shouldBe
-            listOf(EndretStatus(TiltakDeltakerstatus.Deltar))
+            AndreEndringer(endretStatus = EndretStatus(TiltakDeltakerstatus.Deltar))
     }
 
     @Test
@@ -383,7 +385,7 @@ class SakFinnEndringerTest {
         finnEndringerPåSak(
             kjentTilstand,
             kjentTilstand.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
-        ) shouldBe listOf(AvbruttDeltakelse)
+        ) shouldBe AvbruttDeltakelse
     }
 
     @Test
@@ -391,7 +393,7 @@ class SakFinnEndringerTest {
         finnEndringerPåSak(
             kjentTilstand,
             kjentTilstand.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell),
-        ) shouldBe listOf(IkkeAktuellDeltakelse)
+        ) shouldBe IkkeAktuellDeltakelse
     }
 
     @ParameterizedTest
@@ -400,7 +402,7 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseStatus = status)
 
         finnEndringerPåSak(kjent, kjent.copy(antallDagerPerUke = 1F)) shouldBe
-            listOf(EndretDeltakelsesmengde(50F, 1F))
+            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 1F))
     }
 
     @Test
@@ -415,11 +417,11 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.HarSluttet,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe listOf(
-            EndretDeltakelsesmengde(60F, 1F),
-            EndretStartdato(nyStartdato),
-            EndretSluttdato(nySluttdato),
-            EndretStatus(TiltakDeltakerstatus.HarSluttet),
+        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AndreEndringer(
+            endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F),
+            endretStartdato = EndretStartdato(nyStartdato),
+            endretSluttdato = EndretSluttdato(nySluttdato),
+            endretStatus = EndretStatus(TiltakDeltakerstatus.HarSluttet),
         )
     }
 
@@ -433,7 +435,7 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe listOf(AvbruttDeltakelse)
+        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     @Test
@@ -450,7 +452,7 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell,
         )
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe listOf(IkkeAktuellDeltakelse)
+        finnEndringerPåSak(kjent, nåtilstand) shouldBe IkkeAktuellDeltakelse
     }
 
     @ParameterizedTest
@@ -464,14 +466,14 @@ class SakFinnEndringerTest {
             deltakelseStatus = nyStatus,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe listOf(AvbruttDeltakelse)
+        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     private fun finnEndringerPåSak(
         kjent: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern,
-    ): List<TiltaksdeltakerEndring>? =
-        sakMedKjentTilstand(kjent).finnEndringer(kjent.internDeltakelseId, nåtilstand, clock)?.toList()
+    ): TiltaksdeltakerEndring? =
+        sakMedKjentTilstand(kjent).finnEndringer(kjent.internDeltakelseId, nåtilstand, clock)
 
     private fun Sak.medNyereÅpenBehandling(
         tilstand: TiltaksdeltakelseIntern,

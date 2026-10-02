@@ -12,6 +12,7 @@ data class AutomatiskOpprettetRevurderingGrunnDTO(
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(
+    JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.AvsluttetSomForventet::class, name = "AVSLUTTET_SOM_FORVENTET"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.AvbruttDeltakelse::class, name = "AVBRUTT_DELTAKELSE"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.IkkeAktuellDeltakelse::class, name = "IKKE_AKTUELL_DELTAKELSE"),
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.Forlengelse::class, name = "FORLENGELSE"),
@@ -21,6 +22,8 @@ data class AutomatiskOpprettetRevurderingGrunnDTO(
     JsonSubTypes.Type(value = TiltaksdeltakerEndringDTO.EndretStatus::class, name = "ENDRET_STATUS"),
 )
 sealed interface TiltaksdeltakerEndringDTO {
+
+    data object AvsluttetSomForventet : TiltaksdeltakerEndringDTO
 
     data object AvbruttDeltakelse : TiltaksdeltakerEndringDTO
 
@@ -40,18 +43,33 @@ sealed interface TiltaksdeltakerEndringDTO {
     data class EndretStatus(val nyStatus: String) : TiltaksdeltakerEndringDTO
 }
 
+/**
+ * Endringen sendes som en liste av enkeltendringer, slik frontend forventer.
+ */
 fun AutomatiskOpprettetRevurderingGrunn.toDTO(): AutomatiskOpprettetRevurderingGrunnDTO {
     return AutomatiskOpprettetRevurderingGrunnDTO(
-        endringer = endringer.map { it.toDTO() },
+        endringer = endring.toDTO(),
     )
 }
 
-private fun TiltaksdeltakerEndring.toDTO(): TiltaksdeltakerEndringDTO = when (this) {
-    is TiltaksdeltakerEndring.AvbruttDeltakelse -> TiltaksdeltakerEndringDTO.AvbruttDeltakelse
-    is TiltaksdeltakerEndring.IkkeAktuellDeltakelse -> TiltaksdeltakerEndringDTO.IkkeAktuellDeltakelse
-    is TiltaksdeltakerEndring.Forlengelse -> TiltaksdeltakerEndringDTO.Forlengelse(nySluttdato = nySluttdato)
-    is TiltaksdeltakerEndring.EndretSluttdato -> TiltaksdeltakerEndringDTO.EndretSluttdato(nySluttdato = nySluttdato)
-    is TiltaksdeltakerEndring.EndretStartdato -> TiltaksdeltakerEndringDTO.EndretStartdato(nyStartdato = nyStartdato)
+private fun TiltaksdeltakerEndring.toDTO(): List<TiltaksdeltakerEndringDTO> = when (this) {
+    is TiltaksdeltakerEndring.AvsluttetSomForventet -> listOf(TiltaksdeltakerEndringDTO.AvsluttetSomForventet)
+
+    is TiltaksdeltakerEndring.AvbruttDeltakelse -> listOf(TiltaksdeltakerEndringDTO.AvbruttDeltakelse)
+
+    is TiltaksdeltakerEndring.IkkeAktuellDeltakelse -> listOf(TiltaksdeltakerEndringDTO.IkkeAktuellDeltakelse)
+
+    is TiltaksdeltakerEndring.Forlengelse -> listOfNotNull(
+        endretDeltakelsesmengde?.toDTO(),
+        TiltaksdeltakerEndringDTO.Forlengelse(nySluttdato = nySluttdato),
+    )
+
+    is TiltaksdeltakerEndring.AndreEndringer -> endringer.map { it.toDTO() }
+}
+
+private fun TiltaksdeltakerEndring.Endringsdetalj.toDTO(): TiltaksdeltakerEndringDTO = when (this) {
     is TiltaksdeltakerEndring.EndretDeltakelsesmengde -> TiltaksdeltakerEndringDTO.EndretDeltakelsesmengde(nyDeltakelsesprosent = nyDeltakelsesprosent, nyDagerPerUke = nyDagerPerUke)
+    is TiltaksdeltakerEndring.EndretStartdato -> TiltaksdeltakerEndringDTO.EndretStartdato(nyStartdato = nyStartdato)
+    is TiltaksdeltakerEndring.EndretSluttdato -> TiltaksdeltakerEndringDTO.EndretSluttdato(nySluttdato = nySluttdato)
     is TiltaksdeltakerEndring.EndretStatus -> TiltaksdeltakerEndringDTO.EndretStatus(nyStatus = nyStatus.name)
 }

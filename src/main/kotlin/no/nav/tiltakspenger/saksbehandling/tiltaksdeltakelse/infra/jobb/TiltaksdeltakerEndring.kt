@@ -1,67 +1,79 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
-import arrow.core.NonEmptyList
-import arrow.core.toNonEmptyListOrNull
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretDeltakelsesmengde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretSluttdato
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretStartdato
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Forlengelse
 import java.time.LocalDate
 
+/**
+ * Utfallet av å sammenligne nå-tilstanden til en tiltaksdeltakelse med tilstanden saken kjenner til.
+ * Hver endring av deltakelsen tolkes til nøyaktig ett utfall, slik at det ikke må tolkes på nytt for å avgjøre hvilken revurdering som skal opprettes.
+ */
 sealed interface TiltaksdeltakerEndring {
-    val beskrivelse: String
+
+    /** Beskrivelsene av endringene, i den rekkefølgen de vises i oppgaveteksten. */
+    val beskrivelser: List<String>
+
+    data object AvsluttetSomForventet : TiltaksdeltakerEndring {
+        override val beskrivelser = listOf("Deltakelsen er avsluttet som forventet")
+    }
 
     data object AvbruttDeltakelse : TiltaksdeltakerEndring {
-        override val beskrivelse = "Deltakelsen er avbrutt"
+        override val beskrivelser = listOf("Deltakelsen er avbrutt")
     }
 
     data object IkkeAktuellDeltakelse : TiltaksdeltakerEndring {
-        override val beskrivelse = "Deltakelsen er ikke aktuell"
+        override val beskrivelser = listOf("Deltakelsen er ikke aktuell")
     }
 
-    data class Forlengelse(val nySluttdato: LocalDate) : TiltaksdeltakerEndring {
-        override val beskrivelse = "Deltakelsen har blitt forlenget"
+    /**
+     * Sluttdatoen er flyttet frem, med samme startdato.
+     * [endretDeltakelsesmengde] er satt dersom deltakelsesmengden er endret samtidig.
+     */
+    data class Forlengelse(
+        val nySluttdato: LocalDate,
+        val endretDeltakelsesmengde: EndretDeltakelsesmengde? = null,
+    ) : TiltaksdeltakerEndring {
+        override val beskrivelser = listOfNotNull(endretDeltakelsesmengde?.beskrivelse, "Deltakelsen har blitt forlenget")
     }
 
-    data class EndretSluttdato(val nySluttdato: LocalDate?) : TiltaksdeltakerEndring {
-        override val beskrivelse = "Endret sluttdato"
+    /**
+     * Endringer som ikke går under noen av de andre utfallene.
+     * Minst én av endringene er satt.
+     */
+    data class AndreEndringer(
+        val endretDeltakelsesmengde: EndretDeltakelsesmengde? = null,
+        val endretStartdato: EndretStartdato? = null,
+        val endretSluttdato: EndretSluttdato? = null,
+        val endretStatus: EndretStatus? = null,
+    ) : TiltaksdeltakerEndring {
+        val endringer: List<Endringsdetalj> = listOfNotNull(endretDeltakelsesmengde, endretStartdato, endretSluttdato, endretStatus)
+
+        init {
+            require(endringer.isNotEmpty()) { "AndreEndringer må ha minst én endring" }
+        }
+
+        override val beskrivelser = endringer.map { it.beskrivelse }
     }
 
-    data class EndretStartdato(val nyStartdato: LocalDate?) : TiltaksdeltakerEndring {
-        override val beskrivelse = "Endret startdato"
+    sealed interface Endringsdetalj {
+        val beskrivelse: String
     }
 
-    data class EndretDeltakelsesmengde(val nyDeltakelsesprosent: Float?, val nyDagerPerUke: Float?) : TiltaksdeltakerEndring {
+    data class EndretDeltakelsesmengde(val nyDeltakelsesprosent: Float?, val nyDagerPerUke: Float?) : Endringsdetalj {
         override val beskrivelse = "Endret deltakelsesmengde"
     }
 
-    data class EndretStatus(val nyStatus: TiltakDeltakerstatus) : TiltaksdeltakerEndring {
+    data class EndretStartdato(val nyStartdato: LocalDate?) : Endringsdetalj {
+        override val beskrivelse = "Endret startdato"
+    }
+
+    data class EndretSluttdato(val nySluttdato: LocalDate?) : Endringsdetalj {
+        override val beskrivelse = "Endret sluttdato"
+    }
+
+    data class EndretStatus(val nyStatus: TiltakDeltakerstatus) : Endringsdetalj {
         override val beskrivelse = "Endret status"
     }
-}
-
-data class TiltaksdeltakerEndringer(
-    val endringer: NonEmptyList<TiltaksdeltakerEndring>,
-) : List<TiltaksdeltakerEndring> by endringer {
-
-    val avbrutt: AvbruttDeltakelse? by lazy { filterIsInstance<AvbruttDeltakelse>().firstOrNull() }
-
-    val forlengelse: Forlengelse? by lazy { filterIsInstance<Forlengelse>().firstOrNull() }
-
-    val endretStartdato: EndretStartdato? by lazy { filterIsInstance<EndretStartdato>().firstOrNull() }
-
-    val endretSluttdato: EndretSluttdato? by lazy { filterIsInstance<EndretSluttdato>().firstOrNull() }
-
-    val endretDeltakelsesmengde: EndretDeltakelsesmengde? by lazy { filterIsInstance<EndretDeltakelsesmengde>().firstOrNull() }
 
     fun getOppgaveTilleggstekst(): String =
-        if (size == 1) "${first().beskrivelse}." else joinToString("\n") { "- ${it.beskrivelse}" }
-
-    companion object {
-        fun List<TiltaksdeltakerEndring>.tilEndringer(): TiltaksdeltakerEndringer? {
-            return this.toNonEmptyListOrNull()?.let { TiltaksdeltakerEndringer(it) }
-        }
-    }
+        if (beskrivelser.size == 1) "${beskrivelser.first()}." else beskrivelser.joinToString("\n") { "- $it" }
 }
