@@ -437,6 +437,15 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
+    /**
+     * Oppdaterer hele meldekortbehandlingen, men bare hvis raden i databasen fortsatt er `UNDER_BESLUTNING` med [utøvendeBeslutter] som beslutter.
+     * Vakten sjekker tilstanden som er lagret, ikke statusen på [meldekortbehandling], som kan være endret av handlingen som lagres.
+     * Brukes av beslutterens skrivinger, slik at de ikke overskriver en angring som saksbehandleren har gjort etter at behandlingen ble lastet.
+     * Oppdaterer ikke simuleringen eller [SimuleringMedMetadata], på samme måte som [oppdater].
+     * Tilknyttet klagebehandling lagres bare når meldekortbehandlingen ble oppdatert.
+     *
+     * @return true dersom meldekortbehandlingen ble oppdatert, false dersom den ikke lenger var under beslutning hos [utøvendeBeslutter].
+     */
     override fun oppdaterHvisFortsattUnderBeslutning(
         meldekortbehandling: Meldekortbehandling,
         utøvendeBeslutter: Saksbehandler,

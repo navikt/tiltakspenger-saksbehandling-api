@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.VEDTATT
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
 import no.nav.tiltakspenger.saksbehandling.statistikk.Statistikkhendelser
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkhendelseType
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehandling.genererSaksstatistikk
@@ -31,6 +32,7 @@ fun Rammebehandling.angreBehandling(
     saksbehandler: Saksbehandler,
     clock: Clock,
 ): Either<KunneIkkeAngreBehandling, Pair<Rammebehandling, Statistikkhendelser>> {
+    krevSaksbehandlerRolle(saksbehandler)
     kanAngreBehandling(saksbehandler).onLeft { return it.left() }
 
     val nå = nå(clock)

@@ -152,12 +152,13 @@ class RammebehandlingPostgresRepo(
         }
     }
 
-    /**Kommentar til Anders: tanken er her å lage en ny db-funksjon med ´where´ i spørringen sånn at en
-     //beslutter ikke kan underkjenne en rammebehandling som er angret av en sakebehandler
-     //dvs. at den da må være semantisk lik den "gamle" spørringen [lagre] -> konsekvens: hvis vi legger til en ny
-     tabell i [oppdaterRammebehandling] så må den også legges inn her.
-
-     Det er også sånn at denne nå brukes når beslutter underkjenner eller iverksetter, de samme betingelsene i where gjelder for begge
+    /**
+     * Lagrer hele rammebehandlingen, men bare hvis raden i databasen fortsatt er `UNDER_BESLUTNING` med [utøvendeBeslutter] som beslutter.
+     * Vakten sjekker tilstanden som er lagret, ikke statusen på [rammebehandling], som kan være endret av handlingen som lagres.
+     * Brukes av beslutterens skrivinger, slik at de ikke overskriver en angring som saksbehandleren har gjort etter at behandlingen ble lastet.
+     * Tilknyttet klagebehandling lagres bare når rammebehandlingen ble lagret.
+     *
+     * @return true dersom rammebehandlingen ble lagret, false dersom den ikke lenger var under beslutning hos [utøvendeBeslutter].
      */
     override fun lagreHvisFortsattUnderBeslutning(
         rammebehandling: Rammebehandling,

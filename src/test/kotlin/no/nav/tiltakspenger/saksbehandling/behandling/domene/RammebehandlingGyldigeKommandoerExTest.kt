@@ -130,16 +130,18 @@ class RammebehandlingGyldigeKommandoerExTest {
 
     /**
      * I [Rammebehandlingsstatus.UNDER_BESLUTNING] er det beslutteren på behandlingen som kan avbryte.
-     * Saksbehandleren har gitt fra seg behandlingen, og har derfor ingen gyldige kommandoer.
+     * Saksbehandleren har gitt fra seg behandlingen, men kan angre sendingen til beslutning selv om en beslutter har tatt den.
      */
     @Test
-    fun `under beslutning - saksbehandleren på behandlingen har ingen gyldige kommandoer`() {
+    fun `under beslutning - saksbehandleren på behandlingen kan bare angre sendingen til beslutning`() {
         val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
             saksbehandler = saksbehandler,
             beslutter = beslutter,
         )
 
-        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe emptyList()
+        behandling.finnGyldigeKommandoer(saksbehandler) shouldBe listOf(
+            SaksbehandlerBehandlingKommando.AngreSendTilBeslutning,
+        )
     }
 
     @Test

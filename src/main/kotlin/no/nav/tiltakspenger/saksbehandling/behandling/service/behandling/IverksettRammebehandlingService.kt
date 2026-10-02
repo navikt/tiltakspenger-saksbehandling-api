@@ -86,15 +86,10 @@ class IverksettRammebehandlingService(
 
         behandlingMedUtbetalingskontroll.validerKanIverksetteUtbetaling().onLeft {
             it.logg(logger) { "Utbetaling på behandlingen har et resultat som vi ikke kan iverksette - ${behandlingMedUtbetalingskontroll.loggkontekst(correlationId)}" }
-            // rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
 
-            val vellykket = sessionFactory.withTransactionContext { tx ->
-                val oppdatert = rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(rammebehandling = behandlingMedUtbetalingskontroll, utøvendeBeslutter = beslutter, transactionContext = tx)
-                oppdatert
-            }
+            rammebehandlingRepo.lagre(behandlingMedUtbetalingskontroll)
+
             val oppdaterSak = sak.oppdaterRammebehandling(behandlingMedUtbetalingskontroll)
-
-            if (!vellykket) return KanIkkeIverksetteBehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
 
             return KanIkkeIverksetteBehandling.UtbetalingFeil(
                 it,
