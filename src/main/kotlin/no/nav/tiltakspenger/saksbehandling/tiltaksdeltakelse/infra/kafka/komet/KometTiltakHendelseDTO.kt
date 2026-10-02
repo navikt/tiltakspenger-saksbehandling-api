@@ -2,12 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet
 
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO
-import no.nav.tiltakspenger.libs.tiltak.toDeltakerStatusDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.toDomain
 import java.time.LocalDate
 import java.util.UUID
 
@@ -27,15 +24,7 @@ data class KometTiltakHendelseDTO(
         TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.random(),
             eksternDeltakerId = id.toString(),
-            deltakelseFraOgMed = startDato,
-            deltakelseTilOgMed = sluttDato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = prosentStilling,
-            deltakerstatus = status.type.toTiltakDeltakerStatus(),
             sakId = sakId,
             internDeltakerId = tiltaksdeltakerId,
         )
-
-    private fun KometDeltakerStatusTypeDTO.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
-        this.toDeltakerStatusDTO().toDomain()
 }

@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelserForEksternId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerEndringerForEksternId
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -56,7 +56,7 @@ class TiltaksdeltakerConsumerNegativTest {
                     tac.tiltaksdeltakerKometConsumer.consume(melding.id, serialize(melding))
                 }
 
-                tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(eksternId).shouldBeEmpty()
+                tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(eksternId).shouldBeEmpty()
                 tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(eksternId).shouldNotBeNull()
                     .sisteUbehandletEndringTidspunkt.shouldBeNull()
             } finally {
@@ -69,7 +69,7 @@ class TiltaksdeltakerConsumerNegativTest {
 
             tac.tiltaksdeltakerKometConsumer.consume(melding.id, serialize(melding))
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(eksternId).single()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(eksternId).single()
             tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(eksternId).shouldNotBeNull()
                 .sisteUbehandletEndringTidspunkt.shouldNotBeNull()
         }

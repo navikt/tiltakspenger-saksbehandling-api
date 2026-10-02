@@ -1,12 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak
 
 import no.nav.tiltakspenger.libs.common.SakId
-import no.nav.tiltakspenger.libs.tiltak.TiltakResponsDTO.DeltakerStatusDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.toDomain
 import java.time.LocalDate
 import java.util.UUID
 
@@ -93,35 +90,7 @@ data class TeamTiltakHendelseDTO(
         TiltaksdeltakerHendelse(
             id = TiltaksdeltakerHendelseId.random(),
             eksternDeltakerId = avtaleId.toString(),
-            deltakelseFraOgMed = startDato,
-            deltakelseTilOgMed = sluttDato,
-            dagerPerUke = antallDagerPerUke?.toFloat(),
-            deltakelsesprosent = stillingprosent?.toFloat(),
-            deltakerstatus = this.toTiltakDeltakerStatus(),
             sakId = sakId,
             internDeltakerId = tiltaksdeltakerId,
         )
-}
-
-private fun TeamTiltakHendelseDTO.toTiltakDeltakerStatus(): TiltakDeltakerstatus =
-    this.avtaleStatus.toDeltakerStatusDTO(feilregistrert).toDomain()
-
-private fun TeamTiltakHendelseDTO.AvtaleStatus.toDeltakerStatusDTO(feilregistrert: Boolean): DeltakerStatusDTO = when (this) {
-    TeamTiltakHendelseDTO.AvtaleStatus.PÅBEGYNT -> DeltakerStatusDTO.PABEGYNT_REGISTRERING
-
-    TeamTiltakHendelseDTO.AvtaleStatus.MANGLER_GODKJENNING -> DeltakerStatusDTO.SOKT_INN
-
-    TeamTiltakHendelseDTO.AvtaleStatus.KLAR_FOR_OPPSTART -> DeltakerStatusDTO.VENTER_PA_OPPSTART
-
-    TeamTiltakHendelseDTO.AvtaleStatus.GJENNOMFØRES -> DeltakerStatusDTO.DELTAR
-
-    TeamTiltakHendelseDTO.AvtaleStatus.AVSLUTTET -> DeltakerStatusDTO.HAR_SLUTTET
-
-    TeamTiltakHendelseDTO.AvtaleStatus.AVBRUTT -> DeltakerStatusDTO.AVBRUTT
-
-    TeamTiltakHendelseDTO.AvtaleStatus.ANNULLERT -> if (feilregistrert) {
-        DeltakerStatusDTO.FEILREGISTRERT
-    } else {
-        DeltakerStatusDTO.IKKE_AKTUELL
-    }
 }
