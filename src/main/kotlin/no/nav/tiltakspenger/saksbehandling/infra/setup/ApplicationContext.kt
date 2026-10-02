@@ -239,6 +239,8 @@ open class ApplicationContext(
             startRevurderingService = behandlingContext.startRevurderingService,
             oppgaveKlient = oppgaveKlient,
             eksternOppgaveRepo = eksternOppgaveRepo,
+            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

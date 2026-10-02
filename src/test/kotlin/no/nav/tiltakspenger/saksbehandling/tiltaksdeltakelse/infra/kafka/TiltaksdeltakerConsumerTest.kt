@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -13,10 +14,12 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.hentEllerOpprettSakForSystembruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.teamtiltak.TeamTiltakHendelseDTO
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerHendelserForEksternId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerEndringerForEksternId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -33,7 +36,7 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId("TA$deltakerId").shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId("TA$deltakerId").shouldBeEmpty()
         }
     }
 
@@ -55,7 +58,7 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).shouldBeEmpty()
         }
     }
 
@@ -69,14 +72,8 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
 
-            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).single()
-            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerHendelse.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).single()
+            tiltaksdeltakerHendelse.skalVæreMottattMelding(getArenaMeldingString(), TiltaksdeltakerHendelseKilde.Arena, sak.id, tiltaksdeltakelse.internDeltakelseId)
 
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
             val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(id).shouldNotBeNull()
@@ -103,15 +100,9 @@ class TiltaksdeltakerConsumerTest {
             oppdatertTiltaksdeltaker?.tiltakstype shouldBe tiltaksdeltakelse.typeKode.tilTiltakstype()
             oppdatertTiltaksdeltaker?.utdatertEksternId shouldBe id
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).shouldBeEmpty()
-            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(nyEksternId.toString()).single()
-            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            tiltaksdeltakerHendelse.dagerPerUke shouldBe 2.0F
-            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe 50.0F
-            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).shouldBeEmpty()
+            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(nyEksternId.toString()).single()
+            tiltaksdeltakerHendelse.skalVæreMottattMelding(getArenaMeldingMedEksternIdString(nyEksternId), TiltaksdeltakerHendelseKilde.Arena, sak.id, tiltaksdeltakelse.internDeltakelseId)
         }
     }
 
@@ -129,8 +120,8 @@ class TiltaksdeltakerConsumerTest {
             tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(nyEksternId.toString()) shouldNotBe null
             tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(id) shouldBe null
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(nyEksternId.toString()).shouldBeEmpty()
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(nyEksternId.toString()).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).shouldBeEmpty()
         }
     }
 
@@ -142,21 +133,15 @@ class TiltaksdeltakerConsumerTest {
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = id)
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = tiltaksdeltakelse)
             tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
-            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id).single()
+            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).single()
 
             tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, getArenaMeldingString())
 
-            val hendelser = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(id)
+            val hendelser = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id)
             hendelser.size shouldBe 2
             hendelser.single { it.id == opprinneligTiltaksdeltakerHendelse.id } shouldBe opprinneligTiltaksdeltakerHendelse
             val nyHendelse = hendelser.single { it.id != opprinneligTiltaksdeltakerHendelse.id }
-            nyHendelse.deltakelseFraOgMed shouldBe LocalDate.of(2024, 10, 14)
-            nyHendelse.deltakelseTilOgMed shouldBe LocalDate.of(2025, 8, 10)
-            nyHendelse.dagerPerUke shouldBe 2.0F
-            nyHendelse.deltakelsesprosent shouldBe 50.0F
-            nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            nyHendelse.sakId shouldBe sak.id
-            nyHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            nyHendelse.skalVæreMottattMelding(getArenaMeldingString(), TiltaksdeltakerHendelseKilde.Arena, sak.id, tiltaksdeltakelse.internDeltakelseId)
         }
     }
 
@@ -167,7 +152,7 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerKometConsumer.consume(kometDeltaker.id, objectMapper.writeValueAsString(kometDeltaker))
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(kometDeltaker.id.toString()).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(kometDeltaker.id.toString()).shouldBeEmpty()
         }
     }
 
@@ -189,7 +174,7 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString()).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId.toString()).shouldBeEmpty()
         }
     }
 
@@ -203,14 +188,8 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
 
-            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString()).single()
-            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe kometDeltaker.startDato
-            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
-            tiltaksdeltakerHendelse.dagerPerUke shouldBe kometDeltaker.dagerPerUke
-            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
-            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId.toString()).single()
+            tiltaksdeltakerHendelse.skalVæreMottattMelding(objectMapper.writeValueAsString(kometDeltaker), TiltaksdeltakerHendelseKilde.Komet, sak.id, tiltaksdeltakelse.internDeltakelseId)
 
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
             val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId.toString()).shouldNotBeNull()
@@ -227,21 +206,15 @@ class TiltaksdeltakerConsumerTest {
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId.toString())
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = tiltaksdeltakelse)
             tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
-            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString()).single()
+            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId.toString()).single()
 
             tac.tiltaksdeltakerKometConsumer.consume(deltakerId, objectMapper.writeValueAsString(kometDeltaker))
 
-            val hendelser = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId.toString())
+            val hendelser = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId.toString())
             hendelser.size shouldBe 2
             hendelser.single { it.id == opprinneligTiltaksdeltakerHendelse.id } shouldBe opprinneligTiltaksdeltakerHendelse
             val nyHendelse = hendelser.single { it.id != opprinneligTiltaksdeltakerHendelse.id }
-            nyHendelse.deltakelseFraOgMed shouldBe kometDeltaker.startDato
-            nyHendelse.deltakelseTilOgMed shouldBe kometDeltaker.sluttDato
-            nyHendelse.dagerPerUke shouldBe kometDeltaker.dagerPerUke
-            nyHendelse.deltakelsesprosent shouldBe kometDeltaker.prosentStilling
-            nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            nyHendelse.sakId shouldBe sak.id
-            nyHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            nyHendelse.skalVæreMottattMelding(objectMapper.writeValueAsString(kometDeltaker), TiltaksdeltakerHendelseKilde.Komet, sak.id, tiltaksdeltakelse.internDeltakelseId)
         }
     }
 
@@ -253,7 +226,7 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId).shouldBeEmpty()
         }
     }
 
@@ -275,7 +248,7 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
 
-            tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId).shouldBeEmpty()
         }
     }
 
@@ -289,14 +262,8 @@ class TiltaksdeltakerConsumerTest {
 
             tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
 
-            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).single()
-            tiltaksdeltakerHendelse.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
-            tiltaksdeltakerHendelse.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
-            tiltaksdeltakerHendelse.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
-            tiltaksdeltakerHendelse.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
-            tiltaksdeltakerHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            tiltaksdeltakerHendelse.sakId shouldBe sak.id
-            tiltaksdeltakerHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            val tiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId).single()
+            tiltaksdeltakerHendelse.skalVæreMottattMelding(objectMapper.writeValueAsString(teamTiltakDeltaker), TiltaksdeltakerHendelseKilde.TeamTiltak, sak.id, tiltaksdeltakelse.internDeltakelseId)
 
             // Consumeren markerer deltakeren med ubehandlet endring, som OppdatertTiltaksdeltakelseJobb plukker opp.
             val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId).shouldNotBeNull()
@@ -313,22 +280,33 @@ class TiltaksdeltakerConsumerTest {
             val tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId)
             val (sak, _) = opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = tiltaksdeltakelse)
             tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
-            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId).single()
+            val opprinneligTiltaksdeltakerHendelse = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId).single()
 
             tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, objectMapper.writeValueAsString(teamTiltakDeltaker))
 
-            val hendelser = tac.sessionFactory.hentTiltaksdeltakerHendelserForEksternId(deltakerId)
+            val hendelser = tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId)
             hendelser.size shouldBe 2
             hendelser.single { it.id == opprinneligTiltaksdeltakerHendelse.id } shouldBe opprinneligTiltaksdeltakerHendelse
             val nyHendelse = hendelser.single { it.id != opprinneligTiltaksdeltakerHendelse.id }
-            nyHendelse.deltakelseFraOgMed shouldBe teamTiltakDeltaker.startDato
-            nyHendelse.deltakelseTilOgMed shouldBe teamTiltakDeltaker.sluttDato
-            nyHendelse.dagerPerUke shouldBe teamTiltakDeltaker.antallDagerPerUke?.toFloat()
-            nyHendelse.deltakelsesprosent shouldBe teamTiltakDeltaker.stillingprosent?.toFloat()
-            nyHendelse.deltakerstatus shouldBe TiltakDeltakerstatus.Deltar
-            nyHendelse.sakId shouldBe sak.id
-            nyHendelse.internDeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
+            nyHendelse.skalVæreMottattMelding(objectMapper.writeValueAsString(teamTiltakDeltaker), TiltaksdeltakerHendelseKilde.TeamTiltak, sak.id, tiltaksdeltakelse.internDeltakelseId)
         }
+    }
+
+    /** Meldingen lagres ordrett, og jobben har ennå ikke behandlet den. */
+    private fun LagretTiltaksdeltakerEndring.skalVæreMottattMelding(
+        melding: String,
+        kilde: TiltaksdeltakerHendelseKilde,
+        sakId: SakId,
+        tiltaksdeltakerId: TiltaksdeltakerId,
+    ) {
+        this.verdi shouldBe melding
+        this.kilde shouldBe kilde
+        this.sakId shouldBe sakId.toString()
+        this.tiltaksdeltakerId shouldBe tiltaksdeltakerId.toString()
+        this.endring shouldBe null
+        this.behandlingId shouldBe null
+        this.oppgaveId shouldBe null
+        this.behandletTidspunkt shouldBe null
     }
 
     private fun getArenaMeldingString() =

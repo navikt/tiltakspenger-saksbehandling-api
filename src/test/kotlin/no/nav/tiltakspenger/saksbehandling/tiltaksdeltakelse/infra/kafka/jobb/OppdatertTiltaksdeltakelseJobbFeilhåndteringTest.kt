@@ -86,7 +86,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             antallForsøk shouldBe 2
             val referanse = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
             referanse.oppgaveId shouldBe delegate.opprettedeOppgaveIder.single()
-            resultat shouldBe TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet(referanse.oppgaveId)
+            resultat.shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet>().oppgaveId shouldBe referanse.oppgaveId
             delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
             delegate.opprettedeOppgavetekster shouldBe listOf("Endret status.")
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
@@ -122,14 +122,14 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
 
             antallOppslag shouldBe 2
             val etterRetry = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            resultat shouldBe TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(etterRetry.rammebehandlinger.last().id)
+            resultat.shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet>().revurderingId shouldBe etterRetry.rammebehandlinger.last().id
             etterRetry.rammebehandlinger.size shouldBe 2
             etterRetry.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
                 TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
 
             // Den åpne revurderingen kjenner allerede nå-tilstanden, så et nytt forsøk finner ingen endring.
-            jobb.behandleDeltaker(deltaker).getOrFail() shouldBe TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
+            jobb.behandleDeltaker(deltaker).getOrFail().shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring>()
 
             antallOppslag shouldBe 3
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterRetry.rammebehandlinger.map { it.id }
@@ -228,7 +228,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
 
             oppslag shouldBe listOf(sak.fnr to kometId)
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            resultat shouldBe TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(oppdatertSak.rammebehandlinger.last().id)
+            resultat.shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet>().revurderingId shouldBe oppdatertSak.rammebehandlinger.last().id
             oppdatertSak.rammebehandlinger.size shouldBe 2
             oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
@@ -274,6 +274,8 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
         startRevurderingService = behandlingContext.startRevurderingService,
         oppgaveKlient = oppgaveKlient,
         eksternOppgaveRepo = eksternOppgaveRepo,
+        tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+        sessionFactory = sessionFactory,
         clock = clock,
     )
 

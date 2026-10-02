@@ -39,7 +39,7 @@ private enum class TiltaksdeltakerEndringTypeDb {
 fun AutomatiskOpprettetRevurderingGrunn.toDbJson(): String {
     return serialize(
         AutomatiskOpprettetRevurderingGrunnDbJson(
-            endringer = endring.toDbJson(),
+            endringer = endring.tilEndringerDbJson(),
         ),
     )
 }
@@ -51,7 +51,13 @@ fun String.toAutomatiskOpprettetRevurderingGrunn(): AutomatiskOpprettetRevurderi
     )
 }
 
-private fun TiltaksdeltakerEndring.toDbJson(): List<TiltaksdeltakerEndringDbJson> = when (this) {
+/**
+ * Endringen som en liste av enkeltendringer, i samme format som i [AutomatiskOpprettetRevurderingGrunn].
+ * Brukes for sporbarhet i `tiltaksdeltaker_endring`, der den kun skrives.
+ */
+fun TiltaksdeltakerEndring.toDbJson(): String = serialize(tilEndringerDbJson())
+
+private fun TiltaksdeltakerEndring.tilEndringerDbJson(): List<TiltaksdeltakerEndringDbJson> = when (this) {
     is TiltaksdeltakerEndring.AvsluttetSomForventet -> listOf(TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.AVSLUTTET_SOM_FORVENTET))
 
     is TiltaksdeltakerEndring.AvbruttDeltakelse -> listOf(TiltaksdeltakerEndringDbJson(type = TiltaksdeltakerEndringTypeDb.AVBRUTT_DELTAKELSE))

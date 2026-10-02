@@ -55,8 +55,8 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
             klient.opprettOppgaveUtenDuplikatkontrollResponse = oppgaveId.right()
             val før = nå(tac.clock)
 
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail() shouldBe
-                TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet(oppgaveId)
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
+                .shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet>().oppgaveId shouldBe oppgaveId
 
             val første = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
             første.sakId shouldBe sak.id

@@ -91,7 +91,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
             referanser.map { it.oppgaveId } shouldBe oppgaver.opprettedeOppgaveIder
             referanser.map { it.tilleggstekst } shouldBe listOf(forventetOppgavetekst)
             referanser.single().grunnlag.shouldContainJsonKeyValue("$.verdi.eksternDeltakelseId", tiltaksdeltakelse.eksternDeltakelseId)
-            resultat shouldBe OppgaveOpprettet(referanser.single().oppgaveId)
+            resultat.shouldBeInstanceOf<OppgaveOpprettet>().oppgaveId shouldBe referanser.single().oppgaveId
         }
 
         val oppdatertSak = sakContext.sakRepo.hentForSakId(sak.id)!!

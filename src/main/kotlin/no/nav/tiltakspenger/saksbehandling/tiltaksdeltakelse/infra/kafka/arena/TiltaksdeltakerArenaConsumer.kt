@@ -103,7 +103,6 @@ class TiltaksdeltakerArenaConsumer(
                 eksternId = oppdatertEksternId,
                 sakId = sakId,
                 tiltaksdeltakerId = tiltaksdeltaker.id,
-                clock = clock,
             ) ?: return null
 
             sessionFactory.withTransactionContext { tx ->

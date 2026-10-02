@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
@@ -28,10 +29,13 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -42,6 +46,7 @@ import java.time.LocalDateTime
  * Automatiske søknadsbehandlinger på vent får fremskyndet ny vurdering når deltakelsen endres.
  * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
+ * Hver ferdig behandlede endring lagres i `tiltaksdeltaker_endring` for sporbarhet, i samme transaksjon som markøren nullstilles.
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -51,6 +56,8 @@ class OppdatertTiltaksdeltakelseJobb(
     private val startRevurderingService: StartRevurderingService,
     private val oppgaveKlient: OppgaveKlient,
     private val eksternOppgaveRepo: EksternOppgaveRepo,
+    private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+    private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
@@ -66,11 +73,8 @@ class OppdatertTiltaksdeltakelseJobb(
                 val deltakerId = deltaker.id
 
                 Either.catch {
-                    behandleDeltaker(deltaker).onRight {
-                        tiltaksdeltakerRepo.markerEndringSomBehandlet(
-                            deltakerId,
-                            deltaker.sisteUbehandletEndringTidspunkt!!,
-                        )
+                    behandleDeltaker(deltaker).onRight { resultat ->
+                        lagreSomBehandlet(deltaker, resultat)
                     }
                 }.mapLeft { TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil(it) }
                     .flatten()
@@ -90,6 +94,29 @@ class OppdatertTiltaksdeltakelseJobb(
             }
         }.onLeft {
             log.error(it) { "Feil ved behandling av endrede tiltaksdeltakelser" }
+        }
+    }
+
+    private fun lagreSomBehandlet(deltaker: Tiltaksdeltaker, resultat: TiltaksdeltakelseEndringBehandlet) {
+        sessionFactory.withTransactionContext { tx ->
+            tiltaksdeltakerHendelsePostgresRepo.lagreBehandletEndring(
+                tiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
+                    id = TiltaksdeltakerHendelseId.random(),
+                    internDeltakerId = deltaker.id,
+                    eksternDeltakerId = deltaker.eksternId,
+                    sakId = deltaker.sakId,
+                ),
+                nåtilstand = resultat.nåtilstand,
+                endring = resultat.endring,
+                behandlingId = (resultat as? TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet)?.revurderingId,
+                oppgaveId = (resultat as? TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet)?.oppgaveId,
+                sessionContext = tx,
+            )
+            tiltaksdeltakerRepo.markerEndringSomBehandlet(
+                deltaker.id,
+                deltaker.sisteUbehandletEndringTidspunkt!!,
+                tx,
+            )
         }
     }
 
@@ -122,12 +149,12 @@ class OppdatertTiltaksdeltakelseJobb(
 
         if (endring == null) {
             log.info { "Fant ingen relevante endringer for $logIder" }
-            return TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring.right()
+            return TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring(oppdatertDeltakelse).right()
         }
 
         if (endring is TiltaksdeltakerEndring.AvsluttetSomForventet) {
             log.info { "Tiltaksdeltakelsen er avsluttet som forventet, gjør ingenting for $logIder" }
-            return TiltaksdeltakelseEndringBehandlet.AvsluttetSomForventet.right()
+            return TiltaksdeltakelseEndringBehandlet.AvsluttetSomForventet(oppdatertDeltakelse).right()
         }
 
         val revurderingSomSkalOpprettes = sak.vurderRevurdering(deltaker.id, endring)
@@ -138,6 +165,7 @@ class OppdatertTiltaksdeltakelseJobb(
                 sak,
                 revurderingSomSkalOpprettes,
                 endring,
+                oppdatertDeltakelse,
                 logIder,
             ).right()
         } else {
@@ -165,6 +193,7 @@ class OppdatertTiltaksdeltakelseJobb(
         sak: Sak,
         revurderingSomSkalOpprettes: AutomatiskRevurdering,
         endring: TiltaksdeltakerEndring,
+        oppdatertTiltaksdeltakelse: TiltaksdeltakelseFraRegister,
         logIder: String,
     ): TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet {
         val kommando = StartRevurderingKommando(
@@ -185,7 +214,11 @@ class OppdatertTiltaksdeltakelseJobb(
         }
 
         log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
-        return TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(revurdering.id)
+        return TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(
+            revurderingId = revurdering.id,
+            nåtilstand = oppdatertTiltaksdeltakelse,
+            endring = endring,
+        )
     }
 
     private suspend fun opprettOppgave(
@@ -216,7 +249,11 @@ class OppdatertTiltaksdeltakelseJobb(
 
             eksternOppgaveRepo.lagre(oppgave)
             log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse: $logIder" }
-            TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet(oppgaveId)
+            TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet(
+                oppgaveId = oppgaveId,
+                nåtilstand = oppdatertTiltaksdeltakelse,
+                endring = endring,
+            )
         }.mapLeft { feil ->
             feil.loggFeil(log, "opprettelse av gosysoppgave for endret tiltaksdeltakelse", logIder)
             TiltaksdeltakelseEndringKunneIkkeBehandles.KunneIkkeOppretteOppgave
@@ -254,9 +291,7 @@ class OppdatertTiltaksdeltakelseJobb(
         }
     }
 
-    private fun Sak.vurderRevurderingForAvbrudd(
-        deltakerId: TiltaksdeltakerId,
-    ): AutomatiskRevurdering? {
+    private fun Sak.vurderRevurderingForAvbrudd(deltakerId: TiltaksdeltakerId): AutomatiskRevurdering? {
         val idag = LocalDate.now(clock)
 
         val harRettFremover = rammevedtaksliste.sisteDagSomGirRett?.let { it >= idag } ?: false
@@ -266,11 +301,9 @@ class OppdatertTiltaksdeltakelseJobb(
             return null
         }
 
-        val harAndreTiltaksdeltakelserFremover by lazy {
-            rammevedtaksliste.valgteTiltaksdeltakelser.filter {
-                it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
-            }.verdier.isNotEmpty()
-        }
+        val harAndreTiltaksdeltakelserFremover = rammevedtaksliste.valgteTiltaksdeltakelser.filter {
+            it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
+        }.verdier.isNotEmpty()
 
         // Oppretter ikke stans dersom det også er innvilget for andre tiltaksdeltakelser
         if (harAndreTiltaksdeltakelserFremover) {
@@ -280,9 +313,7 @@ class OppdatertTiltaksdeltakelseJobb(
         return AutomatiskRevurdering(StartRevurderingType.STANS)
     }
 
-    private fun Sak.vurderRevurderingForForlengelse(
-        endring: TiltaksdeltakerEndring.Forlengelse,
-    ): AutomatiskRevurdering? {
+    private fun Sak.vurderRevurderingForForlengelse(endring: TiltaksdeltakerEndring.Forlengelse): AutomatiskRevurdering? {
         // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
         // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene der det finnes flere vedtak, og et annet vedtak enn det siste forlenges.
         // Dette skjer sannsynligvis veldig sjelden (aldri?)
@@ -293,9 +324,7 @@ class OppdatertTiltaksdeltakelseJobb(
         return AutomatiskRevurdering(StartRevurderingType.INNVILGELSE)
     }
 
-    private fun Sak.vurderOmgjøring(
-        deltakerId: TiltaksdeltakerId,
-    ): AutomatiskRevurdering? {
+    private fun Sak.vurderOmgjøring(deltakerId: TiltaksdeltakerId): AutomatiskRevurdering? {
         val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
             it.verdi.gjeldendeTiltaksdeltakelser.verdier.any { deltakelse -> deltakelse.internDeltakelseId == deltakerId }
         }.verdier
@@ -335,17 +364,42 @@ private data class AutomatiskRevurdering(
     }
 }
 
-/** Endringen er ferdig behandlet, og markøren kan nullstilles. */
+/**
+ * Endringen er ferdig behandlet, og markøren kan nullstilles.
+ * [nåtilstand] og [endring] er det jobben vurderte, og lagres for sporbarhet.
+ */
 sealed interface TiltaksdeltakelseEndringBehandlet {
-    data object IngenLesbarNåtilstand : TiltaksdeltakelseEndringBehandlet
+    val nåtilstand: TiltaksdeltakelseFraRegister?
+    val endring: TiltaksdeltakerEndring?
 
-    data object IngenRelevantEndring : TiltaksdeltakelseEndringBehandlet
+    data object IngenLesbarNåtilstand : TiltaksdeltakelseEndringBehandlet {
+        override val nåtilstand = null
+        override val endring = null
+    }
 
-    data object AvsluttetSomForventet : TiltaksdeltakelseEndringBehandlet
+    data class IngenRelevantEndring(
+        override val nåtilstand: TiltaksdeltakelseFraRegister,
+    ) : TiltaksdeltakelseEndringBehandlet {
+        override val endring = null
+    }
 
-    data class RevurderingOpprettet(val revurderingId: RammebehandlingId) : TiltaksdeltakelseEndringBehandlet
+    data class AvsluttetSomForventet(
+        override val nåtilstand: TiltaksdeltakelseFraRegister,
+    ) : TiltaksdeltakelseEndringBehandlet {
+        override val endring = TiltaksdeltakerEndring.AvsluttetSomForventet
+    }
 
-    data class OppgaveOpprettet(val oppgaveId: OppgaveId) : TiltaksdeltakelseEndringBehandlet
+    data class RevurderingOpprettet(
+        val revurderingId: RammebehandlingId,
+        override val nåtilstand: TiltaksdeltakelseFraRegister,
+        override val endring: TiltaksdeltakerEndring,
+    ) : TiltaksdeltakelseEndringBehandlet
+
+    data class OppgaveOpprettet(
+        val oppgaveId: OppgaveId,
+        override val nåtilstand: TiltaksdeltakelseFraRegister,
+        override val endring: TiltaksdeltakerEndring,
+    ) : TiltaksdeltakelseEndringBehandlet
 }
 
 /** Endringen kunne ikke behandles, og markøren står igjen til neste kjøring. */
