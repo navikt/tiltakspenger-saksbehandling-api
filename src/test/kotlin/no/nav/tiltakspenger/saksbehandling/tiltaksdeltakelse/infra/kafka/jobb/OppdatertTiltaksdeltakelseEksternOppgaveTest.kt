@@ -1,12 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
-import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.json.shouldEqualJson
-import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.april
@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -54,7 +55,8 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
             klient.opprettOppgaveUtenDuplikatkontrollResponse = oppgaveId.right()
             val før = nå(tac.clock)
 
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail() shouldBe
+                TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet(oppgaveId)
 
             val første = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
             første.sakId shouldBe sak.id
@@ -65,12 +67,12 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
                 markør = deltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull(),
                 nåtilstand = tac.hentNåtilstand(sak.fnr, deltakelse),
             )
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
 
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell))
             val nyDeltaker = tac.registrerEndring(deltakelse)
             klient.opprettOppgaveUtenDuplikatkontrollResponse = null
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(nyDeltaker)
+            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(nyDeltaker).getOrFail()
+                .shouldBeInstanceOf<TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet>()
 
             val referanser = tac.eksternOppgaveRepo.hentForSakId(sak.id)
             referanser.size shouldBe 2
@@ -80,39 +82,6 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
                 markør = nyDeltaker.sisteUbehandletEndringTidspunkt.shouldNotBeNull(),
                 nåtilstand = tac.hentNåtilstand(sak.fnr, deltakelse),
             )
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
-        }
-    }
-
-    @Test
-    fun `oppgavefeil lar markøren stå uten ekstern oppgave`() {
-        withTestApplicationContextAndPostgres { tac ->
-            val eksternId = UUID.randomUUID()
-            val deltakelse = ObjectMother.tiltaksdeltakelse(
-                periode = 1.april(2025) til 31.august(2025),
-                eksternTiltaksdeltakelseId = eksternId.toString(),
-            )
-            val (sak) = opprettSøknadsbehandlingUnderBehandling(
-                tac = tac,
-                fnr = ObjectMother.gyldigFnr(),
-                tiltaksdeltakelse = deltakelse,
-            )
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell))
-            val deltaker = tac.registrerEndring(deltakelse)
-            val klient = tac.oppgaveKlient as OppgaveFakeKlient
-            klient.opprettOppgaveUtenDuplikatkontrollResponse = ObjectMother.httpKlientUventetStatus().left()
-
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
-
-            tac.eksternOppgaveRepo.hentForSakId(sak.id) shouldBe emptyList()
-            tac.hentDeltaker(deltakelse) shouldBe deltaker
-
-            klient.opprettOppgaveUtenDuplikatkontrollResponse = null
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
-
-            val referanse = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
-            referanse.oppgaveId shouldBe klient.opprettedeOppgaveIder.last()
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.size shouldBe 1
         }
     }

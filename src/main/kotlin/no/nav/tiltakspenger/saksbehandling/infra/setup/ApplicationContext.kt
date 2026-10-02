@@ -239,7 +239,6 @@ open class ApplicationContext(
             startRevurderingService = behandlingContext.startRevurderingService,
             oppgaveKlient = oppgaveKlient,
             eksternOppgaveRepo = eksternOppgaveRepo,
-            sessionFactory = sessionFactory,
             clock = clock,
         )
     }

@@ -9,9 +9,11 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
@@ -43,12 +45,18 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFakeKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenLesbarNåtilstand
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
+import kotlin.reflect.KClass
 
 class OppdatertTiltaksdeltakelseJobbTest {
 
@@ -57,6 +65,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
         tiltaksdeltakelse: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern? = tiltaksdeltakelse,
         forventetOppgavetekst: String? = null,
+        forventetResultat: KClass<out TiltaksdeltakelseEndringBehandlet>,
     ): Sak {
         oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand)
         tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(
@@ -67,7 +76,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
         val deltaker = tiltakContext.tiltaksdeltakerRepo
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
 
-        oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
+        // Alle endringene i denne fila skal ferdigbehandles, slik at markøren kan nullstilles.
+        val resultat = oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker).getOrFail()
+        resultat::class shouldBe forventetResultat
 
         val oppgaver = oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
         val referanser = eksternOppgaveRepo.hentForSakId(sak.id)
@@ -80,16 +91,14 @@ class OppdatertTiltaksdeltakelseJobbTest {
             referanser.map { it.oppgaveId } shouldBe oppgaver.opprettedeOppgaveIder
             referanser.map { it.tilleggstekst } shouldBe listOf(forventetOppgavetekst)
             referanser.single().grunnlag.shouldContainJsonKeyValue("$.verdi.eksternDeltakelseId", tiltaksdeltakelse.eksternDeltakelseId)
+            resultat shouldBe OppgaveOpprettet(referanser.single().oppgaveId)
         }
 
-        return sakContext.sakRepo.hentForSakId(sak.id)!!
-    }
-
-    private fun TestApplicationContextMedPostgres.assertMarkørNullstilt(eksternDeltakelseId: String) {
-        tiltakContext.tiltaksdeltakerRepo
-            .hentTiltaksdeltaker(eksternDeltakelseId)
-            .shouldNotBeNull()
-            .sisteUbehandletEndringTidspunkt.shouldBeNull()
+        val oppdatertSak = sakContext.sakRepo.hentForSakId(sak.id)!!
+        if (resultat is RevurderingOpprettet) {
+            resultat.revurderingId shouldBe oppdatertSak.rammebehandlinger.last().id
+        }
+        return oppdatertSak
     }
 
     @ParameterizedTest
@@ -135,9 +144,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 tiltaksdeltakelse,
                 nåtilstand = tiltaksdeltakelse.copy(deltakelseTilOgMed = nySluttdato),
+                forventetResultat = if (forventRevurdering) RevurderingOpprettet::class else IngenRelevantEndring::class,
             )
 
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             if (forventRevurdering) {
                 oppdatertSak.rammebehandlinger shouldHaveSize behandlingerFør.size + 1
                 val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
@@ -164,9 +173,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 tiltaksdeltakelse,
                 nåtilstand = tiltaksdeltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
+                forventetResultat = RevurderingOpprettet::class,
             )
 
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             oppdatertSak.rammebehandlinger shouldHaveSize 2
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
@@ -214,6 +223,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                         deltakelseStatus = TiltakDeltakerstatus.Deltar,
                     )
                 },
+                forventetResultat = if (nåtilstandMangler) IngenLesbarNåtilstand::class else IngenRelevantEndring::class,
             )
 
             val senesteVenterTil = nå(tac.clock).plusSeconds(1).withNano(0)
@@ -225,12 +235,11 @@ class OppdatertTiltaksdeltakelseJobbTest {
             oppdatertBehandling.ventestatus.erSattPåVent shouldBe true
             repo.hent(annenBehandling.id).venterTil shouldBe annenVenterTil
             oppdatertSak.rammebehandlinger shouldHaveSize 2
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
         }
     }
 
     @Test
-    fun `ingen endring i nå-tilstanden - markøren nullstilles uten revurdering`() {
+    fun `ingen endring i nå-tilstanden - endringen ferdigbehandles uten revurdering`() {
         withTestApplicationContextAndPostgres { tac ->
             val fnr = Fnr.random()
             val tiltaksdeltakelse = tiltaksdeltakelse(
@@ -244,68 +253,35 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 tiltaksdeltakelse = tiltaksdeltakelse,
             ).first
 
-            val oppdatertSak = tac.registrerEndringOgBehandle(sak, tiltaksdeltakelse)
+            val oppdatertSak = tac.registrerEndringOgBehandle(sak, tiltaksdeltakelse, forventetResultat = IngenRelevantEndring::class)
 
             // Endringen tolkes ikke — den trigger kun et ferskt oppslag mot tiltakshistorikk på nåværende ekstern id.
             val fakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
             fakeKlient.hentTiltaksdeltakelseKall.get()
                 .shouldContainExactly(fnr to tiltaksdeltakelse.eksternDeltakelseId)
 
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             oppdatertSak.rammebehandlinger shouldHaveSize 1
         }
     }
 
     @Test
-    fun `deltakelse som ikke finnes i tiltakshistorikken nullstiller markøren uten feil`() {
+    fun `deltakelse avsluttet som forventet - ingen revurdering eller oppgave`() {
         withTestApplicationContextAndPostgres { tac ->
-            val fnr = Fnr.random()
-            val tiltaksdeltakelse = tiltaksdeltakelse(
-                periode = 5.januar(2025) til 5.mai(2025),
-                internDeltakelseId = TiltaksdeltakerId.random(),
-            )
-            val sak = iverksettSøknadsbehandling(
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.april(2025))
+            val (sak) = iverksettSøknadsbehandling(
                 tac = tac,
-                fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
-                tiltaksdeltakelse = tiltaksdeltakelse,
-            ).first
-
-            // Deltakelsen er borte fra kilden, f.eks. slettet eller feilregistrert.
-            val oppdatertSak = tac.registrerEndringOgBehandle(sak, tiltaksdeltakelse, nåtilstand = null)
-
-            val fakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
-            fakeKlient.hentTiltaksdeltakelseKall.get()
-                .shouldContainExactly(fnr to tiltaksdeltakelse.eksternDeltakelseId)
-
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
-            oppdatertSak.rammebehandlinger shouldHaveSize 1
-        }
-    }
-
-    @Test
-    fun `deltaker uten ubehandlet endring behandles ikke`() {
-        withTestApplicationContextAndPostgres { tac ->
-            val fnr = Fnr.random()
-            val tiltaksdeltakelse = tiltaksdeltakelse(
-                periode = 5.januar(2025) til 5.mai(2025),
-                internDeltakelseId = TiltaksdeltakerId.random(),
-            )
-            iverksettSøknadsbehandling(
-                tac = tac,
-                fnr = fnr,
-                innvilgelsesperioder = innvilgelsesperioder(tiltaksdeltakelse.periode!!, tiltaksdeltakelse),
-                tiltaksdeltakelse = tiltaksdeltakelse,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
 
-            val deltaker = tac.tiltakContext.tiltaksdeltakerRepo
-                .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
-            deltaker.sisteUbehandletEndringTidspunkt.shouldBeNull()
+            val oppdatert = tac.registrerEndringOgBehandle(
+                sak,
+                deltakelse,
+                deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Fullført),
+                forventetResultat = TiltaksdeltakelseEndringBehandlet.AvsluttetSomForventet::class,
+            )
 
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
-
-            val fakeKlient = tac.tiltakContext.tiltaksdeltakelseKlient as TiltaksdeltakelseFakeKlient
-            fakeKlient.hentTiltaksdeltakelseKall.get().shouldBeEmpty()
+            oppdatert.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
         }
     }
 
@@ -328,9 +304,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sak,
                 tiltaksdeltakelse,
                 nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
+                forventetResultat = RevurderingOpprettet::class,
             )
 
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             oppdatertSak.rammebehandlinger shouldHaveSize 2
 
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
@@ -365,9 +341,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
                     deltakelseTilOgMed = 5.juni(2025),
                     antallDagerPerUke = if (endretDeltakelsesmengde) 3F else tiltaksdeltakelse.antallDagerPerUke,
                 ),
+                forventetResultat = RevurderingOpprettet::class,
             )
 
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             oppdatertSak.rammebehandlinger shouldHaveSize 2
 
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
@@ -405,9 +381,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 nåtilstand = tiltaksdeltakelse.copy(
                     deltakelseFraOgMed = 6.januar(2025),
                 ),
+                forventetResultat = RevurderingOpprettet::class,
             )
 
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             oppdatertSak.rammebehandlinger shouldHaveSize 2
 
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
@@ -425,7 +401,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
         "Venteliste, Endret status.",
         "IkkeAktuell, Deltakelsen er ikke aktuell.",
     )
-    fun `endring som ikke gir automatisk revurdering oppretter Gosys-oppgave og nullstiller markøren`(
+    fun `endring som ikke gir automatisk revurdering oppretter Gosys-oppgave`(
         status: TiltakDeltakerstatus,
         oppgavetekst: String,
     ) {
@@ -447,15 +423,10 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 tiltaksdeltakelse,
                 nåtilstand = tiltaksdeltakelse.copy(deltakelseStatus = status),
                 forventetOppgavetekst = oppgavetekst,
+                forventetResultat = OppgaveOpprettet::class,
             )
 
-            tac.assertMarkørNullstilt(tiltaksdeltakelse.eksternDeltakelseId)
             oppdatertSak.rammebehandlinger shouldHaveSize 1
-
-            val deltaker = tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
-            tac.oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
-            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
-                .opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
         }
     }
 
@@ -473,10 +444,10 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 deltakelse,
                 nåtilstand = deltakelse.copy(deltakelseFraOgMed = 6.januar(2025), antallDagerPerUke = 3F),
                 forventetOppgavetekst = "- Endret deltakelsesmengde\n- Endret startdato",
+                forventetResultat = OppgaveOpprettet::class,
             )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe listOf(behandling.id)
-            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 
@@ -486,10 +457,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 5.mai(2025))
             val (sak) = opprettSakOgSøknad(tac, fnr = gyldigFnr(), tiltaksdeltakelse = deltakelse)
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)), forventetResultat = IngenRelevantEndring::class)
 
             oppdatert.rammebehandlinger.shouldBeEmpty()
-            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 
@@ -509,12 +479,12 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 deltakelse,
                 deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
                 forventetOppgavetekst = if (automatisk) null else "Deltakelsen har blitt forlenget.",
+                forventetResultat = if (automatisk) IngenRelevantEndring::class else OppgaveOpprettet::class,
             )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe listOf(behandling.id)
             oppdatert.rammebehandlinger.single().ventestatus shouldBe behandling.ventestatus
             oppdatert.rammebehandlinger.single().venterTil.shouldBeNull()
-            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 
@@ -536,11 +506,11 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 deltakelse,
                 deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)),
                 forventetOppgavetekst = "Deltakelsen har blitt forlenget.",
+                forventetResultat = OppgaveOpprettet::class,
             )
 
             oppdatert.rammebehandlinger shouldHaveSize 2
             tac.behandlingContext.rammebehandlingRepo.hent(revurdering.id) shouldBe før
-            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 
@@ -556,10 +526,9 @@ class OppdatertTiltaksdeltakelseJobbTest {
             )
             opprettSøknadPåSakId(tac, sakId = sak.id, tiltaksdeltakelse = annen)
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, annen, annen.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
+            val oppdatert = tac.registrerEndringOgBehandle(sak, annen, annen.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt), forventetResultat = IngenRelevantEndring::class)
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
-            tac.assertMarkørNullstilt(annen.eksternDeltakelseId)
         }
     }
 
@@ -589,19 +558,19 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 sakMedBeggeVedtak,
                 avslått,
                 avslått.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
+                forventetResultat = IngenRelevantEndring::class,
             )
             etterAvslag.rammebehandlinger shouldHaveSize 2
             val etterInnvilgelse = tac.registrerEndringOgBehandle(
                 etterAvslag,
                 innvilget,
                 innvilget.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
+                forventetResultat = RevurderingOpprettet::class,
             )
 
             etterInnvilgelse.rammebehandlinger shouldHaveSize 3
             etterInnvilgelse.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 .resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
-            tac.assertMarkørNullstilt(innvilget.eksternDeltakelseId)
-            tac.assertMarkørNullstilt(avslått.eksternDeltakelseId)
         }
     }
 
@@ -622,14 +591,13 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 innvilgelsesperioder = innvilgelsesperioder(andre.periode!!, andre),
             )
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, første, første.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt))
+            val oppdatert = tac.registrerEndringOgBehandle(sak, første, første.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt), forventetResultat = RevurderingOpprettet::class)
 
             oppdatert.rammebehandlinger shouldHaveSize 3
             val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
                 .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(førsteVedtak.id)
             revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.AvbruttDeltakelse
-            tac.assertMarkørNullstilt(første.eksternDeltakelseId)
         }
     }
 
@@ -648,10 +616,10 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 deltakelse,
                 deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
                 forventetOppgavetekst = "Deltakelsen er avbrutt.",
+                forventetResultat = OppgaveOpprettet::class,
             )
 
             oppdatert.rammebehandlinger shouldHaveSize 1
-            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 
@@ -678,10 +646,10 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 deltakelse,
                 if (endreMengde) forlenget.copy(antallDagerPerUke = 3F) else forlenget,
                 forventetOppgavetekst = if (endreMengde) "Endret deltakelsesmengde." else null,
+                forventetResultat = if (endreMengde) OppgaveOpprettet::class else IngenRelevantEndring::class,
             )
 
             oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedForlengelse.rammebehandlinger.map { it.id }
-            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 
@@ -707,6 +675,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 første,
                 første.copy(deltakelseTilOgMed = 9.mai(2025), antallDagerPerUke = if (endreMengde) 3F else første.antallDagerPerUke),
                 forventetOppgavetekst = if (endreMengde) null else "Deltakelsen har blitt forlenget.",
+                forventetResultat = if (endreMengde) RevurderingOpprettet::class else OppgaveOpprettet::class,
             )
 
             if (endreMengde) {
@@ -721,7 +690,6 @@ class OppdatertTiltaksdeltakelseJobbTest {
             } else {
                 oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedBeggeVedtak.rammebehandlinger.map { it.id }
             }
-            tac.assertMarkørNullstilt(første.eksternDeltakelseId)
         }
     }
 
@@ -735,7 +703,7 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
 
-            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 3.mai(2025)))
+            val oppdatert = tac.registrerEndringOgBehandle(sak, deltakelse, deltakelse.copy(deltakelseTilOgMed = 3.mai(2025)), forventetResultat = RevurderingOpprettet::class)
 
             oppdatert.rammebehandlinger shouldHaveSize 2
             val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
@@ -744,7 +712,6 @@ class OppdatertTiltaksdeltakelseJobbTest {
             revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.AndreEndringer(
                 endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(3.mai(2025)),
             )
-            tac.assertMarkørNullstilt(deltakelse.eksternDeltakelseId)
         }
     }
 }

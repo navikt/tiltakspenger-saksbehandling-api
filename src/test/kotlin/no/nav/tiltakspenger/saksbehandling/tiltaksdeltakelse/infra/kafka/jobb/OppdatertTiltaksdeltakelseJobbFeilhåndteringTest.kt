@@ -10,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.dato.januar
@@ -17,7 +18,6 @@ import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.periode.til
-import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
@@ -37,23 +37,21 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringKunneIkkeBehandles
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.time.LocalDateTime
 import java.util.UUID
 
 class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
 
-    @ParameterizedTest
-    @ValueSource(booleans = [false, true])
-    fun `Gosys-feil beholder markøren til oppgaven er opprettet ved nytt forsøk`(kastException: Boolean) {
+    @Test
+    fun `Gosys-feil gir verken oppgave eller oppgavereferanse før nytt forsøk lykkes`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
@@ -68,28 +66,27 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
                     tilleggstekst: String?,
                 ): Either<HttpKlientError, OppgaveId> {
                     antallForsøk++
-                    if (skalFeile) {
-                        if (kastException) error("Gosys er utilgjengelig")
-                        return httpKlientUventetStatus().left()
-                    }
+                    if (skalFeile) return httpKlientUventetStatus().left()
                     return delegate.opprettOppgaveUtenDuplikatkontroll(fnr, oppgavebehov, tilleggstekst)
                 }
             }
             val jobb = tac.jobb(oppgaveKlient = klient)
 
-            jobb.behandleDeltaker(deltaker)
+            jobb.behandleDeltaker(deltaker).leftOrNull() shouldBe TiltaksdeltakelseEndringKunneIkkeBehandles.KunneIkkeOppretteOppgave
 
             antallForsøk shouldBe 1
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe deltaker.sisteUbehandletEndringTidspunkt
             delegate.opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
+            tac.eksternOppgaveRepo.hentForSakId(sak.id).shouldBeEmpty()
+            tac.hentDeltaker(deltakelse) shouldBe deltaker
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
 
             skalFeile = false
-            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
-            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
+            val resultat = jobb.behandleDeltaker(deltaker).getOrFail()
 
             antallForsøk shouldBe 2
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
+            val referanse = tac.eksternOppgaveRepo.hentForSakId(sak.id).single()
+            referanse.oppgaveId shouldBe delegate.opprettedeOppgaveIder.single()
+            resultat shouldBe TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet(referanse.oppgaveId)
             delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
             delegate.opprettedeOppgavetekster shouldBe listOf("Endret status.")
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
@@ -97,43 +94,7 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
     }
 
     @Test
-    fun `ny markør under oppgaveopprettelsen beholdes til neste kjøring`() {
-        withTestApplicationContextAndPostgres { tac ->
-            val (sak, deltakelse) = opprettInnvilgetSak(tac)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
-            val deltaker = tac.registrerEndring(sak, deltakelse)
-            val nyMarkør = nå(tac.clock).withNano(0)
-            val delegate = tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>()
-            val klient = object : OppgaveKlient by delegate {
-                override suspend fun opprettOppgaveUtenDuplikatkontroll(
-                    fnr: Fnr,
-                    oppgavebehov: Oppgavebehov,
-                    tilleggstekst: String?,
-                ): Either<HttpKlientError, OppgaveId> {
-                    val oppgave = delegate.opprettOppgaveUtenDuplikatkontroll(fnr, oppgavebehov, tilleggstekst)
-                    tac.tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(deltaker.id, sak.id, nyMarkør)
-                    tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
-                    return oppgave
-                }
-            }
-            val jobb = tac.jobb(oppgaveKlient = klient)
-
-            jobb.behandleDeltaker(deltaker)
-
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe nyMarkør
-            delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
-
-            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
-
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
-            delegate.opprettedeOppgaverUtenDuplikatkontroll shouldBe listOf(sak.fnr to Oppgavebehov.ENDRET_TILTAKDELTAKER)
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-        }
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = [false, true])
-    fun `registerfeil beholder markøren og vellykket retry oppretter bare én revurdering`(kastException: Boolean) {
+    fun `registerfeil gir ingen revurdering, og nytt forsøk oppretter bare én`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
@@ -144,7 +105,6 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             val klient = StyrtKlient(delegate) { fnr, eksternId, correlationId ->
                 antallOppslag++
                 if (skalFeile) {
-                    if (kastException) error("Registeret er utilgjengelig")
                     KunneIkkeHenteTiltakshistorikk.KallFeilet(httpKlientUventetStatus()).left()
                 } else {
                     delegate.hentTiltaksdeltakelse(fnr, eksternId, correlationId)
@@ -152,132 +112,56 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
             }
             val jobb = tac.jobb(klient = klient)
 
-            jobb.behandleDeltaker(deltaker)
+            jobb.behandleDeltaker(deltaker).leftOrNull() shouldBe TiltaksdeltakelseEndringKunneIkkeBehandles.KunneIkkeHenteNåtilstand
 
             antallOppslag shouldBe 1
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe deltaker.sisteUbehandletEndringTidspunkt
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
 
             skalFeile = false
-            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
+            val resultat = jobb.behandleDeltaker(deltaker).getOrFail()
 
             antallOppslag shouldBe 2
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
             val etterRetry = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            resultat shouldBe TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(etterRetry.rammebehandlinger.last().id)
             etterRetry.rammebehandlinger.size shouldBe 2
             etterRetry.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
                 TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
 
-            jobb.behandleDeltaker(deltaker)
-            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
+            // Den åpne revurderingen kjenner allerede nå-tilstanden, så et nytt forsøk finner ingen endring.
+            jobb.behandleDeltaker(deltaker).getOrFail() shouldBe TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring
 
             antallOppslag shouldBe 3
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterRetry.rammebehandlinger.map { it.id }
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
             tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
 
-    @Test
-    fun `ny markør under registeroppslaget overlever gammel kvittering og behandles neste gang`() {
-        withTestApplicationContextAndPostgres { tac ->
-            val (sak, deltakelse) = opprettInnvilgetSak(tac)
-            val deltaker = tac.registrerEndring(sak, deltakelse)
-            val repo = tac.tiltakContext.tiltaksdeltakerRepo
-            val nyMarkør = nå(tac.clock).withNano(0)
-            var antallOppslag = 0
-            val delegate = tac.tiltakContext.tiltaksdeltakelseKlient
-            val klient = StyrtKlient(delegate) { fnr, eksternId, correlationId ->
-                antallOppslag++
-                val svar = delegate.hentTiltaksdeltakelse(fnr, eksternId, correlationId)
-                if (antallOppslag == 1) {
-                    // Den nye hendelsen kommer etter registerets snapshot, men før jobbens kvittering.
-                    repo.registrerUbehandletEndring(deltaker.id, sak.id, nyMarkør)
-                    tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
-                }
-                svar
-            }
-            val jobb = tac.jobb(klient = klient)
-
-            jobb.behandleDeltaker(deltaker)
-
-            antallOppslag shouldBe 1
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe nyMarkør
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
-
-            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
-
-            antallOppslag shouldBe 2
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
-            val etterNyMarkør = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            etterNyMarkør.rammebehandlinger.size shouldBe 2
-            etterNyMarkør.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
-                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
-        }
-    }
-
-    @Test
-    fun `retry etter feil i kvitteringen beholder lagret revurdering uten duplikat og rydder markøren`() {
-        withTestApplicationContextAndPostgres { tac ->
-            val (sak, deltakelse) = opprettInnvilgetSak(tac)
-            tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
-            val deltaker = tac.registrerEndring(sak, deltakelse)
-            val delegate = tac.tiltakContext.tiltaksdeltakerRepo
-            var antallKvitteringer = 0
-            val repo = object : TiltaksdeltakerRepo by delegate {
-                override fun markerEndringSomBehandlet(
-                    id: TiltaksdeltakerId,
-                    forventetSisteUbehandletEndring: LocalDateTime,
-                    sessionContext: SessionContext?,
-                ) {
-                    antallKvitteringer++
-                    if (antallKvitteringer == 1) error("Kvitteringen kunne ikke lagres")
-                    delegate.markerEndringSomBehandlet(id, forventetSisteUbehandletEndring, sessionContext)
-                }
-            }
-            val jobb = tac.jobb(repo = repo)
-
-            jobb.behandleDeltaker(deltaker)
-
-            antallKvitteringer shouldBe 1
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe deltaker.sisteUbehandletEndringTidspunkt
-            val etterFeiletKvittering = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            etterFeiletKvittering.rammebehandlinger.size shouldBe 2
-            etterFeiletKvittering.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
-                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
-
-            jobb.behandleDeltaker(tac.hentDeltaker(deltakelse))
-
-            antallKvitteringer shouldBe 2
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterFeiletKvittering.rammebehandlinger.map { it.id }
-            tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
-        }
-    }
-
+    /** Deltakelsen kan være slettet eller feilregistrert i kilden, eller ha en status eller tiltakstype vi ikke kjenner. */
     @ParameterizedTest
-    @ValueSource(booleans = [false, true])
-    fun `ukjent status eller tiltakstype fra registeret kvitteres uten revurdering`(ukjentStatus: Boolean) {
+    @ValueSource(strings = ["finnes ikke", "ukjent status", "ukjent tiltakstype"])
+    fun `nå-tilstand som mangler eller ikke kan leses ferdigbehandles uten revurdering`(nåtilstand: String) {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
             val deltaker = tac.registrerEndring(sak, deltakelse)
-            val uleseligDeltakelse = if (ukjentStatus) {
-                testdeltakelse(
+            val uleseligDeltakelse = when (nåtilstand) {
+                "finnes ikke" -> null
+
+                "ukjent status" -> testdeltakelse(
                     id = deltakelse.eksternDeltakelseId,
                     kildestatus = Arenastatus.Ukjent("NY_STATUS"),
                     fraOgMed = deltakelse.deltakelseFraOgMed,
                     tilOgMed = 5.juni(2025),
                 )
-            } else {
-                testdeltakelse(
+
+                "ukjent tiltakstype" -> testdeltakelse(
                     id = deltakelse.eksternDeltakelseId,
                     tiltakstype = Tiltakstype.Ukjent(tiltakskodeFraKilden = "NY_TILTAKSTYPE"),
                     fraOgMed = deltakelse.deltakelseFraOgMed,
                     tilOgMed = 5.juni(2025),
                 )
+
+                else -> error("Ukjent testtilfelle $nåtilstand")
             }
             val oppslag = mutableListOf<Pair<Fnr, String>>()
             val klient = StyrtKlient(tac.tiltakContext.tiltaksdeltakelseKlient) { fnr, eksternId, _ ->
@@ -285,10 +169,9 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
                 uleseligDeltakelse.right()
             }
 
-            tac.jobb(klient = klient).behandleDeltaker(deltaker)
+            tac.jobb(klient = klient).behandleDeltaker(deltaker).getOrFail() shouldBe TiltaksdeltakelseEndringBehandlet.IngenLesbarNåtilstand
 
             oppslag shouldBe listOf(sak.fnr to deltakelse.eksternDeltakelseId)
-            tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
             tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
             tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
@@ -341,11 +224,11 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
                 delegate.hentTiltaksdeltakelse(fnr, eksternId, correlationId)
             }
 
-            tac.jobb(klient = klient).behandleDeltaker(flyttetDeltaker)
+            val resultat = tac.jobb(klient = klient).behandleDeltaker(flyttetDeltaker).getOrFail()
 
             oppslag shouldBe listOf(sak.fnr to kometId)
-            repo.hentTiltaksdeltaker(kometId).shouldNotBeNull().sisteUbehandletEndringTidspunkt.shouldBeNull()
             val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            resultat shouldBe TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(oppdatertSak.rammebehandlinger.last().id)
             oppdatertSak.rammebehandlinger.size shouldBe 2
             oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
                 .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
@@ -382,17 +265,15 @@ class OppdatertTiltaksdeltakelseJobbFeilhåndteringTest {
 
     private fun TestApplicationContextMedPostgres.jobb(
         klient: TiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
-        repo: TiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         oppgaveKlient: OppgaveKlient = this.oppgaveKlient,
     ) = OppdatertTiltaksdeltakelseJobb(
-        tiltaksdeltakerRepo = repo,
+        tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
         sakRepo = sakContext.sakRepo,
         rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
         tiltaksdeltakelseKlient = klient,
         startRevurderingService = behandlingContext.startRevurderingService,
         oppgaveKlient = oppgaveKlient,
         eksternOppgaveRepo = eksternOppgaveRepo,
-        sessionFactory = sessionFactory,
         clock = clock,
     )
 
