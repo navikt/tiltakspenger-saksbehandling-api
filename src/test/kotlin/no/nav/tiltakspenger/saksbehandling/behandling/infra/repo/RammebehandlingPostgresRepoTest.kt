@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
@@ -124,6 +125,28 @@ class RammebehandlingPostgresRepoTest {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.sendtTilBeslutning shouldBe null
             }
+        }
+    }
+
+    @Test
+    fun `angreBehandling avviser en utdatert angring etter at beslutter har satt behandlingen på vent`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac, saksbehandler = saksbehandler)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            val repo = tac.behandlingContext.rammebehandlingRepo
+            val (angretBehandling) = repo.hent(behandlingId).angreBehandling(saksbehandler, tac.clock).getOrFail()
+
+            val (_, _, behandlingPåVent) = settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = beslutter,
+            )!!
+
+            repo.angreBehandling(angretBehandling, null) shouldBe false
+            repo.hent(behandlingId) shouldBe behandlingPåVent
         }
     }
 

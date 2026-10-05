@@ -269,6 +269,17 @@ class RammebehandlingGyldigeKommandoerExTest {
         )
     }
 
+    @Test
+    fun `behandling på vent under beslutning tilbyr ikke angring til saksbehandleren`() {
+        val behandling = ObjectMother.nySøknadsbehandlingUnderBeslutning(
+            saksbehandler = saksbehandler,
+            beslutter = beslutter,
+        ).settPåVentAv(beslutter)
+
+        behandling.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+        behandling.finnGyldigeKommandoer(saksbehandler).contains(SaksbehandlerBehandlingKommando.AngreSendTilBeslutning) shouldBe false
+    }
+
     /**
      * `settPåVent` og `gjenoppta` er rollefrie for automatiske behandlinger fordi den automatiske saksbehandlingen selv bruker dem.
      * Testen dokumenterer at det også slår ut på kommandoene som annonseres til en vanlig bruker.

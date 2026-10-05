@@ -142,6 +142,7 @@ class RammebehandlingPostgresRepo(
                         sendt_til_beslutning = null,
                         beslutter = null
                     where id = :id and saksbehandler = :saksbehandler and (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING')
+                        and (ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent') is distinct from 'true'
                     """,
                     "id" to rammebehandling.id.toString(),
                     "status" to rammebehandling.status.toDb(),

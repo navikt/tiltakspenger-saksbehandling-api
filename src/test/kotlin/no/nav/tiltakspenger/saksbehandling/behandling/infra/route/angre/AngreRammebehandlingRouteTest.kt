@@ -12,11 +12,13 @@ import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreRammebehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgStartRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.oppdaterRevurderingStans
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendRevurderingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkBehandlingStatus
@@ -26,6 +28,66 @@ import org.junit.jupiter.api.Test
  * Gjelder for både søknadsbehandling og revurdering.
  */
 class AngreRammebehandlingRouteTest {
+
+    @Test
+    fun `saksbehandler kan ikke angre en behandling satt på vent av beslutter`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            val (_, _, behandlingPåVent) = settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = beslutter,
+            )!!
+            behandlingPåVent.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            behandlingPåVent.ventestatus.erSattPåVent shouldBe true
+
+            angreRammebehandling(
+                tac = tac,
+                sakId = sak.id,
+                behandlingId = behandlingId,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Behandlingen er satt på vent.",
+                      "kode": "behandlingen_kan_ikke_være_satt_på_vent"
+                    }
+                    """.trimIndent(),
+                ),
+            ) shouldBe null
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) shouldBe behandlingPåVent
+        }
+    }
+
+    @Test
+    fun `saksbehandler kan angre etter at beslutter har gjenopptatt behandlingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            settRammebehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = beslutter,
+            )!!
+            gjenopptaRammebehandling(
+                tac = tac,
+                sakId = sak.id,
+                rammebehandlingId = behandlingId,
+                saksbehandler = beslutter,
+            )!!
+
+            val (_, angretBehandling) = angreRammebehandling(tac, sak.id, behandlingId)!!
+            angretBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+            angretBehandling.ventestatus.erSattPåVent shouldBe false
+            angretBehandling.ventestatus.ventestatusHendelser.size shouldBe 2
+        }
+    }
 
     /**
      * Kjører mot postgres fordi den er grunnsettet for `angreBehandling` i [no.nav.tiltakspenger.saksbehandling.behandling.infra.repo.RammebehandlingPostgresRepo].

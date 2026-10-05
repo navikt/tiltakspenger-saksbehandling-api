@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverkse
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tattMeldekortbehandlingMedKlageFraKlageRoute
 import org.junit.jupiter.api.Test
@@ -45,6 +46,30 @@ class MeldekortbehandlingPostgresRepoTest {
                 it.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
                 it.sendtTilBeslutning shouldBe null
             }
+        }
+    }
+
+    @Test
+    fun `angreBehandling avviser en utdatert angring etter at beslutter har satt meldekortbehandlingen på vent`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandler")
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (sak, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            )!!
+            val angretBehandling = meldekortbehandling.angreMeldekortbehandling(saksbehandler, tac.clock).getOrFail()
+            val (_, behandlingPåVent) = settMeldekortbehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                saksbehandlerEllerBeslutter = beslutter,
+            )!!
+            val repo = tac.meldekortContext.meldekortbehandlingRepo
+
+            repo.angreBehandling(angretBehandling, null) shouldBe false
+            repo.hent(meldekortbehandling.id) shouldBe behandlingPåVent
         }
     }
 

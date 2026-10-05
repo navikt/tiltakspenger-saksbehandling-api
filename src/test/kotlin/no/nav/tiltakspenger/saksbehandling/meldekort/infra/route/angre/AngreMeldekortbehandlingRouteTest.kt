@@ -6,12 +6,88 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.gjenopptaMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
 import org.junit.jupiter.api.Test
 
 class AngreMeldekortbehandlingRouteTest {
+
+    @Test
+    fun `saksbehandler kan ikke angre en meldekortbehandling satt på vent av beslutter`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandler")
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (sak, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            )!!
+            val (_, behandlingPåVent) = settMeldekortbehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                saksbehandlerEllerBeslutter = beslutter,
+            )!!
+            behandlingPåVent.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
+            behandlingPåVent.erSattPåVent shouldBe true
+
+            angreMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = saksbehandler,
+                forventet = ForventetRespons.json(
+                    400,
+                    """
+                    {
+                      "melding": "Meldekortbehandlingen er satt på vent.",
+                      "kode": "meldekortbehandlingen_kan_ikke_være_satt_på_vent"
+                    }
+                    """.trimIndent(),
+                ),
+            ) shouldBe null
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortbehandling.id) shouldBe behandlingPåVent
+        }
+    }
+
+    @Test
+    fun `saksbehandler kan angre etter at beslutter har gjenopptatt meldekortbehandlingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandler")
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (sak, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            )!!
+            settMeldekortbehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                saksbehandlerEllerBeslutter = beslutter,
+            )!!
+            gjenopptaMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                saksbehandlerEllerBeslutter = beslutter,
+            )!!
+
+            val (_, angretBehandling) = angreMeldekortbehandling(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+            angretBehandling!!.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+            angretBehandling.erSattPåVent shouldBe false
+            angretBehandling.ventestatus.ventestatusHendelser.size shouldBe 2
+        }
+    }
 
     @Test
     fun `en saksbehandler kan ikke angre en meldekortbehandling fra en annen sak`() {

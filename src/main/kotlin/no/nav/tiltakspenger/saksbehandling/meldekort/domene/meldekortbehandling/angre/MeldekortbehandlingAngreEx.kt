@@ -67,7 +67,7 @@ fun Meldekortbehandling.kanAngreMeldekortbehandling(
         MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING, MeldekortbehandlingStatus.UNDER_BESLUTNING -> {
             if (this.saksbehandler != saksbehandler.navIdent) {
                 KanIkkeAngreMeldekortbehandling.MåVæreSammeSaksbehandlerForÅAngreMeldekortbehandlingen.left()
-            } else if (this.status == MeldekortbehandlingStatus.UNDER_BESLUTNING && this.erSattPåVent) {
+            } else if (this.erSattPåVent) {
                 KanIkkeAngreMeldekortbehandling.MeldekortbehandlingenErSattPåVent.left()
             } else {
                 Unit.right()

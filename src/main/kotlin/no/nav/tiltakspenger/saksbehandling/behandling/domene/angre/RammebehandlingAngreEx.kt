@@ -71,7 +71,7 @@ fun Rammebehandling.angreBehandling(
 /**
  * Avgjør om [saksbehandler] kan angre sendingen til beslutning.
  * Kun saksbehandleren som er tildelt behandlingen kan angre, og bare mens behandlingen er [KLAR_TIL_BESLUTNING] eller [UNDER_BESLUTNING].
- * Behandlingen kan ikke angres mens den er [UNDER_BESLUTNING] og satt på vent, siden beslutteren har satt den på vent.
+ * Behandlingen kan ikke angres mens den er satt på vent av beslutteren.
  * Kalles også fra DTO-mappingen for å avgjøre om kommandoen skal tilbys, og må derfor ikke kaste.
  */
 fun Rammebehandling.kanAngreBehandling(saksbehandler: Saksbehandler): Either<KunneIkkeAngreBehandling, Unit> {
@@ -79,7 +79,7 @@ fun Rammebehandling.kanAngreBehandling(saksbehandler: Saksbehandler): Either<Kun
         KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> {
             if (saksbehandler.navIdent != this.saksbehandler) {
                 KunneIkkeAngreBehandling.MåVæreSaksbehandlerForBehandlingen.left()
-            } else if (status == UNDER_BESLUTNING && ventestatus.erSattPåVent) {
+            } else if (ventestatus.erSattPåVent) {
                 KunneIkkeAngreBehandling.BehandlingenErSattPåVent.left()
             } else {
                 Unit.right()

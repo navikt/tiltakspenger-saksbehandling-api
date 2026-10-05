@@ -190,6 +190,7 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
 
         if (meldekortbehandlingRespons == null ||
             meldekortbehandlingRespons.saksbehandler != meldekortbehandling.saksbehandler ||
+            meldekortbehandlingRespons.erSattPåVent ||
             (
                 meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING &&
                     meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING
