@@ -7,12 +7,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingssta
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.angreBehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennForBehandlingId
 import org.junit.jupiter.api.Test
 
 /**
@@ -116,15 +119,80 @@ class RammebehandlingPostgresRepoTest {
             val saksbehandler = ObjectMother.saksbehandler()
             val (_, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
 
-            val (angretBehandling, _) = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
-                .angreBehandling(saksbehandler, ObjectMother.clock).getOrFail()
+            val behandlingFørAngring = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+            val (angretBehandling, _) = behandlingFørAngring.angreBehandling(saksbehandler, ObjectMother.clock).getOrFail()
 
-            tac.behandlingContext.rammebehandlingRepo.angreBehandling(angretBehandling, null) shouldBe true
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(
+                angretBehandling,
+                behandlingFørAngring.sendtTilBeslutning,
+                null,
+            ) shouldBe true
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.sendtTilBeslutning shouldBe null
             }
+        }
+    }
+
+    /**
+     * Saksbehandleren har lastet behandlingen før beslutteren underkjente, og den er sendt inn på nytt før angringen når databasen.
+     * Underkjenning beholder beslutteren, så den nye innsendingen går rett til `UNDER_BESLUTNING`.
+     * Status, saksbehandler og beslutter er de samme som da behandlingen ble lastet, så bare `sendt_til_beslutning` skiller de to innsendingene.
+     */
+    @Test
+    fun `angreBehandling avviser en utdatert angring etter at behandlingen er sendt til beslutning på nytt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            val utdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+            val (angretBehandling, _) = utdatertBehandling.angreBehandling(saksbehandler, tac.clock).getOrFail()
+
+            underkjennForBehandlingId(tac, sak.id, behandlingId, beslutter = beslutter)
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandlingId, saksbehandler = saksbehandler)
+            val nyInnsending = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+            nyInnsending.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+            nyInnsending.beslutter shouldBe beslutter.navIdent
+
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(
+                angretBehandling,
+                utdatertBehandling.sendtTilBeslutning,
+                null,
+            ) shouldBe false
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) shouldBe nyInnsending
+        }
+    }
+
+    /**
+     * Beslutteren har lastet behandlingen, saksbehandleren har angret og sendt inn på nytt, og den samme beslutteren har tatt den igjen.
+     * Status og beslutter er de samme som da behandlingen ble lastet, så bare `sendt_til_beslutning` skiller de to innsendingene.
+     */
+    @Test
+    fun `lagreHvisFortsattUnderBeslutning avviser en utdatert skriving etter at behandlingen er sendt til beslutning på nytt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            val utdatertBehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+
+            angreRammebehandling(tac, sak.id, behandlingId, saksbehandler = saksbehandler)!!
+            sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandlingId, saksbehandler = saksbehandler)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            val nyInnsending = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+            nyInnsending.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+            nyInnsending.beslutter shouldBe beslutter.navIdent
+
+            tac.behandlingContext.rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(
+                rammebehandling = utdatertBehandling,
+                utøvendeBeslutter = beslutter,
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) shouldBe nyInnsending
         }
     }
 
@@ -136,7 +204,8 @@ class RammebehandlingPostgresRepoTest {
             val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac, saksbehandler = saksbehandler)
             taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
             val repo = tac.behandlingContext.rammebehandlingRepo
-            val (angretBehandling) = repo.hent(behandlingId).angreBehandling(saksbehandler, tac.clock).getOrFail()
+            val behandlingFørAngring = repo.hent(behandlingId)
+            val (angretBehandling) = behandlingFørAngring.angreBehandling(saksbehandler, tac.clock).getOrFail()
 
             val (_, _, behandlingPåVent) = settRammebehandlingPåVent(
                 tac = tac,
@@ -145,7 +214,7 @@ class RammebehandlingPostgresRepoTest {
                 saksbehandler = beslutter,
             )!!
 
-            repo.angreBehandling(angretBehandling, null) shouldBe false
+            repo.angreBehandling(angretBehandling, behandlingFørAngring.sendtTilBeslutning, null) shouldBe false
             repo.hent(behandlingId) shouldBe behandlingPåVent
         }
     }
@@ -162,10 +231,10 @@ class RammebehandlingPostgresRepoTest {
             )!!
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
 
-            val (angretBehandling, _) = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
-                .angreBehandling(saksbehandler, ObjectMother.clock).getOrFail()
+            val behandlingFørAngring = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+            val (angretBehandling, _) = behandlingFørAngring.angreBehandling(saksbehandler, ObjectMother.clock).getOrFail()
 
-            tac.behandlingContext.rammebehandlingRepo.angreBehandling(angretBehandling, null) shouldBe true
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(angretBehandling, behandlingFørAngring.sendtTilBeslutning, null) shouldBe true
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
@@ -185,7 +254,7 @@ class RammebehandlingPostgresRepoTest {
         withTestApplicationContextAndPostgres { tac ->
             val (_, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac = tac)
 
-            tac.behandlingContext.rammebehandlingRepo.angreBehandling(behandling, null) shouldBe false
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(behandling, behandling.sendtTilBeslutning, null) shouldBe false
         }
     }
 
@@ -203,6 +272,7 @@ class RammebehandlingPostgresRepoTest {
 
             tac.behandlingContext.rammebehandlingRepo.angreBehandling(
                 rammebehandlingMedKlagebehandling,
+                rammebehandlingMedKlagebehandling.sendtTilBeslutning,
                 null,
             ) shouldBe false
         }

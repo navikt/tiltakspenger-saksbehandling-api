@@ -398,8 +398,16 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
+    /**
+     * Angrer sendingen til beslutning, men bare hvis raden fortsatt er den innsendingen som ble lastet.
+     * [forventetSendtTilBeslutning] er tidspunktet fra den lastede meldekortbehandlingen og fungerer som versjonsnøkkel.
+     * Uten den kunne en utdatert angring treffe en ny innsending etter underkjenning, siden status og saksbehandler da er de samme.
+     *
+     * @return true dersom meldekortbehandlingen ble angret, false dersom den ikke lenger var den samme innsendingen.
+     */
     override fun angreBehandling(
         meldekortbehandling: Meldekortbehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext?,
     ): Boolean {
         return sessionFactory.withTransaction(transactionContext) { tx ->
@@ -412,12 +420,14 @@ class MeldekortbehandlingPostgresRepo(
                             sendt_til_beslutning = null,
                             beslutter = null
                         where (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING') and id = :id and saksbehandler = :saksbehandler
+                            and sendt_til_beslutning = :forventet_sendt_til_beslutning
                             and (ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent') is distinct from 'true'
                     """,
                     "id" to meldekortbehandling.id.toString(),
                     "status" to meldekortbehandling.status.toDb(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "saksbehandler" to meldekortbehandling.saksbehandler,
+                    "forventet_sendt_til_beslutning" to forventetSendtTilBeslutning,
                 ).asUpdate,
             ) > 0
         }
@@ -426,6 +436,8 @@ class MeldekortbehandlingPostgresRepo(
     /**
      * Oppdaterer hele meldekortbehandlingen, men bare hvis raden i databasen fortsatt er `UNDER_BESLUTNING` med [utøvendeBeslutter] som beslutter.
      * Vakten sjekker tilstanden som er lagret, ikke statusen på [meldekortbehandling], som kan være endret av handlingen som lagres.
+     * `sendt_til_beslutning` fungerer som versjonsnøkkel, siden beslutterens handlinger aldri endrer det.
+     * Slik treffer ikke en utdatert skriving en ny innsending etter angring, selv om den samme beslutteren har tatt behandlingen igjen.
      * Brukes av beslutterens skrivinger, slik at de ikke overskriver en angring som saksbehandleren har gjort etter at behandlingen ble lastet.
      * Oppdaterer ikke simuleringen eller [SimuleringMedMetadata], på samme måte som [oppdater].
      * Tilknyttet klagebehandling lagres bare når meldekortbehandlingen ble oppdatert.
@@ -442,7 +454,7 @@ class MeldekortbehandlingPostgresRepo(
                 sqlQuery(
                     """
                     $OPPDATER_MELDEKORTBEHANDLING
-                    where id = :id and beslutter = :forventet_beslutter and status = 'UNDER_BESLUTNING'
+                    where id = :id and beslutter = :forventet_beslutter and status = 'UNDER_BESLUTNING' and sendt_til_beslutning = :sendt_til_beslutning
                     """,
                     "id" to meldekortbehandling.id.toString(),
                     "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),

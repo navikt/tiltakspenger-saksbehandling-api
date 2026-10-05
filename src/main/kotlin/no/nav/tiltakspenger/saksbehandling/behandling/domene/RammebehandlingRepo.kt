@@ -45,6 +45,7 @@ interface RammebehandlingRepo {
 
     fun angreBehandling(
         rammebehandling: Rammebehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext?,
     ): Boolean
 

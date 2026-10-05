@@ -89,6 +89,7 @@ interface MeldekortbehandlingRepo {
 
     fun angreBehandling(
         meldekortbehandling: Meldekortbehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext? = null,
     ): Boolean
 

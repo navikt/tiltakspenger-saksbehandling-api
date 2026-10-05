@@ -101,12 +101,14 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
 
     override fun angreBehandling(
         rammebehandling: Rammebehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext?,
     ): Boolean {
         val behandlingId = rammebehandling.id
         val behandling = data.get()[behandlingId]
         if (behandling == null ||
             rammebehandling.saksbehandler != behandling.saksbehandler ||
+            behandling.sendtTilBeslutning != forventetSendtTilBeslutning ||
             behandling.ventestatus.erSattPåVent ||
             (
                 behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING &&
@@ -130,6 +132,7 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         if (behandling == null ||
             behandlingId != behandling.id ||
             utøvendeBeslutter.navIdent != behandling.beslutter ||
+            rammebehandling.sendtTilBeslutning != behandling.sendtTilBeslutning ||
             behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING
         ) {
             return false

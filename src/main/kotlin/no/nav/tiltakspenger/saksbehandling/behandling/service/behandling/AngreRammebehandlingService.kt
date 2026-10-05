@@ -36,7 +36,11 @@ class AngreRammebehandlingService(
             val statistikkDTO = statistikkService.generer(statistikkhendelser)
 
             val vellykket = sessionFactory.withTransactionContext { tx ->
-                val oppdatert = rammebehandlingRepo.angreBehandling(oppdatertRammebehandling, transactionContext = tx)
+                val oppdatert = rammebehandlingRepo.angreBehandling(
+                    rammebehandling = oppdatertRammebehandling,
+                    forventetSendtTilBeslutning = behandling.sendtTilBeslutning,
+                    transactionContext = tx,
+                )
                 if (oppdatert) statistikkService.lagre(statistikkDTO, tx)
                 oppdatert
             }
