@@ -103,6 +103,11 @@ fun Route.settKlagebehandlingPåVentRoute(
  */
 fun KanIkkeSetteKlagebehandlingPåVent.toStatusAndErrorJson(): Pair<HttpStatusCode, ErrorJson> {
     return when (this) {
+        KanIkkeSetteKlagebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
+            "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+            "behandlingen_er_ikke_under_beslutning",
+        )
+
         is KanIkkeSetteKlagebehandlingPåVent.KanIkkeOppdateres -> {
             this.underliggende.toStatusAndErrorJson()
         }

@@ -70,18 +70,33 @@ class RammebehandlingService(
             .underkjenn(utøvendeBeslutter = beslutter, attestering, clock)
             .map { (oppdatertRammebehandling, statistikkhendelser) ->
                 val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
-                val statistikkDTO = statistikkService.generer(statistikkhendelser)
-
-                val vellykket = sessionFactory.withTransactionContext { tx ->
-                    val oppdatert = rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(oppdatertRammebehandling, utøvendeBeslutter = beslutter, transactionContext = tx)
-                    if (oppdatert) statistikkService.lagre(statistikkDTO, tx)
-                    oppdatert
-                }
+                val vellykket = lagreMedStatistikkHvisFortsattUnderBeslutning(
+                    behandling = oppdatertRammebehandling,
+                    statistikkhendelser = statistikkhendelser,
+                    utøvendeBeslutter = beslutter,
+                )
 
                 if (!vellykket) return KanIkkeUnderkjenne.BehandlingenErIkkeLengerUnderBeslutning.left()
 
                 oppdatertSak to oppdatertRammebehandling
             }
+    }
+
+    suspend fun lagreMedStatistikkHvisFortsattUnderBeslutning(
+        behandling: Rammebehandling,
+        statistikkhendelser: Statistikkhendelser,
+        utøvendeBeslutter: Saksbehandler,
+    ): Boolean {
+        val statistikkDTO = statistikkService.generer(statistikkhendelser)
+        return sessionFactory.withTransactionContext { tx ->
+            val oppdatert = rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(
+                rammebehandling = behandling,
+                utøvendeBeslutter = utøvendeBeslutter,
+                transactionContext = tx,
+            )
+            if (oppdatert) statistikkService.lagre(statistikkDTO, tx)
+            oppdatert
+        }
     }
 
     /**

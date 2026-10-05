@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.infra.route
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.principal
 import io.ktor.server.routing.Route
@@ -9,6 +10,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.common.respond400BadRequest
 import no.nav.tiltakspenger.libs.ktor.common.respond403Forbidden
 import no.nav.tiltakspenger.libs.ktor.common.respondJson
@@ -99,6 +101,13 @@ private suspend fun ApplicationCall.respondSettPåVentError(
     feil: KanIkkeSetteMeldekortbehandlingPåVent,
 ) {
     when (feil) {
+        KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning -> respondJson(
+            HttpStatusCode.Conflict to ErrorJson(
+                "Meldekortbehandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+                "behandlingen_er_ikke_under_beslutning",
+            ),
+        )
+
         is KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErAlleredePåVent -> respond400BadRequest(
             melding = "Meldekortbehandlingen er allerede satt på vent.",
             kode = "behandlingen_er_allerede_paa_vent",

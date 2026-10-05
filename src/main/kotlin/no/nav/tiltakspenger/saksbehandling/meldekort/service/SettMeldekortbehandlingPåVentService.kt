@@ -1,10 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.meldekort.service
 
 import arrow.core.Either
+import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldekortbehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.KanIkkeSetteMeldekortbehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.SettMeldekortbehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.settPåVent
@@ -25,7 +27,17 @@ class SettMeldekortbehandlingPåVentService(
         val meldekortbehandling = sak.hentMeldekortbehandling(kommando.meldekortId)!!
 
         return meldekortbehandling.settPåVent(kommando, clock).map { oppdatertMeldekortbehandling ->
-            meldekortbehandlingRepo.oppdater(oppdatertMeldekortbehandling)
+            if (meldekortbehandling.status == MeldekortbehandlingStatus.UNDER_BESLUTNING) {
+                val oppdatert = meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                    meldekortbehandling = oppdatertMeldekortbehandling,
+                    utøvendeBeslutter = kommando.saksbehandler,
+                )
+                if (!oppdatert) {
+                    return KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning.left()
+                }
+            } else {
+                meldekortbehandlingRepo.oppdater(oppdatertMeldekortbehandling)
+            }
             logger.info { "Meldekortbehandling med id ${oppdatertMeldekortbehandling.id} satt på vent. Saksbehandler: ${kommando.saksbehandler.navIdent}" }
             sak.oppdaterMeldekortbehandling(oppdatertMeldekortbehandling) to oppdatertMeldekortbehandling
         }

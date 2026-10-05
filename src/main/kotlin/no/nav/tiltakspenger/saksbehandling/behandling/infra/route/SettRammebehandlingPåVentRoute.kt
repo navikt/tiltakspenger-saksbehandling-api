@@ -97,6 +97,11 @@ fun Route.settRammebehandlingPåVentRoute(
 }
 
 private fun KanIkkeSetteRammebehandlingPåVent.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJson> = when (this) {
+    KanIkkeSetteRammebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
+        "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+        "behandlingen_er_ikke_under_beslutning",
+    )
+
     KanIkkeSetteRammebehandlingPåVent.BehandlingenErAlleredePåVent -> HttpStatusCode.BadRequest to ErrorJson(
         "Behandlingen er allerede satt på vent.",
         "behandlingen_er_allerede_paa_vent",

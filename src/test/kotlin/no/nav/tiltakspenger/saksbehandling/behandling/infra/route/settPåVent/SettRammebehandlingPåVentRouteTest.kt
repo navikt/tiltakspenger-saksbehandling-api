@@ -1,15 +1,27 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.settPåVent
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.KanIkkeSetteRammebehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.SettRammebehandlingPåVentKommando
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Ventestatus
 import no.nav.tiltakspenger.saksbehandling.felles.VentestatusHendelse
 import no.nav.tiltakspenger.saksbehandling.infra.route.rammebehandlingJson
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldBeEqualToIgnoringLocalDateTime
 import no.nav.tiltakspenger.saksbehandling.infra.route.shouldHaSisteVentestatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingOgAvbryt
@@ -18,6 +30,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -81,6 +94,44 @@ class SettRammebehandlingPåVentRouteTest {
                     hendelse.status shouldBe "UNDER_BESLUTNING"
                 }
             }
+        }
+    }
+
+    @Test
+    fun `beslutter kan ikke overskrive angring ved å sette rammebehandling på vent`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            val sakUnderBeslutning = tac.sakContext.sakService.hentForSakId(sak.id)
+
+            val (_, angretBehandling) = angreRammebehandling(tac, sak.id, behandlingId)!!
+            angretBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+
+            val sakService = mockk<SakService>()
+            every { sakService.hentForSakId(sak.id) } returns sakUnderBeslutning
+            val statistikkService = spyk(tac.statistikkContext.statistikkService)
+            val behandlingService = RammebehandlingService(
+                rammebehandlingRepo = tac.behandlingContext.rammebehandlingRepo,
+                sakService = sakService,
+                sessionFactory = tac.sessionFactory,
+                clock = tac.clock,
+                statistikkService = statistikkService,
+            )
+            val service = SettRammebehandlingPåVentService(behandlingService, tac.clock)
+
+            service.settBehandlingPåVent(
+                SettRammebehandlingPåVentKommando(
+                    sakId = sak.id,
+                    rammebehandlingId = behandlingId,
+                    begrunnelse = "Beslutter setter på vent",
+                    saksbehandler = beslutter,
+                    frist = null,
+                ),
+            ) shouldBe KanIkkeSetteRammebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning.left()
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) shouldBe angretBehandling
+            verify(exactly = 0) { statistikkService.lagre(any<StatistikkDTO>(), any()) }
         }
     }
 
