@@ -358,7 +358,7 @@ val httpklientKlasserMedDekningskrav =
         "no.nav.tiltakspenger.saksbehandling.klage.infra.http.KabalHttpClient",
         "no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiHttpClient",
         "no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataHttpClient",
-        "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorTilhørighetHttpklient",
+        "no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.OppfølgingskontorHttpklient",
         "no.nav.tiltakspenger.saksbehandling.saksbehandler.infra.MicrosoftGraphApiClient",
         "no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient",
         "no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient",

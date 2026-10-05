@@ -60,9 +60,9 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.systembruk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utvikler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.veileder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighetFakeKlient
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighetKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.OppfølgingskontorFakeKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.OppfølgingskontorKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
@@ -167,8 +167,8 @@ class LocalApplicationContext(
 
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
-    override val kontorTilhørighetKlient: KontorTilhørighetKlient by lazy {
-        KontorTilhørighetFakeKlient()
+    override val oppfølgingskontorKlient: OppfølgingskontorKlient by lazy {
+        OppfølgingskontorFakeKlient()
     }
 
     override val tilgangskontrollService: TilgangskontrollService by lazy {
@@ -184,7 +184,7 @@ class LocalApplicationContext(
         HentJournalpostDokumentService(safJournalpostClient)
     }
 
-    override val navkontorService: NavkontorService by lazy { NavkontorService(kontorTilhørighetKlient) }
+    override val navkontorService: NavkontorService by lazy { NavkontorService(oppfølgingskontorKlient) }
 
     override val personContext =
         object : PersonContext(sessionFactory, texasClient, clock) {

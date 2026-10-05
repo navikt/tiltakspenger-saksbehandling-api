@@ -4,23 +4,13 @@ import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 
 /**
- * Kontortilhørighet pakket sammen med httpklient sin metadata for kallet.
- * [kontorTilhørighet] er `null` når ao-oppfolgingskontor ikke har noe kontor for personen.
- * [httpKlientMetadata] bærer rå request/response, headere, antall forsøk og timing, slik at vi kan logge eller lagre rådata ved behov.
- */
-data class KontorTilhørighetMedMetadata(
-    val kontorTilhørighet: KontorTilhørighet?,
-    val httpKlientMetadata: HttpKlientMetadata,
-)
-
-/**
- * Mulige feil ved henting av kontortilhørighet.
+ * Mulige feil ved oppslag mot ao-oppfolgingskontor (både kontortilhørighet og kontorhistorikk).
  * Vi skiller på typer slik at konsumenter kan reagere ulikt (f.eks. på timeout vs. en gjennomgående tjenestefeil) hvis det blir aktuelt senere.
  *
  * [httpKlientMetadata] er rå request/response slik vi sendte og mottok.
  * [HttpKlientMetadata.rawResponseString] og [HttpKlientMetadata.statusCode] kan være `null` når vi aldri fikk svar.
  */
-sealed interface KanIkkeHenteKontorTilhørighet {
+sealed interface KanIkkeHenteOppfølgingskontor {
     val httpKlientMetadata: HttpKlientMetadata
 
     /**
@@ -29,14 +19,14 @@ sealed interface KanIkkeHenteKontorTilhørighet {
      */
     data class KallFeilet(
         val httpKlientError: HttpKlientError,
-    ) : KanIkkeHenteKontorTilhørighet {
+    ) : KanIkkeHenteOppfølgingskontor {
         override val httpKlientMetadata: HttpKlientMetadata get() = httpKlientError.metadata
     }
 
     /** Tjenesten returnerte en HTTP-statuskode forskjellig fra 200. */
     data class UventetHttpStatus(
         val httpKlientError: HttpKlientError.UventetStatus,
-    ) : KanIkkeHenteKontorTilhørighet {
+    ) : KanIkkeHenteOppfølgingskontor {
         val status: Int get() = httpKlientError.statusCode
         override val httpKlientMetadata: HttpKlientMetadata get() = httpKlientError.metadata
     }
@@ -44,7 +34,7 @@ sealed interface KanIkkeHenteKontorTilhørighet {
     /** Responsen inneholdt et `errors`-felt fra GraphQL-tjenesten (selve HTTP-kallet lyktes). */
     data class GraphQlFeil(
         override val httpKlientMetadata: HttpKlientMetadata,
-    ) : KanIkkeHenteKontorTilhørighet
+    ) : KanIkkeHenteOppfølgingskontor
 }
 
 /**
@@ -53,8 +43,8 @@ sealed interface KanIkkeHenteKontorTilhørighet {
  * Feiltypene bærer [HttpKlientMetadata] med rå request/response, og en default `toString()` ville derfor lekke persondata (fnr i requesten, stedslokaliserende navkontor i responsen) til vanlig logg.
  * Vi tar kun med feiltypen, HTTP-status og httpklient-varianten (ikke sensitivt) - rådata hører hjemme i sikkerlogg.
  */
-fun KanIkkeHenteKontorTilhørighet.beskrivelse(): String = when (this) {
-    is KanIkkeHenteKontorTilhørighet.KallFeilet -> "KallFeilet(${httpKlientError::class.simpleName})"
-    is KanIkkeHenteKontorTilhørighet.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
-    is KanIkkeHenteKontorTilhørighet.GraphQlFeil -> "GraphQlFeil"
+fun KanIkkeHenteOppfølgingskontor.beskrivelse(): String = when (this) {
+    is KanIkkeHenteOppfølgingskontor.KallFeilet -> "KallFeilet(${httpKlientError::class.simpleName})"
+    is KanIkkeHenteOppfølgingskontor.UventetHttpStatus -> "UventetHttpStatus(status=$status)"
+    is KanIkkeHenteOppfølgingskontor.GraphQlFeil -> "GraphQlFeil"
 }
