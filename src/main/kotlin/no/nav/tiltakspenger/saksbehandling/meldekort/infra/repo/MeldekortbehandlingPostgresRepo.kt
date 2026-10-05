@@ -144,22 +144,7 @@ class MeldekortbehandlingPostgresRepo(
             tx.run(
                 sqlQuery(
                     """
-                    update meldekortbehandling set
-                        meldeperioder = :meldeperioder::jsonb,
-                        beregninger = :beregninger::jsonb,
-                        saksbehandler = :saksbehandler,
-                        beslutter = :beslutter,
-                        status = :status,
-                        navkontor = :navkontor,
-                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
-                        sendt_til_beslutning = :sendt_til_beslutning,
-                        begrunnelse = :begrunnelse,
-                        attesteringer = :attesteringer::jsonb,
-                        avbrutt = :avbrutt::jsonb,
-                        ventestatus = :ventestatus::jsonb,
-                        sist_endret = :sist_endret,
-                        utbetalingskontroll = :utbetalingskontroll::jsonb,
-                        klagebehandling_id = :klagebehandling_id
+                    $OPPDATER_MELDEKORTBEHANDLING
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -455,28 +440,14 @@ class MeldekortbehandlingPostgresRepo(
             val oppdatert = tx.run(
                 sqlQuery(
                     """
-                    update meldekortbehandling set
-                        meldeperioder = :meldeperioder::jsonb,
-                        beregninger = :beregninger::jsonb,
-                        saksbehandler = :saksbehandler,
-                        beslutter = :forventet_beslutter,
-                        status = :status,
-                        navkontor = :navkontor,
-                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
-                        sendt_til_beslutning = :sendt_til_beslutning,
-                        begrunnelse = :begrunnelse,
-                        attesteringer = :attesteringer::jsonb,
-                        avbrutt = :avbrutt::jsonb,
-                        ventestatus = :ventestatus::jsonb,
-                        sist_endret = :sist_endret,
-                        utbetalingskontroll = :utbetalingskontroll::jsonb,
-                        klagebehandling_id = :klagebehandling_id
+                    $OPPDATER_MELDEKORTBEHANDLING
                     where id = :id and beslutter = :forventet_beslutter and status = 'UNDER_BESLUTNING'
                     """,
                     "id" to meldekortbehandling.id.toString(),
                     "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
                     "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
                     "saksbehandler" to meldekortbehandling.saksbehandler,
+                    "beslutter" to meldekortbehandling.beslutter,
                     "forventet_beslutter" to utøvendeBeslutter.navIdent,
                     "status" to meldekortbehandling.status.toDb(),
                     "navkontor" to meldekortbehandling.navkontor.kontornummer,
@@ -537,6 +508,28 @@ class MeldekortbehandlingPostgresRepo(
     }
 
     companion object {
+        /**
+         * Felles `set`-del for [oppdater] uten simulering og [oppdaterHvisFortsattUnderBeslutning], som legger til hver sin `where`.
+         */
+        private const val OPPDATER_MELDEKORTBEHANDLING = """
+            update meldekortbehandling set
+                meldeperioder = :meldeperioder::jsonb,
+                beregninger = :beregninger::jsonb,
+                saksbehandler = :saksbehandler,
+                beslutter = :beslutter,
+                status = :status,
+                navkontor = :navkontor,
+                iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                sendt_til_beslutning = :sendt_til_beslutning,
+                begrunnelse = :begrunnelse,
+                attesteringer = :attesteringer::jsonb,
+                avbrutt = :avbrutt::jsonb,
+                ventestatus = :ventestatus::jsonb,
+                sist_endret = :sist_endret,
+                utbetalingskontroll = :utbetalingskontroll::jsonb,
+                klagebehandling_id = :klagebehandling_id
+        """
+
         fun hentForMeldekortId(
             meldekortId: MeldekortId,
             session: Session,
