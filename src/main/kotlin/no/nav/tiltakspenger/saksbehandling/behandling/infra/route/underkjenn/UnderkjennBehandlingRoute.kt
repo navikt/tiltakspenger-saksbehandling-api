@@ -99,6 +99,6 @@ private fun KanIkkeUnderkjenne.toStatusAndErrorJson(): Pair<HttpStatusCode, Erro
 
     KanIkkeUnderkjenne.RammebehandlingenErSattPåVent -> HttpStatusCode.BadRequest to ErrorJson(
         melding = "Kan ikke underkjenne fordi behandlingen er satt på vent.",
-        kode = "Behandlingen_kan_ikke_være_satt_på_vent",
+        kode = "behandlingen_kan_ikke_være_satt_på_vent",
     )
 }
