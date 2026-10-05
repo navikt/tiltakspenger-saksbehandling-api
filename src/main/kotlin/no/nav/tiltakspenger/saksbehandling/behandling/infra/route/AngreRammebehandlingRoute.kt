@@ -79,7 +79,7 @@ fun KunneIkkeAngreBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJ
         kode = "maa_vaere_saksbehandler_for_behandlingen",
     )
 
-    KunneIkkeAngreBehandling.BehandlingenErIkkeLengerSendtTilBeslutning -> HttpStatusCode.BadRequest to ErrorJson(
+    KunneIkkeAngreBehandling.BehandlingenErIkkeLengerSendtTilBeslutning -> HttpStatusCode.Conflict to ErrorJson(
         melding = "Behandlingen er ikke lenger sendt til beslutning.",
         kode = "må_være_sendt_til_beslutning",
     )
