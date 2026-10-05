@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
@@ -47,6 +48,7 @@ import java.time.LocalDateTime
  * Endringer som ikke kan revurderes automatisk fører til en Gosys-oppgave inntil erstatteren er på plass.
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
  * Hver ferdig behandlede endring lagres i `tiltaksdeltaker_endring` for sporbarhet, i samme transaksjon som markøren nullstilles.
+ * En automatisk revurdering lagres også i den transaksjonen, slik at revurderingen, sporingen og kvitteringen lagres samlet eller ikke i det hele tatt.
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -72,12 +74,7 @@ class OppdatertTiltaksdeltakelseJobb(
             deltakere.forEach { deltaker ->
                 val deltakerId = deltaker.id
 
-                Either.catch {
-                    behandleDeltaker(deltaker).onRight { resultat ->
-                        lagreSomBehandlet(deltaker, resultat)
-                    }
-                }.mapLeft { TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil(it) }
-                    .flatten()
+                behandleDeltaker(deltaker)
                     .onRight { resultat ->
                         log.info { "Behandlet endret tiltaksdeltakelse for deltaker $deltakerId: ${resultat::class.simpleName}" }
                     }.onLeft { feil ->
@@ -97,8 +94,23 @@ class OppdatertTiltaksdeltakelseJobb(
         }
     }
 
+    /**
+     * Vurderer endringen for deltakeren og lagrer utfallet.
+     * Kaster ikke; uventede feil gis som [TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil].
+     */
+    suspend fun behandleDeltaker(deltaker: Tiltaksdeltaker): Either<TiltaksdeltakelseEndringKunneIkkeBehandles, TiltaksdeltakelseEndringBehandlet> =
+        Either.catch {
+            vurderEndring(deltaker).onRight { resultat ->
+                lagreSomBehandlet(deltaker, resultat)
+            }
+        }.mapLeft { TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil(it) }
+            .flatten()
+
     private fun lagreSomBehandlet(deltaker: Tiltaksdeltaker, resultat: TiltaksdeltakelseEndringBehandlet) {
         sessionFactory.withTransactionContext { tx ->
+            if (resultat is TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet) {
+                startRevurderingService.lagre(resultat.forberedtRevurdering, tx)
+            }
             tiltaksdeltakerHendelsePostgresRepo.lagreBehandletEndring(
                 tiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                     id = TiltaksdeltakerHendelseId.random(),
@@ -120,7 +132,11 @@ class OppdatertTiltaksdeltakelseJobb(
         }
     }
 
-    suspend fun behandleDeltaker(deltaker: Tiltaksdeltaker): Either<TiltaksdeltakelseEndringKunneIkkeBehandles, TiltaksdeltakelseEndringBehandlet> {
+    /**
+     * Vurderer endringen mot saken.
+     * Gosys-oppgaver opprettes her, mens en revurdering bare bygges og lagres sammen med kvitteringen i [lagreSomBehandlet].
+     */
+    private suspend fun vurderEndring(deltaker: Tiltaksdeltaker): Either<TiltaksdeltakelseEndringKunneIkkeBehandles, TiltaksdeltakelseEndringBehandlet> {
         val logIder =
             "sakId ${deltaker.sakId} / intern deltakerId ${deltaker.id} / ekstern deltakerId ${deltaker.eksternId}"
 
@@ -161,7 +177,7 @@ class OppdatertTiltaksdeltakelseJobb(
 
         return if (revurderingSomSkalOpprettes != null) {
             log.info { "Tiltaksdeltakelse er endret, oppretter revurdering ($logIder)" }
-            opprettRevurdering(
+            forberedRevurdering(
                 sak,
                 revurderingSomSkalOpprettes,
                 endring,
@@ -189,7 +205,7 @@ class OppdatertTiltaksdeltakelseJobb(
             }
     }
 
-    private suspend fun opprettRevurdering(
+    private suspend fun forberedRevurdering(
         sak: Sak,
         revurderingSomSkalOpprettes: AutomatiskRevurdering,
         endring: TiltaksdeltakerEndring,
@@ -206,16 +222,18 @@ class OppdatertTiltaksdeltakelseJobb(
             automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(endring = endring),
         )
 
-        val (_, revurdering) = startRevurderingService.startRevurdering(kommando, sak).getOrElse { feil ->
+        val forberedtRevurdering = startRevurderingService.forberedRevurdering(kommando, sak).getOrElse { feil ->
             throw IllegalStateException(
                 "Uventet feil ved automatisk start av revurdering: ${feil.loggkontekst.melding} " +
                     "(saksnummer ${sak.saksnummer} / correlationId ${kommando.correlationId} / $logIder)",
             )
         }
 
-        log.info { "Opprettet revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse: $logIder" }
+        val revurdering = forberedtRevurdering.revurdering
+
+        log.info { "Bygget revurdering med id ${revurdering.id} / type ${revurdering.resultat::class.simpleName} for endret tiltaksdeltakelse, lagres sammen med kvitteringen: $logIder" }
         return TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(
-            revurderingId = revurdering.id,
+            forberedtRevurdering = forberedtRevurdering,
             nåtilstand = oppdatertTiltaksdeltakelse,
             endring = endring,
         )
@@ -225,7 +243,7 @@ class OppdatertTiltaksdeltakelseJobb(
         sak: Sak,
         endring: TiltaksdeltakerEndring,
         oppdatertTiltaksdeltakelse: TiltaksdeltakelseFraRegister,
-        markør: LocalDateTime,
+        sisteEndring: LocalDateTime,
         logIder: String,
     ): Either<TiltaksdeltakelseEndringKunneIkkeBehandles.KunneIkkeOppretteOppgave, TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet> {
         val tilleggstekst = endring.getOppgaveTilleggstekst()
@@ -241,12 +259,13 @@ class OppdatertTiltaksdeltakelseJobb(
                 sakId = sak.id,
                 opprettet = nå(clock),
                 grunnlag = Oppgavegrunnlag.EndretTiltaksdeltakelse(
-                    kilde = Kilde.Tiltakshistorikk(sisteUbehandletEndring = markør),
+                    kilde = Kilde.Tiltakshistorikk(sisteUbehandletEndring = sisteEndring),
                     verdi = oppdatertTiltaksdeltakelse,
                 ),
                 tilleggstekst = tilleggstekst,
             )
 
+            // Vi lagrer oppgaven umiddelbart utenfor transaksjonen som markerer endringen som behandlet, slik at vi ikke mister referansen til oppgaven dersom transaksjonen feiler.
             eksternOppgaveRepo.lagre(oppgave)
             log.info { "Lagret oppgaveId $oppgaveId for tiltaksdeltakelse: $logIder" }
             TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet(
@@ -389,11 +408,14 @@ sealed interface TiltaksdeltakelseEndringBehandlet {
         override val endring = TiltaksdeltakerEndring.AvsluttetSomForventet
     }
 
+    /** Revurderingen i [forberedtRevurdering] lagres i samme transaksjon som markøren nullstilles. */
     data class RevurderingOpprettet(
-        val revurderingId: RammebehandlingId,
+        val forberedtRevurdering: ForberedtRevurdering,
         override val nåtilstand: TiltaksdeltakelseFraRegister,
         override val endring: TiltaksdeltakerEndring,
-    ) : TiltaksdeltakelseEndringBehandlet
+    ) : TiltaksdeltakelseEndringBehandlet {
+        val revurderingId: RammebehandlingId get() = forberedtRevurdering.revurdering.id
+    }
 
     data class OppgaveOpprettet(
         val oppgaveId: OppgaveId,

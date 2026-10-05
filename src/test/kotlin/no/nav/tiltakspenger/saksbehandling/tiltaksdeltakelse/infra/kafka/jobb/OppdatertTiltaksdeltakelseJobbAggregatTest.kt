@@ -285,7 +285,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `retry etter feil i kvitteringen beholder lagret revurdering uten duplikat og rydder markøren`() {
+    fun `feil i kvitteringen ruller tilbake revurderingen, og nytt forsøk oppretter én`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
@@ -307,26 +307,22 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
             jobb.håndterUbehandledeEndringer()
 
+            // Revurderingen og sporingsraden lagres i samme transaksjon som kvitteringen, og rulles tilbake sammen med den.
             antallKvitteringer shouldBe 1
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe deltaker.sisteUbehandletEndringTidspunkt
-            // Sporingsraden lagres i samme transaksjon som kvitteringen, og rulles tilbake sammen med den.
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
             tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).shouldBeEmpty()
-            val etterFeiletKvittering = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            etterFeiletKvittering.rammebehandlinger.size shouldBe 2
-            etterFeiletKvittering.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
-                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
 
             jobb.håndterUbehandledeEndringer()
 
             antallKvitteringer shouldBe 2
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
-            // Den åpne revurderingen kjenner allerede nå-tilstanden, så sporingen viser at nytt forsøk ikke fant noen endring.
-            tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).single().also {
-                it.behandlingId.shouldBeNull()
-                it.endring.shouldBeNull()
-            }
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterFeiletKvittering.rammebehandlinger.map { it.id }
+            val etterRetry = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            etterRetry.rammebehandlinger.size shouldBe 2
+            val revurdering = etterRetry.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
+            tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).single()
+                .behandlingId shouldBe revurdering.id.toString()
             tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
