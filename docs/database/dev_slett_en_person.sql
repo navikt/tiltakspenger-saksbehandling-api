@@ -18,7 +18,7 @@ statistikk_stonadz AS (DELETE FROM statistikk_stonad WHERE sak_id IN (SELECT id 
 statistikk_sakz AS (DELETE FROM statistikk_sak WHERE sak_id IN (SELECT id FROM sakz) returning id),
 personhendelsez AS (DELETE FROM personhendelse WHERE sak_id IN (SELECT id FROM sakz) returning id),
 identhendelsez AS (DELETE FROM identhendelse WHERE sak_id IN (SELECT id FROM sakz) returning id),
-tiltaksdeltaker_kafkaz AS (DELETE FROM tiltaksdeltaker_kafka WHERE sak_id IN (SELECT id FROM sakz)),
+tiltaksdeltaker_endringz AS (DELETE FROM tiltaksdeltaker_endring WHERE sak_id IN (SELECT id FROM sakz)),
 klagebehandlingz AS (DELETE FROM klagebehandling WHERE sak_id IN (SELECT id FROM sakz)),
 klagehendelsez AS (DELETE FROM klagehendelse WHERE sak_id IN (SELECT id FROM sakz)),
 klagevedtakz AS (DELETE FROM klagevedtak WHERE sak_id IN (SELECT id FROM sakz))

@@ -2,6 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.jobb
 
 import arrow.core.Either
 import arrow.core.left
+import io.kotest.assertions.json.shouldContainJsonKeyValue
+import io.kotest.assertions.json.shouldNotContainJsonKey
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
@@ -13,6 +15,7 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.fixedClockAt
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
@@ -43,9 +46,12 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.LagretTiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.hentTiltaksdeltakerEndringer
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Duration
@@ -279,7 +285,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
     @Test
     @IsolatedDatabaseTest
-    fun `retry etter feil i kvitteringen beholder lagret revurdering uten duplikat og rydder markøren`() {
+    fun `feil i kvitteringen ruller tilbake revurderingen, og nytt forsøk oppretter én`() {
         withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
             val (sak, deltakelse) = opprettInnvilgetSak(tac)
             tac.oppdaterTiltaksdeltakelse(sak.fnr, deltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
@@ -301,19 +307,22 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
 
             jobb.håndterUbehandledeEndringer()
 
+            // Revurderingen og sporingsraden lagres i samme transaksjon som kvitteringen, og rulles tilbake sammen med den.
             antallKvitteringer shouldBe 1
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt shouldBe deltaker.sisteUbehandletEndringTidspunkt
-            val etterFeiletKvittering = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
-            etterFeiletKvittering.rammebehandlinger.size shouldBe 2
-            etterFeiletKvittering.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                .automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
-                TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
+            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe sak.rammebehandlinger.map { it.id }
+            tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).shouldBeEmpty()
 
             jobb.håndterUbehandledeEndringer()
 
             antallKvitteringer shouldBe 2
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
-            tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id } shouldBe etterFeiletKvittering.rammebehandlinger.map { it.id }
+            val etterRetry = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+            etterRetry.rammebehandlinger.size shouldBe 2
+            val revurdering = etterRetry.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe TiltaksdeltakerEndring.Forlengelse(5.juni(2025))
+            tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).single()
+                .behandlingId shouldBe revurdering.id.toString()
             tac.oppgaveKlient.shouldBeInstanceOf<OppgaveFakeKlient>().opprettedeOppgaverUtenDuplikatkontroll.shouldBeEmpty()
         }
     }
@@ -352,7 +361,10 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             tac.hentDeltaker(registerfeilDeltakelse).sisteUbehandletEndringTidspunkt shouldBe registerfeil.sisteUbehandletEndringTidspunkt
             tac.hentDeltaker(gosysfeilDeltakelse).sisteUbehandletEndringTidspunkt shouldBe gosysfeil.sisteUbehandletEndringTidspunkt
             tac.eksternOppgaveRepo.hentForSakId(gosysfeilSak.id).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringer(registerfeilDeltakelse.internDeltakelseId).shouldBeEmpty()
+            tac.sessionFactory.hentTiltaksdeltakerEndringer(gosysfeilDeltakelse.internDeltakelseId).shouldBeEmpty()
             tac.hentDeltaker(okDeltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
+            tac.sessionFactory.hentTiltaksdeltakerEndringer(okDeltakelse.internDeltakelseId) shouldHaveSize 1
             tac.sakContext.sakRepo.hentForSakId(okSak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
         }
     }
@@ -391,6 +403,82 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
             oppgaver.opprettedeOppgaveIder shouldHaveSize 2
             tac.eksternOppgaveRepo.hentForSakId(sak.id).map { it.oppgaveId } shouldBe listOf(oppgaver.opprettedeOppgaveIder.last())
             tac.hentDeltaker(deltakelse).sisteUbehandletEndringTidspunkt.shouldBeNull()
+        }
+    }
+
+    @Test
+    @IsolatedDatabaseTest
+    fun `hver ferdigbehandlede endring lagres for sporbarhet med nå-tilstand, tolket endring og utfall`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (revurderingSak, revurderingDeltakelse) = opprettInnvilgetSak(tac)
+            val (oppgaveSak, oppgaveDeltakelse) = opprettInnvilgetSak(tac)
+            val (uendretSak, uendretDeltakelse) = opprettInnvilgetSak(tac)
+            val avsluttetDeltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.april(2025))
+            val (avsluttetSak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = avsluttetDeltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(avsluttetDeltakelse.periode!!, avsluttetDeltakelse),
+            )
+            val (manglerSak, manglerDeltakelse) = opprettInnvilgetSak(tac)
+            tac.oppdaterTiltaksdeltakelse(revurderingSak.fnr, revurderingDeltakelse.copy(deltakelseTilOgMed = 5.juni(2025)))
+            tac.oppdaterTiltaksdeltakelse(oppgaveSak.fnr, oppgaveDeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Venteliste))
+            tac.oppdaterTiltaksdeltakelse(avsluttetSak.fnr, avsluttetDeltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Fullført))
+            tac.oppdaterTiltaksdeltakelse(manglerSak.fnr, null)
+            val deltakere = listOf(
+                revurderingSak to revurderingDeltakelse,
+                oppgaveSak to oppgaveDeltakelse,
+                uendretSak to uendretDeltakelse,
+                avsluttetSak to avsluttetDeltakelse,
+                manglerSak to manglerDeltakelse,
+            ).associate { (sak, deltakelse) -> deltakelse.internDeltakelseId to tac.registrerEndring(sak, deltakelse) }
+
+            tac.jobb().håndterUbehandledeEndringer()
+
+            fun sporing(deltakelse: TiltaksdeltakelseIntern): LagretTiltaksdeltakerEndring {
+                val rad = tac.sessionFactory.hentTiltaksdeltakerEndringer(deltakelse.internDeltakelseId).single()
+                val deltaker = deltakere.getValue(deltakelse.internDeltakelseId)
+                rad.kilde shouldBe TiltaksdeltakerHendelseKilde.Tiltakshistorikk
+                rad.eksternDeltakerId shouldBe deltaker.eksternId
+                rad.sakId shouldBe deltaker.sakId.toString()
+                rad.behandletTidspunkt.shouldNotBeNull()
+                rad.verdi?.let {
+                    it.shouldContainJsonKeyValue("$.eksternDeltakelseId", deltakelse.eksternDeltakelseId)
+                    it.shouldNotContainJsonKey("$.periode")
+                    it.shouldNotContainJsonKey("$.kanInnvilges")
+                }
+                return rad
+            }
+
+            sporing(revurderingDeltakelse).also {
+                it.behandlingId shouldBe tac.sakContext.sakRepo.hentForSakId(revurderingSak.id)!!.rammebehandlinger.last().id.toString()
+                it.oppgaveId.shouldBeNull()
+                it.verdi.shouldNotBeNull()
+                it.endring.shouldNotBeNull().shouldContainJsonKeyValue("$[0].type", "FORLENGELSE")
+            }
+            sporing(oppgaveDeltakelse).also {
+                it.behandlingId.shouldBeNull()
+                it.oppgaveId shouldBe tac.eksternOppgaveRepo.hentForSakId(oppgaveSak.id).single().oppgaveId.toString()
+                it.verdi.shouldNotBeNull()
+                it.endring.shouldNotBeNull().shouldContainJsonKeyValue("$[0].type", "ENDRET_STATUS")
+            }
+            sporing(uendretDeltakelse).also {
+                it.behandlingId.shouldBeNull()
+                it.oppgaveId.shouldBeNull()
+                it.verdi.shouldNotBeNull()
+                it.endring.shouldBeNull()
+            }
+            sporing(avsluttetDeltakelse).also {
+                it.behandlingId.shouldBeNull()
+                it.oppgaveId.shouldBeNull()
+                it.verdi.shouldNotBeNull()
+                it.endring.shouldNotBeNull().shouldContainJsonKeyValue("$[0].type", "AVSLUTTET_SOM_FORVENTET")
+            }
+            sporing(manglerDeltakelse).also {
+                it.behandlingId.shouldBeNull()
+                it.oppgaveId.shouldBeNull()
+                it.verdi.shouldBeNull()
+                it.endring.shouldBeNull()
+            }
         }
     }
 
@@ -445,6 +533,8 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         startRevurderingService = behandlingContext.startRevurderingService,
         oppgaveKlient = oppgaveKlient,
         eksternOppgaveRepo = eksternOppgaveRepo,
+        tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+        sessionFactory = sessionFactory,
         clock = clock,
     )
 
