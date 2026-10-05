@@ -453,8 +453,7 @@ class RammebehandlingPostgresRepo(
                         omgjør_rammevedtak,
                         klagebehandling_id,
                         automatisk_opprettet_grunn,
-                        skal_sende_vedtaksbrev,
-                        skal_journalfore_notat
+                        skal_sende_vedtaksbrev
                     ) values (
                         :id,
                         :sak_id,
@@ -493,8 +492,7 @@ class RammebehandlingPostgresRepo(
                         :omgjoer_rammevedtak::jsonb,
                         :klagebehandling_id,
                         :automatisk_opprettet_grunn::jsonb,
-                        :skal_sende_vedtaksbrev,
-                        :skal_journalfore_notat
+                        :skal_sende_vedtaksbrev
                     )
                     """.trimIndent(),
                     behandling.tilDbParams(),
