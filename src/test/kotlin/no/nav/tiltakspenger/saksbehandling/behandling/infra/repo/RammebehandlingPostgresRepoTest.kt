@@ -2,6 +2,9 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.tiltakspenger.libs.common.getOrFail
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.angreBehandling
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling
@@ -106,10 +109,53 @@ class RammebehandlingPostgresRepoTest {
         }
     }
 
+    @Test
+    fun `angreBehandling gir sann når saksbehandler angrer en behandling klar til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val (_, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
+
+            val (angretBehandling, _) = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+                .angreBehandling(saksbehandler, ObjectMother.clock).getOrFail()
+
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(angretBehandling, null) shouldBe true
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.sendtTilBeslutning shouldBe null
+            }
+        }
+    }
+
+    @Test
+    fun `angreBehandling gir sann når saksbehandler angrer en behandling tatt av en beslutter`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler()
+            val (sak, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac, saksbehandler = saksbehandler)
+            taRammebehandlinger(
+                tac = tac,
+                behandlinger = listOf(sak.id to behandlingId),
+                saksbehandler = ObjectMother.beslutter(),
+            )!!
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+
+            val (angretBehandling, _) = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+                .angreBehandling(saksbehandler, ObjectMother.clock).getOrFail()
+
+            tac.behandlingContext.rammebehandlingRepo.angreBehandling(angretBehandling, null) shouldBe true
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+                it.beslutter shouldBe null
+                it.sendtTilBeslutning shouldBe null
+            }
+        }
+    }
+
     /**
-     * `angreBehandling` har en `where`-vakt på både eierskap og status: `saksbehandler is not null and status = 'KLAR_TIL_BESLUTNING'`.
+     * `angreBehandling` har en `where`-vakt på både eierskap og status: `saksbehandler = :saksbehandler and status in ('KLAR_TIL_BESLUTNING', 'UNDER_BESLUTNING')`.
      * Behandlingen er under behandling, så vakten slår ikke til.
-     * Sann-siden er dekket av `AngreRammebehandlingRouteTest`.
+     * Sann-siden er dekket av testene over og av `AngreRammebehandlingRouteTest`.
      */
     @Test
     fun `angreBehandling gir false når behandlingen ikke er klar til beslutning`() {
@@ -135,6 +181,92 @@ class RammebehandlingPostgresRepoTest {
             tac.behandlingContext.rammebehandlingRepo.angreBehandling(
                 rammebehandlingMedKlagebehandling,
                 null,
+            ) shouldBe false
+        }
+    }
+
+    @Test
+    fun `lagreHvisFortsattUnderBeslutning gir sann når behandlingen fortsatt er under beslutning hos den samme beslutteren`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            taRammebehandlinger(
+                tac = tac,
+                behandlinger = listOf(sak.id to behandlingId),
+                saksbehandler = beslutter,
+            )!!
+            val behandlingUnderBeslutning = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
+            behandlingUnderBeslutning.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+
+            tac.behandlingContext.rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(
+                rammebehandling = behandlingUnderBeslutning,
+                utøvendeBeslutter = beslutter,
+                transactionContext = null,
+            ) shouldBe true
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
+                it.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
+                it.beslutter shouldBe beslutter.navIdent
+            }
+        }
+    }
+
+    /**
+     * Vakten `beslutter = :forventet_beslutter` slår ikke til når en annen beslutter har overtatt behandlingen i mellomtiden.
+     */
+    @Test
+    fun `lagreHvisFortsattUnderBeslutning gir false når en annen beslutter eier behandlingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _, behandlingId, _) = sendSøknadsbehandlingTilBeslutning(tac = tac)
+            taRammebehandlinger(
+                tac = tac,
+                behandlinger = listOf(sak.id to behandlingId),
+                saksbehandler = ObjectMother.beslutter("beslutterSomVant"),
+            )!!
+
+            tac.behandlingContext.rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(
+                rammebehandling = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId),
+                utøvendeBeslutter = ObjectMother.beslutter("beslutterSomAldriEide"),
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).beslutter shouldBe "beslutterSomVant"
+        }
+    }
+
+    /**
+     * Behandlingen er under behandling, slik den er etter at saksbehandleren har angret, så vakten `status = 'UNDER_BESLUTNING'` slår ikke til.
+     */
+    @Test
+    fun `lagreHvisFortsattUnderBeslutning gir false når behandlingen ikke lenger er under beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, behandling) = opprettSøknadsbehandlingUnderBehandling(tac = tac)
+
+            tac.behandlingContext.rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(
+                rammebehandling = behandling,
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandling.id).status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+        }
+    }
+
+    /**
+     * En rammebehandling som er opprettet fra en klage bærer klagebehandlingen med seg.
+     * Klagebehandlingen skal bare lagres når vakten slapp gjennom, så et tapt kappløp skal ikke berøre den.
+     */
+    @Test
+    fun `lagreHvisFortsattUnderBeslutning gir false og lar klagebehandlingen være når den klagekoblede behandlingen ikke er under beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, rammebehandlingMedKlagebehandling, _) =
+                iverksettSøknadsbehandlingOgTaKlagebehandlingMedRammebehandling(tac = tac)!!
+            rammebehandlingMedKlagebehandling.klagebehandling.shouldNotBeNull()
+
+            tac.behandlingContext.rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(
+                rammebehandling = rammebehandlingMedKlagebehandling,
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                transactionContext = null,
             ) shouldBe false
         }
     }

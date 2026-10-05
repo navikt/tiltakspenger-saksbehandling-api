@@ -47,7 +47,7 @@ class AngreMeldekortbehandlingRouteTest {
     }
 
     @Test
-    fun `en meldekortbehandling allerede tatt av en beslutter kan ikke angres`() {
+    fun `en meldekortbehandling allerede tatt av en beslutter kan angres`() {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(tac)!!
 
@@ -60,20 +60,13 @@ class AngreMeldekortbehandlingRouteTest {
                 tac,
                 sakId = sak.id,
                 meldekortId = meldekortbehandling.id,
-                forventet = ForventetRespons.json(
-                    status = 400,
-                    json = """
-                      {
-                        "melding": "Kan ikke angre en meldekortbehandling som ikke er klar til beslutning, status er UNDER_BESLUTNING",
-                        "kode": "meldekortbehandlingen_må_være_klar_til_beslutning"
-                      }
-                    """.trimIndent(),
-                ),
-            ) shouldBe null
+                saksbehandler = ObjectMother.saksbehandler("saksbehandler"),
+            )
 
             tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.also {
-                it.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
-                it.beslutter shouldBe "beslutter"
+                it.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+                it.saksbehandler shouldBe "saksbehandler"
+                it.beslutter shouldBe null
             }
         }
     }
