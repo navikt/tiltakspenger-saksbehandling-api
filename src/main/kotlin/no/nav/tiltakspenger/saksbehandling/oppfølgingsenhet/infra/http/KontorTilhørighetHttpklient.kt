@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http
 
 import arrow.core.Either
-import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
@@ -13,22 +14,18 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
-import no.nav.tiltakspenger.libs.httpklient.tryMap
-import no.nav.tiltakspenger.libs.tid.zoneIdOslo
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorhistorikk
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.KontorType
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.Kontorhistorikkinnslag
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkKlient
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkMedMetadata
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorTilhørighet
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighet
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighet.KontorType
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighetKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighetMedMetadata
 import java.net.URI
 import java.time.Clock
-import java.time.ZonedDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * [HttpKlient]-basert klient mot det nye navkontor-APIet til Arbeidsoppfølging (GraphQL-spørringen `kontorHistorikk(ident: String!)`).
+ * [HttpKlient]-basert klient mot navkontor-APIet til Arbeidsoppfølging (GraphQL-spørringen `kontorTilhorighet(ident: String!)`).
  *
  * Kildekode: https://github.com/navikt/ao-oppfolgingskontor
  * Dokumentasjon: README-en i kildekode-repoet
@@ -36,22 +33,22 @@ import kotlin.time.Duration.Companion.seconds
  * Slack: #team_dab_arbeidsoppfølging
  * Teamkatalog: https://teamkatalogen.nav.no/team/1ad2c9ea-3221-4666-93f3-fe6f7cae94ef
  *
- * Vi henter kun feltene vi har dekning for å bruke (behandlingskatalog), og returnerer alle innslag uten å filtrere - domenet ([Kontorhistorikk]) avgjør hvilket innslag som skal brukes til hva.
+ * Tjenesten velger selv kontoret: arbeidsoppfølgingskontor, deretter Arena-kontor og til slutt geografisk tilknytning.
+ * Svaret er `null` når personen ikke har noe kontor.
+ * Vi henter kun feltene vi har dekning for å bruke (behandlingskatalog), og ikke `registrant`/`registrantType`.
+ * Tjenesten krever `traceparent`-header, som OpenTelemetry-agenten (autoInstrumentation i nais.yml) legger på.
  *
  * Feillogging skjer ikke her, men i [no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService], som har domenekonteksten (loggkontekst med sakId/saksnummer/...).
  * Klienten bærer derfor httpklient sine rå typer videre til domenet: [HttpKlientError] på feilstiene og [no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata] ellers.
- *
- * Merk at dette APIet returnerer historikk også for historiske fødselsnumre/d-numre, som er forventet.
- * Dersom man slår på ident i responsen, vil man få identen kontornummeret ble registrert på, selvom det er historisk.
  */
-class KontorhistorikkHttpklient(
+class KontorTilhørighetHttpklient(
     baseUrl: String,
     authTokenProvider: AuthTokenProvider,
     connectTimeout: Duration = 2.seconds,
     timeout: Duration = 3.seconds,
     clock: Clock,
     transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
-) : KontorhistorikkKlient {
+) : KontorTilhørighetKlient {
     private val httpKlient: HttpKlient = HttpKlient(
         clock = clock,
         config = HttpKlientConfig(
@@ -65,47 +62,37 @@ class KontorhistorikkHttpklient(
 
     private val uri = URI.create("$baseUrl/graphql")
 
-    override suspend fun hentKontorhistorikk(
+    override suspend fun hentKontorTilhørighet(
         fnr: Fnr,
-    ): Either<KanIkkeHenteKontorhistorikk, KontorhistorikkMedMetadata> {
+    ): Either<KanIkkeHenteKontorTilhørighet, KontorTilhørighetMedMetadata> {
         // API-et svarer alltid 200 ved suksess (også GraphQL-feil kommer med 200); alt annet skal være feil.
-        return httpKlient.postJson<GraphQlResponse>(uri, lagGraphQlRequest(fnr.verdi), godta = Statusregel.Eksakt(200)).mapLeft { error ->
-            when (error) {
-                is HttpKlientError.UventetStatus -> KanIkkeHenteKontorhistorikk.UventetHttpStatus(error)
+        val response = httpKlient.postJson<GraphQlResponse>(uri, lagGraphQlRequest(fnr.verdi), godta = Statusregel.Eksakt(200)).getOrElse { error ->
+            return when (error) {
+                is HttpKlientError.UventetStatus -> KanIkkeHenteKontorTilhørighet.UventetHttpStatus(error)
 
                 is HttpKlientError.RequestIkkeSendt,
                 is HttpKlientError.IngenRespons,
                 is HttpKlientError.DeserializationError,
-                -> KanIkkeHenteKontorhistorikk.KallFeilet(error)
-            }
-        }.flatMap { response ->
-            if (!response.body.errors.isNullOrEmpty()) {
-                return@flatMap KanIkkeHenteKontorhistorikk.GraphQlFeil(httpKlientMetadata = response.metadata).left()
-            }
-            // Body-en er gyldig JSON, men innholdet kan la seg ikke mappe til domenet (f.eks. et endretTidspunkt vi ikke klarer å tolke).
-            // tryMap pakker det som httpklient sin DeserializationError slik at throwable og metadata følger med til feillogging.
-            response.tryMap {
-                Kontorhistorikk((response.body.data?.kontorHistorikk ?: emptyList()).map { it.toDomene() })
-            }.mapLeft { deserialiseringsfeil ->
-                KanIkkeHenteKontorhistorikk.KallFeilet(httpKlientError = deserialiseringsfeil)
-            }.map { kontorhistorikk ->
-                KontorhistorikkMedMetadata(
-                    kontorhistorikk = kontorhistorikk,
-                    httpKlientMetadata = response.metadata,
-                )
-            }
+                -> KanIkkeHenteKontorTilhørighet.KallFeilet(error)
+            }.left()
         }
+        if (!response.body.errors.isNullOrEmpty()) {
+            return KanIkkeHenteKontorTilhørighet.GraphQlFeil(httpKlientMetadata = response.metadata).left()
+        }
+        return KontorTilhørighetMedMetadata(
+            kontorTilhørighet = response.body.data?.kontorTilhorighet?.toDomene(),
+            httpKlientMetadata = response.metadata,
+        ).right()
     }
 }
 
 private fun lagGraphQlRequest(ident: String): GraphQlRequest = GraphQlRequest(
     query = """
-        query Kontorhistorikk(${'$'}ident: String!) {
-          kontorHistorikk(ident: ${'$'}ident) {
+        query KontorTilhorighet(${'$'}ident: String!) {
+          kontorTilhorighet(ident: ${'$'}ident) {
             kontorId
             kontorNavn
             kontorType
-            endretTidspunkt
           }
         }
     """.trimIndent(),
@@ -125,26 +112,20 @@ data class GraphQlResponse(
 
 /** Kun ment brukt av testene utenfor denne fila. */
 data class GraphQlData(
-    val kontorHistorikk: List<KontorhistorikkDto>? = null,
+    val kontorTilhorighet: KontorTilhørighetDto? = null,
 )
 
 /** Kun ment brukt av testene utenfor denne fila. */
-data class KontorhistorikkDto(
+data class KontorTilhørighetDto(
     val kontorId: String,
-    val kontorNavn: String?,
+    val kontorNavn: String,
     val kontorType: KontorTypeDto,
-    val endretTidspunkt: String,
 ) {
-    fun toDomene(): Kontorhistorikkinnslag =
-        Kontorhistorikkinnslag(
+    fun toDomene(): KontorTilhørighet =
+        KontorTilhørighet(
             kontorId = kontorId,
             kontorNavn = kontorNavn,
             kontorType = kontorType.toDomene(),
-            // APIet serialiserer `ZonedDateTime.toString()` (f.eks. "2024-05-01T10:15:30+02:00[Europe/Oslo]" eller "2024-05-01T08:15:30Z[UTC]" hvis serveren kjører i UTC).
-            // Vi konverterer alltid til Europe/Oslo for å få samme "vegg-klokke"-tidspunkt som resten av appen bruker, og deretter til [LocalDateTime] som domenet vårt forventer.
-            endretTidspunkt = ZonedDateTime.parse(endretTidspunkt)
-                .withZoneSameInstant(zoneIdOslo)
-                .toLocalDateTime(),
         )
 }
 

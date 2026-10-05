@@ -53,7 +53,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkFakeKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighetFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
@@ -175,8 +175,8 @@ sealed class TestApplicationContext(
     override val tiltakspengerArenaClient by lazy { tiltakspengerArenaFakeClient }
 
     open val jwtGenerator: JwtGenerator by lazy { JwtGenerator(clock = clock) }
-    override val kontorhistorikkKlient by lazy { KontorhistorikkFakeKlient() }
-    override val navkontorService: NavkontorService by lazy { NavkontorService(kontorhistorikkKlient) }
+    override val kontorTilhørighetKlient by lazy { KontorTilhørighetFakeKlient() }
+    override val navkontorService: NavkontorService by lazy { NavkontorService(kontorTilhørighetKlient) }
     override val oppgaveKlient: OppgaveKlient by lazy {
         OppgaveFakeKlient(
             genererOppgaveId = { OppgaveId(idGenerators.oppgaveIdGenerator.getAndIncrement().toString()) },

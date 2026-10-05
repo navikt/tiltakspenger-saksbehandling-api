@@ -20,12 +20,10 @@ import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.saksbehandling.common.Loggfanger
 import no.nav.tiltakspenger.saksbehandling.common.Sikkerloggfanger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.KontorType
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.Kontorhistorikkinnslag
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighet.KontorType
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.net.URI
-import java.time.LocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -35,41 +33,26 @@ class NavkontorServiceTest {
 
     /** Fangerne lages per test, siden testinstansen deles mellom testene i klassen. */
     private class Oppsett(
-        resultat: Either<KanIkkeHenteKontorhistorikk, KontorhistorikkMedMetadata>,
+        resultat: Either<KanIkkeHenteKontorTilhørighet, KontorTilhørighetMedMetadata>,
     ) {
         val logger = Loggfanger(NavkontorService::class.java.name)
         val sikkerlogg = Sikkerloggfanger()
         val service = NavkontorService(
-            kontorhistorikkKlient = KontorhistorikkFakeKlient { resultat },
+            kontorTilhørighetKlient = KontorTilhørighetFakeKlient { resultat },
             logger = logger,
             sikkerlogg = sikkerlogg,
         )
     }
 
-    private fun innslag(
-        kontorId: String,
-        kontorType: KontorType,
-        endretTidspunkt: String = "2024-05-01T10:00:00",
-    ) = Kontorhistorikkinnslag(
-        kontorId = kontorId,
-        kontorNavn = "Nav $kontorId",
-        kontorType = kontorType,
-        endretTidspunkt = LocalDateTime.parse(endretTidspunkt),
-    )
-
-    private fun medInnslag(vararg innslag: Kontorhistorikkinnslag) = KontorhistorikkMedMetadata(
-        kontorhistorikk = Kontorhistorikk(innslag.toList()),
+    private fun med(kontorTilhørighet: KontorTilhørighet?) = KontorTilhørighetMedMetadata(
+        kontorTilhørighet = kontorTilhørighet,
         httpKlientMetadata = metadataMedFnrIRequest(statusCode = 200, rawResponseString = """{"kontorId":"0220"}"""),
     ).right()
 
     @Test
-    fun `returnerer nyeste aktuelle kontor fra kontorhistorikken uten å logge`() {
+    fun `returnerer kontortilhørigheten som navkontor uten å logge`() {
         val oppsett = Oppsett(
-            medInnslag(
-                innslag(kontorId = "0220", kontorType = KontorType.ARENA),
-                innslag(kontorId = "1234", kontorType = KontorType.ARBEIDSOPPFOLGING),
-                innslag(kontorId = "9999", kontorType = KontorType.GEOGRAFISK_TILKNYTNING),
-            ),
+            med(KontorTilhørighet(kontorId = "1234", kontorNavn = "Nav 1234", kontorType = KontorType.ARBEIDSOPPFOLGING)),
         )
 
         runTest {
@@ -80,12 +63,12 @@ class NavkontorServiceTest {
     }
 
     @Test
-    fun `kaster og logger når kontorhistorikken ikke har et aktuelt kontor`() {
-        val oppsett = Oppsett(medInnslag())
+    fun `kaster og logger når personen ikke har noen kontortilhørighet`() {
+        val oppsett = Oppsett(med(null))
 
         runTest {
             val exception = shouldThrow<IllegalStateException> { oppsett.service.hentNavkontor(fnr, loggkontekst) }
-            exception.message shouldBe "Kunne ikke hente navkontor: kontorhistorikken har ikke et aktuelt kontor"
+            exception.message shouldBe "Kunne ikke hente navkontor: personen har ingen kontortilhørighet"
         }
         oppsett.logger.linjerPå(Level.ERROR).single().melding!!.let {
             it shouldContain loggkontekst
@@ -97,7 +80,7 @@ class NavkontorServiceTest {
     @Test
     fun `kallfeil kaster med nøytral beskrivelse og logges med rådata kun til sikkerlogg`() {
         val oppsett = Oppsett(
-            KanIkkeHenteKontorhistorikk.KallFeilet(
+            KanIkkeHenteKontorTilhørighet.KallFeilet(
                 httpKlientError = HttpKlientError.NetworkError(
                     throwable = IOException("connection refused"),
                     metadata = metadataMedFnrIRequest(),
@@ -120,7 +103,7 @@ class NavkontorServiceTest {
     @Test
     fun `uventet http-status kaster og logges`() {
         val oppsett = Oppsett(
-            KanIkkeHenteKontorhistorikk.UventetHttpStatus(
+            KanIkkeHenteKontorTilhørighet.UventetHttpStatus(
                 httpKlientError = ObjectMother.httpKlientUventetStatus(statusCode = 503),
             ).left(),
         )
@@ -136,7 +119,7 @@ class NavkontorServiceTest {
     @Test
     fun `GraphQL-feil kaster og logges med rådata kun til sikkerlogg`() {
         val oppsett = Oppsett(
-            KanIkkeHenteKontorhistorikk.GraphQlFeil(httpKlientMetadata = metadataMedFnrIRequest(statusCode = 200)).left(),
+            KanIkkeHenteKontorTilhørighet.GraphQlFeil(httpKlientMetadata = metadataMedFnrIRequest(statusCode = 200)).left(),
         )
 
         runTest {

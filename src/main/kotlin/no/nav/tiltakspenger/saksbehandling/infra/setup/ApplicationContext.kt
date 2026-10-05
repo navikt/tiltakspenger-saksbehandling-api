@@ -36,9 +36,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.KlageinstansKlagehe
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorTilhørighetKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorTilhørighetHttpklient
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo.EksternOppgavePostgresRepo
@@ -145,8 +145,8 @@ open class ApplicationContext(
         )
     }
 
-    open val kontorhistorikkKlient: KontorhistorikkKlient by lazy {
-        KontorhistorikkHttpklient(
+    open val kontorTilhørighetKlient: KontorTilhørighetKlient by lazy {
+        KontorTilhørighetHttpklient(
             baseUrl = Configuration.aoKontorUrl,
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
@@ -155,7 +155,7 @@ open class ApplicationContext(
             clock = clock,
         )
     }
-    open val navkontorService: NavkontorService by lazy { NavkontorService(kontorhistorikkKlient) }
+    open val navkontorService: NavkontorService by lazy { NavkontorService(kontorTilhørighetKlient) }
     open val eksternOppgaveRepo: EksternOppgaveRepo by lazy {
         EksternOppgavePostgresRepo(sessionFactory as PostgresSessionFactory)
     }
