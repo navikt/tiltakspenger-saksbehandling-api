@@ -10,10 +10,9 @@ data class Kontorhistorikk(
     val innslag: List<Kontorhistorikkinnslag>,
 ) {
     /**
-     * Tilnærmet det vi får fra eksisterende veilarboppfolging-tjenesten i dag (Arena med fallback til geografisk tilknytning), men vi tar også med ARBEIDSOPPFOLGING som førstevalg.
-     * Når det nye API'et kommer i prod med ARBEIDSOPPFOLGING vil det være det "riktige" kontoret for tiltakspenger; inntil da vil filteret ikke ha noen ARBEIDSOPPFOLGING-innslag og vi faller naturlig tilbake til Arena (og videre til geografisk tilknytning).
-     *
-     * Brukes i parallellkjøringen for å sammenligne mot gammel tjeneste.
+     * Kontoret vi bruker som navkontor (oppfølgingsenhet) for personen.
+     * ARBEIDSOPPFOLGING er førstevalg, med fallback til Arena og videre til geografisk tilknytning (tilsvarende det den tidligere veilarboppfolging-tjenesten ga).
+     * Når APIet leverer ARBEIDSOPPFOLGING-innslag i prod vil det være det "riktige" kontoret for tiltakspenger; inntil da faller vi naturlig tilbake til Arena.
      */
     fun nyesteAktuelleKontor(): Kontorhistorikkinnslag? =
         nyesteAvType(KontorType.ARBEIDSOPPFOLGING)
@@ -33,7 +32,12 @@ data class Kontorhistorikk(
         val kontorNavn: String?,
         val kontorType: KontorType,
         val endretTidspunkt: LocalDateTime,
-    )
+    ) {
+        fun tilNavkontor(): Navkontor = Navkontor(
+            kontornummer = kontorId,
+            kontornavn = kontorNavn,
+        )
+    }
 
     enum class KontorType {
         ARBEIDSOPPFOLGING,

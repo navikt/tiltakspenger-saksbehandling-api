@@ -115,8 +115,7 @@ class KontorhistorikkHttpklientTest {
                     ),
                 ),
             )
-            resultat.kall.httpStatus shouldBe 200
-            resultat.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
+            resultat.httpKlientMetadata.statusCode shouldBe 200
         }
 
         val kall = transport.mottatteKall.single()
@@ -168,7 +167,7 @@ class KontorhistorikkHttpklientTest {
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.UventetHttpStatus>()
             feil.status shouldBe 503
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.UventetStatus>().statusCode shouldBe 503
-            feil.kall.httpStatus shouldBe 503
+            feil.httpKlientMetadata.statusCode shouldBe 503
         }
     }
 
@@ -181,7 +180,7 @@ class KontorhistorikkHttpklientTest {
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.NetworkError>()
-            feil.kall.shouldNotBeNull().httpStatus shouldBe null
+            feil.httpKlientMetadata.statusCode shouldBe null
         }
     }
 
@@ -223,8 +222,7 @@ class KontorhistorikkHttpklientTest {
             val feil = client(transport).hentKontorhistorikk(fnr).leftOrNull()
                 .shouldNotBeNull()
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.GraphQlFeil>()
-            feil.httpKlientMetadata.shouldNotBeNull().statusCode shouldBe 200
-            feil.httpKlientError shouldBe null
+            feil.httpKlientMetadata.statusCode shouldBe 200
         }
     }
 
@@ -350,7 +348,7 @@ class KontorhistorikkHttpklientTest {
                 .shouldBeInstanceOf<KanIkkeHenteKontorhistorikk.KallFeilet>()
             // Mappingfeil pakkes som DeserializationError slik at throwable og metadata følger med til logging.
             feil.httpKlientError.shouldBeInstanceOf<HttpKlientError.DeserializationError>()
-            feil.kall.shouldNotBeNull().httpStatus shouldBe 200
+            feil.httpKlientMetadata.statusCode shouldBe 200
         }
     }
 

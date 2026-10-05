@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.left
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -18,8 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KanIkkeHenteKontorh
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.KontorType
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.Kontorhistorikkinnslag
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkMedMetadata
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.tilKlientkall
 import java.net.URI
 import java.time.Clock
 import java.time.ZonedDateTime
@@ -35,12 +36,10 @@ import kotlin.time.Duration.Companion.seconds
  * Slack: #team_dab_arbeidsoppfølging
  * Teamkatalog: https://teamkatalogen.nav.no/team/1ad2c9ea-3221-4666-93f3-fe6f7cae94ef
  *
- * Brukes i første iterasjon for sammenligning mot gammel klient ([VeilarboppfolgingHttpClient]), og kun av [SammenligningVeilarboppfolgingKlient].
- *
  * Vi henter kun feltene vi har dekning for å bruke (behandlingskatalog), og returnerer alle innslag uten å filtrere - domenet ([Kontorhistorikk]) avgjør hvilket innslag som skal brukes til hva.
  *
- * Feillogging skjer ikke her, men i [SammenligningVeilarboppfolgingKlient], som har domenekonteksten (loggkontekst med sakId/saksnummer/...).
- * Klienten bærer derfor httpklient sine rå typer videre til domenet: [HttpKlientError] på feilstiene ([KanIkkeHenteKontorhistorikk.httpKlientError]) og [no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata] ellers.
+ * Feillogging skjer ikke her, men i [no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService], som har domenekonteksten (loggkontekst med sakId/saksnummer/...).
+ * Klienten bærer derfor httpklient sine rå typer videre til domenet: [HttpKlientError] på feilstiene og [no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata] ellers.
  *
  * Merk at dette APIet returnerer historikk også for historiske fødselsnumre/d-numre, som er forventet.
  * Dersom man slår på ident i responsen, vil man få identen kontornummeret ble registrert på, selvom det er historisk.
@@ -52,19 +51,21 @@ class KontorhistorikkHttpklient(
     timeout: Duration = 3.seconds,
     clock: Clock,
     transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
-) {
+) : KontorhistorikkKlient {
     private val httpKlient: HttpKlient = HttpKlient(
         clock = clock,
         config = HttpKlientConfig(
             timeout = timeout,
             auth = KlientAuth.System(authTokenProvider),
+            // Fast sti uten personopplysninger (identen ligger i request-bodyen), så endepunktet kan navngis i vanlig logg.
+            uriSynlighet = UriSynlighet.VanligLogg,
         ),
         transport = transport,
     )
 
     private val uri = URI.create("$baseUrl/graphql")
 
-    suspend fun hentKontorhistorikk(
+    override suspend fun hentKontorhistorikk(
         fnr: Fnr,
     ): Either<KanIkkeHenteKontorhistorikk, KontorhistorikkMedMetadata> {
         // API-et svarer alltid 200 ved suksess (også GraphQL-feil kommer med 200); alt annet skal være feil.
@@ -90,7 +91,6 @@ class KontorhistorikkHttpklient(
             }.map { kontorhistorikk ->
                 KontorhistorikkMedMetadata(
                     kontorhistorikk = kontorhistorikk,
-                    kall = response.metadata.tilKlientkall(),
                     httpKlientMetadata = response.metadata,
                 )
             }

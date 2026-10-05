@@ -60,8 +60,8 @@ import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.systembruk
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.utvikler
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.veileder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toSøknadstiltak
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorFakeKlient
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkFakeKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.KontorhistorikkKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
@@ -167,8 +167,8 @@ class LocalApplicationContext(
 
     override val oppgaveKlient: OppgaveKlient by lazy { OppgaveFakeKlient() }
 
-    override val navkontorKlient: NavkontorKlient by lazy {
-        NavkontorFakeKlient()
+    override val kontorhistorikkKlient: KontorhistorikkKlient by lazy {
+        KontorhistorikkFakeKlient()
     }
 
     override val tilgangskontrollService: TilgangskontrollService by lazy {
@@ -184,7 +184,7 @@ class LocalApplicationContext(
         HentJournalpostDokumentService(safJournalpostClient)
     }
 
-    override val navkontorService: NavkontorService by lazy { NavkontorService(navkontorKlient) }
+    override val navkontorService: NavkontorService by lazy { NavkontorService(kontorhistorikkKlient) }
 
     override val personContext =
         object : PersonContext(sessionFactory, texasClient, clock) {

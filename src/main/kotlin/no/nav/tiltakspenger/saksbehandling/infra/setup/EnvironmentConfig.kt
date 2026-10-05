@@ -57,9 +57,6 @@ sealed interface EnvironmentConfig {
     val aoKontorScope: String
     val aoKontorUrl: String
 
-    val veilarboppfolgingScope: String
-    val veilarboppfolgingUrl: String
-
     val oppgaveScope: String
     val oppgaveUrl: String
 
@@ -154,9 +151,6 @@ data object LocalConfig : EnvironmentConfig {
     override val aoKontorScope = "localhost"
     override val aoKontorUrl = WIREMOCK_URL
 
-    override val veilarboppfolgingScope = "localhost"
-    override val veilarboppfolgingUrl = WIREMOCK_URL
-
     override val oppgaveScope = "localhost"
     override val oppgaveUrl = WIREMOCK_URL
 
@@ -240,9 +234,6 @@ data object DevConfig : EnvironmentConfig {
     override val aoKontorScope = "dev-gcp.dab.ao-oppfolgingskontor"
     override val aoKontorUrl = "http://ao-oppfolgingskontor.dab"
 
-    override val veilarboppfolgingScope = "dev-gcp:poao:veilarboppfolging"
-    override val veilarboppfolgingUrl = "http://veilarboppfolging.poao"
-
     override val oppgaveScope = "dev-fss:oppgavehandtering:oppgave"
     override val oppgaveUrl = "https://oppgave.dev-fss-pub.nais.io"
 
@@ -325,9 +316,6 @@ data object ProdConfig : EnvironmentConfig {
 
     override val aoKontorScope = "prod-gcp.dab.ao-oppfolgingskontor"
     override val aoKontorUrl = "http://ao-oppfolgingskontor.dab"
-
-    override val veilarboppfolgingScope = "prod-gcp:poao:veilarboppfolging"
-    override val veilarboppfolgingUrl = "http://veilarboppfolging.poao"
 
     override val oppgaveScope = "prod-fss:oppgavehandtering:oppgave"
     override val oppgaveUrl = "https://oppgave.prod-fss-pub.nais.io"
