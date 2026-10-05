@@ -533,7 +533,7 @@ class OppdatertTiltaksdeltakelseJobbAggregatTest {
         startRevurderingService = behandlingContext.startRevurderingService,
         oppgaveKlient = oppgaveKlient,
         eksternOppgaveRepo = eksternOppgaveRepo,
-        tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+        tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
         sessionFactory = sessionFactory,
         clock = clock,
     )

@@ -14,7 +14,7 @@ import no.nav.tiltakspenger.saksbehandling.infra.setup.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import java.time.Clock
@@ -25,7 +25,7 @@ private val logger = KotlinLogging.logger { }
 class TiltaksdeltakerKometConsumer(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     private val søknadRepo: SøknadRepo,
-    private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+    private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
     private val sessionFactory: SessionFactory,
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
@@ -54,7 +54,7 @@ class TiltaksdeltakerKometConsumer(
             melding = value,
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             søknadRepo = søknadRepo,
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -72,7 +72,7 @@ class TiltaksdeltakerKometConsumer(
             melding: String?,
             tiltaksdeltakerRepo: TiltaksdeltakerRepo,
             søknadRepo: SøknadRepo,
-            tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
             sessionFactory: SessionFactory,
             clock: Clock,
         ): TiltaksdeltakerHendelseId? {
@@ -98,7 +98,7 @@ class TiltaksdeltakerKometConsumer(
             val kometHendelseDTO = deserialize<KometTiltakHendelseDTO>(melding)
             val tiltaksdeltakerHendelse = kometHendelseDTO.tilTiltaksdeltakerHendelse(sakId, tiltaksdeltakerId)
             sessionFactory.withTransactionContext { tx ->
-                tiltaksdeltakerHendelsePostgresRepo.lagre(
+                tiltaksdeltakerHendelseRepo.lagre(
                     tiltaksdeltakerHendelse,
                     melding,
                     TiltaksdeltakerHendelseKilde.Komet,

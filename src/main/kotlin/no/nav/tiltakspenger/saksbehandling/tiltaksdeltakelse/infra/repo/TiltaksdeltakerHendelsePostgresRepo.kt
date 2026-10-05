@@ -1,7 +1,5 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonUnwrapped
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.json.serialize
@@ -11,25 +9,18 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import java.time.Clock
 
-/**
- * Lagrer endringer i tiltaksdeltakelse i `tiltaksdeltaker_endring`, kun for sporbarhet til feilsøking og etterlevelse.
- * Radene leses aldri tilbake til domeneklasser.
- * Behandling av endringer styres av markøren på tiltaksdeltakeren, ikke av radene her.
- */
-// TODO: Klassen står i whitelisten til RepoKonvensjonKonsistTest fordi den ikke har et `Repo`-grensesnitt.
-//  Unntaket er ikke målet: et repo som nås fra en service skal nås gjennom en port i domenet.
-//  Innfør en port for lagring av endringshistorikken i domenet for å fjerne unntaket.
+/** Lagrer i `tiltaksdeltaker_endring`. */
 class TiltaksdeltakerHendelsePostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val clock: Clock,
-) {
+) : TiltaksdeltakerHendelseRepo {
 
-    /** Lagrer en mottatt hendelse med meldingen ordrett som verdi. */
-    fun lagre(
+    override fun lagre(
         tiltaksdeltakerHendelse: TiltaksdeltakerHendelse,
         melding: String,
         kilde: TiltaksdeltakerHendelseKilde,
@@ -47,12 +38,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
         )
     }
 
-    /**
-     * Lagrer en behandlet endring med nå-tilstanden fra tiltakshistorikk som verdi.
-     * [nåtilstand] er null når deltakelsen mangler i tiltakshistorikken eller ikke kan leses.
-     * [endring] er null når det ikke finnes noen relevant endring.
-     */
-    fun lagreBehandletEndring(
+    override fun lagreBehandletEndring(
         tiltaksdeltakerHendelse: TiltaksdeltakerHendelse,
         nåtilstand: TiltaksdeltakelseFraRegister?,
         endring: TiltaksdeltakerEndring?,
@@ -63,7 +49,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
         lagre(
             tiltaksdeltakerHendelse = tiltaksdeltakerHendelse,
             kilde = TiltaksdeltakerHendelseKilde.Tiltakshistorikk,
-            verdi = nåtilstand?.let { serialize(TiltaksdeltakelseFraRegisterDbJson(it)) },
+            verdi = nåtilstand?.let { serialize(it.toDbJson()) },
             endring = endring?.toDbJson(),
             behandlingId = behandlingId,
             oppgaveId = oppgaveId,
@@ -131,11 +117,35 @@ class TiltaksdeltakerHendelsePostgresRepo(
 }
 
 /**
- * Verdien serialiseres slik den er, og formatet følger klassen — det er greit at det endrer seg over tid.
- * Avledede getter-verdier fra TiltaksdeltakelseLegacy er ikke data, og Periode kan ikke serialiseres.
+ * Nå-tilstanden fra tiltakshistorikk slik den lagres for sporbarhet.
+ * Feltene settes eksplisitt, slik at formatet i databasen ikke endrer seg stille når domeneklassen gjør det.
  */
-private class TiltaksdeltakelseFraRegisterDbJson(
-    @get:JsonUnwrapped
-    @get:JsonIgnoreProperties("kanInnvilges", "periode")
-    val verdi: TiltaksdeltakelseFraRegister,
+private data class TiltaksdeltakelseFraRegisterDbJson(
+    val eksternDeltakelseId: String,
+    val gjennomføringId: String?,
+    val typeNavn: String,
+    val typeKode: String,
+    val rettPåTiltakspenger: Boolean,
+    val deltakelseFraOgMed: String?,
+    val deltakelseTilOgMed: String?,
+    val deltakelseStatus: String,
+    val deltakelseProsent: Float?,
+    val antallDagerPerUke: Float?,
+    val kilde: String,
+    val deltidsprosentGjennomforing: Double?,
+)
+
+private fun TiltaksdeltakelseFraRegister.toDbJson() = TiltaksdeltakelseFraRegisterDbJson(
+    eksternDeltakelseId = eksternDeltakelseId,
+    gjennomføringId = gjennomføringId,
+    typeNavn = typeNavn,
+    typeKode = typeKode.name,
+    rettPåTiltakspenger = rettPåTiltakspenger,
+    deltakelseFraOgMed = deltakelseFraOgMed?.toString(),
+    deltakelseTilOgMed = deltakelseTilOgMed?.toString(),
+    deltakelseStatus = deltakelseStatus.name,
+    deltakelseProsent = deltakelseProsent,
+    antallDagerPerUke = antallDagerPerUke,
+    kilde = kilde.name,
+    deltidsprosentGjennomforing = deltidsprosentGjennomforing,
 )

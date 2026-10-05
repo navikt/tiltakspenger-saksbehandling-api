@@ -67,6 +67,7 @@ import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.kafka.Tilbakekre
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingBehandlingPostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.infra.repo.TilbakekrevingHendelsePostgresRepo
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.service.TilbakekrevingBehandlingTildelingService
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.arena.TiltaksdeltakerArenaConsumer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.TiltaksdeltakerKometConsumer
@@ -223,7 +224,7 @@ open class ApplicationContext(
         )
     }
 
-    open val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo by lazy {
+    open val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo by lazy {
         TiltaksdeltakerHendelsePostgresRepo(
             sessionFactory = sessionFactory as PostgresSessionFactory,
             clock = clock,
@@ -239,7 +240,7 @@ open class ApplicationContext(
             startRevurderingService = behandlingContext.startRevurderingService,
             oppgaveKlient = oppgaveKlient,
             eksternOppgaveRepo = eksternOppgaveRepo,
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -249,7 +250,7 @@ open class ApplicationContext(
         TiltaksdeltakerArenaConsumer(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             søknadRepo = søknadContext.søknadRepo,
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
             sessionFactory = sessionFactory,
             clock = clock,
             topic = Configuration.arenaTiltaksdeltakerTopic,
@@ -261,7 +262,7 @@ open class ApplicationContext(
         TiltaksdeltakerKometConsumer(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             søknadRepo = søknadContext.søknadRepo,
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
             sessionFactory = sessionFactory,
             topic = Configuration.kometTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),
@@ -273,7 +274,7 @@ open class ApplicationContext(
         TiltaksdeltakerTeamTiltakConsumer(
             tiltaksdeltakerRepo = tiltakContext.tiltaksdeltakerRepo,
             søknadRepo = søknadContext.søknadRepo,
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
             sessionFactory = sessionFactory,
             topic = Configuration.teamTiltakTiltaksdeltakerTopic,
             kafkaConfig = kafkaConfig(autoOffsetReset = "none"),

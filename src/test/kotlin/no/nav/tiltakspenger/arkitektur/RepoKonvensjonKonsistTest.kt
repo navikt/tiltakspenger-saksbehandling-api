@@ -32,10 +32,7 @@ class RepoKonvensjonKonsistTest {
      * De to reglene er bevisst ortogonale: navneregelen ser alle `*Repository`, interface-regelen kun de som alt heter `*Repo`.
      * `IdenthendelseRepository` står derfor kun i den første — omdøpingen er det som slipper den inn i den andre.
      */
-    private val filerUtenInterfaceSomVenterPåOpprydding = setOf(
-        // Se TODO i fila: porten venter på at `TiltaksdeltakerHendelse` blir en domenetype.
-        "TiltaksdeltakerHendelsePostgresRepo.kt",
-    )
+    private val filerUtenInterfaceSomVenterPåOpprydding = emptySet<String>()
 
     private val filerMedFeilSuffiksSomVenterPåOpprydding = setOf(
         // Se TODO i fila: omdøping og interface må tas sammen.

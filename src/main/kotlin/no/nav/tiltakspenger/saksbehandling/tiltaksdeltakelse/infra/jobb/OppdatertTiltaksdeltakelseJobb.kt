@@ -32,11 +32,11 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -58,7 +58,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private val startRevurderingService: StartRevurderingService,
     private val oppgaveKlient: OppgaveKlient,
     private val eksternOppgaveRepo: EksternOppgaveRepo,
-    private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+    private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
@@ -111,7 +111,7 @@ class OppdatertTiltaksdeltakelseJobb(
             if (resultat is TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet) {
                 startRevurderingService.lagre(resultat.forberedtRevurdering, tx)
             }
-            tiltaksdeltakerHendelsePostgresRepo.lagreBehandletEndring(
+            tiltaksdeltakerHendelseRepo.lagreBehandletEndring(
                 tiltaksdeltakerHendelse = TiltaksdeltakerHendelse(
                     id = TiltaksdeltakerHendelseId.random(),
                     internDeltakerId = deltaker.id,

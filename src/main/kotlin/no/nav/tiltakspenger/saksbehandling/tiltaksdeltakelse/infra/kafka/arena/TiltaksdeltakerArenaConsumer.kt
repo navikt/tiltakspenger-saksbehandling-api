@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakerHendelsePostgresRepo
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Clock
 
@@ -24,7 +24,7 @@ private val logger = KotlinLogging.logger { }
 class TiltaksdeltakerArenaConsumer(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
     private val søknadRepo: SøknadRepo,
-    private val tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+    private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
     topic: String,
@@ -53,7 +53,7 @@ class TiltaksdeltakerArenaConsumer(
             melding = value,
             tiltaksdeltakerRepo = tiltaksdeltakerRepo,
             søknadRepo = søknadRepo,
-            tiltaksdeltakerHendelsePostgresRepo = tiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
             sessionFactory = sessionFactory,
             clock = clock,
         )
@@ -71,7 +71,7 @@ class TiltaksdeltakerArenaConsumer(
             melding: String,
             tiltaksdeltakerRepo: TiltaksdeltakerRepo,
             søknadRepo: SøknadRepo,
-            tiltaksdeltakerHendelsePostgresRepo: TiltaksdeltakerHendelsePostgresRepo,
+            tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
             sessionFactory: SessionFactory,
             clock: Clock,
         ): TiltaksdeltakerHendelseId? {
@@ -106,7 +106,7 @@ class TiltaksdeltakerArenaConsumer(
             ) ?: return null
 
             sessionFactory.withTransactionContext { tx ->
-                tiltaksdeltakerHendelsePostgresRepo.lagre(
+                tiltaksdeltakerHendelseRepo.lagre(
                     tiltaksdeltakerHendelse,
                     melding,
                     TiltaksdeltakerHendelseKilde.Arena,
