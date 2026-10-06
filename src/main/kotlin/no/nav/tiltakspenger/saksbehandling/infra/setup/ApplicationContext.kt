@@ -36,11 +36,9 @@ import no.nav.tiltakspenger.saksbehandling.klage.infra.kafka.KlageinstansKlagehe
 import no.nav.tiltakspenger.saksbehandling.klage.infra.setup.KlagebehandlingContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.MottaBrukerutfyltMeldekortService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.KontorhistorikkHttpklient
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.SammenligningVeilarboppfolgingKlient
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.VeilarboppfolgingHttpClient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.OppfølgingskontorKlient
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.infra.http.OppfølgingskontorHttpklient
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveHttpClient
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo.EksternOppgavePostgresRepo
@@ -147,16 +145,8 @@ open class ApplicationContext(
         )
     }
 
-    open val navkontorKlient: NavkontorKlient by lazy {
-        val eksisterende = VeilarboppfolgingHttpClient(
-            baseUrl = Configuration.veilarboppfolgingUrl,
-            authTokenProvider = TexasSystemTokenProvider(
-                texasClient = texasClient,
-                audienceTarget = Configuration.veilarboppfolgingScope,
-            ),
-            clock = clock,
-        )
-        val kontorhistorikkKlient = KontorhistorikkHttpklient(
+    open val oppfølgingskontorKlient: OppfølgingskontorKlient by lazy {
+        OppfølgingskontorHttpklient(
             baseUrl = Configuration.aoKontorUrl,
             authTokenProvider = TexasSystemTokenProvider(
                 texasClient = texasClient,
@@ -164,12 +154,8 @@ open class ApplicationContext(
             ),
             clock = clock,
         )
-        SammenligningVeilarboppfolgingKlient(
-            eksisterende = eksisterende,
-            kontorhistorikkKlient = kontorhistorikkKlient,
-        )
     }
-    open val navkontorService: NavkontorService by lazy { NavkontorService(navkontorKlient) }
+    open val navkontorService: NavkontorService by lazy { NavkontorService(oppfølgingskontorKlient) }
     open val eksternOppgaveRepo: EksternOppgaveRepo by lazy {
         EksternOppgavePostgresRepo(sessionFactory as PostgresSessionFactory)
     }

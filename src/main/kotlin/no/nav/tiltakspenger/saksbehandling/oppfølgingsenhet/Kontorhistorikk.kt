@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
 import java.time.LocalDateTime
 
 /**
@@ -10,10 +11,8 @@ data class Kontorhistorikk(
     val innslag: List<Kontorhistorikkinnslag>,
 ) {
     /**
-     * Tilnærmet det vi får fra eksisterende veilarboppfolging-tjenesten i dag (Arena med fallback til geografisk tilknytning), men vi tar også med ARBEIDSOPPFOLGING som førstevalg.
-     * Når det nye API'et kommer i prod med ARBEIDSOPPFOLGING vil det være det "riktige" kontoret for tiltakspenger; inntil da vil filteret ikke ha noen ARBEIDSOPPFOLGING-innslag og vi faller naturlig tilbake til Arena (og videre til geografisk tilknytning).
-     *
-     * Brukes i parallellkjøringen for å sammenligne mot gammel tjeneste.
+     * Kontoret vi bruker som navkontor (oppfølgingsenhet) for personen.
+     * ARBEIDSOPPFOLGING er førstevalg, med fallback til Arena og videre til geografisk tilknytning (samme prioritering som [KontorTilhørighet]).
      */
     fun nyesteAktuelleKontor(): Kontorhistorikkinnslag? =
         nyesteAvType(KontorType.ARBEIDSOPPFOLGING)
@@ -33,11 +32,19 @@ data class Kontorhistorikk(
         val kontorNavn: String?,
         val kontorType: KontorType,
         val endretTidspunkt: LocalDateTime,
-    )
-
-    enum class KontorType {
-        ARBEIDSOPPFOLGING,
-        ARENA,
-        GEOGRAFISK_TILKNYTNING,
+    ) {
+        fun tilNavkontor(): Navkontor = Navkontor(
+            kontornummer = kontorId,
+            kontornavn = kontorNavn,
+        )
     }
 }
+
+/**
+ * Kontorhistorikk pakket sammen med httpklient sin metadata for kallet.
+ * [httpKlientMetadata] bærer rå request/response, headere, antall forsøk og timing, slik at vi kan logge eller lagre rådata ved behov.
+ */
+data class KontorhistorikkMedMetadata(
+    val kontorhistorikk: Kontorhistorikk,
+    val httpKlientMetadata: HttpKlientMetadata,
+)

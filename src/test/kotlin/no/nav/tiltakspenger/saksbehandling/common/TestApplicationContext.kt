@@ -53,8 +53,8 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.MeldeperiodeRepo
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.http.MeldekortApiFakeKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.infra.setup.MeldekortContext
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.NavkontorService
+import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.OppfølgingskontorFakeKlient
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
@@ -175,8 +175,8 @@ sealed class TestApplicationContext(
     override val tiltakspengerArenaClient by lazy { tiltakspengerArenaFakeClient }
 
     open val jwtGenerator: JwtGenerator by lazy { JwtGenerator(clock = clock) }
-    override val navkontorKlient by lazy { NavkontorFakeKlient() }
-    override val navkontorService: NavkontorService by lazy { NavkontorService(navkontorKlient) }
+    override val oppfølgingskontorKlient by lazy { OppfølgingskontorFakeKlient() }
+    override val navkontorService: NavkontorService by lazy { NavkontorService(oppfølgingskontorKlient) }
     override val oppgaveKlient: OppgaveKlient by lazy {
         OppgaveFakeKlient(
             genererOppgaveId = { OppgaveId(idGenerators.oppgaveIdGenerator.getAndIncrement().toString()) },

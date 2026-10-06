@@ -88,8 +88,6 @@ spec:
         - application: tiltakspenger-meldekort-api
         - application: utsjekk
           namespace: helved
-        - application: veilarboppfolging
-          namespace: poao
         - application: ao-oppfolgingskontor
           namespace: dab
         - application: logging

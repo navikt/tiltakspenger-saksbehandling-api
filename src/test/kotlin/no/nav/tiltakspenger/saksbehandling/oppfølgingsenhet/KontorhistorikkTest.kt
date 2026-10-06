@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet
 
 import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.KontorType
 import no.nav.tiltakspenger.saksbehandling.oppfølgingsenhet.Kontorhistorikk.Kontorhistorikkinnslag
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
