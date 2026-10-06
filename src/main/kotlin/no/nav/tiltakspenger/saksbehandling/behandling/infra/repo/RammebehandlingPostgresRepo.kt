@@ -358,7 +358,8 @@ class RammebehandlingPostgresRepo(
                 omgjør_rammevedtak = :omgjoer_rammevedtak::jsonb,
                 klagebehandling_id = :klagebehandling_id,
                 automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
-                skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev
+                skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
+                skal_journalfore_notat = :skal_journalfore_notat
         """
 
         fun hentOrNull(
@@ -398,7 +399,43 @@ class RammebehandlingPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    $OPPDATER_RAMMEBEHANDLING
+                    update behandling set
+                        vedtaksperiode = :vedtaksperiode::periode,
+                        status = :status,
+                        sist_endret = :sist_endret,
+                        saksbehandler = :saksbehandler,
+                        beslutter = :beslutter,
+                        attesteringer = :attesteringer::jsonb,
+                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                        sendt_til_beslutning = :sendt_til_beslutning,
+                        sendt_til_datadeling = :sendt_til_datadeling,
+                        oppgave_id = :oppgave_id,
+                        valgt_hjemmel_har_ikke_rettighet = :valgt_hjemmel_har_ikke_rettighet::jsonb,
+                        fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
+                        begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
+                        saksopplysninger = :saksopplysninger::jsonb,
+                        barneTillegg = :barnetillegg::jsonb,
+                        avbrutt = :avbrutt::jsonb,
+                        ventestatus = :ventestatus::jsonb,
+                        venter_til = :venter_til,
+                        avslagsgrunner = :avslagsgrunner::jsonb,
+                        resultat = :resultat,
+                        soknad_id = :soknad_id,
+                        automatisk_saksbehandlet = :automatisk_saksbehandlet,
+                        manuelt_behandles_grunner = :manuelt_behandles_grunner::jsonb,
+                        beregning = :beregning::jsonb,
+                        simulering = :simulering::jsonb,
+                        simulering_metadata = CASE WHEN :simulering::varchar IS NULL THEN NULL ELSE simulering_metadata END,
+                        utbetalingskontroll = :utbetalingskontroll::jsonb,
+                        navkontor = :navkontor,
+                        navkontor_navn = :navkontor_navn,
+                        har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
+                        innvilgelsesperioder = :innvilgelsesperioder::jsonb,
+                        omgjør_rammevedtak = :omgjoer_rammevedtak::jsonb,
+                        klagebehandling_id = :klagebehandling_id,
+                        automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
+                        skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
+                        skal_journalfore_notat = :skal_journalfore_notat
                     where id = :id
                     """.trimIndent(),
                     behandling.tilDbParams(),
@@ -453,7 +490,8 @@ class RammebehandlingPostgresRepo(
                         omgjør_rammevedtak,
                         klagebehandling_id,
                         automatisk_opprettet_grunn,
-                        skal_sende_vedtaksbrev
+                        skal_sende_vedtaksbrev,
+                        skal_journalfore_notat
                     ) values (
                         :id,
                         :sak_id,
@@ -492,7 +530,8 @@ class RammebehandlingPostgresRepo(
                         :omgjoer_rammevedtak::jsonb,
                         :klagebehandling_id,
                         :automatisk_opprettet_grunn::jsonb,
-                        :skal_sende_vedtaksbrev
+                        :skal_sende_vedtaksbrev,
+                        :skal_journalfore_notat
                     )
                     """.trimIndent(),
                     behandling.tilDbParams(),
