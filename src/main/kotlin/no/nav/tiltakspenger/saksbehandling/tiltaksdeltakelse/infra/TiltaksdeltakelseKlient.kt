@@ -4,14 +4,14 @@ import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 
 interface TiltaksdeltakelseKlient {
     /**
+     * Inneholder kun [Tiltaksdeltakelse.GirRett] med kjent kildestatus, se [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilRelevanteTiltaksdeltakelser].
      * Filtrerer vekk tiltaksdeltakelser som ikke gir rett til tiltakspenger.
      * Filtrer vekk tiltaksdeltakelser som mangler både fraOgMed og tilOgMed samtidig som den ikke venter på oppstart.
      * Tiltak som det er søkt om tiltakspenger for skal ikke filtreres bort så lenge tiltakstypen gir rett på tiltakspenger.
@@ -20,7 +20,7 @@ interface TiltaksdeltakelseKlient {
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelserFraRegister>
+    ): Either<KunneIkkeHenteTiltakshistorikk, Tiltaksdeltakelser>
 
     suspend fun hentTiltaksdeltakelserMedArrangørnavn(
         fnr: Fnr,
@@ -30,7 +30,7 @@ interface TiltaksdeltakelseKlient {
 
     /**
      * Henter nå-tilstanden for én tiltaksdeltakelse, slik den ser ut hos kilden — uten mapping til vår interne modell.
-     * Mapping til [TiltaksdeltakelseFraRegister] gjøres av kalleren ([no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister]).
+     * Tolkningen gjøres av kalleren ([no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLesbarNåtilstand]).
      * Returnerer null dersom deltakelsen ikke finnes i historikken.
      */
     suspend fun hentTiltaksdeltakelse(

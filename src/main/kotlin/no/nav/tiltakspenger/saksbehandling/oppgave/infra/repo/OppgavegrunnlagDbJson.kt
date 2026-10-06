@@ -1,19 +1,18 @@
 package no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.TiltaksdeltakelseNåtilstandDbJson
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo.tilNåtilstandDbJson
 import java.time.LocalDateTime
 
 /**
  * Grunnlaget skrives kun, og leses tilbake som rå json i [no.nav.tiltakspenger.saksbehandling.oppgave.LagretEksternOppgave].
  * Konvolutten (type og kilde) har et fast format.
- * Verdien serialiseres slik den er, for sporbarhet, og formatet følger klassen — det er greit at det endrer seg over tid.
- * Et nytt avledet felt som ikke kan serialiseres, fanges av OppgavegrunnlagDbJsonTest, som bruker en verdi med alle felter satt.
+ * Verdien er nå-tilstanden fra tiltakshistorikk i samme format som i `tiltaksdeltaker_endring`, se [TiltaksdeltakelseNåtilstandDbJson].
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -22,9 +21,7 @@ import java.time.LocalDateTime
 private sealed interface OppgavegrunnlagDb {
     class EndretTiltaksdeltakelse(
         val kilde: TiltaksdeltakelseKildeDb,
-        // Avledede getter-verdier fra TiltaksdeltakelseLegacy er ikke data, og Periode kan ikke serialiseres.
-        @get:JsonIgnoreProperties("kanInnvilges", "periode")
-        val verdi: TiltaksdeltakelseFraRegister,
+        val verdi: TiltaksdeltakelseNåtilstandDbJson,
     ) : OppgavegrunnlagDb
 }
 
@@ -44,7 +41,7 @@ fun Oppgavegrunnlag.toDbJson(): String = serialize(
     when (this) {
         is Oppgavegrunnlag.EndretTiltaksdeltakelse -> OppgavegrunnlagDb.EndretTiltaksdeltakelse(
             kilde = kilde.toDb(),
-            verdi = verdi,
+            verdi = verdi.tilNåtilstandDbJson(),
         )
     },
 )

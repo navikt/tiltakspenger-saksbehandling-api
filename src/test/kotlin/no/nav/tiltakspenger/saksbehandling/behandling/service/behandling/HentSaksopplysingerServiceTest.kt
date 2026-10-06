@@ -31,14 +31,14 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.toTiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.domene.Ytelse
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser as LibsTiltaksdeltakelser
 
 class HentSaksopplysingerServiceTest {
 
@@ -65,7 +65,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister()).right()
+                ) = LibsTiltaksdeltakelser(listOf(tiltaksdeltakelser.first.tilLibsDeltakelse())).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -210,7 +210,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister()).right()
+                ) = LibsTiltaksdeltakelser(listOf(tiltaksdeltakelser.first.tilLibsDeltakelse())).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -348,7 +348,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(tiltaksdeltakelser.first.toTiltaksdeltakelseFraRegister()).right()
+                ) = LibsTiltaksdeltakelser(listOf(tiltaksdeltakelser.first.tilLibsDeltakelse())).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -515,7 +515,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister())).right()
+                ) = LibsTiltaksdeltakelser(listOf(tiltak1.first.tilLibsDeltakelse(), tiltak2.first.tilLibsDeltakelse())).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,
@@ -693,7 +693,7 @@ class HentSaksopplysingerServiceTest {
                     fnr: Fnr,
                     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
                     correlationId: CorrelationId,
-                ) = TiltaksdeltakelserFraRegister(listOf(tiltak1.first.toTiltaksdeltakelseFraRegister(), tiltak2.first.toTiltaksdeltakelseFraRegister())).right()
+                ) = LibsTiltaksdeltakelser(listOf(tiltak1.first.tilLibsDeltakelse(), tiltak2.first.tilLibsDeltakelse())).right()
 
                 override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
                     fnr: Fnr,

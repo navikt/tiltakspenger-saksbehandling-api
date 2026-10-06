@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.loggSuksess
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.Identoppslag
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.TiltakshistorikkHenter
@@ -35,9 +36,9 @@ class TiltakshistorikkHttpKlient(
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelserFraRegister> {
+    ): Either<KunneIkkeHenteTiltakshistorikk, Tiltaksdeltakelser> {
         return hentOgLogg(fnr, correlationId).map {
-            it.tiltakshistorikk.tilTiltaksdeltakelserFraRegister(tiltaksdeltakelserDetErSøktTiltakspengerFor, clock)
+            it.tiltakshistorikk.tilRelevanteTiltaksdeltakelser(tiltaksdeltakelserDetErSøktTiltakspengerFor, clock)
         }
     }
 

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
+import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
@@ -41,7 +42,7 @@ data class Saksopplysninger(
      */
     fun harOverlappendeTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId, tiltaksperiode: Periode): Boolean {
         return tiltaksdeltakelser.any {
-            it.internDeltakelseId != internDeltakelseId && (it.overlapperMed(tiltaksperiode) ?: true)
+            it.internDeltakelseId != internDeltakelseId && it.overlapperMed(tiltaksperiode) != Overlapp.Nei
         }
     }
 

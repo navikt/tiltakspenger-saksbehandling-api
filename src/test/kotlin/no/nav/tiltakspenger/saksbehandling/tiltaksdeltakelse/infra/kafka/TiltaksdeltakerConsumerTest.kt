@@ -292,6 +292,46 @@ class TiltaksdeltakerConsumerTest {
         }
     }
 
+    @Test
+    fun `arena - slettet deltakelse uten deltakerinfo - lagrer ikke`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakerId = arenaDeltakerId()
+            val id = "TA$deltakerId"
+            opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = id))
+
+            tac.tiltaksdeltakerArenaConsumer.consume(deltakerId, """{"op_type":"D","after":null}""")
+
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(id).shouldBeEmpty()
+            tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(id).shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe null
+        }
+    }
+
+    @Test
+    fun `komet - tombstone - lagrer ikke`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakerId = UUID.randomUUID()
+            opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId.toString()))
+
+            tac.tiltaksdeltakerKometConsumer.consume(deltakerId, null)
+
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId.toString()).shouldBeEmpty()
+            tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId.toString()).shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe null
+        }
+    }
+
+    @Test
+    fun `team tiltak - tombstone - lagrer ikke`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakerId = UUID.randomUUID().toString()
+            opprettSakOgSøknad(tac = tac, fnr = Fnr.random(), tiltaksdeltakelse = ObjectMother.tiltaksdeltakelse(eksternTiltaksdeltakelseId = deltakerId))
+
+            tac.tiltaksdeltakerTeamTiltakConsumer.consume(deltakerId, null)
+
+            tac.sessionFactory.hentTiltaksdeltakerEndringerForEksternId(deltakerId).shouldBeEmpty()
+            tac.tiltakContext.tiltaksdeltakerRepo.hentTiltaksdeltaker(deltakerId).shouldNotBeNull().sisteUbehandletEndringTidspunkt shouldBe null
+        }
+    }
+
     /** Meldingen lagres ordrett, og jobben har ennå ikke behandlet den. */
     private fun LagretTiltaksdeltakerEndring.skalVæreMottattMelding(
         melding: String,

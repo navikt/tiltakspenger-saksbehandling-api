@@ -7,22 +7,17 @@ import arrow.core.Either
 import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakstype
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.toTiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse as LibsTiltaksdeltakelse
-import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett as LibsTiltakstypeSomGirRett
 
 class TiltaksdeltakelseFakeKlient(
     /**
@@ -31,7 +26,7 @@ class TiltaksdeltakelseFakeKlient(
      */
     private val søknadFallback: (suspend (Fnr) -> List<Søknad>)? = null,
 ) : TiltaksdeltakelseKlient {
-    private val data = Atomic(mutableMapOf<Fnr, TiltaksdeltakelserFraRegister>())
+    private val data = Atomic(mutableMapOf<Fnr, List<LibsTiltaksdeltakelse.GirRett>>())
 
     /** Registrerer kall til [hentTiltaksdeltakelse] som (fnr, eksternDeltakerId), slik at tester kan verifisere at jobben slo opp nå-tilstanden. */
     val hentTiltaksdeltakelseKall = Atomic(mutableListOf<Pair<Fnr, String>>())
@@ -40,14 +35,14 @@ class TiltaksdeltakelseFakeKlient(
         fnr: Fnr,
         tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteTiltakshistorikk, TiltaksdeltakelserFraRegister> {
-        return (
+    ): Either<KunneIkkeHenteTiltakshistorikk, Tiltaksdeltakelser> {
+        return Tiltaksdeltakelser(
             data.get()[fnr] ?: if (søknadFallback != null) {
                 hentTiltaksdeltakelseFraSøknad(fnr, søknadFallback)
             } else {
-                TiltaksdeltakelserFraRegister.empty()
-            }
-            ).right()
+                emptyList()
+            },
+        ).right()
     }
 
     override suspend fun hentTiltaksdeltakelserMedArrangørnavn(
@@ -64,7 +59,7 @@ class TiltaksdeltakelseFakeKlient(
         correlationId: CorrelationId,
     ): Either<KunneIkkeHenteTiltakshistorikk, LibsTiltaksdeltakelse?> {
         hentTiltaksdeltakelseKall.get().add(fnr to eksternDeltakerId)
-        return (data.get()[fnr]?.getTiltaksdeltakelse(eksternDeltakerId)?.tilLibsDeltakelse()).right()
+        return data.get()[fnr]?.find { it.id.verdi == eksternDeltakerId }.right()
     }
 
     fun lagre(
@@ -76,103 +71,34 @@ class TiltaksdeltakelseFakeKlient(
             data.get().remove(fnr)
             return
         }
-        val tiltaksdeltakelseFraRegister = tiltaksdeltakelse.toTiltaksdeltakelseFraRegister()
+        val deltakelse = tiltaksdeltakelse.tilLibsDeltakelse()
         if (current == null) {
-            data.get()[fnr] = TiltaksdeltakelserFraRegister(listOf(tiltaksdeltakelseFraRegister))
+            data.get()[fnr] = listOf(deltakelse)
             return
         }
-        data.get()[fnr] = if (current.getTiltaksdeltakelse(tiltaksdeltakelse.eksternDeltakelseId) != null) {
-            TiltaksdeltakelserFraRegister(
-                current.map {
-                    if (it.eksternDeltakelseId == tiltaksdeltakelse.eksternDeltakelseId) {
-                        tiltaksdeltakelseFraRegister
-                    } else {
-                        it
-                    }
-                },
-            )
+        data.get()[fnr] = if (current.any { it.id == deltakelse.id }) {
+            current.map { if (it.id == deltakelse.id) deltakelse else it }
         } else {
-            TiltaksdeltakelserFraRegister(current + tiltaksdeltakelseFraRegister)
+            current + deltakelse
         }
     }
 
     private suspend fun hentTiltaksdeltakelseFraSøknad(
         fnr: Fnr,
         søknadFallback: suspend (Fnr) -> List<Søknad>,
-    ): TiltaksdeltakelserFraRegister {
+    ): List<LibsTiltaksdeltakelse.GirRett> {
         // TODO: Denne utledningen av tiltaksdeltakelser fra søknaden er skjør og henger tett sammen med søknadsflyten.
         // Den fungerer bare når søknaden allerede er persistert.
         // For manuelt registrerte (papir) søknader beregnes saksopplysningene før søknaden lagres (se StartBehandlingAvManueltRegistrertSøknadService), så tiltaksdeltakelsen mangler på saksopplysning-tidspunktet og lister returneres tom.
-        // Den forutsetter også at toTiltak()/toTiltaksdeltakelseFraRegister() bevarer internDeltakelseId slik at en påfølgende innvilgelse matcher.
+        // Den forutsetter også at toTiltak()/tilLibsDeltakelse() bevarer internDeltakelseId slik at en påfølgende innvilgelse matcher.
         // Vurder å seede data[fnr] eksplisitt når en søknad opprettes (både digital seed og papir-route) i stedet for å utlede fra lagrede søknader.
         val søknader = søknadFallback(fnr)
         val tiltak = søknader
             .sortedByDescending { it.opprettet }
             .mapNotNull { it.tiltak?.toTiltak() }
             .distinctBy { it.eksternDeltakelseId }
-            .map { it.toTiltaksdeltakelseFraRegister() }
+            .map { it.tilLibsDeltakelse() }
 
-        return TiltaksdeltakelserFraRegister(tiltak)
+        return tiltak
     }
-}
-
-fun TiltaksdeltakelseIntern.toTiltaksdeltakelseFraRegister(): TiltaksdeltakelseFraRegister =
-    TiltaksdeltakelseFraRegister(
-        eksternDeltakelseId = eksternDeltakelseId,
-        gjennomføringId = gjennomføringId,
-        typeNavn = typeNavn,
-        typeKode = typeKode,
-        rettPåTiltakspenger = rettPåTiltakspenger,
-        deltakelseFraOgMed = deltakelseFraOgMed,
-        deltakelseTilOgMed = deltakelseTilOgMed,
-        deltakelseStatus = deltakelseStatus,
-        deltakelseProsent = deltakelseProsent,
-        antallDagerPerUke = antallDagerPerUke,
-        kilde = kilde,
-        deltidsprosentGjennomforing = deltidsprosentGjennomforing,
-    )
-
-/**
- * Konverterer til libs-domenet slik [TiltaksdeltakelseKlient.hentTiltaksdeltakelse] nå returnerer.
- * Status og omfang bevares; kilde blir alltid Komet, og tittel/arrangør/gjennomføring bæres ikke over — de er ikke relevante for jobben som bruker metoden.
- */
-private fun TiltaksdeltakelseFraRegister.tilLibsDeltakelse(): LibsTiltaksdeltakelse {
-    val omfang = Deltakelsesomfang(
-        deltakelsesprosent = deltakelseProsent,
-        dagerPerUke = antallDagerPerUke,
-        deltidsprosentPåGjennomføring = deltidsprosentGjennomforing?.toFloat(),
-    )
-    val base = testdeltakelse(
-        id = eksternDeltakelseId,
-        kildestatus = Kometstatus.Kjent(
-            type = deltakelseStatus.tilKometstatusType(),
-            årsak = null,
-            opprettet = testStatusOpprettet,
-        ),
-        tiltakstype = Tiltakstype.SomGirRett(
-            tiltakskodeFraKilden = typeKode.name,
-            tiltakstype = LibsTiltakstypeSomGirRett.valueOf(typeKode.name),
-        ),
-        fraOgMed = deltakelseFraOgMed,
-        tilOgMed = deltakelseTilOgMed,
-    )
-    return when (base) {
-        is LibsTiltaksdeltakelse.GirRett.MedPeriode -> base.copy(omfang = omfang)
-        is LibsTiltaksdeltakelse.GirRett.UtenPeriode -> base.copy(omfang = omfang)
-        else -> base
-    }
-}
-
-private fun TiltakDeltakerstatus.tilKometstatusType(): Kometstatus.Type = when (this) {
-    TiltakDeltakerstatus.Deltar -> Kometstatus.Type.DELTAR
-    TiltakDeltakerstatus.HarSluttet -> Kometstatus.Type.HAR_SLUTTET
-    TiltakDeltakerstatus.Fullført -> Kometstatus.Type.FULLFORT
-    TiltakDeltakerstatus.Avbrutt -> Kometstatus.Type.AVBRUTT
-    TiltakDeltakerstatus.IkkeAktuell -> Kometstatus.Type.IKKE_AKTUELL
-    TiltakDeltakerstatus.Feilregistrert -> Kometstatus.Type.FEILREGISTRERT
-    TiltakDeltakerstatus.PåbegyntRegistrering -> Kometstatus.Type.PABEGYNT_REGISTRERING
-    TiltakDeltakerstatus.SøktInn -> Kometstatus.Type.SOKT_INN
-    TiltakDeltakerstatus.Venteliste -> Kometstatus.Type.VENTELISTE
-    TiltakDeltakerstatus.VenterPåOppstart -> Kometstatus.Type.VENTER_PA_OPPSTART
-    TiltakDeltakerstatus.Vurderes -> Kometstatus.Type.VURDERES
 }

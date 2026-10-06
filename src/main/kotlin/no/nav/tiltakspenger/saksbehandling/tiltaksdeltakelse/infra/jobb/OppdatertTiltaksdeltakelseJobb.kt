@@ -12,6 +12,7 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.OppgaveKlient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
@@ -34,9 +35,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.Til
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLesbarNåtilstand
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -153,7 +153,7 @@ class OppdatertTiltaksdeltakelseJobb(
             // Markøren står igjen, slik at endringen prøves på nytt ved neste kjøring.
             feil.loggFeil(log, "henting av nå-tilstand for tiltaksdeltakelse", logIder)
             return TiltaksdeltakelseEndringKunneIkkeBehandles.KunneIkkeHenteNåtilstand.left()
-        }?.tilTiltaksdeltakelseFraRegister(clock)
+        }?.tilLesbarNåtilstand(clock)
 
         if (oppdatertDeltakelse == null) {
             // Enten finnes ikke deltakelsen i historikken, eller den har ukjent tiltakstype/kildestatus og kan ikke tolkes.
@@ -209,7 +209,7 @@ class OppdatertTiltaksdeltakelseJobb(
         sak: Sak,
         revurderingSomSkalOpprettes: AutomatiskRevurdering,
         endring: TiltaksdeltakerEndring,
-        oppdatertTiltaksdeltakelse: TiltaksdeltakelseFraRegister,
+        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse.GirRett,
         logIder: String,
     ): TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet {
         val kommando = StartRevurderingKommando(
@@ -242,7 +242,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private suspend fun opprettOppgave(
         sak: Sak,
         endring: TiltaksdeltakerEndring,
-        oppdatertTiltaksdeltakelse: TiltaksdeltakelseFraRegister,
+        oppdatertTiltaksdeltakelse: Tiltaksdeltakelse.GirRett,
         sisteEndring: LocalDateTime,
         logIder: String,
     ): Either<TiltaksdeltakelseEndringKunneIkkeBehandles.KunneIkkeOppretteOppgave, TiltaksdeltakelseEndringBehandlet.OppgaveOpprettet> {
@@ -388,7 +388,7 @@ private data class AutomatiskRevurdering(
  * [nåtilstand] og [endring] er det jobben vurderte, og lagres for sporbarhet.
  */
 sealed interface TiltaksdeltakelseEndringBehandlet {
-    val nåtilstand: TiltaksdeltakelseFraRegister?
+    val nåtilstand: Tiltaksdeltakelse.GirRett?
     val endring: TiltaksdeltakerEndring?
 
     data object IngenLesbarNåtilstand : TiltaksdeltakelseEndringBehandlet {
@@ -397,13 +397,13 @@ sealed interface TiltaksdeltakelseEndringBehandlet {
     }
 
     data class IngenRelevantEndring(
-        override val nåtilstand: TiltaksdeltakelseFraRegister,
+        override val nåtilstand: Tiltaksdeltakelse.GirRett,
     ) : TiltaksdeltakelseEndringBehandlet {
         override val endring = null
     }
 
     data class AvsluttetSomForventet(
-        override val nåtilstand: TiltaksdeltakelseFraRegister,
+        override val nåtilstand: Tiltaksdeltakelse.GirRett,
     ) : TiltaksdeltakelseEndringBehandlet {
         override val endring = TiltaksdeltakerEndring.AvsluttetSomForventet
     }
@@ -411,7 +411,7 @@ sealed interface TiltaksdeltakelseEndringBehandlet {
     /** Revurderingen i [forberedtRevurdering] lagres i samme transaksjon som markøren nullstilles. */
     data class RevurderingOpprettet(
         val forberedtRevurdering: ForberedtRevurdering,
-        override val nåtilstand: TiltaksdeltakelseFraRegister,
+        override val nåtilstand: Tiltaksdeltakelse.GirRett,
         override val endring: TiltaksdeltakerEndring,
     ) : TiltaksdeltakelseEndringBehandlet {
         val revurderingId: RammebehandlingId get() = forberedtRevurdering.revurdering.id
@@ -419,7 +419,7 @@ sealed interface TiltaksdeltakelseEndringBehandlet {
 
     data class OppgaveOpprettet(
         val oppgaveId: OppgaveId,
-        override val nåtilstand: TiltaksdeltakelseFraRegister,
+        override val nåtilstand: Tiltaksdeltakelse.GirRett,
         override val endring: TiltaksdeltakerEndring,
     ) : TiltaksdeltakelseEndringBehandlet
 }

@@ -4,14 +4,16 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.testStatusOpprettet
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -31,16 +33,20 @@ class TiltaksdeltakerHendelsePostgresRepoTest {
                 {
                   "eksternDeltakelseId": "ekstern-id",
                   "gjennomføringId": "gjennomføring-id",
-                  "typeNavn": "Arbeidsmarkedsopplæring",
-                  "typeKode": "ARBEIDSMARKEDSOPPLAERING",
-                  "rettPåTiltakspenger": true,
-                  "deltakelseFraOgMed": "2026-01-01",
-                  "deltakelseTilOgMed": "2026-03-31",
-                  "deltakelseStatus": "Deltar",
-                  "deltakelseProsent": 50.0,
-                  "antallDagerPerUke": 2.5,
-                  "kilde": "Komet",
-                  "deltidsprosentGjennomforing": 80.0
+                  "tiltakstype": "ARBEIDSMARKEDSOPPLAERING",
+                  "tiltakstypenavn": "Arbeidsmarkedsopplæring",
+                  "tiltakskodeFraKilden": "ARBEIDSMARKEDSOPPLAERING",
+                  "fraOgMed": "2026-01-01",
+                  "tilOgMed": "2026-03-31",
+                  "kildestatus": {
+                    "kilde": "Komet",
+                    "kodeIKontrakten": "DELTAR",
+                    "årsak": null,
+                    "opprettet": "$testStatusOpprettet"
+                  },
+                  "deltakelsesprosent": 50.0,
+                  "dagerPerUke": 2.5,
+                  "deltidsprosentPåGjennomføring": 80.0
                 }
             """.trimIndent()
         }
@@ -59,16 +65,20 @@ class TiltaksdeltakerHendelsePostgresRepoTest {
                 {
                   "eksternDeltakelseId": "ekstern-id",
                   "gjennomføringId": "gjennomføring-id",
-                  "typeNavn": "Arbeidsmarkedsopplæring",
-                  "typeKode": "ARBEIDSMARKEDSOPPLAERING",
-                  "rettPåTiltakspenger": true,
-                  "deltakelseFraOgMed": null,
-                  "deltakelseTilOgMed": null,
-                  "deltakelseStatus": "Deltar",
-                  "deltakelseProsent": 50.0,
-                  "antallDagerPerUke": 2.5,
-                  "kilde": "Komet",
-                  "deltidsprosentGjennomforing": 80.0
+                  "tiltakstype": "ARBEIDSMARKEDSOPPLAERING",
+                  "tiltakstypenavn": "Arbeidsmarkedsopplæring",
+                  "tiltakskodeFraKilden": "ARBEIDSMARKEDSOPPLAERING",
+                  "fraOgMed": null,
+                  "tilOgMed": null,
+                  "kildestatus": {
+                    "kilde": "Komet",
+                    "kodeIKontrakten": "DELTAR",
+                    "årsak": null,
+                    "opprettet": "$testStatusOpprettet"
+                  },
+                  "deltakelsesprosent": 50.0,
+                  "dagerPerUke": 2.5,
+                  "deltidsprosentPåGjennomføring": 80.0
                 }
             """.trimIndent()
         }
@@ -92,20 +102,19 @@ class TiltaksdeltakerHendelsePostgresRepoTest {
         tac.sessionFactory.withTransactionContext { tx ->
             tac.tiltaksdeltakerHendelseRepo.lagreBehandletEndring(
                 tiltaksdeltakerHendelse = hendelse,
-                nåtilstand = TiltaksdeltakelseFraRegister(
-                    eksternDeltakelseId = "ekstern-id",
-                    gjennomføringId = "gjennomføring-id",
-                    typeNavn = "Arbeidsmarkedsopplæring",
+                nåtilstand = ObjectMother.tiltaksdeltakelseTac(
+                    eksternTiltaksdeltakelseId = "ekstern-id",
                     typeKode = TiltakstypeSomGirRettDTO.ARBEIDSMARKEDSOPPLAERING,
-                    rettPåTiltakspenger = true,
-                    deltakelseFraOgMed = deltakelseFraOgMed,
-                    deltakelseTilOgMed = deltakelseTilOgMed,
-                    deltakelseStatus = TiltakDeltakerstatus.Deltar,
-                    deltakelseProsent = 50f,
-                    antallDagerPerUke = 2.5f,
+                    typeNavn = "Arbeidsmarkedsopplæring",
+                    eksternTiltaksgjennomføringsId = "gjennomføring-id",
+                    fom = LocalDate.of(2026, 1, 1),
+                    tom = LocalDate.of(2026, 3, 31),
+                    status = TiltakDeltakerstatus.Deltar,
+                    dagerPrUke = 2.5f,
+                    prosent = 50f,
                     kilde = Tiltakskilde.Komet,
                     deltidsprosentGjennomforing = 80.0,
-                ),
+                ).copy(deltakelseFraOgMed = deltakelseFraOgMed, deltakelseTilOgMed = deltakelseTilOgMed).tilLibsDeltakelse(),
                 endring = null,
                 behandlingId = null,
                 oppgaveId = null,

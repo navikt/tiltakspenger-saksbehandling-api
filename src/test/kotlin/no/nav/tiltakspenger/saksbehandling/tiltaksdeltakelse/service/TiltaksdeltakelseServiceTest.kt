@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -13,12 +14,17 @@ import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
+import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHenteEnkelPerson
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 class TiltaksdeltakelseServiceTest {
     @Nested
@@ -212,6 +218,77 @@ class TiltaksdeltakelseServiceTest {
                 tilOgMed = 1.januar(2025),
                 correlationId = CorrelationId.generate(),
             ) shouldBe KunneIkkeHenteTiltaksdeltakelser.NegativOppslagsperiode.left()
+        }
+
+        @Test
+        fun `Feil mot PDL gir FeilVedKallMotPdl uten å spørre tiltakshistorikk`() = runTest {
+            val sakService = mockk<SakService>()
+            val personService = mockk<PersonService>()
+            val tiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
+            every { sakService.hentForSakId(sak.id) } returns sak
+            coEvery { personService.hentEnkelPersonFnr(sak.fnr) } returns KunneIkkeHenteEnkelPerson.FeilVedKallMotPdl.left()
+
+            nyTiltaksdeltakelseService(sakService, personService, tiltaksdeltakelseKlient).hentTiltaksdeltakelserForSak(
+                sakId = sak.id,
+                fraOgMed = 1.januar(2025),
+                tilOgMed = 31.januar(2025),
+                correlationId = CorrelationId.generate(),
+            ) shouldBe KunneIkkeHenteTiltaksdeltakelser.FeilVedKallMotPdl.left()
+
+            coVerify(exactly = 0) { tiltaksdeltakelseKlient.hentTiltaksdeltakelserMedArrangørnavn(any(), any(), any()) }
+        }
+
+        @Test
+        fun `Feil mot tiltakshistorikk gir FeilVedKallMotTiltak`() = runTest {
+            val sakService = mockk<SakService>()
+            val personService = mockk<PersonService>()
+            val tiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
+            every { sakService.hentForSakId(sak.id) } returns sak
+            coEvery { personService.hentEnkelPersonFnr(sak.fnr) } returns person.right()
+            coEvery {
+                tiltaksdeltakelseKlient.hentTiltaksdeltakelserMedArrangørnavn(fnr = sak.fnr, harAdressebeskyttelse = false, correlationId = any())
+            } returns KunneIkkeHenteTiltakshistorikk.KallFeilet(ObjectMother.httpKlientUventetStatus()).left()
+
+            nyTiltaksdeltakelseService(sakService, personService, tiltaksdeltakelseKlient).hentTiltaksdeltakelserForSak(
+                sakId = sak.id,
+                fraOgMed = 1.januar(2025),
+                tilOgMed = 31.januar(2025),
+                correlationId = CorrelationId.generate(),
+            ) shouldBe KunneIkkeHenteTiltaksdeltakelser.FeilVedKallMotTiltak.left()
+        }
+
+        @ParameterizedTest
+        @CsvSource(
+            "true, false, false",
+            "false, true, false",
+            "false, false, true",
+        )
+        fun `Adressebeskyttelse sendes videre til tiltakshistorikk`(
+            fortrolig: Boolean,
+            strengtFortrolig: Boolean,
+            strengtFortroligUtland: Boolean,
+        ) = runTest {
+            val sakService = mockk<SakService>()
+            val personService = mockk<PersonService>()
+            val tiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
+            val beskyttetPerson = ObjectMother.personopplysningKjedeligFyr(
+                fnr = sak.fnr,
+                fortrolig = fortrolig,
+                strengtFortrolig = strengtFortrolig,
+                strengtFortroligUtland = strengtFortroligUtland,
+            )
+            every { sakService.hentForSakId(sak.id) } returns sak
+            coEvery { personService.hentEnkelPersonFnr(sak.fnr) } returns beskyttetPerson.right()
+            coEvery {
+                tiltaksdeltakelseKlient.hentTiltaksdeltakelserMedArrangørnavn(fnr = sak.fnr, harAdressebeskyttelse = true, correlationId = any())
+            } returns emptyList<TiltaksdeltakelseMedArrangørnavn>().right()
+
+            nyTiltaksdeltakelseService(sakService, personService, tiltaksdeltakelseKlient).hentTiltaksdeltakelserForSak(
+                sakId = sak.id,
+                fraOgMed = 1.januar(2025),
+                tilOgMed = 31.januar(2025),
+                correlationId = CorrelationId.generate(),
+            ).getOrFail() shouldBe emptyList()
         }
     }
 }

@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TeamTiltakstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TiltakstypeSomGirRett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
@@ -21,40 +22,42 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatu
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Venteliste
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.VenterPåOppstart
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus.Vurderes
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Filtrerer og mapper til deltakelser som kan gi rett til tiltakspenger.
+ * Filtrerer til deltakelser som kan gi rett til tiltakspenger.
  * Deltakelser det er søkt tiltakspenger for skal ikke filtreres bort.
  *
  * Utvalgs- og statusreglene viderefører semantikken fra den tidligere integrasjonen:
- * kun tiltakstyper som gir rett ([no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelser.girRett]), og kun deltakelser som er søkt for, har datoer, eller venter på oppstart.
+ * kun tiltakstyper som gir rett ([Tiltaksdeltakelser.girRett]), og kun deltakelser som er søkt for, har datoer, eller venter på oppstart.
+ * Resultatet inneholder derfor kun [Tiltaksdeltakelse.GirRett] med kjent kildestatus, og [tiltakDeltakerstatus] kan tolkes for alle.
  *
  * Et bevisst avvik fra tidligere oppførsel: en tiltakskode vi ikke kjenner felte før hele oppslaget ([IllegalStateException] i mappingen).
  * Nå blir slike rader [Tiltaksdeltakelse.UkjentTiltakstype] i libs-domenet og faller utenfor `girRett` — de varsles av klienten i stedet for å krasje.
  * Det samme gjelder rader med ukjent kildestatus: de kan ikke tolkes til [TiltakDeltakerstatus] og utelates fra uttrekket.
  */
-fun Tiltakshistorikk.tilTiltaksdeltakelserFraRegister(
+fun Tiltakshistorikk.tilRelevanteTiltaksdeltakelser(
     tiltaksdeltakelserDetErSøktTiltakspengerFor: TiltaksdeltakelserDetErSøktTiltakspengerFor,
     clock: Clock,
-): TiltaksdeltakelserFraRegister {
+): Tiltaksdeltakelser {
     val søktFor = tiltaksdeltakelserDetErSøktTiltakspengerFor.eksterneIder.toSet()
-    return TiltaksdeltakelserFraRegister(
-        deltakelser.girRett.mapNotNull { deltakelse ->
+    return Tiltaksdeltakelser(
+        deltakelser.girRett.filter { deltakelse ->
             val status = deltakelse.kildestatus.tilTiltakDeltakerstatus(deltakelse.fraOgMed, clock)
-                ?: return@mapNotNull null
-            if (!erRelevant(deltakelse, status, søktFor)) return@mapNotNull null
-            deltakelse.tilTiltaksdeltakelseFraRegister(status)
+                ?: return@filter false
+            erRelevant(deltakelse, status, søktFor)
         },
     )
 }
 
 /**
  * Slår opp nå-tilstanden for én deltakelse på ekstern id, uten mapping eller utvalgsregler.
- * Brukes når en endring på deltakeren skal trigge et ferskt oppslag mot kilden — mappingen til vår interne modell gjøres av kalleren med [tilTiltaksdeltakelseFraRegister].
+ * Brukes når en endring på deltakeren skal trigge et ferskt oppslag mot kilden — tolkningen gjøres av kalleren med [tilLesbarNåtilstand].
  * Gir null dersom deltakelsen ikke finnes i historikken.
  */
 fun Tiltakshistorikk.finnDeltakelse(eksternDeltakerId: String): Tiltaksdeltakelse? {
@@ -62,17 +65,30 @@ fun Tiltakshistorikk.finnDeltakelse(eksternDeltakerId: String): Tiltaksdeltakels
 }
 
 /**
- * Mapper nå-tilstanden fra libs-domenet til vår interne modell.
+ * Nå-tilstanden dersom den kan tolkes av oss.
  * Gir null for deltakelser som ikke gir rett, eller har ukjent kildestatus — disse kan ikke tolkes (varsles av klienten).
+ * Statusen tolkes her, slik at et kontraktsbrudd (Komet `KLADD`) feiler høylytt allerede ved oppslaget.
  */
-fun Tiltaksdeltakelse.tilTiltaksdeltakelseFraRegister(clock: Clock): TiltaksdeltakelseFraRegister? {
+fun Tiltaksdeltakelse.tilLesbarNåtilstand(clock: Clock): Tiltaksdeltakelse.GirRett? {
     if (this !is Tiltaksdeltakelse.GirRett) return null
-    val status = kildestatus.tilTiltakDeltakerstatus(fraOgMed, clock) ?: return null
-    return tilTiltaksdeltakelseFraRegister(status)
+    kildestatus.tilTiltakDeltakerstatus(fraOgMed, clock) ?: return null
+    return this
 }
 
-private fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseFraRegister(status: TiltakDeltakerstatus): TiltaksdeltakelseFraRegister =
-    TiltaksdeltakelseFraRegister(
+/**
+ * Kildens status tolket til vår egen statusmodell.
+ * Kaster dersom kildestatusen er ukjent; uttrekkene ([tilRelevanteTiltaksdeltakelser] og [tilLesbarNåtilstand]) slipper aldri slike gjennom.
+ */
+fun Tiltaksdeltakelse.GirRett.tiltakDeltakerstatus(clock: Clock): TiltakDeltakerstatus =
+    checkNotNull(kildestatus.tilTiltakDeltakerstatus(fraOgMed, clock)) {
+        "Kan ikke tolke ukjent kildestatus ${kildestatus.kodeIKontrakten} fra ${kildestatus.kilde} for deltakelse ${id.verdi}"
+    }
+
+fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseIntern(
+    internDeltakelseId: TiltaksdeltakerId,
+    clock: Clock,
+): TiltaksdeltakelseIntern =
+    TiltaksdeltakelseIntern(
         eksternDeltakelseId = id.verdi,
         gjennomføringId = gjennomføringId?.verdi,
         typeNavn = tiltakstypenavn,
@@ -80,15 +96,16 @@ private fun Tiltaksdeltakelse.GirRett.tilTiltaksdeltakelseFraRegister(status: Ti
         rettPåTiltakspenger = true,
         deltakelseFraOgMed = fraOgMed,
         deltakelseTilOgMed = tilOgMed,
-        deltakelseStatus = status,
+        deltakelseStatus = tiltakDeltakerstatus(clock),
         deltakelseProsent = omfang.deltakelsesprosent,
         antallDagerPerUke = omfang.dagerPerUke,
         kilde = kildestatus.kilde.tilLokalKilde(),
         deltidsprosentGjennomforing = omfang.deltidsprosentPåGjennomføring?.toDouble(),
+        internDeltakelseId = internDeltakelseId,
     )
 
 /**
- * Samme utvalg som [tilTiltaksdeltakelserFraRegister], men med visningsnavn i stedet for full saksopplysning.
+ * Samme utvalg som [tilRelevanteTiltaksdeltakelser], men med visningsnavn i stedet for full saksopplysning.
  * Visningsnavnet ([Tiltaksdeltakelse.tittel]) inneholder arrangøren, og er derfor stedsinformasjon — ved adressebeskyttelse vises kun tiltakstypenavnet.
  * Faller tilbake på tiltakstypenavnet også når kilden ikke ga noen tittel.
  */
@@ -216,9 +233,9 @@ private fun TeamTiltakstatus.Type.tilTiltakDeltakerstatus(): TiltakDeltakerstatu
         TeamTiltakstatus.Type.ANNULLERT -> IkkeAktuell
     }
 
-private fun TiltakstypeSomGirRett.tilDTO(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.valueOf(name)
+fun TiltakstypeSomGirRett.tilDTO(): TiltakstypeSomGirRettDTO = TiltakstypeSomGirRettDTO.valueOf(name)
 
-private fun no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakskilde.tilLokalKilde(): Tiltakskilde =
+fun no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakskilde.tilLokalKilde(): Tiltakskilde =
     when (this) {
         no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakskilde.Arena -> Tiltakskilde.Arena
         no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakskilde.Komet -> Tiltakskilde.Komet

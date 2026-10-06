@@ -6,11 +6,11 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseKilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse.TiltaksdeltakerHendelseRepo
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import java.time.Clock
 
@@ -40,7 +40,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
 
     override fun lagreBehandletEndring(
         tiltaksdeltakerHendelse: TiltaksdeltakerHendelse,
-        nåtilstand: TiltaksdeltakelseFraRegister?,
+        nåtilstand: Tiltaksdeltakelse.GirRett?,
         endring: TiltaksdeltakerEndring?,
         behandlingId: RammebehandlingId?,
         oppgaveId: OppgaveId?,
@@ -49,7 +49,7 @@ class TiltaksdeltakerHendelsePostgresRepo(
         lagre(
             tiltaksdeltakerHendelse = tiltaksdeltakerHendelse,
             kilde = TiltaksdeltakerHendelseKilde.Tiltakshistorikk,
-            verdi = nåtilstand?.let { serialize(it.toDbJson()) },
+            verdi = nåtilstand?.let { serialize(it.tilNåtilstandDbJson()) },
             endring = endring?.toDbJson(),
             behandlingId = behandlingId,
             oppgaveId = oppgaveId,
@@ -115,37 +115,3 @@ class TiltaksdeltakerHendelsePostgresRepo(
         }
     }
 }
-
-/**
- * Nå-tilstanden fra tiltakshistorikk slik den lagres for sporbarhet.
- * Feltene settes eksplisitt, slik at formatet i databasen ikke endrer seg stille når domeneklassen gjør det.
- */
-private data class TiltaksdeltakelseFraRegisterDbJson(
-    val eksternDeltakelseId: String,
-    val gjennomføringId: String?,
-    val typeNavn: String,
-    val typeKode: String,
-    val rettPåTiltakspenger: Boolean,
-    val deltakelseFraOgMed: String?,
-    val deltakelseTilOgMed: String?,
-    val deltakelseStatus: String,
-    val deltakelseProsent: Float?,
-    val antallDagerPerUke: Float?,
-    val kilde: String,
-    val deltidsprosentGjennomforing: Double?,
-)
-
-private fun TiltaksdeltakelseFraRegister.toDbJson() = TiltaksdeltakelseFraRegisterDbJson(
-    eksternDeltakelseId = eksternDeltakelseId,
-    gjennomføringId = gjennomføringId,
-    typeNavn = typeNavn,
-    typeKode = typeKode.name,
-    rettPåTiltakspenger = rettPåTiltakspenger,
-    deltakelseFraOgMed = deltakelseFraOgMed?.toString(),
-    deltakelseTilOgMed = deltakelseTilOgMed?.toString(),
-    deltakelseStatus = deltakelseStatus.name,
-    deltakelseProsent = deltakelseProsent,
-    antallDagerPerUke = antallDagerPerUke,
-    kilde = kilde.name,
-    deltidsprosentGjennomforing = deltidsprosentGjennomforing,
-)

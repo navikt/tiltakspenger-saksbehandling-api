@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.hendelse
 
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 
 /**
@@ -28,7 +28,7 @@ interface TiltaksdeltakerHendelseRepo {
      */
     fun lagreBehandletEndring(
         tiltaksdeltakerHendelse: TiltaksdeltakerHendelse,
-        nåtilstand: TiltaksdeltakelseFraRegister?,
+        nåtilstand: Tiltaksdeltakelse.GirRett?,
         endring: TiltaksdeltakerEndring?,
         behandlingId: RammebehandlingId?,
         oppgaveId: OppgaveId?,

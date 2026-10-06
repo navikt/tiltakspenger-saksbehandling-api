@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kildestatus
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltakskilde
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.pdl.PdlIdentklient
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.KunneIkkeHenteTiltakshistorikk
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.TiltakshistorikkHenter
@@ -21,7 +22,6 @@ import no.nav.tiltakspenger.libs.tiltaksdeltakelse.infra.http.tiltakshistorikk.T
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.TiltaksdeltakelserDetErSøktTiltakspengerFor
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -118,13 +118,12 @@ class TiltakshistorikkHttpKlientTest {
             ).getOrNull().shouldNotBeNull()
 
             // Arena-deltakelsen bærer kildens TA-id, ikke kontraktens uuid.
-            tiltaksdeltakelser.value.map { it.eksternDeltakelseId } shouldBe listOf("TA142536")
-            val deltakelse = tiltaksdeltakelser.value.single()
+            tiltaksdeltakelser.deltakelser.map { it.id.verdi } shouldBe listOf("TA142536")
+            val deltakelse = tiltaksdeltakelser.girRett.single()
             // fixedClock er 1. januar 2025, så GJENNOMFORES med start i 2024 er i gang.
-            deltakelse.deltakelseStatus shouldBe TiltakDeltakerstatus.Deltar
-            deltakelse.kilde shouldBe Tiltakskilde.Arena
-            deltakelse.deltidsprosentGjennomforing shouldBe 50.0
-            deltakelse.rettPåTiltakspenger shouldBe true
+            deltakelse.tiltakDeltakerstatus(fixedClock) shouldBe TiltakDeltakerstatus.Deltar
+            deltakelse.kildestatus.kilde shouldBe Tiltakskilde.Arena
+            deltakelse.omfang.deltidsprosentPåGjennomføring shouldBe 50f
         }
 
         val kall = historikkTransport.mottatteKall.single()
@@ -145,7 +144,7 @@ class TiltakshistorikkHttpKlientTest {
                 correlationId = CorrelationId.generate(),
             ).getOrNull().shouldNotBeNull()
 
-            tiltaksdeltakelser.value shouldBe emptyList()
+            tiltaksdeltakelser.deltakelser shouldBe emptyList()
         }
     }
 

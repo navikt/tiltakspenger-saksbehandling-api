@@ -9,8 +9,11 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
+import no.nav.tiltakspenger.libs.periode.Overlapp
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.libs.periode.ÅpenPeriode
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.arenavedtak.infra.TiltakspengerArenaClient
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Saksopplysninger
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Tiltaksdeltakelser
@@ -23,8 +26,9 @@ import no.nav.tiltakspenger.saksbehandling.søknad.infra.route.tilTiltakstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelserFraRegister
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilDTO
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.SokosUtbetaldataClient
 import java.time.Clock
 import java.time.LocalDate
@@ -127,7 +131,7 @@ class HentSaksopplysingerService(
         sessionContext: SessionContext? = null,
         loggkontekst: String,
     ): Tiltaksdeltakelser {
-        val tiltaksdeltakelserSomKanGiRettTilTiltakspenger = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
+        val tiltaksdeltakelserSomKanGiRettTilTiltakspenger: List<Tiltaksdeltakelse.GirRett> = tiltaksdeltakelseKlient.hentTiltaksdeltakelser(
             fnr = fnr,
             tiltaksdeltakelserDetErSøktTiltakspengerFor = tiltaksdeltakelserDetErSøktTiltakspengerFor,
             correlationId = correlationId,
@@ -136,37 +140,45 @@ class HentSaksopplysingerService(
             // Kontrakten videre oppover er fortsatt throw-basert.
             feil.loggFeil(logger, "henting av tiltaksdeltakelser fra tiltakshistorikk", loggkontekst)
             throw IllegalStateException("Kunne ikke hente tiltaksdeltakelser fra tiltakshistorikk. $loggkontekst")
-        }
+        }.girRett
         val oppdaterteEksterneIderDetErSoktFor = tiltaksdeltakelserDetErSøktTiltakspengerFor.ider.map {
             tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)
         }
         // Henter oppdaterte tiltaksdeltakelser det er søkt på, ved forlengelse kan flere overlappe enn på søknadstidspunktet.
-        val tiltaksdeltakelserDetErSøktPå: TiltaksdeltakelserFraRegister =
-            tiltaksdeltakelserSomKanGiRettTilTiltakspenger.filtrerPåTiltaksdeltakelsesIDer(
-                oppdaterteEksterneIderDetErSoktFor,
-            )
+        val tiltaksdeltakelserDetErSøktPå = tiltaksdeltakelserSomKanGiRettTilTiltakspenger
+            .filter { it.id.verdi in oppdaterteEksterneIderDetErSoktFor }
         val aktuelleEksterneTiltaksdeltakelseIderForBehandlingen = aktuelleTiltaksdeltakelserForBehandlingen.map {
             tiltaksdeltakerRepo.hentEksternId(id = it, sessionContext = sessionContext)
         }
         val aktuelleTiltaksdeltakelser = tiltaksdeltakelserDetErSøktPå
-            .filtrerPåTiltaksdeltakelsesIDer(aktuelleEksterneTiltaksdeltakelseIderForBehandlingen)
+            .filter { it.id.verdi in aktuelleEksterneTiltaksdeltakelseIderForBehandlingen }
             .let { aktuelle ->
                 if (inkluderOverlappendeTiltaksdeltakelserDetErSøktOm) {
-                    tiltaksdeltakelserDetErSøktPå.overlappende(aktuelle)
+                    tiltaksdeltakelserDetErSøktPå.overlappendeMed(aktuelle)
                 } else {
                     aktuelle
                 }
             }
-        val tiltaksdeltakelser = aktuelleTiltaksdeltakelser.value.map {
+        val tiltaksdeltakelser = aktuelleTiltaksdeltakelser.map {
             val internDeltakelseId = tiltaksdeltakerRepo.hentEllerLagre(
-                eksternId = it.eksternDeltakelseId,
-                tiltakstype = it.typeKode.tilTiltakstype(),
+                eksternId = it.id.verdi,
+                tiltakstype = it.tiltakstype.tilDTO().tilTiltakstype(),
                 sakId = sakId,
                 sessionContext = sessionContext,
             )
-            it.tilTiltaksdeltakelseIntern(internDeltakelseId)
+            it.tilTiltaksdeltakelseIntern(internDeltakelseId, clock)
         }
         return Tiltaksdeltakelser(tiltaksdeltakelser)
+    }
+
+    /**
+     * Deltakelsene som overlapper med minst én av [andre].
+     * Inkluderer tvilstilfellene der en manglende dato gjør at vi ikke kan si sikkert om de overlapper, se [ÅpenPeriode.overlapperMed].
+     */
+    private fun List<Tiltaksdeltakelse.GirRett>.overlappendeMed(
+        andre: List<Tiltaksdeltakelse.GirRett>,
+    ): List<Tiltaksdeltakelse.GirRett> = filter { deltakelse ->
+        andre.any { ÅpenPeriode(it.fraOgMed, it.tilOgMed).overlapperMed(ÅpenPeriode(deltakelse.fraOgMed, deltakelse.tilOgMed)) != Overlapp.Nei }
     }
 
     private fun lagLoggcontext(

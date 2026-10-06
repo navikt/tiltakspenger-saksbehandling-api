@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.oppgave.infra.repo
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.LagretEksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -10,7 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag
 import no.nav.tiltakspenger.saksbehandling.oppgave.Oppgavegrunnlag.EndretTiltaksdeltakelse.Kilde
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -64,20 +65,17 @@ class EksternOppgaveFakeRepoTest {
         opprettet = opprettet,
         grunnlag = Oppgavegrunnlag.EndretTiltaksdeltakelse(
             kilde = Kilde.Tiltakshistorikk(opprettet),
-            verdi = TiltaksdeltakelseFraRegister(
-                eksternDeltakelseId = UUID.randomUUID().toString(),
-                gjennomføringId = null,
-                typeNavn = "Gruppe AMO",
+            verdi = ObjectMother.tiltaksdeltakelseTac(
+                eksternTiltaksdeltakelseId = UUID.randomUUID().toString(),
                 typeKode = TiltakstypeSomGirRettDTO.GRUPPE_AMO,
-                rettPåTiltakspenger = true,
-                deltakelseFraOgMed = LocalDate.of(2026, 3, 17),
-                deltakelseTilOgMed = null,
-                deltakelseStatus = TiltakDeltakerstatus.Deltar,
-                deltakelseProsent = 50.0f,
-                antallDagerPerUke = 2.5f,
+                typeNavn = "Gruppe AMO",
+                fom = LocalDate.of(2026, 3, 17),
+                tom = LocalDate.of(2026, 6, 30),
+                status = TiltakDeltakerstatus.Deltar,
+                dagerPrUke = 2.5f,
+                prosent = 50.0f,
                 kilde = Tiltakskilde.Komet,
-                deltidsprosentGjennomforing = null,
-            ),
+            ).copy(deltakelseTilOgMed = null).tilLibsDeltakelse(),
         ),
         tilleggstekst = "Endret tiltaksdeltakelse",
     )

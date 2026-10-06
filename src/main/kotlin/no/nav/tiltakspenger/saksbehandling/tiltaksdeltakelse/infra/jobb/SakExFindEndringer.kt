@@ -1,11 +1,12 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import no.nav.tiltakspenger.libs.periode.til
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseLegacy
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tiltakDeltakerstatus
 import java.time.Clock
 import java.time.LocalDate
 
@@ -15,12 +16,39 @@ import java.time.LocalDate
  */
 fun Sak.finnEndringer(
     tiltaksdeltakerId: TiltaksdeltakerId,
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+    oppdatertDeltakelse: Tiltaksdeltakelse.GirRett,
     clock: Clock,
 ): TiltaksdeltakerEndring? {
     val kjentTilstand = finnSisteRelevanteTiltaksdeltakelse(tiltaksdeltakerId, clock) ?: return null
-    return kjentTilstand.finnEndringer(oppdatertDeltakelse, clock)
+    return kjentTilstand.tilDeltakelsestilstand().finnEndringer(oppdatertDeltakelse.tilDeltakelsestilstand(clock), clock)
 }
+
+/**
+ * Feltene endringsvurderingen sammenligner, likt for kjent tilstand og nå-tilstanden fra tiltakshistorikk.
+ */
+private data class Deltakelsestilstand(
+    val deltakelseFraOgMed: LocalDate?,
+    val deltakelseTilOgMed: LocalDate?,
+    val deltakelseStatus: TiltakDeltakerstatus,
+    val deltakelseProsent: Float?,
+    val antallDagerPerUke: Float?,
+)
+
+private fun TiltaksdeltakelseIntern.tilDeltakelsestilstand() = Deltakelsestilstand(
+    deltakelseFraOgMed = deltakelseFraOgMed,
+    deltakelseTilOgMed = deltakelseTilOgMed,
+    deltakelseStatus = deltakelseStatus,
+    deltakelseProsent = deltakelseProsent,
+    antallDagerPerUke = antallDagerPerUke,
+)
+
+private fun Tiltaksdeltakelse.GirRett.tilDeltakelsestilstand(clock: Clock) = Deltakelsestilstand(
+    deltakelseFraOgMed = fraOgMed,
+    deltakelseTilOgMed = tilOgMed,
+    deltakelseStatus = tiltakDeltakerstatus(clock),
+    deltakelseProsent = omfang.deltakelsesprosent,
+    antallDagerPerUke = omfang.dagerPerUke,
+)
 
 /**
  * Ignorerer vedtak som allerede er stanset eller opphørt i relevant periode.
@@ -72,8 +100,8 @@ private fun Sak.finnSisteRelevanteTiltaksdeltakelse(
  * Avsluttet som forventet gis bare når statusendringen er den eneste endringen.
  * Gir null dersom ingenting relevant er endret.
  */
-private fun TiltaksdeltakelseLegacy.finnEndringer(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.finnEndringer(
+    oppdatertDeltakelse: Deltakelsestilstand,
     clock: Clock,
 ): TiltaksdeltakerEndring? {
     return when {
@@ -99,24 +127,24 @@ private fun TiltaksdeltakelseLegacy.finnEndringer(
     }
 }
 
-private fun TiltaksdeltakelseLegacy.harSammeFraOgMed(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+private fun Deltakelsestilstand.harSammeFraOgMed(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return deltakelseFraOgMed == oppdatertDeltakelse.deltakelseFraOgMed
 }
 
-private fun TiltaksdeltakelseLegacy.harSammeTilOgMed(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+private fun Deltakelsestilstand.harSammeTilOgMed(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return deltakelseTilOgMed == oppdatertDeltakelse.deltakelseTilOgMed
 }
 
-private fun TiltaksdeltakelseLegacy.harSammeStatus(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+private fun Deltakelsestilstand.harSammeStatus(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return deltakelseStatus == oppdatertDeltakelse.deltakelseStatus
 }
 
-private fun TiltaksdeltakelseLegacy.harSammeDeltakelsesmengde(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+private fun Deltakelsestilstand.harSammeDeltakelsesmengde(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return compareValues(deltakelseProsent ?: 0F, oppdatertDeltakelse.deltakelseProsent ?: 0F) == 0 &&
         compareValues(antallDagerPerUke ?: 0F, oppdatertDeltakelse.antallDagerPerUke ?: 0F) == 0
 }
 
-private fun TiltaksdeltakelseLegacy.erUendret(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+private fun Deltakelsestilstand.erUendret(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return harSammeFraOgMed(oppdatertDeltakelse) &&
         harSammeTilOgMed(oppdatertDeltakelse) &&
         harSammeDeltakelsesmengde(oppdatertDeltakelse) &&
@@ -126,8 +154,8 @@ private fun TiltaksdeltakelseLegacy.erUendret(oppdatertDeltakelse: Tiltaksdeltak
 /**
  * Gjelder bare når statusen er den eneste endringen, og den nye statusen er en forventet avslutning med sluttdato i dag eller tidligere.
  */
-private fun TiltaksdeltakelseLegacy.erAvsluttetSomForventet(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.erAvsluttetSomForventet(
+    oppdatertDeltakelse: Deltakelsestilstand,
     clock: Clock,
 ): Boolean {
     val bareStatusErEndret = harSammeFraOgMed(oppdatertDeltakelse) &&
@@ -146,8 +174,8 @@ private fun TiltaksdeltakelseLegacy.erAvsluttetSomForventet(
     return nyStatusErAvsluttet && nySluttdato != null && !nySluttdato.isAfter(LocalDate.now(clock))
 }
 
-private fun TiltaksdeltakelseLegacy.erAvbruttDeltakelse(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.erAvbruttDeltakelse(
+    oppdatertDeltakelse: Deltakelsestilstand,
     clock: Clock,
 ): Boolean {
     val statusEndretTilAvbrutt = !harSammeStatus(oppdatertDeltakelse) &&
@@ -155,8 +183,8 @@ private fun TiltaksdeltakelseLegacy.erAvbruttDeltakelse(
     return statusEndretTilAvbrutt || erSluttdatoAvkortetTilFortiden(oppdatertDeltakelse, clock)
 }
 
-private fun TiltaksdeltakelseLegacy.erSluttdatoAvkortetTilFortiden(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.erSluttdatoAvkortetTilFortiden(
+    oppdatertDeltakelse: Deltakelsestilstand,
     clock: Clock,
 ): Boolean {
     val nySluttdato = oppdatertDeltakelse.deltakelseTilOgMed ?: return false
@@ -169,21 +197,21 @@ private fun TiltaksdeltakelseLegacy.erSluttdatoAvkortetTilFortiden(
     return erAvkortet && erIFortiden
 }
 
-private fun TiltaksdeltakelseLegacy.erIkkeAktuellDeltakelse(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+private fun Deltakelsestilstand.erIkkeAktuellDeltakelse(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return !harSammeStatus(oppdatertDeltakelse) &&
         oppdatertDeltakelse.deltakelseStatus == TiltakDeltakerstatus.IkkeAktuell
 }
 
 // En null tilOgMed i kjent tilstand betyr en åpen/uavsluttet deltakelse.
 // Å sette en sluttdato på en åpen deltakelse er en innskrenking, ikke en forlengelse.
-private fun TiltaksdeltakelseLegacy.erForlengelse(oppdatertDeltakelse: TiltaksdeltakelseLegacy): Boolean {
+private fun Deltakelsestilstand.erForlengelse(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     val gammelSluttdato = deltakelseTilOgMed ?: return false
     return harSammeFraOgMed(oppdatertDeltakelse) &&
         oppdatertDeltakelse.deltakelseTilOgMed?.isAfter(gammelSluttdato) == true
 }
 
-private fun TiltaksdeltakelseLegacy.endretDeltakelsesmengde(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.endretDeltakelsesmengde(
+    oppdatertDeltakelse: Deltakelsestilstand,
 ): TiltaksdeltakerEndring.EndretDeltakelsesmengde? {
     if (harSammeDeltakelsesmengde(oppdatertDeltakelse)) {
         return null
@@ -195,8 +223,8 @@ private fun TiltaksdeltakelseLegacy.endretDeltakelsesmengde(
     )
 }
 
-private fun TiltaksdeltakelseLegacy.endretStartdato(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.endretStartdato(
+    oppdatertDeltakelse: Deltakelsestilstand,
 ): TiltaksdeltakerEndring.EndretStartdato? {
     if (harSammeFraOgMed(oppdatertDeltakelse)) {
         return null
@@ -205,8 +233,8 @@ private fun TiltaksdeltakelseLegacy.endretStartdato(
     return TiltaksdeltakerEndring.EndretStartdato(oppdatertDeltakelse.deltakelseFraOgMed)
 }
 
-private fun TiltaksdeltakelseLegacy.endretSluttdato(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.endretSluttdato(
+    oppdatertDeltakelse: Deltakelsestilstand,
 ): TiltaksdeltakerEndring.EndretSluttdato? {
     if (harSammeTilOgMed(oppdatertDeltakelse)) {
         return null
@@ -215,8 +243,8 @@ private fun TiltaksdeltakelseLegacy.endretSluttdato(
     return TiltaksdeltakerEndring.EndretSluttdato(oppdatertDeltakelse.deltakelseTilOgMed)
 }
 
-private fun TiltaksdeltakelseLegacy.endretStatus(
-    oppdatertDeltakelse: TiltaksdeltakelseLegacy,
+private fun Deltakelsestilstand.endretStatus(
+    oppdatertDeltakelse: Deltakelsestilstand,
 ): TiltaksdeltakerEndring.EndretStatus? {
     if (harSammeStatus(oppdatertDeltakelse)) {
         return null

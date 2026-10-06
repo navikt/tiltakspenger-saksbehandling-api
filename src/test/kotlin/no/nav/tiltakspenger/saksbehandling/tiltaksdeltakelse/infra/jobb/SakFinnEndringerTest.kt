@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretStatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Forlengelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.IkkeAktuellDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -50,7 +51,7 @@ class SakFinnEndringerTest {
 
         sak.finnEndringer(
             tiltaksdeltakerId = TiltaksdeltakerId.random(),
-            oppdatertDeltakelse = kjentTilstand.copy(deltakelseProsent = 60F),
+            oppdatertDeltakelse = kjentTilstand.copy(deltakelseProsent = 60F).tilLibsDeltakelse(),
             clock = clock,
         ).shouldBeNull()
     }
@@ -65,8 +66,8 @@ class SakFinnEndringerTest {
         val nyereTilstand = vedtattTilstand.copy(deltakelseProsent = 60F, antallDagerPerUke = 1F)
         val oppdatertSak = sak.medNyereÅpenBehandling(nyereTilstand)
 
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand, clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand, clock) shouldBe
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand.tilLibsDeltakelse(), clock).shouldBeNull()
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand.tilLibsDeltakelse(), clock) shouldBe
             AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(vedtattTilstand.deltakelseProsent, vedtattTilstand.antallDagerPerUke))
     }
 
@@ -81,8 +82,8 @@ class SakFinnEndringerTest {
         val oppdatertSak = sak.medNyereÅpenBehandling(nyereTilstand, automatisk = true)
 
         oppdatertSak.rammebehandlinger.last().erUnderAutomatiskBehandling shouldBe true
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand, clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand, clock) shouldBe
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand.tilLibsDeltakelse(), clock).shouldBeNull()
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand.tilLibsDeltakelse(), clock) shouldBe
             AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F))
     }
 
@@ -101,8 +102,8 @@ class SakFinnEndringerTest {
         val oppdatertSak = sak.medNyereÅpenBehandling(annenDeltakelse)
         val nåtilstand = vedtattTilstand.copy(deltakelseProsent = 60F, antallDagerPerUke = 1F)
 
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand, clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nåtilstand, clock) shouldBe
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand.tilLibsDeltakelse(), clock).shouldBeNull()
+        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock) shouldBe
             AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F))
     }
 
@@ -473,7 +474,7 @@ class SakFinnEndringerTest {
         kjent: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern,
     ): TiltaksdeltakerEndring? =
-        sakMedKjentTilstand(kjent).finnEndringer(kjent.internDeltakelseId, nåtilstand, clock)
+        sakMedKjentTilstand(kjent).finnEndringer(kjent.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock)
 
     private fun Sak.medNyereÅpenBehandling(
         tilstand: TiltaksdeltakelseIntern,

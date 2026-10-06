@@ -1,6 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.oppgave
 
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import java.time.LocalDateTime
 
 /**
@@ -13,7 +13,7 @@ sealed interface Oppgavegrunnlag {
      */
     data class EndretTiltaksdeltakelse(
         val kilde: Kilde,
-        val verdi: TiltaksdeltakelseFraRegister,
+        val verdi: Tiltaksdeltakelse.GirRett,
     ) : Oppgavegrunnlag {
         sealed interface Kilde {
             /**

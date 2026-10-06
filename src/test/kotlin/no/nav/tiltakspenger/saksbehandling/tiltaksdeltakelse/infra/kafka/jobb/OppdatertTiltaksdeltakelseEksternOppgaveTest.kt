@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.tiltak.KometDeltakerStatusTypeDTO
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -26,8 +27,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltaksdeltaker
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.TiltaksdeltakelseFraRegister
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilTiltaksdeltakelseFraRegister
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLesbarNåtilstand
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakelseEndringBehandlet
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.kafka.komet.KometTiltakHendelseDTO
 import org.junit.jupiter.api.Test
@@ -90,18 +90,18 @@ class OppdatertTiltaksdeltakelseEksternOppgaveTest {
      * Grunnlaget leses som rå json fra databasen, og jsonb normaliserer rekkefølge og mellomrom.
      * Derfor sammenlignes det som json med det mappingen skriver, og ikke som streng.
      */
-    private fun forventetGrunnlag(markør: LocalDateTime, nåtilstand: TiltaksdeltakelseFraRegister): String =
+    private fun forventetGrunnlag(markør: LocalDateTime, nåtilstand: Tiltaksdeltakelse.GirRett): String =
         Oppgavegrunnlag.EndretTiltaksdeltakelse(Kilde.Tiltakshistorikk(markør), nåtilstand).toDbJson()
 
     /** Nå-tilstanden jobben ser, slik fake-klienten leverer den. */
     private suspend fun TestApplicationContextMedPostgres.hentNåtilstand(
         fnr: Fnr,
         deltakelse: TiltaksdeltakelseIntern,
-    ): TiltaksdeltakelseFraRegister =
+    ): Tiltaksdeltakelse.GirRett =
         tiltakContext.tiltaksdeltakelseKlient
             .hentTiltaksdeltakelse(fnr, deltakelse.eksternDeltakelseId, CorrelationId.generate())
             .getOrNull().shouldNotBeNull()
-            .tilTiltaksdeltakelseFraRegister(clock).shouldNotBeNull()
+            .tilLesbarNåtilstand(clock).shouldNotBeNull()
 
     /** Hendelsens innhold er uten betydning, siden jobben henter nå-tilstanden fra tiltakshistorikken. */
     private suspend fun TestApplicationContextMedPostgres.registrerEndring(deltakelse: TiltaksdeltakelseIntern): Tiltaksdeltaker {

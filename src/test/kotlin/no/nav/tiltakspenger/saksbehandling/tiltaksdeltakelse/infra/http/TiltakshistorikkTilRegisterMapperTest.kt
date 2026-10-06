@@ -2,11 +2,15 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.tiltak.TiltakstypeSomGirRettDTO
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Arenastatus
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Deltakelsesomfang
+import no.nav.tiltakspenger.libs.tiltaksdeltakelse.GjennomføringId
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Kometstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.TeamTiltakstatus
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
@@ -20,6 +24,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger.Ti
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.Tiltakskilde
 import org.junit.jupiter.api.Test
 
@@ -41,9 +47,9 @@ class TiltakshistorikkTilRegisterMapperTest {
         val girIkkeRett = testdeltakelse(id = "TA2", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "LONNTIL"))
         val ukjentType = testdeltakelse(id = "TA3", tiltakstype = Tiltakstype.Ukjent(tiltakskodeFraKilden = "NOE_NYTT"))
 
-        val resultat = historikk(girRett, girIkkeRett, ukjentType).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock)
+        val resultat = historikk(girRett, girIkkeRett, ukjentType).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
 
-        resultat.value.map { it.eksternDeltakelseId } shouldBe listOf("TA1")
+        resultat.deltakelser.map { it.id.verdi } shouldBe listOf("TA1")
     }
 
     @Test
@@ -52,9 +58,9 @@ class TiltakshistorikkTilRegisterMapperTest {
         val deltarUtenDatoer = testdeltakelse(id = "TA2", kildestatus = kometstatus(Kometstatus.Type.DELTAR), fraOgMed = null, tilOgMed = null)
         val kunFraDato = testdeltakelse(id = "TA3", fraOgMed = 1.mars(2026), tilOgMed = null)
 
-        val resultat = historikk(venterPåOppstart, deltarUtenDatoer, kunFraDato).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock)
+        val resultat = historikk(venterPåOppstart, deltarUtenDatoer, kunFraDato).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
 
-        resultat.value.map { it.eksternDeltakelseId } shouldBe listOf("TA1", "TA3")
+        resultat.deltakelser.map { it.id.verdi } shouldBe listOf("TA1", "TA3")
     }
 
     @Test
@@ -65,10 +71,10 @@ class TiltakshistorikkTilRegisterMapperTest {
             1.januar(2025).atStartOfDay(),
         )
 
-        val resultat = historikk(søktForDeltakelse).tilTiltaksdeltakelserFraRegister(søktFor, fixedClock)
+        val resultat = historikk(søktForDeltakelse).tilRelevanteTiltaksdeltakelser(søktFor, fixedClock)
 
-        resultat.value.map { it.eksternDeltakelseId } shouldBe listOf("TA1")
-        resultat.value.single().deltakelseStatus shouldBe TiltakDeltakerstatus.SøktInn
+        resultat.deltakelser.map { it.id.verdi } shouldBe listOf("TA1")
+        resultat.girRett.single().tiltakDeltakerstatus(fixedClock) shouldBe TiltakDeltakerstatus.SøktInn
     }
 
     @Test
@@ -76,28 +82,70 @@ class TiltakshistorikkTilRegisterMapperTest {
         val ukjentStatus = testdeltakelse(id = "TA1", kildestatus = Arenastatus.Ukjent("HELT_NY_STATUS"))
         val kjentStatus = testdeltakelse(id = "TA2")
 
-        val resultat = historikk(ukjentStatus, kjentStatus).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock)
+        val resultat = historikk(ukjentStatus, kjentStatus).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
 
-        resultat.value.map { it.eksternDeltakelseId } shouldBe listOf("TA2")
+        resultat.deltakelser.map { it.id.verdi } shouldBe listOf("TA2")
     }
 
     @Test
-    fun `feltene mappes fra libs-domenet`() {
-        val deltakelse = testdeltakelse(id = "TA123")
+    fun `feltene mappes fra libs-domenet til intern deltakelse`() {
+        val deltakelse = (testdeltakelse(id = "TA123") as Tiltaksdeltakelse.GirRett.MedPeriode)
+            .copy(gjennomføringId = GjennomføringId("gjennomføring-1"))
+        val internId = TiltaksdeltakerId.random()
 
-        val resultat = historikk(deltakelse).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock).value.single()
+        val resultat = deltakelse.tilTiltaksdeltakelseIntern(internId, fixedClock)
 
-        resultat.eksternDeltakelseId shouldBe "TA123"
-        resultat.typeNavn shouldBe "Oppfølging"
-        resultat.typeKode.name shouldBe "OPPFØLGING"
-        resultat.rettPåTiltakspenger shouldBe true
-        resultat.deltakelseFraOgMed shouldBe deltakelse.fraOgMed
-        resultat.deltakelseTilOgMed shouldBe deltakelse.tilOgMed
-        resultat.deltakelseStatus shouldBe TiltakDeltakerstatus.Deltar
-        resultat.deltakelseProsent shouldBe 60f
-        resultat.antallDagerPerUke shouldBe 3f
-        resultat.kilde shouldBe Tiltakskilde.Komet
-        resultat.deltidsprosentGjennomforing shouldBe null
+        resultat shouldBe TiltaksdeltakelseIntern(
+            eksternDeltakelseId = "TA123",
+            gjennomføringId = "gjennomføring-1",
+            typeNavn = "Oppfølging",
+            typeKode = TiltakstypeSomGirRettDTO.OPPFØLGING,
+            rettPåTiltakspenger = true,
+            deltakelseFraOgMed = deltakelse.fraOgMed,
+            deltakelseTilOgMed = deltakelse.tilOgMed,
+            deltakelseStatus = TiltakDeltakerstatus.Deltar,
+            deltakelseProsent = 60f,
+            antallDagerPerUke = 3f,
+            kilde = Tiltakskilde.Komet,
+            deltidsprosentGjennomforing = null,
+            internDeltakelseId = internId,
+        )
+    }
+
+    @Test
+    fun `intern deltakelse bærer deltidsprosent fra gjennomføringen og mangler gjennomføring når kilden ikke har den`() {
+        val deltakelse = (testdeltakelse(id = "TA1") as Tiltaksdeltakelse.GirRett.MedPeriode)
+            .copy(omfang = Deltakelsesomfang(deltakelsesprosent = null, dagerPerUke = null, deltidsprosentPåGjennomføring = 80f), gjennomføringId = null)
+
+        val resultat = deltakelse.tilTiltaksdeltakelseIntern(TiltaksdeltakerId.random(), fixedClock)
+
+        resultat.gjennomføringId shouldBe null
+        resultat.deltidsprosentGjennomforing shouldBe 80.0
+    }
+
+    @Test
+    fun `lesbar nå-tilstand - kun deltakelser som gir rett og har kjent kildestatus`() {
+        val girRett = testdeltakelse(id = "TA1")
+        val girIkkeRett = testdeltakelse(id = "TA2", tiltakstype = Tiltakstype.SomIkkeGirRett(tiltakskodeFraKilden = "LONNTIL"))
+        val ukjentStatus = testdeltakelse(id = "TA3", kildestatus = Arenastatus.Ukjent("HELT_NY_STATUS"))
+
+        girRett.tilLesbarNåtilstand(fixedClock) shouldBe girRett
+        girIkkeRett.tilLesbarNåtilstand(fixedClock).shouldBeNull()
+        ukjentStatus.tilLesbarNåtilstand(fixedClock).shouldBeNull()
+    }
+
+    @Test
+    fun `lesbar nå-tilstand - Komet KLADD kaster`() {
+        val kladd = testdeltakelse(id = "TA1", kildestatus = kometstatus(Kometstatus.Type.KLADD))
+
+        shouldThrow<IllegalStateException> { kladd.tilLesbarNåtilstand(fixedClock) }
+    }
+
+    @Test
+    fun `tolket status kaster for ukjent kildestatus - uttrekkene slipper aldri slike gjennom`() {
+        val ukjentStatus = testdeltakelse(id = "TA1", kildestatus = Arenastatus.Ukjent("HELT_NY_STATUS")) as Tiltaksdeltakelse.GirRett
+
+        shouldThrow<IllegalStateException> { ukjentStatus.tiltakDeltakerstatus(fixedClock) }
     }
 
     @Test
@@ -107,9 +155,9 @@ class TiltakshistorikkTilRegisterMapperTest {
         val venterFremtidig = testdeltakelse(id = "TA2", kildestatus = Arenastatus.Kjent(Arenastatus.Type.GJENNOMFORES), fraOgMed = 2.januar(2025))
         val venterUtenStart = testdeltakelse(id = "TA3", kildestatus = Arenastatus.Kjent(Arenastatus.Type.GJENNOMFORES), fraOgMed = null)
 
-        val resultat = historikk(deltar, venterFremtidig, venterUtenStart).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock)
+        val resultat = historikk(deltar, venterFremtidig, venterUtenStart).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
 
-        resultat.value.map { it.deltakelseStatus } shouldBe listOf(
+        resultat.girRett.map { it.tiltakDeltakerstatus(fixedClock) } shouldBe listOf(
             TiltakDeltakerstatus.Deltar,
             TiltakDeltakerstatus.VenterPåOppstart,
             TiltakDeltakerstatus.VenterPåOppstart,
@@ -120,28 +168,71 @@ class TiltakshistorikkTilRegisterMapperTest {
     fun `Arena IKKE_MOTT mappes til Avbrutt - paritet med dagens oppførsel`() {
         val ikkeMøtt = testdeltakelse(id = "TA1", kildestatus = Arenastatus.Kjent(Arenastatus.Type.IKKE_MOTT))
 
-        val resultat = historikk(ikkeMøtt).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock)
+        val resultat = historikk(ikkeMøtt).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
 
-        resultat.value.single().deltakelseStatus shouldBe TiltakDeltakerstatus.Avbrutt
+        resultat.girRett.single().tiltakDeltakerstatus(fixedClock) shouldBe TiltakDeltakerstatus.Avbrutt
     }
 
     @Test
-    fun `statusmappingen dekker alle tre kilder`() {
-        val deltakelser = listOf(
-            testdeltakelse(id = "TA1", kildestatus = Arenastatus.Kjent(Arenastatus.Type.AKTUELL)) to TiltakDeltakerstatus.SøktInn,
-            testdeltakelse(id = "TA2", kildestatus = Arenastatus.Kjent(Arenastatus.Type.TILBUD)) to TiltakDeltakerstatus.VenterPåOppstart,
-            testdeltakelse(id = "TA3", kildestatus = Arenastatus.Kjent(Arenastatus.Type.FEILREGISTRERT)) to TiltakDeltakerstatus.Feilregistrert,
-            testdeltakelse(id = "TA4", kildestatus = kometstatus(Kometstatus.Type.UTKAST_TIL_PAMELDING)) to TiltakDeltakerstatus.PåbegyntRegistrering,
-            testdeltakelse(id = "TA5", kildestatus = kometstatus(Kometstatus.Type.HAR_SLUTTET)) to TiltakDeltakerstatus.HarSluttet,
-            testdeltakelse(id = "TA6", kildestatus = kometstatus(Kometstatus.Type.VURDERES)) to TiltakDeltakerstatus.Vurderes,
-            testdeltakelse(id = "TA7", kildestatus = TeamTiltakstatus.Kjent(TeamTiltakstatus.Type.PAABEGYNT)) to TiltakDeltakerstatus.PåbegyntRegistrering,
-            testdeltakelse(id = "TA8", kildestatus = TeamTiltakstatus.Kjent(TeamTiltakstatus.Type.GJENNOMFORES)) to TiltakDeltakerstatus.Deltar,
-            testdeltakelse(id = "TA9", kildestatus = TeamTiltakstatus.Kjent(TeamTiltakstatus.Type.ANNULLERT)) to TiltakDeltakerstatus.IkkeAktuell,
+    fun `statusmappingen fra Arena er uttømmende`() {
+        // GJENNOMFORES avhenger av startdatoen, og har egen test; her har deltakelsen startet.
+        val startet = 1.januar(2025)
+        val forventet = mapOf(
+            Arenastatus.Type.DELTAKELSE_AVBRUTT to TiltakDeltakerstatus.Avbrutt,
+            Arenastatus.Type.FULLFORT to TiltakDeltakerstatus.Fullført,
+            Arenastatus.Type.GJENNOMFORES to TiltakDeltakerstatus.Deltar,
+            Arenastatus.Type.GJENNOMFORING_AVBRUTT to TiltakDeltakerstatus.Avbrutt,
+            Arenastatus.Type.IKKE_MOTT to TiltakDeltakerstatus.Avbrutt,
+            Arenastatus.Type.TAKKET_JA_TIL_TILBUD to TiltakDeltakerstatus.Deltar,
+            Arenastatus.Type.TILBUD to TiltakDeltakerstatus.VenterPåOppstart,
+            Arenastatus.Type.AKTUELL to TiltakDeltakerstatus.SøktInn,
+            Arenastatus.Type.AVSLAG to TiltakDeltakerstatus.IkkeAktuell,
+            Arenastatus.Type.GJENNOMFORING_AVLYST to TiltakDeltakerstatus.IkkeAktuell,
+            Arenastatus.Type.IKKE_AKTUELL to TiltakDeltakerstatus.IkkeAktuell,
+            Arenastatus.Type.INFORMASJONSMOTE to TiltakDeltakerstatus.Venteliste,
+            Arenastatus.Type.TAKKET_NEI_TIL_TILBUD to TiltakDeltakerstatus.IkkeAktuell,
+            Arenastatus.Type.VENTELISTE to TiltakDeltakerstatus.Venteliste,
+            Arenastatus.Type.FEILREGISTRERT to TiltakDeltakerstatus.Feilregistrert,
         )
 
-        val resultat = historikk(*deltakelser.map { it.first }.toTypedArray()).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock)
+        Arenastatus.Type.entries.associateWith { Arenastatus.Kjent(it).tilTiltakDeltakerstatus(startet, fixedClock) } shouldBe forventet
+    }
 
-        resultat.value.map { it.deltakelseStatus } shouldBe deltakelser.map { it.second }
+    @Test
+    fun `statusmappingen fra Komet er uttømmende for alt unntatt kladd`() {
+        val forventet = mapOf(
+            Kometstatus.Type.UTKAST_TIL_PAMELDING to TiltakDeltakerstatus.PåbegyntRegistrering,
+            Kometstatus.Type.PABEGYNT_REGISTRERING to TiltakDeltakerstatus.PåbegyntRegistrering,
+            Kometstatus.Type.AVBRUTT_UTKAST to TiltakDeltakerstatus.IkkeAktuell,
+            Kometstatus.Type.IKKE_AKTUELL to TiltakDeltakerstatus.IkkeAktuell,
+            Kometstatus.Type.VENTER_PA_OPPSTART to TiltakDeltakerstatus.VenterPåOppstart,
+            Kometstatus.Type.DELTAR to TiltakDeltakerstatus.Deltar,
+            Kometstatus.Type.HAR_SLUTTET to TiltakDeltakerstatus.HarSluttet,
+            Kometstatus.Type.FEILREGISTRERT to TiltakDeltakerstatus.Feilregistrert,
+            Kometstatus.Type.SOKT_INN to TiltakDeltakerstatus.SøktInn,
+            Kometstatus.Type.VURDERES to TiltakDeltakerstatus.Vurderes,
+            Kometstatus.Type.VENTELISTE to TiltakDeltakerstatus.Venteliste,
+            Kometstatus.Type.AVBRUTT to TiltakDeltakerstatus.Avbrutt,
+            Kometstatus.Type.FULLFORT to TiltakDeltakerstatus.Fullført,
+        )
+
+        (Kometstatus.Type.entries - Kometstatus.Type.KLADD)
+            .associateWith { kometstatus(it).tilTiltakDeltakerstatus(null, fixedClock) } shouldBe forventet
+    }
+
+    @Test
+    fun `statusmappingen fra Team Tiltak er uttømmende`() {
+        val forventet = mapOf(
+            TeamTiltakstatus.Type.PAABEGYNT to TiltakDeltakerstatus.PåbegyntRegistrering,
+            TeamTiltakstatus.Type.MANGLER_GODKJENNING to TiltakDeltakerstatus.SøktInn,
+            TeamTiltakstatus.Type.KLAR_FOR_OPPSTART to TiltakDeltakerstatus.VenterPåOppstart,
+            TeamTiltakstatus.Type.GJENNOMFORES to TiltakDeltakerstatus.Deltar,
+            TeamTiltakstatus.Type.AVSLUTTET to TiltakDeltakerstatus.HarSluttet,
+            TeamTiltakstatus.Type.AVBRUTT to TiltakDeltakerstatus.Avbrutt,
+            TeamTiltakstatus.Type.ANNULLERT to TiltakDeltakerstatus.IkkeAktuell,
+        )
+
+        TeamTiltakstatus.Type.entries.associateWith { TeamTiltakstatus.Kjent(it).tilTiltakDeltakerstatus(null, fixedClock) } shouldBe forventet
     }
 
     @Test
@@ -149,7 +240,7 @@ class TiltakshistorikkTilRegisterMapperTest {
         val kladd = testdeltakelse(id = "TA1", kildestatus = kometstatus(Kometstatus.Type.KLADD))
 
         shouldThrow<IllegalStateException> {
-            historikk(kladd).tilTiltaksdeltakelserFraRegister(ingenSøktFor, fixedClock)
+            historikk(kladd).tilRelevanteTiltaksdeltakelser(ingenSøktFor, fixedClock)
         }
     }
 
