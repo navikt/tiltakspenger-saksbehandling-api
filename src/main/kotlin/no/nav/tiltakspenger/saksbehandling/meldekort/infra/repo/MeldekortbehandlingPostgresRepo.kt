@@ -417,8 +417,7 @@ class MeldekortbehandlingPostgresRepo(
                         update meldekortbehandling set
                             status = :status,
                             sist_endret = :sist_endret,
-                            sendt_til_beslutning = null,
-                            beslutter = null
+                            sendt_til_beslutning = null
                         where (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING') and id = :id and saksbehandler = :saksbehandler
                             and sendt_til_beslutning = :forventet_sendt_til_beslutning
                             and (ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent') is distinct from 'true'
@@ -437,7 +436,7 @@ class MeldekortbehandlingPostgresRepo(
      * Oppdaterer hele meldekortbehandlingen, men bare hvis raden i databasen fortsatt er `UNDER_BESLUTNING` med [utøvendeBeslutter] som beslutter.
      * Vakten sjekker tilstanden som er lagret, ikke statusen på [meldekortbehandling], som kan være endret av handlingen som lagres.
      * `sendt_til_beslutning` fungerer som versjonsnøkkel, siden beslutterens handlinger aldri endrer det.
-     * Slik treffer ikke en utdatert skriving en ny innsending etter angring, selv om den samme beslutteren har tatt behandlingen igjen.
+     * Slik treffer ikke en utdatert skriving en ny innsending etter angring, selv om den nye innsendingen går rett til `UNDER_BESLUTNING` hos den samme beslutteren.
      * Brukes av beslutterens skrivinger, slik at de ikke overskriver en angring som saksbehandleren har gjort etter at behandlingen ble lastet.
      * Oppdaterer ikke simuleringen eller [SimuleringMedMetadata], på samme måte som [oppdater].
      * Tilknyttet klagebehandling lagres bare når meldekortbehandlingen ble oppdatert.

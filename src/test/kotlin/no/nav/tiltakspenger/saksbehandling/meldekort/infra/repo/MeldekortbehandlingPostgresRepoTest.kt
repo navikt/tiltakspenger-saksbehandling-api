@@ -113,7 +113,8 @@ class MeldekortbehandlingPostgresRepoTest {
     }
 
     /**
-     * Beslutteren har lastet meldekortbehandlingen, saksbehandleren har angret og sendt inn på nytt, og den samme beslutteren har tatt den igjen.
+     * Beslutteren har lastet meldekortbehandlingen, og saksbehandleren har angret og sendt inn på nytt.
+     * Beslutteren beholdes ved angring, så den nye innsendingen går rett til `UNDER_BESLUTNING` hos den samme beslutteren.
      * Status og beslutter er de samme som da behandlingen ble lastet, så bare `sendt_til_beslutning` skiller de to innsendingene.
      */
     @Test
@@ -128,13 +129,7 @@ class MeldekortbehandlingPostgresRepoTest {
             )!!
 
             angreMeldekortbehandling(tac, sak.id, utdatertMeldekortbehandling.id, saksbehandler = saksbehandler)!!
-            sendMeldekortbehandlingTilBeslutning(tac, sak.id, utdatertMeldekortbehandling.id, saksbehandler = saksbehandler)!!
-            val (_, nyInnsending) = taMeldekortbehanding(
-                tac = tac,
-                sakId = sak.id,
-                meldekortId = utdatertMeldekortbehandling.id,
-                saksbehandlerEllerBeslutter = beslutter,
-            )!!
+            val (_, nyInnsending) = sendMeldekortbehandlingTilBeslutning(tac, sak.id, utdatertMeldekortbehandling.id, saksbehandler = saksbehandler)!!
             nyInnsending.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
             nyInnsending.beslutter shouldBe beslutter.navIdent
 

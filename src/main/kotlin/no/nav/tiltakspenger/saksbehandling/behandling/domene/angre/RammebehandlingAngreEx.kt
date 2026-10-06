@@ -24,7 +24,8 @@ import java.time.Clock
 /**
  * Angrer sendingen til beslutning: [KLAR_TIL_BESLUTNING] eller [UNDER_BESLUTNING] -> [UNDER_BEHANDLING].
  * Saksbehandleren som sendte behandlingen beholder tildelingen.
- * Beslutteren fjernes fra behandlingen, og sendtTilBeslutning nullstilles, slik at neste innsending går til [KLAR_TIL_BESLUTNING].
+ * Beslutteren beholdes på behandlingen, og sendtTilBeslutning nullstilles.
+ * Neste innsending går dermed rett til [UNDER_BESLUTNING] hos den samme beslutteren, på samme måte som etter en underkjenning.
  * Krever at [saksbehandler] har rollen saksbehandler, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Forutsetningene håndheves av [kanAngreBehandling], og feilene derfra returneres som venstre-verdi.
  */
@@ -42,14 +43,12 @@ fun Rammebehandling.angreBehandling(
                 is Søknadsbehandling -> this.copy(
                     status = UNDER_BEHANDLING,
                     sistEndret = nå,
-                    beslutter = null,
                     sendtTilBeslutning = null,
                 )
 
                 is Revurdering -> this.copy(
                     status = UNDER_BEHANDLING,
                     sistEndret = nå,
-                    beslutter = null,
                     sendtTilBeslutning = null,
                 )
             }

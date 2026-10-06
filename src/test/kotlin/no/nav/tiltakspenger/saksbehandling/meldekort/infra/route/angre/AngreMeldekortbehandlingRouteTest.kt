@@ -142,7 +142,7 @@ class AngreMeldekortbehandlingRouteTest {
             tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.also {
                 it.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe "saksbehandler"
-                it.beslutter shouldBe null
+                it.beslutter shouldBe "beslutter"
             }
         }
     }

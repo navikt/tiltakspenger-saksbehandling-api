@@ -33,7 +33,7 @@ fun Meldekortbehandling.angreMeldekortbehandling(
                 opprettet = opprettet,
                 navkontor = navkontor,
                 saksbehandler = this.saksbehandler,
-                beslutter = null,
+                beslutter = this.beslutter,
                 begrunnelse = begrunnelse,
                 attesteringer = attesteringer,
                 sendtTilBeslutning = null,

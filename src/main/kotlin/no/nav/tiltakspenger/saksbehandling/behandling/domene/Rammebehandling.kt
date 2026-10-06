@@ -155,9 +155,7 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 }
                 // Selvom beslutter har underkjent, må vi kunne ta hen av behandlingen.
                 require(iverksattTidspunkt == null)
-                if (attesteringer.isEmpty()) {
-                    require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er gjort noen attesteringer" }
-                }
+                // Beslutter kan være satt uten attesteringer når saksbehandler har angret etter at beslutter tok behandlingen.
                 // Vi kan ikke kreve at resultatet er satt dersom den har vært underkjent, siden hentOpplysninger kan resette saksoplysninger og implisitt resultatet.
                 if (klagebehandling != null) {
                     require(

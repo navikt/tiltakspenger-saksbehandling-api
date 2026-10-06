@@ -204,7 +204,6 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         if (meldekortbehandling is MeldekortbehandlingManuell) {
             data.get()[meldekortbehandling.id] = meldekortbehandling.copy(
                 sendtTilBeslutning = null,
-                beslutter = null,
             )
             return true
         } else {

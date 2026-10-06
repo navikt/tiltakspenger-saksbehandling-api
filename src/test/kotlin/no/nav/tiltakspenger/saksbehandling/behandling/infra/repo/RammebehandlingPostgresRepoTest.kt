@@ -167,7 +167,8 @@ class RammebehandlingPostgresRepoTest {
     }
 
     /**
-     * Beslutteren har lastet behandlingen, saksbehandleren har angret og sendt inn på nytt, og den samme beslutteren har tatt den igjen.
+     * Beslutteren har lastet behandlingen, og saksbehandleren har angret og sendt inn på nytt.
+     * Beslutteren beholdes ved angring, så den nye innsendingen går rett til `UNDER_BESLUTNING` hos den samme beslutteren.
      * Status og beslutter er de samme som da behandlingen ble lastet, så bare `sendt_til_beslutning` skiller de to innsendingene.
      */
     @Test
@@ -181,7 +182,6 @@ class RammebehandlingPostgresRepoTest {
 
             angreRammebehandling(tac, sak.id, behandlingId, saksbehandler = saksbehandler)!!
             sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandlingId, saksbehandler = saksbehandler)
-            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
             val nyInnsending = tac.behandlingContext.rammebehandlingRepo.hent(behandlingId)
             nyInnsending.status shouldBe Rammebehandlingsstatus.UNDER_BESLUTNING
             nyInnsending.beslutter shouldBe beslutter.navIdent
@@ -238,7 +238,7 @@ class RammebehandlingPostgresRepoTest {
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-                it.beslutter shouldBe null
+                it.beslutter shouldBe "B12345"
                 it.sendtTilBeslutning shouldBe null
             }
         }

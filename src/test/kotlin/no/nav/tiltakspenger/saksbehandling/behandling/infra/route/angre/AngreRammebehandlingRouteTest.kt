@@ -142,14 +142,14 @@ class AngreRammebehandlingRouteTest {
 
             angreRammebehandling(tac, sak.id, behandlingId)!!.also { (_, angretBehandling, sakJson) ->
                 angretBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
-                angretBehandling.beslutter shouldBe null
+                angretBehandling.beslutter shouldBe "B12345"
                 sakJson.rammebehandlingJson(behandlingId).get("status").asString() shouldBe "UNDER_BEHANDLING"
             }
 
             tac.behandlingContext.rammebehandlingRepo.hent(behandlingId).also {
                 it.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
                 it.saksbehandler shouldBe "Z12345"
-                it.beslutter shouldBe null
+                it.beslutter shouldBe "B12345"
                 it.sendtTilBeslutning shouldBe null
             }
 
