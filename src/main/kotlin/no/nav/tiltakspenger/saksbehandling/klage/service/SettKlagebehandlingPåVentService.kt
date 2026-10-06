@@ -1,9 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.klage.service
 
 import arrow.core.Either
-import arrow.core.getOrElse
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.KanIkkeSetteRammebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SettRammebehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.KanIkkeSetteKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.SettKlagebehandlingPåVentKommando
 import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.settKlagebehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.settPåVent.KanIkkeSetteMeldekortbehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.meldekort.service.SettMeldekortbehandlingPåVentService
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.statistikk.StatistikkService
@@ -34,17 +35,27 @@ class SettKlagebehandlingPåVentService(
             kommando = kommando,
             clock = clock,
             settRammebehandlingPåVent = { settPåVentKommando ->
-                settRammebehandlingPåVentService.settBehandlingPåVentFraKlage(settPåVentKommando).getOrElse {
-                    throw IllegalStateException(
-                        "Kunne ikke sette rammebehandling ${settPåVentKommando.rammebehandlingId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
-                    )
+                settRammebehandlingPåVentService.settBehandlingPåVentFraKlage(settPåVentKommando).mapLeft {
+                    when (it) {
+                        KanIkkeSetteRammebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning ->
+                            KanIkkeSetteKlagebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning
+
+                        else -> throw IllegalStateException(
+                            "Kunne ikke sette rammebehandling ${settPåVentKommando.rammebehandlingId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
+                        )
+                    }
                 }
             },
             settMeldekortbehandlingPåVent = { settPåVentKommando ->
-                settMeldekortbehandlingPåVentService.settPåVent(settPåVentKommando).getOrElse {
-                    throw IllegalStateException(
-                        "Kunne ikke sette meldekortbehandling ${settPåVentKommando.meldekortId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
-                    )
+                settMeldekortbehandlingPåVentService.settPåVent(settPåVentKommando).mapLeft {
+                    when (it) {
+                        KanIkkeSetteMeldekortbehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning ->
+                            KanIkkeSetteKlagebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning
+
+                        else -> throw IllegalStateException(
+                            "Kunne ikke sette meldekortbehandling ${settPåVentKommando.meldekortId} tilknyttet klagebehandling ${kommando.klagebehandlingId} på vent: $it",
+                        )
+                    }
                 }
             },
             lagre = ::lagreKlagebehandlingOgStatistikk,

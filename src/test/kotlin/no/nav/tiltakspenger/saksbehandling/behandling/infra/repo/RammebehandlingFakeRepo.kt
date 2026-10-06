@@ -5,6 +5,7 @@ package no.nav.tiltakspenger.saksbehandling.behandling.infra.repo
 import arrow.atomic.Atomic
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -100,16 +101,43 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
 
     override fun angreBehandling(
         rammebehandling: Rammebehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext?,
     ): Boolean {
         val behandlingId = rammebehandling.id
         val behandling = data.get()[behandlingId]
         if (behandling == null ||
-            behandling.saksbehandler == null ||
-            behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING
+            rammebehandling.saksbehandler != behandling.saksbehandler ||
+            behandling.sendtTilBeslutning != forventetSendtTilBeslutning ||
+            behandling.ventestatus.erSattPåVent ||
+            (
+                behandling.status != Rammebehandlingsstatus.KLAR_TIL_BESLUTNING &&
+                    behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING
+                )
         ) {
             return false
         }
+        data.get()[behandlingId] = rammebehandling
+        return true
+    }
+
+    override fun lagreHvisFortsattUnderBeslutning(
+        rammebehandling: Rammebehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        val behandlingId = rammebehandling.id
+        val behandling = data.get()[behandlingId]
+
+        if (behandling == null ||
+            behandlingId != behandling.id ||
+            utøvendeBeslutter.navIdent != behandling.beslutter ||
+            rammebehandling.sendtTilBeslutning != behandling.sendtTilBeslutning ||
+            behandling.status != Rammebehandlingsstatus.UNDER_BESLUTNING
+        ) {
+            return false
+        }
+
         data.get()[behandlingId] = rammebehandling
         return true
     }

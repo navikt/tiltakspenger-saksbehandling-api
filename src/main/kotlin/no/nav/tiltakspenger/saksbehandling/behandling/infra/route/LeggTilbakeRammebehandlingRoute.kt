@@ -99,5 +99,10 @@ fun KanIkkeLeggeTilbakeRammebehandling.tilStatusOgErrorJson(): Pair<HttpStatusCo
         "ugyldig_status_for_legg_tilbake",
     )
 
+    KanIkkeLeggeTilbakeRammebehandling.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
+        "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+        "behandlingen_er_ikke_under_beslutning",
+    )
+
     is KanIkkeLeggeTilbakeRammebehandling.FeilVedKlagebehandling -> this.originalfeil.toStatusAndErrorJson()
 }

@@ -25,4 +25,7 @@ sealed interface KanIkkeSetteMeldekortbehandlingPåVent {
 
     /** Behandlingen er i en status som ikke kan settes på vent. */
     data class UgyldigStatus(val status: MeldekortbehandlingStatus) : KanIkkeSetteMeldekortbehandlingPåVent
+
+    /** Behandlingen er ikke lenger under beslutning hos utøvende beslutter. */
+    data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeSetteMeldekortbehandlingPåVent
 }

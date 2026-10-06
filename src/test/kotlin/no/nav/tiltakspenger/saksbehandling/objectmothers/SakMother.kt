@@ -312,7 +312,7 @@ interface SakMother : MotherOfAllMothers {
                 attestering = ObjectMother.godkjentAttestering(beslutter),
                 correlationId = correlationId,
                 clock = clock,
-            ).first
+            ).getOrFail().first
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
         val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock)
@@ -361,7 +361,7 @@ interface SakMother : MotherOfAllMothers {
                 attestering = ObjectMother.godkjentAttestering(beslutter),
                 correlationId = correlationId,
                 clock = clock,
-            ).first
+            ).getOrFail().first
 
         val sakMedIverksattBehandling = sak.oppdaterRammebehandling(iverksattBehandling)
         val sakMedVedtak = sakMedIverksattBehandling.opprettRammevedtak(iverksattBehandling, clock).getOrFail()

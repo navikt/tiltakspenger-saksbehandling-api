@@ -5,6 +5,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
@@ -127,8 +128,16 @@ class RammebehandlingPostgresRepo(
         }
     }
 
+    /**
+     * Angrer sendingen til beslutning, men bare hvis raden fortsatt er den innsendingen som ble lastet.
+     * [forventetSendtTilBeslutning] er tidspunktet fra den lastede behandlingen og fungerer som versjonsnøkkel.
+     * Uten den kunne en utdatert angring treffe en ny innsending etter underkjenning, siden status og saksbehandler da er de samme.
+     *
+     * @return true dersom behandlingen ble angret, false dersom den ikke lenger var den samme innsendingen.
+     */
     override fun angreBehandling(
         rammebehandling: Rammebehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext?,
     ): Boolean {
         return sessionFactory.withTransaction(transactionContext) { tx ->
@@ -137,15 +146,55 @@ class RammebehandlingPostgresRepo(
                     """
                     update behandling set
                         status = :status,
-                        sist_endret = :sist_endret
-                    where id = :id and saksbehandler is not null and status = 'KLAR_TIL_BESLUTNING'
+                        sist_endret = :sist_endret,
+                        sendt_til_beslutning = null
+                    where id = :id and saksbehandler = :saksbehandler and (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING')
+                        and sendt_til_beslutning = :forventet_sendt_til_beslutning
+                        and (ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent') is distinct from 'true'
                     """,
                     "id" to rammebehandling.id.toString(),
-                    "saksbehandler" to rammebehandling.saksbehandler,
                     "status" to rammebehandling.status.toDb(),
                     "sist_endret" to rammebehandling.sistEndret,
+                    "saksbehandler" to rammebehandling.saksbehandler,
+                    "forventet_sendt_til_beslutning" to forventetSendtTilBeslutning,
                 ).asUpdate,
             ) > 0
+        }
+    }
+
+    /**
+     * Lagrer hele rammebehandlingen, men bare hvis raden i databasen fortsatt er `UNDER_BESLUTNING` med [utøvendeBeslutter] som beslutter.
+     * Vakten sjekker tilstanden som er lagret, ikke statusen på [rammebehandling], som kan være endret av handlingen som lagres.
+     * `sendt_til_beslutning` fungerer som versjonsnøkkel, siden beslutterens handlinger aldri endrer det.
+     * Slik treffer ikke en utdatert skriving en ny innsending etter angring, selv om den nye innsendingen går rett til `UNDER_BESLUTNING` hos den samme beslutteren.
+     * Brukes av beslutterens skrivinger, slik at de ikke overskriver en angring som saksbehandleren har gjort etter at behandlingen ble lastet.
+     * Tilknyttet klagebehandling lagres bare når rammebehandlingen ble lagret.
+     *
+     * @return true dersom rammebehandlingen ble lagret, false dersom den ikke lenger var under beslutning hos [utøvendeBeslutter].
+     */
+    override fun lagreHvisFortsattUnderBeslutning(
+        rammebehandling: Rammebehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            val oppdatert = tx.run(
+                queryOf(
+                    """
+                    $OPPDATER_RAMMEBEHANDLING
+                    where id = :id and status = 'UNDER_BESLUTNING' and beslutter = :forventet_beslutter and sendt_til_beslutning = :sendt_til_beslutning
+                    """.trimIndent(),
+                    rammebehandling.tilDbParams() + ("forventet_beslutter" to utøvendeBeslutter.navIdent),
+                ).asUpdate,
+            ) > 0
+            // Klagebehandlingen lagres bare når vakten slapp gjennom, slik at et avvist kappløp ikke etterlater endringer.
+            if (oppdatert && rammebehandling.klagebehandling != null) {
+                KlagebehandlingPostgresRepo.lagreKlagebehandling(
+                    klagebehandling = rammebehandling.klagebehandling!!,
+                    session = tx,
+                )
+            }
+            oppdatert
         }
     }
 
@@ -269,6 +318,50 @@ class RammebehandlingPostgresRepo(
     }
 
     companion object {
+        /**
+         * Felles `set`-del for oppdatering av hele rammebehandlingen.
+         * Brukes av [oppdaterRammebehandling] og [lagreHvisFortsattUnderBeslutning], som legger til hver sin `where`.
+         */
+        private const val OPPDATER_RAMMEBEHANDLING = """
+            update behandling set
+                vedtaksperiode = :vedtaksperiode::periode,
+                status = :status,
+                sist_endret = :sist_endret,
+                saksbehandler = :saksbehandler,
+                beslutter = :beslutter,
+                attesteringer = :attesteringer::jsonb,
+                iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                sendt_til_beslutning = :sendt_til_beslutning,
+                sendt_til_datadeling = :sendt_til_datadeling,
+                oppgave_id = :oppgave_id,
+                valgt_hjemmel_har_ikke_rettighet = :valgt_hjemmel_har_ikke_rettighet::jsonb,
+                fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
+                begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
+                saksopplysninger = :saksopplysninger::jsonb,
+                barneTillegg = :barnetillegg::jsonb,
+                avbrutt = :avbrutt::jsonb,
+                ventestatus = :ventestatus::jsonb,
+                venter_til = :venter_til,
+                avslagsgrunner = :avslagsgrunner::jsonb,
+                resultat = :resultat,
+                soknad_id = :soknad_id,
+                automatisk_saksbehandlet = :automatisk_saksbehandlet,
+                manuelt_behandles_grunner = :manuelt_behandles_grunner::jsonb,
+                beregning = :beregning::jsonb,
+                simulering = :simulering::jsonb,
+                simulering_metadata = CASE WHEN :simulering::varchar IS NULL THEN NULL ELSE simulering_metadata END,
+                utbetalingskontroll = :utbetalingskontroll::jsonb,
+                navkontor = :navkontor,
+                navkontor_navn = :navkontor_navn,
+                har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
+                innvilgelsesperioder = :innvilgelsesperioder::jsonb,
+                omgjør_rammevedtak = :omgjoer_rammevedtak::jsonb,
+                klagebehandling_id = :klagebehandling_id,
+                automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
+                skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
+                skal_journalfore_notat = :skal_journalfore_notat
+        """
+
         fun hentOrNull(
             behandlingId: RammebehandlingId,
             session: Session,
@@ -306,43 +399,7 @@ class RammebehandlingPostgresRepo(
             session.run(
                 queryOf(
                     """
-                    update behandling set
-                        vedtaksperiode = :vedtaksperiode::periode,
-                        status = :status,
-                        sist_endret = :sist_endret,
-                        saksbehandler = :saksbehandler,
-                        beslutter = :beslutter,
-                        attesteringer = :attesteringer::jsonb,
-                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
-                        sendt_til_beslutning = :sendt_til_beslutning,
-                        sendt_til_datadeling = :sendt_til_datadeling,
-                        oppgave_id = :oppgave_id,
-                        valgt_hjemmel_har_ikke_rettighet = :valgt_hjemmel_har_ikke_rettighet::jsonb,
-                        fritekst_vedtaksbrev = :fritekst_vedtaksbrev,
-                        begrunnelse_vilkårsvurdering = :begrunnelse_vilkarsvurdering,
-                        saksopplysninger = :saksopplysninger::jsonb,
-                        barneTillegg = :barnetillegg::jsonb,
-                        avbrutt = :avbrutt::jsonb,
-                        ventestatus = :ventestatus::jsonb,
-                        venter_til = :venter_til,
-                        avslagsgrunner = :avslagsgrunner::jsonb,
-                        resultat = :resultat,
-                        soknad_id = :soknad_id,
-                        automatisk_saksbehandlet = :automatisk_saksbehandlet,
-                        manuelt_behandles_grunner = :manuelt_behandles_grunner::jsonb,
-                        beregning = :beregning::jsonb,
-                        simulering = :simulering::jsonb,
-                        simulering_metadata = CASE WHEN :simulering::varchar IS NULL THEN NULL ELSE simulering_metadata END,
-                        utbetalingskontroll = :utbetalingskontroll::jsonb,
-                        navkontor = :navkontor,
-                        navkontor_navn = :navkontor_navn,
-                        har_valgt_stans_fra_første_dag_som_gir_rett = :har_valgt_stans_fra_forste_dag_som_gir_rett,
-                        innvilgelsesperioder = :innvilgelsesperioder::jsonb,
-                        omgjør_rammevedtak = :omgjoer_rammevedtak::jsonb,
-                        klagebehandling_id = :klagebehandling_id,
-                        automatisk_opprettet_grunn = :automatisk_opprettet_grunn::jsonb,
-                        skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
-                        skal_journalfore_notat = :skal_journalfore_notat
+                    $OPPDATER_RAMMEBEHANDLING
                     where id = :id
                     """.trimIndent(),
                     behandling.tilDbParams(),

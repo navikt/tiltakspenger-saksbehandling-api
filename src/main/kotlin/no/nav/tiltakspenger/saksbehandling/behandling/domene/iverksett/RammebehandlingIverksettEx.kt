@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.nå
@@ -28,7 +31,7 @@ import java.time.LocalDateTime
 
 /**
  * Iverksetter rammebehandlingen.
- * Forutsetningene håndheves av [krevKanIverksette], som kaster dersom de ikke er oppfylt.
+ * Forutsetningene håndheves av [kanIverksette], og feilene derfra returneres som venstre-verdi.
  *
  * @return Oppdatert [Rammebehandling] som eventuelt også har en oppdatert [Klagebehandling] dersom det finnes en slik knyttet til behandlingen.
  */
@@ -37,8 +40,8 @@ fun Rammebehandling.iverksett(
     attestering: Attestering,
     correlationId: CorrelationId,
     clock: Clock,
-): Pair<Rammebehandling, Statistikkhendelser> {
-    krevKanIverksette(utøvendeBeslutter)
+): Either<KanIkkeIverksetteBehandling, Pair<Rammebehandling, Statistikkhendelser>> {
+    kanIverksette(utøvendeBeslutter).onLeft { return it.left() }
 
     val attesteringer = attesteringer.leggTil(attestering)
     val iverksattTidspunkt = nå(clock)
@@ -62,11 +65,11 @@ fun Rammebehandling.iverksett(
             klagebehandling = oppdatertKlagebehandling,
         )
     }
-    return oppdatertRammebehandling to klagestatistikk
+    return (oppdatertRammebehandling to klagestatistikk).right()
 }
 
 /**
- * Kalles kun fra [iverksett], som allerede har verifisert forutsetningene via [krevKanIverksette].
+ * Kalles kun fra [iverksett], som allerede har verifisert forutsetningene via [kanIverksette].
  */
 private fun Rammebehandling.iverksettKlagebehandling(
     correlationId: CorrelationId,
@@ -107,18 +110,21 @@ private fun Rammebehandling.iverksettKlagebehandling(
 }
 
 /**
- * Krever at [utøvendeBeslutter] kan iverksette behandlingen, og kaster ellers.
+ * Avgjør om [utøvendeBeslutter] kan iverksette behandlingen.
+ * Krever at [utøvendeBeslutter] har rollen beslutter, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
+ * Krever også at behandlingen har en vedtaksperiode, og kaster ellers, fordi det ikke er noe en saksbehandler kan treffe fra saksbehandlingsflyten.
  *
- * Betingelsene speiler hvilke tilstander [iverksett] faktisk håndterer:
- *  - behandlingen må ha en vedtaksperiode
+ * Betingelsene speiler hvilke tilstander [iverksett] faktisk håndterer, og sjekkes i denne rekkefølgen:
  *  - behandlingen må være [UNDER_BESLUTNING]
- *  - [utøvendeBeslutter] må ha beslutterrollen og være beslutteren på behandlingen
+ *  - [utøvendeBeslutter] må være beslutteren på behandlingen
  *  - behandlingen kan ikke allerede være godkjent
  *  - behandlingen kan ikke stå på vent
  *
- * Kaster i stedet for å returnere en venstre-verdi, fordi tilstandene her ikke er noe en saksbehandler kan treffe fra saksbehandlingsflyten.
+ * Statusen sjekkes først, fordi saksbehandleren kan ha angret sendingen til beslutning i mellomtiden.
+ * Da er beslutteren fjernet fra behandlingen, og beslutteren skal få vite at behandlingen ikke lenger er under beslutning.
  */
-private fun Rammebehandling.krevKanIverksette(utøvendeBeslutter: Saksbehandler) {
+private fun Rammebehandling.kanIverksette(utøvendeBeslutter: Saksbehandler): Either<KanIkkeIverksetteBehandling, Unit> {
+    krevBeslutterRolle(utøvendeBeslutter)
     require(vedtaksperiode != null) { "vedtaksperiode må være satt ved iverksetting" }
 
     when (status) {
@@ -130,15 +136,17 @@ private fun Rammebehandling.krevKanIverksette(utøvendeBeslutter: Saksbehandler)
         VEDTATT,
         AVBRUTT,
         UNDER_AUTOMATISK_BEHANDLING,
-        -> throw IllegalStateException(
-            "Må ha status UNDER_BESLUTNING for å iverksette. Behandlingsstatus: $status",
-        )
+        -> return KanIkkeIverksetteBehandling.BehandlingenHarEnAnnenStatusEnnUnderBeslutning(status).left()
     }
 
-    krevBeslutterRolle(utøvendeBeslutter)
-    check(this.beslutter == utøvendeBeslutter.navIdent) { "Kan ikke iverksette en behandling man ikke er beslutter på" }
-    check(!this.attesteringer.any { it.isGodkjent() }) {
-        "Behandlingen er allerede godkjent"
+    if (this.beslutter != utøvendeBeslutter.navIdent) {
+        return KanIkkeIverksetteBehandling.BehandlingenEiesAvAnnenBeslutter(eiesAvBeslutter = this.beslutter).left()
     }
-    check(!ventestatus.erSattPåVent) { "Behandlingen må gjenopptas før den kan iverksettes." }
+    if (this.attesteringer.any { it.isGodkjent() }) {
+        return KanIkkeIverksetteBehandling.BehandlingenErAlleredeGodkjent.left()
+    }
+    if (ventestatus.erSattPåVent) {
+        return KanIkkeIverksetteBehandling.BehandlingenErSattPåVent.left()
+    }
+    return Unit.right()
 }

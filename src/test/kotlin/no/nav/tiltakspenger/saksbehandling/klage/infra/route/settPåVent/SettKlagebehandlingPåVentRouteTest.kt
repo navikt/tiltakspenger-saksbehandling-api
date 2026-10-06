@@ -1,7 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.klage.infra.route.settPåVent
 
+import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.ktor.common.ErrorJson
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
@@ -9,6 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.fixedClockAt
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdetTekst
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent.KanIkkeSetteKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.klage.domene.vurder.KlageOmgjøringsårsak
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.shouldBeKlagebehandlingDTO
 import no.nav.tiltakspenger.saksbehandling.klage.infra.route.vurder.Vurderingstype
@@ -23,6 +27,15 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.vurderK
 import org.junit.jupiter.api.Test
 
 class SettKlagebehandlingPåVentRouteTest {
+    @Test
+    fun `lagringskonflikt fra tilknyttet behandling gir konfliktsvar`() {
+        val forventet = HttpStatusCode.Conflict to ErrorJson(
+            "Behandlingen er ikke lenger under beslutning. Saksbehandler kan ha angret sendingen til beslutning.",
+            "behandlingen_er_ikke_under_beslutning",
+        )
+        KanIkkeSetteKlagebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning.toStatusAndErrorJson() shouldBe forventet
+    }
+
     @Test
     fun `kan sette klagebehandling på vent`() {
         val clock = TikkendeKlokke(fixedClockAt(1.januar(2025)))

@@ -7,13 +7,18 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortbehandlingStatus
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.angre.angreMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgBeslutterTarBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgOpprettMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeMeldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.overtaMeldekortbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendMeldekortbehandlingTilBeslutning
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taMeldekortbehanding
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tattMeldekortbehandlingMedKlageFraKlageRoute
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.underkjennMeldekortbehandling
 import org.junit.jupiter.api.Test
 
 /**
@@ -38,7 +43,11 @@ class MeldekortbehandlingPostgresRepoTest {
 
             val angretMeldekortbehandling = meldekortbehandling.angreMeldekortbehandling(saksbehandler, ObjectMother.clock).getOrFail()
 
-            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = angretMeldekortbehandling, transactionContext = null) shouldBe true
+            tac.meldekortContext.meldekortbehandlingRepo.angreBehandling(
+                meldekortbehandling = angretMeldekortbehandling,
+                forventetSendtTilBeslutning = meldekortbehandling.sendtTilBeslutning,
+                transactionContext = null,
+            ) shouldBe true
 
             tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.also {
                 it.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
@@ -48,11 +57,214 @@ class MeldekortbehandlingPostgresRepoTest {
     }
 
     @Test
-    fun `angreMeldekortbehandling gir usann når saksbehandler angrer en meldekortbehandling sendt til beslutning for sent`() {
+    fun `angreBehandling avviser en utdatert angring etter at beslutter har satt meldekortbehandlingen på vent`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandler")
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (sak, _, _, meldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            )!!
+            val angretBehandling = meldekortbehandling.angreMeldekortbehandling(saksbehandler, tac.clock).getOrFail()
+            val (_, behandlingPåVent) = settMeldekortbehandlingPåVent(
+                tac = tac,
+                sakId = sak.id,
+                meldekortId = meldekortbehandling.id,
+                saksbehandlerEllerBeslutter = beslutter,
+            )!!
+            val repo = tac.meldekortContext.meldekortbehandlingRepo
+
+            repo.angreBehandling(angretBehandling, meldekortbehandling.sendtTilBeslutning, null) shouldBe false
+            repo.hent(meldekortbehandling.id) shouldBe behandlingPåVent
+        }
+    }
+
+    /**
+     * Saksbehandleren har lastet meldekortbehandlingen før beslutteren underkjente, og den er sendt inn på nytt før angringen når databasen.
+     * Underkjenning beholder beslutteren, så den nye innsendingen går rett til `UNDER_BESLUTNING`.
+     * Status, saksbehandler og beslutter er de samme som da behandlingen ble lastet, så bare `sendt_til_beslutning` skiller de to innsendingene.
+     */
+    @Test
+    fun `angreBehandling avviser en utdatert angring etter at meldekortbehandlingen er sendt til beslutning på nytt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandler")
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (sak, _, _, utdatertMeldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            )!!
+            val angretBehandling = utdatertMeldekortbehandling.angreMeldekortbehandling(saksbehandler, tac.clock).getOrFail()
+
+            underkjennMeldekortbehandling(tac, sak.id, utdatertMeldekortbehandling.id, beslutter = beslutter)!!
+            val (_, nyInnsending) = sendMeldekortbehandlingTilBeslutning(tac, sak.id, utdatertMeldekortbehandling.id, saksbehandler = saksbehandler)!!
+            nyInnsending.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
+            nyInnsending.beslutter shouldBe beslutter.navIdent
+
+            tac.meldekortContext.meldekortbehandlingRepo.angreBehandling(
+                meldekortbehandling = angretBehandling,
+                forventetSendtTilBeslutning = utdatertMeldekortbehandling.sendtTilBeslutning,
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(utdatertMeldekortbehandling.id) shouldBe nyInnsending
+        }
+    }
+
+    /**
+     * Beslutteren har lastet meldekortbehandlingen, og saksbehandleren har angret og sendt inn på nytt.
+     * Beslutteren beholdes ved angring, så den nye innsendingen går rett til `UNDER_BESLUTNING` hos den samme beslutteren.
+     * Status og beslutter er de samme som da behandlingen ble lastet, så bare `sendt_til_beslutning` skiller de to innsendingene.
+     */
+    @Test
+    fun `oppdaterHvisFortsattUnderBeslutning avviser en utdatert skriving etter at meldekortbehandlingen er sendt til beslutning på nytt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandler")
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (sak, _, _, utdatertMeldekortbehandling) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
+                tac = tac,
+                saksbehandler = saksbehandler,
+                beslutter = beslutter,
+            )!!
+
+            angreMeldekortbehandling(tac, sak.id, utdatertMeldekortbehandling.id, saksbehandler = saksbehandler)!!
+            val (_, nyInnsending) = sendMeldekortbehandlingTilBeslutning(tac, sak.id, utdatertMeldekortbehandling.id, saksbehandler = saksbehandler)!!
+            nyInnsending.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
+            nyInnsending.beslutter shouldBe beslutter.navIdent
+
+            tac.meldekortContext.meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                meldekortbehandling = utdatertMeldekortbehandling,
+                utøvendeBeslutter = beslutter,
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(utdatertMeldekortbehandling.id) shouldBe nyInnsending
+        }
+    }
+
+    @Test
+    fun `angreMeldekortbehandling gir sann når saksbehandler angrer en meldekortbehandling sendt til beslutning`() {
         withTestApplicationContextAndPostgres { tac ->
             val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(tac)!!
 
-            tac.meldekortContext.meldekortbehandlingRepo.angreMeldekortbehandlingSendtTilBeslutning(meldekortbehandling = meldekortbehandling, transactionContext = null) shouldBe false
+            tac.meldekortContext.meldekortbehandlingRepo.angreBehandling(
+                meldekortbehandling = meldekortbehandling,
+                forventetSendtTilBeslutning = meldekortbehandling.sendtTilBeslutning,
+                transactionContext = null,
+            ) shouldBe true
+        }
+    }
+
+    @Test
+    fun `angreMeldekortbehandling gir false når meldekortbehandlingen ikke er sendt til beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgOpprettMeldekortbehandling(tac)!!
+
+            tac.meldekortContext.meldekortbehandlingRepo.angreBehandling(
+                meldekortbehandling = meldekortbehandling,
+                forventetSendtTilBeslutning = meldekortbehandling.sendtTilBeslutning,
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.status shouldBe MeldekortbehandlingStatus.UNDER_BEHANDLING
+        }
+    }
+
+    /**
+     * En avbrutt meldekortbehandling kan aldri være under beslutning, så vakten slår ikke til.
+     * Testen øver `avbrutt != null`-grenen i parameterlisten.
+     */
+    @Test
+    fun `oppdaterHvisFortsattUnderBeslutning gir false for en avbrutt meldekortbehandling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, _, avbruttMeldekortbehandling, _) = iverksettSøknadsbehandlingOgAvbrytMeldekortbehandling(tac)!!
+            avbruttMeldekortbehandling.avbrutt.shouldNotBeNull()
+
+            tac.meldekortContext.meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                meldekortbehandling = avbruttMeldekortbehandling,
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = avbruttMeldekortbehandling.id)!!.status shouldBe MeldekortbehandlingStatus.AVBRUTT
+        }
+    }
+
+    @Test
+    fun `oppdaterHvisFortsattUnderBeslutning gir sann når meldekortbehandlingen fortsatt er under beslutning hos den samme beslutteren`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val beslutter = ObjectMother.beslutter("beslutter")
+            val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(tac, beslutter = beslutter)!!
+            meldekortbehandling.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
+
+            tac.meldekortContext.meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                meldekortbehandling = meldekortbehandling,
+                utøvendeBeslutter = beslutter,
+                transactionContext = null,
+            ) shouldBe true
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.also {
+                it.status shouldBe MeldekortbehandlingStatus.UNDER_BESLUTNING
+                it.beslutter shouldBe beslutter.navIdent
+            }
+        }
+    }
+
+    /**
+     * Vakten `beslutter = :forventet_beslutter` slår ikke til når en annen beslutter har overtatt behandlingen i mellomtiden.
+     */
+    @Test
+    fun `oppdaterHvisFortsattUnderBeslutning gir false når en annen beslutter eier meldekortbehandlingen`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgBeslutterTarBehandling(
+                tac,
+                beslutter = ObjectMother.beslutter("beslutterSomVant"),
+            )!!
+
+            tac.meldekortContext.meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                meldekortbehandling = meldekortbehandling,
+                utøvendeBeslutter = ObjectMother.beslutter("beslutterSomAldriEide"),
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.beslutter shouldBe "beslutterSomVant"
+        }
+    }
+
+    /**
+     * Meldekortbehandlingen er klar til beslutning og ikke tatt av noen beslutter, så vakten `status = 'UNDER_BESLUTNING'` slår ikke til.
+     */
+    @Test
+    fun `oppdaterHvisFortsattUnderBeslutning gir false når meldekortbehandlingen ikke er under beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, _, _, meldekortbehandling, _) = iverksettSøknadsbehandlingOgSendMeldekortbehandlingTilBeslutning(tac)!!
+
+            tac.meldekortContext.meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                meldekortbehandling = meldekortbehandling,
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                transactionContext = null,
+            ) shouldBe false
+
+            tac.meldekortContext.meldekortbehandlingRepo.hent(meldekortId = meldekortbehandling.id)!!.status shouldBe MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
+        }
+    }
+
+    /**
+     * En meldekortbehandling som er opprettet fra en klage bærer klagebehandlingen med seg.
+     * Klagebehandlingen skal bare lagres når vakten slapp gjennom, så et tapt kappløp skal ikke berøre den.
+     */
+    @Test
+    fun `oppdaterHvisFortsattUnderBeslutning gir false når den klagekoblede meldekortbehandlingen ikke er under beslutning`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (_, tattMeldekortbehandling, _) = tattMeldekortbehandlingMedKlageFraKlageRoute(tac = tac)!!
+            tattMeldekortbehandling.klagebehandling.shouldNotBeNull()
+
+            tac.meldekortContext.meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                meldekortbehandling = tattMeldekortbehandling,
+                utøvendeBeslutter = ObjectMother.beslutter(),
+                transactionContext = null,
+            ) shouldBe false
         }
     }
 

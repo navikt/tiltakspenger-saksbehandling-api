@@ -11,10 +11,6 @@ sealed interface KanIkkeAngreMeldekortbehandling : Loggbar {
         override val loggkontekst: Loggkontekst = Loggkontekst("utøvende bruker er ikke saksbehandleren som er tildelt meldekortbehandlingen")
     }
 
-    data object KanIkkeVæreTattAvEnBeslutter : KanIkkeAngreMeldekortbehandling {
-        override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen er allerede tatt av en beslutter")
-    }
-
     data class MeldekortbehandlingenErIEnTilstandSomIkkeTillaterÅAngre(val status: MeldekortbehandlingStatus) : KanIkkeAngreMeldekortbehandling {
         override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen har status $status")
     }
@@ -23,7 +19,11 @@ sealed interface KanIkkeAngreMeldekortbehandling : Loggbar {
         override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen finnes ikke")
     }
 
-    data object MeldekortbehandlingErIkkeLengerKlarTilBeslutning : KanIkkeAngreMeldekortbehandling {
-        override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen er ikke lenger klar til beslutning")
+    data object MeldekortbehandlingErIkkeLengerSendtTilBeslutning : KanIkkeAngreMeldekortbehandling {
+        override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen er ikke lenger sendt til beslutning")
+    }
+
+    data object MeldekortbehandlingenErSattPåVent : KanIkkeAngreMeldekortbehandling {
+        override val loggkontekst: Loggkontekst = Loggkontekst("meldekortbehandlingen er satt på vent")
     }
 }

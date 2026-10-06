@@ -144,22 +144,7 @@ class MeldekortbehandlingPostgresRepo(
             tx.run(
                 sqlQuery(
                     """
-                    update meldekortbehandling set
-                        meldeperioder = :meldeperioder::jsonb,
-                        beregninger = :beregninger::jsonb,
-                        saksbehandler = :saksbehandler,
-                        beslutter = :beslutter,
-                        status = :status,
-                        navkontor = :navkontor,
-                        iverksatt_tidspunkt = :iverksatt_tidspunkt,
-                        sendt_til_beslutning = :sendt_til_beslutning,
-                        begrunnelse = :begrunnelse,
-                        attesteringer = :attesteringer::jsonb,
-                        avbrutt = :avbrutt::jsonb,
-                        ventestatus = :ventestatus::jsonb,
-                        sist_endret = :sist_endret,
-                        utbetalingskontroll = :utbetalingskontroll::jsonb,
-                        klagebehandling_id = :klagebehandling_id
+                    $OPPDATER_MELDEKORTBEHANDLING
                     where id = :id
                     """,
                     "id" to meldekortbehandling.id.toString(),
@@ -413,8 +398,16 @@ class MeldekortbehandlingPostgresRepo(
         }
     }
 
-    override fun angreMeldekortbehandlingSendtTilBeslutning(
+    /**
+     * Angrer sendingen til beslutning, men bare hvis raden fortsatt er den innsendingen som ble lastet.
+     * [forventetSendtTilBeslutning] er tidspunktet fra den lastede meldekortbehandlingen og fungerer som versjonsnøkkel.
+     * Uten den kunne en utdatert angring treffe en ny innsending etter underkjenning, siden status og saksbehandler da er de samme.
+     *
+     * @return true dersom meldekortbehandlingen ble angret, false dersom den ikke lenger var den samme innsendingen.
+     */
+    override fun angreBehandling(
         meldekortbehandling: Meldekortbehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext?,
     ): Boolean {
         return sessionFactory.withTransaction(transactionContext) { tx ->
@@ -425,15 +418,68 @@ class MeldekortbehandlingPostgresRepo(
                             status = :status,
                             sist_endret = :sist_endret,
                             sendt_til_beslutning = null
-                        where status = 'KLAR_TIL_BESLUTNING' and id = :id
+                        where (status = 'KLAR_TIL_BESLUTNING' or status = 'UNDER_BESLUTNING') and id = :id and saksbehandler = :saksbehandler
+                            and sendt_til_beslutning = :forventet_sendt_til_beslutning
+                            and (ventestatus->'ventestatusHendelser'->-1->>'erSattPåVent') is distinct from 'true'
                     """,
-
                     "id" to meldekortbehandling.id.toString(),
                     "status" to meldekortbehandling.status.toDb(),
                     "sist_endret" to meldekortbehandling.sistEndret,
-
+                    "saksbehandler" to meldekortbehandling.saksbehandler,
+                    "forventet_sendt_til_beslutning" to forventetSendtTilBeslutning,
                 ).asUpdate,
             ) > 0
+        }
+    }
+
+    /**
+     * Oppdaterer hele meldekortbehandlingen, men bare hvis raden i databasen fortsatt er `UNDER_BESLUTNING` med [utøvendeBeslutter] som beslutter.
+     * Vakten sjekker tilstanden som er lagret, ikke statusen på [meldekortbehandling], som kan være endret av handlingen som lagres.
+     * `sendt_til_beslutning` fungerer som versjonsnøkkel, siden beslutterens handlinger aldri endrer det.
+     * Slik treffer ikke en utdatert skriving en ny innsending etter angring, selv om den nye innsendingen går rett til `UNDER_BESLUTNING` hos den samme beslutteren.
+     * Brukes av beslutterens skrivinger, slik at de ikke overskriver en angring som saksbehandleren har gjort etter at behandlingen ble lastet.
+     * Oppdaterer ikke simuleringen eller [SimuleringMedMetadata], på samme måte som [oppdater].
+     * Tilknyttet klagebehandling lagres bare når meldekortbehandlingen ble oppdatert.
+     *
+     * @return true dersom meldekortbehandlingen ble oppdatert, false dersom den ikke lenger var under beslutning hos [utøvendeBeslutter].
+     */
+    override fun oppdaterHvisFortsattUnderBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        return sessionFactory.withTransaction(transactionContext) { tx ->
+            val oppdatert = tx.run(
+                sqlQuery(
+                    """
+                    $OPPDATER_MELDEKORTBEHANDLING
+                    where id = :id and beslutter = :forventet_beslutter and status = 'UNDER_BESLUTNING' and sendt_til_beslutning = :sendt_til_beslutning
+                    """,
+                    "id" to meldekortbehandling.id.toString(),
+                    "meldeperioder" to meldekortbehandling.meldeperioder.tilDbJson(),
+                    "beregninger" to meldekortbehandling.beregning?.tilBeregningerDbJsonString(),
+                    "saksbehandler" to meldekortbehandling.saksbehandler,
+                    "beslutter" to meldekortbehandling.beslutter,
+                    "forventet_beslutter" to utøvendeBeslutter.navIdent,
+                    "status" to meldekortbehandling.status.toDb(),
+                    "navkontor" to meldekortbehandling.navkontor.kontornummer,
+                    "iverksatt_tidspunkt" to meldekortbehandling.iverksattTidspunkt,
+                    "sendt_til_beslutning" to meldekortbehandling.sendtTilBeslutning,
+                    "begrunnelse" to meldekortbehandling.begrunnelse?.verdi,
+                    "attesteringer" to meldekortbehandling.attesteringer.toDbJson(),
+                    "avbrutt" to meldekortbehandling.avbrutt?.toDbJson(),
+                    "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
+                    "sist_endret" to meldekortbehandling.sistEndret,
+                    "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
+                    "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
+                ).asUpdate,
+            ) > 0
+            if (oppdatert) {
+                meldekortbehandling.klagebehandling?.let {
+                    KlagebehandlingPostgresRepo.lagreKlagebehandling(klagebehandling = it, session = tx)
+                }
+            }
+            oppdatert
         }
     }
 
@@ -474,6 +520,28 @@ class MeldekortbehandlingPostgresRepo(
     }
 
     companion object {
+        /**
+         * Felles `set`-del for [oppdater] uten simulering og [oppdaterHvisFortsattUnderBeslutning], som legger til hver sin `where`.
+         */
+        private const val OPPDATER_MELDEKORTBEHANDLING = """
+            update meldekortbehandling set
+                meldeperioder = :meldeperioder::jsonb,
+                beregninger = :beregninger::jsonb,
+                saksbehandler = :saksbehandler,
+                beslutter = :beslutter,
+                status = :status,
+                navkontor = :navkontor,
+                iverksatt_tidspunkt = :iverksatt_tidspunkt,
+                sendt_til_beslutning = :sendt_til_beslutning,
+                begrunnelse = :begrunnelse,
+                attesteringer = :attesteringer::jsonb,
+                avbrutt = :avbrutt::jsonb,
+                ventestatus = :ventestatus::jsonb,
+                sist_endret = :sist_endret,
+                utbetalingskontroll = :utbetalingskontroll::jsonb,
+                klagebehandling_id = :klagebehandling_id
+        """
+
         fun hentForMeldekortId(
             meldekortId: MeldekortId,
             session: Session,

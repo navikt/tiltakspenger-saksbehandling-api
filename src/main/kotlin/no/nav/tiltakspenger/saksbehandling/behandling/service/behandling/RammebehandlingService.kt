@@ -3,7 +3,6 @@ package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
-import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.NonBlankString.Companion.toNonBlankString
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
@@ -68,14 +67,36 @@ class RammebehandlingService(
 
         // Denne validerer saksbehandler
         return rammebehandling
-            .underkjenn(beslutter, attestering, clock)
-            .let { (oppdatertRammebehandling, statistikkhendelser) ->
+            .underkjenn(utøvendeBeslutter = beslutter, attestering, clock)
+            .map { (oppdatertRammebehandling, statistikkhendelser) ->
                 val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
+                val vellykket = lagreMedStatistikkHvisFortsattUnderBeslutning(
+                    behandling = oppdatertRammebehandling,
+                    statistikkhendelser = statistikkhendelser,
+                    utøvendeBeslutter = beslutter,
+                )
 
-                lagreMedStatistikk(behandling = oppdatertRammebehandling, statistikkhendelser = statistikkhendelser)
+                if (!vellykket) return KanIkkeUnderkjenne.BehandlingenErIkkeLengerUnderBeslutning.left()
 
                 oppdatertSak to oppdatertRammebehandling
-            }.right()
+            }
+    }
+
+    suspend fun lagreMedStatistikkHvisFortsattUnderBeslutning(
+        behandling: Rammebehandling,
+        statistikkhendelser: Statistikkhendelser,
+        utøvendeBeslutter: Saksbehandler,
+    ): Boolean {
+        val statistikkDTO = statistikkService.generer(statistikkhendelser)
+        return sessionFactory.withTransactionContext { tx ->
+            val oppdatert = rammebehandlingRepo.lagreHvisFortsattUnderBeslutning(
+                rammebehandling = behandling,
+                utøvendeBeslutter = utøvendeBeslutter,
+                transactionContext = tx,
+            )
+            if (oppdatert) statistikkService.lagre(statistikkDTO, tx)
+            oppdatert
+        }
     }
 
     /**
@@ -89,8 +110,8 @@ class RammebehandlingService(
     ) {
         val statistikkDto = statistikkService.generer(statistikkhendelser)
         sessionFactory.withTransactionContext(tx) { tx ->
-            rammebehandlingRepo.lagre(behandling, tx)
-            statistikkService.lagre(statistikkDto, tx)
+            rammebehandlingRepo.lagre(behandling, transactionContext = tx)
+            statistikkService.lagre(statistikkDto, context = tx)
         }
     }
 }

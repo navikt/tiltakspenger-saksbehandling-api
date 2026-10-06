@@ -101,7 +101,7 @@ private fun finnGyldigeRammebehandlingKommandoer(
         if (status == KLAR_TIL_BEHANDLING && erSaksbehandler && felles.saksbehandler == null) {
             add(TildelSaksbehandler)
         }
-        if (status == KLAR_TIL_BESLUTNING && felles.saksbehandler == navIdent) {
+        if ((status == KLAR_TIL_BESLUTNING || status == UNDER_BESLUTNING) && !erSattPåVent && felles.saksbehandler == navIdent) {
             add(AngreSendTilBeslutning)
         }
         if (status == KLAR_TIL_BESLUTNING && erBeslutter && felles.beslutter == null && felles.saksbehandler != navIdent) {
@@ -206,7 +206,7 @@ private fun finnGyldigeMeldekortKommandoer(
         ) {
             add(Avbryt)
         }
-        if (status == KLAR_TIL_BESLUTNING && felles.saksbehandler == navIdent) {
+        if ((status == KLAR_TIL_BESLUTNING || (status == UNDER_BESLUTNING && !erSattPåVent)) && felles.saksbehandler == navIdent) {
             add(AngreSendTilBeslutning)
         }
     }

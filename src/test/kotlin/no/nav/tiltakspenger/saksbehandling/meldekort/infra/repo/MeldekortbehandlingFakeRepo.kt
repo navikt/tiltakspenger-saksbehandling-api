@@ -182,15 +182,21 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         }
     }
 
-    override fun angreMeldekortbehandlingSendtTilBeslutning(
+    override fun angreBehandling(
         meldekortbehandling: Meldekortbehandling,
+        forventetSendtTilBeslutning: LocalDateTime?,
         transactionContext: TransactionContext?,
-
     ): Boolean {
         val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
 
         if (meldekortbehandlingRespons == null ||
-            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING
+            meldekortbehandlingRespons.saksbehandler != meldekortbehandling.saksbehandler ||
+            meldekortbehandlingRespons.sendtTilBeslutning != forventetSendtTilBeslutning ||
+            meldekortbehandlingRespons.erSattPåVent ||
+            (
+                meldekortbehandlingRespons.status != MeldekortbehandlingStatus.KLAR_TIL_BESLUTNING &&
+                    meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING
+                )
         ) {
             return false
         }
@@ -203,6 +209,25 @@ class MeldekortbehandlingFakeRepo : MeldekortbehandlingRepo {
         } else {
             throw IllegalStateException("Kan ikke angre meldekortbehandling som ikke er behandlet manuelt")
         }
+    }
+
+    override fun oppdaterHvisFortsattUnderBeslutning(
+        meldekortbehandling: Meldekortbehandling,
+        utøvendeBeslutter: Saksbehandler,
+        transactionContext: TransactionContext?,
+    ): Boolean {
+        val meldekortbehandlingRespons = data.get()[meldekortbehandling.id]
+
+        if (meldekortbehandlingRespons == null ||
+            meldekortbehandlingRespons.status != MeldekortbehandlingStatus.UNDER_BESLUTNING ||
+            meldekortbehandlingRespons.beslutter != utøvendeBeslutter.navIdent ||
+            meldekortbehandlingRespons.sendtTilBeslutning != meldekortbehandling.sendtTilBeslutning
+        ) {
+            return false
+        }
+
+        data.get()[meldekortbehandling.id] = meldekortbehandling
+        return true
     }
 
     override fun hentBehandlingerTilDatadeling(limit: Int): List<Meldekortbehandling> {

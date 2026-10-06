@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -8,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.UNDER_BEHANDLING
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.KunneIkkeAngreBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.angre.angreBehandling
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
@@ -31,18 +31,22 @@ class AngreRammebehandlingService(
     ): Either<KunneIkkeAngreBehandling, Pair<Sak, Rammebehandling>> {
         val (sak, behandling) = behandlingService.hentSakOgRammebehandling(sakId, behandlingId)
 
-        return behandling.angreBehandling(saksbehandler, clock).mapLeft {
-            it
-        }.map { (oppdatertRammebehandling, statistikkhendelser) ->
+        return behandling.angreBehandling(saksbehandler, clock).map { (oppdatertRammebehandling, statistikkhendelser) ->
             val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
             val statistikkDTO = statistikkService.generer(statistikkhendelser)
-            sessionFactory.withTransactionContext { tx ->
-                when (oppdatertRammebehandling.status) {
-                    UNDER_BEHANDLING -> rammebehandlingRepo.angreBehandling(oppdatertRammebehandling, tx)
-                    else -> throw IllegalStateException("Vi havnet i en ugyldig tilstand etter vi angret behandlingen - behandlingId: ${oppdatertRammebehandling.id}, status: ${oppdatertRammebehandling.status}")
-                }
-                statistikkService.lagre(statistikkDTO, tx)
+
+            val vellykket = sessionFactory.withTransactionContext { tx ->
+                val oppdatert = rammebehandlingRepo.angreBehandling(
+                    rammebehandling = oppdatertRammebehandling,
+                    forventetSendtTilBeslutning = behandling.sendtTilBeslutning,
+                    transactionContext = tx,
+                )
+                if (oppdatert) statistikkService.lagre(statistikkDTO, tx)
+                oppdatert
             }
+
+            if (!vellykket) return KunneIkkeAngreBehandling.BehandlingenErIkkeLengerSendtTilBeslutning.left()
+
             oppdatertSak to oppdatertRammebehandling
         }
     }

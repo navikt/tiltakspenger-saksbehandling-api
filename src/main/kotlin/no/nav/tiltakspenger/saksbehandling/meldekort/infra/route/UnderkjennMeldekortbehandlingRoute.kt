@@ -102,4 +102,9 @@ fun KanIkkeUnderkjenneMeldekortbehandling.toErrorJson(): Pair<HttpStatusCode, Er
         "Du kan ikke underkjenne meldekortet da du ikke er beslutter for denne meldekortbehandlingen",
         "må_være_beslutter_for_meldekortet",
     )
+
+    KanIkkeUnderkjenneMeldekortbehandling.BehandlingenErIkkeLengerUnderBeslutning -> HttpStatusCode.Conflict to ErrorJson(
+        melding = "Meldekortbehandlingen er ikke lenger sendt til beslutning.",
+        kode = "må_være_sendt_til_beslutning",
+    )
 }

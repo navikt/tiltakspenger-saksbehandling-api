@@ -22,8 +22,10 @@ import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.rammebehand
 import java.time.Clock
 
 /**
- * Angrer sendingen til beslutning: [KLAR_TIL_BESLUTNING] -> [UNDER_BEHANDLING].
+ * Angrer sendingen til beslutning: [KLAR_TIL_BESLUTNING] eller [UNDER_BESLUTNING] -> [UNDER_BEHANDLING].
  * Saksbehandleren som sendte behandlingen beholder tildelingen.
+ * Beslutteren beholdes på behandlingen, og sendtTilBeslutning nullstilles.
+ * Neste innsending går dermed rett til [UNDER_BESLUTNING] hos den samme beslutteren, på samme måte som etter en underkjenning.
  * Krever at [saksbehandler] har rollen saksbehandler, og kaster [no.nav.tiltakspenger.saksbehandling.felles.exceptions.TilgangException] ellers.
  * Forutsetningene håndheves av [kanAngreBehandling], og feilene derfra returneres som venstre-verdi.
  */
@@ -36,16 +38,18 @@ fun Rammebehandling.angreBehandling(
 
     val nå = nå(clock)
     return when (status) {
-        KLAR_TIL_BESLUTNING -> {
+        KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> {
             val oppdatertRammebehandling = when (this) {
                 is Søknadsbehandling -> this.copy(
                     status = UNDER_BEHANDLING,
                     sistEndret = nå,
+                    sendtTilBeslutning = null,
                 )
 
                 is Revurdering -> this.copy(
                     status = UNDER_BEHANDLING,
                     sistEndret = nå,
+                    sendtTilBeslutning = null,
                 )
             }
             val statistikkhendelser = Statistikkhendelser(
@@ -56,7 +60,6 @@ fun Rammebehandling.angreBehandling(
 
         KLAR_TIL_BEHANDLING,
         UNDER_BEHANDLING,
-        UNDER_BESLUTNING,
         VEDTATT,
         AVBRUTT,
         UNDER_AUTOMATISK_BEHANDLING,
@@ -66,20 +69,23 @@ fun Rammebehandling.angreBehandling(
 
 /**
  * Avgjør om [saksbehandler] kan angre sendingen til beslutning.
- * Kun saksbehandleren som er tildelt behandlingen kan angre, og bare mens behandlingen er [KLAR_TIL_BESLUTNING].
+ * Kun saksbehandleren som er tildelt behandlingen kan angre, og bare mens behandlingen er [KLAR_TIL_BESLUTNING] eller [UNDER_BESLUTNING].
+ * Behandlingen kan ikke angres mens den er satt på vent av beslutteren.
  * Kalles også fra DTO-mappingen for å avgjøre om kommandoen skal tilbys, og må derfor ikke kaste.
  */
 fun Rammebehandling.kanAngreBehandling(saksbehandler: Saksbehandler): Either<KunneIkkeAngreBehandling, Unit> {
     return when (status) {
-        KLAR_TIL_BESLUTNING -> {
+        KLAR_TIL_BESLUTNING, UNDER_BESLUTNING -> {
             if (saksbehandler.navIdent != this.saksbehandler) {
                 KunneIkkeAngreBehandling.MåVæreSaksbehandlerForBehandlingen.left()
+            } else if (ventestatus.erSattPåVent) {
+                KunneIkkeAngreBehandling.BehandlingenErSattPåVent.left()
             } else {
                 Unit.right()
             }
         }
 
-        KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, UNDER_BESLUTNING, VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeAngreBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅAngre(
+        KLAR_TIL_BEHANDLING, UNDER_BEHANDLING, VEDTATT, AVBRUTT, UNDER_AUTOMATISK_BEHANDLING -> KunneIkkeAngreBehandling.BehandlingenErIEnTilstandSomIkkeTillaterÅAngre(
             status,
         ).left()
     }

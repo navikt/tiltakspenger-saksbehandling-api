@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.settPåVent.KanIkkeSetteRammebehandlingPåVent
@@ -40,10 +41,21 @@ class SettRammebehandlingPåVentService(
         ).map { (oppdatertRammebehandling, statistikkhendelser) ->
             val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
 
-            behandlingService.lagreMedStatistikk(
-                behandling = oppdatertRammebehandling,
-                statistikkhendelser = statistikkhendelser,
-            )
+            if (rammebehandling.erUnderBeslutning) {
+                val oppdatert = behandlingService.lagreMedStatistikkHvisFortsattUnderBeslutning(
+                    behandling = oppdatertRammebehandling,
+                    statistikkhendelser = statistikkhendelser,
+                    utøvendeBeslutter = kommando.saksbehandler,
+                )
+                if (!oppdatert) {
+                    return KanIkkeSetteRammebehandlingPåVent.BehandlingenErIkkeLengerUnderBeslutning.left()
+                }
+            } else {
+                behandlingService.lagreMedStatistikk(
+                    behandling = oppdatertRammebehandling,
+                    statistikkhendelser = statistikkhendelser,
+                )
+            }
             oppdatertSak to oppdatertRammebehandling
         }
     }

@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.klage.domene.settPåVent
 
 import arrow.core.Either
-import arrow.core.right
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.AttesterbarBehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandling
@@ -20,8 +19,8 @@ import java.time.Clock
 suspend fun Sak.settKlagebehandlingPåVent(
     kommando: SettKlagebehandlingPåVentKommando,
     clock: Clock,
-    settRammebehandlingPåVent: suspend (SettRammebehandlingPåVentKommando) -> Pair<Sak, Rammebehandling>,
-    settMeldekortbehandlingPåVent: (SettMeldekortbehandlingPåVentKommando) -> Pair<Sak, Meldekortbehandling>,
+    settRammebehandlingPåVent: suspend (SettRammebehandlingPåVentKommando) -> Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Sak, Rammebehandling>>,
+    settMeldekortbehandlingPåVent: (SettMeldekortbehandlingPåVentKommando) -> Either<KanIkkeSetteKlagebehandlingPåVent, Pair<Sak, Meldekortbehandling>>,
     lagre: suspend (Klagebehandling, Statistikkhendelser) -> Unit,
 ): Either<KanIkkeSetteKlagebehandlingPåVent, Triple<Sak, Klagebehandling, AttesterbarBehandling?>> {
     return this.hentKlagebehandling(kommando.klagebehandlingId).let { klagebehandling ->
@@ -34,7 +33,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                     frist = kommando.frist,
                     saksbehandler = kommando.saksbehandler,
                 ),
-            ).let { Triple(it.first, it.second.klagebehandling!!, it.second) }.right()
+            ).map { Triple(it.first, it.second.klagebehandling!!, it.second) }
 
             is AktivTilknyttetBehandling.Meldekort -> return settMeldekortbehandlingPåVent(
                 SettMeldekortbehandlingPåVentKommando(
@@ -45,7 +44,7 @@ suspend fun Sak.settKlagebehandlingPåVent(
                     saksbehandler = kommando.saksbehandler,
                     correlationId = CorrelationId.generate(),
                 ),
-            ).let { Triple(it.first, it.second.klagebehandling!!, it.second) }.right()
+            ).map { Triple(it.first, it.second.klagebehandling!!, it.second) }
 
             null -> Unit
         }

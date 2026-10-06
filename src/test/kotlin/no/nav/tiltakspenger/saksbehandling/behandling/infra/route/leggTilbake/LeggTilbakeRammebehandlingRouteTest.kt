@@ -1,14 +1,26 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.infra.route.leggTilbake
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.leggTilbake.KanIkkeLeggeTilbakeRammebehandling
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.RammebehandlingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContext
+import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.angreRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeRammebehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
+import no.nav.tiltakspenger.saksbehandling.statistikk.saksstatistikk.StatistikkDTO
 import org.junit.jupiter.api.Test
 
 /**
@@ -62,6 +74,46 @@ class LeggTilbakeRammebehandlingRouteTest {
                     it.beslutter shouldBe null
                 }
             }
+        }
+    }
+
+    @Test
+    fun `beslutter kan ikke overskrive angring ved å legge tilbake behandling`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val beslutter = ObjectMother.beslutter()
+            val (sak, _, behandlingId) = sendSøknadsbehandlingTilBeslutning(tac)
+            taRammebehandlinger(tac, listOf(sak.id to behandlingId), beslutter)!!
+            val sakUnderBeslutning = tac.sakContext.sakService.hentForSakId(sak.id)
+
+            val (_, angretBehandling) = angreRammebehandling(tac, sak.id, behandlingId)!!
+            angretBehandling.status shouldBe Rammebehandlingsstatus.UNDER_BEHANDLING
+
+            val sakService = mockk<SakService>()
+            every { sakService.hentForSakId(sak.id) } returns sakUnderBeslutning
+            val statistikkService = spyk(tac.statistikkContext.statistikkService)
+            val behandlingService = RammebehandlingService(
+                rammebehandlingRepo = tac.behandlingContext.rammebehandlingRepo,
+                sakService = sakService,
+                sessionFactory = tac.sessionFactory,
+                clock = tac.clock,
+                statistikkService = statistikkService,
+            )
+            val service = LeggTilbakeRammebehandlingService(
+                behandlingService = behandlingService,
+                rammebehandlingRepo = tac.behandlingContext.rammebehandlingRepo,
+                statistikkService = statistikkService,
+                sessionFactory = tac.sessionFactory,
+                clock = tac.clock,
+            )
+
+            service.leggTilbakeRammebehandling(
+                sakId = sak.id,
+                behandlingId = behandlingId,
+                saksbehandler = beslutter,
+            ) shouldBe KanIkkeLeggeTilbakeRammebehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
+
+            tac.behandlingContext.rammebehandlingRepo.hent(behandlingId) shouldBe angretBehandling
+            verify(exactly = 0) { statistikkService.lagre(any<StatistikkDTO>(), any()) }
         }
     }
 
