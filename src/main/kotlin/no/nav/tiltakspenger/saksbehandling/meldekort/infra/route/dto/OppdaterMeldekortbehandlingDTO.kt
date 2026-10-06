@@ -19,6 +19,7 @@ data class OppdaterMeldekortbehandlingDTO(
     val begrunnelse: String?,
     val tekstTilVedtaksbrev: String?,
     val skalSendeVedtaksbrev: Boolean,
+    val skalJournalføreNotat: Boolean,
 ) {
 
     data class OppdatertMeldeperiodeDTO(
@@ -56,6 +57,7 @@ data class OppdaterMeldekortbehandlingDTO(
             begrunnelse = begrunnelse?.let { Begrunnelse.create(it) },
             fritekstTilVedtaksbrev = tekstTilVedtaksbrev?.toFritekstTilVedtaksbrev(),
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
         )
     }
 }

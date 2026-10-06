@@ -59,6 +59,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalJournalføreNotat = false,
                         ),
                         clock,
                     )
@@ -109,6 +110,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalJournalføreNotat = false,
                         ),
                         clock,
                     )
@@ -160,6 +162,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalJournalføreNotat = false,
                         ),
                         clock,
                     )
@@ -210,6 +213,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalJournalføreNotat = false,
                         ),
                         clock,
                     )
@@ -261,6 +265,7 @@ class OppdaterMeldekortServiceTest {
                             begrunnelse = null,
                             fritekstTilVedtaksbrev = null,
                             skalSendeVedtaksbrev = true,
+                            skalJournalføreNotat = false,
                         ),
                         clock,
                     )
@@ -311,6 +316,7 @@ class OppdaterMeldekortServiceTest {
                         begrunnelse = null,
                         fritekstTilVedtaksbrev = null,
                         skalSendeVedtaksbrev = true,
+                        skalJournalføreNotat = false,
                     ),
                     clock,
                 ).getOrFail()

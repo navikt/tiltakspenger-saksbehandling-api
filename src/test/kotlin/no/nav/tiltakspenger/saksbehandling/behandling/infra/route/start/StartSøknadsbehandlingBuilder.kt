@@ -154,6 +154,7 @@ interface StartSøknadsbehandlingBuilder {
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         begrunnelseVilkårsvurdering: Begrunnelse? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         // Utledes fra innvilgelsesperiodene slik at flyten registrerer samme deltakelse som innvilges; en frisk deltakelse ville fått ny id.
         tiltaksdeltakelse: TiltaksdeltakelseIntern = innvilgelsesperioder.valgteTiltaksdeltagelser.verdier.distinct().single(),
@@ -177,6 +178,7 @@ interface StartSøknadsbehandlingBuilder {
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi,
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.verdi,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
             innvilgelsesperioder = innvilgelsesperioder,
             barnetillegg = barnetillegg,
         )

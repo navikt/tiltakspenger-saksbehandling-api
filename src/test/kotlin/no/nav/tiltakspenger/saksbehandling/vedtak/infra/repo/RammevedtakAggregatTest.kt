@@ -1,24 +1,33 @@
 package no.nav.tiltakspenger.saksbehandling.vedtak.infra.repo
 
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettForBehandlingId
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSøknadsbehandlingTilBeslutningForBehandlingId
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import org.junit.jupiter.api.Test
 
 /**
- * Aggregat-test for de tre køene på rammevedtak, jf. testtaksonomien i `AGENTS.md`.
+ * Aggregat-test for de fire køene på rammevedtak, jf. testtaksonomien i `AGENTS.md`.
  *
- * Alle tre spørringene velger ut på tvers av alle saker.
+ * Alle spørringene velger ut på tvers av alle saker.
  * Derfor bygger testene flere saker og asserter hele køen, uten å filtrere på `sakId`.
  * Rundturen (lagre og hente et rammevedtak) dekkes av e2e-testene og hører ikke hjemme her.
  *
- * Alle tre sorterer eldst først (`order by opprettet`), og testene asserter den rekkefølgen.
+ * Alle sorterer eldst først (`order by opprettet`), og testene asserter den rekkefølgen.
  * Sorteringen er det som gjør at `limit` batcher forutsigbart og at ingen vedtak kan sulte i køen.
  */
 class RammevedtakAggregatTest {
@@ -97,6 +106,32 @@ class RammevedtakAggregatTest {
     }
 
     /**
+     * Notatkøen tar kun vedtak der saksbehandler aktivt har valgt å journalføre notatet.
+     * Et vedtak der notatet er valgt bort er den naturlige kandidaten som skal falle utenfor.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `notatkøen tar kun vedtak som skal ha notat uten journalpost, sorterer eldst først, respekterer limit og tømmes av jobben`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val eldst = iverksattRammevedtakMedValgForNotat(tac, skalJournalføreNotat = true)
+            val nyest = iverksattRammevedtakMedValgForNotat(tac, skalJournalføreNotat = true)
+            val valgtBort = iverksattRammevedtakMedValgForNotat(tac, skalJournalføreNotat = false)
+
+            val repo = tac.behandlingContext.rammevedtakRepo
+
+            repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 10) shouldBe listOf(eldst, nyest)
+            repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 1) shouldBe listOf(eldst)
+
+            tac.journalførJournalnotatService.journalførNotater()
+
+            repo.hentRammevedtakIderMedNotatSomSkalJournalføres(limit = 10).shouldBeEmpty()
+            repo.hentForVedtakId(eldst)!!.journalføringsnotat.shouldNotBeNull()
+            repo.hentForVedtakId(nyest)!!.journalføringsnotat.shouldNotBeNull()
+            repo.hentForVedtakId(valgtBort)!!.journalføringsnotat.shouldBeNull()
+        }
+    }
+
+    /**
      * Bygger en sak med et iverksatt rammevedtak gjennom route-laget.
      *
      * @param jobber Slå av jobben som tømmer køen testen ser på — ellers er køen alltid tom.
@@ -111,6 +146,27 @@ class RammevedtakAggregatTest {
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
             jobber = jobber,
         )
+        return rammevedtak.id
+    }
+
+    /** Notatjobben slås av, slik at vedtak som skal ha notat blir liggende i køen. */
+    private suspend fun ApplicationTestBuilder.iverksattRammevedtakMedValgForNotat(
+        tac: TestApplicationContext,
+        skalJournalføreNotat: Boolean,
+    ): VedtakId {
+        val (sak, _, behandling) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(
+            tac = tac,
+            begrunnelseVilkårsvurdering = Begrunnelse.createOrThrow("Begrunnelse for vilkårsvurderingen"),
+            skalJournalføreNotat = skalJournalføreNotat,
+        )
+        sendSøknadsbehandlingTilBeslutningForBehandlingId(tac, sak.id, behandling.id)
+        taRammebehandlinger(tac, behandlinger = listOf(sak.id to behandling.id), saksbehandler = ObjectMother.beslutter())
+        val (_, rammevedtak) = iverksettForBehandlingId(
+            tac = tac,
+            sakId = sak.id,
+            behandlingId = behandling.id,
+            jobber = JobberEtterIverksettelse(journalførNotat = false),
+        )!!
         return rammevedtak.id
     }
 }

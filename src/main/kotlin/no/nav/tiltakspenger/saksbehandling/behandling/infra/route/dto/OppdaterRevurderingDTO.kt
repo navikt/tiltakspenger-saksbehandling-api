@@ -31,6 +31,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val innvilgelsesperioder: InnvilgelsesperioderDTO,
         val barnetillegg: OppdaterBarnetilleggDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
+        override val skalJournalføreNotat: Boolean = false,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.REVURDERING_INNVILGELSE
 
@@ -52,6 +53,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 innvilgelsesperioder = innvilgelsesperioder,
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalJournalføreNotat = skalJournalføreNotat,
             )
         }
     }
@@ -63,6 +65,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val harValgtStansFraFørsteDagSomGirRett: Boolean,
         val stansFraOgMed: LocalDate?,
         override val skalSendeVedtaksbrev: Boolean = true,
+        override val skalJournalføreNotat: Boolean = false,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.STANS
 
@@ -90,6 +93,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 stansFraOgMed = ValgtStansFraOgMed.create(stansFraOgMed),
                 valgteHjemler = valgteHjemler.toDomain().toNonEmptySetOrThrow(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalJournalføreNotat = skalJournalføreNotat,
             )
         }
     }
@@ -101,6 +105,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val barnetillegg: OppdaterBarnetilleggDTO,
         val vedtaksperiode: PeriodeDTO,
         override val skalSendeVedtaksbrev: Boolean = true,
+        override val skalJournalføreNotat: Boolean = false,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING
 
@@ -123,6 +128,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 barnetillegg = barnetillegg.tilBarnetillegg(innvilgelsesperioder.perioder),
                 vedtaksperiode = vedtaksperiode.toDomain(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalJournalføreNotat = skalJournalføreNotat,
             )
         }
     }
@@ -133,6 +139,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         val vedtaksperiode: PeriodeDTO,
         val valgteHjemler: List<HjemmelForOpphørDTO>,
         override val skalSendeVedtaksbrev: Boolean = true,
+        override val skalJournalføreNotat: Boolean = false,
     ) : OppdaterRevurderingDTO {
         override val resultat: RammebehandlingResultatTypeDTO = RammebehandlingResultatTypeDTO.OMGJØRING_OPPHØR
 
@@ -152,6 +159,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
                 vedtaksperiode = vedtaksperiode.toDomain(),
                 valgteHjemler = valgteHjemler.toDomain(),
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalJournalføreNotat = skalJournalføreNotat,
             )
         }
     }
@@ -161,6 +169,7 @@ sealed interface OppdaterRevurderingDTO : OppdaterBehandlingDTO {
         override val fritekstTilVedtaksbrev = null
         override val begrunnelseVilkårsvurdering = null
         override val skalSendeVedtaksbrev = true
+        override val skalJournalføreNotat = false
 
         override fun tilDomene(
             sakId: SakId,

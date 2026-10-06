@@ -49,6 +49,7 @@ fun String.shouldBeRevurderingDTO(
     sistEndret: String = "2025-01-01T01:03:05.456789",
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
+    skalJournalføreNotat: Boolean = false,
     gyldigeKommandoer: List<String> = emptyList(),
     periodeFraOgMed: String = "2023-01-01",
     periodeTilOgMed: String = "2023-03-31",
@@ -183,6 +184,7 @@ fun String.shouldBeRevurderingDTO(
           "sistEndret": "$sistEndret",
           "status": "$status",
           "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
+          "skalJournalføreNotat": $skalJournalføreNotat,
           "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }
     """
@@ -223,6 +225,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
     sistEndret: String = "2025-01-01T01:03:06.456789",
     status: String = "VEDTATT",
     skalSendeVedtaksbrev: Boolean = true,
+    skalJournalføreNotat: Boolean = false,
     gyldigeKommandoer: List<String> = emptyList(),
     automatiskSaksbehandlet: Boolean = false,
     kanInnvilges: Boolean = true,
@@ -379,6 +382,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
         },
         "status": "$status",
         "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
+        "skalJournalføreNotat": $skalJournalføreNotat,
         "gyldigeKommandoer": ${gyldigeKommandoer.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
     }
     """

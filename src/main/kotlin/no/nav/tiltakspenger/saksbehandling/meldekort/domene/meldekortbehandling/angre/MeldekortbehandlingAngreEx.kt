@@ -43,6 +43,7 @@ fun Meldekortbehandling.angreMeldekortbehandling(
                 sistEndret = nå,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalJournalføreNotat = skalJournalføreNotat,
                 meldeperioder = meldeperioder,
                 ventestatus = ventestatus,
                 klagebehandling = klagebehandling,

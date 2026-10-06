@@ -31,6 +31,7 @@ class OppdaterMeldekortbehandlingKommando(
     val begrunnelse: Begrunnelse?,
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     val skalSendeVedtaksbrev: Boolean,
+    val skalJournalføreNotat: Boolean,
     val correlationId: CorrelationId,
 ) {
     val periode: Periode = Periode(

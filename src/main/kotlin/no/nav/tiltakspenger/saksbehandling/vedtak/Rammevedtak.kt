@@ -31,6 +31,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Søknadsbe
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandlingsresultat
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
@@ -52,6 +53,8 @@ import java.time.LocalDateTime
  * Vil være null fram til dette.
  * @param omgjortAvRammevedtak Dersom dette vedtaket er erstattet helt eller delvis av ett eller flere senere vedtak.
  * @param omgjørRammevedtak Dersom dette vedtaket helt eller delvis omgjør ett eller flere tidligere vedtak.
+ * @param journalføringsnotat Kvittering for det interne notatet, dersom saksbehandler valgte å journalføre det.
+ * Er null fram til notatet er journalført, og forblir null når notatet ikke skal journalføres.
  */
 data class Rammevedtak(
     override val id: VedtakId = VedtakId.random(),
@@ -70,6 +73,7 @@ data class Rammevedtak(
     val sendtTilDatadeling: LocalDateTime?,
     val brevJson: String?,
     val omgjortAvRammevedtak: OmgjortAvRammevedtak,
+    val journalføringsnotat: Journalføringsnotat?,
 ) : Vedtak,
     Periodiserbar {
     override val behandlingId: RammebehandlingId = rammebehandling.id
@@ -85,6 +89,7 @@ data class Rammevedtak(
     val klagebehandling: Klagebehandling? = rammebehandling.klagebehandling
     val klagebehandlingsresultat: Klagebehandlingsresultat? = klagebehandling?.resultat
     val skalSendeVedtaksbrev: Boolean = rammebehandling.skalSendeVedtaksbrev
+    val skalJournalføreNotat: Boolean = rammebehandling.skalJournalføreNotat
 
     val omgjortGrad: Omgjøringsgrad? by lazy {
         if (omgjortAvRammevedtak.isEmpty()) {

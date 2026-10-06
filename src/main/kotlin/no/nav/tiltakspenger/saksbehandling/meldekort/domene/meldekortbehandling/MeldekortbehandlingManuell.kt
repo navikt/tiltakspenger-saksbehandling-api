@@ -63,6 +63,7 @@ data class MeldekortbehandlingManuell(
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreNotat: Boolean,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
@@ -234,6 +235,7 @@ data class MeldekortbehandlingManuell(
             sistEndret = nå(clock),
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
             meldeperioder = this.meldeperioder,
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
@@ -297,6 +299,7 @@ data class MeldekortbehandlingManuell(
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             meldeperioder = nyeMeldeperioder,
             skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+            skalJournalføreNotat = this.skalJournalføreNotat,
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
         )

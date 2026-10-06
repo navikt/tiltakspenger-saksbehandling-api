@@ -12,6 +12,9 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.repo.toDbJson
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.repo.toJournalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
@@ -118,6 +121,46 @@ class MeldekortvedtakPostgresRepo(
         }
     }
 
+    override fun hentMeldekortvedtakIderMedNotatSomSkalJournalføres(limit: Int): List<VedtakId> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    SELECT v.id
+                    FROM meldekortvedtak v
+                    JOIN meldekortbehandling mb ON mb.id = v.meldekort_id
+                    WHERE v.journalføringsnotat IS NULL
+                      AND mb.skal_journalfore_notat = TRUE
+                    ORDER BY v.opprettet
+                    LIMIT :limit
+                    """,
+                    "limit" to limit,
+                ).map { row ->
+                    VedtakId.fromString(row.string("id"))
+                }.asList,
+            )
+        }
+    }
+
+    override fun markerNotatJournalført(
+        vedtakId: VedtakId,
+        journalføringsnotat: Journalføringsnotat,
+    ) {
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE meldekortvedtak
+                    SET journalføringsnotat = :journalforingsnotat::jsonb
+                    WHERE id = :id
+                    """,
+                    "id" to vedtakId.toString(),
+                    "journalforingsnotat" to journalføringsnotat.toDbJson(),
+                ).asUpdate,
+            )
+        }
+    }
+
     override fun hentMeldekortvedtakTilDatadeling(limit: Int): List<Meldekortvedtak> {
         return sessionFactory.withSession { session ->
             session.run(
@@ -210,6 +253,7 @@ class MeldekortvedtakPostgresRepo(
                 opprettet = opprettet,
                 meldekortbehandling = meldekortbehandling,
                 utbetaling = utbetaling,
+                journalføringsnotat = stringOrNull("journalføringsnotat")?.toJournalføringsnotat(),
             )
         }
     }

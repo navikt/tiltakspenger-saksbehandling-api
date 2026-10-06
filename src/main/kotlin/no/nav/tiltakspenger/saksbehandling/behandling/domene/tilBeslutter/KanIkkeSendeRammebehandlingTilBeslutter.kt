@@ -21,4 +21,7 @@ sealed interface KanIkkeSendeRammebehandlingTilBeslutter {
 
     /** Et annet vedtak har omgjort de samme periodene etter at omgjøringen sist ble oppdatert. */
     data class OmgjøringsgrunnlagetErEndret(val endring: OmgjøringsgrunnlagEndret) : KanIkkeSendeRammebehandlingTilBeslutter
+
+    /** Notatet som journalføres er begrunnelsen for vilkårsvurderingen, så den kan ikke være tom når saksbehandler har valgt å journalføre. */
+    data object MåHaBegrunnelseForÅJournalføreNotat : KanIkkeSendeRammebehandlingTilBeslutter
 }

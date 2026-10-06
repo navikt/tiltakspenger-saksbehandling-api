@@ -28,6 +28,7 @@ import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
 import no.nav.tiltakspenger.saksbehandling.datadeling.infra.client.DatadelingHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.setup.DokumentContext
 import no.nav.tiltakspenger.saksbehandling.infra.repo.DataSourceSetup
+import no.nav.tiltakspenger.saksbehandling.journalnotat.service.JournalførJournalnotatService
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostHttpClient
@@ -539,6 +540,18 @@ open class ApplicationContext(
             meldekortbehandlingRepo = meldekortContext.meldekortbehandlingRepo,
             meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
             datadelingClient = datadelingKlient,
+            clock = clock,
+        )
+    }
+
+    val journalførJournalnotatService by lazy {
+        JournalførJournalnotatService(
+            rammevedtakRepo = behandlingContext.rammevedtakRepo,
+            meldekortvedtakRepo = utbetalingContext.meldekortvedtakRepo,
+            genererJournalnotatKlient = dokumentContext.genererJournalnotatKlient,
+            journalførJournalnotatKlient = dokumentContext.journalførJournalnotatKlient,
+            personService = personContext.personService,
+            navIdentClient = personContext.navIdentClient,
             clock = clock,
         )
     }

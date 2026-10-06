@@ -164,6 +164,7 @@ class SakTest {
             periode = vedtaksperiode,
             journalpostId = null,
             journalføringstidspunkt = null,
+            journalføringsnotat = null,
             utbetaling = null,
             rammebehandling = ObjectMother.nyVedtattSøknadsbehandling(
                 sakId = sakId,
@@ -204,6 +205,7 @@ class SakTest {
             periode = andreVedtaksPeriode,
             journalpostId = null,
             journalføringstidspunkt = null,
+            journalføringsnotat = null,
             utbetaling = null,
             rammebehandling = ObjectMother.nyVedtattRevurderingInnvilgelse(
                 sakId = sakId,

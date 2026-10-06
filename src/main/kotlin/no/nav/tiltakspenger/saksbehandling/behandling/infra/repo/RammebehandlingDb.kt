@@ -170,6 +170,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 utbetaling = utbetaling,
                 utbetalingskontroll = utbetalingskontroll,
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
+                skalJournalføreNotat = boolean("skal_journalfore_notat"),
             )
         }
 
@@ -242,6 +243,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 utbetalingskontroll = utbetalingskontroll,
                 automatiskOpprettetGrunn = stringOrNull("automatisk_opprettet_grunn")?.toAutomatiskOpprettetRevurderingGrunn(),
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
+                skalJournalføreNotat = boolean("skal_journalfore_notat"),
             )
         }
     }
@@ -311,6 +313,7 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
             is Søknadsbehandling -> null
         },
         "skal_sende_vedtaksbrev" to this.skalSendeVedtaksbrev,
+        "skal_journalfore_notat" to this.skalJournalføreNotat,
 
         *this.resultat.tilDbParams(),
     )

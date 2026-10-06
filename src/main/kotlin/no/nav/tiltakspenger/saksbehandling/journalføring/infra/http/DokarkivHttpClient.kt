@@ -30,6 +30,9 @@ import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalførBrevMetadata
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.KunneIkkeJournalføre
+import no.nav.tiltakspenger.saksbehandling.journalnotat.JournalførJournalnotatKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalnotat
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.http.tilJournalpostRequest
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagebehandling
@@ -72,7 +75,8 @@ class DokarkivHttpClient(
     transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) : JournalførRammevedtaksbrevKlient,
     JournalførMeldekortKlient,
-    JournalførKlagebrevKlient {
+    JournalførKlagebrevKlient,
+    JournalførJournalnotatKlient {
 
     private val log = KotlinLogging.logger {}
 
@@ -119,6 +123,14 @@ class DokarkivHttpClient(
         correlationId: CorrelationId,
     ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
         return opprettJournalpost({ klagebehandling.toJournalpostRequest(pdfOgJson) }, correlationId)
+    }
+
+    override suspend fun journalførJournalnotat(
+        journalnotat: Journalnotat,
+        pdfOgJson: PdfOgJson,
+        correlationId: CorrelationId,
+    ): Either<KunneIkkeJournalføre, JournalførteDokumenter> {
+        return opprettJournalpost({ journalnotat.tilJournalpostRequest(pdfOgJson) }, correlationId)
     }
 
     /**

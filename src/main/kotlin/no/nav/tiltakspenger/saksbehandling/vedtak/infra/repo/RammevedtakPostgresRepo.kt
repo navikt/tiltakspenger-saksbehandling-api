@@ -16,6 +16,9 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.periode
 import no.nav.tiltakspenger.saksbehandling.infra.repo.dto.tilDbPeriode
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.repo.toDbJson
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.repo.toJournalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toDbJson
 import no.nav.tiltakspenger.saksbehandling.omgjøring.infra.repo.toOmgjortAvRammevedtak
@@ -126,6 +129,46 @@ class RammevedtakPostgresRepo(
                         "journalpost_id" to journalpostId.toString(),
                         "tidspunkt" to tidspunkt,
                     ),
+                ).asUpdate,
+            )
+        }
+    }
+
+    override fun hentRammevedtakIderMedNotatSomSkalJournalføres(limit: Int): List<VedtakId> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    SELECT rv.id
+                    FROM rammevedtak rv
+                    JOIN behandling b ON b.id = rv.behandling_id
+                    WHERE rv.journalføringsnotat IS NULL
+                      AND b.skal_journalfore_notat = TRUE
+                    ORDER BY rv.opprettet
+                    LIMIT :limit
+                    """,
+                    "limit" to limit,
+                ).map { row ->
+                    VedtakId.fromString(row.string("id"))
+                }.asList,
+            )
+        }
+    }
+
+    override fun markerNotatJournalført(
+        id: VedtakId,
+        journalføringsnotat: Journalføringsnotat,
+    ) {
+        sessionFactory.withSession { session ->
+            session.run(
+                sqlQuery(
+                    """
+                    UPDATE rammevedtak
+                    SET journalføringsnotat = :journalforingsnotat::jsonb
+                    WHERE id = :id
+                    """,
+                    "id" to id.toString(),
+                    "journalforingsnotat" to journalføringsnotat.toDbJson(),
                 ).asUpdate,
             )
         }
@@ -329,6 +372,7 @@ class RammevedtakPostgresRepo(
                 opprettet = localDateTime("opprettet"),
                 utbetaling = utbetaling,
                 omgjortAvRammevedtak = stringOrNull("omgjort_av_rammevedtak").toOmgjortAvRammevedtak(),
+                journalføringsnotat = stringOrNull("journalføringsnotat")?.toJournalføringsnotat(),
             )
         }
     }

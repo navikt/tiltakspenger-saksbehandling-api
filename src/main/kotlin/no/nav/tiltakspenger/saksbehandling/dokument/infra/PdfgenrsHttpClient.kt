@@ -33,6 +33,8 @@ import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.journalnotat.GenererJournalnotatKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalnotat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.GenererVedtaksbrevForMeldekortKlient
@@ -71,7 +73,8 @@ class PdfgenrsHttpClient(
     GenererVedtaksbrevForStansKlient,
     GenererVedtaksbrevForAvslagKlient,
     GenererVedtaksbrevForOpphørKlient,
-    GenererKlagebrevKlient {
+    GenererKlagebrevKlient,
+    GenererJournalnotatKlient {
 
     private val log = KotlinLogging.logger {}
 
@@ -94,6 +97,7 @@ class PdfgenrsHttpClient(
         URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/revurderingInnvilgelse")
     private val pdfgenrsKlageAvvisUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageAvvis")
     private val pdfgenrsKlageInnstillingUrl = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/klageInnstilling")
+    private val pdfgenrsJournalnotatUri = URI.create("$basePdfgenrsUrl/api/v1/genpdf/tpts/journalnotat")
 
     override suspend fun genererInnvilgetVedtakBrev(
         vedtak: Rammevedtak,
@@ -428,6 +432,20 @@ class PdfgenrsHttpClient(
         }
 
         return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsOpphørUri)
+    }
+
+    override suspend fun genererJournalnotat(
+        journalnotat: Journalnotat,
+        hentBrukersNavn: suspend (Fnr) -> Navn,
+        hentSaksbehandlersNavn: suspend (String) -> String,
+    ): Either<KunneIkkeGenererePdf, PdfOgJson> {
+        val jsonPayload = suspend {
+            journalnotat.tilJournalnotatDokumentJson(
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        }
+        return pdfgenrsRequest(jsonPayload = jsonPayload, uri = pdfgenrsJournalnotatUri)
     }
 
     /**

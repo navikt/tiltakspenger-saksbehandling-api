@@ -53,4 +53,9 @@ object Standardfeil {
         melding: String = "Kan ikke oppdatere fordi behandlingen er satt på vent",
         kode: String = "behandlingen_er_satt_på_vent",
     ): ErrorJson = ErrorJson(melding = melding, kode = kode)
+
+    fun måHaBegrunnelseForÅJournalføreNotat(): ErrorJson = ErrorJson(
+        "Begrunnelsen må være utfylt når notatet skal journalføres",
+        "må_ha_begrunnelse_for_å_journalføre_notat",
+    )
 }

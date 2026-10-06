@@ -115,6 +115,7 @@ interface IverksettMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
         jobber: JobberEtterIverksettelse = JobberEtterIverksettelse(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Tuple4<Sak, Meldekortvedtak, MeldekortbehandlingManuell, MeldeperiodeKjedeDTOJson>? {
@@ -128,6 +129,7 @@ interface IverksettMeldekortbehandlingBuilder {
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
         ) ?: return null
         return iverksettMeldekortbehandling(
             tac = tac,
@@ -183,6 +185,9 @@ interface IverksettMeldekortbehandlingBuilder {
             }
             if (jobber.journalførVedtaksbrev) {
                 tac.utbetalingContext.journalførMeldekortvedtakService.journalfør()
+            }
+            if (jobber.journalførNotat) {
+                tac.journalførJournalnotatService.journalførNotater()
             }
 
             return Tuple4(

@@ -75,6 +75,7 @@ interface RammevedtakMother : MotherOfAllMothers {
         brevJson = brevJson,
         utbetaling = utbetaling,
         omgjortAvRammevedtak = OmgjortAvRammevedtak.empty,
+        journalføringsnotat = null,
     )
 
     fun nyRammevedtakInnvilgelse(

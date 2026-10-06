@@ -22,4 +22,7 @@ sealed interface KanIkkeSendeMeldekortbehandlingTilBeslutter {
     data class UtbetalingStøttesIkke(val feil: KanIkkeIverksetteUtbetaling, val sak: Sak) : KanIkkeSendeMeldekortbehandlingTilBeslutter
 
     data object MeldeperiodeneErIkkeFullstendigUtfylt : KanIkkeSendeMeldekortbehandlingTilBeslutter
+
+    /** Notatet som journalføres er begrunnelsen, så den kan ikke være tom når saksbehandler har valgt å journalføre. */
+    data object MåHaBegrunnelseForÅJournalføreNotat : KanIkkeSendeMeldekortbehandlingTilBeslutter
 }

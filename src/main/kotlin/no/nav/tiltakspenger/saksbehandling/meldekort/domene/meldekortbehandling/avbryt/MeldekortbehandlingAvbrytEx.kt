@@ -134,6 +134,7 @@ private fun Meldekortbehandling.avbryt(
         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
         meldeperioder = meldeperioder,
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+        skalJournalføreNotat = skalJournalføreNotat,
         ventestatus = ventestatus,
         klagebehandling = klagebehandling,
     )

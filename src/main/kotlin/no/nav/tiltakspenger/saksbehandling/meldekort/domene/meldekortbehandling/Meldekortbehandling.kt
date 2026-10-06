@@ -50,6 +50,12 @@ sealed interface Meldekortbehandling : AttesterbarBehandling {
     val sistEndret: LocalDateTime
     val skalSendeVedtaksbrev: Boolean
 
+    /**
+     * Saksbehandlers valg om begrunnelsen skal journalføres som et internt notat i Joark etter iverksettelse.
+     * Notatet er kun synlig internt i Nav (Gosys), og deles ikke med bruker.
+     */
+    val skalJournalføreNotat: Boolean
+
     val meldeperioder: Meldeperiodebehandlinger
 
     /** Vi ønsker å kunne utbetale selvom vi ikke får simulert; så denne vil i noen tilfeller være null. */

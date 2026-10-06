@@ -12,6 +12,8 @@ import no.nav.tiltakspenger.saksbehandling.distribusjon.infra.DokdistHttpClient
 import no.nav.tiltakspenger.saksbehandling.dokument.infra.PdfgenrsHttpClient
 import no.nav.tiltakspenger.saksbehandling.infra.setup.Configuration
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.DokarkivHttpClient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.GenererJournalnotatKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.JournalførJournalnotatKlient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.GenererKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.JournalførKlagebrevKlient
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.GenererVedtaksbrevForMeldekortKlient
@@ -45,6 +47,7 @@ open class DokumentContext(
     open val journalførMeldekortKlient: JournalførMeldekortKlient by lazy { dokarkivClient }
     open val journalførRammevedtaksbrevKlient: JournalførRammevedtaksbrevKlient by lazy { dokarkivClient }
     open val journalførKlagevedtaksbrevKlient: JournalførKlagebrevKlient by lazy { dokarkivClient }
+    open val journalførJournalnotatKlient: JournalførJournalnotatKlient by lazy { dokarkivClient }
     private val pdfgenrs by lazy {
         PdfgenrsHttpClient(
             basePdfgenrsUrl = Configuration.pdfgenrsUrl,
@@ -57,4 +60,5 @@ open class DokumentContext(
     open val genererVedtaksbrevForStansKlient: GenererVedtaksbrevForStansKlient by lazy { pdfgenrs }
     open val genererVedtaksbrevForOpphørKlient: GenererVedtaksbrevForOpphørKlient by lazy { pdfgenrs }
     open val genererKlagebrevKlient: GenererKlagebrevKlient by lazy { pdfgenrs }
+    open val genererJournalnotatKlient: GenererJournalnotatKlient by lazy { pdfgenrs }
 }

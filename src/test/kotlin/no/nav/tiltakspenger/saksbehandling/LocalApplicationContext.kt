@@ -38,6 +38,9 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostIdGenerator
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.GenererJournalnotatKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.GenererFakeJournalnotatKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.JournalførFakeJournalnotatKlient
 import no.nav.tiltakspenger.saksbehandling.journalpost.HentJournalpostDokumentService
 import no.nav.tiltakspenger.saksbehandling.journalpost.ValiderJournalpostService
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostClient
@@ -200,6 +203,9 @@ class LocalApplicationContext(
             override val genererVedtaksbrevForMeldekortKlient = genererFakeVedtaksbrevForMeldekortKlient
             override val genererVedtaksbrevForInnvilgelseKlient =
                 this@LocalApplicationContext.genererFakeVedtaksbrevForInnvilgelseKlient
+            override val genererJournalnotatKlient: GenererJournalnotatKlient =
+                realPdfgenrs ?: GenererFakeJournalnotatKlient()
+            override val journalførJournalnotatKlient = JournalførFakeJournalnotatKlient(journalpostIdGenerator)
         }
     }
 

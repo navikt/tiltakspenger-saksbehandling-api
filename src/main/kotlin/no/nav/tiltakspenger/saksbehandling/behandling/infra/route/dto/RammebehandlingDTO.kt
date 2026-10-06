@@ -58,6 +58,7 @@ sealed interface RammebehandlingDTO : RammebehandlingResultatDTO {
     val klagebehandlingId: String?
     val tilbakekrevingId: String?
     val skalSendeVedtaksbrev: Boolean
+    val skalJournalføreNotat: Boolean
     val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>
 }
 
@@ -89,6 +90,7 @@ data class SøknadsbehandlingDTO(
     val manueltBehandlesGrunner: List<String>,
     val kanInnvilges: Boolean,
     override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreNotat: Boolean,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     SøknadsbehandlingResultatDTO by resultatDTO {
@@ -123,6 +125,7 @@ data class RevurderingDTO(
     @get:JsonUnwrapped val resultatDTO: RevurderingResultatDTO,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunnDTO?,
     override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreNotat: Boolean,
     override val gyldigeKommandoer: List<SaksbehandlerBehandlingKommandoDTO>,
 ) : RammebehandlingDTO,
     RevurderingResultatDTO by resultatDTO {
@@ -203,6 +206,7 @@ fun Søknadsbehandling.tilSøknadsbehandlingDTO(
         klagebehandlingId = this.klagebehandling?.id?.toString(),
         tilbakekrevingId = tilbakekrevingId?.toString(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+        skalJournalføreNotat = this.skalJournalføreNotat,
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
@@ -239,6 +243,7 @@ fun Revurdering.tilRevurderingDTO(
         tilbakekrevingId = tilbakekrevingId?.toString(),
         automatiskOpprettetGrunn = this.automatiskOpprettetGrunn?.toDTO(),
         skalSendeVedtaksbrev = this.skalSendeVedtaksbrev,
+        skalJournalføreNotat = this.skalJournalføreNotat,
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),
     )
 }
