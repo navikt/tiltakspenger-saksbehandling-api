@@ -139,9 +139,6 @@ sealed interface Rammebehandling : AttesterbarBehandling {
                 }
                 require(iverksattTidspunkt == null)
 
-                if (this is Revurdering || (this is Søknadsbehandling && attesteringer.isEmpty())) {
-                    require(beslutter == null) { "Beslutter kan ikke være tilknyttet behandlingen dersom det ikke er en underkjent automatisk behandlet søknadsbehandling" }
-                }
                 if (klagebehandling != null) {
                     require(klagebehandling!!.status == Klagebehandlingsstatus.KLAR_TIL_BEHANDLING || klagebehandling!!.erFerdigstilt) {
                         "Klagebehandling knyttet til en rammebehandling som er KLAR_TIL_BEHANDLING må ha status KLAR_TIL_BEHANDLING/FERDIGSTILT, men var ${klagebehandling!!.status}. sakId: $sakId, saksnummer: $saksnummer, rammebehandlingId: $id, klagebehandlingId: ${klagebehandling?.id}"
