@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.periodisering.Periodiserbar
 import no.nav.tiltakspenger.saksbehandling.beregning.Beregning
 import no.nav.tiltakspenger.saksbehandling.felles.Forsøkshistorikk
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldekortbehandling
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldeperiodebehandlingMedBeregning
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.Meldeperiodebehandlinger
@@ -24,6 +25,8 @@ import java.time.LocalDateTime
 /**
  * @param opprettet Tidspunktet vi instansierte og persisterte dette vedtaket første gangen.
  * Dette har ingenting med vedtaksbrevet å gjøre.
+ * @param journalføringsnotat Kvittering for det interne notatet, dersom saksbehandler valgte å journalføre det.
+ * Er null fram til notatet er journalført, og forblir null når notatet ikke skal journalføres.
  * */
 data class Meldekortvedtak(
     override val id: VedtakId,
@@ -35,6 +38,7 @@ data class Meldekortvedtak(
     override val fnr: Fnr,
     override val utbetaling: VedtattUtbetaling,
     val meldekortbehandling: Meldekortbehandling.Behandlet,
+    val journalføringsnotat: Journalføringsnotat?,
 ) : Vedtak,
     Periodiserbar {
     override val behandlingId: MeldekortId = meldekortbehandling.id
@@ -53,6 +57,7 @@ data class Meldekortvedtak(
     val beregningsperiode: Periode = meldekortbehandling.beregning.periode
 
     val skalSendeVedtaksbrev: Boolean = meldekortbehandling.skalSendeVedtaksbrev
+    val skalJournalføreNotat: Boolean = meldekortbehandling.skalJournalføreNotat
     val erAutomatiskBehandlet: Boolean = meldekortbehandling.erAutomatiskBehandling
     val harKorrigering: Boolean = meldekortbehandling.harKorrigering
 
@@ -109,5 +114,6 @@ fun Meldekortbehandling.Behandlet.opprettVedtak(
         journalføringstidspunkt = null,
         meldekortbehandling = this,
         utbetaling = utbetaling,
+        journalføringsnotat = null,
     )
 }

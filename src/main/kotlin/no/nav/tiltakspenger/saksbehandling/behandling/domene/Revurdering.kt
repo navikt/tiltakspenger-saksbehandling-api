@@ -56,6 +56,7 @@ data class Revurdering(
     override val utbetalingskontroll: Utbetalingskontroll?,
     override val klagebehandling: Klagebehandling?,
     override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreNotat: Boolean,
     val automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn? = null,
 ) : Rammebehandling {
 
@@ -242,6 +243,7 @@ data class Revurdering(
                 utbetalingskontroll = null,
                 klagebehandling = klagebehandling,
                 skalSendeVedtaksbrev = true,
+                skalJournalføreNotat = false,
                 automatiskOpprettetGrunn = automatiskOpprettetGrunn,
             )
         }

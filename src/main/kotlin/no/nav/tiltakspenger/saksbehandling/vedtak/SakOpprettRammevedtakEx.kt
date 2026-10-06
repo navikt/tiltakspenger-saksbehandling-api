@@ -116,6 +116,7 @@ fun Sak.opprettRammevedtak(
         vedtaksdato = null,
         journalpostId = null,
         journalføringstidspunkt = null,
+        journalføringsnotat = null,
         distribusjonId = null,
         distribusjonstidspunkt = null,
         sendtTilDatadeling = null,

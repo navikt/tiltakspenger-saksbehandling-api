@@ -176,6 +176,7 @@ class DelautomatiskBehandlingService(
             barnetillegg = barnetillegg,
             automatiskSaksbehandlet = true,
             skalSendeVedtaksbrev = true,
+            skalJournalføreNotat = false,
         )
 
         val (utbetaling, simuleringMedMetadata) = this.beregnInnvilgelse(

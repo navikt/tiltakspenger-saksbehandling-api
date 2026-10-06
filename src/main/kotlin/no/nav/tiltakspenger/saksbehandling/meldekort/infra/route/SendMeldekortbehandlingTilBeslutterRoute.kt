@@ -18,6 +18,7 @@ import no.nav.tiltakspenger.saksbehandling.auditlog.AuditService
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangskontrollService
 import no.nav.tiltakspenger.saksbehandling.felles.autoriserteBrukerroller
 import no.nav.tiltakspenger.saksbehandling.felles.krevSaksbehandlerRolle
+import no.nav.tiltakspenger.saksbehandling.infra.route.Standardfeil
 import no.nav.tiltakspenger.saksbehandling.infra.route.correlationId
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.KanIkkeSendeMeldekortbehandlingTilBeslutter
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.tilBeslutter.SendMeldekortbehandlingTilBeslutterKommando
@@ -82,6 +83,10 @@ fun Route.sendMeldekortTilBeslutningRoute(
                             KanIkkeSendeMeldekortbehandlingTilBeslutter.MeldeperiodeneErIkkeFullstendigUtfylt -> call.respond400BadRequest(
                                 melding = "Meldeperiodene må være fullstendig utfylt for å kunne sende meldekortet til beslutter.",
                                 kode = "meldeperiodene_er_ikke_utfylt",
+                            )
+
+                            KanIkkeSendeMeldekortbehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat -> call.respondJson(
+                                statusAndValue = HttpStatusCode.BadRequest to Standardfeil.måHaBegrunnelseForÅJournalføreNotat(),
                             )
                         }
                     },

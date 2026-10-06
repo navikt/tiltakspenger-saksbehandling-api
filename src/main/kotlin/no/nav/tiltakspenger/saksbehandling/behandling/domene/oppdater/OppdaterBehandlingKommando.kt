@@ -21,6 +21,7 @@ sealed interface OppdaterBehandlingKommando {
     val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?
     val begrunnelseVilkårsvurdering: Begrunnelse?
     val skalSendeVedtaksbrev: Boolean
+    val skalJournalføreNotat: Boolean
 
     sealed interface Innvilgelse {
         val innvilgelsesperioder: IkkeTomPeriodisering<InnvilgelsesperiodeKommando>

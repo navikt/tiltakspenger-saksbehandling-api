@@ -78,6 +78,7 @@ data class MeldekortbehandlingDTO(
     val tekstTilVedtaksbrev: SladdbarVerdi<String?>,
     val tilbakekrevingId: String?,
     val skalSendeVedtaksbrev: Boolean,
+    val skalJournalføreNotat: Boolean,
     /**
      * hendelsene er sortert desc
      */
@@ -138,6 +139,7 @@ fun Meldekortbehandling.tilMeldekortbehandlingDTO(
         tekstTilVedtaksbrev = fritekstTilVedtaksbrev?.verdi.ikkeSladdet(),
         tilbakekrevingId = hentTilbakekreving(id)?.id?.toString(),
         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+        skalJournalføreNotat = skalJournalføreNotat,
         ventestatus = ventestatus.ventestatusHendelser.tilDto(),
         klagebehandlingId = this.klagebehandling?.id?.toString(),
         gyldigeKommandoer = this.finnGyldigeKommandoer(kallendeSaksbehandler).tilDTO(),

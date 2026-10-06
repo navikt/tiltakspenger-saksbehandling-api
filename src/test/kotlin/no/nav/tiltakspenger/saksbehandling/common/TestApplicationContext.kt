@@ -40,6 +40,8 @@ import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeKlagevedtakKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeMeldekortKlient
 import no.nav.tiltakspenger.saksbehandling.journalføring.infra.http.JournalførFakeRammevedtaksbrevKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.GenererFakeJournalnotatKlient
+import no.nav.tiltakspenger.saksbehandling.journalnotat.infra.JournalførFakeJournalnotatKlient
 import no.nav.tiltakspenger.saksbehandling.journalpost.infra.SafJournalpostFakeClient
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.klage.domene.KlagevedtakRepo
@@ -151,6 +153,8 @@ sealed class TestApplicationContext(
     protected open val journalførFakeRammevedtaksbrevKlient by lazy {
         JournalførFakeRammevedtaksbrevKlient(journalpostIdGenerator)
     }
+    protected open val genererFakeJournalnotatKlient by lazy { GenererFakeJournalnotatKlient() }
+    protected open val journalførFakeJournalnotatKlient by lazy { JournalførFakeJournalnotatKlient(journalpostIdGenerator) }
     protected open val journalførFakeKlagevedtaksbrevKlient by lazy {
         JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGeneratorGenerator)
     }
@@ -231,6 +235,8 @@ sealed class TestApplicationContext(
             override val genererVedtaksbrevForStansKlient = genererFakeVedtaksbrevKlient
             override val genererVedtaksbrevForOpphørKlient = genererFakeVedtaksbrevKlient
             override val genererKlagebrevKlient = genererFakeVedtaksbrevKlient
+            override val genererJournalnotatKlient = genererFakeJournalnotatKlient
+            override val journalførJournalnotatKlient = journalførFakeJournalnotatKlient
         }
     }
 

@@ -11,6 +11,7 @@ import no.nav.tiltakspenger.libs.common.MeldekortId
 import no.nav.tiltakspenger.libs.common.NonBlankString
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
@@ -34,7 +35,10 @@ import no.nav.tiltakspenger.saksbehandling.beregning.MeldeperiodeBeregning
 import no.nav.tiltakspenger.saksbehandling.beregning.SammenligningAvBeregninger
 import no.nav.tiltakspenger.saksbehandling.dokument.KunneIkkeGenererePdf
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.fixedClock
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalnotat
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.Brevtekster
 import no.nav.tiltakspenger.saksbehandling.klage.domene.brev.TittelOgTekst
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -407,6 +411,27 @@ class PdfgenrsHttpClientTest {
             innsendingsdato = 1.januar(2025),
             clock = fixedClock,
         )
+
+    @Test
+    fun `genererJournalnotat treffer journalnotat`() {
+        verifiserKunPdfgenrs("journalnotat") {
+            it.genererJournalnotat(
+                journalnotat = Journalnotat(
+                    vedtakId = VedtakId.random(),
+                    sakId = SakId.random(),
+                    saksnummer = saksnummer,
+                    fnr = Fnr.random(),
+                    vedtakstype = Journalnotat.Vedtakstype.MELDEKORT,
+                    saksbehandler = "Z123456",
+                    beslutter = "B123456",
+                    notatsdato = 2.januar(2025),
+                    begrunnelse = Begrunnelse.createOrThrow("begrunnelse"),
+                ),
+                hentBrukersNavn = hentBrukersNavn,
+                hentSaksbehandlersNavn = hentSaksbehandlersNavn,
+            )
+        }
+    }
 
     private fun meldekortvedtakBrevKommando(
         saksnummer: Saksnummer = this.saksnummer,

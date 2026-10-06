@@ -124,6 +124,7 @@ interface TaMeldekortbehandlingBuilder {
         tekstTilVedtaksbrev: String? = null,
         meldeperioder: List<OppdatertMeldeperiodeDTO>? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
     ): Triple<Sak, Meldekortbehandling, MeldekortbehandlingDTOJson>? {
         val (sakMedMeldekortbehandlingUnderBeslutning, meldekortbehandling) = opprettOgSendMeldekortbehandlingTilBeslutning(
@@ -135,6 +136,7 @@ interface TaMeldekortbehandlingBuilder {
             tekstTilVedtaksbrev = tekstTilVedtaksbrev,
             meldeperioder = meldeperioder,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
             forventet = forventet,
         ) ?: return null
 

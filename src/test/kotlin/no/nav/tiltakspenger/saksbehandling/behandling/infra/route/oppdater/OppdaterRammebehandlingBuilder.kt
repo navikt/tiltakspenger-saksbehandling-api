@@ -37,6 +37,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
         innvilgelsesperioder: Innvilgelsesperioder = innvilgelsesperioder(),
         barnetillegg: Barnetillegg = Barnetillegg.utenBarnetillegg(innvilgelsesperioder.perioder),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
@@ -53,6 +54,7 @@ interface OppdaterRammebehandlingBuilder {
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
+                skalJournalføreNotat,
             )
         }
             }
@@ -74,6 +76,7 @@ interface OppdaterRammebehandlingBuilder {
         behandlingId: RammebehandlingId,
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
+        skalJournalføreNotat: Boolean = false,
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
     ): Triple<Sak, Rammebehandling, String> {
@@ -82,7 +85,8 @@ interface OppdaterRammebehandlingBuilder {
             {
               "resultat": "IKKE_VALGT",
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
-              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()}
+              "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
+              "skalJournalføreNotat": $skalJournalføreNotat
             }
         """.trimIndent()
 
@@ -106,6 +110,7 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -114,7 +119,8 @@ interface OppdaterRammebehandlingBuilder {
               "avslagsgrunner": [${avslagsgrunner.joinToString(",") { it.toString().medQuotes() }}],
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
-              "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev
+              "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
+              "skalJournalføreNotat": $skalJournalføreNotat
             }
         """.trimIndent()
 
@@ -139,6 +145,7 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -151,6 +158,7 @@ interface OppdaterRammebehandlingBuilder {
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
+                skalJournalføreNotat,
             )
         }
             }
@@ -178,6 +186,7 @@ interface OppdaterRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -191,6 +200,7 @@ interface OppdaterRammebehandlingBuilder {
                 begrunnelseVilkårsvurdering,
                 fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev,
+                skalJournalføreNotat,
             )
         }
             }
@@ -217,6 +227,7 @@ interface OppdaterRammebehandlingBuilder {
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -226,7 +237,8 @@ interface OppdaterRammebehandlingBuilder {
               "valgteHjemler": [${valgteHjemler.joinToString(",") { it.tilHjemmelForOpphørDTO().toString().medQuotes() }}],
               "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
               "fritekstTilVedtaksbrev": ${fritekstTilVedtaksbrev?.medQuotes()},
-                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev
+                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
+              "skalJournalføreNotat": $skalJournalføreNotat
             }
         """.trimIndent()
 
@@ -276,6 +288,7 @@ interface OppdaterRammebehandlingBuilder {
         forventet: ForventetRespons? = ForventetRespons(200, contentType = "application/json; charset=UTF-8"),
         saksbehandler: Saksbehandler = ObjectMother.saksbehandler(),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Triple<Sak, Rammebehandling, String> {
         @Language("JSON")
         val body = """
@@ -286,7 +299,8 @@ interface OppdaterRammebehandlingBuilder {
               "harValgtStansFraFørsteDagSomGirRett": $harValgtStansFraFørsteDagSomGirRett,
               "stansFraOgMed": ${stansFraOgMed?.toString()?.medQuotes()},
               "resultat": "STANS",
-                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev
+                "skalSendeVedtaksbrev" : $skalSendeVedtaksbrev,
+              "skalJournalføreNotat": $skalJournalføreNotat
             }
         """.trimIndent()
 
@@ -353,6 +367,7 @@ interface OppdaterRammebehandlingBuilder {
         begrunnelseVilkårsvurdering: String? = null,
         fritekstTilVedtaksbrev: String? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): String {
         return """            
             "begrunnelseVilkårsvurdering": ${begrunnelseVilkårsvurdering?.medQuotes()},
@@ -387,7 +402,8 @@ interface OppdaterRammebehandlingBuilder {
                 """.trimIndent()
             }
         },
-        "skalSendeVedtaksbrev": $skalSendeVedtaksbrev
+        "skalSendeVedtaksbrev": $skalSendeVedtaksbrev,
+        "skalJournalføreNotat": $skalJournalføreNotat
         """.trimIndent()
     }
 }

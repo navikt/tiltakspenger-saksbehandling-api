@@ -15,6 +15,7 @@ fun jobber(
     addAll(søknadsbehandlingJobber(applicationContext))
     addAll(utbetalingJobber(isNais, applicationContext))
     addAll(rammevedtaksbrevJobber(applicationContext))
+    addAll(journalnotatJobber(applicationContext))
     addAll(klageJobber(applicationContext))
     addAll(meldekortJobber(applicationContext, clock))
     addAll(tiltaksdeltakerJobber(applicationContext))
@@ -96,6 +97,18 @@ private fun rammevedtaksbrevJobber(
         navn = "saksbehandling-jobb-distribuer-rammevedtaksbrev",
         utfør = { _ ->
             applicationContext.behandlingContext.distribuerRammevedtaksbrevService.distribuer()
+            TaskResultat.Ferdig
+        },
+    ),
+)
+
+private fun journalnotatJobber(
+    applicationContext: ApplicationContext,
+): List<Task> = listOf(
+    Task(
+        navn = "saksbehandling-jobb-journalfør-notater",
+        utfør = { _ ->
+            applicationContext.journalførJournalnotatService.journalførNotater()
             TaskResultat.Ferdig
         },
     ),

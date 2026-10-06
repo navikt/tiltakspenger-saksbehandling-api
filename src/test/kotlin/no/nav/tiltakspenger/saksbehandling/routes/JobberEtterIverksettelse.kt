@@ -16,6 +16,8 @@ data class JobberEtterIverksettelse(
      * Meldekortvedtak har ingen distribusjonsjobb, så byggeren for meldekortbehandling ser bort fra feltet.
      */
     val distribuerVedtaksbrev: Boolean = true,
+    /** Journalfører notatet kun når saksbehandler har valgt det; ellers er jobben en no-op. */
+    val journalførNotat: Boolean = true,
 ) {
     companion object {
         /**
@@ -27,6 +29,7 @@ data class JobberEtterIverksettelse(
             oppdaterUtbetalingsstatus = false,
             journalførVedtaksbrev = false,
             distribuerVedtaksbrev = false,
+            journalførNotat = false,
         )
     }
 }

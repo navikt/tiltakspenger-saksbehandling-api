@@ -12,6 +12,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.getOrFail
@@ -24,10 +25,13 @@ import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfA
 import no.nav.tiltakspenger.saksbehandling.dokument.PdfOgJson
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
+import no.nav.tiltakspenger.saksbehandling.felles.createOrThrow
 import no.nav.tiltakspenger.saksbehandling.fixedClock
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.journalføring.KunneIkkeJournalføre
 import no.nav.tiltakspenger.saksbehandling.journalføring.beskrivelse
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalnotat
 import no.nav.tiltakspenger.saksbehandling.journalpost.DokumentInfoId
 import no.nav.tiltakspenger.saksbehandling.klage.domene.Klagevedtak
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -308,5 +312,29 @@ class DokarkivHttpClientTest {
 
         dokumenter.journalpostId shouldBe JournalpostId("467010363")
         transport.mottatteKall.single().bodyTekst shouldContain "KLAGE-OPPRETTHOLDELSE-TILTAKSPENGER"
+    }
+
+    @Test
+    fun `journalfører journalnotat som NOTAT med egen eksternReferanseId`() = runTest {
+        val transport = FakeHttpTransport().apply { leggIKøJson(dokarkivOkJson(), statusCode = 201) }
+        val journalnotat = Journalnotat(
+            vedtakId = VedtakId.random(),
+            sakId = SakId.random(),
+            saksnummer = Saksnummer.genererSaknummer(3.desember(2025), "4050"),
+            fnr = Fnr.random(),
+            vedtakstype = Journalnotat.Vedtakstype.STANS,
+            saksbehandler = "Z123456",
+            beslutter = "B123456",
+            notatsdato = 3.desember(2025),
+            begrunnelse = Begrunnelse.createOrThrow("begrunnelse"),
+        )
+
+        val dokumenter = nyKlient(transport).journalførJournalnotat(journalnotat, pdfOgJson, correlationId).getOrFail()
+
+        dokumenter.journalpostId shouldBe JournalpostId("467010363")
+        val kall = transport.mottatteKall.single()
+        kall.uri.toString() shouldBe "http://dokarkiv/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"
+        kall.bodyTekst shouldContain "\"journalpostType\":\"NOTAT\""
+        kall.bodyTekst shouldContain "\"eksternReferanseId\":\"${journalnotat.vedtakId}-notat\""
     }
 }

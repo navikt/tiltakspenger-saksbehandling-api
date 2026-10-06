@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammevedtakRepo
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.repo.UtbetalingFakeRepo
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
@@ -53,6 +54,21 @@ class RammevedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : RammevedtakR
         tidspunkt: LocalDateTime,
     ) {
         data.get()[id] = data.get()[id]!!.copy(journalpostId = journalpostId, journalføringstidspunkt = tidspunkt)
+    }
+
+    override fun hentRammevedtakIderMedNotatSomSkalJournalføres(limit: Int): List<VedtakId> {
+        return data.get().values
+            .filter { it.skalJournalføreNotat && it.journalføringsnotat == null }
+            .sortedBy { it.opprettet }
+            .take(limit)
+            .map { it.id }
+    }
+
+    override fun markerNotatJournalført(
+        id: VedtakId,
+        journalføringsnotat: Journalføringsnotat,
+    ) {
+        data.get()[id] = data.get()[id]!!.copy(journalføringsnotat = journalføringsnotat)
     }
 
     override fun hentRammevedtakSomSkalDistribueres(limit: Int): List<VedtakSomSkalDistribueres> {

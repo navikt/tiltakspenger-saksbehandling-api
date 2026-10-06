@@ -38,6 +38,7 @@ data class MeldekortbehandlingAvbrutt(
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreNotat: Boolean,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
 ) : Meldekortbehandling {

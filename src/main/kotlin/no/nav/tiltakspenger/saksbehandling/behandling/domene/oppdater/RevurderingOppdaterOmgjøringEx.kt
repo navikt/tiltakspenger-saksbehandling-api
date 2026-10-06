@@ -101,6 +101,7 @@ private fun Revurdering.oppdaterOmgjøringInnvilgelse(
         ),
         utbetaling = utbetaling,
         skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
+        skalJournalføreNotat = kommando.skalJournalføreNotat,
     ).right()
 }
 
@@ -146,6 +147,7 @@ private fun Revurdering.oppdaterOmgjøringOpphør(
         ),
         utbetaling = utbetaling,
         skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
+        skalJournalføreNotat = kommando.skalJournalføreNotat,
     ).right()
 }
 
@@ -166,6 +168,7 @@ private fun Revurdering.oppdaterOmgjøringIkkeValgt(
             omgjørRammevedtak = rammevedtakSomOmgjøres,
         ),
         utbetaling = utbetaling,
+        skalJournalføreNotat = kommando.skalJournalføreNotat,
     ).right()
 }
 

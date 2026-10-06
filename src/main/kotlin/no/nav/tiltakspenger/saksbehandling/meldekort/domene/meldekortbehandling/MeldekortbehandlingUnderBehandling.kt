@@ -63,6 +63,7 @@ data class MeldekortUnderBehandling(
     override val sistEndret: LocalDateTime,
     override val fritekstTilVedtaksbrev: FritekstTilVedtaksbrev?,
     override val skalSendeVedtaksbrev: Boolean,
+    override val skalJournalføreNotat: Boolean,
     override val meldeperioder: Meldeperiodebehandlinger,
     override val ventestatus: Ventestatus,
     override val klagebehandling: Klagebehandling?,
@@ -90,6 +91,7 @@ data class MeldekortUnderBehandling(
             begrunnelse = kommando.begrunnelse,
             fritekstTilVedtaksbrev = kommando.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = kommando.skalSendeVedtaksbrev,
+            skalJournalføreNotat = kommando.skalJournalføreNotat,
             sistEndret = nå(clock),
         )
 
@@ -110,6 +112,10 @@ data class MeldekortUnderBehandling(
     ): Either<KanIkkeSendeMeldekortbehandlingTilBeslutter, MeldekortbehandlingManuell> {
         validerSaksbehandlerOgTilstand(kommando.saksbehandler, this.meldeperioder, clock).onLeft {
             return it.tilKanIkkeSendeMeldekortTilBeslutter().left()
+        }
+
+        if (skalJournalføreNotat && begrunnelse == null) {
+            return KanIkkeSendeMeldekortbehandlingTilBeslutter.MåHaBegrunnelseForÅJournalføreNotat.left()
         }
 
         // Behandlingen går rett tilbake til samme beslutter dersom den kommer fra en underkjenning.
@@ -135,6 +141,7 @@ data class MeldekortUnderBehandling(
             sistEndret = nå(clock),
             fritekstTilVedtaksbrev = this.fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
             meldeperioder = this.meldeperioder,
             ventestatus = ventestatus,
             klagebehandling = klagebehandling,
@@ -294,6 +301,7 @@ fun Sak.opprettManuellMeldekortbehandling(
             beregning = null,
         ),
         skalSendeVedtaksbrev = true,
+        skalJournalføreNotat = false,
         ventestatus = Ventestatus(),
         klagebehandling = klagebehandlingId?.let {
             val klagebehandling = hentKlagebehandling(it)

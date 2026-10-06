@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtaksliste
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.MeldekortvedtakRepo
@@ -39,6 +40,21 @@ class MeldekortvedtakFakeRepo(val utbetalingRepo: UtbetalingFakeRepo) : Meldekor
 
     override fun hentDeSomSkalJournalføres(limit: Int): List<Meldekortvedtak> {
         return data.get().values.filter { it.journalpostId == null }.take(limit)
+    }
+
+    override fun hentMeldekortvedtakIderMedNotatSomSkalJournalføres(limit: Int): List<VedtakId> {
+        return data.get().values
+            .filter { it.skalJournalføreNotat && it.journalføringsnotat == null }
+            .sortedBy { it.opprettet }
+            .take(limit)
+            .map { it.id }
+    }
+
+    override fun markerNotatJournalført(
+        vedtakId: VedtakId,
+        journalføringsnotat: Journalføringsnotat,
+    ) {
+        data.get()[vedtakId] = data.get()[vedtakId]!!.copy(journalføringsnotat = journalføringsnotat)
     }
 
     override fun hentMeldekortvedtakTilDatadeling(limit: Int): List<Meldekortvedtak> {

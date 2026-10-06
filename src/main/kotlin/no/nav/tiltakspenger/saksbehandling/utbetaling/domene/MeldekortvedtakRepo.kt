@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortvedtak.Meldekortvedtak
 import java.time.LocalDateTime
 
@@ -18,6 +19,17 @@ interface MeldekortvedtakRepo {
     )
 
     fun hentDeSomSkalJournalføres(limit: Int = 10): List<Meldekortvedtak>
+
+    /**
+     * Meldekortvedtak der saksbehandler har valgt å journalføre notatet, men hvor notatet ikke er journalført ennå.
+     * Sortert eldst først.
+     */
+    fun hentMeldekortvedtakIderMedNotatSomSkalJournalføres(limit: Int = 10): List<VedtakId>
+
+    fun markerNotatJournalført(
+        vedtakId: VedtakId,
+        journalføringsnotat: Journalføringsnotat,
+    )
 
     fun hentMeldekortvedtakTilDatadeling(limit: Int = 20): List<Meldekortvedtak>
 

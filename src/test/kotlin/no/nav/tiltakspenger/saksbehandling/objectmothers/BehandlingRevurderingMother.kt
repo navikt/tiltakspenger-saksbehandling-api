@@ -113,6 +113,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
         sisteDagSomGirRett: LocalDate,
         omgjørRammevedtak: OmgjørRammevedtak = OmgjørRammevedtak.empty,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
         kommando: OppdaterRevurderingKommando.Stans = OppdaterRevurderingKommando.Stans(
             sakId = sakId,
             behandlingId = id,
@@ -123,6 +124,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             valgteHjemler = valgteHjemler,
             stansFraOgMed = OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed.create(stansFraOgMed),
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
         ),
         utbetaling: BehandlingUtbetaling? = null,
     ): Revurdering {
@@ -429,6 +431,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
             )
         },
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Rammebehandling {
         return nyOpprettetRevurderingOmgjøring(
             clock = clock,
@@ -457,6 +460,7 @@ interface BehandlingRevurderingMother : MotherOfAllMothers {
                     barnetillegg = Barnetillegg.utenBarnetillegg(omgjøringInnvilgelsesperioder.toNonEmptyListOrNull()!!),
                     vedtaksperiode = omgjørRammevedtak.gjeldendeTotalPeriode!!,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                    skalJournalføreNotat = skalJournalføreNotat,
                 ),
                 utbetaling = null,
                 finnRammevedtakSomOmgjøres = { OmgjørRammevedtak.create(omgjørRammevedtak) },

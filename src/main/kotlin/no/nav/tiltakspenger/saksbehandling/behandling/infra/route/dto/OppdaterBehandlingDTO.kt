@@ -24,6 +24,7 @@ sealed interface OppdaterBehandlingDTO {
     val fritekstTilVedtaksbrev: String?
     val begrunnelseVilkårsvurdering: String?
     val skalSendeVedtaksbrev: Boolean
+    val skalJournalføreNotat: Boolean
 
     fun tilDomene(
         sakId: SakId,

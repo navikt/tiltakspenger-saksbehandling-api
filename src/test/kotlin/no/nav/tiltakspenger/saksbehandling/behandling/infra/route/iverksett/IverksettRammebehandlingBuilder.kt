@@ -60,6 +60,9 @@ interface IverksettRammebehandlingBuilder {
             if (jobber.distribuerVedtaksbrev) {
                 tac.behandlingContext.distribuerRammevedtaksbrevService.distribuer()
             }
+            if (jobber.journalførNotat) {
+                tac.journalførJournalnotatService.journalførNotater()
+            }
             val sak = tac.sakContext.sakRepo.hentForSakId(sakId)!!
             val rammevedtak = sak.vedtaksliste.hentRammevedtakForBehandlingId(behandlingId)
             val rammebehandling = sak.rammebehandlinger.hentRammebehandling(behandlingId)!!

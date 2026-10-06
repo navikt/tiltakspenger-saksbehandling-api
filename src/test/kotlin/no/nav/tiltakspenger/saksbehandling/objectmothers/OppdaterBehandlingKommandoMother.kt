@@ -56,6 +56,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): OppdaterSøknadsbehandlingKommando.Innvilgelse {
         return OppdaterSøknadsbehandlingKommando.Innvilgelse(
             sakId = sakId,
@@ -68,6 +69,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             innvilgelsesperioder = innvilgelsesperioder.tilPeriodisering(),
             barnetillegg = barnetillegg,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
         )
     }
 
@@ -80,6 +82,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         avslagsgrunner: NonEmptySet<Avslagsgrunnlag> = nonEmptySetOf(Avslagsgrunnlag.DeltarIkkePåArbeidsmarkedstiltak),
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): OppdaterSøknadsbehandlingKommando.Avslag {
         return OppdaterSøknadsbehandlingKommando.Avslag(
             sakId = sakId,
@@ -90,6 +93,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             begrunnelseVilkårsvurdering = begrunnelseVilkårsvurdering?.let { Begrunnelse.createOrThrow(it) },
             avslagsgrunner = avslagsgrunner,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
         )
     }
 
@@ -109,6 +113,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
         ),
         correlationId: CorrelationId = CorrelationId.generate(),
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): OppdaterRevurderingKommando.Innvilgelse {
         return OppdaterRevurderingKommando.Innvilgelse(
             sakId = sakId,
@@ -120,6 +125,7 @@ interface OppdaterBehandlingKommandoMother : MotherOfAllMothers {
             innvilgelsesperioder = innvilgelsesperioder.tilPeriodisering(),
             barnetillegg = barnetillegg,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
         )
     }
 }

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.persistering.domene.SessionContext
 import no.nav.tiltakspenger.libs.persistering.domene.TransactionContext
 import no.nav.tiltakspenger.saksbehandling.distribusjon.DistribusjonId
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
+import no.nav.tiltakspenger.saksbehandling.journalnotat.Journalføringsnotat
 import no.nav.tiltakspenger.saksbehandling.omgjøring.OmgjortAvRammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import no.nav.tiltakspenger.saksbehandling.vedtak.VedtakSomSkalDistribueres
@@ -37,6 +38,13 @@ interface RammevedtakRepo {
         brevJson: String,
         journalpostId: JournalpostId,
         tidspunkt: LocalDateTime,
+    )
+
+    fun hentRammevedtakIderMedNotatSomSkalJournalføres(limit: Int = 10): List<VedtakId>
+
+    fun markerNotatJournalført(
+        id: VedtakId,
+        journalføringsnotat: Journalføringsnotat,
     )
 
     fun markerDistribuert(id: VedtakId, distribusjonId: DistribusjonId, distribusjonstidspunkt: LocalDateTime)

@@ -128,6 +128,7 @@ interface MeldekortMother : MotherOfAllMothers {
         dager: UtfyltMeldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
         sistEndret: LocalDateTime = opprettet,
         skalSendeVedtaksbrev: Boolean = false,
+        skalJournalføreNotat: Boolean = false,
         ventestatus: Ventestatus = Ventestatus(),
     ): MeldekortUnderBehandling {
         return MeldekortUnderBehandling(
@@ -147,6 +148,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = sistEndret,
             fritekstTilVedtaksbrev = null,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = dager,
                 beregning = null,
@@ -189,6 +191,7 @@ interface MeldekortMother : MotherOfAllMothers {
         simulering: Simulering? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
         ventestatus: Ventestatus = Ventestatus(),
     ): MeldekortbehandlingAvbrutt {
         return MeldekortbehandlingAvbrutt(
@@ -210,6 +213,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = avbruttTidspunkt,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = genererMeldekortdagerFraMeldeperiode(meldeperiode),
                 beregning = null,
@@ -264,6 +268,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = iverksattTidspunkt ?: sendtTilBeslutning,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): MeldekortbehandlingManuell {
         return MeldekortbehandlingManuell(
             id = id,
@@ -283,6 +288,7 @@ interface MeldekortMother : MotherOfAllMothers {
             sistEndret = sistEndret,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
             meldeperioder = Meldeperiodebehandlinger(
                 meldeperiode = dager,
                 beregning = meldekortperiodeBeregning,
@@ -601,6 +607,7 @@ interface MeldekortMother : MotherOfAllMothers {
         begrunnelse: Begrunnelse? = null,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Meldekortbehandlinger {
         val kommandoer = meldeperioder.map { meldeperiode ->
             OppdaterMeldekortbehandlingKommando(
@@ -619,6 +626,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 begrunnelse = begrunnelse,
                 fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalJournalføreNotat = skalJournalføreNotat,
             )
         }
 
@@ -675,6 +683,7 @@ interface MeldekortMother : MotherOfAllMothers {
         sistEndret: LocalDateTime = opprettet,
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Pair<Meldekortbehandlinger, MeldekortbehandlingManuell> {
         val meldeperiode = meldeperiode(
             clock = clock,
@@ -708,6 +717,7 @@ interface MeldekortMother : MotherOfAllMothers {
                     sistEndret = sistEndret,
                     fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                     skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                    skalJournalføreNotat = skalJournalføreNotat,
                     meldeperioder = Meldeperiodebehandlinger(
                         meldeperiode = dager,
                         beregning = null,
@@ -801,6 +811,7 @@ interface MeldekortMother : MotherOfAllMothers {
         beslutter: Saksbehandler = ObjectMother.beslutter(),
         sistEndret: LocalDateTime = opprettet,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): Meldekortbehandlinger {
         val meldekortId = kommando.meldekortId
         val sakId = kommando.sakId
@@ -842,6 +853,7 @@ interface MeldekortMother : MotherOfAllMothers {
                 sistEndret = sistEndret,
                 fritekstTilVedtaksbrev = null,
                 skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                skalJournalføreNotat = skalJournalføreNotat,
                 meldeperioder = Meldeperiodebehandlinger(
                     meldeperiode = dager,
                     beregning = null,
@@ -1036,6 +1048,7 @@ interface MeldekortMother : MotherOfAllMothers {
         ),
         fritekstTilVedtaksbrev: FritekstTilVedtaksbrev? = null,
         skalSendeVedtaksbrev: Boolean = true,
+        skalJournalføreNotat: Boolean = false,
     ): OppdaterMeldekortbehandlingKommando {
         return OppdaterMeldekortbehandlingKommando(
             sakId = sakId,
@@ -1046,6 +1059,7 @@ interface MeldekortMother : MotherOfAllMothers {
             correlationId = correlationId,
             fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
             skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+            skalJournalføreNotat = skalJournalføreNotat,
         )
     }
 

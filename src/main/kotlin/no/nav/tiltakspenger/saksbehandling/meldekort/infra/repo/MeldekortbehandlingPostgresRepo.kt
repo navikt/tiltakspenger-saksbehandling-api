@@ -82,6 +82,7 @@ class MeldekortbehandlingPostgresRepo(
                         ventestatus,
                         sist_endret,
                         skal_sende_vedtaksbrev,
+                        skal_journalfore_notat,
                         klagebehandling_id
                     ) values (
                         :id,
@@ -102,6 +103,7 @@ class MeldekortbehandlingPostgresRepo(
                         :ventestatus::jsonb,
                         :sist_endret,
                         :skal_sende_vedtaksbrev,
+                        :skal_journalfore_notat,
                         :klagebehandling_id
                     )
                     """,
@@ -124,6 +126,7 @@ class MeldekortbehandlingPostgresRepo(
                     "ventestatus" to meldekortbehandling.ventestatus.toDbJson(),
                     "sist_endret" to meldekortbehandling.sistEndret,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
+                    "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
             )
@@ -216,6 +219,7 @@ class MeldekortbehandlingPostgresRepo(
                         utbetalingskontroll = :utbetalingskontroll::jsonb,
                         tekst_til_vedtaksbrev = :tekst_til_vedtaksbrev,
                         skal_sende_vedtaksbrev = :skal_sende_vedtaksbrev,
+                        skal_journalfore_notat = :skal_journalfore_notat,
                         klagebehandling_id = :klagebehandling_id
                     where id = :id
                     """,
@@ -237,6 +241,7 @@ class MeldekortbehandlingPostgresRepo(
                     "utbetalingskontroll" to meldekortbehandling.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),
                     "tekst_til_vedtaksbrev" to meldekortbehandling.fritekstTilVedtaksbrev?.verdi,
                     "skal_sende_vedtaksbrev" to meldekortbehandling.skalSendeVedtaksbrev,
+                    "skal_journalfore_notat" to meldekortbehandling.skalJournalføreNotat,
                     "klagebehandling_id" to meldekortbehandling.klagebehandling?.let { it.id.toString() },
                 ).asUpdate,
             )
@@ -566,6 +571,7 @@ class MeldekortbehandlingPostgresRepo(
             }
 
             val skalSendeVedtaksbrev = row.boolean("skal_sende_vedtaksbrev")
+            val skalJournalføreNotat = row.boolean("skal_journalfore_notat")
             val klagebehandling = row.stringOrNull("klagebehandling_id")?.let {
                 // Foreign key-en meldekortbehandling_klagebehandling_id_fkey garanterer at klagebehandlingen finnes.
                 // Tilstanden kan dermed ikke konstrueres, heller ikke ved å mutere databasen direkte, så en throw med melding ville blitt stående som udekket kode.
@@ -609,6 +615,7 @@ class MeldekortbehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        skalJournalføreNotat = skalJournalføreNotat,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
                     )
@@ -634,6 +641,7 @@ class MeldekortbehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        skalJournalføreNotat = skalJournalføreNotat,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
                     )
@@ -656,6 +664,7 @@ class MeldekortbehandlingPostgresRepo(
                         fritekstTilVedtaksbrev = fritekstTilVedtaksbrev,
                         meldeperioder = meldeperioder,
                         skalSendeVedtaksbrev = skalSendeVedtaksbrev,
+                        skalJournalføreNotat = skalJournalføreNotat,
                         ventestatus = ventestatus,
                         klagebehandling = klagebehandling,
                     )

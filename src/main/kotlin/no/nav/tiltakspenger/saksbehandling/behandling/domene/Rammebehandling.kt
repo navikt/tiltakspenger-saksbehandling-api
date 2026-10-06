@@ -101,6 +101,12 @@ sealed interface Rammebehandling : AttesterbarBehandling {
 
     val skalSendeVedtaksbrev: Boolean
 
+    /**
+     * Saksbehandlers valg om begrunnelsen for vilkårsvurderingen skal journalføres som et internt notat i Joark etter iverksettelse.
+     * Notatet er kun synlig internt i Nav (Gosys), og deles ikke med bruker.
+     */
+    val skalJournalføreNotat: Boolean
+
     fun getTiltaksdeltakelse(internDeltakelseId: TiltaksdeltakerId): TiltaksdeltakelseIntern? =
         saksopplysninger.getTiltaksdeltakelse(internDeltakelseId)
 
