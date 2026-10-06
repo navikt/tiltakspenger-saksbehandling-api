@@ -106,6 +106,11 @@ fun KanIkkeIverksetteMeldekortbehandling.statusOgErrorJson(
         kode = "meldeperiodene_er_ikke_siste_versjon",
     )
 
+    KanIkkeIverksetteMeldekortbehandling.MeldekortetMåVæreBehandletForÅIverksettes -> HttpStatusCode.BadRequest to ErrorJson(
+        melding = "Meldekortet må være behandlet for å kunne iverksettes",
+        kode = "må_være_behandlet",
+    )
+
     is KanIkkeIverksetteMeldekortbehandling.SimuleringFeil -> feil.tilSimuleringErrorJson()
 
     is KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke -> tilErrorJsonMedSak(saksbehandler, clock)

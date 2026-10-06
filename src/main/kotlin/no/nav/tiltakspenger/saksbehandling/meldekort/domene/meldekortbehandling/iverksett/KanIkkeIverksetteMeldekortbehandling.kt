@@ -23,4 +23,6 @@ sealed interface KanIkkeIverksetteMeldekortbehandling {
     data object MeldeperiodeneErIkkeSisteVersjon : KanIkkeIverksetteMeldekortbehandling
 
     data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeIverksetteMeldekortbehandling
+
+    data object MeldekortetMåVæreBehandletForÅIverksettes : KanIkkeIverksetteMeldekortbehandling
 }

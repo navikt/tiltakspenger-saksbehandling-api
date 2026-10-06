@@ -36,6 +36,11 @@ sealed interface KanIkkeLeggeTilbakeRammebehandling : Loggbar {
         override val loggkontekst get() = Loggkontekst("behandlingen har status $status")
     }
 
+    /** Behandlingen er ikke lenger under beslutning hos utøvende beslutter. */
+    data object BehandlingenErIkkeLengerUnderBeslutning : KanIkkeLeggeTilbakeRammebehandling {
+        override val loggkontekst = Loggkontekst("behandlingen er ikke lenger under beslutning hos utøvende beslutter")
+    }
+
     /** Klagebehandlingen knyttet til rammebehandlingen kunne ikke legges tilbake. */
     data class FeilVedKlagebehandling(val originalfeil: KanIkkeLeggeTilbakeKlagebehandling) : KanIkkeLeggeTilbakeRammebehandling {
         override val loggkontekst get() = Loggkontekst("kunne ikke legge tilbake tilknyttet klagebehandling: $originalfeil")

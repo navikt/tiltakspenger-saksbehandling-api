@@ -49,14 +49,15 @@ class IverksettMeldekortbehandlingService(
         val meldekortbehandling: Meldekortbehandling = sak.hentMeldekortbehandling(meldekortId)
             ?: throw IllegalArgumentException("Fant ikke meldekort med id $meldekortId i sak $sakId")
 
+        // Hvis en saksbehandler har angret behandlingen i mellomtiden
         if (meldekortbehandling.status == MeldekortbehandlingStatus.UNDER_BEHANDLING) {
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
         }
         if (meldekortbehandling.beslutter == null || meldekortbehandling.status != MeldekortbehandlingStatus.UNDER_BESLUTNING) {
             return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeUnderBeslutning.left()
         }
-        require(meldekortbehandling is MeldekortbehandlingManuell) {
-            "Meldekortet må være behandlet for å iverksettes"
+        if (meldekortbehandling !is MeldekortbehandlingManuell) {
+            return KanIkkeIverksetteMeldekortbehandling.MeldekortetMåVæreBehandletForÅIverksettes.left()
         }
         // Sjekkes før kontrollsimuleringen, siden den krever at det er beslutteren på behandlingen som ber om oppdateringen.
         if (meldekortbehandling.saksbehandler == kommando.beslutter.navIdent) {
@@ -83,14 +84,21 @@ class IverksettMeldekortbehandlingService(
 
         behandlingMedKontroll.validerKanIverksetteUtbetaling().onLeft {
             it.logg(logger) { "Utbetaling på meldekortbehandlingen har et resultat som ikke kan iverksettes. sakId: $sakId, meldekortId: $meldekortId" }
-            // Lagrer kontrollen slik at beslutter ser hva som avviker.
-            val oppdatert = meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
-                meldekortbehandling = behandlingMedKontroll,
-                utøvendeBeslutter = kommando.beslutter,
-            )
-            if (!oppdatert) {
+
+            val vellykket = sessionFactory.withTransactionContext { tx ->
+                // Lagrer kontrollen slik at beslutter ser hva som avviker.
+                val oppdatert = meldekortbehandlingRepo.oppdaterHvisFortsattUnderBeslutning(
+                    meldekortbehandling = behandlingMedKontroll,
+                    utøvendeBeslutter = kommando.beslutter,
+                    transactionContext = tx,
+                )
+                oppdatert
+            }
+
+            if (!vellykket) {
                 return KanIkkeIverksetteMeldekortbehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
             }
+
             return KanIkkeIverksetteMeldekortbehandling.UtbetalingStøttesIkke(it, sakMedKontroll).left()
         }
 

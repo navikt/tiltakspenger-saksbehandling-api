@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.service.behandling
 
 import arrow.core.Either
+import arrow.core.left
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
 import no.nav.tiltakspenger.libs.common.Saksbehandler
@@ -33,10 +34,21 @@ class LeggTilbakeRammebehandlingService(
             .leggTilbakeRammebehandling(saksbehandler, clock)
             .map { (oppdatertRammebehandling, statistikkhendelser) ->
                 val oppdatertSak = sak.oppdaterRammebehandling(oppdatertRammebehandling)
-                val statistikkDTO = statistikkService.generer(statistikkhendelser)
-                sessionFactory.withTransactionContext { tx ->
-                    rammebehandlingRepo.lagre(oppdatertRammebehandling, tx)
-                    statistikkService.lagre(statistikkDTO, tx)
+                if (rammebehandling.erUnderBeslutning) {
+                    val oppdatert = behandlingService.lagreMedStatistikkHvisFortsattUnderBeslutning(
+                        behandling = oppdatertRammebehandling,
+                        statistikkhendelser = statistikkhendelser,
+                        utøvendeBeslutter = saksbehandler,
+                    )
+                    if (!oppdatert) {
+                        return KanIkkeLeggeTilbakeRammebehandling.BehandlingenErIkkeLengerUnderBeslutning.left()
+                    }
+                } else {
+                    val statistikkDTO = statistikkService.generer(statistikkhendelser)
+                    sessionFactory.withTransactionContext { tx ->
+                        rammebehandlingRepo.lagre(oppdatertRammebehandling, tx)
+                        statistikkService.lagre(statistikkDTO, tx)
+                    }
                 }
                 oppdatertSak to oppdatertRammebehandling
             }

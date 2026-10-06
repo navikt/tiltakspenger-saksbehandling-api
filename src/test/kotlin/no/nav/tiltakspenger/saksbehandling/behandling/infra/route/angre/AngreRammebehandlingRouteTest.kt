@@ -269,7 +269,7 @@ class AngreRammebehandlingRouteTest {
                     """
                     {
                       "melding": "Du må være saksbehandleren som er tildelt behandlingen for å angre.",
-                      "kode": "maa_vaere_saksbehandler_for_behandlingen"
+                      "kode": "må_være_saksbehandler_for_behandlingen"
                     }
                     """.trimIndent(),
                     "application/json; charset=UTF-8",

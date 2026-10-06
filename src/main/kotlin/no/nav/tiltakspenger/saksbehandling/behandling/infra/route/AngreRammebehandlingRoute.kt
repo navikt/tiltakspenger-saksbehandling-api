@@ -76,7 +76,7 @@ fun KunneIkkeAngreBehandling.tilStatusOgErrorJson(): Pair<HttpStatusCode, ErrorJ
 
     KunneIkkeAngreBehandling.MåVæreSaksbehandlerForBehandlingen -> HttpStatusCode.Forbidden to ErrorJson(
         melding = "Du må være saksbehandleren som er tildelt behandlingen for å angre.",
-        kode = "maa_vaere_saksbehandler_for_behandlingen",
+        kode = "må_være_saksbehandler_for_behandlingen",
     )
 
     KunneIkkeAngreBehandling.BehandlingenErIkkeLengerSendtTilBeslutning -> HttpStatusCode.Conflict to ErrorJson(
