@@ -1,4 +1,10 @@
 version: 2
+# Dependabot tillater bare verter som er deklarert her.
+# Uten oppføringen stoppes oppdateringer av egne biblioteker.
+registries:
+  github-packages-speil:
+    type: maven-repository
+    url: https://github-package-registry-mirror.gc.nav.no/cached/maven-release
 updates:
   - package-ecosystem: gradle
     directory: "/"
@@ -11,6 +17,8 @@ updates:
       exclude:
         - "com.github.navikt.*"
         - "no.nav.*"
+    registries:
+      - github-packages-speil
     ignore:
       # Konsist 0.17.3 krasjer med nyere kotlin-compiler-embeddable; pinnen i build.gradle.kts følger Konsists egen versjon.
       - dependency-name: "org.jetbrains.kotlin:kotlin-compiler-embeddable"
