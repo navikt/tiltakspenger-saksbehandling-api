@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Saksnummer
 import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class IkkeInnvilgbarSøknad(
@@ -18,6 +19,7 @@ data class IkkeInnvilgbarSøknad(
     override val barnetillegg: List<BarnetilleggFraSøknad>,
     override val opprettet: LocalDateTime,
     override val tidsstempelHosOss: LocalDateTime,
+    override val mottattDatoForSøknad: LocalDate,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
     override val avbrutt: Søknadshendelser,

@@ -21,6 +21,7 @@ data class InnvilgbarSøknad(
     override val barnetillegg: List<BarnetilleggFraSøknad>,
     override val opprettet: LocalDateTime,
     override val tidsstempelHosOss: LocalDateTime,
+    override val mottattDatoForSøknad: LocalDate,
     override val sakId: SakId,
     override val saksnummer: Saksnummer,
     override val avbrutt: Søknadshendelser,

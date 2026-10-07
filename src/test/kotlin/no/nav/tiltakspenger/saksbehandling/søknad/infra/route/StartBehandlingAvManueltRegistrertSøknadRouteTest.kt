@@ -8,6 +8,8 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -164,6 +166,48 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                     .søknader.single { it.journalpostId == journalpostId }
                     .søknadstype shouldBe søknadstype
             }
+        }
+    }
+
+    @Test
+    fun `mottatt dato fra bodyen lagres på søknaden og leses tilbake`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-mottatt-dato",
+                manueltSattSøknadMottattDato = 14.februar(2025),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.single { it.journalpostId == "journalpost-mottatt-dato" }
+                .mottattDatoForSøknad shouldBe 14.februar(2025)
+        }
+    }
+
+    @Test
+    fun `avviser søknad uten mottatt dato`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-uten-mottatt-dato",
+                manueltSattSøknadMottattDato = null,
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Kunne ikke deserialisere request","kode":"ugyldig_request"}""",
+                    ),
+                ),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.none { it.journalpostId == "journalpost-uten-mottatt-dato" } shouldBe true
         }
     }
 }
