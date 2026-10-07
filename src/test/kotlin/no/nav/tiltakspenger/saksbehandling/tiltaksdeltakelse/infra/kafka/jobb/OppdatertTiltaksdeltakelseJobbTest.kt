@@ -14,9 +14,12 @@ import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.februar
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juli
 import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
@@ -706,5 +709,164 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(3.mai(2025)),
             )
         }
+    }
+
+    /**
+     * Deltakelsen er innvilget, stanset eller opphørt fra 1. mars og innvilget på nytt fra 1. april.
+     * Endringen skal vurderes mot vedtaket som gjelder i perioden endringen berører.
+     */
+    @ParameterizedTest
+    @CsvSource(
+        "false, MENGDE",
+        "true, MENGDE",
+        "false, STARTDATO",
+        "true, STARTDATO",
+        "false, FORLENGELSE",
+        "true, FORLENGELSE",
+        "false, AVKORTET_SLUTTDATO",
+        "true, AVKORTET_SLUTTDATO",
+        "false, AVBRUTT_I_BORTFALLSPERIODEN",
+        "true, AVBRUTT_I_BORTFALLSPERIODEN",
+        "false, UENDRET",
+        "true, UENDRET",
+    )
+    fun `innvilget, stanset eller opphørt og innvilget på nytt vurderes mot gjeldende vedtak i perioden`(
+        opphør: Boolean,
+        endringstype: EndringEtterNyInnvilgelse,
+    ) {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val (sak, _, førsteVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            if (opphør) {
+                iverksettOmgjøringOpphør(
+                    tac = tac,
+                    sakId = sak.id,
+                    rammevedtakIdSomOmgjøres = førsteVedtak.id,
+                    vedtaksperiode = 1.mars(2025) til 30.juni(2025),
+                )
+            } else {
+                iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = 1.mars(2025))
+            }
+            val (sakMedNyInnvilgelse, nyInnvilgelse) = iverksettRevurderingInnvilgelse(
+                tac = tac,
+                sakId = sak.id,
+                innvilgelsesperioder = innvilgelsesperioder(1.april(2025) til 30.juni(2025), deltakelse),
+            )
+
+            val (nåtilstand, forventetEndring, forventetRevurdering) = when (endringstype) {
+                EndringEtterNyInnvilgelse.MENGDE -> Triple(
+                    deltakelse.copy(deltakelseProsent = 60F),
+                    TiltaksdeltakerEndring.AndreEndringer(
+                        endretDeltakelsesmengde = TiltaksdeltakerEndring.EndretDeltakelsesmengde(60F, deltakelse.antallDagerPerUke),
+                    ),
+                    nyInnvilgelse.id,
+                )
+
+                EndringEtterNyInnvilgelse.STARTDATO -> Triple(
+                    deltakelse.copy(deltakelseFraOgMed = 1.februar(2025)),
+                    TiltaksdeltakerEndring.AndreEndringer(endretStartdato = TiltaksdeltakerEndring.EndretStartdato(1.februar(2025))),
+                    førsteVedtak.id,
+                )
+
+                EndringEtterNyInnvilgelse.FORLENGELSE -> Triple(
+                    deltakelse.copy(deltakelseTilOgMed = 31.juli(2025)),
+                    TiltaksdeltakerEndring.Forlengelse(31.juli(2025)),
+                    null,
+                )
+
+                EndringEtterNyInnvilgelse.AVKORTET_SLUTTDATO -> Triple(
+                    deltakelse.copy(deltakelseTilOgMed = 31.mai(2025)),
+                    TiltaksdeltakerEndring.AndreEndringer(endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(31.mai(2025))),
+                    nyInnvilgelse.id,
+                )
+
+                EndringEtterNyInnvilgelse.AVBRUTT_I_BORTFALLSPERIODEN -> Triple(
+                    deltakelse.copy(deltakelseTilOgMed = 15.mars(2025), deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
+                    TiltaksdeltakerEndring.AvbruttDeltakelse,
+                    null,
+                )
+
+                EndringEtterNyInnvilgelse.UENDRET -> Triple(deltakelse, null, null)
+            }
+
+            val oppdatert = tac.registrerEndringOgBehandle(
+                sakMedNyInnvilgelse,
+                deltakelse,
+                nåtilstand,
+                forventetResultat = if (forventetEndring == null) IngenRelevantEndring::class else RevurderingOpprettet::class,
+            )
+
+            if (forventetEndring == null) {
+                oppdatert.rammebehandlinger.map { it.id } shouldBe sakMedNyInnvilgelse.rammebehandlinger.map { it.id }
+                return@withTestApplicationContextAndPostgres
+            }
+            oppdatert.rammebehandlinger shouldHaveSize sakMedNyInnvilgelse.rammebehandlinger.size + 1
+            val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe forventetEndring
+            when (endringstype) {
+                EndringEtterNyInnvilgelse.FORLENGELSE -> revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
+
+                EndringEtterNyInnvilgelse.AVBRUTT_I_BORTFALLSPERIODEN -> revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
+
+                else -> revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
+                    .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(forventetRevurdering)
+            }
+        }
+    }
+
+    /**
+     * Opphøret midt i perioden splitter det første vedtaket i to gjeldende deler.
+     * Både start og slutt vurderes da mot det første vedtaket, som er det eneste som omgjøres.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = ["MENGDE", "STARTDATO", "AVKORTET_SLUTTDATO"])
+    fun `opphør midt i perioden uten ny innvilgelse omgjør det opprinnelige vedtaket`(endringstype: String) {
+        withTestApplicationContextAndPostgres { tac ->
+            val deltakelse = tac.tiltaksdeltakelse(5.januar(2025) til 30.juni(2025))
+            val (sak, _, førsteVedtak) = iverksettSøknadsbehandling(
+                tac = tac,
+                tiltaksdeltakelse = deltakelse,
+                innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
+            )
+            val (sakMedOpphør) = iverksettOmgjøringOpphør(
+                tac = tac,
+                sakId = sak.id,
+                rammevedtakIdSomOmgjøres = førsteVedtak.id,
+                vedtaksperiode = 1.mars(2025) til 31.mars(2025),
+            )
+            val (nåtilstand, forventetEndring) = when (endringstype) {
+                "MENGDE" -> deltakelse.copy(antallDagerPerUke = 3F) to TiltaksdeltakerEndring.AndreEndringer(
+                    endretDeltakelsesmengde = TiltaksdeltakerEndring.EndretDeltakelsesmengde(deltakelse.deltakelseProsent, 3F),
+                )
+
+                "STARTDATO" -> deltakelse.copy(deltakelseFraOgMed = 1.februar(2025)) to TiltaksdeltakerEndring.AndreEndringer(
+                    endretStartdato = TiltaksdeltakerEndring.EndretStartdato(1.februar(2025)),
+                )
+
+                else -> deltakelse.copy(deltakelseTilOgMed = 31.mai(2025)) to TiltaksdeltakerEndring.AndreEndringer(
+                    endretSluttdato = TiltaksdeltakerEndring.EndretSluttdato(31.mai(2025)),
+                )
+            }
+
+            val oppdatert = tac.registrerEndringOgBehandle(sakMedOpphør, deltakelse, nåtilstand, forventetResultat = RevurderingOpprettet::class)
+
+            val revurdering = oppdatert.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
+            revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe forventetEndring
+            revurdering.resultat.shouldBeInstanceOf<Omgjøringsresultat.OmgjøringIkkeValgt>()
+                .omgjørRammevedtak.rammevedtakIDer shouldBe listOf(førsteVedtak.id)
+        }
+    }
+
+    enum class EndringEtterNyInnvilgelse {
+        MENGDE,
+        STARTDATO,
+        FORLENGELSE,
+        AVKORTET_SLUTTDATO,
+        AVBRUTT_I_BORTFALLSPERIODEN,
+        UENDRET,
     }
 }

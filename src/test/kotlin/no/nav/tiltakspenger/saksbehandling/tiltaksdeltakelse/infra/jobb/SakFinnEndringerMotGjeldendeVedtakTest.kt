@@ -404,6 +404,100 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
             )
     }
 
+    @Test
+    fun `innvilget, stanset og innvilget på nytt - uendret deltakelse gir ingen endringer`() {
+        sakInnvilgetStansetOgInnvilgetPåNytt().finnEndringer(deltakelse).shouldBeNull()
+    }
+
+    @Test
+    fun `innvilget, stanset og innvilget på nytt - deltakelsesmengden sammenlignes med den nye innvilgelsen`() {
+        val sak = sakInnvilgetStansetOgInnvilgetPåNytt()
+        val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
+
+        sak.vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBe VurdertTiltaksdeltakerEndring(
+            endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F)),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
+        )
+    }
+
+    @Test
+    fun `innvilget, stanset og innvilget på nytt - senere startdato omgjør bare vedtakene startdatoen berører`() {
+        val sak = sakInnvilgetStansetOgInnvilgetPåNytt()
+        val (førsteInnvilgelse) = sak.rammevedtaksliste.verdi
+        val startdatoIStansen = iDag.minusWeeks(3)
+        val startdatoIDenNyeInnvilgelsen = iDag.minusWeeks(1)
+
+        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIStansen)) shouldBe VurdertTiltaksdeltakerEndring(
+            endring = AndreEndringer(endretStartdato = EndretStartdato(startdatoIStansen)),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(førsteInnvilgelse.id),
+        )
+        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIDenNyeInnvilgelsen)) shouldBe VurdertTiltaksdeltakerEndring(
+            endring = AndreEndringer(endretStartdato = EndretStartdato(startdatoIDenNyeInnvilgelsen)),
+            automatiskRevurdering = null,
+        )
+    }
+
+    @Test
+    fun `innvilget, stanset og innvilget på nytt - endret sluttdato vurderes mot den nye innvilgelsen`() {
+        val sak = sakInnvilgetStansetOgInnvilgetPåNytt()
+        val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
+        val forlengetSluttdato = deltakelse.deltakelseTilOgMed!!.plusMonths(1)
+        val avkortetSluttdato = iDag.plusWeeks(1)
+
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato)) shouldBe
+            VurdertTiltaksdeltakerEndring(Forlengelse(forlengetSluttdato), AutomatiskRevurderingAvEndring.Innvilgelse)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = avkortetSluttdato)) shouldBe VurdertTiltaksdeltakerEndring(
+            endring = AndreEndringer(endretSluttdato = EndretSluttdato(avkortetSluttdato)),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
+        )
+    }
+
+    @Test
+    fun `innvilget, stanset og innvilget på nytt - sluttdato avkortet inn i stansen gir stans`() {
+        val sluttdatoIStansen = iDag.minusWeeks(3)
+
+        sakInnvilgetStansetOgInnvilgetPåNytt().vurder(deltakelse.copy(deltakelseTilOgMed = sluttdatoIStansen)) shouldBe
+            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+    }
+
+    @Test
+    fun `innvilget, stanset og innvilget på nytt med ny tilstand - hver del sammenlignes med sitt gjeldende vedtak`() {
+        val nyTilstand = deltakelse.copy(deltakelseProsent = 60F, antallDagerPerUke = 3F)
+        val sak = sakInnvilgetStansetOgInnvilgetPåNytt(nyTilstand = nyTilstand)
+        val (førsteInnvilgelse) = sak.rammevedtaksliste.verdi
+        val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
+        val senereStartdato = deltakelse.deltakelseFraOgMed!!.plusWeeks(1)
+
+        sak.finnEndringer(nyTilstand).shouldBeNull()
+        sak.vurder(deltakelse) shouldBe VurdertTiltaksdeltakerEndring(
+            endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 2F)),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
+        )
+        sak.vurder(nyTilstand.copy(deltakelseFraOgMed = senereStartdato)) shouldBe VurdertTiltaksdeltakerEndring(
+            endring = AndreEndringer(endretStartdato = EndretStartdato(senereStartdato)),
+            automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(førsteInnvilgelse.id),
+        )
+    }
+
+    @Test
+    fun `stanset i dag og innvilget på nytt frem i tid - endringer vurderes mot den kommende innvilgelsen`() {
+        val sak = sakInnvilgetStansetOgInnvilgetPåNytt(
+            stansFraOgMed = iDag.minusWeeks(1),
+            nyInnvilgelseFraOgMed = iDag.plusWeeks(1),
+        )
+        val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
+
+        sak.finnEndringer(deltakelse).shouldBeNull()
+        sak.vurder(deltakelse.copy(deltakelseProsent = 60F)).automatiskRevurdering shouldBe
+            AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id)
+        sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBe
+            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe
+            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(2))) shouldBe
+            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+    }
+
     private fun Sak.vurder(nåtilstand: TiltaksdeltakelseIntern): VurdertTiltaksdeltakerEndring =
         finnEndringerMotGjeldendeVedtak(deltakelse.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock).shouldNotBeNull()
 
@@ -514,6 +608,18 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         )
         return sak.leggTilSøknadsbehandling(behandling)
     }
+
+    /**
+     * Deltakelsen innvilges i hele perioden, stanses fra [stansFraOgMed] og innvilges på nytt fra [nyInnvilgelseFraOgMed] med [nyTilstand].
+     * Gir tre gjeldende vedtak: den første innvilgelsen, stansen og den nye innvilgelsen.
+     */
+    private fun sakInnvilgetStansetOgInnvilgetPåNytt(
+        stansFraOgMed: LocalDate = iDag.minusMonths(1),
+        nyInnvilgelseFraOgMed: LocalDate = iDag.minusWeeks(2),
+        nyTilstand: TiltaksdeltakelseIntern = deltakelse,
+    ): Sak = sakMedInnvilgelse()
+        .medStans(stansFraOgMed = stansFraOgMed)
+        .medInnvilgelse(innvilgelsesperiode = nyInnvilgelseFraOgMed til deltakelse.deltakelseTilOgMed!!, innvilgetDeltakelse = nyTilstand)
 
     private fun Sak.medStans(stansFraOgMed: LocalDate): Sak {
         val stansClock = Clock.offset(clock, Duration.ofSeconds(10))
