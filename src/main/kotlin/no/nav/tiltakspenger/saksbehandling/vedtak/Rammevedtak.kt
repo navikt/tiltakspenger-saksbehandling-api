@@ -9,7 +9,6 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.leggSammen
-import no.nav.tiltakspenger.libs.periode.overlapper
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periode.trekkFra
 import no.nav.tiltakspenger.libs.periodisering.IkkeTomPeriodisering
@@ -140,12 +139,6 @@ data class Rammevedtak(
         } else {
             innvilgelsesperioder?.perioder?.trekkFra(omgjortAvRammevedtak.perioder) ?: emptyList()
         }.leggSammen()
-    }
-
-    val gjeldendeTiltaksdeltakelser: Periodisering<TiltaksdeltakelseIntern> by lazy {
-        if (valgteTiltaksdeltakelser == null) return@lazy TomPeriodisering.instance()
-
-        valgteTiltaksdeltakelser.filter { gjeldendeInnvilgetPerioder.overlapper(it.periode) }
     }
 
     val gjeldendeBarnetillegg: Periodisering<AntallBarn> by lazy {

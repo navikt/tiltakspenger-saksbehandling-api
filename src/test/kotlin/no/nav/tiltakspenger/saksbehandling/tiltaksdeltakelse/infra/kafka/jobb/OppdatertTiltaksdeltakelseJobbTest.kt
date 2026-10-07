@@ -101,24 +101,27 @@ class OppdatertTiltaksdeltakelseJobbTest {
         return oppdatertSak
     }
 
+    /**
+     * Stansen eller opphøret dekker slutten av deltakelsen i gjeldende vedtak, så saken har allerede tatt stilling til slutten.
+     * En forlengelse er da ikke relevant, uavhengig av om det er rett igjen før stansen eller opphøret.
+     */
     @ParameterizedTest
     @CsvSource(
-        "false, 2025-03-31, 2025-03-01, false",
-        "true, 2025-03-31, 2025-03-01, false",
-        "false, 2025-05-05, 2025-04-01, false",
-        "true, 2025-05-05, 2025-04-01, false",
-        "false, 2025-05-05, 2025-05-01, false",
-        "true, 2025-05-05, 2025-05-01, false",
-        "false, 2025-05-05, 2025-05-02, true",
-        "true, 2025-05-05, 2025-05-02, true",
-        "false, 2025-12-31, 2025-07-01, true",
-        "true, 2025-12-31, 2025-07-01, true",
+        "false, 2025-03-31, 2025-03-01",
+        "true, 2025-03-31, 2025-03-01",
+        "false, 2025-05-05, 2025-04-01",
+        "true, 2025-05-05, 2025-04-01",
+        "false, 2025-05-05, 2025-05-01",
+        "true, 2025-05-05, 2025-05-01",
+        "false, 2025-05-05, 2025-05-02",
+        "true, 2025-05-05, 2025-05-02",
+        "false, 2025-12-31, 2025-07-01",
+        "true, 2025-12-31, 2025-07-01",
     )
-    fun `forlengelse etter stans eller opphør krever rett i relevant periode`(
+    fun `forlengelse etter stans eller opphør av slutten gir ingen revurdering`(
         opphør: Boolean,
         opprinneligSluttdato: LocalDate,
         bortfallFraOgMed: LocalDate,
-        forventRevurdering: Boolean,
     ) {
         withTestApplicationContextAndPostgres { tac ->
             val tiltaksdeltakelse = tac.tiltaksdeltakelse(5.januar(2025) til opprinneligSluttdato)
@@ -138,24 +141,15 @@ class OppdatertTiltaksdeltakelseJobbTest {
                 iverksettRevurderingStans(tac = tac, sakId = sak.id, stansFraOgMed = bortfallFraOgMed)
             }
             val behandlingerFør = tac.sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.map { it.id }
-            val nySluttdato = opprinneligSluttdato.plusMonths(1)
 
             val oppdatertSak = tac.registrerEndringOgBehandle(
                 sak,
                 tiltaksdeltakelse,
-                nåtilstand = tiltaksdeltakelse.copy(deltakelseTilOgMed = nySluttdato),
-                forventetResultat = if (forventRevurdering) RevurderingOpprettet::class else IngenRelevantEndring::class,
+                nåtilstand = tiltaksdeltakelse.copy(deltakelseTilOgMed = opprinneligSluttdato.plusMonths(1)),
+                forventetResultat = IngenRelevantEndring::class,
             )
 
-            if (forventRevurdering) {
-                oppdatertSak.rammebehandlinger shouldHaveSize behandlingerFør.size + 1
-                val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
-                revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
-                revurdering.automatiskOpprettetGrunn.shouldNotBeNull().endring shouldBe
-                    TiltaksdeltakerEndring.Forlengelse(nySluttdato)
-            } else {
-                oppdatertSak.rammebehandlinger.map { it.id } shouldBe behandlingerFør
-            }
+            oppdatertSak.rammebehandlinger.map { it.id } shouldBe behandlingerFør
         }
     }
 

@@ -1,32 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
-import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tiltakDeltakerstatus
 import java.time.Clock
 import java.time.LocalDate
 
 /**
- * Sammenligner nå-tilstanden fra tiltakshistorikk med den ferskeste kjente tilstanden for deltakelsen i saken, og tolker forskjellen til ett utfall.
- * Gir null dersom deltakelsen ikke er kjent fra noen vedtatt eller åpen manuell behandling, eller dersom ingenting er endret.
- */
-fun Sak.finnEndringer(
-    tiltaksdeltakerId: TiltaksdeltakerId,
-    oppdatertDeltakelse: Tiltaksdeltakelse.GirRett,
-    clock: Clock,
-): TiltaksdeltakerEndring? {
-    val kjentTilstand = finnSisteRelevanteTiltaksdeltakelse(tiltaksdeltakerId, clock) ?: return null
-    return kjentTilstand.tilDeltakelsestilstand().finnEndringer(oppdatertDeltakelse.tilDeltakelsestilstand(clock), clock)
-}
-
-/**
  * Feltene endringsvurderingen sammenligner, likt for kjent tilstand og nå-tilstanden fra tiltakshistorikk.
  */
-private data class Deltakelsestilstand(
+data class Deltakelsestilstand(
     val deltakelseFraOgMed: LocalDate?,
     val deltakelseTilOgMed: LocalDate?,
     val deltakelseStatus: TiltakDeltakerstatus,
@@ -34,7 +18,7 @@ private data class Deltakelsestilstand(
     val antallDagerPerUke: Float?,
 )
 
-private fun TiltaksdeltakelseIntern.tilDeltakelsestilstand() = Deltakelsestilstand(
+fun TiltaksdeltakelseIntern.tilDeltakelsestilstand() = Deltakelsestilstand(
     deltakelseFraOgMed = deltakelseFraOgMed,
     deltakelseTilOgMed = deltakelseTilOgMed,
     deltakelseStatus = deltakelseStatus,
@@ -42,7 +26,7 @@ private fun TiltaksdeltakelseIntern.tilDeltakelsestilstand() = Deltakelsestilsta
     antallDagerPerUke = antallDagerPerUke,
 )
 
-private fun Tiltaksdeltakelse.GirRett.tilDeltakelsestilstand(clock: Clock) = Deltakelsestilstand(
+fun Tiltaksdeltakelse.GirRett.tilDeltakelsestilstand(clock: Clock) = Deltakelsestilstand(
     deltakelseFraOgMed = fraOgMed,
     deltakelseTilOgMed = tilOgMed,
     deltakelseStatus = tiltakDeltakerstatus(clock),
@@ -51,56 +35,12 @@ private fun Tiltaksdeltakelse.GirRett.tilDeltakelsestilstand(clock: Clock) = Del
 )
 
 /**
- * Ignorerer vedtak som allerede er stanset eller opphørt i relevant periode.
- * Utløpte innvilgelser er fortsatt relevante dersom det var rett på den opprinnelige sluttdatoen.
- */
-private fun Sak.finnSisteRelevanteTiltaksdeltakelse(
-    tiltaksdeltakerId: TiltaksdeltakerId,
-    clock: Clock,
-): TiltaksdeltakelseIntern? {
-    val vedtatteBehandlingerMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.verdier
-        .filter { vedtak ->
-            val harInnvilgetForTiltaket = vedtak.valgteTiltaksdeltakelser!!.any {
-                it.verdi.internDeltakelseId == tiltaksdeltakerId
-            }
-
-            val harRettIRelevantPeriode by lazy {
-                val sisteInnvilgetDato = vedtak.innvilgelsesperioder!!.tilOgMed
-                val dagensDato = LocalDate.now(clock)
-
-                if (sisteInnvilgetDato.isBefore(dagensDato)) {
-                    rammevedtaksliste.harInnvilgetTiltakspengerPåDato(sisteInnvilgetDato)
-                } else {
-                    rammevedtaksliste.innvilgelsesperioder.overlapper(dagensDato til sisteInnvilgetDato)
-                }
-            }
-
-            harInnvilgetForTiltaket && harRettIRelevantPeriode
-        }
-        .map { it.rammebehandling }
-
-    val åpneBehandlingerMedRelevantTiltaksdeltakelse = rammebehandlinger.åpneBehandlinger
-        .filter { !it.erUnderAutomatiskBehandling && it.getTiltaksdeltakelse(tiltaksdeltakerId) != null }
-
-    val behandlingerMedRelevantTiltaksdeltakelse = vedtatteBehandlingerMedRelevantTiltaksdeltakelse
-        .plus(åpneBehandlingerMedRelevantTiltaksdeltakelse)
-
-    if (behandlingerMedRelevantTiltaksdeltakelse.isEmpty()) {
-        return null
-    }
-
-    return behandlingerMedRelevantTiltaksdeltakelse
-        .maxBy { it.sistEndret }
-        .getTiltaksdeltakelse(tiltaksdeltakerId)!!
-}
-
-/**
- * Tolker endringene mellom nå-tilstanden fra tiltakshistorikk og tilstanden saken kjenner til.
+ * Tolker endringene mellom nå-tilstanden fra tiltakshistorikk og en kjent tilstand for deltakelsen, for eksempel fra en åpen behandling.
  * Utfallene prioriteres i rekkefølgen avbrutt, ikke aktuell, forlengelse og andre endringer.
  * Avsluttet som forventet gis bare når statusendringen er den eneste endringen.
  * Gir null dersom ingenting relevant er endret.
  */
-private fun Deltakelsestilstand.finnEndringer(
+fun Deltakelsestilstand.finnEndringer(
     oppdatertDeltakelse: Deltakelsestilstand,
     clock: Clock,
 ): TiltaksdeltakerEndring? {
@@ -135,11 +75,11 @@ private fun Deltakelsestilstand.harSammeTilOgMed(oppdatertDeltakelse: Deltakelse
     return deltakelseTilOgMed == oppdatertDeltakelse.deltakelseTilOgMed
 }
 
-private fun Deltakelsestilstand.harSammeStatus(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
+fun Deltakelsestilstand.harSammeStatus(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return deltakelseStatus == oppdatertDeltakelse.deltakelseStatus
 }
 
-private fun Deltakelsestilstand.harSammeDeltakelsesmengde(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
+fun Deltakelsestilstand.harSammeDeltakelsesmengde(oppdatertDeltakelse: Deltakelsestilstand): Boolean {
     return compareValues(deltakelseProsent ?: 0F, oppdatertDeltakelse.deltakelseProsent ?: 0F) == 0 &&
         compareValues(antallDagerPerUke ?: 0F, oppdatertDeltakelse.antallDagerPerUke ?: 0F) == 0
 }
@@ -210,7 +150,7 @@ private fun Deltakelsestilstand.erForlengelse(oppdatertDeltakelse: Deltakelsesti
         oppdatertDeltakelse.deltakelseTilOgMed?.isAfter(gammelSluttdato) == true
 }
 
-private fun Deltakelsestilstand.endretDeltakelsesmengde(
+fun Deltakelsestilstand.endretDeltakelsesmengde(
     oppdatertDeltakelse: Deltakelsestilstand,
 ): TiltaksdeltakerEndring.EndretDeltakelsesmengde? {
     if (harSammeDeltakelsesmengde(oppdatertDeltakelse)) {

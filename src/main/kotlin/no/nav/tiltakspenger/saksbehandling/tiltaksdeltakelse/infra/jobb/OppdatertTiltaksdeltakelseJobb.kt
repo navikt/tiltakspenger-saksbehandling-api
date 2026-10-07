@@ -8,7 +8,6 @@ import arrow.core.right
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
-import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.httpklient.loggFeil
 import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
@@ -18,7 +17,6 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.RammebehandlingRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
@@ -38,7 +36,6 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.Tiltaksdeltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.loggFeil
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.http.tilLesbarNåtilstand
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -77,7 +74,8 @@ class OppdatertTiltaksdeltakelseJobb(
                 behandleDeltaker(deltaker)
                     .onRight { resultat ->
                         log.info { "Behandlet endret tiltaksdeltakelse for deltaker $deltakerId: ${resultat::class.simpleName}" }
-                    }.onLeft { feil ->
+                    }
+                    .onLeft { feil ->
                         // Markøren står igjen, slik at endringen prøves på nytt ved neste kjøring.
                         when (feil) {
                             is TiltaksdeltakelseEndringKunneIkkeBehandles.UventetFeil ->
@@ -161,19 +159,21 @@ class OppdatertTiltaksdeltakelseJobb(
             return TiltaksdeltakelseEndringBehandlet.IngenLesbarNåtilstand.right()
         }
 
-        val endring = sak.finnEndringer(deltaker.id, oppdatertDeltakelse, clock)
+        val vurdertEndring = sak.finnEndringerMotGjeldendeVedtak(deltaker.id, oppdatertDeltakelse, clock)
 
-        if (endring == null) {
+        if (vurdertEndring == null) {
             log.info { "Fant ingen relevante endringer for $logIder" }
             return TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring(oppdatertDeltakelse).right()
         }
+
+        val endring = vurdertEndring.endring
 
         if (endring is TiltaksdeltakerEndring.AvsluttetSomForventet) {
             log.info { "Tiltaksdeltakelsen er avsluttet som forventet, gjør ingenting for $logIder" }
             return TiltaksdeltakelseEndringBehandlet.AvsluttetSomForventet(oppdatertDeltakelse).right()
         }
 
-        val revurderingSomSkalOpprettes = sak.vurderRevurdering(deltaker.id, endring)
+        val revurderingSomSkalOpprettes = vurdertEndring.automatiskRevurdering
 
         return if (revurderingSomSkalOpprettes != null) {
             log.info { "Tiltaksdeltakelse er endret, oppretter revurdering ($logIder)" }
@@ -207,7 +207,7 @@ class OppdatertTiltaksdeltakelseJobb(
 
     private suspend fun forberedRevurdering(
         sak: Sak,
-        revurderingSomSkalOpprettes: AutomatiskRevurdering,
+        revurderingSomSkalOpprettes: AutomatiskRevurderingAvEndring,
         endring: TiltaksdeltakerEndring,
         oppdatertTiltaksdeltakelse: Tiltaksdeltakelse.GirRett,
         logIder: String,
@@ -217,7 +217,7 @@ class OppdatertTiltaksdeltakelseJobb(
             correlationId = CorrelationId.generate(),
             saksbehandler = null,
             revurderingType = revurderingSomSkalOpprettes.type,
-            vedtakIdSomOmgjøres = revurderingSomSkalOpprettes.vedtakIdSomOmgjøres,
+            vedtakIdSomOmgjøres = (revurderingSomSkalOpprettes as? AutomatiskRevurderingAvEndring.Omgjøring)?.vedtakIdSomOmgjøres,
             klagebehandlingId = null,
             automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(endring = endring),
         )
@@ -279,107 +279,9 @@ class OppdatertTiltaksdeltakelseJobb(
         }
     }
 
-    private fun Sak.vurderRevurdering(
-        deltakerId: TiltaksdeltakerId,
-        endring: TiltaksdeltakerEndring,
-    ): AutomatiskRevurdering? {
-        if (!this.harFørstegangsvedtak || this.rammebehandlinger.åpneBehandlinger.isNotEmpty()) {
-            log.info {
-                "Oppretter ikke revurdering hvis det finnes åpne behandlinger, eller førstegangsvedtak mangler - tiltaksdeltakelse $deltakerId, sakId $id"
-            }
-            return null
-        }
-
-        return when (endring) {
-            is TiltaksdeltakerEndring.AvbruttDeltakelse -> vurderRevurderingForAvbrudd(deltakerId)
-
-            // En forlengelse som allerede er innvilget kan fortsatt kreve omgjøring dersom deltakelsesmengden er endret samtidig.
-            is TiltaksdeltakerEndring.Forlengelse -> vurderRevurderingForForlengelse(endring)
-                ?: endring.endretDeltakelsesmengde?.let { vurderOmgjøring(deltakerId) }
-
-            is TiltaksdeltakerEndring.AndreEndringer -> {
-                val harEndretPeriodeEllerMengde = endring.endretStartdato != null ||
-                    endring.endretSluttdato != null ||
-                    endring.endretDeltakelsesmengde != null
-                if (harEndretPeriodeEllerMengde) vurderOmgjøring(deltakerId) else null
-            }
-
-            is TiltaksdeltakerEndring.IkkeAktuellDeltakelse,
-            is TiltaksdeltakerEndring.AvsluttetSomForventet,
-            -> null
-        }
-    }
-
-    private fun Sak.vurderRevurderingForAvbrudd(deltakerId: TiltaksdeltakerId): AutomatiskRevurdering? {
-        val idag = LocalDate.now(clock)
-
-        val harRettFremover = rammevedtaksliste.sisteDagSomGirRett?.let { it >= idag } ?: false
-
-        // Dersom det ikke finnes dager med rett i fremtiden, er sannsynligvis innvilgelsen stanset allerede
-        if (!harRettFremover) {
-            return null
-        }
-
-        val harAndreTiltaksdeltakelserFremover = rammevedtaksliste.valgteTiltaksdeltakelser.filter {
-            it.periode.tilOgMed >= idag && it.verdi.internDeltakelseId != deltakerId
-        }.verdier.isNotEmpty()
-
-        // Oppretter ikke stans dersom det også er innvilget for andre tiltaksdeltakelser
-        if (harAndreTiltaksdeltakelserFremover) {
-            return vurderOmgjøring(deltakerId)
-        }
-
-        return AutomatiskRevurdering(StartRevurderingType.STANS)
-    }
-
-    private fun Sak.vurderRevurderingForForlengelse(endring: TiltaksdeltakerEndring.Forlengelse): AutomatiskRevurdering? {
-        // Dersom det allerede er rett frem til ny sluttdato, så har forlengelsen sannsynligvis allerede blitt iverksatt
-        // TODO: vi kunne kanskje sjekke mot gjeldende vedtak i stedet for siste dag på hele saken, for de tilfellene der det finnes flere vedtak, og et annet vedtak enn det siste forlenges.
-        // Dette skjer sannsynligvis veldig sjelden (aldri?)
-        if (sisteDagSomGirRett != null && endring.nySluttdato <= sisteDagSomGirRett) {
-            return null
-        }
-
-        return AutomatiskRevurdering(StartRevurderingType.INNVILGELSE)
-    }
-
-    private fun Sak.vurderOmgjøring(deltakerId: TiltaksdeltakerId): AutomatiskRevurdering? {
-        val vedtakMedRelevantTiltaksdeltakelse = rammevedtaksliste.innvilgetTidslinje.filter {
-            it.verdi.gjeldendeTiltaksdeltakelser.verdier.any { deltakelse -> deltakelse.internDeltakelseId == deltakerId }
-        }.verdier
-
-        if (vedtakMedRelevantTiltaksdeltakelse.isEmpty()) {
-            log.error { "Forventet minst ett vedtak med deltakerId $deltakerId på sak $id" }
-            return null
-        }
-
-        // Dersom det er flere vedtak med denne deltakelsen, må saksbehandler selv ta stilling til hvilke som evt skal omgjøres
-        // TODO: Når vi støtter å omgjøre flere vedtak med en omgjøring, kan dette også gjøres automatisk her
-        if (vedtakMedRelevantTiltaksdeltakelse.size != 1) {
-            return null
-        }
-
-        return AutomatiskRevurdering(
-            type = StartRevurderingType.OMGJØRING,
-            vedtakIdSomOmgjøres = vedtakMedRelevantTiltaksdeltakelse.single().id,
-        )
-    }
-
     companion object {
         // Venter på eventuelle flere hendelser for samme deltakelse før nå-tilstanden hentes.
         const val MINUTTER_FORSINKELSE: Long = 15L
-    }
-}
-
-private data class AutomatiskRevurdering(
-    val type: StartRevurderingType,
-    val vedtakIdSomOmgjøres: VedtakId? = null,
-) {
-
-    init {
-        require(type != StartRevurderingType.OMGJØRING || vedtakIdSomOmgjøres != null) {
-            "Ved omgjøring må vedtakIdSomOmgjøres være satt"
-        }
     }
 }
 
