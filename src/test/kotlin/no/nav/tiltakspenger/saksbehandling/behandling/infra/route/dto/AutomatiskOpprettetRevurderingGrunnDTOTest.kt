@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.dato.april
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test
  */
 class AutomatiskOpprettetRevurderingGrunnDTOTest {
 
-    private fun TiltaksdeltakerEndring.tilJson(): String = serialize(AutomatiskOpprettetRevurderingGrunn(this).toDTO())
+    private fun TiltaksdeltakerEndring.tilJson(): String = serialize(AutomatiskOpprettetRevurderingGrunn(this, tiltaksdeltakerId = TiltaksdeltakerId.random()).toDTO())
 
     @Test
     fun `endringer uten detaljer blir én endring med bare type`() {

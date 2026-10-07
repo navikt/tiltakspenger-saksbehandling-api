@@ -64,6 +64,12 @@ class RammebehandlingFakeRepo : RammebehandlingRepo {
         }.filterIsInstance<Søknadsbehandling>().map { it.id }
     }
 
+    override fun hentAutomatiskeRevurderingIder(limit: Int): List<RammebehandlingId> {
+        return data.get().values.filter {
+            it.erUnderAutomatiskBehandling
+        }.filterIsInstance<Revurdering>().sortedBy { it.opprettet }.take(limit).map { it.id }
+    }
+
     override fun taBehandlingSaksbehandler(
         rammebehandling: Rammebehandling,
         transactionContext: TransactionContext?,

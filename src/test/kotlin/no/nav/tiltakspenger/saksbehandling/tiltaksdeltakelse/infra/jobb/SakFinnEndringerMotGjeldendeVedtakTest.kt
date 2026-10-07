@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
+import arrow.core.Either
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -17,9 +19,11 @@ import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.barnetillegg.Barnetillegg
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.ManueltBehandlesGrunn
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Søknadsbehandling
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.iverksett.iverksett
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.oppdater
@@ -272,16 +276,16 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakMedInnvilgelse()
 
         sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.Stans(utfylling = null)
+            AutomatiskRevurderingAvEndring.Stans
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).automatiskRevurdering shouldBe
-            AutomatiskRevurderingAvEndring.Stans(utfylling = null)
+            AutomatiskRevurderingAvEndring.Stans
     }
 
     @Test
     fun `avsluttet deltakelse med passert sluttdato gir stans som kan behandles automatisk fra dagen etter sluttdato`() {
         val sluttdato = iDag.minusWeeks(1)
 
-        sakMedInnvilgelse().vurderStans(
+        sakMedInnvilgelse().utledStans(
             deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = sluttdato),
         ) shouldBe AutomatiskStans(
             hjemmel = HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak,
@@ -290,33 +294,50 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
                 "Automatisk behandlet. Tiltaksdeltakelsen er registrert med status Avbrutt og sluttdato ${sluttdato.format(norskDatoFormatter)}. " +
                     "Tiltakspengene stanses fra og med ${sluttdato.plusDays(1).format(norskDatoFormatter)} fordi bruker ikke lenger deltar på arbeidsmarkedstiltak.",
             )!!,
-        )
+        ).right()
         listOf(TiltakDeltakerstatus.HarSluttet, TiltakDeltakerstatus.Fullført).forEach { status ->
-            sakMedInnvilgelse().vurderStans(deltakelse.copy(deltakelseStatus = status, deltakelseTilOgMed = sluttdato))
-                .shouldNotBeNull().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(sluttdato.plusDays(1))
+            sakMedInnvilgelse().utledStans(deltakelse.copy(deltakelseStatus = status, deltakelseTilOgMed = sluttdato))
+                .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(sluttdato.plusDays(1))
         }
-        sakMedInnvilgelse().vurderStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag))
-            .shouldNotBeNull().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.plusDays(1))
+        sakMedInnvilgelse().utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag))
+            .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.plusDays(1))
     }
 
     @Test
     fun `stans som kan behandles automatisk fra første dag som gir rett når sluttdato er før innvilgelsen`() {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = iDag.minusWeeks(2) til deltakelse.deltakelseTilOgMed!!)
 
-        sak.vurderStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag.minusWeeks(3)))
-            .shouldNotBeNull().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraFørsteDagSomGirRett
+        sak.utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag.minusWeeks(3)))
+            .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraFørsteDagSomGirRett
     }
 
     @Test
-    fun `stans kan ikke behandles automatisk uten avsluttet status, med sluttdato i fremtiden eller uten rett etter sluttdato`() {
+    fun `stans kan ikke behandles automatisk uten deltakelse, avsluttet status eller passert sluttdato`() {
         val sak = sakMedInnvilgelse()
+        val avbrutt = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)
 
-        sak.vurderStans(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).shouldBeNull()
-        sak.vurderStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)).shouldBeNull()
-        sak.vurderStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag.plusDays(1))).shouldBeNull()
-        sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag)
-            .vurderStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag))
-            .shouldBeNull()
+        sak.utledAutomatiskStans(deltakelse.internDeltakelseId, nåtilstand = null, iDag = iDag) shouldBe
+            ManueltBehandlesGrunn.STANS_FANT_IKKE_TILTAKSDELTAKELSE.left()
+        sak.utledStans(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe
+            ManueltBehandlesGrunn.STANS_DELTAKELSEN_ER_IKKE_AVSLUTTET.left()
+        sak.utledStans(avbrutt.copy(deltakelseTilOgMed = null)) shouldBe
+            ManueltBehandlesGrunn.STANS_DELTAKELSEN_MANGLER_SLUTTDATO.left()
+        sak.utledStans(avbrutt) shouldBe ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT.left()
+        sak.utledStans(avbrutt.copy(deltakelseTilOgMed = iDag.plusDays(1))) shouldBe
+            ManueltBehandlesGrunn.STANS_SLUTTDATO_ER_IKKE_PASSERT.left()
+    }
+
+    @Test
+    fun `stans kan ikke behandles automatisk uten rett etter sluttdato eller når andre deltakelser er innvilget etterpå`() {
+        val sluttdato = iDag.minusWeeks(1)
+        val avbrutt = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = sluttdato)
+        val annenDeltakelse = ObjectMother.tiltaksdeltakelse(fom = iDag, tom = iDag.plusMonths(1))
+
+        sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til sluttdato).utledStans(avbrutt) shouldBe
+            ManueltBehandlesGrunn.STANS_INGEN_INNVILGEDE_DAGER_ETTER_SLUTTDATO.left()
+        sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusDays(1))
+            .medInnvilgelse(innvilgelsesperiode = annenDeltakelse.periode!!, innvilgetDeltakelse = annenDeltakelse)
+            .utledStans(avbrutt) shouldBe ManueltBehandlesGrunn.STANS_ANDRE_DELTAKELSER_INNVILGET_ETTER_SLUTTDATO.left()
     }
 
     @Test
@@ -506,9 +527,9 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sluttdatoIStansen = iDag.minusWeeks(3)
 
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = sluttdatoIStansen)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans(utfylling = null))
-        sak.vurderStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = sluttdatoIStansen))
-            .shouldNotBeNull().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.minusWeeks(2))
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+        sak.utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = sluttdatoIStansen))
+            .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.minusWeeks(2))
     }
 
     @Test
@@ -542,13 +563,13 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         sak.vurder(deltakelse.copy(deltakelseProsent = 60F)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id)
         sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans(utfylling = null))
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans(utfylling = null))
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(2))) shouldBe
-            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans(utfylling = null))
-        sak.vurderStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag))
-            .shouldNotBeNull().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.plusWeeks(1))
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+        sak.utledStans(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = iDag))
+            .getOrFail().stansFraOgMed shouldBe ValgtStansFraOgMed.StansFraOgMed(iDag.plusWeeks(1))
     }
 
     private fun Sak.vurderMotGjeldendeVedtak(nåtilstand: TiltaksdeltakelseIntern): VurdertTiltaksdeltakerEndring =
@@ -559,9 +580,8 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
     private fun Sak.finnEndringer(nåtilstand: TiltaksdeltakelseIntern): TiltaksdeltakerEndring = vurder(nåtilstand).endring
 
-    /** Utfyllingen av stansen endringen gir, som er null dersom den ikke kan utledes med stor sikkerhet. */
-    private fun Sak.vurderStans(nåtilstand: TiltaksdeltakelseIntern): AutomatiskStans? =
-        vurder(nåtilstand).automatiskRevurdering.shouldBeInstanceOf<AutomatiskRevurderingAvEndring.Stans>().utfylling
+    private fun Sak.utledStans(nåtilstand: TiltaksdeltakelseIntern): Either<ManueltBehandlesGrunn, AutomatiskStans> =
+        utledAutomatiskStans(deltakelse.internDeltakelseId, nåtilstand, iDag)
 
     private fun sakMedInnvilgelse(
         opprinnelig: TiltaksdeltakelseIntern = deltakelse,

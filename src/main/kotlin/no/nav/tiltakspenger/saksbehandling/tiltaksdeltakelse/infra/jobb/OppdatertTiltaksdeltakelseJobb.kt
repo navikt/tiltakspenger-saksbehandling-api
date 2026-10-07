@@ -19,6 +19,8 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.ForberedtRevurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.StartRevurderingService
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansJobb
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansService
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgave
 import no.nav.tiltakspenger.saksbehandling.oppgave.EksternOppgaveRepo
 import no.nav.tiltakspenger.saksbehandling.oppgave.OppgaveId
@@ -46,6 +48,7 @@ import java.time.LocalDateTime
  * Referansen til oppgaven lagres som en [EksternOppgave] før markøren nullstilles.
  * Hver ferdig behandlede endring lagres i `tiltaksdeltaker_endring` for sporbarhet, i samme transaksjon som markøren nullstilles.
  * En automatisk revurdering lagres også i den transaksjonen, slik at revurderingen, sporingen og kvitteringen lagres samlet eller ikke i det hele tatt.
+ * En automatisk stans opprettes under automatisk behandling og behandles videre av [DelautomatiskStansJobb].
  */
 class OppdatertTiltaksdeltakelseJobb(
     private val tiltaksdeltakerRepo: TiltaksdeltakerRepo,
@@ -53,6 +56,7 @@ class OppdatertTiltaksdeltakelseJobb(
     private val rammebehandlingRepo: RammebehandlingRepo,
     private val tiltaksdeltakelseKlient: TiltaksdeltakelseKlient,
     private val startRevurderingService: StartRevurderingService,
+    private val delautomatiskStansService: DelautomatiskStansService,
     private val oppgaveKlient: OppgaveKlient,
     private val eksternOppgaveRepo: EksternOppgaveRepo,
     private val tiltaksdeltakerHendelseRepo: TiltaksdeltakerHendelseRepo,
@@ -182,7 +186,7 @@ class OppdatertTiltaksdeltakelseJobb(
             forberedRevurdering(
                 sak,
                 revurderingSomSkalOpprettes,
-                endring,
+                AutomatiskOpprettetRevurderingGrunn(endring = endring, tiltaksdeltakerId = deltaker.id),
                 oppdatertDeltakelse,
                 logIder,
             ).right()
@@ -207,28 +211,40 @@ class OppdatertTiltaksdeltakelseJobb(
             }
     }
 
+    /**
+     * En stans opprettes under automatisk behandling og behandles videre av [DelautomatiskStansJobb].
+     * Andre revurderinger opprettes klare til behandling for en saksbehandler.
+     */
     private suspend fun forberedRevurdering(
         sak: Sak,
         revurderingSomSkalOpprettes: AutomatiskRevurderingAvEndring,
-        endring: TiltaksdeltakerEndring,
+        automatiskOpprettetGrunn: AutomatiskOpprettetRevurderingGrunn,
         oppdatertTiltaksdeltakelse: Tiltaksdeltakelse.GirRett,
         logIder: String,
     ): TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet {
-        val kommando = StartRevurderingKommando(
-            sakId = sak.id,
-            correlationId = CorrelationId.generate(),
-            saksbehandler = null,
-            revurderingType = revurderingSomSkalOpprettes.type,
-            vedtakIdSomOmgjøres = (revurderingSomSkalOpprettes as? AutomatiskRevurderingAvEndring.Omgjøring)?.vedtakIdSomOmgjøres,
-            klagebehandlingId = null,
-            automatiskOpprettetGrunn = AutomatiskOpprettetRevurderingGrunn(endring = endring),
-        )
+        val correlationId = CorrelationId.generate()
+        val forberedtRevurdering = when (revurderingSomSkalOpprettes) {
+            AutomatiskRevurderingAvEndring.Stans -> delautomatiskStansService.opprett(sak, automatiskOpprettetGrunn, correlationId)
 
-        val forberedtRevurdering = startRevurderingService.forberedRevurdering(kommando, sak).getOrElse { feil ->
-            throw IllegalStateException(
-                "Uventet feil ved automatisk start av revurdering: ${feil.loggkontekst.melding} " +
-                    "(saksnummer ${sak.saksnummer} / correlationId ${kommando.correlationId} / $logIder)",
-            )
+            AutomatiskRevurderingAvEndring.Innvilgelse,
+            is AutomatiskRevurderingAvEndring.Omgjøring,
+            -> startRevurderingService.forberedRevurdering(
+                StartRevurderingKommando(
+                    sakId = sak.id,
+                    correlationId = correlationId,
+                    saksbehandler = null,
+                    revurderingType = revurderingSomSkalOpprettes.type,
+                    vedtakIdSomOmgjøres = (revurderingSomSkalOpprettes as? AutomatiskRevurderingAvEndring.Omgjøring)?.vedtakIdSomOmgjøres,
+                    klagebehandlingId = null,
+                    automatiskOpprettetGrunn = automatiskOpprettetGrunn,
+                ),
+                sak,
+            ).getOrElse { feil ->
+                throw IllegalStateException(
+                    "Uventet feil ved automatisk start av revurdering: ${feil.loggkontekst.melding} " +
+                        "(saksnummer ${sak.saksnummer} / correlationId $correlationId / $logIder)",
+                )
+            }
         }
 
         val revurdering = forberedtRevurdering.revurdering
@@ -237,7 +253,7 @@ class OppdatertTiltaksdeltakelseJobb(
         return TiltaksdeltakelseEndringBehandlet.RevurderingOpprettet(
             forberedtRevurdering = forberedtRevurdering,
             nåtilstand = oppdatertTiltaksdeltakelse,
-            endring = endring,
+            endring = automatiskOpprettetGrunn.endring,
         )
     }
 

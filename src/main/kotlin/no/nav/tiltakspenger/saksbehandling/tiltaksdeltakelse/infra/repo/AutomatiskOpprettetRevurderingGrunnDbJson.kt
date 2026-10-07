@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.repo
 import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import java.time.LocalDate
@@ -11,9 +12,11 @@ import java.time.LocalDate
  * Endringen lagres som en liste av enkeltendringer, slik den ble lagret før endringene ble tolket til ett utfall.
  * Formatet er beholdt for å kunne lese rader som allerede er lagret.
  * Eldre rader kan inneholde feltet `hendelseId`, som ignoreres ved lesing.
+ * Eldre rader mangler feltet `tiltaksdeltakerId`.
  */
 private data class AutomatiskOpprettetRevurderingGrunnDbJson(
     val endringer: List<TiltaksdeltakerEndringDbJson>,
+    val tiltaksdeltakerId: String? = null,
 )
 
 private data class TiltaksdeltakerEndringDbJson(
@@ -40,6 +43,7 @@ fun AutomatiskOpprettetRevurderingGrunn.toDbJson(): String {
     return serialize(
         AutomatiskOpprettetRevurderingGrunnDbJson(
             endringer = endring.tilEndringerDbJson(),
+            tiltaksdeltakerId = tiltaksdeltakerId?.toString(),
         ),
     )
 }
@@ -48,6 +52,7 @@ fun String.toAutomatiskOpprettetRevurderingGrunn(): AutomatiskOpprettetRevurderi
     val dbJson = deserialize<AutomatiskOpprettetRevurderingGrunnDbJson>(this)
     return AutomatiskOpprettetRevurderingGrunn(
         endring = dbJson.endringer.toDomain(),
+        tiltaksdeltakerId = dbJson.tiltaksdeltakerId?.let { TiltaksdeltakerId.fromString(it) },
     )
 }
 
