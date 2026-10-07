@@ -15,10 +15,13 @@ import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.KanIkkeStanseAutomatisk
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.iverksettSøknadsbehandling
@@ -26,16 +29,27 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startRe
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.AutomatiskRevurderingAvEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.finnEndringerForDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import org.junit.jupiter.api.Test
 
 class DelautomatiskStansServiceTest {
 
-    /** Kjører [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb], som oppretter en stans-revurdering uten saksbehandler. */
+    /**
+     * Kjører [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb], som oppretter en stans-revurdering uten saksbehandler.
+     * Gir også stansen jobben har vurdert endringen til, med verdiene for å behandle den automatisk.
+     */
     private suspend fun TestApplicationContextMedPostgres.opprettAutomatiskStans(
         sak: Sak,
         tiltaksdeltakelse: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern,
-    ): Revurdering {
+    ): Pair<Revurdering, AutomatiskRevurderingAvEndring.Stans> {
+        val stans = sakContext.sakRepo.hentForSakId(sak.id)!!
+            .finnEndringerForDeltakelse(tiltaksdeltakelse.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock)
+            .shouldBeInstanceOf<VurdertTiltaksdeltakerEndring.Endret>()
+            .automatiskRevurdering.shouldBeInstanceOf<AutomatiskRevurderingAvEndring.Stans>()
         oppdaterTiltaksdeltakelse(sak.fnr, nåtilstand)
         tiltakContext.tiltaksdeltakerRepo.registrerUbehandletEndring(
             id = tiltaksdeltakelse.internDeltakelseId,
@@ -46,11 +60,12 @@ class DelautomatiskStansServiceTest {
             .hentTiltaksdeltaker(tiltaksdeltakelse.eksternDeltakelseId).shouldNotBeNull()
         oppdatertTiltaksdeltakelseJobb.behandleDeltaker(deltaker)
 
-        return sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>().also {
+        val revurdering = sakContext.sakRepo.hentForSakId(sak.id)!!.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>().also {
             it.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
             it.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
             it.saksbehandler.shouldBeNull()
         }
+        return revurdering to stans
     }
 
     private fun TestApplicationContextMedPostgres.hentRevurdering(sak: Sak, revurdering: Revurdering): Revurdering =
@@ -65,7 +80,7 @@ class DelautomatiskStansServiceTest {
                 tiltaksdeltakelse = deltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
-            val revurdering = tac.opprettAutomatiskStans(
+            val (revurdering, stans) = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
                 nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt, deltakelseTilOgMed = 20.april(2025)),
@@ -74,7 +89,7 @@ class DelautomatiskStansServiceTest {
             val resultat = tac.behandlingContext.delautomatiskStansService.forsøkAutomatiskStans(
                 sakId = sak.id,
                 revurderingId = revurdering.id,
-                tiltaksdeltakerId = deltakelse.internDeltakelseId,
+                stans = stans,
                 correlationId = CorrelationId.generate(),
             ).getOrElse { throw AssertionError("Forventet automatisk stans, men fikk $it") }
 
@@ -101,18 +116,19 @@ class DelautomatiskStansServiceTest {
                 tiltaksdeltakelse = deltakelse,
                 innvilgelsesperioder = innvilgelsesperioder(deltakelse.periode!!, deltakelse),
             )
-            val revurdering = tac.opprettAutomatiskStans(
+            val (revurdering, stans) = tac.opprettAutomatiskStans(
                 sak = sak,
                 tiltaksdeltakelse = deltakelse,
                 nåtilstand = deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
             )
+            stans.utfylling.shouldBeNull()
 
             tac.behandlingContext.delautomatiskStansService.forsøkAutomatiskStans(
                 sakId = sak.id,
                 revurderingId = revurdering.id,
-                tiltaksdeltakerId = deltakelse.internDeltakelseId,
+                stans = stans,
                 correlationId = CorrelationId.generate(),
-            ).leftOrNull() shouldBe KanIkkeStanseAutomatisk.SluttdatoErIFremtiden(5.mai(2025))
+            ).leftOrNull() shouldBe KanIkkeStanseAutomatisk.ManglerUtfylling
 
             tac.hentRevurdering(sak, revurdering) shouldBe revurdering
         }
@@ -132,7 +148,13 @@ class DelautomatiskStansServiceTest {
             tac.behandlingContext.delautomatiskStansService.forsøkAutomatiskStans(
                 sakId = sak.id,
                 revurderingId = revurdering.id,
-                tiltaksdeltakerId = deltakelse.internDeltakelseId,
+                stans = AutomatiskRevurderingAvEndring.Stans(
+                    utfylling = AutomatiskStans(
+                        hjemmel = HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak,
+                        stansFraOgMed = ValgtStansFraOgMed.StansFraOgMed(21.april(2025)),
+                        begrunnelse = Begrunnelse.create("begrunnelse")!!,
+                    ),
+                ),
                 correlationId = CorrelationId.generate(),
             ).leftOrNull() shouldBe KanIkkeStanseAutomatisk.ErIkkeAutomatiskOpprettetStans
 

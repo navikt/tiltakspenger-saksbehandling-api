@@ -116,7 +116,6 @@ open class BehandlingOgVedtakContext(
             oppdaterRammebehandlingService = oppdaterRammebehandlingService,
             sendRammebehandlingTilBeslutningService = sendRammebehandlingTilBeslutningService,
             leggTilbakeRammebehandlingService = leggTilbakeRammebehandlingService,
-            clock = clock,
         )
     }
     val behandleSøknadPåNyttService: BehandleSøknadPåNyttService by lazy {
