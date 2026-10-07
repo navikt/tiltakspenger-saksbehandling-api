@@ -15,6 +15,7 @@ import java.time.LocalDate
 data class ManueltRegistrertSøknadBody(
     val journalpostId: String,
     val manueltSattSøknadsperiode: PeriodeDTO?,
+    val manueltSattSøknadMottattDato: LocalDate,
     val manueltSattTiltak: String?,
     val antallVedlegg: Int,
     val søknadstype: SøknadstypeDTO,
@@ -25,6 +26,7 @@ data class ManueltRegistrertSøknadBody(
         return StartBehandlingAvManueltRegistrertSøknadCommand(
             journalpostId = JournalpostId(journalpostId),
             manueltSattSøknadsperiode = manueltSattSøknadsperiode?.toDomain(),
+            manueltSattSøknadMottattDato = manueltSattSøknadMottattDato,
             manueltSattTiltak = manueltSattTiltak,
             behandlingsarsak = behandlingsarsak,
             søknadstiltak = this.svar.tiltak?.tilDomene(internTiltaksdeltakelsesId),

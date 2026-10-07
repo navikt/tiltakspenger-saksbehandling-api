@@ -43,6 +43,7 @@ object SøknadDTOMapper {
                 dto.barnetilleggManuelle.map { it.tilDomeneManuell() },
             opprettet = dto.opprettet,
             tidsstempelHosOss = innhentet,
+            mottattDatoForSøknad = dto.opprettet.toLocalDate(),
             vedlegg = dto.vedlegg,
             harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
             harSøktOmBarnetillegg = if (dto.barnetilleggPdl.isNotEmpty() || dto.barnetilleggManuelle.isNotEmpty()) Søknad.JaNeiSpm.Ja else Søknad.JaNeiSpm.Nei,

@@ -243,6 +243,11 @@ fun String.shouldBeSøknadsbehandlingDTO(
     antallDagerPerUke: String = "5",
     avslagsgrunner: List<String>? = null,
     søknadHendelserJson: String = "[]",
+    /**
+     * `MottaSøknadRouteBuilder` setter `opprettet` til tiltakets fra og med-dato, og mottattdatoen utledes fra `opprettet`.
+     * Søknader fra `ObjectMother` har en egen standardverdi og må sende den inn eksplisitt.
+     */
+    søknadMottattDato: String = periodeFraOgMed,
 ) {
     val avslagsgrunnerJson = avslagsgrunner
         ?.let { """"avslagsgrunner": [${it.joinToString(",") { v -> "\"$v\"" }}],""" }
@@ -377,6 +382,7 @@ fun String.shouldBeSøknadsbehandlingDTO(
             "behandlingsarsak": null,
             "kanInnvilges": true,
             "tidsstempelHosOss": "2023-01-01T00:00:00",
+            "mottattDatoForSøknad": "$søknadMottattDato",
             "id": "$søknadId",
             "journalpostId": "$journalpostId"
         },

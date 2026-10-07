@@ -60,6 +60,7 @@ class StartBehandlingAvManueltRegistrertSøknadService(
             journalpostId = kommando.journalpostId.toString(),
             opprettet = journalpostValidering.datoOpprettet,
             tidsstempelHosOss = nå(clock),
+            mottattDatoForSøknad = kommando.manueltSattSøknadMottattDato,
             personopplysninger = Søknad.Personopplysninger(
                 fnr = personopplysninger.fnr,
                 fornavn = personopplysninger.fornavn,

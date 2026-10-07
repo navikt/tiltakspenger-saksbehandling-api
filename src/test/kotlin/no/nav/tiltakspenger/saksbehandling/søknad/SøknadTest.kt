@@ -36,6 +36,7 @@ class SøknadTest {
                 journalpostId = "99999",
                 opprettet = nå(clock),
                 tidsstempelHosOss = nå(clock),
+                mottattDatoForSøknad = 1.november(2024),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 søknadstiltak = søknadstiltak(),
                 barnetillegg = emptyList(),
@@ -64,6 +65,7 @@ class SøknadTest {
             opprettetSøknad.tiltak shouldNotBe null
             opprettetSøknad.behandlingsarsak shouldBe Behandlingsarsak.FORLENGELSE_FRA_ARENA
             opprettetSøknad.manueltRegistrert shouldBe true
+            opprettetSøknad.mottattDatoForSøknad shouldBe 1.november(2024)
         }
 
         @Test
@@ -75,6 +77,7 @@ class SøknadTest {
                 journalpostId = "99999",
                 opprettet = nå(clock),
                 tidsstempelHosOss = nå(clock),
+                mottattDatoForSøknad = 1.november(2024),
                 personopplysninger = ObjectMother.personSøknad(fnr = sak.fnr),
                 søknadstiltak = null,
                 barnetillegg = emptyList(),
@@ -100,6 +103,7 @@ class SøknadTest {
             )
             opprettetSøknad.shouldBeInstanceOf<IkkeInnvilgbarSøknad>()
             opprettetSøknad.tiltak shouldBe null
+            opprettetSøknad.mottattDatoForSøknad shouldBe 1.november(2024)
         }
     }
 

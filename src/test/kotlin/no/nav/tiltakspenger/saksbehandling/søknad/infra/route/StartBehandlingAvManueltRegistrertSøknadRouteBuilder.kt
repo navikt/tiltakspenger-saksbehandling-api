@@ -3,12 +3,14 @@ package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 import io.ktor.server.testing.ApplicationTestBuilder
 import no.nav.tiltakspenger.libs.common.Saksbehandler
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.journalføring.JournalpostId
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import java.time.LocalDate
 
 /**
  * Registrerer en søknad manuelt, slik en saksbehandler gjør med en papirsøknad.
@@ -21,6 +23,7 @@ interface StartBehandlingAvManueltRegistrertSøknadRouteBuilder {
     /**
      * @param svarJson Hele `svar`-objektet, slik at testen kan variere spørsmålstypene og barnetillegget.
      * @param tiltakJson `null` gir en søknad uten tiltak, altså en `IkkeInnvilgbarSøknad`.
+     * @param manueltSattSøknadMottattDato `null` sendes som `null` i bodyen, for å teste at feltet er obligatorisk.
      */
     suspend fun ApplicationTestBuilder.startBehandlingAvManueltRegistrertSøknad(
         tac: TestApplicationContext,
@@ -28,6 +31,7 @@ interface StartBehandlingAvManueltRegistrertSøknadRouteBuilder {
         søknadstype: String = "PAPIR_SKJEMA",
         journalpostId: String = "journalpost-manuell",
         manueltSattSøknadsperiodeJson: String? = null,
+        manueltSattSøknadMottattDato: LocalDate? = 1.januar(2022),
         manueltSattTiltak: String? = null,
         behandlingsarsak: String? = null,
         antallVedlegg: Int = 0,
@@ -54,6 +58,7 @@ interface StartBehandlingAvManueltRegistrertSøknadRouteBuilder {
                 {
                   "journalpostId": "$journalpostId",
                   "manueltSattSøknadsperiode": $manueltSattSøknadsperiodeJson,
+                  "manueltSattSøknadMottattDato": ${manueltSattSøknadMottattDato?.let { "\"$it\"" }},
                   "manueltSattTiltak": ${manueltSattTiltak?.let { "\"$it\"" }},
                   "antallVedlegg": $antallVedlegg,
                   "søknadstype": "$søknadstype",

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.libs.common.SøknadId
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.april
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.HttpMethod
 import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.ktor.test.common.defaultRequestWithAssertions
@@ -94,6 +95,7 @@ class OlderMottaSøknadTest {
                     ),
                     opprettet = actualSøknad.opprettet,
                     tidsstempelHosOss = LocalDateTime.parse("2023-06-14T21:12:08.447993177"),
+                    mottattDatoForSøknad = 14.juni(2023),
                     vedlegg = 0,
                     harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
                     harSøktOmBarnetillegg = Søknad.JaNeiSpm.Ja,
