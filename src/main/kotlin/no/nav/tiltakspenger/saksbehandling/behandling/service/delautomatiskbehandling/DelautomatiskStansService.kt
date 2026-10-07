@@ -12,7 +12,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStans
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.KanIkkeStanseAutomatisk
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.KanIkkeStanseAutomatisk.FeilVedAutomatiskBehandling
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.kanStanseAutomatisk
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.tilBeslutter.SendBehandlingTilBeslutningKommando
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.LeggTilbakeRammebehandlingService
@@ -20,17 +20,15 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.Oppdate
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.SendRammebehandlingTilBeslutningService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.behandling.TaRammebehandlingService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import java.time.Clock
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.AutomatiskRevurderingAvEndring
 
 /**
  * Forsøker å fylle ut en automatisk opprettet stans-revurdering og sende den til beslutning med [AUTOMATISK_SAKSBEHANDLER].
  *
- * Tenkt brukt av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb] etter at den har opprettet en stans,
- * men er foreløpig ikke koblet på jobben.
+ * Tenkt brukt av [no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.OppdatertTiltaksdeltakelseJobb] etter at den har opprettet en stans, men er foreløpig ikke koblet på jobben.
  *
- * Revurderingen blir liggende urørt som [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BEHANDLING]
- * dersom systemet ikke har nok informasjon (se [utledAutomatiskStans]).
+ * Verdiene for utfyllingen tas inn som [AutomatiskRevurderingAvEndring.Stans], utledet da stansen ble opprettet.
+ * Revurderingen blir liggende urørt som [no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus.KLAR_TIL_BEHANDLING] dersom verdiene mangler, eller revurderingen ikke lenger kan behandles automatisk (se [kanStanseAutomatisk]).
  * Feiler et av stegene etter at [AUTOMATISK_SAKSBEHANDLER] har tatt revurderingen, legges den tilbake slik at en saksbehandler kan ta den.
  *
  * Gjenbruker de samme tjenestene som den manuelle flyten, slik at beregning, simulering og valideringene ved send til beslutning er de samme.
@@ -42,24 +40,27 @@ class DelautomatiskStansService(
     private val oppdaterRammebehandlingService: OppdaterRammebehandlingService,
     private val sendRammebehandlingTilBeslutningService: SendRammebehandlingTilBeslutningService,
     private val leggTilbakeRammebehandlingService: LeggTilbakeRammebehandlingService,
-    private val clock: Clock,
 ) {
     private val log = KotlinLogging.logger {}
 
     suspend fun forsøkAutomatiskStans(
         sakId: SakId,
         revurderingId: RammebehandlingId,
-        tiltaksdeltakerId: TiltaksdeltakerId,
+        stans: AutomatiskRevurderingAvEndring.Stans,
         correlationId: CorrelationId,
     ): Either<KanIkkeStanseAutomatisk, Revurdering> {
-        val logIder = "sakId $sakId / revurderingId $revurderingId / intern deltakerId $tiltaksdeltakerId / correlationId $correlationId"
+        val logIder = "sakId $sakId / revurderingId $revurderingId / correlationId $correlationId"
         val saksbehandler = AUTOMATISK_SAKSBEHANDLER
+
+        val automatiskStans = stans.utfylling ?: return KanIkkeStanseAutomatisk.ManglerUtfylling.also {
+            log.info { "Kan ikke stanse automatisk, overlates til saksbehandler: ${it.loggkontekst.melding} ($logIder)" }
+        }.left()
 
         val sak = sakService.hentForSakId(sakId)
         val revurdering = sak.hentRammebehandling(revurderingId) as? Revurdering
             ?: return KanIkkeStanseAutomatisk.ErIkkeAutomatiskOpprettetStans.left()
 
-        val automatiskStans = sak.utledAutomatiskStans(revurdering, tiltaksdeltakerId, clock).getOrElse {
+        sak.kanStanseAutomatisk(revurdering).onLeft {
             log.info { "Kan ikke stanse automatisk, overlates til saksbehandler: ${it.loggkontekst.melding} ($logIder)" }
             return it.left()
         }
@@ -102,6 +103,7 @@ class DelautomatiskStansService(
                 valgteHjemler = nonEmptySetOf(automatiskStans.hjemmel),
                 stansFraOgMed = automatiskStans.stansFraOgMed,
                 skalSendeVedtaksbrev = true,
+                skalJournalføreNotat = false,
             ),
         ).getOrElse {
             return FeilVedAutomatiskBehandling("utfylling", it::class.simpleName.orEmpty()).left()

@@ -1,11 +1,16 @@
 package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
+import no.nav.tiltakspenger.libs.dato.norskDatoFormatter
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.libs.periodisering.PeriodeMedVerdi
 import no.nav.tiltakspenger.libs.periodisering.Periodisering
 import no.nav.tiltakspenger.libs.tiltaksdeltakelse.Tiltaksdeltakelse
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.HjemmelForStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStans
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.oppdater.OppdaterRevurderingKommando.Stans.ValgtStansFraOgMed
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Rammebehandlingsresultat
+import no.nav.tiltakspenger.saksbehandling.felles.Begrunnelse
 import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
@@ -255,6 +260,7 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  *
  * - Avbrudd gir stans, så lenge deltakelsen er innvilget fra og med i dag og ingen andre deltakelser er innvilget etter avbruddet.
  * Er andre deltakelser innvilget etter avbruddet, vurderes omgjøring i stedet, siden en stans også ville stanset dem.
+ * Stansen får med verdiene for å kunne behandles automatisk når de kan utledes med stor sikkerhet, se [utledAutomatiskStans].
  * - Forlengelse gir innvilgelse dersom ny sluttdato er etter siste dag med rett på saken.
  * Ellers vurderes omgjøring dersom deltakelsesmengden er endret samtidig.
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
@@ -330,7 +336,57 @@ private fun Sak.vurderRevurderingForAvbrudd(
         )
     }
 
-    return AutomatiskRevurderingAvEndring.Stans
+    return AutomatiskRevurderingAvEndring.Stans(utfylling = utledAutomatiskStans(nåtilstand, gjeldendeInnvilgelse, iDag))
+}
+
+private val avsluttedeDeltakerstatuser = setOf(
+    TiltakDeltakerstatus.Avbrutt,
+    TiltakDeltakerstatus.HarSluttet,
+    TiltakDeltakerstatus.Fullført,
+)
+
+/**
+ * Utleder verdiene for å fylle ut stansen uten saksbehandler, eller null dersom de ikke kan utledes med stor sikkerhet.
+ * Forutsetter at det ikke er andre deltakelser innvilget etter avbruddet, slik at stansen bare berører denne deltakelsen.
+ *
+ * Foreløpig støttes kun [HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak], utledet fra at deltakelsen er avsluttet.
+ * De andre hjemlene for stans får vi ikke nok informasjon om til å kunne automatisere.
+ *
+ * Deltakelsen må ha en avsluttet status og en sluttdato som er passert, siden en sluttdato i fremtiden fortsatt kan endres.
+ * Stansen gjelder fra første innvilgede dag etter sluttdatoen, slik at den ikke starter i en periode som allerede er stanset eller opphørt.
+ * Er det ingen innvilgede dager etter sluttdatoen, er det ingenting å stanse.
+ */
+private fun Sak.utledAutomatiskStans(
+    nåtilstand: Deltakelsestilstand,
+    gjeldendeInnvilgelse: GjeldendeInnvilgelse,
+    iDag: LocalDate,
+): AutomatiskStans? {
+    val status = nåtilstand.deltakelseStatus
+    val sluttdato = nåtilstand.deltakelseTilOgMed ?: return null
+    val førsteDagSomGirRett = førsteDagSomGirRett ?: return null
+    if (status !in avsluttedeDeltakerstatuser || sluttdato.isAfter(iDag)) {
+        return null
+    }
+
+    val dagenEtterSluttdato = sluttdato.plusDays(1)
+    val stansFraOgMed = gjeldendeInnvilgelse.innvilgedePerioder
+        .firstOrNull { !it.periode.tilOgMed.isBefore(dagenEtterSluttdato) }
+        ?.let { maxOf(it.periode.fraOgMed, dagenEtterSluttdato) }
+        ?: return null
+
+    return AutomatiskStans(
+        hjemmel = HjemmelForStans.DeltarIkkePåArbeidsmarkedstiltak,
+        stansFraOgMed = if (stansFraOgMed == førsteDagSomGirRett) {
+            ValgtStansFraOgMed.StansFraFørsteDagSomGirRett
+        } else {
+            ValgtStansFraOgMed.StansFraOgMed(stansFraOgMed)
+        },
+        begrunnelse = Begrunnelse.create(
+            "Automatisk behandlet. Tiltaksdeltakelsen er registrert med status $status " +
+                "og sluttdato ${sluttdato.format(norskDatoFormatter)}. " +
+                "Tiltakspengene stanses fra og med ${stansFraOgMed.format(norskDatoFormatter)} fordi bruker ikke lenger deltar på arbeidsmarkedstiltak.",
+        )!!,
+    )
 }
 
 /** De gjeldende vedtakene som innvilger periodene endret startdato, sluttdato eller deltakelsesmengde berører. */
