@@ -63,4 +63,7 @@ interface RammebehandlingRepo {
 
     /** Åpne automatiske søknadsbehandlinger som ikke venter (venter_til er null eller passert). */
     fun hentAutomatiskeSoknadsbehandlingIder(limit: Int): List<RammebehandlingId>
+
+    /** Revurderinger under automatisk behandling, eldste først. */
+    fun hentAutomatiskeRevurderingIder(limit: Int): List<RammebehandlingId>
 }

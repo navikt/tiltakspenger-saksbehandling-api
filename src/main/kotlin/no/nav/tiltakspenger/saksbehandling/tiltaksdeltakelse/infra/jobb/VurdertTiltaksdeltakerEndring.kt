@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.AutomatiskStans
 
 /**
  * Utfallet av å vurdere nå-tilstanden til en tiltaksdeltakelse mot de gjeldende vedtakene på saken.
@@ -33,10 +32,9 @@ sealed interface AutomatiskRevurderingAvEndring {
     val type: StartRevurderingType
 
     /**
-     * @param utfylling Verdiene som trengs for å fylle ut og behandle stansen uten saksbehandler.
-     * Settes kun når de kan utledes med stor sikkerhet, og ellers må stansen behandles manuelt.
+     * Stansen opprettes under automatisk behandling, og verdiene for å fylle den ut utledes når den behandles.
      */
-    data class Stans(val utfylling: AutomatiskStans?) : AutomatiskRevurderingAvEndring {
+    data object Stans : AutomatiskRevurderingAvEndring {
         override val type = StartRevurderingType.STANS
     }
 

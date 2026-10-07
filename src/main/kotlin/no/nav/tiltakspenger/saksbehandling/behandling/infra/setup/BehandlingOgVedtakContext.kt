@@ -112,10 +112,13 @@ open class BehandlingOgVedtakContext(
     val delautomatiskStansService: DelautomatiskStansService by lazy {
         DelautomatiskStansService(
             sakService = sakService,
-            taRammebehandlingService = taRammebehandlingService,
-            oppdaterRammebehandlingService = oppdaterRammebehandlingService,
-            sendRammebehandlingTilBeslutningService = sendRammebehandlingTilBeslutningService,
-            leggTilbakeRammebehandlingService = leggTilbakeRammebehandlingService,
+            hentSaksopplysingerService = hentSaksopplysingerService,
+            navkontorService = navkontorService,
+            simulerService = simulerService,
+            rammebehandlingRepo = rammebehandlingRepo,
+            statistikkService = statistikkService,
+            sessionFactory = sessionFactory,
+            clock = clock,
         )
     }
     val behandleSøknadPåNyttService: BehandleSøknadPåNyttService by lazy {

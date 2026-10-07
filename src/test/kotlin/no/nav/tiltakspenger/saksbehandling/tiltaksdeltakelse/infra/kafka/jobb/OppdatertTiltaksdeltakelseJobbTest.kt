@@ -22,12 +22,14 @@ import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.til
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Oppgavebehov
+import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlingsstatus
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.Revurdering
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Omgjøringsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.Revurderingsresultat
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.resultat.SøknadsbehandlingsresultatType
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
+import no.nav.tiltakspenger.saksbehandling.infra.setup.AUTOMATISK_SAKSBEHANDLER_ID
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.gyldigFnr
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.tiltaksdeltakelse
@@ -309,7 +311,10 @@ class OppdatertTiltaksdeltakelseJobbTest {
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Stans>()
+            revurdering.status shouldBe Rammebehandlingsstatus.UNDER_AUTOMATISK_BEHANDLING
+            revurdering.saksbehandler shouldBe AUTOMATISK_SAKSBEHANDLER_ID
             grunn.endring shouldBe TiltaksdeltakerEndring.AvbruttDeltakelse
+            grunn.tiltaksdeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
         }
     }
 
@@ -344,7 +349,10 @@ class OppdatertTiltaksdeltakelseJobbTest {
 
             val revurdering = oppdatertSak.rammebehandlinger.last().shouldBeInstanceOf<Revurdering>()
             revurdering.resultat.shouldBeInstanceOf<Revurderingsresultat.Innvilgelse>()
+            revurdering.status shouldBe Rammebehandlingsstatus.KLAR_TIL_BEHANDLING
+            revurdering.saksbehandler.shouldBeNull()
             val grunn = revurdering.automatiskOpprettetGrunn.shouldNotBeNull()
+            grunn.tiltaksdeltakerId shouldBe tiltaksdeltakelse.internDeltakelseId
             grunn.endring shouldBe TiltaksdeltakerEndring.Forlengelse(
                 nySluttdato = 5.juni(2025),
                 endretDeltakelsesmengde = if (endretDeltakelsesmengde) {

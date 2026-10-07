@@ -22,6 +22,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.AvbrytSøknadO
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.BehandlingOgVedtakContext
 import no.nav.tiltakspenger.saksbehandling.behandling.infra.setup.GjenåpneSøknadsbehandlingContext
 import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskSoknadsbehandlingJobb
+import no.nav.tiltakspenger.saksbehandling.behandling.service.delautomatiskbehandling.DelautomatiskStansJobb
 import no.nav.tiltakspenger.saksbehandling.benk.infra.setup.BenkContext
 import no.nav.tiltakspenger.saksbehandling.datadeling.DatadelingClient
 import no.nav.tiltakspenger.saksbehandling.datadeling.SendTilDatadelingService
@@ -225,6 +226,7 @@ open class ApplicationContext(
             rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
             tiltaksdeltakelseKlient = tiltakContext.tiltaksdeltakelseKlient,
             startRevurderingService = behandlingContext.startRevurderingService,
+            delautomatiskStansService = behandlingContext.delautomatiskStansService,
             oppgaveKlient = oppgaveKlient,
             eksternOppgaveRepo = eksternOppgaveRepo,
             tiltaksdeltakerHendelseRepo = tiltaksdeltakerHendelseRepo,
@@ -364,6 +366,13 @@ open class ApplicationContext(
             delautomatiskBehandlingService = behandlingContext.delautomatiskBehandlingService,
             oppdaterSaksopplysningerService = behandlingContext.oppdaterSaksopplysningerService,
             clock = clock,
+        )
+    }
+
+    open val delautomatiskStansJobb by lazy {
+        DelautomatiskStansJobb(
+            rammebehandlingRepo = behandlingContext.rammebehandlingRepo,
+            delautomatiskStansService = behandlingContext.delautomatiskStansService,
         )
     }
 
