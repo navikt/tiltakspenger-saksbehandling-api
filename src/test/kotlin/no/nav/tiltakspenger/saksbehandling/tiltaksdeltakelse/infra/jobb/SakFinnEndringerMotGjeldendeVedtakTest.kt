@@ -62,7 +62,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
     @Test
     fun `deltakelse som ikke er innvilget gir ingen endringer`() {
-        sakMedInnvilgelse().finnEndringerMotGjeldendeVedtak(
+        sakMedInnvilgelse().finnEndringerForDeltakelse(
             tiltaksdeltakerId = TiltaksdeltakerId.random(),
             oppdatertDeltakelse = deltakelse.copy(deltakelseProsent = 60F).tilLibsDeltakelse(),
             clock = clock,
@@ -499,7 +499,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     }
 
     private fun Sak.vurderMotGjeldendeVedtak(nåtilstand: TiltaksdeltakelseIntern): VurdertTiltaksdeltakerEndring =
-        finnEndringerMotGjeldendeVedtak(deltakelse.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock)
+        finnEndringerForDeltakelse(deltakelse.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock)
 
     private fun Sak.vurder(nåtilstand: TiltaksdeltakelseIntern): Endret =
         vurderMotGjeldendeVedtak(nåtilstand).shouldBeInstanceOf<Endret>()

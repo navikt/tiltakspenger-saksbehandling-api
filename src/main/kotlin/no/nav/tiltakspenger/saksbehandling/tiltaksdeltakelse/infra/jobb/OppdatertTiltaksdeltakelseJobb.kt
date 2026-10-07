@@ -159,7 +159,7 @@ class OppdatertTiltaksdeltakelseJobb(
             return TiltaksdeltakelseEndringBehandlet.IngenLesbarNåtilstand.right()
         }
 
-        val vurdertEndring = when (val vurdering = sak.finnEndringerMotGjeldendeVedtak(deltaker.id, oppdatertDeltakelse, clock)) {
+        val vurdertEndring = when (val vurdering = sak.finnEndringerForDeltakelse(deltaker.id, oppdatertDeltakelse, clock)) {
             VurdertTiltaksdeltakerEndring.IngenEndring -> {
                 log.info { "Fant ingen relevante endringer for $logIder" }
                 return TiltaksdeltakelseEndringBehandlet.IngenRelevantEndring(oppdatertDeltakelse).right()

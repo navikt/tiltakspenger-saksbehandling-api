@@ -29,24 +29,36 @@ import java.time.LocalDate
  * Gir [VurdertTiltaksdeltakerEndring.IngenEndring] dersom deltakelsen verken er innvilget i noe gjeldende vedtak eller er med i en åpen manuell behandling, eller dersom ingenting relevant er endret.
  * Det gjelder også når deltakelsen har vært innvilget, men er stanset, opphørt eller erstattet av en annen deltakelse i alle periodene.
  */
-fun Sak.finnEndringerMotGjeldendeVedtak(
+fun Sak.finnEndringerForDeltakelse(
     tiltaksdeltakerId: TiltaksdeltakerId,
     oppdatertDeltakelse: Tiltaksdeltakelse.GirRett,
     clock: Clock,
 ): VurdertTiltaksdeltakerEndring {
     val iDag = LocalDate.now(clock)
     val nåtilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
+
     val endringMotÅpenBehandling = deltakelseISisteÅpneManuelleBehandling(tiltaksdeltakerId)
-        ?.let { it.tilDeltakelsestilstand().finnEndringer(nåtilstand, clock) ?: return IngenEndring }
+        ?.let {
+            it.tilDeltakelsestilstand().finnEndringer(nåtilstand, clock)
+                ?: return IngenEndring
+        }
 
     val gjeldendeInnvilgelse = gjeldendeVedtakForDeltakelse(tiltaksdeltakerId).tilGjeldendeInnvilgelse(iDag)
         ?: return endringMotÅpenBehandling?.let { Endret(endring = it, automatiskRevurdering = null) } ?: IngenEndring
 
-    val endring = gjeldendeInnvilgelse.finnEndringer(nåtilstand, iDag) ?: return IngenEndring
+    val endring = gjeldendeInnvilgelse.finnEndringer(nåtilstand, iDag)
+        ?: endringMotÅpenBehandling
+        ?: return IngenEndring
 
     return Endret(
         endring = endring,
-        automatiskRevurdering = vurderAutomatiskRevurdering(tiltaksdeltakerId, endring, nåtilstand, gjeldendeInnvilgelse, iDag),
+        automatiskRevurdering = vurderAutomatiskRevurdering(
+            tiltaksdeltakerId,
+            endring,
+            nåtilstand,
+            gjeldendeInnvilgelse,
+            iDag,
+        ),
     )
 }
 
@@ -57,7 +69,9 @@ fun Sak.finnEndringerMotGjeldendeVedtak(
 private fun Sak.deltakelseISisteÅpneManuelleBehandling(tiltaksdeltakerId: TiltaksdeltakerId): TiltaksdeltakelseIntern? =
     rammebehandlinger.åpneBehandlinger
         .filter { !it.erUnderAutomatiskBehandling }
-        .mapNotNull { behandling -> behandling.getTiltaksdeltakelse(tiltaksdeltakerId)?.let { behandling.sistEndret to it } }
+        .mapNotNull { behandling ->
+            behandling.getTiltaksdeltakelse(tiltaksdeltakerId)?.let { behandling.sistEndret to it }
+        }
         .maxByOrNull { (sistEndret) -> sistEndret }
         ?.second
 
@@ -147,7 +161,8 @@ private data class GjeldendeInnvilgelse(
 
     val vedtakVedStart: Rammevedtak = innvilgedePerioder.first().verdi.gjeldendeVedtak
     val vedtakVedSlutt: Rammevedtak = innvilgedePerioder.last().verdi.gjeldendeVedtak
-    val vedtakForDeltakelsesmengde: Set<Rammevedtak> = perioderForDeltakelsesmengde.map { it.verdi.gjeldendeVedtak }.toSet()
+    val vedtakForDeltakelsesmengde: Set<Rammevedtak> =
+        perioderForDeltakelsesmengde.map { it.verdi.gjeldendeVedtak }.toSet()
 
     /** De gjeldende vedtakene som innvilger deltakelsen i deler av [periode]. */
     fun vedtakSomInnvilger(periode: Periode): Set<Rammevedtak> =
@@ -260,7 +275,12 @@ private fun Sak.vurderAutomatiskRevurdering(
     }
 
     return when (endring) {
-        is TiltaksdeltakerEndring.AvbruttDeltakelse -> vurderRevurderingForAvbrudd(tiltaksdeltakerId, nåtilstand, gjeldendeInnvilgelse, iDag)
+        is TiltaksdeltakerEndring.AvbruttDeltakelse -> vurderRevurderingForAvbrudd(
+            tiltaksdeltakerId,
+            nåtilstand,
+            gjeldendeInnvilgelse,
+            iDag,
+        )
 
         is TiltaksdeltakerEndring.Forlengelse -> {
             val sisteDagSomGirRett = sisteDagSomGirRett
@@ -331,7 +351,8 @@ private fun GjeldendeInnvilgelse.vedtakBerørtAv(endring: TiltaksdeltakerEndring
         }
     }.orEmpty()
 
-    val berørtAvDeltakelsesmengde = if (endring.endretDeltakelsesmengde != null) vedtakForDeltakelsesmengde else emptySet()
+    val berørtAvDeltakelsesmengde =
+        if (endring.endretDeltakelsesmengde != null) vedtakForDeltakelsesmengde else emptySet()
 
     return berørtAvStartdato + berørtAvSluttdato + berørtAvDeltakelsesmengde
 }
