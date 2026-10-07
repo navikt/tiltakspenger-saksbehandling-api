@@ -2,8 +2,8 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.RammebehandlingId
 import no.nav.tiltakspenger.libs.common.SakId
@@ -36,6 +36,8 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.Tiltaksd
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.EndretStatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.Forlengelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.IkkeAktuellDeltakelse
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.Endret
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.IngenEndring
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.tilLibsDeltakelse
 import no.nav.tiltakspenger.saksbehandling.vedtak.opprettRammevedtak
 import org.junit.jupiter.api.Test
@@ -55,7 +57,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
     @Test
     fun `uendret deltakelse gir ingen endringer`() {
-        sakMedInnvilgelse().finnEndringer(deltakelse).shouldBeNull()
+        sakMedInnvilgelse().vurderMotGjeldendeVedtak(deltakelse) shouldBe IngenEndring
     }
 
     @Test
@@ -64,7 +66,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
             tiltaksdeltakerId = TiltaksdeltakerId.random(),
             oppdatertDeltakelse = deltakelse.copy(deltakelseProsent = 60F).tilLibsDeltakelse(),
             clock = clock,
-        ).shouldBeNull()
+        ) shouldBe IngenEndring
     }
 
     @Test
@@ -84,8 +86,8 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     fun `deltakelse som er stanset i hele perioden gir ingen endringer`() {
         val sak = sakMedInnvilgelse().medStans(stansFraOgMed = deltakelse.deltakelseFraOgMed!!)
 
-        sak.finnEndringer(deltakelse.copy(deltakelseProsent = 60F)).shouldBeNull()
-        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusDays(1))).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseProsent = 60F)) shouldBe IngenEndring
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = iDag.minusDays(1))) shouldBe IngenEndring
     }
 
     @Test
@@ -93,14 +95,14 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakMedInnvilgelse().medStans(stansFraOgMed = iDag)
 
         sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe AvbruttDeltakelse
-        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag)).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe IngenEndring
     }
 
     @Test
     fun `avkortet sluttdato er bare relevant dersom den berører de innvilgede periodene`() {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
 
-        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(1))) shouldBe IngenEndring
         sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))) shouldBe AvbruttDeltakelse
     }
 
@@ -116,18 +118,17 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
     fun `ny status eller forlengelse etter stans fra i dag gir ingen endringer`() {
         val sak = sakMedInnvilgelse().medStans(stansFraOgMed = iDag)
 
-        sak.finnEndringer(
+        sak.vurderMotGjeldendeVedtak(
             deltakelse.copy(deltakelseTilOgMed = iDag.minusDays(1), deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
-        ).shouldBeNull()
-        sak.finnEndringer(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell)).shouldBeNull()
-        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = deltakelse.deltakelseTilOgMed!!.plusMonths(1))).shouldBeNull()
+        ) shouldBe IngenEndring
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell)) shouldBe IngenEndring
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = deltakelse.deltakelseTilOgMed!!.plusMonths(1))) shouldBe IngenEndring
     }
 
     @Test
     fun `endret deltakelsesmengde etter stans fra i dag gir ingen endringer`() {
         sakMedInnvilgelse().medStans(stansFraOgMed = iDag)
-            .finnEndringer(deltakelse.copy(deltakelseProsent = 60F))
-            .shouldBeNull()
+            .vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseProsent = 60F)) shouldBe IngenEndring
     }
 
     @Test
@@ -160,8 +161,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         sakMedInnvilgelse().finnEndringer(deltakelse.copy(deltakelseFraOgMed = nyStartdato)) shouldBe
             AndreEndringer(endretStartdato = EndretStartdato(nyStartdato))
         sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed.plusMonths(1) til deltakelse.deltakelseTilOgMed!!)
-            .finnEndringer(deltakelse.copy(deltakelseFraOgMed = nyStartdato))
-            .shouldBeNull()
+            .vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseFraOgMed = nyStartdato)) shouldBe IngenEndring
     }
 
     @Test
@@ -214,7 +214,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
             innvilgetDeltakelse = deltakelse.copy(deltakelseProsent = 60F),
         )
 
-        sak.finnEndringer(deltakelse.copy(deltakelseProsent = 60F)).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseProsent = 60F)) shouldBe IngenEndring
         sak.finnEndringer(deltakelse) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 2F))
     }
 
@@ -226,7 +226,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
             innvilgetDeltakelse = deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato),
         )
 
-        sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato)).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato)) shouldBe IngenEndring
         sak.finnEndringer(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato.plusMonths(1))) shouldBe
             Forlengelse(forlengetSluttdato.plusMonths(1))
         sak.finnEndringer(deltakelse) shouldBe
@@ -241,7 +241,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
             innvilgetDeltakelse = deltakelse.copy(deltakelseFraOgMed = tidligereStartdato),
         )
 
-        sak.finnEndringer(deltakelse.copy(deltakelseFraOgMed = tidligereStartdato)).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse.copy(deltakelseFraOgMed = tidligereStartdato)) shouldBe IngenEndring
         sak.finnEndringer(deltakelse) shouldBe
             AndreEndringer(endretStartdato = EndretStartdato(deltakelse.deltakelseFraOgMed))
     }
@@ -276,7 +276,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakMedInnvilgelse(innvilgelsesperiode = deltakelse.deltakelseFraOgMed!! til iDag.minusMonths(1))
 
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(6))) shouldBe
-            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, automatiskRevurdering = null)
+            Endret(AvbruttDeltakelse, automatiskRevurdering = null)
     }
 
     @Test
@@ -303,7 +303,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         )
 
         sak.leggTilRevurdering(åpenRevurdering).vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBe
-            VurdertTiltaksdeltakerEndring(
+            Endret(
                 endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F)),
                 automatiskRevurdering = null,
             )
@@ -358,7 +358,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val nySluttdato = sluttdato.plusWeeks(2)
 
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
-            VurdertTiltaksdeltakerEndring(Forlengelse(nySluttdato), automatiskRevurdering = null)
+            Endret(Forlengelse(nySluttdato), automatiskRevurdering = null)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato, deltakelseProsent = 60F)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(sak.rammevedtaksliste.verdi.first().id)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = sluttdato.plusMonths(2))).automatiskRevurdering shouldBe
@@ -381,9 +381,9 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         )
 
         sak.finnEndringer(nåtilstand) shouldBe Forlengelse(nåtilstand.deltakelseTilOgMed!!)
-        sak.leggTilRevurdering(åpenRevurdering).finnEndringer(nåtilstand).shouldBeNull()
+        sak.leggTilRevurdering(åpenRevurdering).vurderMotGjeldendeVedtak(nåtilstand) shouldBe IngenEndring
         sak.leggTilRevurdering(åpenRevurdering).vurder(nåtilstand.copy(deltakelseProsent = 60F)) shouldBe
-            VurdertTiltaksdeltakerEndring(
+            Endret(
                 endring = Forlengelse(nåtilstand.deltakelseTilOgMed, EndretDeltakelsesmengde(60F, 2F)),
                 automatiskRevurdering = null,
             )
@@ -394,9 +394,9 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakMedÅpenSøknadsbehandling()
         val nySluttdato = deltakelse.deltakelseTilOgMed!!.plusMonths(1)
 
-        sak.finnEndringer(deltakelse).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse) shouldBe IngenEndring
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
-            VurdertTiltaksdeltakerEndring(endring = Forlengelse(nySluttdato), automatiskRevurdering = null)
+            Endret(endring = Forlengelse(nySluttdato), automatiskRevurdering = null)
         sak.finnEndringer(deltakelse.copy(deltakelseFraOgMed = deltakelse.deltakelseFraOgMed!!.plusDays(1), antallDagerPerUke = 3F)) shouldBe
             AndreEndringer(
                 endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 3F),
@@ -406,7 +406,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
 
     @Test
     fun `innvilget, stanset og innvilget på nytt - uendret deltakelse gir ingen endringer`() {
-        sakInnvilgetStansetOgInnvilgetPåNytt().finnEndringer(deltakelse).shouldBeNull()
+        sakInnvilgetStansetOgInnvilgetPåNytt().vurderMotGjeldendeVedtak(deltakelse) shouldBe IngenEndring
     }
 
     @Test
@@ -414,7 +414,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sak = sakInnvilgetStansetOgInnvilgetPåNytt()
         val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
 
-        sak.vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBe VurdertTiltaksdeltakerEndring(
+        sak.vurder(deltakelse.copy(deltakelseProsent = 60F)) shouldBe Endret(
             endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 2F)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
         )
@@ -427,11 +427,11 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val startdatoIStansen = iDag.minusWeeks(3)
         val startdatoIDenNyeInnvilgelsen = iDag.minusWeeks(1)
 
-        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIStansen)) shouldBe VurdertTiltaksdeltakerEndring(
+        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIStansen)) shouldBe Endret(
             endring = AndreEndringer(endretStartdato = EndretStartdato(startdatoIStansen)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(førsteInnvilgelse.id),
         )
-        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIDenNyeInnvilgelsen)) shouldBe VurdertTiltaksdeltakerEndring(
+        sak.vurder(deltakelse.copy(deltakelseFraOgMed = startdatoIDenNyeInnvilgelsen)) shouldBe Endret(
             endring = AndreEndringer(endretStartdato = EndretStartdato(startdatoIDenNyeInnvilgelsen)),
             automatiskRevurdering = null,
         )
@@ -445,8 +445,8 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val avkortetSluttdato = iDag.plusWeeks(1)
 
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = forlengetSluttdato)) shouldBe
-            VurdertTiltaksdeltakerEndring(Forlengelse(forlengetSluttdato), AutomatiskRevurderingAvEndring.Innvilgelse)
-        sak.vurder(deltakelse.copy(deltakelseTilOgMed = avkortetSluttdato)) shouldBe VurdertTiltaksdeltakerEndring(
+            Endret(Forlengelse(forlengetSluttdato), AutomatiskRevurderingAvEndring.Innvilgelse)
+        sak.vurder(deltakelse.copy(deltakelseTilOgMed = avkortetSluttdato)) shouldBe Endret(
             endring = AndreEndringer(endretSluttdato = EndretSluttdato(avkortetSluttdato)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
         )
@@ -457,7 +457,7 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val sluttdatoIStansen = iDag.minusWeeks(3)
 
         sakInnvilgetStansetOgInnvilgetPåNytt().vurder(deltakelse.copy(deltakelseTilOgMed = sluttdatoIStansen)) shouldBe
-            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
     }
 
     @Test
@@ -468,12 +468,12 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
         val senereStartdato = deltakelse.deltakelseFraOgMed!!.plusWeeks(1)
 
-        sak.finnEndringer(nyTilstand).shouldBeNull()
-        sak.vurder(deltakelse) shouldBe VurdertTiltaksdeltakerEndring(
+        sak.vurderMotGjeldendeVedtak(nyTilstand) shouldBe IngenEndring
+        sak.vurder(deltakelse) shouldBe Endret(
             endring = AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 2F)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id),
         )
-        sak.vurder(nyTilstand.copy(deltakelseFraOgMed = senereStartdato)) shouldBe VurdertTiltaksdeltakerEndring(
+        sak.vurder(nyTilstand.copy(deltakelseFraOgMed = senereStartdato)) shouldBe Endret(
             endring = AndreEndringer(endretStartdato = EndretStartdato(senereStartdato)),
             automatiskRevurdering = AutomatiskRevurderingAvEndring.Omgjøring(førsteInnvilgelse.id),
         )
@@ -487,22 +487,24 @@ class SakFinnEndringerMotGjeldendeVedtakTest {
         )
         val nyInnvilgelse = sak.rammevedtaksliste.verdi.last()
 
-        sak.finnEndringer(deltakelse).shouldBeNull()
+        sak.vurderMotGjeldendeVedtak(deltakelse) shouldBe IngenEndring
         sak.vurder(deltakelse.copy(deltakelseProsent = 60F)).automatiskRevurdering shouldBe
             AutomatiskRevurderingAvEndring.Omgjøring(nyInnvilgelse.id)
         sak.vurder(deltakelse.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt)) shouldBe
-            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag)) shouldBe
-            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
         sak.vurder(deltakelse.copy(deltakelseTilOgMed = iDag.minusWeeks(2))) shouldBe
-            VurdertTiltaksdeltakerEndring(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
+            Endret(AvbruttDeltakelse, AutomatiskRevurderingAvEndring.Stans)
     }
 
-    private fun Sak.vurder(nåtilstand: TiltaksdeltakelseIntern): VurdertTiltaksdeltakerEndring =
-        finnEndringerMotGjeldendeVedtak(deltakelse.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock).shouldNotBeNull()
+    private fun Sak.vurderMotGjeldendeVedtak(nåtilstand: TiltaksdeltakelseIntern): VurdertTiltaksdeltakerEndring =
+        finnEndringerMotGjeldendeVedtak(deltakelse.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock)
 
-    private fun Sak.finnEndringer(nåtilstand: TiltaksdeltakelseIntern): TiltaksdeltakerEndring? =
-        finnEndringerMotGjeldendeVedtak(deltakelse.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock)?.endring
+    private fun Sak.vurder(nåtilstand: TiltaksdeltakelseIntern): Endret =
+        vurderMotGjeldendeVedtak(nåtilstand).shouldBeInstanceOf<Endret>()
+
+    private fun Sak.finnEndringer(nåtilstand: TiltaksdeltakelseIntern): TiltaksdeltakerEndring = vurder(nåtilstand).endring
 
     private fun sakMedInnvilgelse(
         opprinnelig: TiltaksdeltakelseIntern = deltakelse,

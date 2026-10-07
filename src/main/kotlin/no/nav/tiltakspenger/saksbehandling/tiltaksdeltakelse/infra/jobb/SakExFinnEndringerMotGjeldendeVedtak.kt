@@ -10,6 +10,8 @@ import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.Endret
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.VurdertTiltaksdeltakerEndring.IngenEndring
 import no.nav.tiltakspenger.saksbehandling.vedtak.Rammevedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -21,28 +23,28 @@ import java.time.LocalDate
  * Endringen vurderes også opp mot hvilken revurdering som kan opprettes automatisk, se [vurderAutomatiskRevurdering].
  *
  * Åpne manuelle behandlinger med deltakelsen tas med som kjent tilstand, se [deltakelseISisteÅpneManuelleBehandling].
- * Kjenner den nyeste av dem allerede nå-tilstanden, er endringen fanget opp der, og det gis null.
+ * Kjenner den nyeste av dem allerede nå-tilstanden, er endringen fanget opp der, og det gis [VurdertTiltaksdeltakerEndring.IngenEndring].
  * Er deltakelsen ikke innvilget i noe gjeldende vedtak, sammenlignes nå-tilstanden med den åpne behandlingen i stedet, og endringen må følges opp manuelt.
  *
- * Gir null dersom deltakelsen verken er innvilget i noe gjeldende vedtak eller er med i en åpen manuell behandling, eller dersom ingenting relevant er endret.
+ * Gir [VurdertTiltaksdeltakerEndring.IngenEndring] dersom deltakelsen verken er innvilget i noe gjeldende vedtak eller er med i en åpen manuell behandling, eller dersom ingenting relevant er endret.
  * Det gjelder også når deltakelsen har vært innvilget, men er stanset, opphørt eller erstattet av en annen deltakelse i alle periodene.
  */
 fun Sak.finnEndringerMotGjeldendeVedtak(
     tiltaksdeltakerId: TiltaksdeltakerId,
     oppdatertDeltakelse: Tiltaksdeltakelse.GirRett,
     clock: Clock,
-): VurdertTiltaksdeltakerEndring? {
+): VurdertTiltaksdeltakerEndring {
     val iDag = LocalDate.now(clock)
     val nåtilstand = oppdatertDeltakelse.tilDeltakelsestilstand(clock)
     val endringMotÅpenBehandling = deltakelseISisteÅpneManuelleBehandling(tiltaksdeltakerId)
-        ?.let { it.tilDeltakelsestilstand().finnEndringer(nåtilstand, clock) ?: return null }
+        ?.let { it.tilDeltakelsestilstand().finnEndringer(nåtilstand, clock) ?: return IngenEndring }
 
     val gjeldendeInnvilgelse = gjeldendeVedtakForDeltakelse(tiltaksdeltakerId).tilGjeldendeInnvilgelse(iDag)
-        ?: return endringMotÅpenBehandling?.let { VurdertTiltaksdeltakerEndring(endring = it, automatiskRevurdering = null) }
+        ?: return endringMotÅpenBehandling?.let { Endret(endring = it, automatiskRevurdering = null) } ?: IngenEndring
 
-    val endring = gjeldendeInnvilgelse.finnEndringer(nåtilstand, iDag) ?: return null
+    val endring = gjeldendeInnvilgelse.finnEndringer(nåtilstand, iDag) ?: return IngenEndring
 
-    return VurdertTiltaksdeltakerEndring(
+    return Endret(
         endring = endring,
         automatiskRevurdering = vurderAutomatiskRevurdering(tiltaksdeltakerId, endring, nåtilstand, gjeldendeInnvilgelse, iDag),
     )

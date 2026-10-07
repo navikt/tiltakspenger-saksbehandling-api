@@ -4,14 +4,25 @@ import no.nav.tiltakspenger.libs.common.VedtakId
 import no.nav.tiltakspenger.saksbehandling.behandling.domene.StartRevurderingType
 
 /**
- * En endring i tiltaksdeltakelsen, vurdert mot de gjeldende vedtakene på saken.
- * @param automatiskRevurdering Revurderingen som kan opprettes automatisk som følge av endringen.
- * Er den null, må endringen følges opp manuelt.
+ * Utfallet av å vurdere nå-tilstanden til en tiltaksdeltakelse mot de gjeldende vedtakene på saken.
  */
-data class VurdertTiltaksdeltakerEndring(
-    val endring: TiltaksdeltakerEndring,
-    val automatiskRevurdering: AutomatiskRevurderingAvEndring?,
-)
+sealed interface VurdertTiltaksdeltakerEndring {
+    /**
+     * Ingenting relevant er endret i forhold til de gjeldende vedtakene, eller endringen er allerede fanget opp av en åpen behandling.
+     * Gjelder også når deltakelsen ikke er innvilget i noe gjeldende vedtak og heller ikke er med i en åpen manuell behandling.
+     */
+    data object IngenEndring : VurdertTiltaksdeltakerEndring
+
+    /**
+     * En relevant endring i tiltaksdeltakelsen.
+     * @param automatiskRevurdering Revurderingen som kan opprettes automatisk som følge av endringen.
+     * Er den null, må endringen følges opp manuelt.
+     */
+    data class Endret(
+        val endring: TiltaksdeltakerEndring,
+        val automatiskRevurdering: AutomatiskRevurderingAvEndring?,
+    ) : VurdertTiltaksdeltakerEndring
+}
 
 /**
  * Revurderingen som kan opprettes automatisk for en endret tiltaksdeltakelse, med én implementasjon per revurderingstype.
