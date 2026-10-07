@@ -3,12 +3,9 @@ package no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.fixedClock
-import no.nav.tiltakspenger.saksbehandling.behandling.domene.Rammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
-import no.nav.tiltakspenger.saksbehandling.sak.Sak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseIntern
-import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AndreEndringer
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvbruttDeltakelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring.AvsluttetSomForventet
@@ -25,12 +22,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
-import java.time.Clock
-import java.time.Duration
 import java.time.LocalDate
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SakFinnEndringerTest {
+class DeltakelsestilstandFinnEndringerTest {
     private val clock = fixedClock
     private val iDag = LocalDate.now(clock)
     private val kjentTilstand = ObjectMother.tiltaksdeltakelse(
@@ -42,69 +37,7 @@ class SakFinnEndringerTest {
 
     @Test
     fun `uendret deltakelse gir ingen endringer`() {
-        finnEndringerPåSak(kjentTilstand, kjentTilstand).shouldBeNull()
-    }
-
-    @Test
-    fun `ukjent deltakelse gir ingen endringer selv om verdiene er endret`() {
-        val sak = sakMedKjentTilstand(kjentTilstand)
-
-        sak.finnEndringer(
-            tiltaksdeltakerId = TiltaksdeltakerId.random(),
-            oppdatertDeltakelse = kjentTilstand.copy(deltakelseProsent = 60F).tilLibsDeltakelse(),
-            clock = clock,
-        ).shouldBeNull()
-    }
-
-    @Test
-    fun `nyere åpen manuell behandling brukes som sammenligningsgrunnlag fremfor eldre vedtak`() {
-        val (sak, _, vedtattBehandling) = ObjectMother.nySakMedVedtak(
-            vedtaksperiode = kjentTilstand.periode!!,
-            clock = clock,
-        )
-        val vedtattTilstand = vedtattBehandling.saksopplysninger.tiltaksdeltakelser.single()
-        val nyereTilstand = vedtattTilstand.copy(deltakelseProsent = 60F, antallDagerPerUke = 1F)
-        val oppdatertSak = sak.medNyereÅpenBehandling(nyereTilstand)
-
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand.tilLibsDeltakelse(), clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand.tilLibsDeltakelse(), clock) shouldBe
-            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(vedtattTilstand.deltakelseProsent, vedtattTilstand.antallDagerPerUke))
-    }
-
-    @Test
-    fun `nyere automatisk behandling overstyrer ikke sammenligningsgrunnlaget fra vedtak`() {
-        val (sak, _, vedtattBehandling) = ObjectMother.nySakMedVedtak(
-            vedtaksperiode = kjentTilstand.periode!!,
-            clock = clock,
-        )
-        val vedtattTilstand = vedtattBehandling.saksopplysninger.tiltaksdeltakelser.single()
-        val nyereTilstand = vedtattTilstand.copy(deltakelseProsent = 60F, antallDagerPerUke = 1F)
-        val oppdatertSak = sak.medNyereÅpenBehandling(nyereTilstand, automatisk = true)
-
-        oppdatertSak.rammebehandlinger.last().erUnderAutomatiskBehandling shouldBe true
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand.tilLibsDeltakelse(), clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nyereTilstand.tilLibsDeltakelse(), clock) shouldBe
-            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F))
-    }
-
-    @Test
-    fun `nyere manuell behandling for en annen deltakelse ignoreres ved valg av sammenligningsgrunnlag`() {
-        val (sak, _, vedtattBehandling) = ObjectMother.nySakMedVedtak(
-            vedtaksperiode = kjentTilstand.periode!!,
-            clock = clock,
-        )
-        val vedtattTilstand = vedtattBehandling.saksopplysninger.tiltaksdeltakelser.single()
-        val annenDeltakelse = ObjectMother.tiltaksdeltakelse(
-            periode = kjentTilstand.periode!!,
-            prosent = 60F,
-            dagerPrUke = 1F,
-        )
-        val oppdatertSak = sak.medNyereÅpenBehandling(annenDeltakelse)
-        val nåtilstand = vedtattTilstand.copy(deltakelseProsent = 60F, antallDagerPerUke = 1F)
-
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, vedtattTilstand.tilLibsDeltakelse(), clock).shouldBeNull()
-        oppdatertSak.finnEndringer(vedtattTilstand.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock) shouldBe
-            AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F))
+        finnEndringer(kjentTilstand, kjentTilstand).shouldBeNull()
     }
 
     @ParameterizedTest
@@ -119,7 +52,7 @@ class SakFinnEndringerTest {
     ) {
         val nåtilstand = kjentTilstand.copy(deltakelseProsent = prosent, antallDagerPerUke = dager)
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(prosent, dager))
+        finnEndringer(kjentTilstand, nåtilstand) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(prosent, dager))
     }
 
     @ParameterizedTest
@@ -139,7 +72,7 @@ class SakFinnEndringerTest {
             deltakelseTilOgMed = nySluttdato,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe Forlengelse(
+        finnEndringer(kjentTilstand, nåtilstand) shouldBe Forlengelse(
             nySluttdato = nySluttdato,
             endretDeltakelsesmengde = EndretDeltakelsesmengde(prosent, dager),
         )
@@ -168,7 +101,7 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseProsent = gammelProsent, antallDagerPerUke = gamleDager)
         val nåtilstand = kjent.copy(deltakelseProsent = nyProsent, antallDagerPerUke = nyeDager)
 
-        finnEndringerPåSak(kjent, nåtilstand).shouldBeNull()
+        finnEndringer(kjent, nåtilstand).shouldBeNull()
     }
 
     @ParameterizedTest
@@ -190,14 +123,14 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseProsent = gammelProsent, antallDagerPerUke = gamleDager)
         val nåtilstand = kjent.copy(deltakelseProsent = nyProsent, antallDagerPerUke = nyeDager)
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(nyProsent, nyeDager))
+        finnEndringer(kjent, nåtilstand) shouldBe AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(nyProsent, nyeDager))
     }
 
     @Test
     fun `senere sluttdato med samme startdato er en forlengelse`() {
         val nySluttdato = kjentTilstand.deltakelseTilOgMed!!.plusDays(1)
 
-        finnEndringerPåSak(
+        finnEndringer(
             kjentTilstand,
             kjentTilstand.copy(deltakelseTilOgMed = nySluttdato),
         ) shouldBe Forlengelse(nySluttdato)
@@ -215,7 +148,7 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.Deltar,
         )
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe Forlengelse(nySluttdato)
+        finnEndringer(kjent, nåtilstand) shouldBe Forlengelse(nySluttdato)
     }
 
     @ParameterizedTest
@@ -223,14 +156,14 @@ class SakFinnEndringerTest {
     fun `avkorting til før eller på dagens dato er avbrutt selv uten statusendring`(dagerFraIDag: Long) {
         val nåtilstand = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
+        finnEndringer(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     @Test
     fun `avkorting til fremtiden gir endret sluttdato`() {
         val nySluttdato = iDag.plusDays(1)
 
-        finnEndringerPåSak(
+        finnEndringer(
             kjentTilstand,
             kjentTilstand.copy(deltakelseTilOgMed = nySluttdato),
         ) shouldBe AndreEndringer(endretSluttdato = EndretSluttdato(nySluttdato))
@@ -242,7 +175,7 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
         val nåtilstand = kjent.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe AvbruttDeltakelse
+        finnEndringer(kjent, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     @Test
@@ -250,13 +183,13 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
         val nySluttdato = iDag.plusDays(1)
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
+        finnEndringer(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
             AndreEndringer(endretSluttdato = EndretSluttdato(nySluttdato))
     }
 
     @Test
     fun `fjernet sluttdato gir endret sluttdato med null`() {
-        finnEndringerPåSak(
+        finnEndringer(
             kjentTilstand,
             kjentTilstand.copy(deltakelseTilOgMed = null),
         ) shouldBe AndreEndringer(endretSluttdato = EndretSluttdato(null))
@@ -266,7 +199,7 @@ class SakFinnEndringerTest {
     fun `begge mangler sluttdato og gir ingen endringer`() {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
 
-        finnEndringerPåSak(kjent, kjent).shouldBeNull()
+        finnEndringer(kjent, kjent).shouldBeNull()
     }
 
     @Test
@@ -274,7 +207,7 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.minusDays(2))
         val nySluttdato = iDag.minusDays(1)
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
+        finnEndringer(kjent, kjent.copy(deltakelseTilOgMed = nySluttdato)) shouldBe
             Forlengelse(nySluttdato)
     }
 
@@ -283,7 +216,7 @@ class SakFinnEndringerTest {
     fun `endret startdato gir den nye startdatoen`(dagerFraGammelStart: Long) {
         val nyStartdato = kjentTilstand.deltakelseFraOgMed!!.plusDays(dagerFraGammelStart)
 
-        finnEndringerPåSak(
+        finnEndringer(
             kjentTilstand,
             kjentTilstand.copy(deltakelseFraOgMed = nyStartdato),
         ) shouldBe AndreEndringer(endretStartdato = EndretStartdato(nyStartdato))
@@ -291,7 +224,7 @@ class SakFinnEndringerTest {
 
     @Test
     fun `fjernet startdato gir endret startdato med null`() {
-        finnEndringerPåSak(
+        finnEndringer(
             kjentTilstand,
             kjentTilstand.copy(deltakelseFraOgMed = null),
         ) shouldBe AndreEndringer(endretStartdato = EndretStartdato(null))
@@ -301,14 +234,14 @@ class SakFinnEndringerTest {
     fun `manglende startdato erstattes med en dato`() {
         val kjent = kjentTilstand.copy(deltakelseFraOgMed = null)
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseFraOgMed = iDag)) shouldBe AndreEndringer(endretStartdato = EndretStartdato(iDag))
+        finnEndringer(kjent, kjent.copy(deltakelseFraOgMed = iDag)) shouldBe AndreEndringer(endretStartdato = EndretStartdato(iDag))
     }
 
     @Test
     fun `begge mangler startdato og gir ingen endringer`() {
         val kjent = kjentTilstand.copy(deltakelseFraOgMed = null)
 
-        finnEndringerPåSak(kjent, kjent).shouldBeNull()
+        finnEndringer(kjent, kjent).shouldBeNull()
     }
 
     @Test
@@ -320,7 +253,7 @@ class SakFinnEndringerTest {
             deltakelseTilOgMed = nySluttdato,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AndreEndringer(
+        finnEndringer(kjentTilstand, nåtilstand) shouldBe AndreEndringer(
             endretStartdato = EndretStartdato(nyStartdato),
             endretSluttdato = EndretSluttdato(nySluttdato),
         )
@@ -339,7 +272,7 @@ class SakFinnEndringerTest {
     ) {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(dagerFraIDag))
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AvsluttetSomForventet
+        finnEndringer(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AvsluttetSomForventet
     }
 
     @ParameterizedTest
@@ -347,7 +280,7 @@ class SakFinnEndringerTest {
     fun `avsluttet status før sluttdato gir endret status`(nyStatus: TiltakDeltakerstatus) {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag.plusDays(1))
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
+        finnEndringer(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
     }
 
     @ParameterizedTest
@@ -355,7 +288,7 @@ class SakFinnEndringerTest {
     fun `avsluttet status uten sluttdato gir endret status`(nyStatus: TiltakDeltakerstatus) {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = null)
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
+        finnEndringer(kjent, kjent.copy(deltakelseStatus = nyStatus)) shouldBe AndreEndringer(endretStatus = EndretStatus(nyStatus))
     }
 
     @ParameterizedTest
@@ -364,7 +297,7 @@ class SakFinnEndringerTest {
         val kjent = kjentTilstand.copy(deltakelseTilOgMed = iDag)
         val nåtilstand = kjent.copy(deltakelseStatus = nyStatus, antallDagerPerUke = 1F)
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe AndreEndringer(
+        finnEndringer(kjent, nåtilstand) shouldBe AndreEndringer(
             endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 1F),
             endretStatus = EndretStatus(nyStatus),
         )
@@ -377,13 +310,13 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.VenterPåOppstart,
         )
 
-        finnEndringerPåSak(kjent, kjent.copy(deltakelseStatus = TiltakDeltakerstatus.Deltar)) shouldBe
+        finnEndringer(kjent, kjent.copy(deltakelseStatus = TiltakDeltakerstatus.Deltar)) shouldBe
             AndreEndringer(endretStatus = EndretStatus(TiltakDeltakerstatus.Deltar))
     }
 
     @Test
     fun `kun statusendring til avbrutt gir avbrutt deltakelse`() {
-        finnEndringerPåSak(
+        finnEndringer(
             kjentTilstand,
             kjentTilstand.copy(deltakelseStatus = TiltakDeltakerstatus.Avbrutt),
         ) shouldBe AvbruttDeltakelse
@@ -391,7 +324,7 @@ class SakFinnEndringerTest {
 
     @Test
     fun `kun statusendring til ikke aktuell gir ikke aktuell deltakelse`() {
-        finnEndringerPåSak(
+        finnEndringer(
             kjentTilstand,
             kjentTilstand.copy(deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell),
         ) shouldBe IkkeAktuellDeltakelse
@@ -402,7 +335,7 @@ class SakFinnEndringerTest {
     fun `uendret avslutningsstatus overstyrer ikke en endret deltakelsesmengde`(status: TiltakDeltakerstatus) {
         val kjent = kjentTilstand.copy(deltakelseStatus = status)
 
-        finnEndringerPåSak(kjent, kjent.copy(antallDagerPerUke = 1F)) shouldBe
+        finnEndringer(kjent, kjent.copy(antallDagerPerUke = 1F)) shouldBe
             AndreEndringer(endretDeltakelsesmengde = EndretDeltakelsesmengde(50F, 1F))
     }
 
@@ -418,7 +351,7 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.HarSluttet,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AndreEndringer(
+        finnEndringer(kjentTilstand, nåtilstand) shouldBe AndreEndringer(
             endretDeltakelsesmengde = EndretDeltakelsesmengde(60F, 1F),
             endretStartdato = EndretStartdato(nyStartdato),
             endretSluttdato = EndretSluttdato(nySluttdato),
@@ -436,7 +369,7 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.Avbrutt,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
+        finnEndringer(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
     @Test
@@ -453,7 +386,7 @@ class SakFinnEndringerTest {
             deltakelseStatus = TiltakDeltakerstatus.IkkeAktuell,
         )
 
-        finnEndringerPåSak(kjent, nåtilstand) shouldBe IkkeAktuellDeltakelse
+        finnEndringer(kjent, nåtilstand) shouldBe IkkeAktuellDeltakelse
     }
 
     @ParameterizedTest
@@ -467,78 +400,12 @@ class SakFinnEndringerTest {
             deltakelseStatus = nyStatus,
         )
 
-        finnEndringerPåSak(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
+        finnEndringer(kjentTilstand, nåtilstand) shouldBe AvbruttDeltakelse
     }
 
-    private fun finnEndringerPåSak(
+    private fun finnEndringer(
         kjent: TiltaksdeltakelseIntern,
         nåtilstand: TiltaksdeltakelseIntern,
     ): TiltaksdeltakerEndring? =
-        sakMedKjentTilstand(kjent).finnEndringer(kjent.internDeltakelseId, nåtilstand.tilLibsDeltakelse(), clock)
-
-    private fun Sak.medNyereÅpenBehandling(
-        tilstand: TiltaksdeltakelseIntern,
-        automatisk: Boolean = false,
-    ): Sak {
-        val nyereClock = Clock.offset(clock, Duration.ofSeconds(1))
-        val søknad = ObjectMother.nyInnvilgbarSøknad(
-            sakId = id,
-            fnr = fnr,
-            saksnummer = saksnummer,
-            periode = tilstand.periode!!,
-            søknadstiltak = ObjectMother.søknadstiltak(
-                id = tilstand.eksternDeltakelseId,
-                tiltaksdeltakerId = tilstand.internDeltakelseId,
-                deltakelseFom = tilstand.deltakelseFraOgMed!!,
-                deltakelseTom = tilstand.deltakelseTilOgMed!!,
-            ),
-            clock = nyereClock,
-        )
-        val saksopplysninger = ObjectMother.saksopplysninger(
-            tiltaksdeltakelse = listOf(tilstand),
-            oppslagsperiode = tilstand.periode!!,
-            clock = nyereClock,
-        )
-        val sakMedSøknad = leggTilSøknad(søknad)
-        val behandling = if (automatisk) {
-            ObjectMother.sakMedOpprettetAutomatiskBehandling(
-                sakId = id,
-                fnr = fnr,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                saksopplysninger = saksopplysninger,
-                sak = sakMedSøknad,
-                clock = nyereClock,
-            ).second
-        } else {
-            ObjectMother.nyOpprettetSøknadsbehandling(
-                sakId = id,
-                fnr = fnr,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                hentSaksopplysninger = { _, _, _, _, _, _ -> saksopplysninger },
-                sak = sakMedSøknad,
-                clock = nyereClock,
-            )
-        }
-        behandling.sistEndret.isAfter(rammebehandlinger.last().sistEndret) shouldBe true
-        return sakMedSøknad.leggTilSøknadsbehandling(behandling)
-    }
-
-    private fun sakMedKjentTilstand(kjent: TiltaksdeltakelseIntern): Sak {
-        val behandling = ObjectMother.nyOpprettetSøknadsbehandling(
-            hentSaksopplysninger = { _, _, _, _, _, _ ->
-                ObjectMother.saksopplysninger(tiltaksdeltakelse = listOf(kjent), clock = clock)
-            },
-            clock = clock,
-        )
-        return ObjectMother.nySak(
-            sakId = behandling.sakId,
-            fnr = behandling.fnr,
-            saksnummer = behandling.saksnummer,
-            søknader = listOf(behandling.søknad),
-            behandlinger = Rammebehandlinger(behandling),
-            clock = clock,
-        )
-    }
+        kjent.tilDeltakelsestilstand().finnEndringer(nåtilstand.tilLibsDeltakelse().tilDeltakelsestilstand(clock), clock)
 }

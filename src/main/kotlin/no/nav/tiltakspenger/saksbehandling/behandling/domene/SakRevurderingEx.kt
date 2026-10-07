@@ -28,11 +28,13 @@ suspend fun Sak.startRevurdering(
 ): Either<KanIkkeStarteRevurdering, Pair<Sak, Revurdering>> {
     // Null når revurderingen er automatisk opprettet; da er det ingen saksbehandler å kreve rollen av.
     kommando.saksbehandler?.let { krevSaksbehandlerRolle(it) }
+
     val nå = nå(clock)
+    val behandlingId = RammebehandlingId.random()
 
     val klagebehandling: Klagebehandling? = kommando.klagebehandlingId?.let {
         hentKlagebehandling(it).oppdaterBehandlingId(
-            behandlingId = kommando.revurderingId,
+            behandlingId = behandlingId,
             saksbehandler = kommando.saksbehandler!!,
             sistEndret = nå,
         )
@@ -40,7 +42,7 @@ suspend fun Sak.startRevurdering(
 
     val revurdering = when (kommando.revurderingType) {
         StartRevurderingType.STANS -> startRevurderingStans(
-            revurderingId = kommando.revurderingId,
+            revurderingId = behandlingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
@@ -49,7 +51,7 @@ suspend fun Sak.startRevurdering(
         )
 
         StartRevurderingType.INNVILGELSE -> startRevurderingInnvilgelse(
-            revurderingId = kommando.revurderingId,
+            revurderingId = behandlingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,
@@ -59,7 +61,7 @@ suspend fun Sak.startRevurdering(
         )
 
         StartRevurderingType.OMGJØRING -> startRevurderingOmgjøring(
-            revurderingId = kommando.revurderingId,
+            revurderingId = behandlingId,
             saksbehandler = kommando.saksbehandler,
             hentSaksopplysninger = hentSaksopplysninger,
             correlationId = kommando.correlationId,

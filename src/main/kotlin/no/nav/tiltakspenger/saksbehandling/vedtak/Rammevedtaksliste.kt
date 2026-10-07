@@ -116,21 +116,21 @@ data class Rammevedtaksliste(
      * Tar utgangspunkt i [innvilgetTidslinje]
      */
     val innvilgelsesperioder: Periodisering<InnvilgelsesperiodeVerdi> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.innvilgelsesperioder!!.periodisering }
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.innvilgelsesperioder!!.periodisering }
     }
 
     val antallDagerPerMeldeperiode: Periodisering<AntallDagerForMeldeperiode> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.antallDagerPerMeldeperiode!! }
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.antallDagerPerMeldeperiode!! }
     }
 
     val valgteTiltaksdeltakelser: Periodisering<TiltaksdeltakelseIntern> by lazy {
-        innvilgetTidslinje.flatMapPeriodisering { it.verdi.rammebehandling.valgteTiltaksdeltakelser!! }
+        innvilgetTidslinje.flatMapPeriodisering { it.verdi.valgteTiltaksdeltakelser!! }
     }
 
     fun antallDagerForMeldeperiode(periode: Periode): AntallDagerForMeldeperiode? {
         return innvilgetTidslinje
             .overlappendePeriode(periode)
-            .mapNotNull { it.verdi.rammebehandling.antallDagerPerMeldeperiode?.finnAntallDagerForMeldeperiode(periode) }
+            .mapNotNull { it.verdi.antallDagerPerMeldeperiode?.finnAntallDagerForMeldeperiode(periode) }
             .maxOfOrNull { it }
     }
 
