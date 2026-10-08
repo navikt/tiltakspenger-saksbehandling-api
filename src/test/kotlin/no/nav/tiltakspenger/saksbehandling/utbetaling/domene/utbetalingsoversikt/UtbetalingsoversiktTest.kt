@@ -3,16 +3,21 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversik
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.SakId
+import no.nav.tiltakspenger.libs.dato.desember
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.juli
+import no.nav.tiltakspenger.libs.dato.juni
 import no.nav.tiltakspenger.libs.dato.mai
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.periode.Periode
+import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class UtbetalingsoversiktTest {
     private val sakId = SakId.random()
     private val hentet = 5.mai(2025).atTime(12, 0)
-    private val oppslag = Oppslag(Periode(1.januar(2025), 31.januar(2025)), Oppslagsperiodetype.YTELSESPERIODE)
+    private val oppslag = Oppslag(Periode(1.januar(2025), 31.januar(2025)), Oppslagsperiodetype.UTBETALINGSPERIODE)
 
     private fun vellykket(
         sakId: SakId = this.sakId,
@@ -26,6 +31,33 @@ class UtbetalingsoversiktTest {
         plan: Oppslagsplan = Oppslagsplan(hentet.plusMinutes(1), antallFeilPåRad = 1),
         id: UtbetalingsoversiktId = UtbetalingsoversiktId.random(),
     ) = Utbetalingsoversikt.Feilet(id, sakId, hentet, oppslag, plan, Oppslagsfeiltype.TJENESTEFEIL)
+
+    @Test
+    fun `oppslaget starter første dag i måneden før grunnlagets første periode og slutter i dag`() {
+        val grunnlag = Utbetalingsoversiktgrunnlag(
+            ObjectMother.gyldigFnr(),
+            listOf(Periode(1.mars(2025), 31.mars(2025)), Periode(15.januar(2025), 31.januar(2025))),
+        )
+
+        Oppslag.forGrunnlag(grunnlag, iDag = 5.mai(2025)) shouldBe
+            Oppslag(Periode(1.desember(2024), 5.mai(2025)), Oppslagsperiodetype.UTBETALINGSPERIODE)
+    }
+
+    @Test
+    fun `oppslaget starter første dag i denne måneden når grunnlagets første periode starter neste måned`() {
+        val grunnlag = Utbetalingsoversiktgrunnlag(ObjectMother.gyldigFnr(), listOf(Periode(30.juni(2025), 30.juni(2025))))
+
+        Oppslag.forGrunnlag(grunnlag, iDag = 5.mai(2025)) shouldBe
+            Oppslag(Periode(1.mai(2025), 5.mai(2025)), Oppslagsperiodetype.UTBETALINGSPERIODE)
+    }
+
+    @Test
+    fun `oppslaget starter i dag når grunnlagets første periode starter senere enn neste måned`() {
+        val grunnlag = Utbetalingsoversiktgrunnlag(ObjectMother.gyldigFnr(), listOf(Periode(1.juli(2025), 31.juli(2025))))
+
+        Oppslag.forGrunnlag(grunnlag, iDag = 5.mai(2025)) shouldBe
+            Oppslag(Periode(5.mai(2025), 5.mai(2025)), Oppslagsperiodetype.UTBETALINGSPERIODE)
+    }
 
     @Test
     fun `vellykket oversikt kan ikke ha feil på rad`() {

@@ -110,6 +110,11 @@ data class Sak(
         )
     }
 
+    /** Null når saken verken har søknad med tiltak eller rammevedtak. */
+    val behandlingsgrunnlagsperioder: Behandlingsgrunnlagsperioder? by lazy {
+        Behandlingsgrunnlagsperioder.fra(tiltaksdeltakelserDetErSøktTiltakspengerFor, rammevedtaksliste)
+    }
+
     fun hentMeldekortbehandling(meldekortId: MeldekortId): Meldekortbehandling? {
         return meldekortbehandlinger.hentMeldekortbehandling(meldekortId)
     }

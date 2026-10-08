@@ -37,7 +37,7 @@ fun String.toAdressebeskyttelseBolk(): Map<Fnr, Adressebeskyttelse> =
         }
         .toMap()
 
-private fun AdressebeskyttelseGradering.tilDomene(): Adressebeskyttelse = when (this) {
+fun AdressebeskyttelseGradering.tilDomene(): Adressebeskyttelse = when (this) {
     AdressebeskyttelseGradering.STRENGT_FORTROLIG_UTLAND -> Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND
     AdressebeskyttelseGradering.STRENGT_FORTROLIG -> Adressebeskyttelse.STRENGT_FORTROLIG
     AdressebeskyttelseGradering.FORTROLIG -> Adressebeskyttelse.FORTROLIG

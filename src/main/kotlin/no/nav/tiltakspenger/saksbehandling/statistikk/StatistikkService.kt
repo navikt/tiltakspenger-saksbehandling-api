@@ -25,7 +25,7 @@ class StatistikkService(
         return hendelser.tilStatistikkDto(
             gjelderKode6 = {
                 val person = personKlient.hentEnkelPerson(it)
-                person.strengtFortrolig || person.strengtFortroligUtland
+                person.adressebeskyttelse.erKode6
             },
             versjon = gitHash,
             clock = clock,

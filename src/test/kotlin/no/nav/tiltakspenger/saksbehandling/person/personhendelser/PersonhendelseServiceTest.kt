@@ -4,7 +4,6 @@ import arrow.core.left
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.forelderbarnrelasjon.ForelderBarnRelasjon
@@ -12,12 +11,14 @@ import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingUnderBehandling
 import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse as LeesahAdressebeskyttelse
 
 /**
  * Tilstanden bygges gjennom prodstiene: saken opprettes via routene, og hendelser med observerbart utfall går inn via [no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer].
@@ -89,11 +90,11 @@ class PersonhendelseServiceTest {
             val (sak, _, _) = opprettSøknadsbehandlingUnderBehandling(tac = tac, fnr = fnr)
             (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
                 fnr = fnr,
-                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, strengtFortrolig = true),
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG),
             )
             val personhendelse = nyPersonhendelse(
                 fnr = fnr,
-                adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                adressebeskyttelse = LeesahAdressebeskyttelse(Gradering.STRENGT_FORTROLIG),
                 clock = tac.clock,
             )
 
@@ -133,7 +134,7 @@ class PersonhendelseServiceTest {
             tac.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
-                    adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                    adressebeskyttelse = LeesahAdressebeskyttelse(Gradering.STRENGT_FORTROLIG),
                     clock = tac.clock,
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.IkkeKode6IPdl.left()
@@ -197,7 +198,7 @@ class PersonhendelseServiceTest {
             tac.personhendelseService.behandlePersonhendelse(
                 nyPersonhendelse(
                     fnr = fnr,
-                    adressebeskyttelse = Adressebeskyttelse(Gradering.FORTROLIG),
+                    adressebeskyttelse = LeesahAdressebeskyttelse(Gradering.FORTROLIG),
                     clock = tac.clock,
                 ),
             ) shouldBe KunneIkkeBehandlePersonhendelse.AdressebeskyttelseErIkkeKode6.left()

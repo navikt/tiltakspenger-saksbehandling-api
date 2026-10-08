@@ -9,8 +9,6 @@ data class EnkelPerson(
     val fornavn: String,
     val mellomnavn: String?,
     val etternavn: String,
-    val fortrolig: Boolean,
-    val strengtFortrolig: Boolean,
-    val strengtFortroligUtland: Boolean,
+    val adressebeskyttelse: Adressebeskyttelse,
     val dødsdato: LocalDate?,
 )

@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.libs.common.Ulid
 import no.nav.tiltakspenger.libs.common.UlidBase
 import no.nav.tiltakspenger.libs.periode.Periode
 import ulid.ULID
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class UtbetalingsoversiktId private constructor(
@@ -63,7 +64,33 @@ sealed interface Utbetalingsoversikt {
 data class Oppslag(
     val periode: Periode,
     val periodetype: Oppslagsperiodetype,
-)
+) {
+    companion object {
+        /**
+         * Månedsytelser utbetales før utgangen av måneden de gjelder, og kan derfor være postert før en periode som starter senere i samme måned.
+         * Se https://lovdata.no/lov/1997-02-28-19/§22-10 og https://lovdata.no/lov/2005-04-29-21/§11.
+         * Oppslaget starter likevel dette antallet måneder før grunnlagets første periode, regnet fra første dag i måneden, som margin for ytelser med ukjent utbetalingsrytme.
+         */
+        const val MÅNEDER_FØR_FØRSTE_PERIODE = 1L
+
+        /**
+         * Gjør oppslag fra første dag i måneden som ligger [MÅNEDER_FØR_FØRSTE_PERIODE] måneder før grunnlagets første periode, til og med [iDag].
+         * Sluttdatoen er alltid [iDag] fordi økonomisystemet ikke godtar en sluttdato etter dagens dato, og starten settes til [iDag] bare når den ellers ville kommet etter sluttdatoen.
+         * Måneder som ikke er postert ennå, finnes ikke i økonomisystemet og kommer med i et senere oppslag.
+         * Svaret avgrenses uansett til grunnlagets perioder før lagring.
+         */
+        fun forGrunnlag(grunnlag: Utbetalingsoversiktgrunnlag, iDag: LocalDate): Oppslag {
+            val førsteFraOgMed = grunnlag.perioder.minOf { it.fraOgMed }
+            return Oppslag(
+                periode = Periode(
+                    fraOgMed = minOf(førsteFraOgMed.withDayOfMonth(1).minusMonths(MÅNEDER_FØR_FØRSTE_PERIODE), iDag),
+                    tilOgMed = iDag,
+                ),
+                periodetype = Oppslagsperiodetype.UTBETALINGSPERIODE,
+            )
+        }
+    }
+}
 
 sealed interface Utbetalingsoversiktstatus {
     val antallFeilPåRad: Int

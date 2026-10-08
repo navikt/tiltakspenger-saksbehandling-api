@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSakOgSøknad
@@ -34,15 +35,13 @@ class DelautomatiskSoknadsbehandlingJobbTest {
 
     @ParameterizedTest
     @CsvSource(
-        "true, false, false, false",
-        "false, true, false, false",
-        "false, false, true, false",
-        "false, false, false, true",
+        "FORTROLIG, false",
+        "STRENGT_FORTROLIG, false",
+        "STRENGT_FORTROLIG_UTLAND, false",
+        "UGRADERT, true",
     )
     fun `beskyttet søker får Gosys-oppgave uten lagring i ekstern_oppgave`(
-        fortrolig: Boolean,
-        strengtFortrolig: Boolean,
-        strengtFortroligUtland: Boolean,
+        adressebeskyttelse: Adressebeskyttelse,
         skjermet: Boolean,
     ) {
         withTestApplicationContextAndPostgres { tac ->
@@ -51,9 +50,7 @@ class DelautomatiskSoknadsbehandlingJobbTest {
                 sak.fnr,
                 ObjectMother.personopplysningKjedeligFyr(
                     fnr = sak.fnr,
-                    fortrolig = fortrolig,
-                    strengtFortrolig = strengtFortrolig,
-                    strengtFortroligUtland = strengtFortroligUtland,
+                    adressebeskyttelse = adressebeskyttelse,
                 ),
             )
             (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, skjermet)

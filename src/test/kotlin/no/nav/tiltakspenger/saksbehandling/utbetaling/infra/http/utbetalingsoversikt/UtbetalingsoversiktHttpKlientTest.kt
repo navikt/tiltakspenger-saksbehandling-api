@@ -4,6 +4,7 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.withClue
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.common.AccessToken
@@ -16,9 +17,11 @@ import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
+import no.nav.tiltakspenger.libs.json.deserialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Aktør
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsperiodetype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.RegistrertUtbetaling
@@ -26,7 +29,10 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Skattetrekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Trekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMappingfeil
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktavgrensning
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Ytelseskomponent
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.sha256
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.time.Instant
@@ -37,6 +43,7 @@ class UtbetalingsoversiktHttpKlientTest {
     private val correlationId = CorrelationId.generate()
     private val fnr = Fnr.random()
     private val periode = Periode(fraOgMed = 1.august(2025), tilOgMed = 30.september(2025))
+    private val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(periode))
 
     private val authTokenProvider = object : AuthTokenProvider {
         override suspend fun hentToken(skipCache: Boolean) = AccessToken("token", Instant.MAX)
@@ -60,22 +67,26 @@ class UtbetalingsoversiktHttpKlientTest {
 
     private suspend fun hent(
         transport: FakeHttpTransport,
-        periodetype: Oppslagsperiodetype = Oppslagsperiodetype.YTELSESPERIODE,
+        periodetype: Oppslagsperiodetype = Oppslagsperiodetype.UTBETALINGSPERIODE,
         klient: UtbetalingsoversiktHttpKlient = klient(transport),
-    ) = klient.hent(fnr = fnr, periode = periode, periodetype = periodetype, correlationId = correlationId)
+        grunnlag: Utbetalingsoversiktgrunnlag = this.grunnlag,
+    ) = klient.hent(grunnlag = grunnlag, periode = periode, periodetype = periodetype, correlationId = correlationId)
 
     @Test
     fun `klienten kan bygges med standardtransporten`() {
         UtbetalingsoversiktHttpKlient(baseUrl = baseUrl, clock = ObjectMother.clock, authTokenProvider = authTokenProvider)
     }
 
-    /** Hele lista sammenlignes, så et felt som kommer til eller faller bort, må vurderes på nytt. */
+    /**
+     * Hele lista sammenlignes, så et felt som kommer til eller faller bort, må vurderes på nytt.
+     * Den andre utbetalingen mister ytelsen «Økonomisk sosialhjelp» og ytelsen uten type, og dermed totalbeløpet.
+     */
     @Test
-    fun `fullt svar gir utbetalingene med alle felt, uten kontonummer og navn`() {
+    fun `fullt svar gir utbetalingene med alle felt, uten kontonummer, navn og ytelser utenfor grunnlaget`() {
         val transport = transportMed(UtbetalingsoversiktDtoTestEx.riktSvar(fnr))
 
         runTest {
-            hent(transport).getOrFail().body shouldBe listOf(
+            hent(transport).getOrFail().utbetalinger shouldBe listOf(
                 RegistrertUtbetaling(
                     utbetaltTil = Aktør.Person(fnr),
                     utbetalingsmetode = "Til konto",
@@ -127,7 +138,7 @@ class UtbetalingsoversiktHttpKlientTest {
                     posteringsdato = 9.september(2025),
                     forfallsdato = 19.september(2025),
                     utbetalingsdato = null,
-                    nettobeløp = "8700".toBigDecimal(),
+                    nettobeløp = null,
                     melding = null,
                     ytelser = listOf(
                         RegistrertYtelse(
@@ -174,34 +185,6 @@ class UtbetalingsoversiktHttpKlientTest {
                             bilagsnummer = null,
                             refundertFor = null,
                         ),
-                        RegistrertYtelse(
-                            ytelsestype = "Økonomisk sosialhjelp",
-                            periode = Periode(1.september(2025), 30.september(2025)),
-                            nettobeløp = "1650".toBigDecimal(),
-                            rettighetshaver = Aktør.Person(fnr),
-                            skattesum = "0".toBigDecimal(),
-                            trekksum = "0".toBigDecimal(),
-                            komponentsum = "1650".toBigDecimal(),
-                            komponenter = emptyList(),
-                            trekk = emptyList(),
-                            skattetrekk = emptyList(),
-                            bilagsnummer = null,
-                            refundertFor = null,
-                        ),
-                        RegistrertYtelse(
-                            ytelsestype = null,
-                            periode = Periode(18.august(2025), 31.august(2025)),
-                            nettobeløp = "0".toBigDecimal(),
-                            rettighetshaver = Aktør.Person(fnr),
-                            skattesum = "0".toBigDecimal(),
-                            trekksum = "0".toBigDecimal(),
-                            komponentsum = "0".toBigDecimal(),
-                            komponenter = emptyList(),
-                            trekk = emptyList(),
-                            skattetrekk = emptyList(),
-                            bilagsnummer = null,
-                            refundertFor = null,
-                        ),
                     ),
                 ),
             )
@@ -209,15 +192,73 @@ class UtbetalingsoversiktHttpKlientTest {
     }
 
     @Test
-    fun `rå request, rå respons og status følger med ut`() {
+    fun `avgrenset svar, avgrensning og metadata følger med ut`() {
         val svar = UtbetalingsoversiktDtoTestEx.svarUtenValgfrieFelt(fnr)
 
         runTest {
-            val response = hent(transportMed(svar)).getOrFail()
+            val resultat = hent(transportMed(svar)).getOrFail()
 
-            response.statusCode shouldBe 200
-            response.rawResponseString shouldEqualJson svar
-            response.rawRequestString.substringAfter("\n\n") shouldEqualJson forventetRequest("YTELSESPERIODE")
+            resultat.metadata.statusCode shouldBe 200
+            resultat.metadata.rawRequestString.substringAfter("\n\n") shouldEqualJson forventetRequest("UTBETALINGSPERIODE")
+            deserialize<List<UtbetalingsoversiktDto>>(resultat.avgrensetSvar) shouldBe deserialize<List<UtbetalingsoversiktDto>>(svar).utenNavn()
+            resultat.avgrensning shouldBe Utbetalingsoversiktavgrensning(
+                regelversjon = 1,
+                perioder = listOf(periode),
+                antallUtbetalingerMottatt = 1,
+                antallYtelserMottatt = 1,
+                fjernedeYtelserPerÅrsak = emptyMap(),
+                antallFjernedeUtbetalinger = 0,
+                mottattSvarSha256 = svar.sha256(),
+                mottattSvarLengde = svar.length,
+            )
+        }
+    }
+
+    /**
+     * Første utbetaling har én ytelse innenfor, én uten type, én av en type vi ikke samordner med, én utenfor periodene og én med annen rettighetshaver.
+     * Andre utbetaling har bare én ytelse uten type.
+     */
+    @Test
+    fun `ytelser utenfor grunnlaget telles per årsak og fjernes, og tomme utbetalinger tas bort`() {
+        val annenPerson = Fnr.random()
+        val svar = UtbetalingsoversiktDtoTestEx.svarMedYtelserUtenforGrunnlaget(fnr, annenPerson)
+
+        runTest {
+            val resultat = hent(transportMed(svar)).getOrFail()
+
+            resultat.utbetalinger.map { it.ytelser.map { ytelse -> ytelse.ytelsestype } } shouldBe listOf(listOf("Dagpenger"))
+            resultat.utbetalinger.single().nettobeløp shouldBe null
+            resultat.avgrensning.antallUtbetalingerMottatt shouldBe 2
+            resultat.avgrensning.antallYtelserMottatt shouldBe 6
+            resultat.avgrensning.antallFjernedeUtbetalinger shouldBe 1
+            resultat.avgrensning.fjernedeYtelserPerÅrsak shouldBe mapOf(
+                Avgrensningsårsak.UTEN_YTELSESTYPE to 2,
+                Avgrensningsårsak.ANNEN_YTELSESTYPE to 1,
+                Avgrensningsårsak.UTENFOR_PERIODENE to 1,
+                Avgrensningsårsak.ANNEN_RETTIGHETSHAVER to 1,
+            )
+            resultat.avgrensetSvar shouldEqualJson UtbetalingsoversiktDtoTestEx.avgrensetSvarMedYtelserUtenforGrunnlaget(fnr)
+            resultat.avgrensetSvar shouldNotContain annenPerson.verdi
+            resultat.avgrensetSvar shouldNotContain "navn\":\"F"
+            resultat.avgrensetSvar shouldNotContain "kontonummer"
+        }
+    }
+
+    @Test
+    fun `totalbeløpet beholdes bare når alle ytelsene i utbetalingen beholdes`() {
+        runTest {
+            hent(transportMed(UtbetalingsoversiktDtoTestEx.riktSvar(fnr))).getOrFail().utbetalinger.map { it.nettobeløp } shouldBe
+                listOf("900.1".toBigDecimal(), null)
+        }
+    }
+
+    @Test
+    fun `en ytelse med ugyldig periode slipper gjennom avgrensningen og stoppes i mappingen`() {
+        val svar = UtbetalingsoversiktDtoTestEx.svarUtenValgfrieFelt(fnr).replace(""""tom": "2025-08-14"""", """"tom": "2025-07-31"""")
+
+        runTest {
+            hent(transportMed(svar)).leftOrNull().shouldNotBeNull().shouldBeInstanceOf<KunneIkkeHenteUtbetalingsoversikt.UgyldigInnhold>()
+                .feil shouldBe UtbetalingsoversiktMappingfeil.UgyldigPeriode("ytelsesperiode")
         }
     }
 
@@ -225,7 +266,7 @@ class UtbetalingsoversiktHttpKlientTest {
     @Test
     fun `utelatte lister blir tomme og negative summer bevares`() {
         runTest {
-            val utbetaling = hent(transportMed(UtbetalingsoversiktDtoTestEx.svarUtenValgfrieFelt(fnr))).getOrFail().body.single()
+            val utbetaling = hent(transportMed(UtbetalingsoversiktDtoTestEx.svarUtenValgfrieFelt(fnr))).getOrFail().utbetalinger.single()
 
             utbetaling.nettobeløp shouldBe null
             utbetaling.forfallsdato shouldBe null
@@ -246,7 +287,7 @@ class UtbetalingsoversiktHttpKlientTest {
     @Test
     fun `aktoerId leses som ident`() {
         runTest {
-            hent(transportMed(UtbetalingsoversiktDtoTestEx.svarMedAktoerIdAlias(fnr))).getOrFail().body.single().utbetaltTil shouldBe
+            hent(transportMed(UtbetalingsoversiktDtoTestEx.svarMedAktoerIdAlias(fnr))).getOrFail().utbetalinger.single().utbetaltTil shouldBe
                 Aktør.Person(fnr)
         }
     }
@@ -254,7 +295,7 @@ class UtbetalingsoversiktHttpKlientTest {
     @Test
     fun `tomt array gir tom liste`() {
         runTest {
-            hent(transportMed("[]")).getOrFail().body shouldBe emptyList()
+            hent(transportMed("[]")).getOrFail().utbetalinger shouldBe emptyList()
         }
     }
 
@@ -374,6 +415,13 @@ class UtbetalingsoversiktHttpKlientTest {
                 kall.bodyTekst shouldEqualJson forventetRequest(forventetVerdi)
             }
         }
+    }
+
+    private fun List<UtbetalingsoversiktDto>.utenNavn() = map { utbetaling ->
+        utbetaling.copy(
+            utbetaltTil = utbetaling.utbetaltTil?.copy(navn = null),
+            ytelseListe = utbetaling.ytelseListe.map { it.copy(rettighetshaver = it.rettighetshaver?.copy(navn = null)) },
+        )
     }
 
     //language=json

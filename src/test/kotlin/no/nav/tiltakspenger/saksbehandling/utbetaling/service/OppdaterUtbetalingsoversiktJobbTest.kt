@@ -7,6 +7,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotliquery.queryOf
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContext
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
@@ -23,16 +24,17 @@ import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsplan
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMappingfeil
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktstatus
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.registrertUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.sha256
 import no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsoversikt.UtbetalingsoversiktFakeKlient
-import no.nav.tiltakspenger.saksbehandling.vedtak.periodeForUtbetalingsoversikt
 import org.junit.jupiter.api.Test
 
 /** Hver test bygger sin egen sak gjennom rutene og kaller jobben for den saken, så testene kan gå parallelt i delt skjema. */
 class OppdaterUtbetalingsoversiktJobbTest {
     @Test
-    fun `vellykket oppslag lagrer utbetalingene, planen og rå request og response`() {
+    fun `vellykket oppslag lagrer utbetalingene, planen, requesten, det avgrensede svaret og avgrensningen`() {
         withTestApplicationContextAndPostgres { tac ->
             val sak = sakMedOkUtbetaling(tac)
             val utbetalinger = listOf(registrertUtbetaling())
@@ -42,20 +44,40 @@ class OppdaterUtbetalingsoversiktJobbTest {
 
             val oversikt = status(tac, sak).shouldBeInstanceOf<Utbetalingsoversiktstatus.SisteOppslagVellykket>().oversikt
             oversikt.utbetalinger shouldBe utbetalinger
-            oversikt.oppslag shouldBe Oppslag(sak.vedtaksliste.periodeForUtbetalingsoversikt()!!, Oppslagsperiodetype.YTELSESPERIODE)
+            val førstePeriode = Utbetalingsoversiktgrunnlag.forSak(sak).perioder.first()
+            oversikt.oppslag shouldBe Oppslag(
+                Periode(
+                    førstePeriode.fraOgMed.withDayOfMonth(1).minusMonths(Oppslag.MÅNEDER_FØR_FØRSTE_PERIODE),
+                    nå(tac.clock).toLocalDate(),
+                ),
+                Oppslagsperiodetype.UTBETALINGSPERIODE,
+            )
             tac.utbetalingsoversiktFakeKlient.sisteOppslagFor(sak.fnr) shouldBe oversikt.oppslag
             oversikt.plan shouldBe Oppslagsplan.etterVellykketOppslag(oversikt.hentet, harNyligSendtUtbetaling = true)
             hentMetadata(tac, oversikt.id).shouldNotBeNull().let { (metadata, correlationId) ->
+                val perioder = Utbetalingsoversiktgrunnlag.forSak(sak).perioder.joinToString(",") {
+                    """{"fraOgMed":"${it.fraOgMed}","tilOgMed":"${it.tilOgMed}"}"""
+                }
                 metadata shouldEqualJson """
                     {
                       "request": "${UtbetalingsoversiktFakeKlient.RÅ_REQUEST}",
-                      "response": "${UtbetalingsoversiktFakeKlient.RÅ_RESPONSE}",
-                      "statusKode": 200,
+                      "svar": "${UtbetalingsoversiktFakeKlient.AVGRENSET_SVAR}",
+                      "mottattSvarSha256": "${UtbetalingsoversiktFakeKlient.AVGRENSET_SVAR.sha256()}",
+                      "mottattSvarLengde": 2,
+                      "statuskode": 200,
                       "correlationId": "$correlationId",
                       "requestSendt": null,
                       "responsMottatt": null,
                       "varighetMs": 0,
-                      "antallForsøk": 1
+                      "antallForsøk": 1,
+                      "avgrensning": {
+                        "regelversjon": 1,
+                        "perioder": [$perioder],
+                        "antallUtbetalingerMottatt": 1,
+                        "antallYtelserMottatt": ${utbetalinger.single().ytelser.size},
+                        "fjernedeYtelserPerÅrsak": {},
+                        "antallFjernedeUtbetalinger": 0
+                      }
                     }
                 """.trimIndent()
             }

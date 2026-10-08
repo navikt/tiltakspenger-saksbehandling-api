@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.saksbehandling.behandling.domene.saksopplysninger
 
+import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDateTime
@@ -32,6 +33,11 @@ data class TiltaksdeltakelserDetErSøktTiltakspengerFor(
      * Uavhengig av kildesystem.
      */
     val eksterneIder: List<String> by lazy { value.map { it.søknadstiltak.id }.distinct() }
+
+    /** Deltakelsesperioden fra hver søknad, i samme rekkefølge og ikke slått sammen. */
+    val perioder: List<Periode> by lazy {
+        value.map { Periode(it.søknadstiltak.deltakelseFom, it.søknadstiltak.deltakelseTom) }
+    }
 
     companion object {
         fun empty() = TiltaksdeltakelserDetErSøktTiltakspengerFor(emptyList())

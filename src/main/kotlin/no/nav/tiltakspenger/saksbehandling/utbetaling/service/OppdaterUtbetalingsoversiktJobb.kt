@@ -13,16 +13,16 @@ import no.nav.tiltakspenger.saksbehandling.behandling.domene.SakRepo
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsfeiltype
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsperiodetype
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsplan
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktId
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktRepo
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktklient
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.tilUtbetalingsoversiktMetadata
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.Åpningstider.erInnenforØkonomisystemetsÅpningstider
-import no.nav.tiltakspenger.saksbehandling.vedtak.periodeForUtbetalingsoversikt
 import java.time.Clock
+import java.time.LocalDate
 import kotlin.time.toJavaDuration
 
 class OppdaterUtbetalingsoversiktJobb(
@@ -67,18 +67,19 @@ class OppdaterUtbetalingsoversiktJobb(
     /**
      * Slår opp utbetalingene for én sak og lagrer utfallet, også når oppslaget feiler.
      * Utfallet av kallet logges og måles før lagringen, så en lagringsfeil ikke skjuler det.
-     * Forutsetter at saken finnes og har minst én sendt utbetaling; da har den også et vedtak med periode.
+     * Forutsetter at saken finnes og har minst én sendt utbetaling.
      */
     suspend fun oppdaterForSak(sakId: SakId): Either<KunneIkkeHenteUtbetalingsoversikt, Unit> {
         val sak = sakRepo.hentForSakId(sakId)!!
-        val oppslag = Oppslag(sak.vedtaksliste.periodeForUtbetalingsoversikt()!!, Oppslagsperiodetype.YTELSESPERIODE)
+        val grunnlag = Utbetalingsoversiktgrunnlag.forSak(sak)
+        val oppslag = Oppslag.forGrunnlag(grunnlag, iDag = LocalDate.now(clock))
         val tidligereFeilPåRad = utbetalingsoversiktRepo.hentStatusForSak(sakId).antallFeilPåRad
         val correlationId = CorrelationId.generate()
         val kontekst = "sakId=${sak.id}, saksnummer=${sak.saksnummer}, correlationId=${correlationId.value}"
 
-        return utbetalingsoversiktklient.hent(sak.fnr, oppslag.periode, oppslag.periodetype, correlationId)
-            .onRight { response ->
-                val hentet = response.metadata.hentet()
+        return utbetalingsoversiktklient.hent(grunnlag, oppslag.periode, oppslag.periodetype, correlationId)
+            .onRight { svar ->
+                val hentet = svar.metadata.hentet()
                 val oversikt = Utbetalingsoversikt.Vellykket(
                     id = UtbetalingsoversiktId.random(),
                     sakId = sak.id,
@@ -88,13 +89,13 @@ class OppdaterUtbetalingsoversiktJobb(
                         hentet = hentet,
                         harNyligSendtUtbetaling = sak.utbetalinger.harOkUtbetalingSendtEtter(hentet.minusDays(30)),
                     ),
-                    utbetalinger = response.body,
+                    utbetalinger = svar.utbetalinger,
                 )
-                registrerMetrikker(resultat = "vellykket", metadata = response.metadata)
+                registrerMetrikker(resultat = "vellykket", metadata = svar.metadata)
                 logger.info {
-                    "Hentet utbetalingsoversikt. $kontekst, antallUtbetalinger=${oversikt.utbetalinger.size}, nesteOppslag=${oversikt.plan.nesteOppslag}."
+                    "Hentet utbetalingsoversikt. $kontekst, antallUtbetalinger=${oversikt.utbetalinger.size}, antallMottatt=${svar.avgrensning.antallUtbetalingerMottatt}, nesteOppslag=${oversikt.plan.nesteOppslag}."
                 }
-                utbetalingsoversiktRepo.lagre(oversikt, response.metadata.tilUtbetalingsoversiktMetadata(correlationId))
+                utbetalingsoversiktRepo.lagre(oversikt, svar.tilUtbetalingsoversiktMetadata(correlationId))
             }
             .onLeft { feil ->
                 val hentet = feil.metadata.hentet()

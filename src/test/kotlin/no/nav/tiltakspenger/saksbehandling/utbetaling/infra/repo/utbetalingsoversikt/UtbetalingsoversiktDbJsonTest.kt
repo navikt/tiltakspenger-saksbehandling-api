@@ -10,9 +10,11 @@ import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.august
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Aktør
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Avgrensningsårsak
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Skattetrekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Trekk
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.UtbetalingsoversiktMetadata
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktavgrensning
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Ytelseskomponent
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.registrertUtbetaling
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.registrertYtelse
@@ -131,45 +133,73 @@ class UtbetalingsoversiktDbJsonTest {
     fun `skriver metadata`() {
         UtbetalingsoversiktMetadata(
             request = "POST http://test",
-            response = "[]",
-            statusKode = 200,
+            svar = "[]",
+            mottattSvarSha256 = "abc",
+            mottattSvarLengde = 2,
+            statuskode = 200,
             correlationId = CorrelationId("korrelasjon-1"),
             requestSendt = 5.august(2025).atTime(12, 0, 0),
             responsMottatt = 5.august(2025).atTime(12, 0, 1, 500_000_000),
             varighet = 1500.milliseconds,
             antallForsøk = 2,
+            avgrensning = Utbetalingsoversiktavgrensning(
+                regelversjon = 1,
+                perioder = listOf(Periode(1.august(2025), 31.august(2025))),
+                antallUtbetalingerMottatt = 3,
+                antallYtelserMottatt = 5,
+                fjernedeYtelserPerÅrsak = Avgrensningsårsak.entries.withIndex().associate { (indeks, årsak) -> årsak to indeks + 1 },
+                antallFjernedeUtbetalinger = 2,
+                mottattSvarSha256 = "abc",
+                mottattSvarLengde = 2,
+            ),
         ).toDbJson() shouldEqualJson """
             {
               "request": "POST http://test",
-              "response": "[]",
-              "statusKode": 200,
+              "svar": "[]",
+              "mottattSvarSha256": "abc",
+              "mottattSvarLengde": 2,
+              "statuskode": 200,
               "correlationId": "korrelasjon-1",
               "requestSendt": "2025-08-05T12:00:00",
               "responsMottatt": "2025-08-05T12:00:01.5",
               "varighetMs": 1500,
-              "antallForsøk": 2
+              "antallForsøk": 2,
+              "avgrensning": {
+                "regelversjon": 1,
+                "perioder": [{"fraOgMed": "2025-08-01", "tilOgMed": "2025-08-31"}],
+                "antallUtbetalingerMottatt": 3,
+                "antallYtelserMottatt": 5,
+                "fjernedeYtelserPerÅrsak": {"UTEN_YTELSESTYPE": 1, "ANNEN_YTELSESTYPE": 2, "UTENFOR_PERIODENE": 3, "ANNEN_RETTIGHETSHAVER": 4},
+                "antallFjernedeUtbetalinger": 2
+              }
             }
         """.trimIndent()
 
         UtbetalingsoversiktMetadata(
             request = "POST http://test",
-            response = null,
-            statusKode = null,
+            svar = null,
+            mottattSvarSha256 = null,
+            mottattSvarLengde = null,
+            statuskode = null,
             correlationId = CorrelationId("korrelasjon-2"),
             requestSendt = null,
             responsMottatt = null,
             varighet = 20.seconds,
             antallForsøk = 1,
+            avgrensning = null,
         ).toDbJson() shouldEqualJson """
             {
               "request": "POST http://test",
-              "response": null,
-              "statusKode": null,
+              "svar": null,
+              "mottattSvarSha256": null,
+              "mottattSvarLengde": null,
+              "statuskode": null,
               "correlationId": "korrelasjon-2",
               "requestSendt": null,
               "responsMottatt": null,
               "varighetMs": 20000,
-              "antallForsøk": 1
+              "antallForsøk": 1,
+              "avgrensning": null
             }
         """.trimIndent()
     }

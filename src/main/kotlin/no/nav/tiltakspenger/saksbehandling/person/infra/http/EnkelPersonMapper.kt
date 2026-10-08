@@ -39,9 +39,7 @@ fun PdlPerson.toEnkelPerson(fnr: Fnr): EnkelPerson {
         fornavn = navn.fornavn,
         mellomnavn = navn.mellomnavn,
         etternavn = navn.etternavn,
-        fortrolig = adressebeskyttelse.erFortrolig(),
-        strengtFortrolig = adressebeskyttelse.erStrengtFortrolig(),
-        strengtFortroligUtland = adressebeskyttelse.erStrengtFortroligUtland(),
+        adressebeskyttelse = adressebeskyttelse.tilDomene(),
         dødsdato = this.doedsfall.lastOrNull()?.doedsdato,
     )
 }

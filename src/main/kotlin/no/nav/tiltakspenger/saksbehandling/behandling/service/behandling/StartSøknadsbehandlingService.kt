@@ -40,7 +40,7 @@ class StartSøknadsbehandlingService(
         correlationId: CorrelationId,
     ): Either<HttpKlientError, Søknadsbehandling> {
         val pdlPerson = sakService.hentEnkelPersonMedSkjermingForSakId(soknad.sakId, correlationId).getOrThrow()
-        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig || pdlPerson.skjermet) {
+        if (pdlPerson.harAdressebeskyttelseEllerSkjerming) {
             logger.info { "Person har adressebeskyttelse eller er skjermet, oppretter oppgave i Gosys" }
             oppgaveKlient.opprettOppgave(
                 fnr = soknad.fnr,

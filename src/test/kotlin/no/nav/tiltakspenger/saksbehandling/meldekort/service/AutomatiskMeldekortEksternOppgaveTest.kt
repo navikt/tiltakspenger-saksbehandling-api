@@ -15,6 +15,7 @@ import no.nav.tiltakspenger.saksbehandling.meldekort.domene.brukersmeldekort.Bru
 import no.nav.tiltakspenger.saksbehandling.meldekort.domene.meldekortbehandling.MeldekortBehandletAutomatiskStatus
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.JobberEtterIverksettelse
@@ -33,11 +34,11 @@ class AutomatiskMeldekortEksternOppgaveTest {
     @IsolatedDatabaseTest
     fun `manuelt meldekort for beskyttet bruker får Gosys-oppgave uten lagring i ekstern_oppgave`() {
         listOf(
-            listOf(true, false, false, false),
-            listOf(false, true, false, false),
-            listOf(false, false, true, false),
-            listOf(false, false, false, true),
-        ).forEach { (fortrolig, strengtFortrolig, strengtFortroligUtland, skjermet) ->
+            Adressebeskyttelse.FORTROLIG to false,
+            Adressebeskyttelse.STRENGT_FORTROLIG to false,
+            Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND to false,
+            Adressebeskyttelse.UGRADERT to true,
+        ).forEach { (adressebeskyttelse, skjermet) ->
             withTestApplicationContextAndPostgres(
                 clock = TikkendeKlokke(fixedClockAt(2.mai(2025).atTime(12, 0))),
                 runIsolated = true,
@@ -48,9 +49,7 @@ class AutomatiskMeldekortEksternOppgaveTest {
                     sak.fnr,
                     ObjectMother.personopplysningKjedeligFyr(
                         fnr = sak.fnr,
-                        fortrolig = fortrolig,
-                        strengtFortrolig = strengtFortrolig,
-                        strengtFortroligUtland = strengtFortroligUtland,
+                        adressebeskyttelse = adressebeskyttelse,
                     ),
                 )
                 (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(sak.fnr, skjermet)

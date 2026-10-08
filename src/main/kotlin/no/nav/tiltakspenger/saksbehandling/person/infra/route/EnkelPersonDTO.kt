@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.saksbehandling.person.infra.route
 
 import no.nav.tiltakspenger.saksbehandling.infra.route.SladdbarVerdi
 import no.nav.tiltakspenger.saksbehandling.infra.route.ikkeSladdet
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.BarnMedSkjerming
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPersonMedSkjerming
 import java.time.LocalDate
@@ -25,9 +26,9 @@ fun EnkelPersonMedSkjerming.toEnkelPersonDTO(): EnkelPersonDTO = EnkelPersonDTO(
     fornavn = fornavn.ikkeSladdet(),
     mellomnavn = mellomnavn.ikkeSladdet(),
     etternavn = etternavn.ikkeSladdet(),
-    fortrolig = fortrolig,
-    strengtFortrolig = strengtFortrolig,
-    strengtFortroligUtland = strengtFortroligUtland,
+    fortrolig = adressebeskyttelse == Adressebeskyttelse.FORTROLIG,
+    strengtFortrolig = adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG,
+    strengtFortroligUtland = adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND,
     skjermet = skjermet,
     dødsdato = dødsdato.ikkeSladdet(),
 )
@@ -38,9 +39,9 @@ fun BarnMedSkjerming.toEnkelPersonDTO(): EnkelPersonDTO = EnkelPersonDTO(
     fornavn = fornavn.ikkeSladdet(),
     mellomnavn = mellomnavn.ikkeSladdet(),
     etternavn = etternavn.ikkeSladdet(),
-    fortrolig = fortrolig,
-    strengtFortrolig = strengtFortrolig,
-    strengtFortroligUtland = strengtFortroligUtland,
+    fortrolig = adressebeskyttelse == Adressebeskyttelse.FORTROLIG,
+    strengtFortrolig = adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG,
+    strengtFortroligUtland = adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND,
     skjermet = skjermet,
     dødsdato = dødsdato.ikkeSladdet(),
 )

@@ -41,7 +41,7 @@ class TiltaksdeltakelseService(
 
         val person = personService.hentEnkelPersonFnr(sak.fnr)
             .getOrElse { return KunneIkkeHenteTiltaksdeltakelser.FeilVedKallMotPdl.left() }
-        val harAdressebeskyttelse = person.fortrolig || person.strengtFortrolig || person.strengtFortroligUtland
+        val harAdressebeskyttelse = person.adressebeskyttelse.erGradert
 
         val alleTiltaksdeltakelser = tiltaksdeltakelseKlient.hentTiltaksdeltakelserMedArrangørnavn(
             fnr = sak.fnr,

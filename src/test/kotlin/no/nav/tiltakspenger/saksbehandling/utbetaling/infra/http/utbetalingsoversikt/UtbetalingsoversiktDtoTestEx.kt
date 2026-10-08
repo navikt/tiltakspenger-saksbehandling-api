@@ -82,4 +82,94 @@ object UtbetalingsoversiktDtoTestEx {
         ]
         """.trimIndent()
     }
+
+    /**
+     * To utbetalinger til [fnr] i august 2025.
+     * Den første har fem ytelser: dagpenger innenfor, én uten type, én av typen «Bidragsforskudd», én for mai og én med [annenPerson] som rettighetshaver.
+     * Den andre har bare én ytelse uten type.
+     */
+    fun svarMedYtelserUtenforGrunnlaget(fnr: Fnr, annenPerson: Fnr): String {
+        // language=json
+        return """
+        [
+          {
+            "posteringsdato": "2025-08-24",
+            "utbetaltTil": { "aktoertype": "PERSON", "ident": "${fnr.verdi}", "navn": "Fornavn Etternavn" },
+            "utbetaltTilKonto": { "kontonummer": "${UtbetalingDtoTestEx.SYNTETISK_KONTONUMMER}", "kontotype": "Norsk bank" },
+            "utbetalingNettobeloep": 5000,
+            "utbetalingsmetode": "Til konto",
+            "utbetalingsstatus": "Utbetalt",
+            "ytelseListe": [
+              ${ytelse("Dagpenger", "2025-08-01", "2025-08-14", fnr.verdi)},
+              ${ytelse(null, "2025-08-01", "2025-08-14", fnr.verdi)},
+              ${ytelse("Bidragsforskudd", "2025-08-01", "2025-08-14", fnr.verdi)},
+              ${ytelse("Dagpenger", "2025-05-01", "2025-05-14", fnr.verdi)},
+              ${ytelse("Dagpenger", "2025-08-01", "2025-08-14", annenPerson.verdi)}
+            ]
+          },
+          {
+            "posteringsdato": "2025-08-25",
+            "utbetaltTil": { "aktoertype": "PERSON", "ident": "${fnr.verdi}", "navn": "Fornavn Etternavn" },
+            "utbetalingNettobeloep": 100,
+            "utbetalingsmetode": "Til konto",
+            "utbetalingsstatus": "Utbetalt",
+            "ytelseListe": [
+              ${ytelse(null, "2025-08-01", "2025-08-14", fnr.verdi)}
+            ]
+          }
+        ]
+        """.trimIndent()
+    }
+
+    /** Det som blir igjen av [svarMedYtelserUtenforGrunnlaget], slik klienten skriver det. */
+    fun avgrensetSvarMedYtelserUtenforGrunnlaget(fnr: Fnr): String {
+        // language=json
+        return """
+        [
+          {
+            "posteringsdato": "2025-08-24",
+            "utbetaltTil": { "aktoertype": "PERSON", "ident": "${fnr.verdi}", "navn": null },
+            "utbetaltTilKonto": null,
+            "utbetalingNettobeloep": null,
+            "utbetalingsmelding": null,
+            "utbetalingsdato": null,
+            "forfallsdato": null,
+            "utbetalingsmetode": "Til konto",
+            "utbetalingsstatus": "Utbetalt",
+            "ytelseListe": [
+              {
+                "ytelsestype": "Dagpenger",
+                "ytelsesperiode": { "fom": "2025-08-01", "tom": "2025-08-14" },
+                "ytelseNettobeloep": 100,
+                "rettighetshaver": { "aktoertype": "PERSON", "ident": "${fnr.verdi}", "navn": null },
+                "skattsum": 0,
+                "trekksum": 0,
+                "ytelseskomponentersum": 100,
+                "skattListe": [],
+                "trekkListe": [],
+                "ytelseskomponentListe": [],
+                "bilagsnummer": null,
+                "refundertForOrg": null
+              }
+            ]
+          }
+        ]
+        """.trimIndent()
+    }
+
+    private fun ytelse(ytelsestype: String?, fom: String, tom: String, rettighetshaver: String): String {
+        val type = ytelsestype?.let { "\"$it\"" } ?: "null"
+        // language=json
+        return """
+              {
+                "ytelsestype": $type,
+                "ytelsesperiode": { "fom": "$fom", "tom": "$tom" },
+                "ytelseNettobeloep": 100,
+                "rettighetshaver": { "aktoertype": "PERSON", "ident": "$rettighetshaver", "navn": "Fornavn Etternavn" },
+                "skattsum": 0,
+                "trekksum": 0,
+                "ytelseskomponentersum": 100
+              }
+        """.trimIndent()
+    }
 }

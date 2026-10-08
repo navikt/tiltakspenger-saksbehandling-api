@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.saksbehandling.behandling.service.person.KunneIkkeHe
 import no.nav.tiltakspenger.saksbehandling.behandling.service.person.PersonService
 import no.nav.tiltakspenger.saksbehandling.behandling.service.sak.SakService
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakelseMedArrangørnavn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.TiltaksdeltakelseKlient
 import org.junit.jupiter.api.Nested
@@ -259,23 +260,19 @@ class TiltaksdeltakelseServiceTest {
 
         @ParameterizedTest
         @CsvSource(
-            "true, false, false",
-            "false, true, false",
-            "false, false, true",
+            "FORTROLIG",
+            "STRENGT_FORTROLIG",
+            "STRENGT_FORTROLIG_UTLAND",
         )
         fun `Adressebeskyttelse sendes videre til tiltakshistorikk`(
-            fortrolig: Boolean,
-            strengtFortrolig: Boolean,
-            strengtFortroligUtland: Boolean,
+            adressebeskyttelse: Adressebeskyttelse,
         ) = runTest {
             val sakService = mockk<SakService>()
             val personService = mockk<PersonService>()
             val tiltaksdeltakelseKlient = mockk<TiltaksdeltakelseKlient>()
             val beskyttetPerson = ObjectMother.personopplysningKjedeligFyr(
                 fnr = sak.fnr,
-                fortrolig = fortrolig,
-                strengtFortrolig = strengtFortrolig,
-                strengtFortroligUtland = strengtFortroligUtland,
+                adressebeskyttelse = adressebeskyttelse,
             )
             every { sakService.hentForSakId(sak.id) } returns sak
             coEvery { personService.hentEnkelPersonFnr(sak.fnr) } returns beskyttetPerson.right()

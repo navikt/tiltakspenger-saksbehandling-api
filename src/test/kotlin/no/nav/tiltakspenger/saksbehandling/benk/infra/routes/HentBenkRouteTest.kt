@@ -21,6 +21,7 @@ import no.nav.tiltakspenger.saksbehandling.common.IsolatedDatabaseTest
 import no.nav.tiltakspenger.saksbehandling.common.TestApplicationContextMedPostgres
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.FellesFakeSkjermingsklient
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettSøknadsbehandlingKlarTilBehandling
@@ -465,7 +466,7 @@ class HentBenkRouteTest {
             // Byggeren registrerer personen uten adressebeskyttelse, så den overstyres etterpå.
             (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
                 fnr = fortrolig,
-                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fortrolig, fortrolig = true),
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fortrolig, adressebeskyttelse = Adressebeskyttelse.FORTROLIG),
             )
 
             objectMapper.readTree(
@@ -538,7 +539,7 @@ class HentBenkRouteTest {
             // Byggeren registrerer personen uten adressebeskyttelse, så den overstyres etterpå.
             (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
                 fnr = fortrolig,
-                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fortrolig, fortrolig = true),
+                personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fortrolig, adressebeskyttelse = Adressebeskyttelse.FORTROLIG),
             )
             (tac.personContext.fellesSkjermingsklient as FellesFakeSkjermingsklient).leggTil(skjermet, skjermet = true)
 

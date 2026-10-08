@@ -5,6 +5,7 @@ package no.nav.tiltakspenger.saksbehandling.objectmothers
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import java.time.LocalDate
 
@@ -18,9 +19,7 @@ interface PersonMother {
         fornavn: String = "Fornavn",
         mellomnavn: String? = null,
         etternavn: String = "Etternavn",
-        fortrolig: Boolean = false,
-        strengtFortrolig: Boolean = false,
-        strengtFortroligUtland: Boolean = false,
+        adressebeskyttelse: Adressebeskyttelse = Adressebeskyttelse.UGRADERT,
         kommune: String? = null,
         bydel: String? = null,
     ): EnkelPerson =
@@ -30,9 +29,7 @@ interface PersonMother {
             fornavn = fornavn,
             mellomnavn = mellomnavn,
             etternavn = etternavn,
-            fortrolig = fortrolig,
-            strengtFortrolig = strengtFortrolig,
-            strengtFortroligUtland = strengtFortroligUtland,
+            adressebeskyttelse = adressebeskyttelse,
             dødsdato = null,
         )
 
@@ -42,9 +39,7 @@ interface PersonMother {
         fornavn: String = "Kjell",
         mellomnavn: String? = "T.",
         etternavn: String = "Ring",
-        fortrolig: Boolean = false,
-        strengtFortrolig: Boolean = true,
-        strengtFortroligUtland: Boolean = false,
+        adressebeskyttelse: Adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
         kommune: String? = "Oslo",
         bydel: String? = "3440",
     ): EnkelPerson =
@@ -54,9 +49,7 @@ interface PersonMother {
             fornavn = fornavn,
             mellomnavn = mellomnavn,
             etternavn = etternavn,
-            fortrolig = fortrolig,
-            strengtFortrolig = strengtFortrolig,
-            strengtFortroligUtland = strengtFortroligUtland,
+            adressebeskyttelse = adressebeskyttelse,
             dødsdato = null,
         )
 }

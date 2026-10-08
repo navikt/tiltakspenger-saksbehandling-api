@@ -3,9 +3,7 @@ package no.nav.tiltakspenger.saksbehandling.utbetaling.infra.http.utbetalingsove
 import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
-import no.nav.tiltakspenger.libs.httpklient.HttpKlientResponse
 import no.nav.tiltakspenger.libs.httpklient.UriSynlighet
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
 import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
@@ -21,8 +19,9 @@ import no.nav.tiltakspenger.libs.json.serialize
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.KunneIkkeHenteUtbetalingsoversikt
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Oppslagsperiodetype
-import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.RegistrertUtbetaling
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktgrunnlag
 import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktklient
+import no.nav.tiltakspenger.saksbehandling.utbetaling.domene.utbetalingsoversikt.Utbetalingsoversiktsvar
 import java.net.URI
 import java.time.Clock
 import kotlin.time.Duration
@@ -73,14 +72,14 @@ class UtbetalingsoversiktHttpKlient(
     private val uri = URI.create("$baseUrl/utbetaldata/api/v2/hent-utbetalingsinformasjon/intern")
 
     override suspend fun hent(
-        fnr: Fnr,
+        grunnlag: Utbetalingsoversiktgrunnlag,
         periode: Periode,
         periodetype: Oppslagsperiodetype,
         correlationId: CorrelationId,
-    ): Either<KunneIkkeHenteUtbetalingsoversikt, HttpKlientResponse<List<RegistrertUtbetaling>>> {
+    ): Either<KunneIkkeHenteUtbetalingsoversikt, Utbetalingsoversiktsvar> {
         val payload = serialize(
             UtbetalingsoversiktRequestDto(
-                ident = fnr.verdi,
+                ident = grunnlag.fnr.verdi,
                 // Vi spør om utbetalinger personen har rett på, ikke om utbetalinger som gikk til personen.
                 rolle = "RETTIGHETSHAVER",
                 periode = UtbetalingsoversiktDto.UtbetalingsperiodeDto(fom = periode.fraOgMed, tom = periode.tilOgMed),
@@ -93,9 +92,17 @@ class UtbetalingsoversiktHttpKlient(
             headere = listOf(NavHeadere.navCallId(correlationId.value)),
             godta = Statusregel.Eksakt(200),
         ).mapLeft { it.tilFeil() }.flatMap { response ->
-            response.body.tilRegistrerteUtbetalinger()
+            val avgrenset = response.body.avgrensTil(grunnlag, response.rawResponseString)
+            avgrenset.utbetalinger.tilRegistrerteUtbetalinger()
                 .mapLeft { KunneIkkeHenteUtbetalingsoversikt.UgyldigInnhold(feil = it, metadata = response.metadata) }
-                .map { HttpKlientResponse(statusCode = response.statusCode, body = it, metadata = response.metadata) }
+                .map { utbetalinger ->
+                    Utbetalingsoversiktsvar(
+                        utbetalinger = utbetalinger,
+                        avgrensetSvar = serialize(avgrenset.utbetalinger),
+                        avgrensning = avgrenset.avgrensning,
+                        metadata = response.metadata,
+                    )
+                }
         }
     }
 

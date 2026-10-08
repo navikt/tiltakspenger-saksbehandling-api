@@ -43,15 +43,7 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
     override suspend fun hentAdressebeskyttelse(
         fnrs: List<Fnr>,
     ): Either<KunneIkkeHenteAdressebeskyttelseEllerSkjerming.FeilVedKallMotPdl, Map<Fnr, Adressebeskyttelse>> =
-        fnrs.associateWith { fnr ->
-            val person = hentEnkelPerson(fnr)
-            when {
-                person.strengtFortroligUtland -> Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND
-                person.strengtFortrolig -> Adressebeskyttelse.STRENGT_FORTROLIG
-                person.fortrolig -> Adressebeskyttelse.FORTROLIG
-                else -> Adressebeskyttelse.UGRADERT
-            }
-        }.right()
+        fnrs.associateWith { fnr -> hentEnkelPerson(fnr).adressebeskyttelse }.right()
 
     override suspend fun hentIdenter(aktorId: String): List<Personident> {
         return emptyList()
@@ -86,9 +78,12 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
             fødselsdato = tilfeldigFødselsdato0Til16År(clock, fnr),
             mellomnavn = null,
             etternavn = faker.name.lastName(),
-            fortrolig = fnr.verdi.startsWith('2'),
-            strengtFortrolig = fnr.verdi.startsWith('3'),
-            strengtFortroligUtland = fnr.verdi.startsWith('4'),
+            adressebeskyttelse = when (fnr.verdi.first()) {
+                '2' -> Adressebeskyttelse.FORTROLIG
+                '3' -> Adressebeskyttelse.STRENGT_FORTROLIG
+                '4' -> Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND
+                else -> Adressebeskyttelse.UGRADERT
+            },
             dødsdato = null,
         )
     }
@@ -131,9 +126,7 @@ class PersonFakeKlient(private val clock: Clock) : PersonKlient {
             fornavn = person.fornavn,
             mellomnavn = person.mellomnavn,
             etternavn = person.etternavn,
-            fortrolig = person.fortrolig,
-            strengtFortrolig = person.strengtFortrolig,
-            strengtFortroligUtland = person.strengtFortroligUtland,
+            adressebeskyttelse = person.adressebeskyttelse,
             dødsdato = null,
         )
     }

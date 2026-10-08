@@ -119,7 +119,7 @@ class PersonhendelseService(
 
     private suspend fun harKode6(fnr: Fnr): Boolean {
         val pdlPerson = personKlient.hentEnkelPerson(fnr)
-        return pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland
+        return pdlPerson.adressebeskyttelse.erKode6
     }
 
     private fun LeesahPersonhendelse.toPersonhendelse(fnr: Fnr, sakId: SakId): Personhendelse {

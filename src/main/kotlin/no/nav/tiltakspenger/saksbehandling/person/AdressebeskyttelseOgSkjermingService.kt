@@ -93,5 +93,7 @@ data class AdressebeskyttelseOgSkjerming(
     val adressebeskyttelse: Adressebeskyttelse,
     val skjermet: Boolean,
 ) {
-    val harAdressebeskyttelseEllerSkjerming: Boolean get() = adressebeskyttelse != Adressebeskyttelse.UGRADERT || skjermet
+    val harAdressebeskyttelseEllerSkjerming: Boolean get() = adressebeskyttelse.erGradert || skjermet
+    val erKode6: Boolean get() = adressebeskyttelse.erKode6
+    val erKode7: Boolean get() = adressebeskyttelse.erKode7
 }

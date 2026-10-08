@@ -6,7 +6,6 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.server.testing.ApplicationTestBuilder
-import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse
 import no.nav.person.pdl.leesah.adressebeskyttelse.Gradering
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.tiltakspenger.libs.common.SakId
@@ -26,6 +25,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother.innvilgelsesperioder
 import no.nav.tiltakspenger.saksbehandling.oppgave.infra.OppgaveFakeKlient
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.hentPersonhendelseOppgaveSistSjekket
 import no.nav.tiltakspenger.saksbehandling.person.personhendelser.nyPersonhendelse
@@ -36,6 +36,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
+import no.nav.person.pdl.leesah.adressebeskyttelse.Adressebeskyttelse as LeesahAdressebeskyttelse
 
 /**
  * Tilstanden bygges gjennom prodstiene: vedtak og behandlinger lages via routene, og hendelsene kommer inn via [no.nav.tiltakspenger.saksbehandling.person.personhendelser.kafka.LeesahConsumer].
@@ -292,13 +293,13 @@ class PersonhendelseJobbTest {
     ): UUID {
         (tac.personContext.personKlient as PersonFakeKlient).leggTilPersonopplysning(
             fnr = fnr,
-            personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, strengtFortrolig = true),
+            personopplysninger = ObjectMother.personopplysningKjedeligFyr(fnr = fnr, adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG),
         )
         tac.leesahConsumer.consume(
             "key",
             nyPersonhendelse(
                 fnr = fnr,
-                adressebeskyttelse = Adressebeskyttelse(Gradering.STRENGT_FORTROLIG),
+                adressebeskyttelse = LeesahAdressebeskyttelse(Gradering.STRENGT_FORTROLIG),
                 clock = tac.clock,
             ),
         )

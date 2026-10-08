@@ -6,4 +6,9 @@ enum class Adressebeskyttelse {
     STRENGT_FORTROLIG,
     FORTROLIG,
     UGRADERT,
+    ;
+
+    val erGradert: Boolean get() = this != UGRADERT
+    val erKode6: Boolean get() = this == STRENGT_FORTROLIG || this == STRENGT_FORTROLIG_UTLAND
+    val erKode7: Boolean get() = this == FORTROLIG
 }

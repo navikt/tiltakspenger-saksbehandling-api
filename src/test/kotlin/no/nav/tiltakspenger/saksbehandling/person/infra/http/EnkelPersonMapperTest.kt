@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.oktober
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.EnkelPerson
 import org.junit.jupiter.api.Test
 
@@ -77,9 +78,7 @@ class EnkelPersonMapperTest {
             fornavn = "UFØLSOM",
             mellomnavn = null,
             etternavn = "FAKKEL",
-            fortrolig = false,
-            strengtFortrolig = false,
-            strengtFortroligUtland = false,
+            adressebeskyttelse = Adressebeskyttelse.UGRADERT,
             dødsdato = null,
         )
     }

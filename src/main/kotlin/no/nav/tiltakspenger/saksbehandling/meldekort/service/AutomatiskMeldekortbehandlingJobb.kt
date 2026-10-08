@@ -253,7 +253,7 @@ class AutomatiskMeldekortbehandlingJobb(
             .hentEnkelPersonMedSkjermingForSakId(this.sakId, CorrelationId.generate())
             .getOrThrow()
 
-        if (pdlPerson.strengtFortrolig || pdlPerson.strengtFortroligUtland || pdlPerson.fortrolig || pdlPerson.skjermet) {
+        if (pdlPerson.harAdressebeskyttelseEllerSkjerming) {
             logger.info { "Person har adressebeskyttelse eller er skjermet, oppretter oppgave i Gosys" }
             return oppgaveKlient.opprettOppgave(
                 fnr = pdlPerson.fnr,

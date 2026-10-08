@@ -2,7 +2,6 @@ package no.nav.tiltakspenger.saksbehandling.benk.domene
 
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
-import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.AdressebeskyttelseOgSkjerming
 
 /**
@@ -49,9 +48,8 @@ data class BenkPersonmarkører(
             TilgangsvurderingBulk.Godkjent -> adressebeskyttelseOgSkjerming?.let {
                 BenkPersonmarkører(
                     skjermet = it.skjermet,
-                    kode6 = it.adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG ||
-                        it.adressebeskyttelse == Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND,
-                    kode7 = it.adressebeskyttelse == Adressebeskyttelse.FORTROLIG,
+                    kode6 = it.erKode6,
+                    kode7 = it.erKode7,
                 )
             } ?: INGEN
         }
