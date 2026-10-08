@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderi
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingAvvistÅrsak
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderinger
+import no.nav.tiltakspenger.saksbehandling.felles.getOrThrow
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
@@ -69,8 +70,8 @@ class TilgangsmaskinFakeLokalClient(
         data.get()[fnr]?.let { eksplisittTilgang ->
             return if (eksplisittTilgang) null else TilgangsvurderingAvvistÅrsak.FORTROLIG
         }
-        val person = personFakeKlient.hentEnkelPerson(fnr)
-        return when (person.adressebeskyttelse) {
+        val adressebeskyttelse = personFakeKlient.hentAdressebeskyttelse(listOf(fnr)).getOrThrow()[fnr]!!
+        return when (adressebeskyttelse) {
             Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
             Adressebeskyttelse.STRENGT_FORTROLIG -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
             Adressebeskyttelse.FORTROLIG -> TilgangsvurderingAvvistÅrsak.FORTROLIG
