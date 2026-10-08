@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilForhåndsvarsel
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
@@ -40,6 +41,28 @@ class TaTilbakekrevingBehandlingRouteTest {
                 it.get("type").asString() == "TILBAKEKREVING"
             }
             åpenTilbakekrevingJson.get("id").asString() shouldBe behandling.id.toString()
+        }
+    }
+
+    @Test
+    fun `saksbehandler kan ta tilbakekrevingbehandling med status TIL_FORHÅNDSVARSEL`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, behandling) = opprettTilbakekrevingBehandlingTilForhåndsvarsel(tac = tac)
+
+            val (_, oppdatertBehandling, json) = tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sak.id,
+                tilbakekrevingId = behandling.id,
+                saksbehandler = ObjectMother.saksbehandler("saksbehandlerSomTar"),
+            )!!
+
+            oppdatertBehandling.saksbehandler shouldBe "saksbehandlerSomTar"
+            oppdatertBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL
+            oppdatertBehandling.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING
+
+            val tilbakekrevingJson = json.get("tilbakekrevinger").first()
+            tilbakekrevingJson.get("saksbehandler").toString() shouldBe "\"saksbehandlerSomTar\""
+            tilbakekrevingJson.get("status").toString() shouldBe "\"UNDER_FORHÅNDSVARSLING\""
         }
     }
 

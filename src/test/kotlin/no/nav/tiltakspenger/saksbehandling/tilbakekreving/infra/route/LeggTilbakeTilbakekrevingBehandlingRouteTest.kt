@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndP
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.leggTilbakeTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilBehandling
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilForhåndsvarsel
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprettTilbakekrevingBehandlingTilGodkjenning
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
 import no.nav.tiltakspenger.saksbehandling.tilbakekreving.domene.TilbakekrevingBehandlingsstatus
@@ -41,6 +42,36 @@ class LeggTilbakeTilbakekrevingBehandlingRouteTest {
             val tilbakekrevingJson = json.get("tilbakekrevinger").first()
             tilbakekrevingJson.get("saksbehandler").toString() shouldBe "null"
             tilbakekrevingJson.get("status").toString() shouldBe "\"TIL_BEHANDLING\""
+        }
+    }
+
+    @Test
+    fun `saksbehandler kan legge tilbake behandling under forhåndsvarsling hen selv har tatt`() {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, behandling) = opprettTilbakekrevingBehandlingTilForhåndsvarsel(tac = tac)
+            val saksbehandler = ObjectMother.saksbehandler("saksbehandler1")
+
+            tildelTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sak.id,
+                tilbakekrevingId = behandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+
+            val (_, oppdatertBehandling, json) = leggTilbakeTilbakekrevingBehandling(
+                tac = tac,
+                sakId = sak.id,
+                tilbakekrevingId = behandling.id,
+                saksbehandler = saksbehandler,
+            )!!
+
+            oppdatertBehandling.saksbehandler shouldBe null
+            oppdatertBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL
+            oppdatertBehandling.statusIntern shouldBe TilbakekrevingBehandlingsstatusIntern.TIL_FORHÅNDSVARSEL
+
+            val tilbakekrevingJson = json.get("tilbakekrevinger").first()
+            tilbakekrevingJson.get("saksbehandler").toString() shouldBe "null"
+            tilbakekrevingJson.get("status").toString() shouldBe "\"TIL_FORHÅNDSVARSEL\""
         }
     }
 

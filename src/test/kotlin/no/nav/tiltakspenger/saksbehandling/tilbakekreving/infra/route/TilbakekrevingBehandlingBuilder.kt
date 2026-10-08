@@ -175,6 +175,71 @@ interface TilbakekrevingBehandlingBuilder {
     }
 
     /**
+     * 1. Iverksetter en søknadsbehandling og meldekortbehandling (gir oss utbetalinger).
+     * 2. Sender to behandling_endret Kafka-hendelser (OPPRETTET → TIL_FORHÅNDSVARSEL).
+     * 3. Kjører hendelsejobben for hver hendelse slik at behandlingen opprettes og oppdateres.
+     *
+     * @return Sak med tilbakekrevingbehandling i status TIL_FORHÅNDSVARSEL, og selve tilbakekrevingbehandlingen.
+     */
+    suspend fun ApplicationTestBuilder.opprettTilbakekrevingBehandlingTilForhåndsvarsel(
+        tac: TestApplicationContext,
+        vedtaksperiode: Periode = 1.til(10.april(2025)),
+    ): Pair<Sak, TilbakekrevingBehandling> {
+        val (sak) = iverksettSøknadsbehandlingOgMeldekortbehandling(tac = tac, vedtaksperiode = vedtaksperiode)!!
+
+        val eksternBehandlingId = sak.utbetalinger.first().id.uuidPart()
+        val tilbakeBehandlingId = "tilbake-behandling-${SakId.random()}"
+
+        listOf(
+            Triple(TilbakekrevingBehandlingsstatus.OPPRETTET, null, nå(tac.clock)),
+            Triple(
+                TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL,
+                TilbakekrevingBehandlingsstatus.OPPRETTET,
+                nå(tac.clock).plusSeconds(10),
+            ),
+        ).forEach { (status, forrigeStatus, hendelseOpprettet) ->
+            @Language("JSON")
+            val hendelseJson = """
+                {
+                    "hendelsestype": "behandling_endret",
+                    "versjon": 1,
+                    "eksternFagsakId": "${sak.saksnummer.verdi}",
+                    "hendelseOpprettet": "$hendelseOpprettet",
+                    "eksternBehandlingId": "$eksternBehandlingId",
+                    "tilbakekreving": {
+                        "behandlingId": "$tilbakeBehandlingId",
+                        "sakOpprettet": "${nå(tac.clock)}",
+                        "varselSendt": null,
+                        "behandlingsstatus": "$status",
+                        "forrigeBehandlingsstatus": ${forrigeStatus?.let { "\"$it\"" } ?: "null"},
+                        "totaltFeilutbetaltBeløp": 1000.00,
+                        "saksbehandlingURL": "https://tilbakekreving.nav.no/behandling/$tilbakeBehandlingId",
+                        "fullstendigPeriode": {
+                            "fom": "${LocalDate.now(tac.clock).minusMonths(1)}",
+                            "tom": "${LocalDate.now(tac.clock)}"
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            val hendelseId = konsumerTilbakekrevingshendelse(
+                key = sak.fnr.verdi,
+                value = hendelseJson,
+                tilbakekrevingHendelseRepo = tac.tilbakekrevingHendelseRepo,
+                clock = tac.clock,
+            )!!
+            // Jobbens kø-spørring går på tvers av saker, så vi kjører kun vår egen hendelse.
+            tac.behandleTilbakekrevingHendelserJobb.håndterHendelse(hendelseId)
+        }
+
+        val oppdatertSak = tac.sakContext.sakRepo.hentForSakId(sak.id)!!
+        val tilbakekrevingBehandling = oppdatertSak.tilbakekrevinger.single()
+        tilbakekrevingBehandling.status shouldBe TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL
+
+        return oppdatertSak to tilbakekrevingBehandling
+    }
+
+    /**
      * Forventer at det allerede finnes en sak og en tilbakekrevingbehandling.
      * Kaller POST /sak/{sakId}/tilbakekreving/{tilbakekrevingId}/tildel
      */

@@ -96,7 +96,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         beslutter_ident = CASE WHEN beslutter_ident = :saksbehandler_ident THEN null ELSE beslutter_ident END,
                         status = :status,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND saksbehandler_ident IS NULL AND status = 'TIL_BEHANDLING'
+                    WHERE id = :id AND saksbehandler_ident IS NULL AND status IN ('TIL_FORHÅNDSVARSEL', 'TIL_BEHANDLING')
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "saksbehandler_ident" to tilbakekrevingBehandling.saksbehandler,
@@ -141,7 +141,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         saksbehandler_ident = :ny_saksbehandler,
                         beslutter_ident = CASE WHEN beslutter_ident = :ny_saksbehandler THEN null ELSE beslutter_ident END,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND saksbehandler_ident = :naverende_saksbehandler AND status = 'TIL_BEHANDLING'
+                    WHERE id = :id AND saksbehandler_ident = :naverende_saksbehandler AND status IN ('TIL_FORHÅNDSVARSEL', 'TIL_BEHANDLING')
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "ny_saksbehandler" to tilbakekrevingBehandling.saksbehandler,
@@ -186,7 +186,7 @@ class TilbakekrevingBehandlingPostgresRepo(
                         saksbehandler_ident = null,
                         status = :status,
                         sist_endret = :sist_endret
-                    WHERE id = :id AND saksbehandler_ident = :naverende_saksbehandler AND status = 'TIL_BEHANDLING'
+                    WHERE id = :id AND saksbehandler_ident = :naverende_saksbehandler AND status IN ('TIL_FORHÅNDSVARSEL', 'TIL_BEHANDLING')
                     """.trimIndent(),
                     "id" to tilbakekrevingBehandling.id.toString(),
                     "naverende_saksbehandler" to nåværendeSaksbehandler,

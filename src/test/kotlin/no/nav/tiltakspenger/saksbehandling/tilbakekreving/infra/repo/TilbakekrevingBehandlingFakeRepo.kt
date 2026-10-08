@@ -20,7 +20,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.saksbehandler != null || existing.status != TilbakekrevingBehandlingsstatus.TIL_BEHANDLING) return false
+        if (existing.saksbehandler != null || existing.status !in saksbehandlerStatuser) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -41,7 +41,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.saksbehandler != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
+        if (existing.saksbehandler != nåværendeSaksbehandler || existing.statusIntern !in saksbehandlerStatuserIntern) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -63,7 +63,7 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
         sessionContext: SessionContext?,
     ): Boolean {
         val existing = data.get()[tilbakekrevingBehandling.id] ?: return false
-        if (existing.saksbehandler != nåværendeSaksbehandler || existing.statusIntern != TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING) return false
+        if (existing.saksbehandler != nåværendeSaksbehandler || existing.statusIntern !in saksbehandlerStatuserIntern) return false
         data.get()[tilbakekrevingBehandling.id] = tilbakekrevingBehandling
         return true
     }
@@ -88,5 +88,16 @@ class TilbakekrevingBehandlingFakeRepo : TilbakekrevingBehandlingRepo {
 
     override fun hentForSakId(sakId: SakId, sessionContext: SessionContext?): List<TilbakekrevingBehandling> {
         return data.get().values.filter { it.sakId == sakId }
+    }
+
+    private companion object {
+        val saksbehandlerStatuser = setOf(
+            TilbakekrevingBehandlingsstatus.TIL_FORHÅNDSVARSEL,
+            TilbakekrevingBehandlingsstatus.TIL_BEHANDLING,
+        )
+        val saksbehandlerStatuserIntern = setOf(
+            TilbakekrevingBehandlingsstatusIntern.UNDER_FORHÅNDSVARSLING,
+            TilbakekrevingBehandlingsstatusIntern.UNDER_BEHANDLING,
+        )
     }
 }
