@@ -89,7 +89,7 @@ class HentBenkRouteTest {
                         },
                         "status": "KLAR_TIL_BEHANDLING",
                         "søknadstype": "DIGITAL",
-                        "kravtidspunkt": "${søknad.opprettet}",
+                        "kravtidspunkt": "${søknad.mottatt}",
                         "resultat": "IKKE_VALGT",
                         "gyldigeKommandoer": ["TildelSaksbehandler", "Avbryt"]
                       }

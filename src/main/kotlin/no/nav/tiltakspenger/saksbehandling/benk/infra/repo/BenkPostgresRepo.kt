@@ -372,7 +372,7 @@ class BenkPostgresRepo(
                 (b.ventestatus->'ventestatusHendelser'->-1->>'frist')::date as vente_frist,
                 b.status::text              as status,
                 sø.soknadstype::text        as søknadstype,
-                sø.opprettet                as kravtidspunkt,
+                sø.mottatt                as kravtidspunkt,
                 coalesce(b.resultat, 'IKKE_VALGT') as resultat,
                 b.id                        as id
             from behandling b

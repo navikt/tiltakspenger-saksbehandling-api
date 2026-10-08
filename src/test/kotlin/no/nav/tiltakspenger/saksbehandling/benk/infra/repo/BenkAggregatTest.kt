@@ -219,7 +219,7 @@ class BenkAggregatTest {
             rad.felles.ventestatus.frist shouldBe null
             rad.status shouldBe BenkBehandlingsstatus.UNDER_BEHANDLING
             rad.søknadstype shouldBe BenkSøknadstype.DIGITAL
-            rad.kravtidspunkt shouldBe søknad.opprettet
+            rad.kravtidspunkt shouldBe søknad.mottatt
             rad.resultat shouldBe BenkSøknadsbehandlingResultat.INNVILGELSE
             // Kommandoene på raden er de samme reglene som på selve behandlingen — dette pinner speilingen.
             rad.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe

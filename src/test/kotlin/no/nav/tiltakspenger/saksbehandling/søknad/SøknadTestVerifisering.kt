@@ -28,12 +28,9 @@ fun String.shouldBeSøknadDTO(
     kanInnvilges: Boolean = true,
     behandlingsarsak: String? = null,
     opprettet: String = "TIMESTAMP",
-    tidsstempelHosOss: String = "TIMESTAMP",
-    /**
-     * `MottaSøknadRouteBuilder` setter `opprettet` til tiltakets fra og med-dato, og mottattdatoen utledes fra `opprettet`.
-     * Datoen er ikke et tidsstempel, så den ignoreres ikke av [ignorerTidspunkt].
-     */
-    mottattDatoForSøknad: String = tiltakFraOgMed,
+    mottatt: String = "TIMESTAMP",
+    /** Speiler [mottatt] til frontenden har sluttet å bruke feltet. */
+    tidsstempelHosOss: String = mottatt,
     svar: String = """
         {
           "harSøktPåTiltak": { "svar": "JA" },
@@ -83,8 +80,8 @@ fun String.shouldBeSøknadDTO(
           "søknadstype": "$søknadstype",
           "barnetillegg": [${barnetillegg.joinToString(",")}],
           "opprettet": "$opprettet",
+          "mottatt": "$mottatt",
           "tidsstempelHosOss": "$tidsstempelHosOss",
-          "mottattDatoForSøknad": "$mottattDatoForSøknad",
           "antallVedlegg": $antallVedlegg,
           "avbrutt": $hendelserJsonEllerUtledet,
           "kanInnvilges": $kanInnvilges,

@@ -541,8 +541,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
     ),
     deltarPåIntroduksjonsprogram: Boolean = false,
     deltarPåKvp: Boolean = false,
-    tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    mottattDatoForSøknad: LocalDate = 1.januar(2022),
+    mottatt: LocalDateTime = 1.januarDateTime(2022),
     tiltaksdeltakelse: TiltaksdeltakelseIntern? = null,
     søknadstiltak: Søknadstiltak? = tiltaksdeltakelse?.toSøknadstiltak(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
@@ -550,8 +549,7 @@ fun TestApplicationContext.nyInnvilgbarSøknad(
     søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
-        tidsstempelHosOss = tidsstempelHosOss,
-        mottattDatoForSøknad = mottattDatoForSøknad,
+        mottatt = mottatt,
         søknadstiltak = søknadstiltak ?: ObjectMother.søknadstiltak(
             deltakelseFom = periode.fraOgMed,
             deltakelseTom = periode.tilOgMed,
@@ -604,16 +602,14 @@ suspend fun TestApplicationContext.startSøknadsbehandling(
         fornavn = fornavn,
         etternavn = etternavn,
     ),
-    tidsstempelHosOss: LocalDateTime = 1.januarDateTime(2022),
-    mottattDatoForSøknad: LocalDate = 1.januar(2022),
+    mottatt: LocalDateTime = 1.januarDateTime(2022),
     tiltaksdeltakelseId: String = UUID.randomUUID().toString(),
     internTiltaksdeltakelseId: TiltaksdeltakerId = TiltaksdeltakerId.random(),
     sak: Sak = ObjectMother.nySak(fnr = fnr),
     søknad: InnvilgbarSøknad = nyInnvilgbarSøknad(
         fnr = fnr,
         personopplysninger = personopplysningerFraSøknad,
-        tidsstempelHosOss = tidsstempelHosOss,
-        mottattDatoForSøknad = mottattDatoForSøknad,
+        mottatt = mottatt,
         søknadstiltak = ObjectMother.søknadstiltak(
             id = tiltaksdeltakelseId,
             deltakelseFom = periode.fraOgMed,
