@@ -11,10 +11,15 @@ import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderi
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.TilgangsvurderingBulk
 import no.nav.tiltakspenger.saksbehandling.auth.tilgangskontroll.Tilgangsvurderinger
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
+import no.nav.tiltakspenger.saksbehandling.person.Adressebeskyttelse
 import no.nav.tiltakspenger.saksbehandling.person.infra.http.PersonFakeKlient
 
+/**
+ * [tokenerMedFullTilgang] er lokale saksbehandlere som har tilgang til fortrolig og strengt fortrolig adresse, slik saksbehandlere med de gruppene har i prod.
+ */
 class TilgangsmaskinFakeLokalClient(
     private val personFakeKlient: PersonFakeKlient,
+    private val tokenerMedFullTilgang: Set<String>,
 ) : TilgangsmaskinClient {
     private val data = arrow.atomic.Atomic(mutableMapOf<Fnr, Boolean>())
 
@@ -22,7 +27,7 @@ class TilgangsmaskinFakeLokalClient(
         fnr: Fnr,
         saksbehandlerToken: String,
     ): Either<Nothing, Tilgangsvurdering> {
-        val årsak = avvistÅrsak(fnr) ?: return Tilgangsvurdering.Godkjent.right()
+        val årsak = avvistÅrsak(fnr, saksbehandlerToken) ?: return Tilgangsvurdering.Godkjent.right()
         return Tilgangsvurdering.Avvist(
             årsak = årsak,
             begrunnelse = "Saksbehandler har ikke tilgang til person",
@@ -40,7 +45,7 @@ class TilgangsmaskinFakeLokalClient(
         saksbehandlerToken: String,
     ): Either<Nothing, HttpKlientResponse<Tilgangsvurderinger>> {
         val tilgangPerFnr = fnrs.associateWith { fnr ->
-            when (val årsak = avvistÅrsak(fnr)) {
+            when (val årsak = avvistÅrsak(fnr, saksbehandlerToken)) {
                 null -> TilgangsvurderingBulk.Godkjent
 
                 else -> TilgangsvurderingBulk.Avvist(
@@ -59,16 +64,17 @@ class TilgangsmaskinFakeLokalClient(
      * Adressebeskyttelsen hentes fra [PersonFakeKlient], som eier fnr-prefiks-konvensjonen.
      * En eksplisitt verdi lagt inn med [leggTil] overstyrer personen, og avviser da med [TilgangsvurderingAvvistÅrsak.FORTROLIG].
      */
-    private suspend fun avvistÅrsak(fnr: Fnr): TilgangsvurderingAvvistÅrsak? {
+    private suspend fun avvistÅrsak(fnr: Fnr, saksbehandlerToken: String): TilgangsvurderingAvvistÅrsak? {
+        if (saksbehandlerToken in tokenerMedFullTilgang) return null
         data.get()[fnr]?.let { eksplisittTilgang ->
             return if (eksplisittTilgang) null else TilgangsvurderingAvvistÅrsak.FORTROLIG
         }
         val person = personFakeKlient.hentEnkelPerson(fnr)
-        return when {
-            person.strengtFortroligUtland -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
-            person.strengtFortrolig -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
-            person.fortrolig -> TilgangsvurderingAvvistÅrsak.FORTROLIG
-            else -> null
+        return when (person.adressebeskyttelse) {
+            Adressebeskyttelse.STRENGT_FORTROLIG_UTLAND -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG_UTLAND
+            Adressebeskyttelse.STRENGT_FORTROLIG -> TilgangsvurderingAvvistÅrsak.STRENGT_FORTROLIG
+            Adressebeskyttelse.FORTROLIG -> TilgangsvurderingAvvistÅrsak.FORTROLIG
+            Adressebeskyttelse.UGRADERT -> null
         }
     }
 

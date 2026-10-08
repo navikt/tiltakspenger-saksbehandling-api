@@ -148,7 +148,13 @@ class LocalApplicationContext(
         JournalførFakeKlagevedtakKlient(journalpostIdGenerator, dokumentInfoIdGenerator)
     private val dokumentdistribusjonsklientFakeKlient = DokumentdistribusjonsFakeKlient(distribusjonIdGenerator)
     private val fellesFakeSkjermingsklient = FellesFakeSkjermingsklient()
-    private val tilgangsmaskinFakeClient = TilgangsmaskinFakeLokalClient(personFakeKlient)
+    private val tilgangsmaskinFakeClient = TilgangsmaskinFakeLokalClient(
+        personFakeKlient = personFakeKlient,
+        tokenerMedFullTilgang = setOf(
+            TexasClientFake.LOKAL_FRONTEND_TOKEN_BRUKER_1,
+            TexasClientFake.LOKAL_FRONTEND_TOKEN_BRUKER_2,
+        ),
+    )
 
     private val søknadId: SøknadId = SøknadId.fromString("soknad_01HSTRQBRM443VGB4WA822TE01")
     private val fnr: Fnr = Fnr.fromString("12845678911")
