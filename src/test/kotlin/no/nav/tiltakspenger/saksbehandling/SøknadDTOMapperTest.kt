@@ -1,8 +1,10 @@
 package no.nav.tiltakspenger.saksbehandling
 
 import no.nav.tiltakspenger.libs.common.Saksnummer
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
+import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
 import no.nav.tiltakspenger.libs.soknad.JaNeiSpmDTO
@@ -23,6 +25,7 @@ import kotlin.test.assertEquals
 
 class SøknadDTOMapperTest {
     val internTiltaksdeltakerId = TiltaksdeltakerId.random()
+    private val clock = fixedClockAt(1.mars(2025))
 
     @Test
     fun mapBasisFelter() {
@@ -31,9 +34,9 @@ class SøknadDTOMapperTest {
         val søknad =
             SøknadDTOMapper.mapDigitalsøknad(
                 dto = søknadDTO,
-                innhentet = LocalDateTime.MIN,
                 sak = sak,
                 internTiltaksdeltakelsesId = internTiltaksdeltakerId,
+                clock = clock,
             )
 
         assertEquals(søknadDTO.søknadId, søknad.id.toString())
@@ -41,7 +44,8 @@ class SøknadDTOMapperTest {
         assertEquals(søknadDTO.personopplysninger.fornavn, søknad.personopplysninger.fornavn)
         assertEquals(søknadDTO.personopplysninger.etternavn, søknad.personopplysninger.etternavn)
         assertEquals(søknadDTO.personopplysninger.ident, søknad.fnr.verdi)
-        assertEquals(søknadDTO.opprettet, søknad.opprettet)
+        assertEquals(søknadDTO.opprettet, søknad.mottatt)
+        assertEquals(nå(clock), søknad.opprettet)
         assertEquals(søknadDTO.vedlegg, søknad.vedlegg)
 
         assertEquals(søknad.kvp, Søknad.PeriodeSpm.Nei)
@@ -81,9 +85,9 @@ class SøknadDTOMapperTest {
             )
         val søknad = SøknadDTOMapper.mapDigitalsøknad(
             dto = søknadDTO,
-            innhentet = LocalDateTime.MIN,
             sak = sak,
             internTiltaksdeltakelsesId = internTiltaksdeltakerId,
+            clock = clock,
         )
 
         assertEquals(søknad.kvp, Søknad.PeriodeSpm.Ja(fraOgMed = fra, tilOgMed = til))

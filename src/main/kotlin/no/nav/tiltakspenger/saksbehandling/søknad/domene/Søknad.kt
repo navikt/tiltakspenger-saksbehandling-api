@@ -21,8 +21,7 @@ sealed interface Søknad {
     val saksnummer: Saksnummer
     val journalpostId: String
     val opprettet: LocalDateTime
-    val tidsstempelHosOss: LocalDateTime
-    val mottattDatoForSøknad: LocalDate
+    val mottatt: LocalDateTime
     val avbrutt: Søknadshendelser
     val fnr: Fnr
     val harSøktPåTiltak: JaNeiSpm
@@ -66,8 +65,7 @@ sealed interface Søknad {
             sak: Sak,
             journalpostId: String,
             opprettet: LocalDateTime,
-            tidsstempelHosOss: LocalDateTime,
-            mottattDatoForSøknad: LocalDate,
+            mottatt: LocalDateTime,
             personopplysninger: Personopplysninger,
             søknadstiltak: Søknadstiltak?,
             barnetillegg: List<BarnetilleggFraSøknad>,
@@ -99,8 +97,7 @@ sealed interface Søknad {
                     tiltak = søknadstiltak,
                     barnetillegg = barnetillegg,
                     opprettet = opprettet,
-                    tidsstempelHosOss = tidsstempelHosOss,
-                    mottattDatoForSøknad = mottattDatoForSøknad,
+                    mottatt = mottatt,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     avbrutt = Søknadshendelser.empty(),
@@ -132,8 +129,7 @@ sealed interface Søknad {
                     tiltak = søknadstiltak,
                     barnetillegg = barnetillegg,
                     opprettet = opprettet,
-                    tidsstempelHosOss = tidsstempelHosOss,
-                    mottattDatoForSøknad = mottattDatoForSøknad,
+                    mottatt = mottatt,
                     sakId = sak.id,
                     saksnummer = sak.saksnummer,
                     avbrutt = Søknadshendelser.empty(),

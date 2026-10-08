@@ -170,7 +170,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
     }
 
     @Test
-    fun `mottatt dato fra bodyen lagres på søknaden og leses tilbake`() = runTest {
+    fun `mottatt dato fra bodyen lagres som mottatt-tidspunkt ved midnatt og leses tilbake`() = runTest {
         withTestApplicationContextAndPostgres { tac ->
             val (sak, _) = opprettSakOgSøknad(tac)
 
@@ -183,7 +183,7 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
 
             tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
                 .søknader.single { it.journalpostId == "journalpost-mottatt-dato" }
-                .mottattDatoForSøknad shouldBe 14.februar(2025)
+                .mottatt shouldBe 14.februar(2025).atStartOfDay()
         }
     }
 

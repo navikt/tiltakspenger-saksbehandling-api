@@ -104,7 +104,7 @@ data class Sak(
         TiltaksdeltakelserDetErSøktTiltakspengerFor(
             this.søknader.mapNotNull { søknad ->
                 søknad.tiltak?.let { tiltak ->
-                    TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak, søknad.tidsstempelHosOss)
+                    TiltaksdeltakelseDetErSøktTiltakspengerFor(tiltak, søknad.mottatt)
                 }
             },
         )
