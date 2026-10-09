@@ -1,6 +1,9 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.libs.dato.februar
@@ -8,6 +11,8 @@ import no.nav.tiltakspenger.libs.dato.januar
 import no.nav.tiltakspenger.libs.dato.mai
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.libs.dato.september
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetBody
+import no.nav.tiltakspenger.libs.ktor.test.common.ForventetRespons
 import no.nav.tiltakspenger.libs.periode.Periode
 import no.nav.tiltakspenger.saksbehandling.common.withTestApplicationContextAndPostgres
 import no.nav.tiltakspenger.saksbehandling.objectmothers.ObjectMother
@@ -16,8 +21,10 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.opprett
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.periodeSpm
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.spørsmål
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvManueltRegistrertSøknad
+import no.nav.tiltakspenger.saksbehandling.statistikk.hentSaksstatistikk
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.BarnetilleggFraSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.IkkeInnvilgbarSøknad
+import no.nav.tiltakspenger.saksbehandling.søknad.domene.InnvilgbarSøknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknad
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import org.junit.jupiter.api.Test
@@ -164,6 +171,92 @@ class StartBehandlingAvManueltRegistrertSøknadRouteTest {
                     .søknader.single { it.journalpostId == journalpostId }
                     .søknadstype shouldBe søknadstype
             }
+        }
+    }
+
+    @Test
+    fun `mottatt dato fra bodyen lagres som mottatt-tidspunkt ved midnatt og leses tilbake`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-mottatt-dato",
+                manueltSattSøknadMottattDato = 14.februar(2025),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.single { it.journalpostId == "journalpost-mottatt-dato" }
+                .mottatt shouldBe 14.februar(2025).atStartOfDay()
+        }
+    }
+
+    /**
+     * Saksbehandleren registrerer søknaden lenge etter at den kom inn til Nav.
+     * Kravtidspunktet, kravdatoen og saksstatistikken skal følge datoen søknaden kom inn, ikke registreringstidspunktet.
+     */
+    @Test
+    fun `kravtidspunkt, kravdato og saksstatistikk følger mottatt dato for papirsøknad med tiltak`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val tiltaksdeltakelse = tac.tiltaksdeltakelse()
+            val (sak, _) = opprettSakOgSøknad(tac, tiltaksdeltakelse = tiltaksdeltakelse)
+            val mottattDato = 14.februar(2023)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-krav",
+                manueltSattSøknadMottattDato = mottattDato,
+                tiltakJson = """
+                    {
+                      "eksternDeltakelseId": "${tiltaksdeltakelse.eksternDeltakelseId}",
+                      "deltakelseFraOgMed": "${tiltaksdeltakelse.deltakelseFraOgMed!!}",
+                      "deltakelseTilOgMed": "${tiltaksdeltakelse.deltakelseTilOgMed!!}",
+                      "typeKode": "${tiltaksdeltakelse.typeKode.name}",
+                      "typeNavn": "${tiltaksdeltakelse.typeNavn}"
+                    }
+                """.trimIndent(),
+                svarJson = spørsmål(harSøktPåTiltak = "JA"),
+            )
+
+            val oppdatertSak = tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+            val søknad = oppdatertSak.søknader.single { it.journalpostId == "journalpost-krav" }
+            val behandling = oppdatertSak.rammebehandlinger.søknadsbehandlinger.single { it.søknad.id == søknad.id }
+
+            søknad.opprettet shouldNotBe søknad.mottatt
+            søknad.shouldBeInstanceOf<InnvilgbarSøknad>().kravdato shouldBe mottattDato
+            behandling.kravtidspunkt shouldBe mottattDato.atStartOfDay()
+            oppdatertSak.tiltaksdeltakelserDetErSøktTiltakspengerFor.map { it.kravtidspunkt } shouldContain mottattDato.atStartOfDay()
+
+            val saksstatistikk = tac.sessionFactory.hentSaksstatistikk(sak.id)
+                .filter { it.behandlingId == behandling.id.toString() }
+            saksstatistikk shouldHaveAtLeastSize 1
+            saksstatistikk.forEach { it.mottattTidspunkt shouldBe mottattDato.atStartOfDay() }
+        }
+    }
+
+    @Test
+    fun `avviser søknad uten mottatt dato`() = runTest {
+        withTestApplicationContextAndPostgres { tac ->
+            val (sak, _) = opprettSakOgSøknad(tac)
+
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = sak.saksnummer,
+                journalpostId = "journalpost-uten-mottatt-dato",
+                manueltSattSøknadMottattDato = null,
+                forventet = ForventetRespons(
+                    status = 400,
+                    contentType = "application/json; charset=UTF-8",
+                    body = ForventetBody.Json(
+                        """{"melding":"Kunne ikke deserialisere request","kode":"ugyldig_request"}""",
+                    ),
+                ),
+            )
+
+            tac.sakContext.sakRepo.hentForSaksnummer(sak.saksnummer)!!
+                .søknader.none { it.journalpostId == "journalpost-uten-mottatt-dato" } shouldBe true
         }
     }
 }

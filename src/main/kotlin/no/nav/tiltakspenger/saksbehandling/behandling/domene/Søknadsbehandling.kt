@@ -81,7 +81,7 @@ data class Søknadsbehandling(
 
     override val barnetillegg = resultat?.barnetillegg
 
-    val kravtidspunkt: LocalDateTime = søknad.tidsstempelHosOss
+    val kravtidspunkt: LocalDateTime = søknad.mottatt
 
     /**
      * To kriterier må være oppfylt for at en søknadsbehandling skal kunne innvilges:

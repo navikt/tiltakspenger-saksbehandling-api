@@ -93,7 +93,7 @@ class OlderMottaSøknadTest {
                         ),
                     ),
                     opprettet = actualSøknad.opprettet,
-                    tidsstempelHosOss = LocalDateTime.parse("2023-06-14T21:12:08.447993177"),
+                    mottatt = LocalDateTime.parse("2023-06-14T21:12:08.447993177"),
                     vedlegg = 0,
                     harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
                     harSøktOmBarnetillegg = Søknad.JaNeiSpm.Ja,

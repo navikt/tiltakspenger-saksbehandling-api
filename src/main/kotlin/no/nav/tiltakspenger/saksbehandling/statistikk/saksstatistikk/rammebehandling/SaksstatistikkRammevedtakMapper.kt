@@ -29,7 +29,7 @@ fun Rammevedtak.genererSaksstatistikk(): GenererSaksstatistikk {
             // Vi kan legge den på senere.
             relatertBehandlingId = null,
             fnr = behandling.fnr.verdi,
-            mottattTidspunkt = if (erSøknadsbehandling) behandling.søknad.opprettet else behandling.opprettet,
+            mottattTidspunkt = if (erSøknadsbehandling) behandling.søknad.mottatt else behandling.opprettet,
             registrertTidspunkt = behandling.opprettet,
             ferdigBehandletTidspunkt = this.opprettet,
             vedtakTidspunkt = this.opprettet,

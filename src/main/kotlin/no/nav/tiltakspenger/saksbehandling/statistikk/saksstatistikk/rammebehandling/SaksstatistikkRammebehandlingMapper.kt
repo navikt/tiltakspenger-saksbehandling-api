@@ -30,7 +30,7 @@ fun Rammebehandling.genererSaksstatistikk(
             behandlingId = this.id.toString(),
             relatertBehandlingId = null,
             fnr = this.fnr.verdi,
-            mottattTidspunkt = if (erSøknadsbehandling) this.søknad.opprettet else this.opprettet,
+            mottattTidspunkt = if (erSøknadsbehandling) this.søknad.mottatt else this.opprettet,
             registrertTidspunkt = this.opprettet,
             ferdigBehandletTidspunkt = this.avbrutt?.tidspunkt,
             vedtakTidspunkt = null,

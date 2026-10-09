@@ -26,6 +26,7 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.søknad.service.StartBehandlingAvManueltRegistrertSøknadService
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerRepo
+import java.time.LocalDate
 
 private val logger = KotlinLogging.logger {}
 
@@ -84,6 +85,7 @@ fun Route.startBehandlingAvManueltRegistrertSøknadRoute(
 data class StartBehandlingAvManueltRegistrertSøknadCommand(
     val journalpostId: JournalpostId,
     val manueltSattSøknadsperiode: Periode?,
+    val manueltSattSøknadMottattDato: LocalDate,
     val manueltSattTiltak: String?,
     val behandlingsarsak: Behandlingsarsak?,
     val søknadstiltak: Søknadstiltak?,

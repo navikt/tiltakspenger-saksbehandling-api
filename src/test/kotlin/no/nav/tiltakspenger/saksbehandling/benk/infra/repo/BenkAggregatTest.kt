@@ -81,6 +81,7 @@ import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.sendSø
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settKlagebehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settMeldekortbehandlingPåVent
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.settRammebehandlingPåVent
+import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.startBehandlingAvManueltRegistrertSøknad
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.taRammebehandlinger
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tilUtfyltFraBruker
 import no.nav.tiltakspenger.saksbehandling.routes.RouteBehandlingBuilder.tildelTilbakekrevingBehandling
@@ -219,11 +220,38 @@ class BenkAggregatTest {
             rad.felles.ventestatus.frist shouldBe null
             rad.status shouldBe BenkBehandlingsstatus.UNDER_BEHANDLING
             rad.søknadstype shouldBe BenkSøknadstype.DIGITAL
-            rad.kravtidspunkt shouldBe søknad.opprettet
+            rad.kravtidspunkt shouldBe søknad.mottatt
             rad.resultat shouldBe BenkSøknadsbehandlingResultat.INNVILGELSE
             // Kommandoene på raden er de samme reglene som på selve behandlingen — dette pinner speilingen.
             rad.finnGyldigeKommandoer(ObjectMother.saksbehandler()) shouldBe
                 underBehandling.finnGyldigeKommandoer(ObjectMother.saksbehandler())
+        }
+    }
+
+    /**
+     * Papirsøknaden registreres etter den digitale, men kom inn til Nav før den.
+     * Benken skal prioritere etter når søknaden kom inn, ikke etter når vi registrerte den.
+     */
+    @Test
+    @IsolatedDatabaseTest
+    fun `papirsøknad får mottatt dato som kravtidspunkt og sorteres foran en digital søknad som kom inn senere`() {
+        withTestApplicationContextAndPostgres(runIsolated = true) { tac ->
+            val (digitalSak, digitalSøknad, _) = opprettSøknadsbehandlingUnderBehandlingMedInnvilgelse(tac = tac)
+            val papirMottatt = digitalSøknad.mottatt.toLocalDate().minusDays(10)
+            val (papirSak, _) = opprettSakOgSøknad(tac = tac)
+            startBehandlingAvManueltRegistrertSøknad(
+                tac = tac,
+                saksnummer = papirSak.saksnummer,
+                journalpostId = "journalpost-papir",
+                manueltSattSøknadMottattDato = papirMottatt,
+            )
+
+            val rader = tac.benkContext.benkRepo.hentSøknader(søknaderCommand()).behandlinger
+
+            rader.map { it.felles.sakId } shouldBe listOf(papirSak.id, digitalSak.id)
+            rader.first().søknadstype shouldBe BenkSøknadstype.PAPIR_SKJEMA
+            rader.first().kravtidspunkt shouldBe papirMottatt.atStartOfDay()
+            rader.last().kravtidspunkt shouldBe digitalSøknad.mottatt
         }
     }
 

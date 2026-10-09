@@ -117,6 +117,7 @@ fun Route.routes(
             sakService = applicationContext.sakContext.sakService,
             validerJournalpostService = applicationContext.søknadContext.validerJournalpostService,
             tiltaksdeltakerRepo = applicationContext.tiltakContext.tiltaksdeltakerRepo,
+            clock = applicationContext.clock,
         )
 
         tilbakekrevingRoutes(

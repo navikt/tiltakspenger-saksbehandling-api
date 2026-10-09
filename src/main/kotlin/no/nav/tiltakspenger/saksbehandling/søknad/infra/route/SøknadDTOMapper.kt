@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.saksbehandling.søknad.infra.route
 
 import no.nav.tiltakspenger.libs.common.SøknadId
+import no.nav.tiltakspenger.libs.common.nå
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.soknad.BarnetilleggDTO
 import no.nav.tiltakspenger.libs.soknad.FraOgMedDatoSpmDTO
@@ -18,14 +19,14 @@ import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadshendelser
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstiltak
 import no.nav.tiltakspenger.saksbehandling.søknad.domene.Søknadstype
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
-import java.time.LocalDateTime
+import java.time.Clock
 
 object SøknadDTOMapper {
     fun mapDigitalsøknad(
         dto: SøknadDTO,
-        innhentet: LocalDateTime,
         sak: Sak,
         internTiltaksdeltakelsesId: TiltaksdeltakerId,
+        clock: Clock,
     ): InnvilgbarSøknad =
         InnvilgbarSøknad(
             id = SøknadId.fromString(dto.søknadId),
@@ -41,8 +42,8 @@ object SøknadDTOMapper {
             barnetillegg =
             dto.barnetilleggPdl.map { it.tilDomenePdl() } +
                 dto.barnetilleggManuelle.map { it.tilDomeneManuell() },
-            opprettet = dto.opprettet,
-            tidsstempelHosOss = innhentet,
+            opprettet = nå(clock),
+            mottatt = dto.opprettet,
             vedlegg = dto.vedlegg,
             harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
             harSøktOmBarnetillegg = if (dto.barnetilleggPdl.isNotEmpty() || dto.barnetilleggManuelle.isNotEmpty()) Søknad.JaNeiSpm.Ja else Søknad.JaNeiSpm.Nei,
