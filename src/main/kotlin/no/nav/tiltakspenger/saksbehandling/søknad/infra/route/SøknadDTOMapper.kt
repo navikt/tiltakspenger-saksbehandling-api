@@ -43,7 +43,7 @@ object SøknadDTOMapper {
             dto.barnetilleggPdl.map { it.tilDomenePdl() } +
                 dto.barnetilleggManuelle.map { it.tilDomeneManuell() },
             opprettet = nå(clock),
-            mottatt = dto.opprettet, // Dette er tidspunktet hvor søknaden er opprettet i søknadsapiet
+            mottatt = dto.opprettet,
             vedlegg = dto.vedlegg,
             harSøktPåTiltak = Søknad.JaNeiSpm.Ja,
             harSøktOmBarnetillegg = if (dto.barnetilleggPdl.isNotEmpty() || dto.barnetilleggManuelle.isNotEmpty()) Søknad.JaNeiSpm.Ja else Søknad.JaNeiSpm.Nei,
