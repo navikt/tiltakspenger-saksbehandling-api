@@ -109,15 +109,16 @@ fun Row.toBehandling(session: Session): Rammebehandling {
     val utbetalingskontroll =
         stringOrNull("utbetalingskontroll")?.tilRammebehandlingUtbetalingskontroll(id, meldeperiodekjeder)
 
+    val manueltBehandlesGrunnerJson = stringOrNull("manuelt_behandles_grunner")
+
+    // Eksplisitt if er bevisst: elvis-varianten kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
+    @Suppress("IfThenToElvis")
+    val manueltBehandlesGrunner =
+        if (manueltBehandlesGrunnerJson == null) emptyList() else manueltBehandlesGrunnerJson.toManueltBehandlesGrunner()
+
     when (behandlingstype) {
         Behandlingstype.SØKNADSBEHANDLING -> {
             val automatiskSaksbehandlet = boolean("automatisk_saksbehandlet")
-            val manueltBehandlesGrunnerJson = stringOrNull("manuelt_behandles_grunner")
-
-            // Eksplisitt if er bevisst: elvis-varianten kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
-            @Suppress("IfThenToElvis")
-            val manueltBehandlesGrunner =
-                if (manueltBehandlesGrunnerJson == null) emptyList() else manueltBehandlesGrunnerJson.toManueltBehandlesGrunner()
             val resultatType = stringOrNull("resultat")?.tilSøknadsbehandlingResultatType()
 
             val resultat = resultatType?.let {
@@ -242,6 +243,7 @@ fun Row.toBehandling(session: Session): Rammebehandling {
                 utbetaling = utbetaling,
                 utbetalingskontroll = utbetalingskontroll,
                 automatiskOpprettetGrunn = stringOrNull("automatisk_opprettet_grunn")?.toAutomatiskOpprettetRevurderingGrunn(),
+                manueltBehandlesGrunner = manueltBehandlesGrunner,
                 skalSendeVedtaksbrev = boolean("skal_sende_vedtaksbrev"),
                 skalJournalføreNotat = boolean("skal_journalfore_notat"),
             )
@@ -273,7 +275,7 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
 
     val manueltBehandlesGrunner = when (this) {
         is Søknadsbehandling -> this.manueltBehandlesGrunner
-        is Revurdering -> null
+        is Revurdering -> this.manueltBehandlesGrunner
     }
     // let-formen er bevisst: kjeden `x?.f()?.g()` kompilerer til en ekstra null-sjekk som aldri kan slå til, og den ville stått som en permanent udekket gren i grendekningsgaten.
     @Suppress("SimpleRedundantLet")
@@ -301,7 +303,7 @@ fun Rammebehandling.tilDbParams(): Map<String, Any?> {
         "behandlingstype" to this.behandlingstype.toDbValue(),
         "soknad_id" to søknadId,
         "automatisk_saksbehandlet" to automatiskSaksbehandlet,
-        "manuelt_behandles_grunner" to manueltBehandlesGrunner?.toDbJson(),
+        "manuelt_behandles_grunner" to manueltBehandlesGrunner.toDbJson(),
         "beregning" to this.utbetaling?.let { it.beregning.tilBeregningerDbJsonString() },
         "simulering" to this.utbetaling?.simulering?.toDbJson(),
         "utbetalingskontroll" to this.utbetalingskontroll?.tilUtbetalingskontrollDbJson(),

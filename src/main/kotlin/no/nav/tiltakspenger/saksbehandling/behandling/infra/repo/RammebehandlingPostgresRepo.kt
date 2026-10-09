@@ -317,6 +317,26 @@ class RammebehandlingPostgresRepo(
         }
     }
 
+    override fun hentAutomatiskeRevurderingIder(limit: Int): List<RammebehandlingId> {
+        return sessionFactory.withSession { session ->
+            session.run(
+                queryOf(
+                    //language=SQL
+                    """
+                    select b.id
+                    from behandling b
+                    where
+                      b.behandlingstype = 'REVURDERING' and
+                      b.status = 'UNDER_AUTOMATISK_BEHANDLING'
+                    order by b.opprettet
+                    limit :limit
+                    """.trimIndent(),
+                    mapOf("limit" to limit),
+                ).map { RammebehandlingId.fromString(it.string("id")) }.asList,
+            )
+        }
+    }
+
     companion object {
         /**
          * Felles `set`-del for oppdatering av hele rammebehandlingen.

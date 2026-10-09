@@ -4,6 +4,7 @@ import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.libs.dato.mars
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltakDeltakerstatus
+import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.domene.AutomatiskOpprettetRevurderingGrunn
 import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.infra.jobb.TiltaksdeltakerEndring
 import org.junit.jupiter.api.Test
@@ -22,10 +23,12 @@ import org.junit.jupiter.params.provider.MethodSource
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AutomatiskOpprettetRevurderingGrunnDbJsonTest {
 
-    private fun grunn(endring: TiltaksdeltakerEndring) = AutomatiskOpprettetRevurderingGrunn(endring = endring)
+    private val tiltaksdeltakerId = TiltaksdeltakerId.fromString("tiltaksdeltaker_01JQ8Z4XW9K5N2P7R3T6V8Y1BC")
+
+    private fun grunn(endring: TiltaksdeltakerEndring) = AutomatiskOpprettetRevurderingGrunn(endring = endring, tiltaksdeltakerId = tiltaksdeltakerId)
 
     private fun json(vararg endringer: String): String =
-        """{ "endringer": [${endringer.joinToString(",")}] }"""
+        """{ "endringer": [${endringer.joinToString(",")}], "tiltaksdeltakerId": "$tiltaksdeltakerId" }"""
 
     private fun endringJson(
         type: String,
@@ -90,9 +93,15 @@ class AutomatiskOpprettetRevurderingGrunnDbJsonTest {
     }
 
     @Test
-    fun `eldre rad med hendelseId leses`() {
+    fun `eldre rad med hendelseId og uten tiltaksdeltakerId leses`() {
         """{ "hendelseId": "01JQ8Z4XW9K5N2P7R3T6V8Y1BC", "endringer": [${endringJson("AVBRUTT_DELTAKELSE")}] }""".toAutomatiskOpprettetRevurderingGrunn() shouldBe
-            AutomatiskOpprettetRevurderingGrunn(endring = TiltaksdeltakerEndring.AvbruttDeltakelse)
+            AutomatiskOpprettetRevurderingGrunn(endring = TiltaksdeltakerEndring.AvbruttDeltakelse, tiltaksdeltakerId = null)
+    }
+
+    @Test
+    fun `grunn uten tiltaksdeltakerId lagres uten id`() {
+        AutomatiskOpprettetRevurderingGrunn(endring = TiltaksdeltakerEndring.AvbruttDeltakelse, tiltaksdeltakerId = null).toDbJson() shouldEqualJson
+            """{ "endringer": [${endringJson("AVBRUTT_DELTAKELSE")}], "tiltaksdeltakerId": null }"""
     }
 
     @Test

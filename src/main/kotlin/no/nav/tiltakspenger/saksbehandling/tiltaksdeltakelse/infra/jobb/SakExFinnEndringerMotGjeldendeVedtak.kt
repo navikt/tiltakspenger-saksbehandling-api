@@ -255,6 +255,7 @@ private fun GjeldendeInnvilgelse.finnEndringer(
  *
  * - Avbrudd gir stans, så lenge deltakelsen er innvilget fra og med i dag og ingen andre deltakelser er innvilget etter avbruddet.
  * Er andre deltakelser innvilget etter avbruddet, vurderes omgjøring i stedet, siden en stans også ville stanset dem.
+ * Stansen behandles automatisk etter at den er opprettet, se [no.nav.tiltakspenger.saksbehandling.behandling.domene.automatiskStans.utledAutomatiskStans].
  * - Forlengelse gir innvilgelse dersom ny sluttdato er etter siste dag med rett på saken.
  * Ellers vurderes omgjøring dersom deltakelsesmengden er endret samtidig.
  * - Endret startdato, sluttdato eller deltakelsesmengde gir omgjøring.
