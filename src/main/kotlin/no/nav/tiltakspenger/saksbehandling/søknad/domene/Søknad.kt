@@ -13,6 +13,11 @@ import no.nav.tiltakspenger.saksbehandling.tiltaksdeltakelse.TiltaksdeltakerId
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * [opprettet] Dette er tidspunktet hvor søknaden er opprettet i saksbehandlingsapiet
+ * [mottatt] Dette er tidspunktet hvor søknaden er opprettet i søknadsapiet
+ */
+
 sealed interface Søknad {
     val versjon: String
     val id: SøknadId
