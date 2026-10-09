@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.saksbehandling.ytelser.infra.http.UtbetalingDtoTestE
 object UtbetalingsoversiktDtoTestEx {
     const val SYNTETISK_ORGANISASJONSNUMMER = "999111222"
     const val SYNTETISK_SAMHANDLERIDENT = "80912345678"
+    const val SYNTETISK_BILAGSNUMMER = "700000001"
 
     fun riktSvar(fnr: Fnr): String = UtbetalingDtoTestEx.riktSvar(fnr)
 
@@ -154,6 +155,89 @@ object UtbetalingsoversiktDtoTestEx {
             ]
           }
         ]
+        """.trimIndent()
+    }
+
+    /**
+     * Svaret fra tjenesten i dev 2026-10-08 for én sak, med [fnr] og et syntetisk bilagsnummer i stedet for de ekte.
+     * Én utbetaling postert 28. september 2026 dekker tre måneder tidligere i året, og satsfeltene er 0.
+     */
+    fun svarMedTreTidligereMånederIEnUtbetaling(fnr: Fnr): String {
+        // language=json
+        return """
+        [
+          {
+            "ytelseListe": [
+              ${ytelseFraDev("2026-01-01", "2026-01-30", "9328.00", listOf("Barnetillegg" to "2464.00", "Tiltakspenger" to "6864.00"), fnr.verdi)},
+              ${ytelseFraDev("2026-02-02", "2026-02-27", "8480.00", listOf("Tiltakspenger" to "6240.00", "Barnetillegg" to "2240.00"), fnr.verdi)},
+              ${ytelseFraDev("2026-03-02", "2026-03-06", "2120.00", listOf("Tiltakspenger" to "1560.00", "Barnetillegg" to "560.00"), fnr.verdi)}
+            ],
+            "utbetaltTil": { "aktoertype": "PERSON", "ident": "${fnr.verdi}", "navn": null },
+            "utbetalingsmetode": "Norsk bankkonto",
+            "utbetalingsstatus": "Utbetalt",
+            "posteringsdato": "2026-09-28",
+            "forfallsdato": "2026-09-28",
+            "utbetalingsdato": "2026-09-28",
+            "utbetalingNettobeloep": 19928.00,
+            "utbetalingsmelding": "010126 - 060326 Per dag  424,00",
+            "utbetaltTilKonto": null
+          }
+        ]
+        """.trimIndent()
+    }
+
+    /**
+     * Svaret fra tjenesten i dev 2026-10-08 for en annen sak, med [fnr] og et syntetisk bilagsnummer i stedet for de ekte.
+     * Ytelsen begynner 5. desember 2025, dagen før sakens behandlingsgrunnlagsperiode, og meldingen dekker ikke hele ytelsesperioden.
+     */
+    fun svarMedYtelseSomBegynnerFørGrunnlaget(fnr: Fnr): String {
+        // language=json
+        return """
+        [
+          {
+            "ytelseListe": [
+              ${ytelseFraDev("2025-12-05", "2025-12-26", "6854.00", listOf("Tiltakspenger" to "6854.00"), fnr.verdi)}
+            ],
+            "utbetaltTil": { "aktoertype": "PERSON", "ident": "${fnr.verdi}", "navn": null },
+            "utbetalingsmetode": "Norsk bankkonto",
+            "utbetalingsstatus": "Utbetalt",
+            "posteringsdato": "2026-09-28",
+            "forfallsdato": "2026-09-28",
+            "utbetalingsdato": "2026-09-28",
+            "utbetalingNettobeloep": 6854.00,
+            "utbetalingsmelding": "261225 - 261225 Per dag  894,00, 221225 - 251225 Per dag  298,00, 191225 - 191225 Per dag  894,00, 151225 - 181225 Per dag  298,00, 121225 - 121225 Per dag  894,00",
+            "utbetaltTilKonto": null
+          }
+        ]
+        """.trimIndent()
+    }
+
+    private fun ytelseFraDev(
+        fom: String,
+        tom: String,
+        nettobeløp: String,
+        komponenter: List<Pair<String, String>>,
+        rettighetshaver: String,
+    ): String {
+        val komponentliste = komponenter.joinToString(",") { (type, beløp) ->
+            """{ "ytelseskomponenttype": "$type", "satsbeloep": 0.00, "satstype": "Dag", "satsantall": 0.0, "ytelseskomponentbeloep": $beløp }"""
+        }
+        // language=json
+        return """
+              {
+                "ytelsestype": "Tiltakspenger",
+                "ytelsesperiode": { "fom": "$fom", "tom": "$tom" },
+                "ytelseNettobeloep": $nettobeløp,
+                "rettighetshaver": { "aktoertype": "PERSON", "ident": "$rettighetshaver", "navn": null },
+                "skattsum": 0.00,
+                "trekksum": 0.00,
+                "ytelseskomponentersum": $nettobeløp,
+                "skattListe": [],
+                "trekkListe": [],
+                "ytelseskomponentListe": [$komponentliste],
+                "bilagsnummer": "$SYNTETISK_BILAGSNUMMER",
+                "refundertForOrg": null
+              }
         """.trimIndent()
     }
 

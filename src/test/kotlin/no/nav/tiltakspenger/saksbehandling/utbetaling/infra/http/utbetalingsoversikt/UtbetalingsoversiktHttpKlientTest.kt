@@ -13,6 +13,11 @@ import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.personopplysning.Fnr
 import no.nav.tiltakspenger.libs.common.random
 import no.nav.tiltakspenger.libs.dato.august
+import no.nav.tiltakspenger.libs.dato.desember
+import no.nav.tiltakspenger.libs.dato.februar
+import no.nav.tiltakspenger.libs.dato.januar
+import no.nav.tiltakspenger.libs.dato.mars
+import no.nav.tiltakspenger.libs.dato.oktober
 import no.nav.tiltakspenger.libs.dato.september
 import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
@@ -241,6 +246,67 @@ class UtbetalingsoversiktHttpKlientTest {
             resultat.avgrensetSvar shouldNotContain annenPerson.verdi
             resultat.avgrensetSvar shouldNotContain "navn\":\"F"
             resultat.avgrensetSvar shouldNotContain "kontonummer"
+        }
+    }
+
+    /** Hele lista sammenlignes, så endringer i hvordan et ekte svar leses, blir synlige. */
+    @Test
+    fun `tre tidligere måneder i én utbetaling gir alle ytelsene med beløp, komponenter og satsfelt som er 0`() {
+        val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(1.januar(2026), 31.oktober(2026))))
+        val svar = UtbetalingsoversiktDtoTestEx.svarMedTreTidligereMånederIEnUtbetaling(fnr)
+
+        fun ytelse(periode: Periode, nettobeløp: String, vararg komponenter: Pair<String, String>) = RegistrertYtelse(
+            ytelsestype = "Tiltakspenger",
+            periode = periode,
+            nettobeløp = nettobeløp.toBigDecimal(),
+            rettighetshaver = Aktør.Person(fnr),
+            skattesum = "0.00".toBigDecimal(),
+            trekksum = "0.00".toBigDecimal(),
+            komponentsum = nettobeløp.toBigDecimal(),
+            komponenter = komponenter.map { (type, beløp) ->
+                Ytelseskomponent(type = type, satsbeløp = "0.00".toBigDecimal(), satstype = "Dag", satsantall = 0.0, beløp = beløp.toBigDecimal())
+            },
+            trekk = emptyList(),
+            skattetrekk = emptyList(),
+            bilagsnummer = UtbetalingsoversiktDtoTestEx.SYNTETISK_BILAGSNUMMER,
+            refundertFor = null,
+        )
+
+        runTest {
+            val resultat = hent(transportMed(svar), grunnlag = grunnlag).getOrFail()
+
+            resultat.utbetalinger shouldBe listOf(
+                RegistrertUtbetaling(
+                    utbetaltTil = Aktør.Person(fnr),
+                    utbetalingsmetode = "Norsk bankkonto",
+                    utbetalingsstatus = "Utbetalt",
+                    posteringsdato = 28.september(2026),
+                    forfallsdato = 28.september(2026),
+                    utbetalingsdato = 28.september(2026),
+                    nettobeløp = "19928.00".toBigDecimal(),
+                    melding = "010126 - 060326 Per dag  424,00",
+                    ytelser = listOf(
+                        ytelse(Periode(1.januar(2026), 30.januar(2026)), "9328.00", "Barnetillegg" to "2464.00", "Tiltakspenger" to "6864.00"),
+                        ytelse(Periode(2.februar(2026), 27.februar(2026)), "8480.00", "Tiltakspenger" to "6240.00", "Barnetillegg" to "2240.00"),
+                        ytelse(Periode(2.mars(2026), 6.mars(2026)), "2120.00", "Tiltakspenger" to "1560.00", "Barnetillegg" to "560.00"),
+                    ),
+                ),
+            )
+            resultat.avgrensning.antallYtelserMottatt shouldBe 3
+            resultat.avgrensning.fjernedeYtelserPerÅrsak shouldBe emptyMap()
+        }
+    }
+
+    @Test
+    fun `en ytelse som begynner dagen før grunnlaget, beholdes med totalbeløpet`() {
+        val grunnlag = Utbetalingsoversiktgrunnlag(fnr, listOf(Periode(6.desember(2025), 31.august(2026))))
+        val svar = UtbetalingsoversiktDtoTestEx.svarMedYtelseSomBegynnerFørGrunnlaget(fnr)
+
+        runTest {
+            val utbetaling = hent(transportMed(svar), grunnlag = grunnlag).getOrFail().utbetalinger.single()
+
+            utbetaling.ytelser.single().periode shouldBe Periode(5.desember(2025), 26.desember(2025))
+            utbetaling.nettobeløp shouldBe "6854.00".toBigDecimal()
         }
     }
 
